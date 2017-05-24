@@ -23,7 +23,7 @@ public class Util {
         try {
             Class.forName(className);
             return true;
-        } catch (Exception e) {
+        } catch (ClassNotFoundException e) {
             return false;
         }
     }

@@ -4,12 +4,16 @@
 
 package javalin;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javalin.core.util.Util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ResponseMapper {
+
+    private static Logger log = LoggerFactory.getLogger(ResponseMapper.class);
 
     // TODO: Add GSON or other alternatives?
 
@@ -17,11 +21,17 @@ public class ResponseMapper {
         if (Util.classExists("com.fasterxml.jackson.databind.ObjectMapper")) {
             try {
                 return new ObjectMapper().writeValueAsString(object);
-            } catch (JsonProcessingException e) {
-                throw new HaltException(500, "Failed to write object as JSON");
+            } catch (Exception e) {
+                String message = "Failed to write object as JSON";
+                log.warn(message, e);
+                throw new HaltException(500, message);
             }
         } else {
-            throw new HaltException(500, "No JSON-mapper available");
+            String message = "Jackson dependency missing. "
+                + "Please add Jackson to your POM to use automatic json-mapping: "
+                + "https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind";
+            log.warn(message);
+            throw new HaltException(500, message);
         }
     }
 
