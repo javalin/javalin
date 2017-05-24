@@ -14,8 +14,9 @@
     <version>0.0.1-SNAPSHOT</version>
 
     <name>Javalin</name>
-    <description>A Java/Kotlin micro web framework</description>
+    <description>Javalin: A Simple REST API Library for Java/Kotlin</description>
     <url>https://javalin.io</url>
+    
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
