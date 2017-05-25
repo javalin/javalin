@@ -4,10 +4,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import javalin.util.TestObject_NonSerializable;
-import javalin.util.TestObject_Serializable;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;

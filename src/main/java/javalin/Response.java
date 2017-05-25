@@ -14,9 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javalin.builder.CookieBuilder;
-import javalin.core.util.Util;
 
-import static javalin.ResponseMapper.TemplateUtil.*;
 import static javalin.builder.CookieBuilder.*;
 
 public class Response {
@@ -147,12 +145,17 @@ public class Response {
 
     public Response renderVelocity(String templatePath, Map<String, Object> model) {
         ResponseMapper.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity");
-        return html(ResponseMapper.Velocity.renderVelocityTemplate(templatePath, model));
+        return html(ResponseMapper.Velocity.render(templatePath, model));
     }
 
     public Response renderFreemarker(String templatePath, Map<String, Object> model) {
         ResponseMapper.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker");
-        return html(ResponseMapper.Freemarker.renderFreemarkerTemplate(templatePath, model));
+        return html(ResponseMapper.Freemarker.render(templatePath, model));
+    }
+
+    public Response renderThymeleaf(String templatePath, Map<String, Object> model) {
+        ResponseMapper.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3");
+        return html(ResponseMapper.Thymeleaf.render(templatePath, model));
     }
 
 }

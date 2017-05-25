@@ -6,8 +6,6 @@
 
 package javalin;
 
-import java.util.HashMap;
-
 import org.apache.velocity.app.VelocityEngine;
 import org.junit.Test;
 
@@ -18,9 +16,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 
-import static javalin.ResponseMapper.TemplateUtil.model;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static javalin.ResponseMapper.TemplateUtil.*;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 public class TestResponseMapper extends _UnirestBaseTest {
 
@@ -65,6 +63,12 @@ public class TestResponseMapper extends _UnirestBaseTest {
     public void test_renderFreemarker_works() throws Exception {
         app.get("/hello", (req, res) -> res.renderFreemarker("/templates/freemarker/test.ftl", model("message", "Hello Freemarker!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Freemarker!</h1>"));
+    }
+
+    @Test
+    public void test_renderThymeleaf_works() throws Exception {
+        app.get("/hello", (req, res) -> res.renderThymeleaf("/templates/thymeleaf/test.html", model("message", "Hello Thymeleaf!")));
+        assertThat(GET_body("/hello"), is("<h1>Hello Thymeleaf!</h1>"));
     }
 
 }

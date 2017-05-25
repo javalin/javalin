@@ -90,6 +90,12 @@
             <version>2.3.26-incubating</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf</artifactId>
+            <version>3.0.6.RELEASE</version>
+            <optional>true</optional>
+        </dependency>
         <!-- END Optional dependencies -->
 
         <!-- BEGIN Test dependencies -->

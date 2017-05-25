@@ -10,18 +10,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
-import freemarker.template.Version;
 import javalin.core.util.Util;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ResponseMapper {
 
@@ -43,11 +35,11 @@ public class ResponseMapper {
 
     // TODO: Add GSON or other alternatives?
     static class Jackson {
-        private static ObjectMapper objectMapper;
+        private static com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
         static String toJson(Object object) {
             if (objectMapper == null) {
-                objectMapper = new ObjectMapper();
+                objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
             }
             try {
                 return objectMapper.writeValueAsString(object);
@@ -60,20 +52,20 @@ public class ResponseMapper {
     }
 
     static class Velocity {
-        private static VelocityEngine velocityEngine;
+        private static org.apache.velocity.app.VelocityEngine velocityEngine;
 
-        public static void setEngine(VelocityEngine staticVelocityEngine) {
+        public static void setEngine(org.apache.velocity.app.VelocityEngine staticVelocityEngine) {
             velocityEngine = staticVelocityEngine;
         }
 
-        static String renderVelocityTemplate(String templatePath, Map<String, Object> model) {
+        static String render(String templatePath, Map<String, Object> model) {
             if (velocityEngine == null) {
-                velocityEngine = new VelocityEngine();
+                velocityEngine = new org.apache.velocity.app.VelocityEngine();
                 velocityEngine.setProperty("resource.loader", "class");
                 velocityEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
             }
-            Template template = velocityEngine.getTemplate(templatePath, StandardCharsets.UTF_8.name());
-            VelocityContext context = new VelocityContext(model);
+            org.apache.velocity.Template template = velocityEngine.getTemplate(templatePath, StandardCharsets.UTF_8.name());
+            org.apache.velocity.VelocityContext context = new org.apache.velocity.VelocityContext(model);
             StringWriter writer = new StringWriter();
             template.merge(context, writer);
             return writer.toString();
@@ -81,15 +73,15 @@ public class ResponseMapper {
     }
 
     static class Freemarker {
-        private static Configuration configuration;
+        private static freemarker.template.Configuration configuration;
 
-        public static void setEngine(Configuration staticConfiguration) {
+        public static void setEngine(freemarker.template.Configuration staticConfiguration) {
             configuration = staticConfiguration;
         }
 
-        static String renderFreemarkerTemplate(String templatePath, Map<String, Object> model) {
+        static String render(String templatePath, Map<String, Object> model) {
             if (configuration == null) {
-                configuration = new Configuration(new Version(2, 3, 26));
+                configuration = new freemarker.template.Configuration(new freemarker.template.Version(2, 3, 26));
                 configuration.setClassForTemplateLoading(Freemarker.class, "/");
             }
             try {
@@ -97,9 +89,29 @@ public class ResponseMapper {
                 freemarker.template.Template template = configuration.getTemplate(templatePath);
                 template.process(model, stringWriter);
                 return stringWriter.toString();
-            } catch (IOException | TemplateException e) {
+            } catch (IOException | freemarker.template.TemplateException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    static class Thymeleaf {
+        private static org.thymeleaf.TemplateEngine templateEngine;
+
+        public static void setEngine(org.thymeleaf.TemplateEngine staticTemplateEngine) {
+            templateEngine = staticTemplateEngine;
+        }
+
+        static String render(String templatePath, Map<String, Object> model) {
+            if (templateEngine == null) {
+                templateEngine = new org.thymeleaf.TemplateEngine();
+                org.thymeleaf.templateresolver.ClassLoaderTemplateResolver templateResolver = new org.thymeleaf.templateresolver.ClassLoaderTemplateResolver();
+                templateResolver.setTemplateMode(org.thymeleaf.templatemode.TemplateMode.HTML);
+                templateEngine.setTemplateResolver(templateResolver);
+            }
+            org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
+            context.setVariables(model);
+            return templateEngine.process(templatePath, context);
         }
     }
 
