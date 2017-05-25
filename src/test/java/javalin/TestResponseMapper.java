@@ -61,4 +61,10 @@ public class TestResponseMapper extends _UnirestBaseTest {
         return strictEngine;
     }
 
+    @Test
+    public void test_renderFreemarker_works() throws Exception {
+        app.get("/hello", (req, res) -> res.renderFreemarker("/templates/freemarker/test.ftl", model("message", "Hello Freemarker!")));
+        assertThat(GET_body("/hello"), is("<h1>Hello Freemarker!</h1>"));
+    }
+
 }

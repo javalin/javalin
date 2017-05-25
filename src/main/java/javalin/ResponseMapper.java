@@ -4,11 +4,11 @@
 
 package javalin;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -16,6 +16,9 @@ import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import freemarker.template.Configuration;
+import freemarker.template.TemplateException;
+import freemarker.template.Version;
 import javalin.core.util.Util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,12 +27,18 @@ public class ResponseMapper {
 
     private static Logger log = LoggerFactory.getLogger(ResponseMapper.class);
 
+    private static Map<String, Boolean> dependencyCheckCache = new HashMap<>();
+
     public static void ensureDependencyPresent(String dependencyName, String className, String url) {
+        if (dependencyCheckCache.getOrDefault(className, false)) {
+            return;
+        }
         if (!Util.classExists(className)) {
             String message = "Missing dependency '" + dependencyName + "'. Please add dependency: https://mvnrepository.com/artifact/" + url;
             log.warn(message);
             throw new HaltException(500, message);
         }
+        dependencyCheckCache.put(className, true);
     }
 
     // TODO: Add GSON or other alternatives?
@@ -59,16 +68,38 @@ public class ResponseMapper {
 
         static String renderVelocityTemplate(String templatePath, Map<String, Object> model) {
             if (velocityEngine == null) {
-                Properties properties = new Properties();
-                properties.setProperty("resource.loader", "class");
-                properties.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-                velocityEngine = new org.apache.velocity.app.VelocityEngine(properties);
+                velocityEngine = new VelocityEngine();
+                velocityEngine.setProperty("resource.loader", "class");
+                velocityEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
             }
             Template template = velocityEngine.getTemplate(templatePath, StandardCharsets.UTF_8.name());
             VelocityContext context = new VelocityContext(model);
             StringWriter writer = new StringWriter();
             template.merge(context, writer);
             return writer.toString();
+        }
+    }
+
+    static class Freemarker {
+        private static Configuration configuration;
+
+        public static void setEngine(Configuration staticConfiguration) {
+            configuration = staticConfiguration;
+        }
+
+        static String renderFreemarkerTemplate(String templatePath, Map<String, Object> model) {
+            if (configuration == null) {
+                configuration = new Configuration(new Version(2, 3, 26));
+                configuration.setClassForTemplateLoading(Freemarker.class, "/");
+            }
+            try {
+                StringWriter stringWriter = new StringWriter();
+                freemarker.template.Template template = configuration.getTemplate(templatePath);
+                template.process(model, stringWriter);
+                return stringWriter.toString();
+            } catch (IOException | TemplateException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

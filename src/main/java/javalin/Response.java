@@ -150,8 +150,17 @@ public class Response {
     }
 
     public Response renderVelocity(String templatePath, Map<String, Object> model) {
-        ResponseMapper.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity/1.7");
+        ResponseMapper.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity");
         return html(ResponseMapper.Velocity.renderVelocityTemplate(templatePath, model));
+    }
+
+    public Response renderFreemarker(String templatePath) {
+        return renderFreemarker(templatePath, model());
+    }
+
+    public Response renderFreemarker(String templatePath, Map<String, Object> model) {
+        ResponseMapper.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker");
+        return html(ResponseMapper.Freemarker.renderFreemarkerTemplate(templatePath, model));
     }
 
 }
