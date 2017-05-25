@@ -158,4 +158,9 @@ public class Response {
         return html(ResponseMapper.Thymeleaf.render(templatePath, model));
     }
 
+    public Response renderMustache(String templatePath, Map<String, Object> model) {
+        ResponseMapper.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler");
+        return html(ResponseMapper.Mustache.render(templatePath, model));
+    }
+
 }

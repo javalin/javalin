@@ -96,6 +96,12 @@
             <version>3.0.6.RELEASE</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.9.4</version>
+            <optional>true</optional>
+        </dependency>
         <!-- END Optional dependencies -->
 
         <!-- BEGIN Test dependencies -->

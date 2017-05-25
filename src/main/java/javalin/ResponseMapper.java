@@ -54,7 +54,7 @@ public class ResponseMapper {
     static class Velocity {
         private static org.apache.velocity.app.VelocityEngine velocityEngine;
 
-        public static void setEngine(org.apache.velocity.app.VelocityEngine staticVelocityEngine) {
+        public static void configure(org.apache.velocity.app.VelocityEngine staticVelocityEngine) {
             velocityEngine = staticVelocityEngine;
         }
 
@@ -75,7 +75,7 @@ public class ResponseMapper {
     static class Freemarker {
         private static freemarker.template.Configuration configuration;
 
-        public static void setEngine(freemarker.template.Configuration staticConfiguration) {
+        public static void configure(freemarker.template.Configuration staticConfiguration) {
             configuration = staticConfiguration;
         }
 
@@ -98,7 +98,7 @@ public class ResponseMapper {
     static class Thymeleaf {
         private static org.thymeleaf.TemplateEngine templateEngine;
 
-        public static void setEngine(org.thymeleaf.TemplateEngine staticTemplateEngine) {
+        public static void configure(org.thymeleaf.TemplateEngine staticTemplateEngine) {
             templateEngine = staticTemplateEngine;
         }
 
@@ -112,6 +112,27 @@ public class ResponseMapper {
             org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
             context.setVariables(model);
             return templateEngine.process(templatePath, context);
+        }
+    }
+
+    static class Mustache {
+        private static com.github.mustachejava.MustacheFactory mustacheFactory;
+
+        public static void configure(com.github.mustachejava.MustacheFactory staticMustacheFactory) {
+            mustacheFactory = staticMustacheFactory;
+        }
+
+        static String render(String templatePath, Map<String, Object> model) {
+            if (mustacheFactory == null) {
+                mustacheFactory = new com.github.mustachejava.DefaultMustacheFactory("./");
+            }
+            try {
+                StringWriter stringWriter = new StringWriter();
+                mustacheFactory.compile(templatePath).execute(stringWriter, model).close();
+                return stringWriter.toString();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

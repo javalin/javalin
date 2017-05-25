@@ -47,7 +47,7 @@ public class TestResponseMapper extends _UnirestBaseTest {
     public void test_velocity_customEngine_works() throws Exception {
         app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", model()));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
-        ResponseMapper.Velocity.setEngine(strictVelocityEngine());
+        ResponseMapper.Velocity.configure(strictVelocityEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
     }
 
@@ -69,6 +69,12 @@ public class TestResponseMapper extends _UnirestBaseTest {
     public void test_renderThymeleaf_works() throws Exception {
         app.get("/hello", (req, res) -> res.renderThymeleaf("/templates/thymeleaf/test.html", model("message", "Hello Thymeleaf!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Thymeleaf!</h1>"));
+    }
+
+    @Test
+    public void test_renderMustache_works() throws Exception {
+        app.get("/hello", (req, res) -> res.renderMustache("/templates/mustache/test.mustache", model("message", "Hello Mustache!")));
+        assertThat(GET_body("/hello"), is("<h1>Hello Mustache!</h1>"));
     }
 
 }
