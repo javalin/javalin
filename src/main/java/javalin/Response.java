@@ -145,17 +145,9 @@ public class Response {
         return body(ResponseMapper.Jackson.toJson(object)).contentType("application/json");
     }
 
-    public Response renderVelocity(String templatePath) {
-        return renderVelocity(templatePath, model());
-    }
-
     public Response renderVelocity(String templatePath, Map<String, Object> model) {
         ResponseMapper.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity");
         return html(ResponseMapper.Velocity.renderVelocityTemplate(templatePath, model));
-    }
-
-    public Response renderFreemarker(String templatePath) {
-        return renderFreemarker(templatePath, model());
     }
 
     public Response renderFreemarker(String templatePath, Map<String, Object> model) {
