@@ -37,21 +37,6 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_responseBuilder_json() throws Exception {
-        app.get("/hello", (req, res) -> res.status(200).json(new TestObject_Serializable()));
-        String expected = new ObjectMapper().writeValueAsString(new TestObject_Serializable());
-        assertThat(GET_body("/hello"), is(expected));
-    }
-
-    @Test
-    public void test_responseBuilder_json_haltsForBadObject() throws Exception {
-        app.get("/hello", (req, res) -> res.status(200).json(new TestObject_NonSerializable()));
-        HttpResponse<String> response = call(HttpMethod.GET, "/hello");
-        assertThat(response.getStatus(), is(500));
-        assertThat(response.getBody(), is("Failed to write object as JSON"));
-    }
-
-    @Test
     public void test_redirect() throws Exception {
         app.get("/hello", (req, res) -> res.redirect("/hello-2"));
         app.get("/hello-2", (req, res) -> res.body("Redirected"));

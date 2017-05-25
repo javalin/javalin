@@ -5,6 +5,7 @@
 package javalin;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -13,7 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javalin.builder.CookieBuilder;
+import javalin.core.util.Util;
 
+import static javalin.ResponseMapper.TemplateUtil.*;
 import static javalin.builder.CookieBuilder.*;
 
 public class Response {
@@ -70,10 +73,6 @@ public class Response {
 
     public Response html(String html) {
         return body(html).contentType("text/html");
-    }
-
-    public Response json(Object object) {
-        return body(ResponseMapper.toJson(object)).contentType("application/json");
     }
 
     public Response redirect(String location) {
@@ -137,6 +136,22 @@ public class Response {
         cookie.setMaxAge(0);
         servletResponse.addCookie(cookie);
         return this;
+    }
+
+    // ResponseMapping methods
+
+    public Response json(Object object) {
+        ResponseMapper.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
+        return body(ResponseMapper.Jackson.toJson(object)).contentType("application/json");
+    }
+
+    public Response renderVelocity(String templatePath) {
+        return renderVelocity(templatePath, model());
+    }
+
+    public Response renderVelocity(String templatePath, Map<String, Object> model) {
+        ResponseMapper.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity/1.7");
+        return html(ResponseMapper.Velocity.renderVelocityTemplate(templatePath, model));
     }
 
 }
