@@ -13,8 +13,8 @@ public class TestApiBuilderTwoServices {
 
     @Test
     public void testApiBuilder_twoServices() throws Exception {
-        Javalin app1 = Javalin.create().port(55555).start().awaitInitialization();
-        Javalin app2 = Javalin.create().port(55556).start().awaitInitialization();
+        Javalin app1 = Javalin.create().port(0).start().awaitInitialization();
+        Javalin app2 = Javalin.create().port(0).start().awaitInitialization();
         app1.routes(() -> {
             get("/hello1", (req, res) -> res.body("Hello1"));
         });
@@ -27,10 +27,10 @@ public class TestApiBuilderTwoServices {
         app2.routes(() -> {
             get("/hello2", (req, res) -> res.body("Hello2"));
         });
-        assertThat(call(55555, "/hello1"), is("Hello1"));
-        assertThat(call(55556, "/hello1"), is("Hello1"));
-        assertThat(call(55555, "/hello2"), is("Hello2"));
-        assertThat(call(55556, "/hello2"), is("Hello2"));
+        assertThat(call(app1.port(), "/hello1"), is("Hello1"));
+        assertThat(call(app2.port(), "/hello1"), is("Hello1"));
+        assertThat(call(app1.port(), "/hello2"), is("Hello2"));
+        assertThat(call(app2.port(), "/hello2"), is("Hello2"));
         app1.stop().awaitTermination();
         app2.stop().awaitTermination();
     }
