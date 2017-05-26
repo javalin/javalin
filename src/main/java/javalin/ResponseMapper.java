@@ -64,11 +64,11 @@ public class ResponseMapper {
                 velocityEngine.setProperty("resource.loader", "class");
                 velocityEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
             }
-            org.apache.velocity.Template template = velocityEngine.getTemplate(templatePath, StandardCharsets.UTF_8.name());
-            org.apache.velocity.VelocityContext context = new org.apache.velocity.VelocityContext(model);
-            StringWriter writer = new StringWriter();
-            template.merge(context, writer);
-            return writer.toString();
+            StringWriter stringWriter = new StringWriter();
+            velocityEngine.getTemplate(templatePath, StandardCharsets.UTF_8.name()).merge(
+                new org.apache.velocity.VelocityContext(model), stringWriter
+            );
+            return stringWriter.toString();
         }
     }
 
@@ -86,8 +86,7 @@ public class ResponseMapper {
             }
             try {
                 StringWriter stringWriter = new StringWriter();
-                freemarker.template.Template template = configuration.getTemplate(templatePath);
-                template.process(model, stringWriter);
+                configuration.getTemplate(templatePath).process(model, stringWriter);
                 return stringWriter.toString();
             } catch (IOException | freemarker.template.TemplateException e) {
                 throw new RuntimeException(e);
