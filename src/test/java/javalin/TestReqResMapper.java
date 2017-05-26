@@ -15,12 +15,13 @@ import javalin.util.TestObject_Serializable;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
 
-import static javalin.ResponseMapper.TemplateUtil.*;
+import static javalin.ReqResMapper.TemplateUtil.model;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-public class TestResponseMapper extends _UnirestBaseTest {
+public class TestReqResMapper extends _UnirestBaseTest {
 
     @Test
     public void test_responseBuilder_json() throws Exception {
@@ -38,6 +39,26 @@ public class TestResponseMapper extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_requestBuilder_json() throws Exception {
+        app.post("/hello", (req, res) -> {
+            Object o = req.bodyAsClass(TestObject_Serializable.class);
+            if(o instanceof TestObject_Serializable) {
+                res.body("success");
+            }
+        });
+        HttpResponse<String> response = Unirest.post(origin + "/hello").body(new ObjectMapper().writeValueAsString(new TestObject_Serializable())).asString();
+        assertThat(response.getBody(), is("success"));
+    }
+
+    @Test
+    public void test_requestBuilder_json_haltsForBadObject() throws Exception {
+        app.get("/hello", (req, res) -> res.json(req.bodyAsClass(TestObject_NonSerializable.class).getClass().getSimpleName()));
+        HttpResponse<String> response = call(HttpMethod.GET, "/hello");
+        assertThat(response.getStatus(), is(500));
+        assertThat(response.getBody(), is("Failed to convert JSON to javalin.util.TestObject_NonSerializable"));
+    }
+
+    @Test
     public void test_renderVelocity_works() throws Exception {
         app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", model("message", "Hello Velocity!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Velocity!</h1>"));
@@ -47,7 +68,7 @@ public class TestResponseMapper extends _UnirestBaseTest {
     public void test_velocity_customEngine_works() throws Exception {
         app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", model()));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
-        ResponseMapper.Velocity.configure(strictVelocityEngine());
+        ReqResMapper.Velocity.configure(strictVelocityEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
     }
 

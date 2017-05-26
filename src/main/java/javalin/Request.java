@@ -45,6 +45,11 @@ public class Request {
         }
     }
 
+    public <T> T bodyAsClass(Class<T> clazz) {
+        ReqResMapper.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
+        return ReqResMapper.Jackson.toObject(body(), clazz);
+    }
+
     // yeah, this is probably not the best solution
     public String bodyParam(String bodyParam) {
         for (String keyValuePair : body().split("&")) {

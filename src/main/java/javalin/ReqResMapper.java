@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import javalin.core.util.Util;
 
-public class ResponseMapper {
+public class ReqResMapper {
 
-    private static Logger log = LoggerFactory.getLogger(ResponseMapper.class);
+    private static Logger log = LoggerFactory.getLogger(ReqResMapper.class);
 
     private static Map<String, Boolean> dependencyCheckCache = new HashMap<>();
 
@@ -49,6 +49,20 @@ public class ResponseMapper {
                 throw new HaltException(500, message);
             }
         }
+
+        static <T> T toObject(String json, Class<T> clazz) {
+            if (objectMapper == null) {
+                objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            }
+            try {
+                return objectMapper.readValue(json, clazz);
+            } catch (Throwable t) {
+                String message = "Failed to convert JSON to " + clazz.getName();
+                log.warn(message, t);
+                throw new HaltException(500, message);
+            }
+        }
+
     }
 
     static class Velocity {
@@ -82,7 +96,7 @@ public class ResponseMapper {
         static String render(String templatePath, Map<String, Object> model) {
             if (configuration == null) {
                 configuration = new freemarker.template.Configuration(new freemarker.template.Version(2, 3, 26));
-                configuration.setClassForTemplateLoading(Freemarker.class, "/");
+                configuration.setClassForTemplateLoading(ReqResMapper.Freemarker.class, "/");
             }
             try {
                 StringWriter stringWriter = new StringWriter();
