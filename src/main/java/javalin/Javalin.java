@@ -66,7 +66,8 @@ public class Javalin {
 
     public synchronized Javalin start() {
         if (!started) {
-            printWelcomeScreen();
+            log.info("\n" + Util.javalinBanner());
+            Util.printHelpfulMessageIfLoggerIsMissing();
             new Thread(() -> {
                 eventManager.fireEvent(Event.Type.SERVER_STARTING, this);
                 try {
@@ -294,11 +295,6 @@ public class Javalin {
 
     public Javalin after(Handler handler) {
         return after("/*", handler);
-    }
-
-    // Very useless stuff
-    private void printWelcomeScreen() {
-        log.info("\n" + Util.javalinBanner());
     }
 
 }

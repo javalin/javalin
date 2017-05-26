@@ -34,6 +34,19 @@ public class Util {
             .collect(Collectors.toList());
     }
 
+    public static void printHelpfulMessageIfLoggerIsMissing() {
+        if (!classExists("org.slf4j.impl.StaticLoggerBinder")) {
+            String message = ""
+                + "-------------------------------------------------------------------\n"
+                + "Javalin: In the Java world, it's common to add your own logger.\n"
+                + "Javalin: To easily fix the warning above, get the latest version of slf4j-simple:\n"
+                + "Javalin: https://mvnrepository.com/artifact/org.slf4j/slf4j-simple\n"
+                + "Javalin: then add it to your dependencies (pom.xml or build.gradle)\n"
+                + "Javalin: Visit https://javalin.io/documentation#logging if you need more help\n";
+            System.err.println(message);
+        }
+    }
+
     public static String javalinBanner() {
         return " _________________________________________\n"
             + "|        _                  _ _           |\n"

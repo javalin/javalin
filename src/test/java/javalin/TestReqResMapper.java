@@ -17,7 +17,7 @@ import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 
-import static javalin.ReqResMapper.TemplateUtil.model;
+import static javalin.ReqResMapper.TemplateUtil.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
@@ -42,7 +42,7 @@ public class TestReqResMapper extends _UnirestBaseTest {
     public void test_requestBuilder_json() throws Exception {
         app.post("/hello", (req, res) -> {
             Object o = req.bodyAsClass(TestObject_Serializable.class);
-            if(o instanceof TestObject_Serializable) {
+            if (o instanceof TestObject_Serializable) {
                 res.body("success");
             }
         });
