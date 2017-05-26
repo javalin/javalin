@@ -30,6 +30,7 @@ public class JettyResourceHandler implements StaticResourceHandler {
             resourceHandler.setResourceBase(Resource.newClassPathResource(staticFileDirectory).toString());
             resourceHandler.setDirAllowed(false);
             resourceHandler.setEtags(true);
+            resourceHandler.setCacheControl("no-store,no-cache,must-revalidate");
             try {
                 resourceHandler.start();
                 initialized = true;
