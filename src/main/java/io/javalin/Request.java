@@ -19,6 +19,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import io.javalin.core.util.RequestUtil;
+import io.javalin.core.util.Util;
+import io.javalin.translator.json.Jackson;
 
 public class Request {
 
@@ -49,8 +51,8 @@ public class Request {
     }
 
     public <T> T bodyAsClass(Class<T> clazz) {
-        ReqResMapper.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
-        return ReqResMapper.Jackson.toObject(body(), clazz);
+        Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
+        return Jackson.toObject(body(), clazz);
     }
 
     // yeah, this is probably not the best solution

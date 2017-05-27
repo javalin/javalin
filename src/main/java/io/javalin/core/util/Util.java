@@ -7,11 +7,20 @@
 
 package io.javalin.core.util;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.javalin.HaltException;
+
 public class Util {
+
+    private static Logger log = LoggerFactory.getLogger(Util.class);
 
     private Util() {
     }
@@ -29,6 +38,19 @@ public class Util {
         } catch (ClassNotFoundException e) {
             return false;
         }
+    }
+
+    private static Map<String, Boolean> dependencyCheckCache = new HashMap<>();
+    public static void ensureDependencyPresent(String dependencyName, String className, String url) {
+        if (dependencyCheckCache.getOrDefault(className, false)) {
+            return;
+        }
+        if (!classExists(className)) {
+            String message = "Missing dependency '" + dependencyName + "'. Please add dependency: https://mvnrepository.com/artifact/" + url;
+            log.warn(message);
+            throw new HaltException(500, message);
+        }
+        dependencyCheckCache.put(className, true);
     }
 
     public static List<String> pathToList(String pathString) {

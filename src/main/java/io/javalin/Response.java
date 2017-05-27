@@ -17,6 +17,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.javalin.builder.CookieBuilder;
+import io.javalin.core.util.Util;
+import io.javalin.translator.json.Jackson;
+import io.javalin.translator.template.Freemarker;
+import io.javalin.translator.template.Mustache;
+import io.javalin.translator.template.Thymeleaf;
+import io.javalin.translator.template.Velocity;
 
 public class Response {
 
@@ -140,28 +146,28 @@ public class Response {
     // ResponseMapping methods
 
     public Response json(Object object) {
-        ReqResMapper.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
-        return body(ReqResMapper.Jackson.toJson(object)).contentType("application/json");
+        Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
+        return body(Jackson.toJson(object)).contentType("application/json");
     }
 
     public Response renderVelocity(String templatePath, Map<String, Object> model) {
-        ReqResMapper.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity");
-        return html(ReqResMapper.Velocity.render(templatePath, model));
+        Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity");
+        return html(Velocity.render(templatePath, model));
     }
 
     public Response renderFreemarker(String templatePath, Map<String, Object> model) {
-        ReqResMapper.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker");
-        return html(ReqResMapper.Freemarker.render(templatePath, model));
+        Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker");
+        return html(Freemarker.render(templatePath, model));
     }
 
     public Response renderThymeleaf(String templatePath, Map<String, Object> model) {
-        ReqResMapper.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3");
-        return html(ReqResMapper.Thymeleaf.render(templatePath, model));
+        Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3");
+        return html(Thymeleaf.render(templatePath, model));
     }
 
     public Response renderMustache(String templatePath, Map<String, Object> model) {
-        ReqResMapper.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler");
-        return html(ReqResMapper.Mustache.render(templatePath, model));
+        Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler");
+        return html(Mustache.render(templatePath, model));
     }
 
 }
