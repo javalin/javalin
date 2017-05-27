@@ -4,6 +4,8 @@
 
 # Javalin - A Simple REST API Library for Java/Kotlin
 
+[![Join the chat at https://gitter.im/javalin-io/Lobby](https://badges.gitter.im/javalin-io/Lobby.svg)](https://gitter.im/javalin-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 The project webpage is [javalin.io](https://javalin.io).
 
 ## Getting started
