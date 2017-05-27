@@ -11,13 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.javalin.HaltException;
-import io.javalin.core.util.Util;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Jackson {
 
     private static Logger log = LoggerFactory.getLogger(Jackson.class);
 
-    private static com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+    private static ObjectMapper objectMapper;
 
     public static String toJson(Object object) {
         if (objectMapper == null) {

@@ -16,7 +16,8 @@ import freemarker.template.TemplateException;
 import freemarker.template.Version;
 
 public class Freemarker {
-    private static freemarker.template.Configuration configuration;
+
+    private static Configuration configuration;
 
     public static void configure(Configuration staticConfiguration) {
         configuration = staticConfiguration;

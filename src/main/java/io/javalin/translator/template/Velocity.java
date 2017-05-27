@@ -15,7 +15,8 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 public class Velocity {
-    private static org.apache.velocity.app.VelocityEngine velocityEngine;
+
+    private static VelocityEngine velocityEngine;
 
     public static void configure(VelocityEngine staticVelocityEngine) {
         velocityEngine = staticVelocityEngine;

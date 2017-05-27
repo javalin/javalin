@@ -14,17 +14,17 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.javalin.core.ErrorMapper;
+import io.javalin.core.ExceptionMapper;
 import io.javalin.core.PathMatcher;
+import io.javalin.core.util.Util;
+import io.javalin.embeddedserver.EmbeddedServer;
 import io.javalin.embeddedserver.EmbeddedServerFactory;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import io.javalin.lifecycle.Event;
+import io.javalin.lifecycle.EventListener;
 import io.javalin.lifecycle.EventManager;
 import io.javalin.security.AccessManager;
-import io.javalin.core.ErrorMapper;
-import io.javalin.core.ExceptionMapper;
-import io.javalin.core.util.Util;
-import io.javalin.embeddedserver.EmbeddedServer;
-import io.javalin.lifecycle.EventListener;
 import io.javalin.security.Role;
 
 public class Javalin {

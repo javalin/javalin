@@ -16,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.javalin.ExceptionHandler;
-import io.javalin.Request;
 import io.javalin.HaltException;
+import io.javalin.Request;
 import io.javalin.Response;
 
 public class ExceptionMapper {

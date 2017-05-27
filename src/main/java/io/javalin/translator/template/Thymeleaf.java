@@ -16,7 +16,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 public class Thymeleaf {
 
-    private static org.thymeleaf.TemplateEngine templateEngine;
+    private static TemplateEngine templateEngine;
 
     public static void configure(TemplateEngine staticTemplateEngine) {
         templateEngine = staticTemplateEngine;
