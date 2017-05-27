@@ -9,10 +9,10 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
 
     <name>Javalin</name>
-    <description>Javalin: A Simple REST API Library for Java/Kotlin</description>
+    <description>Javalin: Simple REST APIs for Java and Kotlin</description>
     <url>https://javalin.io</url>
     
     <licenses>
