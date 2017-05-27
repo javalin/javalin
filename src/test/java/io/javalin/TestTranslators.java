@@ -26,14 +26,20 @@ import static org.hamcrest.Matchers.*;
 public class TestTranslators extends _UnirestBaseTest {
 
     @Test
-    public void test_responseBuilder_json() throws Exception {
+    public void test_json_jacksonMapsObjectToJson() throws Exception {
         app.get("/hello", (req, res) -> res.status(200).json(new TestObject_Serializable()));
         String expected = new ObjectMapper().writeValueAsString(new TestObject_Serializable());
         assertThat(GET_body("/hello"), is(expected));
     }
 
     @Test
-    public void test_responseBuilder_json_haltsForBadObject() throws Exception {
+    public void test_json_DoesNotMapStringObject() throws Exception {
+        app.get("/hello", (req, res) -> res.status(200).json("{\"k\":\"v\"}"));
+        assertThat(GET_body("/hello"), is("{\"k\":\"v\"}"));
+    }
+
+    @Test
+    public void test_json_jackson_haltsForBadObject() throws Exception {
         app.get("/hello", (req, res) -> res.status(200).json(new TestObject_NonSerializable()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
@@ -41,7 +47,7 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_requestBuilder_json() throws Exception {
+    public void test_json_jacksonMapsJsonToObject() throws Exception {
         app.post("/hello", (req, res) -> {
             Object o = req.bodyAsClass(TestObject_Serializable.class);
             if (o instanceof TestObject_Serializable) {
@@ -53,7 +59,7 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_requestBuilder_json_haltsForBadObject() throws Exception {
+    public void test_json_jacksonMapsJsonToObject_haltsForBadObject() throws Exception {
         app.get("/hello", (req, res) -> res.json(req.bodyAsClass(TestObject_NonSerializable.class).getClass().getSimpleName()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
@@ -67,7 +73,7 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_velocity_customEngine_works() throws Exception {
+    public void test_customVelocityEngine_works() throws Exception {
         app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", TemplateUtil.model()));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
         Velocity.configure(strictVelocityEngine());
