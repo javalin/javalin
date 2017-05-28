@@ -143,7 +143,7 @@ public class Response {
         return this;
     }
 
-    // ResponseMapping methods
+    // Translator methods
 
     public Response json(Object object) {
         if (object instanceof String) {
