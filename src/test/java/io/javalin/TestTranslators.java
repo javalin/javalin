@@ -33,9 +33,9 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_json_DoesNotMapStringObject() throws Exception {
-        app.get("/hello", (req, res) -> res.status(200).json("{\"k\":\"v\"}"));
-        assertThat(GET_body("/hello"), is("{\"k\":\"v\"}"));
+    public void test_json_jacksonMapsStringsToJson() throws Exception {
+        app.get("/hello", (req, res) -> res.status(200).json("\"ok\""));
+        assertThat(GET_body("/hello"), is("\"\\\"ok\\\"\""));
     }
 
     @Test

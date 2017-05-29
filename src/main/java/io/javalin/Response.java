@@ -146,9 +146,6 @@ public class Response {
     // Translator methods
 
     public Response json(Object object) {
-        if (object instanceof String) {
-            return body((String) object).contentType("application/json");
-        }
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
         return body(Jackson.toJson(object)).contentType("application/json");
     }
