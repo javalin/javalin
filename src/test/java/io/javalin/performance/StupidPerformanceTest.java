@@ -65,7 +65,7 @@ public class StupidPerformanceTest {
     }
 
     @Test
-    @Ignore
+    @Ignore("Just for running manually")
     public void testPerformanceMaybe() throws Exception {
 
         long startTime = System.currentTimeMillis();
