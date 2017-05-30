@@ -9,12 +9,18 @@ package io.javalin.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.javalin.Handler;
 import io.javalin.core.util.Util;
 
 public class PathMatcher {
+
+    private static Logger log = LoggerFactory.getLogger(PathMatcher.class);
 
     private List<HandlerEntry> handlerEntries;
 
@@ -47,8 +53,18 @@ public class PathMatcher {
 
     private List<HandlerEntry> findTargetsForRequestedHandler(Handler.Type type, String path) {
         return handlerEntries.stream()
-            .filter(r -> match(r, type, path))
+            .filter(he -> match(he, type, path))
             .collect(Collectors.toList());
+    }
+
+    public String findHandlerPath(Predicate<HandlerEntry> predicate) {
+        List<HandlerEntry> entries = handlerEntries.stream()
+            .filter(predicate)
+            .collect(Collectors.toList());
+        if (entries.size() > 1) {
+            log.warn("More than one path found for handler, returning first match: '{} {}'", entries.get(0).type, entries.get(0).path);
+        }
+        return entries.size() > 0 ? entries.get(0).path : null;
     }
 
     // TODO: Consider optimizing this

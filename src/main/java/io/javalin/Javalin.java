@@ -300,4 +300,13 @@ public class Javalin {
         return after("/*", handler);
     }
 
+    // Reverse routing
+    public String pathFinder(Handler handler) {
+        return pathMatcher.findHandlerPath(he -> he.handler.equals(handler));
+    }
+
+    public String pathFinder(Handler handler, Handler.Type handlerType) {
+        return pathMatcher.findHandlerPath(he -> he.handler.equals(handler) && he.type == handlerType);
+    }
+
 }

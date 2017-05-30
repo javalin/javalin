@@ -1,0 +1,49 @@
+/*
+ * Javalin - https://javalin.io
+ * Copyright 2017 David Åse
+ * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ */
+
+package io.javalin;
+
+import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
+
+public class TestReverseRouting extends _UnirestBaseTest {
+
+    private Handler helloHandler = (req, res) -> res.body("Hello World");
+
+    @Test
+    public void test_pathFinder_works_basic() throws Exception {
+        app.get("/hello-get", helloHandler);
+        assertThat(app.pathFinder(helloHandler), is("/hello-get"));
+    }
+
+
+    @Test
+    public void test_pathFinder_returnsNullForUnmappedHandler() throws Exception {
+        assertThat(app.pathFinder(helloHandler), is(nullValue()));
+    }
+
+    @Test
+    public void test_pathFinder_works_typed() throws Exception {
+        app.get("/hello-get", helloHandler);
+        app.post("/hello-post", helloHandler);
+        app.before("/hello-post", helloHandler);
+        assertThat(app.pathFinder(helloHandler), is("/hello-get"));
+        assertThat(app.pathFinder(helloHandler, Handler.Type.POST), is("/hello-post"));
+        assertThat(app.pathFinder(helloHandler, Handler.Type.BEFORE), is("/hello-post"));
+    }
+
+    @Test
+    public void test_pathFinder_findsFirstForMultipleUsages() throws Exception {
+        app.get("/hello-1", helloHandler);
+        app.get("/hello-2", helloHandler);
+        app.get("/hello-3", helloHandler);
+        assertThat(app.pathFinder(helloHandler), is("/hello-1"));
+    }
+
+}
