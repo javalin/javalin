@@ -12,9 +12,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
@@ -36,6 +38,21 @@ public class Request {
 
     public HttpServletRequest unwrap() {
         return servletRequest;
+    }
+
+    @FunctionalInterface
+    public interface AsyncHandler {
+        CompletableFuture<Void> handle();
+    }
+
+    public void async(AsyncHandler asyncHandler) {
+        AsyncContext asyncContext = servletRequest.startAsync();
+        asyncHandler.handle()
+            .thenAccept((Void) -> asyncContext.complete())
+            .exceptionally(e -> {
+                asyncContext.complete();
+                throw new RuntimeException(e);
+            });
     }
 
     public String body() {

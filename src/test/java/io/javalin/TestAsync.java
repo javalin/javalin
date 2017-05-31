@@ -6,27 +6,33 @@
 
 package io.javalin;
 
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
+import io.javalin.util.SimpleHttpClient;
 
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 public class TestAsync {
+
+    private static Logger log = LoggerFactory.getLogger(TestAsync.class);
 
     @Test
     @Ignore("Just for running manually")
     public void test_async() throws Exception {
-
-        AtomicInteger requestNum = new AtomicInteger(0);
 
         Javalin app = Javalin.create()
             .embeddedServer(new EmbeddedJettyFactory(() -> new Server(new QueuedThreadPool(16, 10, 60_000))))
@@ -34,34 +40,34 @@ public class TestAsync {
             .start()
             .awaitInitialization();
 
-        app.get("/", (req, res) -> {
-            int num = requestNum.getAndIncrement();
-            System.out.println("Threads:" + app.embeddedServer().activeThreadCount() + " - Request #" + num);
-            try {
-                Thread.sleep(5_000);
-                res.body("res");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
+        app.get("/test-async", (req, res) -> req.async(() -> {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            new Timer().schedule(
+                new TimerTask() {
+                    public void run() {
+                        res.status(418);
+                        future.complete(null);
+                    }
+                },
+                1000
+            );
+            return future;
+        }));
 
         long startTime = System.currentTimeMillis();
-        ForkJoinPool forkJoinPool = new ForkJoinPool(100);
+        ForkJoinPool forkJoinPool = new ForkJoinPool(200);
         forkJoinPool.submit(
             () -> IntStream.range(0, 50).parallel().forEach(i -> {
                 try {
-                    System.out.println("Call #" + i);
-                    call(5454, "/");
-                } catch (UnirestException e) {
+                    assertThat(new SimpleHttpClient().http_GET("http://localhost:5454/test-async").status, is(418));
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             })
         ).get();
-        System.out.println("took " + (System.currentTimeMillis() - startTime) + " milliseconds");
-    }
+        log.info("took " + (System.currentTimeMillis() - startTime) + " milliseconds");
 
-    private String call(int port, String path) throws UnirestException {
-        return Unirest.get("http://localhost:" + port + path).asString().getBody();
+        app.stop().awaitTermination();
     }
 
 }
