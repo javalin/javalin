@@ -41,8 +41,8 @@ public class ExceptionMapper {
 
     void handle(Exception e, Request request, Response response) {
         if (e instanceof HaltException) {
-            response.status(((HaltException) e).statusCode);
-            response.body(((HaltException) e).body);
+            response.status(((HaltException) e).getStatusCode());
+            response.body(((HaltException) e).getBody());
             return;
         }
         ExceptionHandler exceptionHandler = this.getHandler(e.getClass());
