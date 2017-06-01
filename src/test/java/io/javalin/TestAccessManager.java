@@ -17,7 +17,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 
 import static io.javalin.ApiBuilder.*;
 import static io.javalin.TestAccessManager.MyRoles.*;
-import static io.javalin.security.Role.roles;
+import static io.javalin.security.RoleList.roles;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 

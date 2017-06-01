@@ -52,7 +52,7 @@ public class Javalin {
     private CountDownLatch startLatch = new CountDownLatch(1);
     private CountDownLatch stopLatch = new CountDownLatch(1);
 
-    private AccessManager accessManager = (Handler handler, Request request, Response response, List<Role> permittedRoles) -> {
+    private AccessManager accessManager = (Handler handler, Request request, Response response, List<? extends Role> permittedRoles) -> {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
 
