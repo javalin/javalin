@@ -54,24 +54,39 @@ public class JavalinServlet implements Servlet {
 
         try { // before-handlers, endpoint-handlers, static-files
 
-            for (HandlerMatch beforeHandler : pathMatcher.findHandlers(Handler.Type.BEFORE, requestUri)) {
-                beforeHandler.handler.handle(RequestUtil.create(httpRequest, beforeHandler), response);
+            for (HandlerMatch beforeMatch : pathMatcher.findHandlers(Handler.Type.BEFORE, requestUri)) {
+                beforeMatch.handler.handle(RequestUtil.create(httpRequest, beforeMatch), response);
             }
 
-            List<HandlerMatch> matches = pathMatcher.findHandlers(type, requestUri);
-            if (!matches.isEmpty()) {
-                for (HandlerMatch endpointHandler : matches) {
-                    Request currentRequest = RequestUtil.create(httpRequest, endpointHandler);
-                    endpointHandler.handler.handle(currentRequest, response);
-                    if (!currentRequest.nexted()) {
-                        break;
+            boolean endpointHandled = false;
+            int allowedInternalRedirects = 10;
+            while (!endpointHandled && allowedInternalRedirects > 0) {
+                endpointHandled = true; // assume it will be handled, set to false if redirected
+                allowedInternalRedirects--;
+                List<HandlerMatch> matches = pathMatcher.findHandlers(type, requestUri);
+                if (!matches.isEmpty()) {
+                    for (HandlerMatch match : matches) {
+                        request = RequestUtil.create(httpRequest, match);
+                        match.handler.handle(request, response);
+                        if (request.forwardedUri() != null) {
+                            requestUri = request.forwardedUri();
+                            endpointHandled = false;
+                            break;
+                        }
+                        if (!request.nexted()) {
+                            break;
+                        }
                     }
+                } else if (type != Handler.Type.HEAD || /*isHead and*/ pathMatcher.findHandlers(Handler.Type.GET, requestUri).isEmpty()) {
+                    if (staticResourceHandler.handle(httpRequest, httpResponse)) {
+                        return;
+                    }
+                    throw new HaltException(404, "Not found");
                 }
-            } else if (type != Handler.Type.HEAD || (type == Handler.Type.HEAD && pathMatcher.findHandlers(Handler.Type.GET, requestUri).isEmpty())) {
-                if (staticResourceHandler.handle(httpRequest, httpResponse)) {
-                    return;
-                }
-                throw new HaltException(404, "Not found");
+            }
+
+            if (allowedInternalRedirects == 0) {
+                throw new HaltException(508, "Internal redirect loop detected");
             }
 
         } catch (Exception e) {
@@ -81,8 +96,8 @@ public class JavalinServlet implements Servlet {
         }
 
         try { // after-handlers
-            for (HandlerMatch afterHandler : pathMatcher.findHandlers(Handler.Type.AFTER, requestUri)) {
-                afterHandler.handler.handle(RequestUtil.create(httpRequest, afterHandler), response);
+            for (HandlerMatch afterMatch : pathMatcher.findHandlers(Handler.Type.AFTER, requestUri)) {
+                afterMatch.handler.handle(RequestUtil.create(httpRequest, afterMatch), response);
             }
         } catch (Exception e) {
             // after filters can also throw exceptions

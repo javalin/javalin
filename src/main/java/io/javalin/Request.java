@@ -27,6 +27,7 @@ import io.javalin.translator.json.Jackson;
 public class Request {
 
     private boolean passedToNextHandler;
+    private String forwardedUri;
     private HttpServletRequest servletRequest;
     private Map<String, String> paramMap; // cache (different for each handler)
     private List<String> splatList; // cache (different for each handler)
@@ -199,6 +200,14 @@ public class Request {
 
     public String queryString() {
         return servletRequest.getQueryString();
+    }
+
+    public void forward(String handlerPath) {
+        forwardedUri = handlerPath;
+    }
+
+    public String forwardedUri() {
+        return forwardedUri;
     }
 
     public String requestMethod() {
