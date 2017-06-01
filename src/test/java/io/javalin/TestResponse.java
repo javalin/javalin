@@ -21,8 +21,6 @@ import java.util.Random;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertArrayEquals;
 
 public class TestResponse extends _UnirestBaseTest {
 
@@ -53,8 +51,8 @@ public class TestResponse extends _UnirestBaseTest {
         HttpResponse<String> response = call(HttpMethod.GET, "/stream");
         
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        assertEquals(Util.copyStream(response.getRawBody(), bout), (long) buf.length);
-        assertArrayEquals(buf, bout.toByteArray());
+        assertThat(Util.copyStream(response.getRawBody(), bout), is((long) buf.length));
+        assertThat(buf, equalTo(bout.toByteArray()));
     }
     
     @Test
