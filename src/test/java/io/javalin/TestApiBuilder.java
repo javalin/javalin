@@ -9,6 +9,7 @@ package io.javalin;
 
 import org.junit.Test;
 
+import static io.javalin.ApiBuilder.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
@@ -17,15 +18,15 @@ public class TestApiBuilder extends _UnirestBaseTest {
     @Test
     public void test_pathWorks_forGet() throws Exception {
         app.routes(() -> {
-            ApiBuilder.get("/hello", simpleAnswer("Hello from level 0"));
-            ApiBuilder.path("/level-1", () -> {
-                ApiBuilder.get("/hello", simpleAnswer("Hello from level 1"));
-                ApiBuilder.get("/hello-2", simpleAnswer("Hello again from level 1"));
-                ApiBuilder.post("/create-1", simpleAnswer("Created something at level 1"));
-                ApiBuilder.path("/level-2", () -> {
-                    ApiBuilder.get("/hello", simpleAnswer("Hello from level 2"));
-                    ApiBuilder.path("/level-3", () -> {
-                        ApiBuilder.get("/hello", simpleAnswer("Hello from level 3"));
+            get("/hello", simpleAnswer("Hello from level 0"));
+            path("/level-1", () -> {
+                get("/hello", simpleAnswer("Hello from level 1"));
+                get("/hello-2", simpleAnswer("Hello again from level 1"));
+                post("/create-1", simpleAnswer("Created something at level 1"));
+                path("/level-2", () -> {
+                    get("/hello", simpleAnswer("Hello from level 2"));
+                    path("/level-3", () -> {
+                        get("/hello", simpleAnswer("Hello from level 3"));
                     });
                 });
             });
@@ -43,13 +44,13 @@ public class TestApiBuilder extends _UnirestBaseTest {
     @Test
     public void test_pathWorks_forFilters() throws Exception {
         app.routes(() -> {
-            ApiBuilder.path("/level-1", () -> {
-                ApiBuilder.before("/*", (req, res) -> res.body("1"));
-                ApiBuilder.path("/level-2", () -> {
-                    ApiBuilder.path("/level-3", () -> {
-                        ApiBuilder.get("/hello", updateAnswer("Hello"));
+            path("/level-1", () -> {
+                before("/*", (req, res) -> res.body("1"));
+                path("/level-2", () -> {
+                    path("/level-3", () -> {
+                        get("/hello", updateAnswer("Hello"));
                     });
-                    ApiBuilder.after("/*", updateAnswer("2"));
+                    after("/*", updateAnswer("2"));
                 });
             });
         });

@@ -8,6 +8,7 @@
 package io.javalin;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 import javax.servlet.http.Cookie;
@@ -23,7 +24,6 @@ import io.javalin.translator.template.Freemarker;
 import io.javalin.translator.template.Mustache;
 import io.javalin.translator.template.Thymeleaf;
 import io.javalin.translator.template.Velocity;
-import java.io.InputStream;
 
 public class Response {
 
@@ -32,7 +32,7 @@ public class Response {
     private HttpServletResponse servletResponse;
     private String body;
     private InputStream bodyStream;
-    
+
     private String encoding;
 
     public Response(HttpServletResponse servletResponse) {
@@ -65,13 +65,13 @@ public class Response {
     public InputStream bodyStream() {
         return bodyStream;
     }
-    
+
     public Response body(InputStream bodyStream) {
         this.body = null; // can only have one or the other
         this.bodyStream = bodyStream;
         return this;
     }
-    
+
     public String encoding() {
         return encoding;
     }
