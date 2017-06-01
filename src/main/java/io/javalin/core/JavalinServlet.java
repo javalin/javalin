@@ -24,6 +24,7 @@ import io.javalin.Handler;
 import io.javalin.Request;
 import io.javalin.Response;
 import io.javalin.core.util.RequestUtil;
+import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.StaticResourceHandler;
 
 public class JavalinServlet implements Servlet {
@@ -108,6 +109,8 @@ public class JavalinServlet implements Servlet {
             httpResponse.getWriter().write(response.body());
             httpResponse.getWriter().flush();
             httpResponse.getWriter().close();
+        } else if (response.bodyStream() != null) {
+            Util.copyStream(response.bodyStream(), httpResponse.getOutputStream());
         }
 
     }

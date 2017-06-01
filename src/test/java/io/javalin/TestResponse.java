@@ -14,6 +14,10 @@ import org.junit.Test;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import io.javalin.core.util.Util;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Random;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -39,6 +43,18 @@ public class TestResponse extends _UnirestBaseTest {
         assertThat(response.getHeaders().getFirst("X-HEADER-2"), is("my-header-2"));
     }
 
+    @Test
+    public void test_responseStream() throws Exception {
+        byte[] buf = new byte[65537]; // big and not on a page boundary
+        new Random().nextBytes(buf);
+        app.get("/stream", (req, res) -> res.body(new ByteArrayInputStream(buf)));
+        HttpResponse<String> response = call(HttpMethod.GET, "/stream");
+        
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        assertThat(Util.copyStream(response.getRawBody(), bout), is((long) buf.length));
+        assertThat(buf, equalTo(bout.toByteArray()));
+    }
+    
     @Test
     public void test_redirect() throws Exception {
         app.get("/hello", (req, res) -> res.redirect("/hello-2"));
