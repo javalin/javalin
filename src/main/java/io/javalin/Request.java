@@ -26,6 +26,7 @@ import io.javalin.translator.json.Jackson;
 
 public class Request {
 
+    private boolean passedToNextHandler;
     private HttpServletRequest servletRequest;
     private Map<String, String> paramMap; // cache (different for each handler)
     private List<String> splatList; // cache (different for each handler)
@@ -158,6 +159,14 @@ public class Request {
 
     public String ip() {
         return servletRequest.getRemoteAddr();
+    }
+
+    public void next() {
+        passedToNextHandler = true;
+    }
+
+    public boolean nexted() {
+        return passedToNextHandler;
     }
 
     public String path() {

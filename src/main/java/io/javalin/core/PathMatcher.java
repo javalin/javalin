@@ -36,16 +36,7 @@ public class PathMatcher {
         handlerEntries.clear();
     }
 
-    public HandlerMatch findEndpointHandler(Handler.Type type, String path) {
-        List<HandlerEntry> handlerEntries = findTargetsForRequestedHandler(type, path);
-        if (handlerEntries.size() == 0) {
-            return null;
-        }
-        HandlerEntry entry = handlerEntries.get(0);
-        return new HandlerMatch(entry.handler, entry.path, path);
-    }
-
-    public List<HandlerMatch> findFilterHandlers(Handler.Type type, String path) {
+    public List<HandlerMatch> findHandlers(Handler.Type type, String path) {
         return findTargetsForRequestedHandler(type, path).stream()
             .map(handlerEntry -> new HandlerMatch(handlerEntry.handler, handlerEntry.path, path))
             .collect(Collectors.toList());

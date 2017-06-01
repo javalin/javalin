@@ -9,6 +9,7 @@ package io.javalin.core;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -53,14 +54,20 @@ public class JavalinServlet implements Servlet {
 
         try { // before-handlers, endpoint-handlers, static-files
 
-            for (HandlerMatch beforeHandler : pathMatcher.findFilterHandlers(Handler.Type.BEFORE, requestUri)) {
+            for (HandlerMatch beforeHandler : pathMatcher.findHandlers(Handler.Type.BEFORE, requestUri)) {
                 beforeHandler.handler.handle(RequestUtil.create(httpRequest, beforeHandler), response);
             }
 
-            HandlerMatch routeHandler = pathMatcher.findEndpointHandler(type, requestUri);
-            if (routeHandler != null && routeHandler.handler != null) {
-                routeHandler.handler.handle(RequestUtil.create(httpRequest, routeHandler), response);
-            } else if (type != Handler.Type.HEAD || (type == Handler.Type.HEAD && pathMatcher.findEndpointHandler(Handler.Type.GET, requestUri) == null)) {
+            List<HandlerMatch> matches = pathMatcher.findHandlers(type, requestUri);
+            if (!matches.isEmpty()) {
+                for (HandlerMatch endpointHandler : matches) {
+                    Request currentRequest = RequestUtil.create(httpRequest, endpointHandler);
+                    endpointHandler.handler.handle(currentRequest, response);
+                    if (!currentRequest.nexted()) {
+                        break;
+                    }
+                }
+            } else if (type != Handler.Type.HEAD || (type == Handler.Type.HEAD && pathMatcher.findHandlers(Handler.Type.GET, requestUri).isEmpty())) {
                 if (staticResourceHandler.handle(httpRequest, httpResponse)) {
                     return;
                 }
@@ -74,7 +81,7 @@ public class JavalinServlet implements Servlet {
         }
 
         try { // after-handlers
-            for (HandlerMatch afterHandler : pathMatcher.findFilterHandlers(Handler.Type.AFTER, requestUri)) {
+            for (HandlerMatch afterHandler : pathMatcher.findHandlers(Handler.Type.AFTER, requestUri)) {
                 afterHandler.handler.handle(RequestUtil.create(httpRequest, afterHandler), response);
             }
         } catch (Exception e) {

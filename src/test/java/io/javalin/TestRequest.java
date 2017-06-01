@@ -93,13 +93,26 @@ public class TestRequest extends _UnirestBaseTest {
     @Test
     public void test_queryParamsWorks_noParamsPresent() throws Exception {
         app.get("/", (req, res) -> res.body(Arrays.toString(req.queryParams("qp1"))));
-        assertThat(GET_body("/"), is("null")); // notice {"" + req} on previous line
+        assertThat(GET_body("/"), is("null"));
     }
 
     @Test
     public void test_queryParamsWorks_paramsPresent() throws Exception {
         app.get("/", (req, res) -> res.body(Arrays.toString(req.queryParams("qp1"))));
-        assertThat(GET_body("/?qp1=1&qp1=2&qp1=3"), is("[1, 2, 3]")); // notice {"" + req} on previous line
+        assertThat(GET_body("/?qp1=1&qp1=2&qp1=3"), is("[1, 2, 3]"));
+    }
+
+    @Test
+    public void test_nextWorks_whenMultipleHandlers() throws Exception {
+        app.get("/test", (req, res) -> req.next());
+        app.get("/*", (req, res) -> res.body("Skipped first handler"));
+        assertThat(GET_body("/test"), is("Skipped first handler"));
+    }
+
+    @Test
+    public void test_nextGivesBlankResponse_whenNoHandlers() throws Exception {
+        app.get("/test", (req, res) -> req.next());
+        assertThat(GET_body("/test"), is(""));
     }
 
 }
