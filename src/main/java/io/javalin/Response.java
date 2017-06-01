@@ -161,27 +161,27 @@ public class Response {
 
     public Response json(Object object) {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
-        return body(Jackson.toJson(object)).contentType("application/json");
+        return body(Jackson.INSTANCE.toJson(object)).contentType("application/json");
     }
 
     public Response renderVelocity(String templatePath, Map<String, Object> model) {
         Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity");
-        return html(Velocity.render(templatePath, model));
+        return html(Velocity.INSTANCE.render(templatePath, model));
     }
 
     public Response renderFreemarker(String templatePath, Map<String, Object> model) {
         Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker");
-        return html(Freemarker.render(templatePath, model));
+        return html(Freemarker.INSTANCE.render(templatePath, model));
     }
 
     public Response renderThymeleaf(String templatePath, Map<String, Object> model) {
         Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3");
-        return html(Thymeleaf.render(templatePath, model));
+        return html(Thymeleaf.INSTANCE.render(templatePath, model));
     }
 
     public Response renderMustache(String templatePath, Map<String, Object> model) {
         Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler");
-        return html(Mustache.render(templatePath, model));
+        return html(Mustache.INSTANCE.render(templatePath, model));
     }
 
 }

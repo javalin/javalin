@@ -70,7 +70,7 @@ public class Request {
 
     public <T> T bodyAsClass(Class<T> clazz) {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind");
-        return Jackson.toObject(body(), clazz);
+        return Jackson.INSTANCE.toObject(body(), clazz);
     }
 
     // yeah, this is probably not the best solution
