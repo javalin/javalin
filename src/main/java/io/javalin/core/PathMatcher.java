@@ -38,7 +38,7 @@ public class PathMatcher {
 
     public List<HandlerMatch> findHandlers(Handler.Type type, String path) {
         return findTargetsForRequestedHandler(type, path).stream()
-            .map(handlerEntry -> new HandlerMatch(handlerEntry.handler, handlerEntry.path, path))
+            .map(handlerEntry -> new HandlerMatch(handlerEntry.getHandler(), handlerEntry.getPath(), path))
             .collect(Collectors.toList());
     }
 
@@ -53,23 +53,23 @@ public class PathMatcher {
             .filter(predicate)
             .collect(Collectors.toList());
         if (entries.size() > 1) {
-            log.warn("More than one path found for handler, returning first match: '{} {}'", entries.get(0).type, entries.get(0).path);
+            log.warn("More than one path found for handler, returning first match: '{} {}'", entries.get(0).getType(), entries.get(0).getPath());
         }
-        return entries.size() > 0 ? entries.get(0).path : null;
+        return entries.size() > 0 ? entries.get(0).getPath() : null;
     }
 
     // TODO: Consider optimizing this
     private static boolean match(HandlerEntry handlerEntry, Handler.Type requestType, String requestPath) {
-        if (handlerEntry.type != requestType) {
+        if (handlerEntry.getType() != requestType) {
             return false;
         }
-        if (endingSlashesDoNotMatch(handlerEntry.path, requestPath)) {
+        if (endingSlashesDoNotMatch(handlerEntry.getPath(), requestPath)) {
             return false;
         }
-        if (handlerEntry.path.equals(requestPath)) { // identical paths
+        if (handlerEntry.getPath().equals(requestPath)) { // identical paths
             return true;
         }
-        return matchParamAndWildcard(handlerEntry.path, requestPath);
+        return matchParamAndWildcard(handlerEntry.getPath(), requestPath);
     }
 
     private static boolean matchParamAndWildcard(String handlerPath, String requestPath) {

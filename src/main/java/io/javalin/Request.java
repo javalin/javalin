@@ -57,12 +57,12 @@ public class Request {
     }
 
     public String body() {
-        return RequestUtil.byteArrayToString(bodyAsBytes(), servletRequest.getCharacterEncoding());
+        return RequestUtil.INSTANCE.byteArrayToString(bodyAsBytes(), servletRequest.getCharacterEncoding());
     }
 
     public byte[] bodyAsBytes() {
         try {
-            return RequestUtil.toByteArray(servletRequest.getInputStream());
+            return RequestUtil.INSTANCE.toByteArray(servletRequest.getInputStream());
         } catch (IOException e) {
             return null;
         }

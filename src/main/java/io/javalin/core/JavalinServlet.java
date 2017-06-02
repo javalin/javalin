@@ -2,7 +2,6 @@
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
- *
  */
 
 package io.javalin.core;
@@ -48,7 +47,7 @@ public class JavalinServlet implements Servlet {
         HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
         Handler.Type type = Handler.Type.Companion.fromServletRequest(httpRequest);
         String requestUri = httpRequest.getRequestURI();
-        Request request = RequestUtil.create(httpRequest);
+        Request request = RequestUtil.INSTANCE.create(httpRequest);
         Response response = new Response(httpResponse);
 
         response.header("Server", "Javalin");
@@ -56,14 +55,14 @@ public class JavalinServlet implements Servlet {
         try { // before-handlers, endpoint-handlers, static-files
 
             for (HandlerMatch beforeHandler : pathMatcher.findHandlers(Handler.Type.BEFORE, requestUri)) {
-                beforeHandler.handler.handle(RequestUtil.create(httpRequest, beforeHandler), response);
+                beforeHandler.getHandler().handle(RequestUtil.INSTANCE.create(httpRequest, beforeHandler), response);
             }
 
             List<HandlerMatch> matches = pathMatcher.findHandlers(type, requestUri);
             if (!matches.isEmpty()) {
                 for (HandlerMatch endpointHandler : matches) {
-                    Request currentRequest = RequestUtil.create(httpRequest, endpointHandler);
-                    endpointHandler.handler.handle(currentRequest, response);
+                    Request currentRequest = RequestUtil.INSTANCE.create(httpRequest, endpointHandler);
+                    endpointHandler.getHandler().handle(currentRequest, response);
                     if (!currentRequest.nexted()) {
                         break;
                     }
@@ -83,7 +82,7 @@ public class JavalinServlet implements Servlet {
 
         try { // after-handlers
             for (HandlerMatch afterHandler : pathMatcher.findHandlers(Handler.Type.AFTER, requestUri)) {
-                afterHandler.handler.handle(RequestUtil.create(httpRequest, afterHandler), response);
+                afterHandler.getHandler().handle(RequestUtil.INSTANCE.create(httpRequest, afterHandler), response);
             }
         } catch (Exception e) {
             // after filters can also throw exceptions

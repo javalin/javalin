@@ -302,11 +302,11 @@ public class Javalin {
 
     // Reverse routing
     public String pathFinder(Handler handler) {
-        return pathMatcher.findHandlerPath(he -> he.handler.equals(handler));
+        return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler));
     }
 
     public String pathFinder(Handler handler, Handler.Type handlerType) {
-        return pathMatcher.findHandlerPath(he -> he.handler.equals(handler) && he.type == handlerType);
+        return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
     }
 
 }
