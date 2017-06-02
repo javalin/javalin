@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletResponse
 
 import io.javalin.HaltException
 import io.javalin.Handler
-import io.javalin.Request
 import io.javalin.Response
 import io.javalin.core.util.RequestUtil
 import io.javalin.core.util.Util
