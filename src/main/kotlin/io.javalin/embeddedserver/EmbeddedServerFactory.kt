@@ -11,5 +11,5 @@ import io.javalin.core.ExceptionMapper
 import io.javalin.core.PathMatcher
 
 interface EmbeddedServerFactory {
-    fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileDirectory: String): EmbeddedServer
+    fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileDirectory: String?): EmbeddedServer
 }
