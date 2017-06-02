@@ -127,11 +127,11 @@ public class Response {
     // cookie methods
 
     public Response cookie(String name, String value) {
-        return cookie(CookieBuilder.cookieBuilder(name, value));
+        return cookie(CookieBuilder.Companion.cookieBuilder(name, value));
     }
 
     public Response cookie(String name, String value, int maxAge) {
-        return cookie(CookieBuilder.cookieBuilder(name, value).maxAge(maxAge));
+        return cookie(CookieBuilder.Companion.cookieBuilder(name, value).maxAge(maxAge));
     }
 
     public Response cookie(CookieBuilder cookieBuilder) {
