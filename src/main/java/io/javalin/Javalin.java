@@ -69,8 +69,8 @@ public class Javalin {
 
     public synchronized Javalin start() {
         if (!started) {
-            log.info("\n" + Util.javalinBanner());
-            Util.printHelpfulMessageIfLoggerIsMissing();
+            log.info("\n" + Util.INSTANCE.javalinBanner());
+            Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
             new Thread(() -> {
                 eventManager.fireEvent(Event.Type.SERVER_STARTING, this);
                 try {
@@ -147,7 +147,7 @@ public class Javalin {
 
     public synchronized Javalin enableStaticFiles(String location) {
         ensureServerHasNotStarted();
-        Util.notNull("Location cannot be null", location);
+        Util.INSTANCE.notNull("Location cannot be null", location);
         staticFileDirectory = location;
         return this;
     }
@@ -186,7 +186,7 @@ public class Javalin {
         return started ? port : -1;
     }
 
-    public synchronized <T extends Exception> Javalin exception(Class<T> exceptionClass, ExceptionHandler<? super T> exceptionHandler) {
+    public synchronized <T extends Exception> Javalin exception(Class<T> exceptionClass, ExceptionHandler exceptionHandler) {
         exceptionMapper.put(exceptionClass, exceptionHandler);
         return this;
     }

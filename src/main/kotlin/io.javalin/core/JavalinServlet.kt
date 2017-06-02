@@ -95,7 +95,7 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
             httpResponse.writer.flush()
             httpResponse.writer.close()
         } else if (response.bodyStream() != null) {
-            Util.copyStream(response.bodyStream(), httpResponse.outputStream)
+            Util.copyStream(response.bodyStream()!!, httpResponse.outputStream)
         }
 
     }

@@ -52,7 +52,7 @@ public class TestResponse extends _UnirestBaseTest {
         HttpResponse<String> response = call(HttpMethod.GET, "/stream");
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        assertThat(Util.copyStream(response.getRawBody(), bout), is((long) buf.length));
+        assertThat(Util.INSTANCE.copyStream(response.getRawBody(), bout), is((long) buf.length));
         assertThat(buf, equalTo(bout.toByteArray()));
     }
 
