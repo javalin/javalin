@@ -6,14 +6,6 @@
 
 package io.javalin
 
-import java.io.IOException
-import java.io.InputStream
-
-import javax.servlet.http.Cookie
-import javax.servlet.http.HttpServletResponse
-
-import org.slf4j.LoggerFactory
-
 import io.javalin.builder.CookieBuilder
 import io.javalin.core.util.Util
 import io.javalin.translator.json.Jackson
@@ -21,6 +13,11 @@ import io.javalin.translator.template.Freemarker
 import io.javalin.translator.template.Mustache
 import io.javalin.translator.template.Thymeleaf
 import io.javalin.translator.template.Velocity
+import org.slf4j.LoggerFactory
+import java.io.IOException
+import java.io.InputStream
+import javax.servlet.http.Cookie
+import javax.servlet.http.HttpServletResponse
 
 class Response(private val servletResponse: HttpServletResponse) {
 

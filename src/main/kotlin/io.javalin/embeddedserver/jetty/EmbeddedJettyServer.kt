@@ -6,18 +6,15 @@
 
 package io.javalin.embeddedserver.jetty
 
-import java.io.IOException
-import java.net.ServerSocket
-
+import io.javalin.Javalin
+import io.javalin.embeddedserver.EmbeddedServer
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.session.SessionHandler
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import io.javalin.Javalin
-import io.javalin.embeddedserver.EmbeddedServer
+import java.io.IOException
+import java.net.ServerSocket
 
 class EmbeddedJettyServer(private var server: Server, private val javalinHandler: SessionHandler) : EmbeddedServer {
 

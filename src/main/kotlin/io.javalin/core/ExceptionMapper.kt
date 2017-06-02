@@ -2,21 +2,17 @@
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
- *
  */
 
 package io.javalin.core
-
-import java.util.HashMap
-
-import javax.servlet.http.HttpServletResponse
-
-import org.slf4j.LoggerFactory
 
 import io.javalin.ExceptionHandler
 import io.javalin.HaltException
 import io.javalin.Request
 import io.javalin.Response
+import org.slf4j.LoggerFactory
+import java.util.*
+import javax.servlet.http.HttpServletResponse
 
 class ExceptionMapper {
 

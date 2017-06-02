@@ -6,11 +6,10 @@
 
 package io.javalin.core
 
-import java.util.HashMap
-
 import io.javalin.ErrorHandler
 import io.javalin.Request
 import io.javalin.Response
+import java.util.*
 
 class ErrorMapper {
 

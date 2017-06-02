@@ -6,11 +6,6 @@
 
 package io.javalin.embeddedserver.jetty
 
-import java.util.concurrent.TimeUnit
-
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
-
 import io.javalin.core.ErrorMapper
 import io.javalin.core.ExceptionMapper
 import io.javalin.core.JavalinServlet
@@ -18,8 +13,10 @@ import io.javalin.core.PathMatcher
 import io.javalin.core.util.Util
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.EmbeddedServerFactory
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-
+import java.util.concurrent.TimeUnit
 
 
 class EmbeddedJettyFactory : EmbeddedServerFactory {

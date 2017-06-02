@@ -6,23 +6,17 @@
 
 package io.javalin.core
 
-import java.io.IOException
-import java.nio.charset.StandardCharsets
-
-import javax.servlet.Servlet
-import javax.servlet.ServletConfig
-import javax.servlet.ServletException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-
 import io.javalin.HaltException
 import io.javalin.Handler
 import io.javalin.Response
 import io.javalin.core.util.RequestUtil
 import io.javalin.core.util.Util
 import io.javalin.embeddedserver.StaticResourceHandler
+import java.io.IOException
+import java.nio.charset.StandardCharsets
+import javax.servlet.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class JavalinServlet(private val pathMatcher: PathMatcher, private val exceptionMapper: ExceptionMapper, private val errorMapper: ErrorMapper, private val staticResourceHandler: StaticResourceHandler) : Servlet {
 

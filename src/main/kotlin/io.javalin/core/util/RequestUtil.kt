@@ -2,25 +2,20 @@
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
- *
  */
 
 package io.javalin.core.util
 
+import io.javalin.Request
+import io.javalin.core.HandlerMatch
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.nio.charset.Charset
-import java.util.ArrayList
-import java.util.Collections
-import java.util.HashMap
-
+import java.util.*
 import javax.servlet.http.HttpServletRequest
-
-import io.javalin.Request
-import io.javalin.core.HandlerMatch
 
 object RequestUtil {
 
