@@ -46,7 +46,7 @@ public class JavalinServlet implements Servlet {
 
         HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
         HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-        Handler.Type type = Handler.Type.fromServletRequest(httpRequest);
+        Handler.Type type = Handler.Type.Companion.fromServletRequest(httpRequest);
         String requestUri = httpRequest.getRequestURI();
         Request request = RequestUtil.create(httpRequest);
         Response response = new Response(httpResponse);

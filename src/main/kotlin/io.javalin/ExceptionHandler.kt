@@ -5,10 +5,9 @@
  *
  */
 
-package io.javalin;
+package io.javalin
 
 @FunctionalInterface
-public interface ErrorHandler {
-    // very similar to handler, but can't throw exception
-    void handle(Request request, Response response);
+interface ExceptionHandler<in T : Exception> {
+    fun handle(exception: T, request: Request, response: Response)
 }
