@@ -5,9 +5,9 @@
  *
  */
 
-package io.javalin.lifecycle;
+package io.javalin.lifecycle
 
 @FunctionalInterface
-public interface EventListener {
-    void handleEvent(Event e);
+interface EventListener {
+    fun handleEvent(e: Event)
 }
