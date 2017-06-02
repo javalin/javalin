@@ -13,6 +13,7 @@ class Event {
     enum class Type {
         SERVER_STARTING,
         SERVER_STARTED,
+        SERVER_START_FAILED,
         SERVER_STOPPING,
         SERVER_STOPPED
     }

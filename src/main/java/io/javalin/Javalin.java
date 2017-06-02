@@ -47,8 +47,6 @@ public class Javalin {
 
     private EventManager eventManager = new EventManager();
 
-    private Consumer<Exception> startupExceptionHandler = (e) -> log.error("Failed to start Javalin", e);
-
     private CountDownLatch startLatch = new CountDownLatch(1);
     private CountDownLatch stopLatch = new CountDownLatch(1);
 
@@ -77,7 +75,8 @@ public class Javalin {
                     embeddedServer = embeddedServerFactory.create(pathMatcher, exceptionMapper, errorMapper, staticFileDirectory);
                     port = embeddedServer.start(ipAddress, port);
                 } catch (Exception e) {
-                    startupExceptionHandler.accept(e);
+                    log.error("Failed to start Javalin");
+                    eventManager.fireEvent(Event.Type.SERVER_START_FAILED, this);
                 }
                 eventManager.fireEvent(Event.Type.SERVER_STARTED, this);
                 try {
@@ -167,12 +166,6 @@ public class Javalin {
     public synchronized Javalin event(Event.Type eventType, EventListener eventListener) {
         ensureServerHasNotStarted();
         eventManager.addEventListener(eventType, eventListener);
-        return this;
-    }
-
-    public Javalin startupExceptionHandler(Consumer<Exception> startupExceptionHandler) {
-        ensureServerHasNotStarted();
-        this.startupExceptionHandler = startupExceptionHandler;
         return this;
     }
 
