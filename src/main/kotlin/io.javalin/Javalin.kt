@@ -302,7 +302,7 @@ class Javalin {
         return pathMatcher.findHandlerPath({ he -> he.handler == handler })
     }
 
-    fun pathFinder(handler: Handler, handlerType: Handler.Type): String?{
+    fun pathFinder(handler: Handler, handlerType: Handler.Type): String? {
         return pathMatcher.findHandlerPath({ he -> he.handler == handler && he.type === handlerType })
     }
 

@@ -10,7 +10,6 @@ import io.javalin.Handler
 import io.javalin.core.util.Util
 import org.slf4j.LoggerFactory
 import java.util.*
-import java.util.function.Predicate
 import kotlin.streams.toList
 
 class PathMatcher {
