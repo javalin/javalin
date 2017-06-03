@@ -12,7 +12,7 @@ import io.javalin.Javalin;
 public class HelloWorldStaticFiles {
 
     public static void main(String[] args) {
-        Javalin.Companion.create()
+        Javalin.create()
             .port(7070)
             .enableStaticFiles("/public");
     }

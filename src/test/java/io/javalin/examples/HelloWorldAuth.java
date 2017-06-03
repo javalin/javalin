@@ -12,7 +12,7 @@ import io.javalin.security.Role;
 
 import static io.javalin.ApiBuilder.*;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.*;
-import static io.javalin.security.RoleList.*;
+import static io.javalin.security.Role.roles;
 
 public class HelloWorldAuth {
 
@@ -21,7 +21,7 @@ public class HelloWorldAuth {
     }
 
     public static void main(String[] args) {
-        Javalin.Companion.create()
+        Javalin.create()
             .port(7070)
             .accessManager((handler, request, response, permittedRoles) -> {
                 String userRole = request.queryParam("role");

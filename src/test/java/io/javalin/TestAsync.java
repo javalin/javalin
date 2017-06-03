@@ -32,7 +32,7 @@ public class TestAsync {
     @Ignore("Just for running manually")
     public void test_async() throws Exception {
 
-        Javalin app = Javalin.Companion.create()
+        Javalin app = Javalin.create()
             .embeddedServer(new EmbeddedJettyFactory())
             .port(5454)
             .start()

@@ -14,17 +14,17 @@ public class TestStartStop {
 
     @Test
     public void test_waitsWorks_whenCalledInCorrectOrder() throws Exception {
-        Javalin.Companion.create().start().awaitInitialization().stop().awaitTermination();
+        Javalin.create().start().awaitInitialization().stop().awaitTermination();
     }
 
     @Test(expected = IllegalStateException.class)
     public void test_awaitInitThrowsException_whenNotStarted() throws Exception {
-        Javalin.Companion.create().awaitInitialization();
+        Javalin.create().awaitInitialization();
     }
 
     @Test(expected = IllegalStateException.class)
     public void test_awaitTerminationThrowsException_whenNotStopped() throws Exception {
-        Javalin.Companion.create().awaitTermination();
+        Javalin.create().awaitTermination();
     }
 
 }

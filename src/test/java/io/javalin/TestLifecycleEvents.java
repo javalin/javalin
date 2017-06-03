@@ -23,7 +23,7 @@ public class TestLifecycleEvents {
 
     @Test
     public void testLifecycleEvents() {
-        Javalin.Companion.create()
+        Javalin.create()
             .event(Event.Type.SERVER_STARTING, e -> startingMsg = "Starting")
             .event(Event.Type.SERVER_STARTED, e -> startedMsg = "Started")
             .event(Event.Type.SERVER_STOPPING, e -> stoppingMsg = "Stopping")

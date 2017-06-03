@@ -33,7 +33,7 @@ public class _UnirestBaseTest {
 
     @BeforeClass
     public static void setup() throws IOException {
-        app = Javalin.Companion.create()
+        app = Javalin.create()
             .port(7777)
             .start()
             .awaitInitialization();

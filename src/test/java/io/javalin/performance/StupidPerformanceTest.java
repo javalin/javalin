@@ -33,7 +33,7 @@ public class StupidPerformanceTest {
 
     @BeforeClass
     public static void setup() throws IOException {
-        app = Javalin.Companion.create()
+        app = Javalin.create()
             .port(7000)
             .routes(() -> {
                 before((req, res) -> res.status(123));

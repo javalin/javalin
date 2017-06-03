@@ -18,7 +18,7 @@ public class AsyncExample {
 
     public static void main(String[] args) {
 
-        Javalin app = Javalin.Companion.create().port(5454);
+        Javalin app = Javalin.create().port(5454);
 
         app.get("/test-custom", (req, res) -> {
             AsyncContext asyncContext = req.unwrap().startAsync();

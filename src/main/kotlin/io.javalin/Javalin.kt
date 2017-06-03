@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import io.javalin.core.ErrorMapper
 import io.javalin.core.ExceptionMapper
 import io.javalin.core.PathMatcher
@@ -28,7 +27,7 @@ class Javalin {
 
     companion object {
         var DEFAULT_PORT = 7000
-        fun create(): Javalin {
+        @JvmStatic fun create(): Javalin {
             return Javalin()
         }
     }

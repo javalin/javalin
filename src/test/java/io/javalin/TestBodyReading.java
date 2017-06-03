@@ -19,7 +19,7 @@ public class TestBodyReading {
 
     @Test
     public void test_bodyReader() throws Exception {
-        Javalin app = Javalin.Companion.create().port(0).start().awaitInitialization();
+        Javalin app = Javalin.create().port(0).start().awaitInitialization();
         app.before("/body-reader", (req, res) -> res.header("X-BEFORE", req.body() + req.queryParam("qp")));
         app.post("/body-reader", (req, res) -> res.body(req.body() + req.queryParam("qp")));
         app.after("/body-reader", (req, res) -> res.header("X-AFTER", req.body() + req.queryParam("qp")));
@@ -38,7 +38,7 @@ public class TestBodyReading {
 
     @Test
     public void test_bodyReader_reverse() throws Exception {
-        Javalin app = Javalin.Companion.create().port(0).start().awaitInitialization();
+        Javalin app = Javalin.create().port(0).start().awaitInitialization();
         app.before("/body-reader", (req, res) -> res.header("X-BEFORE", req.queryParam("qp") + req.body()));
         app.post("/body-reader", (req, res) -> res.body(req.queryParam("qp") + req.body()));
         app.after("/body-reader", (req, res) -> res.header("X-AFTER", req.queryParam("qp") + req.body()));
@@ -57,7 +57,7 @@ public class TestBodyReading {
 
     @Test
     public void test_formParams_work() throws Exception {
-        Javalin app = Javalin.Companion.create().port(0).start().awaitInitialization();
+        Javalin app = Javalin.create().port(0).start().awaitInitialization();
         app.before("/body-reader", (req, res) -> res.header("X-BEFORE", req.bodyParam("username")));
         app.post("/body-reader", (req, res) -> res.body(req.bodyParam("password")));
         app.after("/body-reader", (req, res) -> res.header("X-AFTER", req.bodyParam("repeat-password")));
