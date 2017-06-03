@@ -20,8 +20,8 @@ public class TestApiBuilderTwoServices {
 
     @Test
     public void testApiBuilder_twoServices() throws Exception {
-        Javalin app1 = Javalin.create().port(0).start().awaitInitialization();
-        Javalin app2 = Javalin.create().port(0).start().awaitInitialization();
+        Javalin app1 = Javalin.Companion.create().port(0).start().awaitInitialization();
+        Javalin app2 = Javalin.Companion.create().port(0).start().awaitInitialization();
         app1.routes(() -> {
             get("/hello1", (req, res) -> res.body("Hello1"));
         });

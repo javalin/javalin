@@ -28,7 +28,7 @@ public class TestStaticFiles {
 
     @BeforeClass
     public static void setup() throws IOException {
-        app = Javalin.create()
+        app = Javalin.Companion.create()
             .port(7777)
             .enableStaticFiles("/public")
             .start()
@@ -37,8 +37,7 @@ public class TestStaticFiles {
 
     @After
     public void clearRoutes() {
-        app.exceptionMapper.clear();
-        app.pathMatcher.clear();
+        app.clearInternalMappers();
     }
 
     @AfterClass

@@ -35,7 +35,7 @@ class PathMatcher {
         return handlerEntries.filter { he -> match(he, type, path) }.toList()
     }
 
-    fun findHandlerPath(predicate: Predicate<HandlerEntry>): String? {
+    fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
         val entries = handlerEntries.stream().filter(predicate).toList()
         if (entries.size > 1) {
             log.warn("More than one path found for handler, returning first match: '{} {}'", entries[0].type, entries[0].path)

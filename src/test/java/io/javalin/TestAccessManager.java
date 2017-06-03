@@ -40,7 +40,7 @@ public class TestAccessManager {
 
     @Test
     public void test_noAccessManager_throwsException() throws Exception {
-        Javalin app = Javalin.create().port(1234).start().awaitInitialization();
+        Javalin app = Javalin.Companion.create().port(1234).start().awaitInitialization();
         app.get("/secured", (req, res) -> res.body("Hello"), roles(ROLE_ONE));
         assertThat(callWithRole("/secured", "ROLE_ONE"), is("Internal server error"));
         app.stop().awaitTermination();
@@ -48,7 +48,7 @@ public class TestAccessManager {
 
     @Test
     public void test_accessManager_restrictsAccess() throws Exception {
-        Javalin app = Javalin.create().port(1234).start().awaitInitialization();
+        Javalin app = Javalin.Companion.create().port(1234).start().awaitInitialization();
         app.accessManager(accessManager);
         app.get("/secured", (req, res) -> res.body("Hello"), roles(ROLE_ONE, ROLE_TWO));
         assertThat(callWithRole("/secured", "ROLE_ONE"), is("Hello"));
@@ -59,7 +59,7 @@ public class TestAccessManager {
 
     @Test
     public void test_accessManager_restrictsAccess_forStaticApi() throws Exception {
-        Javalin app = Javalin.create().port(1234).start().awaitInitialization();
+        Javalin app = Javalin.Companion.create().port(1234).start().awaitInitialization();
         app.accessManager(accessManager);
         app.routes(() -> {
             get("/static-secured", (req, res) -> res.body("Hello"), roles(ROLE_ONE, ROLE_TWO));

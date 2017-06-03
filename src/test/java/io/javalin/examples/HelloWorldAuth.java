@@ -21,7 +21,7 @@ public class HelloWorldAuth {
     }
 
     public static void main(String[] args) {
-        Javalin.create()
+        Javalin.Companion.create()
             .port(7070)
             .accessManager((handler, request, response, permittedRoles) -> {
                 String userRole = request.queryParam("role");

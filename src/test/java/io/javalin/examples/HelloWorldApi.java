@@ -14,7 +14,7 @@ import static io.javalin.ApiBuilder.*;
 public class HelloWorldApi {
 
     public static void main(String[] args) {
-        Javalin.create()
+        Javalin.Companion.create()
             .port(7070)
             .routes(() -> {
                 get("/hello", (req, res) -> res.body("Hello World"));

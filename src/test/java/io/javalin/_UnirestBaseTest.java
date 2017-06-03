@@ -33,7 +33,7 @@ public class _UnirestBaseTest {
 
     @BeforeClass
     public static void setup() throws IOException {
-        app = Javalin.create()
+        app = Javalin.Companion.create()
             .port(7777)
             .start()
             .awaitInitialization();
@@ -41,9 +41,7 @@ public class _UnirestBaseTest {
 
     @After
     public void clearRoutes() {
-        app.errorMapper.clear();
-        app.exceptionMapper.clear();
-        app.pathMatcher.clear();
+        app.clearInternalMappers();
     }
 
     @AfterClass
