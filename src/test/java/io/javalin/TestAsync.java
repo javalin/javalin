@@ -13,6 +13,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -33,7 +35,7 @@ public class TestAsync {
     public void test_async() throws Exception {
 
         Javalin app = Javalin.create()
-            .embeddedServer(new EmbeddedJettyFactory())
+            .embeddedServer(new EmbeddedJettyFactory(() -> new Server(new QueuedThreadPool(16, 10, 60_000))))
             .port(5454)
             .start()
             .awaitInitialization();
