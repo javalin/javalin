@@ -297,13 +297,8 @@ class Javalin {
         return after("/*", handler)
     }
 
-    // Reverse routing
-    fun pathFinder(handler: Handler): String? {
-        return pathMatcher.findHandlerPath({ he -> he.handler == handler })
-    }
+    fun pathFinder(handler: Handler): String? = pathMatcher.findHandlerPath { he -> he.handler == handler }
 
-    fun pathFinder(handler: Handler, handlerType: Handler.Type): String? {
-        return pathMatcher.findHandlerPath({ he -> he.handler == handler && he.type === handlerType })
-    }
+    fun pathFinder(handler: Handler, type: Handler.Type): String? = pathMatcher.findHandlerPath { he -> he.handler == handler && he.type === type }
 
 }

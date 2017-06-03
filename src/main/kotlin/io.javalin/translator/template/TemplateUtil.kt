@@ -11,7 +11,7 @@ import java.util.*
 object TemplateUtil {
     fun model(vararg args: Any): Map<String, Any> {
         if (args.size % 2 != 0) {
-            throw RuntimeException("Number of arguments must be even (key value pairs)")
+            throw IllegalArgumentException("Number of arguments must be even (key value pairs)")
         }
         val model = HashMap<String, Any>()
         var i = 0
@@ -19,7 +19,7 @@ object TemplateUtil {
             if (args[i] is String) {
                 model.put(args[i] as String, args[i + 1])
             } else {
-                throw RuntimeException("Keys must be Strings")
+                throw IllegalArgumentException("Keys must be Strings")
             }
             i += 2
         }

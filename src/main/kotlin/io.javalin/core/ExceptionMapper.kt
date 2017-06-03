@@ -53,12 +53,12 @@ class ExceptionMapper {
         while (superclass != null) {
             if (this.exceptionMap.containsKey(superclass)) {
                 val matchingHandler = this.exceptionMap[superclass]
-                this.exceptionMap.put(exceptionClass, matchingHandler) // superclass was found, avoid search next time
+                this.exceptionMap[exceptionClass] = matchingHandler // superclass was found, avoid search next time
                 return matchingHandler
             }
             superclass = superclass.superclass
         }
-        this.exceptionMap.put(exceptionClass, null) // nothing was found, avoid search next time
+        this.exceptionMap[exceptionClass] = null // nothing was found, avoid search next time
         return null
     }
 

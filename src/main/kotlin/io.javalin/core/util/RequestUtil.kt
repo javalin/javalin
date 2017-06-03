@@ -53,7 +53,7 @@ object RequestUtil {
             }
             i++
         }
-        return Collections.unmodifiableList(splat)
+        return splat
     }
 
     fun getParams(requestPaths: List<String>, handlerPaths: List<String>): Map<String, String> {
@@ -66,7 +66,7 @@ object RequestUtil {
             }
             i++
         }
-        return Collections.unmodifiableMap(params)
+        return params
     }
 
     fun urlDecode(s: String): String {

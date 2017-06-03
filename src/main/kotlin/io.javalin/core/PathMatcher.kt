@@ -27,15 +27,15 @@ class PathMatcher {
     }
 
     fun findHandlers(type: Handler.Type, path: String): List<HandlerMatch> {
-        return findTargetsForRequestedHandler(type, path).map { handlerEntry -> HandlerMatch(handlerEntry.handler, handlerEntry.path, path) }.toList()
+        return findTargetsForRequestedHandler(type, path).map { handlerEntry -> HandlerMatch(handlerEntry.handler, handlerEntry.path, path) }
     }
 
     private fun findTargetsForRequestedHandler(type: Handler.Type, path: String): List<HandlerEntry> {
-        return handlerEntries.filter { he -> match(he, type, path) }.toList()
+        return handlerEntries.filter { he -> match(he, type, path) }
     }
 
     fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
-        val entries = handlerEntries.stream().filter(predicate).toList()
+        val entries = handlerEntries.filter(predicate)
         if (entries.size > 1) {
             log.warn("More than one path found for handler, returning first match: '{} {}'", entries[0].type, entries[0].path)
         }
