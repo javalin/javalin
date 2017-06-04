@@ -44,7 +44,7 @@ object Util {
             log.warn(message)
             throw HaltException(500, message)
         }
-        dependencyCheckCache.put(className, true)
+        dependencyCheckCache[className] = true
     }
 
     fun pathToList(pathString: String): List<String> {

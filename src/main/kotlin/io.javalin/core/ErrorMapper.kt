@@ -13,14 +13,10 @@ import java.util.*
 
 class ErrorMapper {
 
-    private val errorHandlerMap: MutableMap<Int, ErrorHandler>
-
-    init {
-        this.errorHandlerMap = HashMap<Int, ErrorHandler>()
-    }
+    private val errorHandlerMap: MutableMap<Int, ErrorHandler> = HashMap<Int, ErrorHandler>()
 
     fun put(statusCode: Int, handler: ErrorHandler) {
-        this.errorHandlerMap.put(statusCode, handler)
+        this.errorHandlerMap[statusCode] = handler
     }
 
     fun clear() {

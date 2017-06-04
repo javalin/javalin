@@ -17,7 +17,7 @@ object TemplateUtil {
         var i = 0
         while (i < args.size) {
             if (args[i] is String) {
-                model.put(args[i] as String, args[i + 1])
+                model[args[i] as String] = args[i + 1]
             } else {
                 throw IllegalArgumentException("Keys must be Strings")
             }

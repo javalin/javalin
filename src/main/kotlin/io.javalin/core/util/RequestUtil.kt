@@ -62,7 +62,7 @@ object RequestUtil {
         while (i < requestPaths.size && i < handlerPaths.size) {
             val matchedPart = handlerPaths[i]
             if (isParam(matchedPart)) {
-                params.put(matchedPart.toLowerCase(), urlDecode(requestPaths[i]))
+                params[matchedPart.toLowerCase()] = urlDecode(requestPaths[i])
             }
             i++
         }

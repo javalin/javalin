@@ -21,7 +21,7 @@ class ExceptionMapper {
     private val exceptionMap: MutableMap<Class<out Exception>, ExceptionHandler<Exception>?> = HashMap()
 
     fun put(exceptionClass: Class<out Exception>, handler: ExceptionHandler<Exception>?) {
-        this.exceptionMap.put(exceptionClass, handler)
+        this.exceptionMap[exceptionClass] = handler
     }
 
     fun clear() {
