@@ -33,9 +33,7 @@ public class _SimpleClientBaseTest {
 
     @After
     public void clearRoutes() {
-        app.errorMapper.clear();
-        app.exceptionMapper.clear();
-        app.pathMatcher.clear();
+        app.clearInternalMappers();
     }
 
     @AfterClass

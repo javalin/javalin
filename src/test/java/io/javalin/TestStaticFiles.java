@@ -37,8 +37,7 @@ public class TestStaticFiles {
 
     @After
     public void clearRoutes() {
-        app.exceptionMapper.clear();
-        app.pathMatcher.clear();
+        app.clearInternalMappers();
     }
 
     @AfterClass

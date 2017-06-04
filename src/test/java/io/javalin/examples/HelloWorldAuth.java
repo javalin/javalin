@@ -7,11 +7,12 @@
 
 package io.javalin.examples;
 
-import io.javalin.ApiBuilder;
 import io.javalin.Javalin;
 import io.javalin.security.Role;
 
+import static io.javalin.ApiBuilder.*;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.*;
+import static io.javalin.security.Role.roles;
 
 public class HelloWorldAuth {
 
@@ -31,12 +32,12 @@ public class HelloWorldAuth {
                 }
             })
             .routes(() -> {
-                ApiBuilder.get("/hello", (req, res) -> res.body("Hello World 1"), Role.roles(ROLE_ONE));
-                ApiBuilder.path("/api", () -> {
-                    ApiBuilder.get("/test", (req, res) -> res.body("Hello World 2"), Role.roles(ROLE_TWO));
-                    ApiBuilder.get("/tast", (req, res) -> res.status(200).body("Hello world 3"), Role.roles(ROLE_THREE));
-                    ApiBuilder.get("/hest", (req, res) -> res.status(200).body("Hello World 4"), Role.roles(ROLE_ONE, ROLE_TWO));
-                    ApiBuilder.get("/hast", (req, res) -> res.status(200).body("Hello World 5").header("test", "tast"), Role.roles(ROLE_ONE, ROLE_THREE));
+                get("/hello", (req, res) -> res.body("Hello World 1"), roles(ROLE_ONE));
+                path("/api", () -> {
+                    get("/test", (req, res) -> res.body("Hello World 2"), roles(ROLE_TWO));
+                    get("/tast", (req, res) -> res.status(200).body("Hello world 3"), roles(ROLE_THREE));
+                    get("/hest", (req, res) -> res.status(200).body("Hello World 4"), roles(ROLE_ONE, ROLE_TWO));
+                    get("/hast", (req, res) -> res.status(200).body("Hello World 5").header("test", "tast"), roles(ROLE_ONE, ROLE_THREE));
                 });
             });
     }

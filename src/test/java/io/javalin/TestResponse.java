@@ -7,17 +7,18 @@
 
 package io.javalin;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
+
+import io.javalin.core.util.Util;
 
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.core.util.Util;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Random;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -49,12 +50,12 @@ public class TestResponse extends _UnirestBaseTest {
         new Random().nextBytes(buf);
         app.get("/stream", (req, res) -> res.body(new ByteArrayInputStream(buf)));
         HttpResponse<String> response = call(HttpMethod.GET, "/stream");
-        
+
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        assertThat(Util.copyStream(response.getRawBody(), bout), is((long) buf.length));
+        assertThat(Util.INSTANCE.copyStream(response.getRawBody(), bout), is((long) buf.length));
         assertThat(buf, equalTo(bout.toByteArray()));
     }
-    
+
     @Test
     public void test_redirect() throws Exception {
         app.get("/hello", (req, res) -> res.redirect("/hello-2"));

@@ -15,6 +15,7 @@ import io.javalin.security.Role;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
+import static io.javalin.ApiBuilder.*;
 import static io.javalin.TestAccessManager.MyRoles.*;
 import static io.javalin.security.Role.roles;
 import static org.hamcrest.MatcherAssert.*;
@@ -61,7 +62,7 @@ public class TestAccessManager {
         Javalin app = Javalin.create().port(1234).start().awaitInitialization();
         app.accessManager(accessManager);
         app.routes(() -> {
-            ApiBuilder.get("/static-secured", (req, res) -> res.body("Hello"), roles(ROLE_ONE, ROLE_TWO));
+            get("/static-secured", (req, res) -> res.body("Hello"), roles(ROLE_ONE, ROLE_TWO));
         });
         assertThat(callWithRole("/static-secured", "ROLE_ONE"), is("Hello"));
         assertThat(callWithRole("/static-secured", "ROLE_TWO"), is("Hello"));

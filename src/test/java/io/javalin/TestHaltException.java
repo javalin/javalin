@@ -29,6 +29,14 @@ public class TestHaltException extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_constructorsWork() throws Exception {
+        HaltException haltException1 = new HaltException();
+        HaltException haltException2 = new HaltException(401);
+        HaltException haltException3 = new HaltException("Body");
+        HaltException haltException4 = new HaltException(401, "Body");
+    }
+
+    @Test
     public void test_haltInRoute_works() throws Exception {
         app.get("/some-route", (req, res) -> {
             throw new HaltException(401, "Stop!");

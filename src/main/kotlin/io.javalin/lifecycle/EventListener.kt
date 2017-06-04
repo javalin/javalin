@@ -4,10 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin;
+package io.javalin.lifecycle
 
 @FunctionalInterface
-public interface ErrorHandler {
-    // very similar to handler, but can't throw exception
-    void handle(Request request, Response response);
+interface EventListener {
+    fun handleEvent(e: Event)
 }
