@@ -110,14 +110,8 @@ public class Javalin {
         eventManager.fireEvent(Event.Type.SERVER_STOPPING, this);
         new Thread(() -> {
             embeddedServer.stop();
-            started = false;
-            startLatch = new CountDownLatch(1);
             eventManager.fireEvent(Event.Type.SERVER_STOPPED, this);
-            pathMatcher = new PathMatcher();
-            exceptionMapper = new ExceptionMapper();
-            errorMapper = new ErrorMapper();
             stopLatch.countDown();
-            stopLatch = new CountDownLatch(1);
         }).start();
         return this;
     }
