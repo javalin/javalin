@@ -7,7 +7,6 @@
 package io.javalin.core
 
 import io.javalin.HaltException
-import io.javalin.Handler
 import io.javalin.Response
 import io.javalin.core.util.RequestUtil
 import io.javalin.core.util.Util
@@ -34,20 +33,20 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
 
         try { // before-handlers, endpoint-handlers, static-files
 
-            for (beforeHandler in pathMatcher.findHandlers(HandlerType.BEFORE, requestUri)) {
-                beforeHandler.handler.handle(RequestUtil.create(httpRequest, beforeHandler), response)
+            for (beforeMatch in pathMatcher.findMatches(HandlerType.BEFORE, requestUri)) {
+                beforeMatch.handler.handle(RequestUtil.create(httpRequest, beforeMatch), response)
             }
 
-            val matches = pathMatcher.findHandlers(type, requestUri)
+            val matches = pathMatcher.findMatches(type, requestUri)
             if (!matches.isEmpty()) {
-                for (endpointHandler in matches) {
-                    val currentRequest = RequestUtil.create(httpRequest, endpointHandler)
-                    endpointHandler.handler.handle(currentRequest, response)
+                for (endpointMatch in matches) {
+                    val currentRequest = RequestUtil.create(httpRequest, endpointMatch)
+                    endpointMatch.handler.handle(currentRequest, response)
                     if (!currentRequest.nexted()) {
                         break
                     }
                 }
-            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && pathMatcher.findHandlers(HandlerType.GET, requestUri).isEmpty()) {
+            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && pathMatcher.findMatches(HandlerType.GET, requestUri).isEmpty()) {
                 if (staticResourceHandler.handle(httpRequest, httpResponse)) {
                     return
                 }
@@ -61,8 +60,8 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
         }
 
         try { // after-handlers
-            for (afterHandler in pathMatcher.findHandlers(HandlerType.AFTER, requestUri)) {
-                afterHandler.handler.handle(RequestUtil.create(httpRequest, afterHandler), response)
+            for (afterMatch in pathMatcher.findMatches(HandlerType.AFTER, requestUri)) {
+                afterMatch.handler.handle(RequestUtil.create(httpRequest, afterMatch), response)
             }
         } catch (e: Exception) {
             // after filters can also throw exceptions
