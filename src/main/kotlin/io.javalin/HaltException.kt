@@ -6,25 +6,12 @@
 
 package io.javalin
 
-import javax.servlet.http.HttpServletResponse
-
-class HaltException : RuntimeException {
-    var statusCode = HttpServletResponse.SC_OK
-    var body = "Execution halted"
-
-    constructor() {}
-
-    constructor(statusCode: Int) {
-        this.statusCode = statusCode
+class HaltException(var statusCode: Int = 200, var body: String = "Execution halted") : RuntimeException() {
+    constructor(statusCode: Int) : this() {
+        this.statusCode = statusCode;
     }
 
-    constructor(body: String) {
-        this.body = body
+    constructor(body: String) : this() {
+        this.body = body;
     }
-
-    constructor(statusCode: Int, body: String) {
-        this.statusCode = statusCode
-        this.body = body
-    }
-
 }

@@ -22,20 +22,20 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
 
     @Throws(Exception::class)
     override fun start(host: String, port: Int): Int {
-        var port = port
+        var portVar = port
 
-        if (port == 0) {
+        if (portVar == 0) {
             try {
-                ServerSocket(0).use { serverSocket -> port = serverSocket.localPort }
+                ServerSocket(0).use { serverSocket -> portVar = serverSocket.localPort }
             } catch (e: IOException) {
                 log.error("Failed to get first available port, using default port instead: " + Javalin.DEFAULT_PORT)
-                port = Javalin.DEFAULT_PORT
+                portVar = Javalin.DEFAULT_PORT
             }
 
         }
 
         if (server.connectors.isEmpty()) {
-            val serverConnector = EmbeddedJettyFactory.defaultConnector(server, host, port)
+            val serverConnector = EmbeddedJettyFactory.defaultConnector(server, host, portVar)
             server = serverConnector.server
             server.connectors = arrayOf<Connector>(serverConnector)
         }

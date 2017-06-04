@@ -57,19 +57,16 @@ class Request(private val servletRequest: HttpServletRequest,
         return Jackson.toObject(body(), clazz)
     }
 
-    // yeah, this is probably not the best solution
     fun bodyParam(bodyParam: String): String? {
-        body().split("&").forEach({ keyAndValue ->
-            val pair = keyAndValue.split("=")
-            if (pair[0].equals(bodyParam, ignoreCase = true)) {
-                return pair[1]
-            }
-        })
-        return null
+        return formParam(bodyParam)
     }
 
     fun formParam(formParam: String): String? {
-        return bodyParam(formParam)
+        return body().split("&")
+                .map { it.split("=") }
+                .filter { it.first().equals(formParam, ignoreCase = true) }
+                .map { it.last() }
+                .firstOrNull()
     }
 
     fun param(param: String?): String? {
