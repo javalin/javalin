@@ -64,8 +64,7 @@ class PathMatcher {
         val numRequestPaths = requestPaths.size
 
         if (numHandlerPaths == numRequestPaths) {
-            for (i in 0..numHandlerPaths - 1) {
-                val handlerPathPart = handlerPaths[i]
+            handlerPaths.forEachIndexed({ i, handlerPathPart ->
                 val requestPathPart = requestPaths[i]
                 if (handlerPathPart == "*" && handlerPath.endsWith("*") && i == numHandlerPaths - 1) {
                     return true
@@ -73,12 +72,11 @@ class PathMatcher {
                 if (handlerPathPart != "*" && !handlerPathPart.startsWith(":") && handlerPathPart != requestPathPart) {
                     return false
                 }
-            }
+            })
             return true
         }
         if (handlerPath.endsWith("*") && numHandlerPaths < numRequestPaths) {
-            for (i in 0..numHandlerPaths - 1) {
-                val handlerPathPart = handlerPaths[i]
+            handlerPaths.forEachIndexed({ i, handlerPathPart ->
                 val requestPathPart = requestPaths[i]
                 if (handlerPathPart == "*" && handlerPath.endsWith("*") && i == numHandlerPaths - 1) {
                     return true
@@ -86,7 +84,7 @@ class PathMatcher {
                 if (!handlerPathPart.startsWith(":") && handlerPathPart != "*" && handlerPathPart != requestPathPart) {
                     return false
                 }
-            }
+            })
             return false
         }
         return false

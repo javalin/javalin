@@ -202,8 +202,10 @@ class Javalin {
         return this
     }
 
+    //
     // HTTP verbs
-    operator fun get(path: String, handler: Handler): Javalin {
+    //
+    fun get(path: String, handler: Handler): Javalin {
         return addHandler(Handler.Type.GET, path, handler)
     }
 
@@ -239,8 +241,10 @@ class Javalin {
         return addHandler(Handler.Type.OPTIONS, path, handler)
     }
 
+    //
     // Secured HTTP verbs
-    operator fun get(path: String, handler: Handler, permittedRoles: List<Role>): Javalin {
+    //
+    fun get(path: String, handler: Handler, permittedRoles: List<Role>): Javalin {
         return this.get(path, Handler { req, res -> accessManager.manage(handler, req, res, permittedRoles) })
     }
 
@@ -276,7 +280,9 @@ class Javalin {
         return this.options(path, Handler { req, res -> accessManager.manage(handler, req, res, permittedRoles) })
     }
 
-    // Filters
+    //
+    // Filters/middleware
+    //
     fun before(path: String, handler: Handler): Javalin {
         return addHandler(Handler.Type.BEFORE, path, handler)
     }

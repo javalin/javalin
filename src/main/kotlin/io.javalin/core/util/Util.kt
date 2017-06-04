@@ -66,7 +66,7 @@ object Util {
     }
 
     fun javalinBanner(): String {
-        return """
+        return "\n" + """
              _________________________________________
             |        _                  _ _           |
             |       | | __ ___   ____ _| (_)_ __      |
@@ -76,9 +76,7 @@ object Util {
             |_________________________________________|
             |                                         |
             |    https://javalin.io/documentation     |
-            |_________________________________________|
-
-            """.trimIndent()
+            |_________________________________________|""".trimIndent()
     }
 
     @Throws(IOException::class)

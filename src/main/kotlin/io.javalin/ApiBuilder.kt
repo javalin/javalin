@@ -33,101 +33,110 @@ object ApiBuilder {
         pathDeque.removeLast()
     }
 
-    @JvmStatic private fun prefixPath(path: String): String {
+    private fun prefixPath(path: String): String {
         return pathDeque.joinToString("") + path
+    }
+
+    private fun staticInstance(): Javalin {
+        if (staticJavalin == null) {
+            throw IllegalStateException("The static API can only be called within a routes() call")
+        }
+        return staticJavalin!!;
     }
 
     // Everything below here is copied from the end of Javalin.java
 
+    //
     // HTTP verbs
+    //
     @JvmStatic fun get(path: String, handler: Handler) {
-        staticJavalin!!.get(prefixPath(path), handler)
+        staticInstance().get(prefixPath(path), handler)
     }
 
     @JvmStatic fun post(path: String, handler: Handler) {
-        staticJavalin!!.post(prefixPath(path), handler)
+        staticInstance().post(prefixPath(path), handler)
     }
 
     @JvmStatic fun put(path: String, handler: Handler) {
-        staticJavalin!!.put(prefixPath(path), handler)
+        staticInstance().put(prefixPath(path), handler)
     }
 
     @JvmStatic fun patch(path: String, handler: Handler) {
-        staticJavalin!!.patch(prefixPath(path), handler)
+        staticInstance().patch(prefixPath(path), handler)
     }
 
     @JvmStatic fun delete(path: String, handler: Handler) {
-        staticJavalin!!.delete(prefixPath(path), handler)
+        staticInstance().delete(prefixPath(path), handler)
     }
 
     @JvmStatic fun head(path: String, handler: Handler) {
-        staticJavalin!!.head(prefixPath(path), handler)
+        staticInstance().head(prefixPath(path), handler)
     }
 
     @JvmStatic fun trace(path: String, handler: Handler) {
-        staticJavalin!!.trace(prefixPath(path), handler)
+        staticInstance().trace(prefixPath(path), handler)
     }
 
     @JvmStatic fun connect(path: String, handler: Handler) {
-        staticJavalin!!.connect(prefixPath(path), handler)
+        staticInstance().connect(prefixPath(path), handler)
     }
 
     @JvmStatic fun options(path: String, handler: Handler) {
-        staticJavalin!!.options(prefixPath(path), handler)
+        staticInstance().options(prefixPath(path), handler)
     }
 
     // Secured HTTP verbs
     @JvmStatic fun get(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.get(prefixPath(path), handler, permittedRoles)
+        staticInstance().get(prefixPath(path), handler, permittedRoles)
     }
 
     @JvmStatic fun post(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.post(prefixPath(path), handler, permittedRoles)
+        staticInstance().post(prefixPath(path), handler, permittedRoles)
     }
 
     @JvmStatic fun put(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.put(prefixPath(path), handler, permittedRoles)
+        staticInstance().put(prefixPath(path), handler, permittedRoles)
     }
 
     @JvmStatic fun patch(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.patch(prefixPath(path), handler, permittedRoles)
+        staticInstance().patch(prefixPath(path), handler, permittedRoles)
     }
 
     @JvmStatic fun delete(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.delete(prefixPath(path), handler, permittedRoles)
+        staticInstance().delete(prefixPath(path), handler, permittedRoles)
     }
 
     @JvmStatic fun head(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.head(prefixPath(path), handler, permittedRoles)
+        staticInstance().head(prefixPath(path), handler, permittedRoles)
     }
 
     @JvmStatic fun trace(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.trace(prefixPath(path), handler, permittedRoles)
+        staticInstance().trace(prefixPath(path), handler, permittedRoles)
     }
 
     @JvmStatic fun connect(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.connect(prefixPath(path), handler, permittedRoles)
+        staticInstance().connect(prefixPath(path), handler, permittedRoles)
     }
 
     @JvmStatic fun options(path: String, handler: Handler, permittedRoles: List<Role>) {
-        staticJavalin!!.options(prefixPath(path), handler, permittedRoles)
+        staticInstance().options(prefixPath(path), handler, permittedRoles)
     }
 
     // Filters
     @JvmStatic fun before(path: String, handler: Handler) {
-        staticJavalin!!.before(prefixPath(path), handler)
+        staticInstance().before(prefixPath(path), handler)
     }
 
     @JvmStatic fun before(handler: Handler) {
-        staticJavalin!!.before(prefixPath("/*"), handler)
+        staticInstance().before(prefixPath("/*"), handler)
     }
 
     @JvmStatic fun after(path: String, handler: Handler) {
-        staticJavalin!!.after(prefixPath(path), handler)
+        staticInstance().after(prefixPath(path), handler)
     }
 
     @JvmStatic fun after(handler: Handler) {
-        staticJavalin!!.after(prefixPath("/*"), handler)
+        staticInstance().after(prefixPath("/*"), handler)
     }
 
 }

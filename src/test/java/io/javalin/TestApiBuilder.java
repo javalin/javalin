@@ -61,5 +61,10 @@ public class TestApiBuilder extends _UnirestBaseTest {
         return (req, res) -> res.body(res.body() + body);
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void test_throwsException_ifUsedWithoutRoutes() throws Exception {
+        get("/null-static", (request, response) -> response.body("Shouldn't work"));
+    }
+
 }
 
