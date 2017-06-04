@@ -66,12 +66,8 @@ class Request(private val servletRequest: HttpServletRequest,
                 .firstOrNull()
     }
 
-    fun param(param: String?): String? {
-        var param: String = param ?: return null
-        if (!param.startsWith(":")) {
-            param = ":" + param
-        }
-        return paramMap[param.toLowerCase()]
+    fun param(param: String): String? {
+        return paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
     }
 
     fun paramMap(): Map<String, String> {

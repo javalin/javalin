@@ -52,13 +52,19 @@ public class TestRequest extends _UnirestBaseTest {
     * Path params
     */
     @Test
-    public void test_paramWork_noParam() throws Exception {
+    public void test_paramWorks_noParam() throws Exception {
         app.get("/my/path", (req, res) -> res.body("" + req.param("param")));
         assertThat(GET_body("/my/path"), is("null")); // notice {"" + req} on previous line
     }
 
     @Test
-    public void test_paramWork_multipleSingleParams() throws Exception {
+    public void test_paramWorks_nullKey() throws Exception {
+        app.get("/my/path", (req, res) -> res.body("" + req.param(null)));
+        assertThat(GET_body("/my/path"), is("Internal server error")); // notice {"" + req} on previous line
+    }
+
+    @Test
+    public void test_paramWorks_multipleSingleParams() throws Exception {
         app.get("/:1/:2/:3", (req, res) -> res.body(req.param("1") + req.param("2") + req.param("3")));
         assertThat(GET_body("/my/path/params"), is("mypathparams"));
     }
