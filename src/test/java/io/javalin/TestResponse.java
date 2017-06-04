@@ -14,6 +14,7 @@ import java.util.Random;
 
 import org.junit.Test;
 
+import io.javalin.builder.CookieBuilder;
 import io.javalin.core.util.Util;
 
 import com.mashape.unirest.http.HttpMethod;
@@ -91,6 +92,12 @@ public class TestResponse extends _UnirestBaseTest {
         HttpResponse<String> response = call(HttpMethod.POST, "/create-cookies");
         List<String> cookies = response.getHeaders().get("Set-Cookie");
         assertThat(cookies, is(nullValue()));
+    }
+
+    public void test_cookieBuilder() throws Exception {
+        app.post("/create-cookie", (req, res) -> {
+            res.cookie(CookieBuilder.cookieBuilder("Test", "Tast"));
+        });
     }
 
 }

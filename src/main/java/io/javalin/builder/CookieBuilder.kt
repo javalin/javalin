@@ -6,26 +6,19 @@
 
 package io.javalin.builder
 
-import io.javalin.core.util.Util
-
-//TODO: This auto-conversion could probably be cleaned up a lot
-class CookieBuilder private constructor(private val name: String, private val value: String) {
-
-    private var domain = ""
-    private var path = ""
-    private var maxAge = -1
-    private var secure = false
-    private var httpOnly = false
+class CookieBuilder(
+        val name: String,
+        val value: String,
+        var domain: String = "",
+        var path: String = "",
+        var maxAge: Int = -1,
+        var secure: Boolean = false,
+        var httpOnly: Boolean = false) {
 
     companion object {
-        fun cookieBuilder(name: String, value: String): CookieBuilder {
+        @JvmStatic fun cookieBuilder(name: String, value: String): CookieBuilder {
             return CookieBuilder(name, value)
         }
-    }
-
-    init {
-        Util.notNull(name, "Cookie name cannot be null")
-        Util.notNull(value, "Cookie value cannot be null")
     }
 
     fun domain(domain: String): CookieBuilder {
@@ -51,35 +44,6 @@ class CookieBuilder private constructor(private val name: String, private val va
     fun httpOnly(httpOnly: Boolean): CookieBuilder {
         this.httpOnly = httpOnly
         return this
-    }
-
-    // getters
-    fun name(): String {
-        return name
-    }
-
-    fun value(): String {
-        return value
-    }
-
-    fun domain(): String {
-        return domain
-    }
-
-    fun path(): String {
-        return path
-    }
-
-    fun maxAge(): Int {
-        return maxAge
-    }
-
-    fun secure(): Boolean {
-        return secure
-    }
-
-    fun httpOnly(): Boolean {
-        return httpOnly
     }
 
 }

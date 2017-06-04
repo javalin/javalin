@@ -126,12 +126,12 @@ class Response(private val servletResponse: HttpServletResponse) {
     }
 
     fun cookie(cookieBuilder: CookieBuilder): Response {
-        val cookie = Cookie(cookieBuilder.name(), cookieBuilder.value())
-        cookie.path = cookieBuilder.path()
-        cookie.domain = cookieBuilder.domain()
-        cookie.maxAge = cookieBuilder.maxAge()
-        cookie.secure = cookieBuilder.secure()
-        cookie.isHttpOnly = cookieBuilder.httpOnly()
+        val cookie = Cookie(cookieBuilder.name, cookieBuilder.value)
+        cookie.path = cookieBuilder.path
+        cookie.domain = cookieBuilder.domain
+        cookie.maxAge = cookieBuilder.maxAge
+        cookie.secure = cookieBuilder.secure
+        cookie.isHttpOnly = cookieBuilder.httpOnly
         servletResponse.addCookie(cookie)
         return this
     }
