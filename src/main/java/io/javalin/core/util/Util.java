@@ -7,6 +7,9 @@
 
 package io.javalin.core.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.javalin.HaltException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class Util {
 
@@ -93,12 +93,12 @@ public class Util {
         byte[] buf = new byte[8192];
         long totalBytesCopied = 0;
         int bytesReadThisPass = 0;
-        
-        while((bytesReadThisPass = in.read(buf)) > 0) {
+
+        while ((bytesReadThisPass = in.read(buf)) > 0) {
             out.write(buf, 0, bytesReadThisPass);
             totalBytesCopied += bytesReadThisPass;
         }
-        
+
         return totalBytesCopied;
     }
 }

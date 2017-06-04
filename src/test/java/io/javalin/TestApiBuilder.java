@@ -62,7 +62,8 @@ public class TestApiBuilder extends _UnirestBaseTest {
 
     @Test(expected = IllegalStateException.class)
     public void test_throwsException_ifUsedWithoutRoutes() throws Exception {
-        ApiBuilder.get("/null-static", (req, res) -> {});
+        ApiBuilder.get("/null-static", (req, res) -> {
+        });
     }
 
 }
