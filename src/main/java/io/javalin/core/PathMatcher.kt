@@ -17,7 +17,7 @@ class PathMatcher {
 
     private val handlerEntries: MutableList<HandlerEntry> = ArrayList<HandlerEntry>()
 
-    fun add(type: Handler.Type, path: String, handler: Handler) {
+    fun add(type: HandlerType, path: String, handler: Handler) {
         handlerEntries.add(HandlerEntry(type, path, handler))
     }
 
@@ -25,11 +25,11 @@ class PathMatcher {
         handlerEntries.clear()
     }
 
-    fun findHandlers(type: Handler.Type, path: String): List<HandlerMatch> {
+    fun findHandlers(type: HandlerType, path: String): List<HandlerMatch> {
         return findTargetsForRequestedHandler(type, path).map { handlerEntry -> HandlerMatch(handlerEntry.handler, handlerEntry.path, path) }
     }
 
-    private fun findTargetsForRequestedHandler(type: Handler.Type, path: String): List<HandlerEntry> {
+    private fun findTargetsForRequestedHandler(type: HandlerType, path: String): List<HandlerEntry> {
         return handlerEntries.filter { he -> match(he, type, path) }
     }
 
@@ -42,7 +42,7 @@ class PathMatcher {
     }
 
     // TODO: Consider optimizing this
-    private fun match(handlerEntry: HandlerEntry, requestType: Handler.Type, requestPath: String): Boolean {
+    private fun match(handlerEntry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean {
         if (handlerEntry.type !== requestType) {
             return false
         }

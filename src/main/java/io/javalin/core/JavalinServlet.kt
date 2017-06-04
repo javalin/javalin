@@ -25,7 +25,7 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
 
         val httpRequest = servletRequest as HttpServletRequest
         val httpResponse = servletResponse as HttpServletResponse
-        val type = Handler.Type.fromServletRequest(httpRequest)
+        val type = HandlerType.fromServletRequest(httpRequest)
         val requestUri = httpRequest.requestURI
         val request = RequestUtil.create(httpRequest)
         val response = Response(httpResponse)
@@ -34,7 +34,7 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
 
         try { // before-handlers, endpoint-handlers, static-files
 
-            for (beforeHandler in pathMatcher.findHandlers(Handler.Type.BEFORE, requestUri)) {
+            for (beforeHandler in pathMatcher.findHandlers(HandlerType.BEFORE, requestUri)) {
                 beforeHandler.handler.handle(RequestUtil.create(httpRequest, beforeHandler), response)
             }
 
@@ -47,7 +47,7 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
                         break
                     }
                 }
-            } else if (type !== Handler.Type.HEAD || type === Handler.Type.HEAD && pathMatcher.findHandlers(Handler.Type.GET, requestUri).isEmpty()) {
+            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && pathMatcher.findHandlers(HandlerType.GET, requestUri).isEmpty()) {
                 if (staticResourceHandler.handle(httpRequest, httpResponse)) {
                     return
                 }
@@ -61,7 +61,7 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
         }
 
         try { // after-handlers
-            for (afterHandler in pathMatcher.findHandlers(Handler.Type.AFTER, requestUri)) {
+            for (afterHandler in pathMatcher.findHandlers(HandlerType.AFTER, requestUri)) {
                 afterHandler.handler.handle(RequestUtil.create(httpRequest, afterHandler), response)
             }
         } catch (e: Exception) {

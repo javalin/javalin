@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import io.javalin.core.ErrorMapper;
 import io.javalin.core.ExceptionMapper;
+import io.javalin.core.HandlerType;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
@@ -193,7 +194,7 @@ public class Javalin {
         return this;
     }
 
-    public synchronized Javalin addHandler(Handler.Type httpMethod, String path, Handler handler) {
+    public synchronized Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
         start();
         pathMatcher.add(httpMethod, path, handler);
         return this;
@@ -201,39 +202,39 @@ public class Javalin {
 
     // HTTP verbs
     public Javalin get(String path, Handler handler) {
-        return addHandler(Handler.Type.GET, path, handler);
+        return addHandler(HandlerType.GET, path, handler);
     }
 
     public Javalin post(String path, Handler handler) {
-        return addHandler(Handler.Type.POST, path, handler);
+        return addHandler(HandlerType.POST, path, handler);
     }
 
     public Javalin put(String path, Handler handler) {
-        return addHandler(Handler.Type.PUT, path, handler);
+        return addHandler(HandlerType.PUT, path, handler);
     }
 
     public Javalin patch(String path, Handler handler) {
-        return addHandler(Handler.Type.PATCH, path, handler);
+        return addHandler(HandlerType.PATCH, path, handler);
     }
 
     public Javalin delete(String path, Handler handler) {
-        return addHandler(Handler.Type.DELETE, path, handler);
+        return addHandler(HandlerType.DELETE, path, handler);
     }
 
     public Javalin head(String path, Handler handler) {
-        return addHandler(Handler.Type.HEAD, path, handler);
+        return addHandler(HandlerType.HEAD, path, handler);
     }
 
     public Javalin trace(String path, Handler handler) {
-        return addHandler(Handler.Type.TRACE, path, handler);
+        return addHandler(HandlerType.TRACE, path, handler);
     }
 
     public Javalin connect(String path, Handler handler) {
-        return addHandler(Handler.Type.CONNECT, path, handler);
+        return addHandler(HandlerType.CONNECT, path, handler);
     }
 
     public Javalin options(String path, Handler handler) {
-        return addHandler(Handler.Type.OPTIONS, path, handler);
+        return addHandler(HandlerType.OPTIONS, path, handler);
     }
 
     // Secured HTTP verbs
@@ -275,7 +276,7 @@ public class Javalin {
 
     // Filters
     public Javalin before(String path, Handler handler) {
-        return addHandler(Handler.Type.BEFORE, path, handler);
+        return addHandler(HandlerType.BEFORE, path, handler);
     }
 
     public Javalin before(Handler handler) {
@@ -283,7 +284,7 @@ public class Javalin {
     }
 
     public Javalin after(String path, Handler handler) {
-        return addHandler(Handler.Type.AFTER, path, handler);
+        return addHandler(HandlerType.AFTER, path, handler);
     }
 
     public Javalin after(Handler handler) {
@@ -295,7 +296,7 @@ public class Javalin {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler));
     }
 
-    public String pathFinder(Handler handler, Handler.Type handlerType) {
+    public String pathFinder(Handler handler, HandlerType handlerType) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
     }
 

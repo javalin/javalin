@@ -40,12 +40,11 @@ public class TestExceptionMapper extends _UnirestBaseTest {
     }
 
     @Test
-    @Ignore("Need to figure out how generics work in Kotlin")
     public void test_typedMappedException_isHandled() throws Exception {
         app.get("/typed-exception", (req, res) -> {
             throw new TypedException();
         }).exception(TypedException.class, (e, req, res) -> {
-            //res.body(e.proofOfType()); // TODO: Figure out how generics work in Kotlin
+            res.body(e.proofOfType());
         });
         HttpResponse<String> response = GET_asString("/typed-exception");
         assertThat(response.getBody(), is("I'm so typed"));

@@ -8,6 +8,8 @@ package io.javalin;
 
 import org.junit.Test;
 
+import io.javalin.core.HandlerType;
+
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -22,7 +24,6 @@ public class TestReverseRouting extends _UnirestBaseTest {
         assertThat(app.pathFinder(helloHandler), is("/hello-get"));
     }
 
-
     @Test
     public void test_pathFinder_returnsNullForUnmappedHandler() throws Exception {
         assertThat(app.pathFinder(helloHandler), is(nullValue()));
@@ -34,8 +35,8 @@ public class TestReverseRouting extends _UnirestBaseTest {
         app.post("/hello-post", helloHandler);
         app.before("/hello-post", helloHandler);
         assertThat(app.pathFinder(helloHandler), is("/hello-get"));
-        assertThat(app.pathFinder(helloHandler, Handler.Type.POST), is("/hello-post"));
-        assertThat(app.pathFinder(helloHandler, Handler.Type.BEFORE), is("/hello-post"));
+        assertThat(app.pathFinder(helloHandler, HandlerType.POST), is("/hello-post"));
+        assertThat(app.pathFinder(helloHandler, HandlerType.BEFORE), is("/hello-post"));
     }
 
     @Test
