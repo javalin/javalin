@@ -9,17 +9,17 @@ package io.javalin
 import io.javalin.core.util.RequestUtil
 import io.javalin.core.util.Util
 import io.javalin.translator.json.Jackson
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.*
-import java.util.concurrent.CompletableFuture
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
-
-typealias AsyncHandler = () -> CompletableFuture<Void>
 
 class Request(private val servletRequest: HttpServletRequest,
               private val paramMap: Map<String, String>, // cache (different for each handler)
               private val splatList: List<String>) { // cache (different for each handler)
+
+    private val log = LoggerFactory.getLogger(Request::class.java)
 
     private var passedToNextHandler: Boolean = false
 
@@ -37,14 +37,15 @@ class Request(private val servletRequest: HttpServletRequest,
     }
 
     fun body(): String {
-        return RequestUtil.byteArrayToString(bodyAsBytes()!!, servletRequest.characterEncoding)
+        return RequestUtil.byteArrayToString(bodyAsBytes(), servletRequest.characterEncoding)
     }
 
-    fun bodyAsBytes(): ByteArray? {
+    fun bodyAsBytes(): ByteArray {
         try {
             return RequestUtil.toByteArray(servletRequest.inputStream)
         } catch (e: IOException) {
-            return null
+            log.error("Failed to read body. Something is very wrong.", e)
+            throw RuntimeException("Failed to read body. Something is very wrong.")
         }
     }
 

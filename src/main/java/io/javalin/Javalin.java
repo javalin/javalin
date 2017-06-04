@@ -2,13 +2,13 @@
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ *
  */
 
 package io.javalin;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +46,6 @@ public class Javalin {
 
     private EventManager eventManager = new EventManager();
 
-    private Consumer<Exception> startupExceptionHandler = (e) -> log.error("Failed to start Javalin", e);
-
     private CountDownLatch startLatch = new CountDownLatch(1);
     private CountDownLatch stopLatch = new CountDownLatch(1);
 
@@ -55,20 +53,17 @@ public class Javalin {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
 
-    public Javalin accessManager(AccessManager accessManager) {
-        this.accessManager = accessManager;
-        return this;
-    }
-
     public static Javalin create() {
         return new Javalin();
     }
+
+    // Begin embedded server methods
 
     private boolean started = false;
 
     public synchronized Javalin start() {
         if (!started) {
-            log.info("\n" + Util.INSTANCE.javalinBanner());
+            log.info(Util.INSTANCE.javalinBanner());
             Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
             new Thread(() -> {
                 eventManager.fireEvent(Event.Type.SERVER_STARTING, this);
@@ -76,7 +71,8 @@ public class Javalin {
                     embeddedServer = embeddedServerFactory.create(pathMatcher, exceptionMapper, errorMapper, staticFileDirectory);
                     port = embeddedServer.start(ipAddress, port);
                 } catch (Exception e) {
-                    startupExceptionHandler.accept(e);
+                    log.error("Failed to start Javalin", e);
+                    eventManager.fireEvent(Event.Type.SERVER_START_FAILED, this);
                 }
                 eventManager.fireEvent(Event.Type.SERVER_STARTED, this);
                 try {
@@ -92,7 +88,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin awaitInitialization() {
+    public synchronized Javalin awaitInitialization() {
         if (!started) {
             throw new IllegalStateException("Server hasn't been started. Call start() before calling this method.");
         }
@@ -115,7 +111,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin awaitTermination() {
+    public synchronized Javalin awaitTermination() {
         if (!started) {
             throw new IllegalStateException("Server hasn't been stopped. Call stop() before calling this method.");
         }
@@ -128,7 +124,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin embeddedServer(EmbeddedServerFactory embeddedServerFactory) {
+    public synchronized Javalin embeddedServer(EmbeddedServerFactory embeddedServerFactory) {
         ensureServerHasNotStarted();
         this.embeddedServerFactory = embeddedServerFactory;
         return this;
@@ -151,21 +147,13 @@ public class Javalin {
         return this;
     }
 
+    public synchronized int port() {
+        return started ? port : -1;
+    }
+
     public synchronized Javalin port(int port) {
         ensureServerHasNotStarted();
         this.port = port;
-        return this;
-    }
-
-    public synchronized Javalin event(Event.Type eventType, EventListener eventListener) {
-        ensureServerHasNotStarted();
-        eventManager.addEventListener(eventType, eventListener);
-        return this;
-    }
-
-    public Javalin startupExceptionHandler(Consumer<Exception> startupExceptionHandler) {
-        ensureServerHasNotStarted();
-        this.startupExceptionHandler = startupExceptionHandler;
         return this;
     }
 
@@ -175,12 +163,21 @@ public class Javalin {
         }
     }
 
-    public synchronized int port() {
-        return started ? port : -1;
+    // End embedded server methods
+
+    public synchronized Javalin accessManager(AccessManager accessManager) {
+        this.accessManager = accessManager;
+        return this;
     }
 
     public synchronized <T extends Exception> Javalin exception(Class<T> exceptionClass, ExceptionHandler<? super T> exceptionHandler) {
         exceptionMapper.put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        return this;
+    }
+
+    public synchronized Javalin event(Event.Type eventType, EventListener eventListener) {
+        ensureServerHasNotStarted();
+        eventManager.addEventListener(eventType, eventListener);
         return this;
     }
 
@@ -189,14 +186,14 @@ public class Javalin {
         return this;
     }
 
-    public Javalin routes(ApiBuilder.EndpointGroup endpointGroup) {
+    public synchronized Javalin routes(ApiBuilder.EndpointGroup endpointGroup) {
         ApiBuilder.setStaticJavalin(this);
         endpointGroup.addEndpoints();
         ApiBuilder.clearStaticJavalin();
         return this;
     }
 
-    public Javalin addHandler(Handler.Type httpMethod, String path, Handler handler) {
+    public synchronized Javalin addHandler(Handler.Type httpMethod, String path, Handler handler) {
         start();
         pathMatcher.add(httpMethod, path, handler);
         return this;

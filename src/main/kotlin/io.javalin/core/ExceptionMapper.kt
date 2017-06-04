@@ -38,7 +38,7 @@ class ExceptionMapper {
         if (exceptionHandler != null) {
             exceptionHandler.handle(exception, request, response)
         } else {
-            log.error("Uncaught exception", exception)
+            log.warn("Uncaught exception", exception)
             response.body("Internal server error")
             response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
         }
