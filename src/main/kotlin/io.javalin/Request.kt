@@ -15,6 +15,8 @@ import java.util.concurrent.CompletableFuture
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 
+typealias AsyncHandler = () -> CompletableFuture<Void>
+
 class Request(private val servletRequest: HttpServletRequest,
               private val paramMap: Map<String, String>, // cache (different for each handler)
               private val splatList: List<String>) { // cache (different for each handler)
@@ -25,15 +27,9 @@ class Request(private val servletRequest: HttpServletRequest,
         return servletRequest
     }
 
-    @FunctionalInterface
-    interface AsyncHandler {
-        fun handle(): CompletableFuture<Void>
-    }
-
     fun async(asyncHandler: AsyncHandler) {
         val asyncContext = servletRequest.startAsync()
-        asyncHandler.handle()
-                .thenAccept { _ -> asyncContext.complete() }
+        asyncHandler().thenAccept { _ -> asyncContext.complete() }
                 .exceptionally { e ->
                     asyncContext.complete()
                     throw RuntimeException(e)

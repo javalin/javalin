@@ -54,12 +54,12 @@ object Util {
     fun printHelpfulMessageIfLoggerIsMissing() {
         if (!classExists("org.slf4j.impl.StaticLoggerBinder")) {
             val message = """
-            "-------------------------------------------------------------------"
-            "Javalin: In the Java world, it's common to add your own logger."
-            "Javalin: To easily fix the warning above, get the latest version of slf4j-simple:"
-            "Javalin: https://mvnrepository.com/artifact/org.slf4j/slf4j-simple"
-            "Javalin: then add it to your dependencies (pom.xml or build.gradle)"
-            "Javalin: Visit https://javalin.io/documentation#logging if you need more help"
+            -------------------------------------------------------------------
+            Javalin: In the Java world, it's common to add your own logger.
+            Javalin: To easily fix the warning above, get the latest version of slf4j-simple:
+            Javalin: https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
+            Javalin: then add it to your dependencies (pom.xml or build.gradle)
+            Javalin: Visit https://javalin.io/documentation#logging if you need more help
             """.trimIndent();
             System.err.println(message)
         }
