@@ -73,19 +73,19 @@ public class Request {
         return Jackson.toObject(body(), clazz);
     }
 
-    // yeah, this is probably not the best solution
     public String bodyParam(String bodyParam) {
+        return formParam(bodyParam);
+    }
+
+    // yeah, this is probably not the best solution
+    public String formParam(String formParam) {
         for (String keyValuePair : body().split("&")) {
             String[] pair = keyValuePair.split("=");
-            if (pair[0].equalsIgnoreCase(bodyParam)) {
+            if (pair[0].equalsIgnoreCase(formParam)) {
                 return pair[1];
             }
         }
         return null;
-    }
-
-    public String formParam(String formParam) {
-        return bodyParam(formParam);
     }
 
     public String param(String param) {
