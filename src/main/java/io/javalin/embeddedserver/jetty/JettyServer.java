@@ -4,9 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.lifecycle
+package io.javalin.embeddedserver.jetty;
+
+import org.eclipse.jetty.server.Server;
 
 @FunctionalInterface
-interface EventListener {
-    fun handleEvent(e: Event)
+public interface JettyServer {
+    Server create();
 }
