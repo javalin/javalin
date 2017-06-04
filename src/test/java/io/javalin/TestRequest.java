@@ -115,4 +115,18 @@ public class TestRequest extends _UnirestBaseTest {
         assertThat(GET_body("/test"), is(""));
     }
 
+    @Test
+    public void test_redirectWorks() throws Exception {
+        app.get("/test", (req, res) -> req.forward("/tast"));
+        app.get("/tast", (req, res) -> res.body("Redirected from first handler"));
+        assertThat(GET_body("/test"), is("Redirected from first handler"));
+    }
+
+    @Test
+    public void test_redirectLoop_exits() throws Exception {
+        app.get("/test", (req, res) -> req.forward("/tast"));
+        app.get("/tast", (req, res) -> req.forward("/test"));
+        assertThat(GET_body("/test"), is("Internal redirect loop detected"));
+    }
+
 }
