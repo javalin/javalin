@@ -31,3 +31,8 @@ public class HelloWorld {
     }
 }
 ```
+
+#### Special thanks
+* Blake Mizerany, for creating [Sinatra](http://www.sinatrarb.com/)
+* Per Wendel, for creating [Spark](http://sparkjava.com/)
+* [Christian Rasmussen](https://github.com/chrrasmussen), for being a great guy
