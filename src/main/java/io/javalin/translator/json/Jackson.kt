@@ -12,35 +12,25 @@ import org.slf4j.LoggerFactory
 
 object Jackson {
 
-    private val log = LoggerFactory.getLogger(Jackson::class.java)
-
     private var objectMapper: ObjectMapper? = null
 
     fun toJson(`object`: Any): String {
-        if (objectMapper == null) {
-            objectMapper = ObjectMapper()
-        }
+        objectMapper = objectMapper ?: ObjectMapper()
         try {
             return objectMapper!!.writeValueAsString(`object`)
         } catch (e: Exception) {
-            val message = "Failed to write object as JSON"
-            log.warn(message, e)
-            throw HaltException(500, message)
+            throw RuntimeException(e)
         }
 
     }
 
     fun <T> toObject(json: String, clazz: Class<T>): T {
-        if (objectMapper == null) {
-            objectMapper = ObjectMapper()
-        }
+        objectMapper = objectMapper ?: ObjectMapper()
         try {
             return objectMapper!!.readValue(json, clazz)
         } catch (e: Exception) {
-            val message = "Failed to convert JSON to " + clazz.name
-            log.warn(message, e)
-            throw HaltException(500, message)
+            throw RuntimeException(e)
         }
-
     }
+
 }

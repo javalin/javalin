@@ -24,13 +24,12 @@ object Util {
     }
 
     fun classExists(className: String): Boolean {
-        try {
+        return try {
             Class.forName(className)
-            return true
+            true
         } catch (e: ClassNotFoundException) {
-            return false
+            false
         }
-
     }
 
     private val dependencyCheckCache = HashMap<String, Boolean>()

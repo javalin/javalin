@@ -20,9 +20,7 @@ object Mustache {
     }
 
     fun render(templatePath: String, model: Map<String, Any>): String {
-        if (mustacheFactory == null) {
-            mustacheFactory = DefaultMustacheFactory("./")
-        }
+        mustacheFactory = mustacheFactory ?: DefaultMustacheFactory("./")
         try {
             val stringWriter = StringWriter()
             mustacheFactory!!.compile(templatePath).execute(stringWriter, model).close()
@@ -30,6 +28,6 @@ object Mustache {
         } catch (e: IOException) {
             throw RuntimeException(e)
         }
-
     }
+
 }

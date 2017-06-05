@@ -20,15 +20,18 @@ object Velocity {
     }
 
     fun render(templatePath: String, model: Map<String, Any>): String {
-        if (velocityEngine == null) {
-            velocityEngine = VelocityEngine()
-            velocityEngine!!.setProperty("resource.loader", "class")
-            velocityEngine!!.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
-        }
+        velocityEngine = velocityEngine ?: defaultVelocityEngine();
         val stringWriter = StringWriter()
         velocityEngine!!.getTemplate(templatePath, StandardCharsets.UTF_8.name()).merge(
                 VelocityContext(model), stringWriter
         )
         return stringWriter.toString()
+    }
+
+    private fun defaultVelocityEngine(): VelocityEngine {
+        val velocityEngine = VelocityEngine()
+        velocityEngine.setProperty("resource.loader", "class")
+        velocityEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
+        return velocityEngine;
     }
 }

@@ -23,7 +23,7 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
     @Throws(Exception::class)
     override fun start(host: String, port: Int): Int {
 
-        val portVar = if (port == 0) {
+        val resultPort = if (port == 0) {
             try {
                 ServerSocket(0).use { it.localPort }
             } catch (e: IOException) {
@@ -35,7 +35,7 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
         }
 
         if (server.connectors.isEmpty()) {
-            val serverConnector = EmbeddedJettyFactory.defaultConnector(server, host, portVar)
+            val serverConnector = EmbeddedJettyFactory.defaultConnector(server, host, resultPort)
             server = serverConnector.server
             server.connectors = arrayOf<Connector>(serverConnector)
         }
@@ -44,6 +44,7 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
         server.start()
 
         log.info("Javalin has started \\o/")
+
         for (connector in server.connectors) {
             log.info("Localhost: " + getProtocol(connector) + "://localhost:" + (connector as ServerConnector).localPort)
         }
@@ -61,11 +62,10 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
         try {
             server.stop()
         } catch (e: Exception) {
-            log.error("Javalin failed to stop gracefully, calling System.exit()", e)
-            System.exit(100)
+            log.error("Javalin failed to stop gracefully", e)
         }
 
-        log.info("Javalin stopped")
+        log.info("Javalin has stopped")
     }
 
     override fun activeThreadCount(): Int {

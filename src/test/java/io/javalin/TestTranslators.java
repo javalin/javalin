@@ -39,11 +39,11 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_json_jackson_haltsForBadObject() throws Exception {
+    public void test_json_jackson_throwsForBadObject() throws Exception {
         app.get("/hello", (req, res) -> res.status(200).json(new TestObject_NonSerializable()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
-        assertThat(response.getBody(), is("Failed to write object as JSON"));
+        assertThat(response.getBody(), is("Internal server error"));
     }
 
     @Test
@@ -59,11 +59,11 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_json_jacksonMapsJsonToObject_haltsForBadObject() throws Exception {
+    public void test_json_jacksonMapsJsonToObject_throwsForBadObject() throws Exception {
         app.get("/hello", (req, res) -> res.json(req.bodyAsClass(TestObject_NonSerializable.class).getClass().getSimpleName()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
-        assertThat(response.getBody(), is("Failed to convert JSON to io.javalin.util.TestObject_NonSerializable"));
+        assertThat(response.getBody(), is("Internal server error"));
     }
 
     @Test

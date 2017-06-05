@@ -38,19 +38,17 @@ class JettyResourceHandler(staticFileDirectory: String?) : StaticResourceHandler
         }
     }
 
-    override fun handle(request: HttpServletRequest, response: HttpServletResponse): Boolean {
+    override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         if (initialized) {
-            val target = request.getAttribute("jetty-target") as String
-            val baseRequest = request.getAttribute("jetty-request") as Request
+            val target = httpRequest.getAttribute("jetty-target") as String
+            val baseRequest = httpRequest.getAttribute("jetty-request") as Request // org.eclipse.jetty.server.Request
             try {
                 if (!resourceHandler.getResource(target).isDirectory) {
-                    resourceHandler.handle(target, baseRequest, request, response)
+                    resourceHandler.handle(target, baseRequest, httpRequest, httpResponse)
                 } else if (resourceHandler.getResource(target + "index.html").exists()) {
-                    resourceHandler.handle(target, baseRequest, request, response)
+                    resourceHandler.handle(target, baseRequest, httpRequest, httpResponse)
                 }
-            } catch (e: IOException) {
-                log.error("Exception occurred while handling static resource", e)
-            } catch (e: ServletException) {
+            } catch (e: Exception) { // it's fine
                 log.error("Exception occurred while handling static resource", e)
             }
             return baseRequest.isHandled

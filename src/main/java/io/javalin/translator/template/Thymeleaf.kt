@@ -20,14 +20,18 @@ object Thymeleaf {
     }
 
     fun render(templatePath: String, model: Map<String, Any>): String {
-        if (templateEngine == null) {
-            templateEngine = TemplateEngine()
-            val templateResolver = ClassLoaderTemplateResolver()
-            templateResolver.templateMode = TemplateMode.HTML
-            templateEngine!!.setTemplateResolver(templateResolver)
-        }
+        templateEngine = templateEngine ?: defaultThymeLeafEngine()
         val context = Context()
         context.setVariables(model)
         return templateEngine!!.process(templatePath, context)
     }
+
+    fun defaultThymeLeafEngine() : TemplateEngine {
+        val templateEngine = TemplateEngine()
+        val templateResolver = ClassLoaderTemplateResolver()
+        templateResolver.templateMode = TemplateMode.HTML
+        templateEngine.setTemplateResolver(templateResolver)
+        return templateEngine;
+    }
+
 }

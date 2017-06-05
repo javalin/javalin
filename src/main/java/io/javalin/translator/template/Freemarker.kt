@@ -21,19 +21,20 @@ object Freemarker {
     }
 
     fun render(templatePath: String, model: Map<String, Any>): String {
-        if (configuration == null) {
-            configuration = freemarker.template.Configuration(Version(2, 3, 26))
-            configuration!!.setClassForTemplateLoading(Freemarker::class.java, "/")
-        }
+        configuration = configuration ?: defaultFreemarkerEngine();
         try {
             val stringWriter = StringWriter()
             configuration!!.getTemplate(templatePath).process(model, stringWriter)
             return stringWriter.toString()
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        } catch (e: TemplateException) {
+        } catch (e: Exception) {
             throw RuntimeException(e)
         }
-
     }
+
+    fun defaultFreemarkerEngine() : Configuration {
+        val configuration = Configuration(Version(2, 3, 26))
+        configuration.setClassForTemplateLoading(Freemarker::class.java, "/")
+        return configuration;
+    }
+
 }
