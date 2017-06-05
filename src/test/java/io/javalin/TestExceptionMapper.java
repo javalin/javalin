@@ -7,6 +7,7 @@
 
 package io.javalin;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.javalin.util.TypedException;
@@ -57,10 +58,10 @@ public class TestExceptionMapper extends _UnirestBaseTest {
         }).exception(Exception.class, (e, req, res) -> {
             res.body("This shouldn't run");
         }).exception(TypedException.class, (e, req, res) -> {
-            res.body(e.proofOfType());
+            res.body("Typed!");
         });
         HttpResponse<String> response = GET_asString("/exception-priority");
-        assertThat(response.getBody(), is("I'm so typed"));
+        assertThat(response.getBody(), is("Typed!"));
         assertThat(response.getStatus(), is(200));
     }
 

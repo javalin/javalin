@@ -4,9 +4,8 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin;
+package io.javalin.core
 
-@FunctionalInterface
-public interface Handler {
-    void handle(Request request, Response response) throws Exception;
-}
+import io.javalin.Handler
+
+class HandlerMatch(val handler: Handler, val handlerUri: String, val requestUri: String)

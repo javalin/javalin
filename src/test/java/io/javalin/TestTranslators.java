@@ -39,11 +39,11 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_json_jackson_haltsForBadObject() throws Exception {
+    public void test_json_jackson_throwsForBadObject() throws Exception {
         app.get("/hello", (req, res) -> res.status(200).json(new TestObject_NonSerializable()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
-        assertThat(response.getBody(), is("Failed to write object as JSON"));
+        assertThat(response.getBody(), is("Internal server error"));
     }
 
     @Test
@@ -59,24 +59,24 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_json_jacksonMapsJsonToObject_haltsForBadObject() throws Exception {
+    public void test_json_jacksonMapsJsonToObject_throwsForBadObject() throws Exception {
         app.get("/hello", (req, res) -> res.json(req.bodyAsClass(TestObject_NonSerializable.class).getClass().getSimpleName()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
-        assertThat(response.getBody(), is("Failed to convert JSON to io.javalin.util.TestObject_NonSerializable"));
+        assertThat(response.getBody(), is("Internal server error"));
     }
 
     @Test
     public void test_renderVelocity_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", TemplateUtil.model("message", "Hello Velocity!")));
+        app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", TemplateUtil.INSTANCE.model("message", "Hello Velocity!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Velocity!</h1>"));
     }
 
     @Test
     public void test_customVelocityEngine_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", TemplateUtil.model()));
+        app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", TemplateUtil.INSTANCE.model()));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
-        Velocity.configure(strictVelocityEngine());
+        Velocity.INSTANCE.configure(strictVelocityEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
     }
 
@@ -90,19 +90,19 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_renderFreemarker_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderFreemarker("/templates/freemarker/test.ftl", TemplateUtil.model("message", "Hello Freemarker!")));
+        app.get("/hello", (req, res) -> res.renderFreemarker("/templates/freemarker/test.ftl", TemplateUtil.INSTANCE.model("message", "Hello Freemarker!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Freemarker!</h1>"));
     }
 
     @Test
     public void test_renderThymeleaf_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderThymeleaf("/templates/thymeleaf/test.html", TemplateUtil.model("message", "Hello Thymeleaf!")));
+        app.get("/hello", (req, res) -> res.renderThymeleaf("/templates/thymeleaf/test.html", TemplateUtil.INSTANCE.model("message", "Hello Thymeleaf!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Thymeleaf!</h1>"));
     }
 
     @Test
     public void test_renderMustache_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderMustache("/templates/mustache/test.mustache", TemplateUtil.model("message", "Hello Mustache!")));
+        app.get("/hello", (req, res) -> res.renderMustache("/templates/mustache/test.mustache", TemplateUtil.INSTANCE.model("message", "Hello Mustache!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Mustache!</h1>"));
     }
 

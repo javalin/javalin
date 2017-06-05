@@ -2,7 +2,6 @@
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
- *
  */
 
 package io.javalin;
@@ -42,97 +41,104 @@ public class ApiBuilder {
         return pathDeque.stream().collect(Collectors.joining("")) + path;
     }
 
+    private static Javalin staticInstance() {
+        if (staticJavalin == null) {
+            throw new IllegalStateException("The static API can only be called within a routes() call");
+        }
+        return staticJavalin;
+    }
+
     // Everything below here is copied from the end of Javalin.java
 
     // HTTP verbs
     public static void get(String path, Handler handler) {
-        staticJavalin.get(prefixPath(path), handler);
+        staticInstance().get(prefixPath(path), handler);
     }
 
     public static void post(String path, Handler handler) {
-        staticJavalin.post(prefixPath(path), handler);
+        staticInstance().post(prefixPath(path), handler);
     }
 
     public static void put(String path, Handler handler) {
-        staticJavalin.put(prefixPath(path), handler);
+        staticInstance().put(prefixPath(path), handler);
     }
 
     public static void patch(String path, Handler handler) {
-        staticJavalin.patch(prefixPath(path), handler);
+        staticInstance().patch(prefixPath(path), handler);
     }
 
     public static void delete(String path, Handler handler) {
-        staticJavalin.delete(prefixPath(path), handler);
+        staticInstance().delete(prefixPath(path), handler);
     }
 
     public static void head(String path, Handler handler) {
-        staticJavalin.head(prefixPath(path), handler);
+        staticInstance().head(prefixPath(path), handler);
     }
 
     public static void trace(String path, Handler handler) {
-        staticJavalin.trace(prefixPath(path), handler);
+        staticInstance().trace(prefixPath(path), handler);
     }
 
     public static void connect(String path, Handler handler) {
-        staticJavalin.connect(prefixPath(path), handler);
+        staticInstance().connect(prefixPath(path), handler);
     }
 
     public static void options(String path, Handler handler) {
-        staticJavalin.options(prefixPath(path), handler);
+        staticInstance().options(prefixPath(path), handler);
     }
 
     // Secured HTTP verbs
     public static void get(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.get(prefixPath(path), handler, permittedRoles);
+        staticInstance().get(prefixPath(path), handler, permittedRoles);
     }
 
     public static void post(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.post(prefixPath(path), handler, permittedRoles);
+        staticInstance().post(prefixPath(path), handler, permittedRoles);
     }
 
     public static void put(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.put(prefixPath(path), handler, permittedRoles);
+        staticInstance().put(prefixPath(path), handler, permittedRoles);
     }
 
     public static void patch(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.patch(prefixPath(path), handler, permittedRoles);
+        staticInstance().patch(prefixPath(path), handler, permittedRoles);
     }
 
     public static void delete(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.delete(prefixPath(path), handler, permittedRoles);
+        staticInstance().delete(prefixPath(path), handler, permittedRoles);
     }
 
     public static void head(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.head(prefixPath(path), handler, permittedRoles);
+        staticInstance().head(prefixPath(path), handler, permittedRoles);
     }
 
     public static void trace(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.trace(prefixPath(path), handler, permittedRoles);
+        staticInstance().trace(prefixPath(path), handler, permittedRoles);
     }
 
     public static void connect(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.connect(prefixPath(path), handler, permittedRoles);
+        staticInstance().connect(prefixPath(path), handler, permittedRoles);
     }
 
     public static void options(String path, Handler handler, List<Role> permittedRoles) {
-        staticJavalin.options(prefixPath(path), handler, permittedRoles);
+        staticInstance().options(prefixPath(path), handler, permittedRoles);
     }
 
     // Filters
     public static void before(String path, Handler handler) {
-        staticJavalin.before(prefixPath(path), handler);
+        staticInstance().before(prefixPath(path), handler);
     }
 
     public static void before(Handler handler) {
-        staticJavalin.before(prefixPath("/*"), handler);
+        staticInstance().before(prefixPath("/*"), handler);
     }
 
     public static void after(String path, Handler handler) {
-        staticJavalin.after(prefixPath(path), handler);
+        staticInstance().after(prefixPath(path), handler);
     }
 
     public static void after(Handler handler) {
-        staticJavalin.after(prefixPath("/*"), handler);
+        staticInstance().after(prefixPath("/*"), handler);
     }
 
 }

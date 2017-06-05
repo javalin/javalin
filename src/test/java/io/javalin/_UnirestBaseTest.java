@@ -41,9 +41,9 @@ public class _UnirestBaseTest {
 
     @After
     public void clearRoutes() {
+        app.pathMatcher.clear();
         app.errorMapper.clear();
         app.exceptionMapper.clear();
-        app.pathMatcher.clear();
     }
 
     @AfterClass

@@ -9,13 +9,13 @@ package io.javalin;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.javalin.core.ErrorMapper;
 import io.javalin.core.ExceptionMapper;
+import io.javalin.core.HandlerType;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
@@ -47,8 +47,6 @@ public class Javalin {
 
     private EventManager eventManager = new EventManager();
 
-    private Consumer<Exception> startupExceptionHandler = (e) -> log.error("Failed to start Javalin", e);
-
     private CountDownLatch startLatch = new CountDownLatch(1);
     private CountDownLatch stopLatch = new CountDownLatch(1);
 
@@ -56,28 +54,26 @@ public class Javalin {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
 
-    public Javalin accessManager(AccessManager accessManager) {
-        this.accessManager = accessManager;
-        return this;
-    }
-
     public static Javalin create() {
         return new Javalin();
     }
+
+    // Begin embedded server methods
 
     private boolean started = false;
 
     public synchronized Javalin start() {
         if (!started) {
-            log.info("\n" + Util.javalinBanner());
-            Util.printHelpfulMessageIfLoggerIsMissing();
+            log.info(Util.INSTANCE.javalinBanner());
+            Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
             new Thread(() -> {
                 eventManager.fireEvent(Event.Type.SERVER_STARTING, this);
                 try {
                     embeddedServer = embeddedServerFactory.create(pathMatcher, exceptionMapper, errorMapper, staticFileDirectory);
                     port = embeddedServer.start(ipAddress, port);
                 } catch (Exception e) {
-                    startupExceptionHandler.accept(e);
+                    log.error("Failed to start Javalin", e);
+                    eventManager.fireEvent(Event.Type.SERVER_START_FAILED, this);
                 }
                 eventManager.fireEvent(Event.Type.SERVER_STARTED, this);
                 try {
@@ -93,7 +89,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin awaitInitialization() {
+    public synchronized Javalin awaitInitialization() {
         if (!started) {
             throw new IllegalStateException("Server hasn't been started. Call start() before calling this method.");
         }
@@ -110,19 +106,13 @@ public class Javalin {
         eventManager.fireEvent(Event.Type.SERVER_STOPPING, this);
         new Thread(() -> {
             embeddedServer.stop();
-            started = false;
-            startLatch = new CountDownLatch(1);
             eventManager.fireEvent(Event.Type.SERVER_STOPPED, this);
-            pathMatcher = new PathMatcher();
-            exceptionMapper = new ExceptionMapper();
-            errorMapper = new ErrorMapper();
             stopLatch.countDown();
-            stopLatch = new CountDownLatch(1);
         }).start();
         return this;
     }
 
-    public Javalin awaitTermination() {
+    public synchronized Javalin awaitTermination() {
         if (!started) {
             throw new IllegalStateException("Server hasn't been stopped. Call stop() before calling this method.");
         }
@@ -135,7 +125,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin embeddedServer(EmbeddedServerFactory embeddedServerFactory) {
+    public synchronized Javalin embeddedServer(EmbeddedServerFactory embeddedServerFactory) {
         ensureServerHasNotStarted();
         this.embeddedServerFactory = embeddedServerFactory;
         return this;
@@ -147,7 +137,7 @@ public class Javalin {
 
     public synchronized Javalin enableStaticFiles(String location) {
         ensureServerHasNotStarted();
-        Util.notNull("Location cannot be null", location);
+        Util.INSTANCE.notNull("Location cannot be null", location);
         staticFileDirectory = location;
         return this;
     }
@@ -158,21 +148,13 @@ public class Javalin {
         return this;
     }
 
+    public synchronized int port() {
+        return started ? port : -1;
+    }
+
     public synchronized Javalin port(int port) {
         ensureServerHasNotStarted();
         this.port = port;
-        return this;
-    }
-
-    public synchronized Javalin event(Event.Type eventType, EventListener eventListener) {
-        ensureServerHasNotStarted();
-        eventManager.addEventListener(eventType, eventListener);
-        return this;
-    }
-
-    public Javalin startupExceptionHandler(Consumer<Exception> startupExceptionHandler) {
-        ensureServerHasNotStarted();
-        this.startupExceptionHandler = startupExceptionHandler;
         return this;
     }
 
@@ -182,12 +164,21 @@ public class Javalin {
         }
     }
 
-    public synchronized int port() {
-        return started ? port : -1;
+    // End embedded server methods
+
+    public synchronized Javalin accessManager(AccessManager accessManager) {
+        this.accessManager = accessManager;
+        return this;
     }
 
     public synchronized <T extends Exception> Javalin exception(Class<T> exceptionClass, ExceptionHandler<? super T> exceptionHandler) {
-        exceptionMapper.put(exceptionClass, exceptionHandler);
+        exceptionMapper.put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        return this;
+    }
+
+    public synchronized Javalin event(Event.Type eventType, EventListener eventListener) {
+        ensureServerHasNotStarted();
+        eventManager.addEventListener(eventType, eventListener);
         return this;
     }
 
@@ -196,14 +187,14 @@ public class Javalin {
         return this;
     }
 
-    public Javalin routes(ApiBuilder.EndpointGroup endpointGroup) {
+    public synchronized Javalin routes(ApiBuilder.EndpointGroup endpointGroup) {
         ApiBuilder.setStaticJavalin(this);
         endpointGroup.addEndpoints();
         ApiBuilder.clearStaticJavalin();
         return this;
     }
 
-    public Javalin addHandler(Handler.Type httpMethod, String path, Handler handler) {
+    public synchronized Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
         start();
         pathMatcher.add(httpMethod, path, handler);
         return this;
@@ -211,39 +202,39 @@ public class Javalin {
 
     // HTTP verbs
     public Javalin get(String path, Handler handler) {
-        return addHandler(Handler.Type.GET, path, handler);
+        return addHandler(HandlerType.GET, path, handler);
     }
 
     public Javalin post(String path, Handler handler) {
-        return addHandler(Handler.Type.POST, path, handler);
+        return addHandler(HandlerType.POST, path, handler);
     }
 
     public Javalin put(String path, Handler handler) {
-        return addHandler(Handler.Type.PUT, path, handler);
+        return addHandler(HandlerType.PUT, path, handler);
     }
 
     public Javalin patch(String path, Handler handler) {
-        return addHandler(Handler.Type.PATCH, path, handler);
+        return addHandler(HandlerType.PATCH, path, handler);
     }
 
     public Javalin delete(String path, Handler handler) {
-        return addHandler(Handler.Type.DELETE, path, handler);
+        return addHandler(HandlerType.DELETE, path, handler);
     }
 
     public Javalin head(String path, Handler handler) {
-        return addHandler(Handler.Type.HEAD, path, handler);
+        return addHandler(HandlerType.HEAD, path, handler);
     }
 
     public Javalin trace(String path, Handler handler) {
-        return addHandler(Handler.Type.TRACE, path, handler);
+        return addHandler(HandlerType.TRACE, path, handler);
     }
 
     public Javalin connect(String path, Handler handler) {
-        return addHandler(Handler.Type.CONNECT, path, handler);
+        return addHandler(HandlerType.CONNECT, path, handler);
     }
 
     public Javalin options(String path, Handler handler) {
-        return addHandler(Handler.Type.OPTIONS, path, handler);
+        return addHandler(HandlerType.OPTIONS, path, handler);
     }
 
     // Secured HTTP verbs
@@ -285,7 +276,7 @@ public class Javalin {
 
     // Filters
     public Javalin before(String path, Handler handler) {
-        return addHandler(Handler.Type.BEFORE, path, handler);
+        return addHandler(HandlerType.BEFORE, path, handler);
     }
 
     public Javalin before(Handler handler) {
@@ -293,7 +284,7 @@ public class Javalin {
     }
 
     public Javalin after(String path, Handler handler) {
-        return addHandler(Handler.Type.AFTER, path, handler);
+        return addHandler(HandlerType.AFTER, path, handler);
     }
 
     public Javalin after(Handler handler) {
@@ -302,11 +293,11 @@ public class Javalin {
 
     // Reverse routing
     public String pathFinder(Handler handler) {
-        return pathMatcher.findHandlerPath(he -> he.handler.equals(handler));
+        return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler));
     }
 
-    public String pathFinder(Handler handler, Handler.Type handlerType) {
-        return pathMatcher.findHandlerPath(he -> he.handler.equals(handler) && he.type == handlerType);
+    public String pathFinder(Handler handler, HandlerType handlerType) {
+        return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
     }
 
 }

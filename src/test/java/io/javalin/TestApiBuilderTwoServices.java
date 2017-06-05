@@ -12,6 +12,7 @@ import org.junit.Test;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
+import static io.javalin.ApiBuilder.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 
@@ -22,16 +23,16 @@ public class TestApiBuilderTwoServices {
         Javalin app1 = Javalin.create().port(0).start().awaitInitialization();
         Javalin app2 = Javalin.create().port(0).start().awaitInitialization();
         app1.routes(() -> {
-            ApiBuilder.get("/hello1", (req, res) -> res.body("Hello1"));
+            get("/hello1", (req, res) -> res.body("Hello1"));
         });
         app2.routes(() -> {
-            ApiBuilder.get("/hello1", (req, res) -> res.body("Hello1"));
+            get("/hello1", (req, res) -> res.body("Hello1"));
         });
         app1.routes(() -> {
-            ApiBuilder.get("/hello2", (req, res) -> res.body("Hello2"));
+            get("/hello2", (req, res) -> res.body("Hello2"));
         });
         app2.routes(() -> {
-            ApiBuilder.get("/hello2", (req, res) -> res.body("Hello2"));
+            get("/hello2", (req, res) -> res.body("Hello2"));
         });
         assertThat(call(app1.port(), "/hello1"), is("Hello1"));
         assertThat(call(app2.port(), "/hello1"), is("Hello1"));
