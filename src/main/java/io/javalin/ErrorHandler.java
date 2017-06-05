@@ -8,6 +8,5 @@ package io.javalin;
 
 @FunctionalInterface
 public interface ErrorHandler {
-    // very similar to handler, but can't throw exception
-    void handle(Request request, Response response);
+    void handle(Request request, Response response);  // similar to handler, can't throw exception
 }

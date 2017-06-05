@@ -75,7 +75,6 @@ object RequestUtil {
         } catch (ignored: UnsupportedEncodingException) {
             return ""
         }
-
     }
 
     fun isParam(pathPart: String): Boolean {
