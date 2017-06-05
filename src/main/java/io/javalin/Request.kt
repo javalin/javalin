@@ -92,15 +92,15 @@ class Request(private val servletRequest: HttpServletRequest,
         return servletRequest.getAttribute(attribute) as T
     }
 
-    fun attributeMap(): Map<String, Any> {
-        return servletRequest.attributeNames.asSequence().map { it to servletRequest.getAttribute(it) }.toMap()
+    fun <T> attributeMap(): Map<String, T> {
+        return servletRequest.attributeNames.asSequence().map { it to servletRequest.getAttribute(it) as T }.toMap()
     }
 
     fun contentLength(): Int {
         return servletRequest.contentLength
     }
 
-    fun contentType(): String {
+    fun contentType(): String? {
         return servletRequest.contentType
     }
 
@@ -114,7 +114,7 @@ class Request(private val servletRequest: HttpServletRequest,
         return cookies.map { it.name to it.value }.toMap()
     }
 
-    fun header(header: String): String {
+    fun header(header: String): String? {
         return servletRequest.getHeader(header)
     }
 
@@ -122,7 +122,7 @@ class Request(private val servletRequest: HttpServletRequest,
         return servletRequest.headerNames.asSequence().map { it to servletRequest.getHeader(it) }.toMap()
     }
 
-    fun host(): String {
+    fun host(): String? {
         return servletRequest.getHeader("host")
     }
 
@@ -130,7 +130,7 @@ class Request(private val servletRequest: HttpServletRequest,
         return servletRequest.remoteAddr
     }
 
-    operator fun next() {
+    fun next() {
         passedToNextHandler = true
     }
 
@@ -138,7 +138,7 @@ class Request(private val servletRequest: HttpServletRequest,
         return passedToNextHandler
     }
 
-    fun path(): String {
+    fun path(): String? {
         return servletRequest.pathInfo
     }
 
@@ -162,11 +162,11 @@ class Request(private val servletRequest: HttpServletRequest,
         return servletRequest.getParameterValues(queryParam)
     }
 
-    fun queryParamMap(): Map<String, Array<String>>? {
+    fun queryParamMap(): Map<String, Array<String>> {
         return servletRequest.parameterMap
     }
 
-    fun queryString(): String {
+    fun queryString(): String? {
         return servletRequest.queryString
     }
 
@@ -186,7 +186,7 @@ class Request(private val servletRequest: HttpServletRequest,
         return servletRequest.requestURL.toString()
     }
 
-    fun userAgent(): String {
+    fun userAgent(): String? {
         return servletRequest.getHeader("user-agent")
     }
 

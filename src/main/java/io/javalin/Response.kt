@@ -70,8 +70,8 @@ class Response(private val servletResponse: HttpServletResponse) {
         return this
     }
 
-    fun header(headerName: String) {
-        servletResponse.getHeader(headerName)
+    fun header(headerName: String): String? {
+        return servletResponse.getHeader(headerName)
     }
 
     fun header(headerName: String, headerValue: String): Response {
@@ -83,27 +83,23 @@ class Response(private val servletResponse: HttpServletResponse) {
         return body(html).contentType("text/html")
     }
 
-    fun redirect(location: String): Response {
+    fun redirect(location: String) {
         try {
             servletResponse.sendRedirect(location)
         } catch (e: IOException) {
-            log.warn("Exception while trying to redirect", e)
+            log.warn("Exception while trying to redirect response", e)
         }
-
-        return this
     }
 
-    fun redirect(location: String, httpStatusCode: Int): Response {
+    fun redirect(location: String, httpStatusCode: Int) {
         servletResponse.status = httpStatusCode
         servletResponse.setHeader("Location", location)
         servletResponse.setHeader("Connection", "close")
         try {
             servletResponse.sendError(httpStatusCode)
         } catch (e: IOException) {
-            log.warn("Exception while trying to redirect", e)
+            log.warn("Exception while trying to redirect response", e)
         }
-
-        return this
     }
 
     fun status(): Int {

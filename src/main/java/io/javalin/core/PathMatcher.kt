@@ -25,8 +25,8 @@ class PathMatcher {
         handlerEntries.clear()
     }
 
-    fun findMatches(type: HandlerType, path: String): List<HandlerMatch> {
-        return findTargetsForRequestedHandler(type, path).map { handlerEntry -> HandlerMatch(handlerEntry.handler, handlerEntry.path, path) }
+    fun findMatches(requestType: HandlerType, requestUri: String): List<HandlerMatch> {
+        return findTargetsForRequestedHandler(requestType, requestUri).map { handlerEntry -> HandlerMatch(handlerEntry.handler, handlerEntry.path, requestUri) }
     }
 
     private fun findTargetsForRequestedHandler(type: HandlerType, path: String): List<HandlerEntry> {
