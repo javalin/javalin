@@ -23,9 +23,7 @@ class Request(private val servletRequest: HttpServletRequest,
 
     private var passedToNextHandler: Boolean = false
 
-    fun unwrap(): HttpServletRequest {
-        return servletRequest
-    }
+    fun unwrap(): HttpServletRequest = servletRequest
 
     fun async(asyncHandler: AsyncHandler) {
         val asyncContext = servletRequest.startAsync()
@@ -36,9 +34,7 @@ class Request(private val servletRequest: HttpServletRequest,
                 }
     }
 
-    fun body(): String {
-        return RequestUtil.byteArrayToString(bodyAsBytes(), servletRequest.characterEncoding)
-    }
+    fun body(): String = RequestUtil.byteArrayToString(bodyAsBytes(), servletRequest.characterEncoding)
 
     fun bodyAsBytes(): ByteArray {
         try {
@@ -54,9 +50,7 @@ class Request(private val servletRequest: HttpServletRequest,
         return Jackson.toObject(body(), clazz)
     }
 
-    fun bodyParam(bodyParam: String): String? {
-        return formParam(bodyParam)
-    }
+    fun bodyParam(bodyParam: String): String? = formParam(bodyParam)
 
     fun formParam(formParam: String): String? {
         return body().split("&")
@@ -66,128 +60,68 @@ class Request(private val servletRequest: HttpServletRequest,
                 .firstOrNull()
     }
 
-    fun param(param: String): String? {
-        return paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
-    }
+    fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
 
-    fun paramMap(): Map<String, String> {
-        return paramMap.toMap();
-    }
+    fun paramMap(): Map<String, String> = paramMap.toMap()
 
-    fun splat(splatNr: Int): String? {
-        return splatList[splatNr]
-    }
+    fun splat(splatNr: Int): String? = splatList[splatNr]
 
-    fun splats(): Array<String> {
-        return splatList.toTypedArray()
-    }
+    fun splats(): Array<String> = splatList.toTypedArray()
 
     // wrapper methods for HttpServletRequest
 
-    fun attribute(attribute: String, value: Any) {
-        servletRequest.setAttribute(attribute, value)
-    }
+    fun attribute(attribute: String, value: Any) = servletRequest.setAttribute(attribute, value)
 
-    fun <T> attribute(attribute: String): T {
-        return servletRequest.getAttribute(attribute) as T
-    }
+    fun <T> attribute(attribute: String): T = servletRequest.getAttribute(attribute) as T
 
-    fun <T> attributeMap(): Map<String, T> {
-        return servletRequest.attributeNames.asSequence().map { it to servletRequest.getAttribute(it) as T }.toMap()
-    }
+    fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().map { it to servletRequest.getAttribute(it) as T }.toMap()
 
-    fun contentLength(): Int {
-        return servletRequest.contentLength
-    }
+    fun contentLength(): Int = servletRequest.contentLength
 
-    fun contentType(): String? {
-        return servletRequest.contentType
-    }
+    fun contentType(): String? = servletRequest.contentType
 
-    fun cookie(name: String): String? {
-        val cookies = servletRequest.cookies ?: arrayOf<Cookie>()
-        return cookies.find { it.name == name }?.value
-    }
+    fun cookie(name: String): String? = (servletRequest.cookies ?: arrayOf<Cookie>()).find { it.name == name }?.value
 
-    fun cookieMap(): Map<String, String> {
-        val cookies = servletRequest.cookies ?: arrayOf<Cookie>()
-        return cookies.map { it.name to it.value }.toMap()
-    }
+    fun cookieMap(): Map<String, String> = (servletRequest.cookies ?: arrayOf<Cookie>()).map { it.name to it.value }.toMap()
 
-    fun header(header: String): String? {
-        return servletRequest.getHeader(header)
-    }
+    fun header(header: String): String? = servletRequest.getHeader(header)
 
-    fun headerMap(): Map<String, String> {
-        return servletRequest.headerNames.asSequence().map { it to servletRequest.getHeader(it) }.toMap()
-    }
+    fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().map { it to servletRequest.getHeader(it) }.toMap()
 
-    fun host(): String? {
-        return servletRequest.getHeader("host")
-    }
+    fun host(): String? = servletRequest.getHeader("host")
 
-    fun ip(): String {
-        return servletRequest.remoteAddr
-    }
+    fun ip(): String = servletRequest.remoteAddr
 
     fun next() {
         passedToNextHandler = true
     }
 
-    fun nexted(): Boolean {
-        return passedToNextHandler
-    }
+    fun nexted(): Boolean = passedToNextHandler
 
-    fun path(): String? {
-        return servletRequest.pathInfo
-    }
+    fun path(): String? = servletRequest.pathInfo
 
-    fun port(): Int {
-        return servletRequest.serverPort
-    }
+    fun port(): Int = servletRequest.serverPort
 
-    fun protocol(): String {
-        return servletRequest.protocol
-    }
+    fun protocol(): String = servletRequest.protocol
 
-    fun queryParam(queryParam: String): String? {
-        return servletRequest.getParameter(queryParam)
-    }
+    fun queryParam(queryParam: String): String? = servletRequest.getParameter(queryParam)
 
-    fun queryParamOrDefault(queryParam: String, defaultValue: String): String {
-        return Optional.ofNullable(servletRequest.getParameter(queryParam)).orElse(defaultValue)
-    }
+    fun queryParamOrDefault(queryParam: String, defaultValue: String): String = servletRequest.getParameter(queryParam) ?: defaultValue
 
-    fun queryParams(queryParam: String): Array<String>? {
-        return servletRequest.getParameterValues(queryParam)
-    }
+    fun queryParams(queryParam: String): Array<String>? = servletRequest.getParameterValues(queryParam)
 
-    fun queryParamMap(): Map<String, Array<String>> {
-        return servletRequest.parameterMap
-    }
+    fun queryParamMap(): Map<String, Array<String>> = servletRequest.parameterMap
 
-    fun queryString(): String? {
-        return servletRequest.queryString
-    }
+    fun queryString(): String? = servletRequest.queryString
 
-    fun requestMethod(): String {
-        return servletRequest.method
-    }
+    fun requestMethod(): String = servletRequest.method
 
-    fun scheme(): String {
-        return servletRequest.scheme
-    }
+    fun scheme(): String = servletRequest.scheme
 
-    fun uri(): String {
-        return servletRequest.requestURI
-    }
+    fun uri(): String = servletRequest.requestURI
 
-    fun url(): String {
-        return servletRequest.requestURL.toString()
-    }
+    fun url(): String = servletRequest.requestURL.toString()
 
-    fun userAgent(): String? {
-        return servletRequest.getHeader("user-agent")
-    }
+    fun userAgent(): String? = servletRequest.getHeader("user-agent")
 
 }

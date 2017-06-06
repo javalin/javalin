@@ -28,22 +28,16 @@ class Response(private val servletResponse: HttpServletResponse) {
 
     private var encoding: String? = null
 
-    fun unwrap(): HttpServletResponse {
-        return servletResponse
-    }
+    fun unwrap(): HttpServletResponse = servletResponse
 
-    fun contentType(): String? {
-        return servletResponse.contentType
-    }
+    fun contentType(): String? = servletResponse.contentType
 
     fun contentType(contentType: String): Response {
         servletResponse.contentType = contentType
         return this
     }
 
-    fun body(): String? {
-        return body
-    }
+    fun body(): String? = body
 
     fun body(body: String): Response {
         this.body = body
@@ -51,9 +45,7 @@ class Response(private val servletResponse: HttpServletResponse) {
         return this
     }
 
-    fun bodyStream(): InputStream? {
-        return bodyStream
-    }
+    fun bodyStream(): InputStream? = bodyStream
 
     fun body(bodyStream: InputStream): Response {
         this.body = null // can only have one or the other
@@ -61,27 +53,21 @@ class Response(private val servletResponse: HttpServletResponse) {
         return this
     }
 
-    fun encoding(): String? {
-        return encoding
-    }
+    fun encoding(): String? = encoding
 
     fun encoding(charset: String): Response {
         encoding = charset
         return this
     }
 
-    fun header(headerName: String): String? {
-        return servletResponse.getHeader(headerName)
-    }
+    fun header(headerName: String): String? = servletResponse.getHeader(headerName)
 
     fun header(headerName: String, headerValue: String): Response {
         servletResponse.setHeader(headerName, headerValue)
         return this
     }
 
-    fun html(html: String): Response {
-        return body(html).contentType("text/html")
-    }
+    fun html(html: String): Response = body(html).contentType("text/html")
 
     fun redirect(location: String) {
         try {
@@ -102,9 +88,7 @@ class Response(private val servletResponse: HttpServletResponse) {
         }
     }
 
-    fun status(): Int {
-        return servletResponse.status
-    }
+    fun status(): Int = servletResponse.status
 
     fun status(statusCode: Int): Response {
         servletResponse.status = statusCode
@@ -113,13 +97,9 @@ class Response(private val servletResponse: HttpServletResponse) {
 
     // cookie methods
 
-    fun cookie(name: String, value: String): Response {
-        return cookie(CookieBuilder.cookieBuilder(name, value))
-    }
+    fun cookie(name: String, value: String): Response = cookie(CookieBuilder.cookieBuilder(name, value))
 
-    fun cookie(name: String, value: String, maxAge: Int): Response {
-        return cookie(CookieBuilder.cookieBuilder(name, value).maxAge(maxAge))
-    }
+    fun cookie(name: String, value: String, maxAge: Int): Response = cookie(CookieBuilder.cookieBuilder(name, value).maxAge(maxAge))
 
     fun cookie(cookieBuilder: CookieBuilder): Response {
         val cookie = Cookie(cookieBuilder.name, cookieBuilder.value)
@@ -132,9 +112,7 @@ class Response(private val servletResponse: HttpServletResponse) {
         return this
     }
 
-    fun removeCookie(name: String): Response {
-        return removeCookie(null, name)
-    }
+    fun removeCookie(name: String): Response = removeCookie(null, name)
 
     fun removeCookie(path: String?, name: String): Response {
         val cookie = Cookie(name, "")
