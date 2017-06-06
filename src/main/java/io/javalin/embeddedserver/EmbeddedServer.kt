@@ -15,8 +15,6 @@ interface EmbeddedServer {
     fun join()
 
     fun stop()
-
     fun activeThreadCount(): Int
-
     fun attribute(key: String): Any
 }

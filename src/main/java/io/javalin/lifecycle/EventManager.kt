@@ -13,12 +13,8 @@ class EventManager {
 
     private val listenerMap: Map<Event.Type, LinkedList<EventListener>> = Event.Type.values().map { it to LinkedList<EventListener>() }.toMap()
 
-    fun addEventListener(type: Event.Type, listener: EventListener) {
-        listenerMap[type]!!.add(listener)
-    }
+    fun addEventListener(type: Event.Type, listener: EventListener) = listenerMap[type]!!.add(listener)
 
-    fun fireEvent(type: Event.Type, javalin: Javalin) {
-        listenerMap[type]!!.forEach { listener -> listener.handleEvent(Event(type, javalin)) }
-    }
+    fun fireEvent(type: Event.Type, javalin: Javalin) = listenerMap[type]!!.forEach { listener -> listener.handleEvent(Event(type, javalin)) }
 
 }

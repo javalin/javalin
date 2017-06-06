@@ -53,9 +53,7 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
     }
 
     @Throws(InterruptedException::class)
-    override fun join() {
-        server.join()
-    }
+    override fun join() = server.join()
 
     override fun stop() {
         log.info("Stopping Javalin ...")
@@ -64,20 +62,13 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
         } catch (e: Exception) {
             log.error("Javalin failed to stop gracefully", e)
         }
-
         log.info("Javalin has stopped")
     }
 
-    override fun activeThreadCount(): Int {
-        return server.threadPool.threads - server.threadPool.idleThreads
-    }
+    override fun activeThreadCount(): Int = server.threadPool.threads - server.threadPool.idleThreads
 
-    override fun attribute(key: String): Any {
-        return server.getAttribute(key)
-    }
+    override fun attribute(key: String): Any = server.getAttribute(key)
 
-    private fun getProtocol(connector: Connector): String {
-        return if (connector.protocols.contains("ssl")) "https" else "http"
-    }
+    private fun getProtocol(connector: Connector): String = if (connector.protocols.contains("ssl")) "https" else "http"
 
 }

@@ -19,12 +19,8 @@ class ErrorMapper {
         this.errorHandlerMap[statusCode] = handler
     }
 
-    fun clear() {
-        this.errorHandlerMap.clear()
-    }
+    fun clear() = this.errorHandlerMap.clear()
 
-    fun handle(statusCode: Int, request: Request, response: Response) {
-        val errorHandler = errorHandlerMap[statusCode]
-        errorHandler?.handle(request, response)
-    }
+    fun handle(statusCode: Int, req: Request, res: Response) = errorHandlerMap[statusCode]?.handle(req, res)
+
 }

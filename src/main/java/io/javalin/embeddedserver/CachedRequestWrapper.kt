@@ -20,37 +20,16 @@ constructor(request: HttpServletRequest) : HttpServletRequestWrapper(request) {
     private val cachedBytes: ByteArray = RequestUtil.toByteArray(super.getInputStream())
 
     @Throws(IOException::class)
-    override fun getInputStream(): ServletInputStream {
-        if (chunkedTransferEncoding()) { // this could blow up memory if cached
-            return super.getInputStream()
-        }
-        return CachedServletInputStream()
-    }
+    override fun getInputStream(): ServletInputStream = if (chunkedTransferEncoding()) super.getInputStream() else CachedServletInputStream()
 
-    private fun chunkedTransferEncoding(): Boolean {
-        return "chunked" == (super.getRequest() as HttpServletRequest).getHeader("Transfer-Encoding")
-    }
+    private fun chunkedTransferEncoding(): Boolean = "chunked" == (super.getRequest() as HttpServletRequest).getHeader("Transfer-Encoding")
 
     private inner class CachedServletInputStream : ServletInputStream() {
-
         private val byteArrayInputStream: ByteArrayInputStream = ByteArrayInputStream(cachedBytes)
-
-        override fun read(): Int {
-            return byteArrayInputStream.read()
-        }
-
-        override fun available(): Int {
-            return byteArrayInputStream.available()
-        }
-
-        override fun isFinished(): Boolean {
-            return available() <= 0
-        }
-
-        override fun isReady(): Boolean {
-            return available() >= 0
-        }
-
+        override fun read(): Int = byteArrayInputStream.read()
+        override fun available(): Int = byteArrayInputStream.available()
+        override fun isFinished(): Boolean = available() <= 0
+        override fun isReady(): Boolean = available() >= 0
         override fun setReadListener(readListener: ReadListener) {}
     }
 }

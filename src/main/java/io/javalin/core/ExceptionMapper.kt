@@ -24,9 +24,7 @@ class ExceptionMapper {
         this.exceptionMap[exceptionClass] = handler
     }
 
-    fun clear() {
-        this.exceptionMap.clear()
-    }
+    fun clear() = this.exceptionMap.clear()
 
     internal fun handle(exception: Exception, request: Request, response: Response) {
         if (exception is HaltException) {
@@ -43,7 +41,6 @@ class ExceptionMapper {
             response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
         }
     }
-
 
     fun getHandler(exceptionClass: Class<out Exception>): ExceptionHandler<Exception>? {
         if (this.exceptionMap.containsKey(exceptionClass)) {
