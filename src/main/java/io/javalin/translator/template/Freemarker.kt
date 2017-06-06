@@ -7,9 +7,7 @@
 package io.javalin.translator.template
 
 import freemarker.template.Configuration
-import freemarker.template.TemplateException
 import freemarker.template.Version
-import java.io.IOException
 import java.io.StringWriter
 
 object Freemarker {
@@ -31,7 +29,7 @@ object Freemarker {
         }
     }
 
-    fun defaultFreemarkerEngine() : Configuration {
+    fun defaultFreemarkerEngine(): Configuration {
         val configuration = Configuration(Version(2, 3, 26))
         configuration.setClassForTemplateLoading(Freemarker::class.java, "/")
         return configuration;

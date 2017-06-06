@@ -7,7 +7,6 @@
 
 package io.javalin;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import io.javalin.util.TypedException;

@@ -11,7 +11,6 @@ import io.javalin.core.util.Util
 import io.javalin.translator.json.Jackson
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import java.util.*
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 

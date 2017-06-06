@@ -7,8 +7,6 @@
 package io.javalin.translator.json
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.javalin.HaltException
-import org.slf4j.LoggerFactory
 
 object Jackson {
 

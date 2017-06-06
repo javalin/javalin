@@ -26,7 +26,7 @@ object Thymeleaf {
         return templateEngine!!.process(templatePath, context)
     }
 
-    fun defaultThymeLeafEngine() : TemplateEngine {
+    fun defaultThymeLeafEngine(): TemplateEngine {
         val templateEngine = TemplateEngine()
         val templateResolver = ClassLoaderTemplateResolver()
         templateResolver.templateMode = TemplateMode.HTML
