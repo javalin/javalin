@@ -22,19 +22,7 @@ class PathMatcher {
     fun clear() = handlerEntries.clear()
 
     fun findEntries(requestType: HandlerType, requestUri: String): List<HandlerEntry> {
-        return findTargetsForRequestedHandler(requestType, requestUri)
-    }
-
-    private fun findTargetsForRequestedHandler(type: HandlerType, path: String): List<HandlerEntry> {
-        return handlerEntries.filter { he -> match(he, type, path) }
-    }
-
-    fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
-        val entries = handlerEntries.filter(predicate)
-        if (entries.size > 1) {
-            log.warn("More than one path found for handler, returning first match: '{} {}'", entries[0].type, entries[0].path)
-        }
-        return if (entries.isNotEmpty()) entries[0].path else null
+        return handlerEntries.filter { he -> match(he, requestType, requestUri) }
     }
 
     // TODO: Consider optimizing this
@@ -51,33 +39,33 @@ class PathMatcher {
         return matchParamAndWildcard(handlerEntry.path, requestPath)
     }
 
-    private fun matchParamAndWildcard(handlerPath: String, requestPath: String): Boolean {
+    private fun matchParamAndWildcard(fullHandlerPath: String, fullRequestPath: String): Boolean {
 
-        val handlerPaths = Util.pathToList(handlerPath)
-        val requestPaths = Util.pathToList(requestPath)
+        val handlerPathParts = Util.pathToList(fullHandlerPath)
+        val requestPathParts = Util.pathToList(fullRequestPath)
 
-        val numHandlerPaths = handlerPaths.size
-        val numRequestPaths = requestPaths.size
+        val numHandlerPaths = handlerPathParts.size
+        val numRequestPaths = requestPathParts.size
 
         if (numHandlerPaths == numRequestPaths) {
-            handlerPaths.forEachIndexed({ i, handlerPathPart ->
-                val requestPathPart = requestPaths[i]
-                if (handlerPathPart == "*" && handlerPath.endsWith("*") && i == numHandlerPaths - 1) {
+            handlerPathParts.forEachIndexed({ i, handlerPart ->
+                val requestPart = requestPathParts[i]
+                if (handlerPart == "*" && fullHandlerPath.last() == '*' && i == numHandlerPaths - 1) {
                     return true
                 }
-                if (handlerPathPart != "*" && !handlerPathPart.startsWith(":") && handlerPathPart != requestPathPart) {
+                if (handlerPart != "*" && handlerPart.first() != ':' && handlerPart != requestPart) {
                     return false
                 }
             })
             return true
         }
-        if (handlerPath.endsWith("*") && numHandlerPaths < numRequestPaths) {
-            handlerPaths.forEachIndexed({ i, handlerPathPart ->
-                val requestPathPart = requestPaths[i]
-                if (handlerPathPart == "*" && handlerPath.endsWith("*") && i == numHandlerPaths - 1) {
+        if (fullHandlerPath.last() == '*' && numHandlerPaths < numRequestPaths) {
+            handlerPathParts.forEachIndexed({ i, handlerPart ->
+                val requestPart = requestPathParts[i]
+                if (handlerPart == "*" && fullHandlerPath.last() == '*' && i == numHandlerPaths - 1) {
                     return true
                 }
-                if (!handlerPathPart.startsWith(":") && handlerPathPart != "*" && handlerPathPart != requestPathPart) {
+                if (handlerPart != "*" && handlerPart.first() != ':' && handlerPart != requestPart) {
                     return false
                 }
             })
@@ -86,8 +74,15 @@ class PathMatcher {
         return false
     }
 
-    private fun endingSlashesDoNotMatch(handlerPath: String, requestPath: String): Boolean {
-        return requestPath.endsWith("/") && !handlerPath.endsWith("/") || !requestPath.endsWith("/") && handlerPath.endsWith("/")
+    private fun endingSlashesDoNotMatch(handlerPath: String, requestPath: String): Boolean =
+            (handlerPath.last() == '/' || requestPath.last() == '/') && (handlerPath.last() != requestPath.last())
+
+    fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
+        val entries = handlerEntries.filter(predicate)
+        if (entries.size > 1) {
+            log.warn("More than one path found for handler, returning first match: '{} {}'", entries[0].type, entries[0].path)
+        }
+        return if (entries.isNotEmpty()) entries[0].path else null
     }
 
 }
