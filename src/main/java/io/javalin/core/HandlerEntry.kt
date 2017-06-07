@@ -8,4 +8,4 @@ package io.javalin.core
 
 import io.javalin.Handler
 
-class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler)
+data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler)

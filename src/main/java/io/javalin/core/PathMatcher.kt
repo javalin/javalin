@@ -26,18 +26,15 @@ class PathMatcher {
     }
 
     // TODO: Consider optimizing this
-    private fun match(handlerEntry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean {
-        if (handlerEntry.type !== requestType) {
-            return false
-        }
-        if (endingSlashesDoNotMatch(handlerEntry.path, requestPath)) {
-            return false
-        }
-        if (handlerEntry.path == requestPath) { // identical paths
-            return true
-        }
-        return matchParamAndWildcard(handlerEntry.path, requestPath)
+    private fun match(handlerEntry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean = when {
+        handlerEntry.type !== requestType -> false
+        handlerEntry.path == requestPath -> true
+        endingSlashesDoNotMatch(handlerEntry.path, requestPath) -> false
+        else -> matchParamAndWildcard(handlerEntry.path, requestPath)
     }
+
+    private fun endingSlashesDoNotMatch(handlerPath: String, requestPath: String): Boolean =
+            (handlerPath.last() == '/' || requestPath.last() == '/') && (handlerPath.last() != requestPath.last())
 
     private fun matchParamAndWildcard(fullHandlerPath: String, fullRequestPath: String): Boolean {
 
@@ -73,9 +70,6 @@ class PathMatcher {
         }
         return false
     }
-
-    private fun endingSlashesDoNotMatch(handlerPath: String, requestPath: String): Boolean =
-            (handlerPath.last() == '/' || requestPath.last() == '/') && (handlerPath.last() != requestPath.last())
 
     fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
         val entries = handlerEntries.filter(predicate)
