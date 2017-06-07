@@ -7,7 +7,7 @@
 package io.javalin.core.util
 
 import io.javalin.Request
-import io.javalin.core.HandlerMatch
+import io.javalin.core.HandlerEntry
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -23,9 +23,9 @@ object RequestUtil {
         return Request(httpRequest, HashMap<String, String>(), ArrayList<String>())
     }
 
-    fun create(httpRequest: HttpServletRequest, handlerMatch: HandlerMatch): Request {
-        val requestList = Util.pathToList(handlerMatch.requestUri)
-        val matchedList = Util.pathToList(handlerMatch.handlerUri)
+    fun create(httpRequest: HttpServletRequest, handlerEntry: HandlerEntry, requestUri: String): Request {
+        val requestList = Util.pathToList(requestUri)
+        val matchedList = Util.pathToList(handlerEntry.path)
         return Request(
                 httpRequest,
                 getParams(requestList, matchedList),

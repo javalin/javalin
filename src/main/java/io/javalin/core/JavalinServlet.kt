@@ -17,7 +17,7 @@ import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServlet(private val pathMatcher: PathMatcher, private val exceptionMapper: ExceptionMapper, private val errorMapper: ErrorMapper, private val staticResourceHandler: StaticResourceHandler) : Servlet {
+class JavalinServlet(private val matcher: PathMatcher, private val exceptionMapper: ExceptionMapper, private val errorMapper: ErrorMapper, private val staticResourceHandler: StaticResourceHandler) : Servlet {
 
     @Throws(ServletException::class, IOException::class)
     override fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
@@ -33,20 +33,20 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
 
         try { // before-handlers, endpoint-handlers, static-files
 
-            for (beforeMatch in pathMatcher.findMatches(HandlerType.BEFORE, requestUri)) {
-                beforeMatch.handler.handle(RequestUtil.create(httpRequest, beforeMatch), response)
+            for (beforeEntry in matcher.findEntries(HandlerType.BEFORE, requestUri)) {
+                beforeEntry.handler.handle(RequestUtil.create(httpRequest, beforeEntry, requestUri), response)
             }
 
-            val matches = pathMatcher.findMatches(type, requestUri)
-            if (!matches.isEmpty()) {
-                for (endpointMatch in matches) {
-                    val currentRequest = RequestUtil.create(httpRequest, endpointMatch)
-                    endpointMatch.handler.handle(currentRequest, response)
+            val entries = matcher.findEntries(type, requestUri)
+            if (!entries.isEmpty()) {
+                for (endpointEntry in entries) {
+                    val currentRequest = RequestUtil.create(httpRequest, endpointEntry, requestUri)
+                    endpointEntry.handler.handle(currentRequest, response)
                     if (!currentRequest.nexted()) {
                         break
                     }
                 }
-            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && pathMatcher.findMatches(HandlerType.GET, requestUri).isEmpty()) {
+            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty()) {
                 if (staticResourceHandler.handle(httpRequest, httpResponse)) {
                     return
                 }
@@ -60,8 +60,8 @@ class JavalinServlet(private val pathMatcher: PathMatcher, private val exception
         }
 
         try { // after-handlers
-            for (afterMatch in pathMatcher.findMatches(HandlerType.AFTER, requestUri)) {
-                afterMatch.handler.handle(RequestUtil.create(httpRequest, afterMatch), response)
+            for (afterEntry in matcher.findEntries(HandlerType.AFTER, requestUri)) {
+                afterEntry.handler.handle(RequestUtil.create(httpRequest, afterEntry, requestUri), response)
             }
         } catch (e: Exception) {
             // after filters can also throw exceptions
