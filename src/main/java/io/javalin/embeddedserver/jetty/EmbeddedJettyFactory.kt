@@ -27,8 +27,8 @@ class EmbeddedJettyFactory : EmbeddedServerFactory {
         this.server = Server(QueuedThreadPool(200, 8, 60000))
     }
 
-    constructor(jettyServer: JettyServer) {
-        this.server = jettyServer.create()
+    constructor(jettyServer: () -> Server) {
+        this.server = jettyServer.invoke()
     }
 
     override fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileDirectory: String?): EmbeddedServer {
