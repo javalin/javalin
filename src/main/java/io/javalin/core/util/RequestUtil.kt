@@ -68,13 +68,8 @@ object RequestUtil {
         return params
     }
 
-    fun urlDecode(s: String): String {
-        try {
-            return URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
-        } catch (ignored: UnsupportedEncodingException) {
-            return ""
-        }
-    }
+    @Throws(UnsupportedEncodingException::class)
+    fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
     fun byteArrayToString(bytes: ByteArray, encoding: String?): String {
         var string: String
