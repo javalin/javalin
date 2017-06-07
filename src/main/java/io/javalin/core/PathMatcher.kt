@@ -29,12 +29,11 @@ class PathMatcher {
     private fun match(handlerEntry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean = when {
         handlerEntry.type !== requestType -> false
         handlerEntry.path == requestPath -> true
-        endingSlashesDoNotMatch(handlerEntry.path, requestPath) -> false
+        slashMismatch(handlerEntry.path, requestPath) -> false
         else -> matchParamAndWildcard(handlerEntry.path, requestPath)
     }
 
-    private fun endingSlashesDoNotMatch(handlerPath: String, requestPath: String): Boolean =
-            (handlerPath.last() == '/' || requestPath.last() == '/') && (handlerPath.last() != requestPath.last())
+    private fun slashMismatch(s1: String, s2: String): Boolean = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
 
     private fun matchParamAndWildcard(fullHandlerPath: String, fullRequestPath: String): Boolean {
 
