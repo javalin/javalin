@@ -35,15 +35,14 @@ object RequestUtil {
 
     fun getSplat(request: List<String>, matched: List<String>): List<String> {
         val numRequestParts = request.size
-        val numMatchedParts = matched.size
-        val sameLength = numRequestParts == numMatchedParts
+        val numHandlerParts = matched.size
         val splat = ArrayList<String>()
         var i = 0
-        while (i < numRequestParts && i < numMatchedParts) {
+        while (i < numRequestParts && i < numHandlerParts) {
             val matchedPart = matched[i]
-            if (isSplat(matchedPart)) {
+            if (matchedPart == "*") {
                 val splatParam = StringBuilder(request[i])
-                if (!sameLength && i == numMatchedParts - 1) {
+                if (numRequestParts != numHandlerParts && i == numHandlerParts - 1) {
                     for (j in i + 1..numRequestParts - 1) {
                         splatParam.append("/")
                         splatParam.append(request[j])
@@ -61,7 +60,7 @@ object RequestUtil {
         var i = 0
         while (i < requestPaths.size && i < handlerPaths.size) {
             val matchedPart = handlerPaths[i]
-            if (isParam(matchedPart)) {
+            if (matchedPart.startsWith(":")) {
                 params[matchedPart.toLowerCase()] = urlDecode(requestPaths[i])
             }
             i++
@@ -77,14 +76,6 @@ object RequestUtil {
         }
     }
 
-    fun isParam(pathPart: String): Boolean {
-        return pathPart.startsWith(":")
-    }
-
-    fun isSplat(pathPart: String): Boolean {
-        return pathPart == "*"
-    }
-
     fun byteArrayToString(bytes: ByteArray, encoding: String?): String {
         var string: String
         if (encoding != null && Charset.isSupported(encoding)) {
@@ -93,7 +84,6 @@ object RequestUtil {
             } catch (e: UnsupportedEncodingException) {
                 string = String(bytes)
             }
-
         } else {
             string = String(bytes)
         }
