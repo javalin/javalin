@@ -6,7 +6,6 @@
 
 package io.javalin.core
 
-import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 enum class HandlerType {
@@ -15,8 +14,8 @@ enum class HandlerType {
     companion object {
         private val methodMap = HandlerType.values().map { it.toString() to it }.toMap()
         fun fromServletRequest(httpRequest: HttpServletRequest): HandlerType {
-            val key = Optional.ofNullable(httpRequest.getHeader("X-HTTP-Method-Override")).orElse(httpRequest.method)
-            return methodMap.getOrDefault(key.toUpperCase(), INVALID)
+            val key = httpRequest.getHeader("X-HTTP-Method-Override") ?: httpRequest.method
+            return methodMap[key.toUpperCase()] ?: INVALID
         }
     }
 
