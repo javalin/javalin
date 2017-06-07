@@ -11,6 +11,7 @@ import io.javalin.core.util.Util
 import io.javalin.translator.json.Jackson
 import org.slf4j.LoggerFactory
 import java.io.IOException
+import java.util.concurrent.CompletableFuture
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 
@@ -24,7 +25,7 @@ class Request(private val servletRequest: HttpServletRequest,
 
     fun unwrap(): HttpServletRequest = servletRequest
 
-    fun async(asyncHandler: AsyncHandler) {
+    fun async(asyncHandler: () -> CompletableFuture<Void>) {
         val asyncContext = servletRequest.startAsync()
         asyncHandler().thenAccept { _ -> asyncContext.complete() }
                 .exceptionally { e ->
