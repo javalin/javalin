@@ -46,9 +46,7 @@ object Util {
         dependencyCheckCache[className] = true
     }
 
-    fun pathToList(pathString: String): List<String> {
-        return pathString.split("/").filter { it.isNotEmpty() }.toList();
-    }
+    fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
     fun printHelpfulMessageIfLoggerIsMissing() {
         if (!classExists("org.slf4j.impl.StaticLoggerBinder")) {

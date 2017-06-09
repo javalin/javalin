@@ -35,36 +35,30 @@ class PathMatcher {
 
     private fun slashMismatch(s1: String, s2: String): Boolean = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
 
-    private fun matchParamAndWildcard(fullHandlerPath: String, fullRequestPath: String): Boolean {
+    private fun matchParamAndWildcard(handlerPath: String, fullRequestPath: String): Boolean {
 
-        val handlerPathParts = Util.pathToList(fullHandlerPath)
-        val requestPathParts = Util.pathToList(fullRequestPath)
+        val hpp = Util.pathToList(handlerPath) // handler-path-parts
+        val rpp = Util.pathToList(fullRequestPath) // request-path-parts
 
-        val numHandlerPaths = handlerPathParts.size
-        val numRequestPaths = requestPathParts.size
+        fun isLastAndSplat(i : Int) = i == hpp.lastIndex && hpp[i] == "*"
+        fun isNotPathOrSplat(i: Int) =  hpp[i].first() != ':' && hpp[i] != "*"
 
-        if (numHandlerPaths == numRequestPaths) {
-            handlerPathParts.forEachIndexed({ i, handlerPart ->
-                val requestPart = requestPathParts[i]
-                if (handlerPart == "*" && fullHandlerPath.last() == '*' && i == numHandlerPaths - 1) {
-                    return true
+        if (hpp.size == rpp.size) {
+            for (i in hpp.indices) {
+                when {
+                    isLastAndSplat(i) && handlerPath.endsWith('*') -> return true
+                    isNotPathOrSplat(i) && hpp[i] != rpp[i] -> return false
                 }
-                if (handlerPart != "*" && handlerPart.first() != ':' && handlerPart != requestPart) {
-                    return false
-                }
-            })
+            }
             return true
         }
-        if (fullHandlerPath.last() == '*' && numHandlerPaths < numRequestPaths) {
-            handlerPathParts.forEachIndexed({ i, handlerPart ->
-                val requestPart = requestPathParts[i]
-                if (handlerPart == "*" && fullHandlerPath.last() == '*' && i == numHandlerPaths - 1) {
-                    return true
+        if (hpp.size < rpp.size && handlerPath.endsWith('*')) {
+            for (i in hpp.indices) {
+                when {
+                    isLastAndSplat(i) -> return true
+                    isNotPathOrSplat(i) && hpp[i] != rpp[i] -> return false
                 }
-                if (handlerPart != "*" && handlerPart.first() != ':' && handlerPart != requestPart) {
-                    return false
-                }
-            })
+            }
             return false
         }
         return false
