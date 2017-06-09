@@ -49,26 +49,26 @@ class Context(private val servletResponse: HttpServletResponse,
                 }
     }
 
-    fun requestBody(): String = ContextUtil.byteArrayToString(bodyAsBytes(), servletRequest.characterEncoding)
+    fun body(): String = ContextUtil.byteArrayToString(bodyAsBytes(), servletRequest.characterEncoding)
 
     fun bodyAsBytes(): ByteArray {
         try {
             return ContextUtil.toByteArray(servletRequest.inputStream)
         } catch (e: IOException) {
-            log.error("Failed to read requestBody. Something is very wrong.", e)
-            throw RuntimeException("Failed to read requestBody. Something is very wrong.")
+            log.error("Failed to read body. Something is very wrong.", e)
+            throw RuntimeException("Failed to read body. Something is very wrong.")
         }
     }
 
     fun <T> bodyAsClass(clazz: Class<T>): T {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-        return Jackson.toObject(requestBody(), clazz)
+        return Jackson.toObject(body(), clazz)
     }
 
     fun bodyParam(bodyParam: String): String? = formParam(bodyParam)
 
     fun formParam(formParam: String): String? {
-        return requestBody().split("&")
+        return body().split("&")
                 .map { it.split("=") }
                 .filter { it.first().equals(formParam, ignoreCase = true) }
                 .map { it.last() }
@@ -145,7 +145,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun rawResponse(): HttpServletResponse = servletResponse
 
-    fun body(): String? = body
+    fun responseBody(): String? = body
 
     fun contentType(): String? = servletResponse.contentType
 

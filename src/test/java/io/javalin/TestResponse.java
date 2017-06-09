@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.*;
 public class TestResponse extends _UnirestBaseTest {
 
     private String MY_BODY = ""
-        + "This is my requestBody, and I live in it. It's 31 and 6 months old. "
+        + "This is my body, and I live in it. It's 31 and 6 months old. "
         + "It's changed a lot since it was new. It's done stuff it wasn't built to do. "
         + "I often try to fill if up with wine. - Tim Minchin";
 

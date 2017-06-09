@@ -58,7 +58,7 @@ public class TestApiBuilder extends _UnirestBaseTest {
     }
 
     private Handler updateAnswer(String body) {
-        return ctx -> ctx.body(ctx.body() + body);
+        return ctx -> ctx.body(ctx.responseBody() + body);
     }
 
     @Test(expected = IllegalStateException.class)

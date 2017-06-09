@@ -85,8 +85,8 @@ class JavalinServlet(
             res.characterEncoding = StandardCharsets.UTF_8.name()
         }
 
-        if (ctx.body() != null) {
-            res.writer.write(ctx.body())
+        if (ctx.responseBody() != null) {
+            res.writer.write(ctx.responseBody())
             res.writer.flush()
             res.writer.close()
         } else if (ctx.bodyStream() != null) {

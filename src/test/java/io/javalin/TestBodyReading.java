@@ -20,9 +20,9 @@ public class TestBodyReading {
     @Test
     public void test_bodyReader() throws Exception {
         Javalin app = Javalin.create().port(0).start().awaitInitialization();
-        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.requestBody() + ctx.queryParam("qp")));
-        app.post("/body-reader", ctx -> ctx.body(ctx.requestBody() + ctx.queryParam("qp")));
-        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.requestBody() + ctx.queryParam("qp")));
+        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.body() + ctx.queryParam("qp")));
+        app.post("/body-reader", ctx -> ctx.body(ctx.body() + ctx.queryParam("qp")));
+        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.body() + ctx.queryParam("qp")));
 
         HttpResponse<String> response = Unirest
             .post("http://localhost:" + app.port() + "/body-reader")
@@ -39,9 +39,9 @@ public class TestBodyReading {
     @Test
     public void test_bodyReader_reverse() throws Exception {
         Javalin app = Javalin.create().port(0).start().awaitInitialization();
-        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.queryParam("qp") + ctx.requestBody()));
-        app.post("/body-reader", ctx -> ctx.body(ctx.queryParam("qp") + ctx.requestBody()));
-        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.queryParam("qp") + ctx.requestBody()));
+        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.queryParam("qp") + ctx.body()));
+        app.post("/body-reader", ctx -> ctx.body(ctx.queryParam("qp") + ctx.body()));
+        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.queryParam("qp") + ctx.body()));
 
         HttpResponse<String> response = Unirest
             .post("http://localhost:" + app.port() + "/body-reader")
