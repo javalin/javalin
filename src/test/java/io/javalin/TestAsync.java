@@ -59,7 +59,7 @@ public class TestAsync {
         forkJoinPool.submit(
             () -> IntStream.range(0, 50).parallel().forEach(i -> {
                 try {
-                    assertThat(new SimpleHttpClient().http_GET("http://localhost:5454/test-async").status, is(418));
+                    assertThat(new SimpleHttpClient().http_GET("http://localhost:5454/test-async").getStatus(), is(418));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
