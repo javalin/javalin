@@ -194,13 +194,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun redirect(location: String, httpStatusCode: Int) {
         servletResponse.status = httpStatusCode
-        servletResponse.setHeader("Location", location)
-        servletResponse.setHeader("Connection", "close")
-        try {
-            servletResponse.sendError(httpStatusCode)
-        } catch (e: IOException) {
-            log.warn("Exception while trying to redirect response", e)
-        }
+        redirect(location)
     }
 
     fun status(): Int = servletResponse.status

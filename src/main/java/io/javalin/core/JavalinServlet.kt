@@ -99,13 +99,9 @@ class JavalinServlet(
     override fun init(config: ServletConfig) {
     }
 
-    override fun getServletConfig(): ServletConfig? {
-        return null
-    }
+    override fun getServletConfig(): ServletConfig? = null
 
-    override fun getServletInfo(): String? {
-        return null
-    }
+    override fun getServletInfo(): String? = null
 
     override fun destroy() {}
 
