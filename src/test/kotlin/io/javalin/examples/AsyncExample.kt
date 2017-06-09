@@ -16,7 +16,7 @@ fun main(args: Array<String>) {
     val app = Javalin.create().port(5454)
 
     app.get("/test-custom") { ctx ->
-        val asyncContext = ctx.rawRequest().startAsync()
+        val asyncContext = ctx.request().startAsync()
         simulateAsyncTask({
             ctx.status(418)
             asyncContext.complete()

@@ -21,7 +21,7 @@ public class AsyncExample {
         Javalin app = Javalin.create().port(5454);
 
         app.get("/test-custom", ctx -> {
-            AsyncContext asyncContext = ctx.rawRequest().startAsync();
+            AsyncContext asyncContext = ctx.request().startAsync();
             simulateAsyncTask(() -> {
                 ctx.status(418);
                 asyncContext.complete();

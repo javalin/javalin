@@ -38,7 +38,7 @@ class Context(private val servletResponse: HttpServletResponse,
     // Request methods
     //
 
-    fun rawRequest(): HttpServletRequest = servletRequest
+    fun request(): HttpServletRequest = servletRequest
 
     fun async(asyncHandler: () -> CompletableFuture<Void>) {
         val asyncContext = servletRequest.startAsync()
@@ -143,7 +143,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private var encoding: String? = null
 
-    fun rawResponse(): HttpServletResponse = servletResponse
+    fun response(): HttpServletResponse = servletResponse
 
     fun responseBody(): String? = body
 
