@@ -10,5 +10,5 @@ import io.javalin.Javalin
 
 fun main(args: Array<String>) {
     val app = Javalin.create().port(7000)
-    app.get("/") { req, res -> res.body("Hello World") }
+    app.get("/") { ctx -> ctx.body("Hello World") }
 }

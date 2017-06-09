@@ -36,17 +36,17 @@ public class StupidPerformanceTest {
         app = Javalin.create()
             .port(7000)
             .routes(() -> {
-                before((req, res) -> res.status(123));
-                before((req, res) -> res.status(200));
+                before(ctx -> ctx.status(123));
+                before(ctx -> ctx.status(200));
                 get("/hello", simpleAnswer("Hello from level 0"));
                 path("/level-1", () -> {
                     get("/hello", simpleAnswer("Hello from level 1"));
                     get("/hello-2", simpleAnswer("Hello again from level 1"));
-                    get("/param/:param", (req, res) -> {
-                        res.body(req.param("param"));
+                    get("/param/:param", ctx -> {
+                        ctx.body(ctx.param("param"));
                     });
-                    get("/queryparam", (req, res) -> {
-                        res.body(req.queryParam("queryparam"));
+                    get("/queryparam", ctx -> {
+                        ctx.body(ctx.queryParam("queryparam"));
                     });
                     post("/create-1", simpleAnswer("Created something at level 1"));
                     path("/level-2", () -> {
@@ -56,12 +56,12 @@ public class StupidPerformanceTest {
                         });
                     });
                 });
-                after((req, res) -> res.header("X-AFTER", "After"));
+                after(ctx -> ctx.header("X-AFTER", "After"));
             });
     }
 
     private static Handler simpleAnswer(String body) {
-        return (req, res) -> res.body(body);
+        return ctx -> ctx.body(body);
     }
 
     @Test

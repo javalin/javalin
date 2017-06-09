@@ -31,7 +31,7 @@ public class HelloWorldSecure {
                 server.setConnectors(new Connector[] {sslConnector, connector});
                 return server;
             }))
-            .get("/", (req, res) -> res.body("Hello World")); // valid endpoint for both connectors
+            .get("/", ctx -> ctx.body("Hello World")); // valid endpoint for both connectors
     }
 
     private static SslContextFactory getSslContextFactory() {

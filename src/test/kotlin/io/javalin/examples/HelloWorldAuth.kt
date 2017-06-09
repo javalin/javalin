@@ -21,21 +21,21 @@ fun main(args: Array<String>) {
 
     Javalin.create()
             .port(7070)
-            .accessManager { handler, request, response, permittedRoles ->
-                val userRole = request.queryParam("role")
+            .accessManager { handler, ctx, permittedRoles ->
+                val userRole = ctx.queryParam("role")
                 if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
-                    handler.handle(request, response)
+                    handler.handle(ctx)
                 } else {
-                    response.status(401).body("Unauthorized")
+                    ctx.status(401).body("Unauthorized")
                 }
             }
             .routes {
-                get("/hello", { req, res -> res.body("Hello World 1") }, roles(ROLE_ONE))
+                get("/hello", { ctx -> ctx.body("Hello World 1") }, roles(ROLE_ONE))
                 path("/api") {
-                    get("/test", { req, res -> res.body("Hello World 2") }, roles(ROLE_TWO))
-                    get("/tast", { req, res -> res.status(200).body("Hello world 3") }, roles(ROLE_THREE))
-                    get("/hest", { req, res -> res.status(200).body("Hello World 4") }, roles(ROLE_ONE, ROLE_TWO))
-                    get("/hast", { req, res -> res.status(200).body("Hello World 5").header("test", "tast") }, roles(ROLE_ONE, ROLE_THREE))
+                    get("/test", { ctx -> ctx.body("Hello World 2") }, roles(ROLE_TWO))
+                    get("/tast", { ctx -> ctx.status(200).body("Hello world 3") }, roles(ROLE_THREE))
+                    get("/hest", { ctx -> ctx.status(200).body("Hello World 4") }, roles(ROLE_ONE, ROLE_TWO))
+                    get("/hast", { ctx -> ctx.status(200).body("Hello World 5").header("test", "tast") }, roles(ROLE_ONE, ROLE_THREE))
                 }
             }
 }

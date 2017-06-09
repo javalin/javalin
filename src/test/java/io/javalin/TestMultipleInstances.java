@@ -41,9 +41,9 @@ public class TestMultipleInstances {
 
     @Test
     public void test_getMultiple() throws Exception {
-        app1.get("/hello-1", (req, res) -> res.body("Hello first World"));
-        app2.get("/hello-2", (req, res) -> res.body("Hello second World"));
-        app3.get("/hello-3", (req, res) -> res.body("Hello third World"));
+        app1.get("/hello-1", ctx -> ctx.body("Hello first World"));
+        app2.get("/hello-2", ctx -> ctx.body("Hello second World"));
+        app3.get("/hello-3", ctx -> ctx.body("Hello third World"));
         assertThat(getBody("7001", "/hello-1"), is("Hello first World"));
         assertThat(getBody("7002", "/hello-2"), is("Hello second World"));
         assertThat(getBody("7003", "/hello-3"), is("Hello third World"));

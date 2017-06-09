@@ -6,7 +6,7 @@
 
 package io.javalin.core.util
 
-import io.javalin.Request
+import io.javalin.Context
 import io.javalin.core.HandlerEntry
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -16,21 +16,20 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.*
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
-object RequestUtil {
+object ContextUtil {
 
-    fun create(httpRequest: HttpServletRequest): Request {
-        return Request(httpRequest, HashMap<String, String>(), ArrayList<String>())
+    fun create(response: HttpServletResponse, request: HttpServletRequest): Context {
+        return Context(response, request, HashMap<String, String>(), ArrayList<String>())
     }
 
-    fun create(httpRequest: HttpServletRequest, handlerEntry: HandlerEntry, requestUri: String): Request {
+    fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String): Context {
         val requestList = Util.pathToList(requestUri)
         val matchedList = Util.pathToList(handlerEntry.path)
-        return Request(
-                httpRequest,
-                getParams(requestList, matchedList),
-                getSplat(requestList, matchedList)
-        )
+        ctx.paramMap = getParams(requestList, matchedList)
+        ctx.splatList = getSplat(requestList, matchedList)
+        return ctx;
     }
 
     fun getSplat(request: List<String>, matched: List<String>): List<String> {

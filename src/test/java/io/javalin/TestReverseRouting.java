@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
 
 public class TestReverseRouting extends _UnirestBaseTest {
 
-    private Handler helloHandler = (req, res) -> res.body("Hello World");
+    private Handler helloHandler = ctx -> ctx.body("Hello World");
 
     @Test
     public void test_pathFinder_works_basic() throws Exception {

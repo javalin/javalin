@@ -6,9 +6,8 @@
 
 package io.javalin.core
 
+import io.javalin.Context
 import io.javalin.ErrorHandler
-import io.javalin.Request
-import io.javalin.Response
 import java.util.*
 
 class ErrorMapper {
@@ -21,6 +20,6 @@ class ErrorMapper {
 
     fun clear() = this.errorHandlerMap.clear()
 
-    fun handle(statusCode: Int, req: Request, res: Response) = errorHandlerMap[statusCode]?.handle(req, res)
+    fun handle(statusCode: Int, ctx: Context) = errorHandlerMap[statusCode]?.handle(ctx)
 
 }

@@ -20,9 +20,9 @@ public class TestBodyReading {
     @Test
     public void test_bodyReader() throws Exception {
         Javalin app = Javalin.create().port(0).start().awaitInitialization();
-        app.before("/body-reader", (req, res) -> res.header("X-BEFORE", req.body() + req.queryParam("qp")));
-        app.post("/body-reader", (req, res) -> res.body(req.body() + req.queryParam("qp")));
-        app.after("/body-reader", (req, res) -> res.header("X-AFTER", req.body() + req.queryParam("qp")));
+        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.requestBody() + ctx.queryParam("qp")));
+        app.post("/body-reader", ctx -> ctx.body(ctx.requestBody() + ctx.queryParam("qp")));
+        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.requestBody() + ctx.queryParam("qp")));
 
         HttpResponse<String> response = Unirest
             .post("http://localhost:" + app.port() + "/body-reader")
@@ -39,9 +39,9 @@ public class TestBodyReading {
     @Test
     public void test_bodyReader_reverse() throws Exception {
         Javalin app = Javalin.create().port(0).start().awaitInitialization();
-        app.before("/body-reader", (req, res) -> res.header("X-BEFORE", req.queryParam("qp") + req.body()));
-        app.post("/body-reader", (req, res) -> res.body(req.queryParam("qp") + req.body()));
-        app.after("/body-reader", (req, res) -> res.header("X-AFTER", req.queryParam("qp") + req.body()));
+        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.queryParam("qp") + ctx.requestBody()));
+        app.post("/body-reader", ctx -> ctx.body(ctx.queryParam("qp") + ctx.requestBody()));
+        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.queryParam("qp") + ctx.requestBody()));
 
         HttpResponse<String> response = Unirest
             .post("http://localhost:" + app.port() + "/body-reader")
@@ -58,9 +58,9 @@ public class TestBodyReading {
     @Test
     public void test_formParams_work() throws Exception {
         Javalin app = Javalin.create().port(0).start().awaitInitialization();
-        app.before("/body-reader", (req, res) -> res.header("X-BEFORE", req.bodyParam("username")));
-        app.post("/body-reader", (req, res) -> res.body(req.bodyParam("password")));
-        app.after("/body-reader", (req, res) -> res.header("X-AFTER", req.bodyParam("repeat-password")));
+        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.bodyParam("username")));
+        app.post("/body-reader", ctx -> ctx.body(ctx.bodyParam("password")));
+        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.bodyParam("repeat-password")));
 
         HttpResponse<String> response = Unirest
             .post("http://localhost:" + app.port() + "/body-reader")

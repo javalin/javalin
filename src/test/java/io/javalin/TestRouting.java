@@ -20,14 +20,14 @@ public class TestRouting extends _SimpleClientBaseTest {
 
     @Test
     public void test_aBunchOfRoutes() throws Exception {
-        app.get("/", (req, res) -> res.body("/"));
-        app.get("/path", (req, res) -> res.body("/path"));
-        app.get("/path/:param", (req, res) -> res.body("/path/" + req.param("param")));
-        app.get("/path/:param/*", (req, res) -> res.body("/path/" + req.param("param") + "/" + req.splat(0)));
-        app.get("/*/*", (req, res) -> res.body("/" + req.splat(0) + "/" + req.splat(1)));
-        app.get("/*/unreachable", (req, res) -> res.body("reached"));
-        app.get("/*/*/:param", (req, res) -> res.body("/" + req.splat(0) + "/" + req.splat(1) + "/" + req.param("param")));
-        app.get("/*/*/:param/*", (req, res) -> res.body("/" + req.splat(0) + "/" + req.splat(1) + "/" + req.param("param") + "/" + req.splat(2)));
+        app.get("/", ctx -> ctx.body("/"));
+        app.get("/path", ctx -> ctx.body("/path"));
+        app.get("/path/:param", ctx -> ctx.body("/path/" + ctx.param("param")));
+        app.get("/path/:param/*", ctx -> ctx.body("/path/" + ctx.param("param") + "/" + ctx.splat(0)));
+        app.get("/*/*", ctx -> ctx.body("/" + ctx.splat(0) + "/" + ctx.splat(1)));
+        app.get("/*/unreachable", ctx -> ctx.body("reached"));
+        app.get("/*/*/:param", ctx -> ctx.body("/" + ctx.splat(0) + "/" + ctx.splat(1) + "/" + ctx.param("param")));
+        app.get("/*/*/:param/*", ctx -> ctx.body("/" + ctx.splat(0) + "/" + ctx.splat(1) + "/" + ctx.param("param") + "/" + ctx.splat(2)));
 
         assertThat(simpleHttpClient.http_GET(origin + "/").getBody(), is("/"));
         assertThat(simpleHttpClient.http_GET(origin + "/path").getBody(), is("/path"));
@@ -43,14 +43,14 @@ public class TestRouting extends _SimpleClientBaseTest {
 
     @Test
     public void test_paramAndSplat() throws Exception {
-        app.get("/:param/path/*", (req, res) -> res.body(req.param("param") + req.splat(0)));
+        app.get("/:param/path/*", ctx -> ctx.body(ctx.param("param") + ctx.splat(0)));
         TestResponse response = simpleHttpClient.http_GET(origin + "/param/path/splat");
         assertThat(response.getBody(), is("paramsplat"));
     }
 
     @Test
     public void test_encodedParam() throws Exception {
-        app.get("/:param", (req, res) -> res.body(req.param("param")));
+        app.get("/:param", ctx -> ctx.body(ctx.param("param")));
         String paramValue = "te/st";
         TestResponse response = simpleHttpClient.http_GET(origin + "/" + URLEncoder.encode(paramValue, "UTF-8"));
         assertThat(response.getBody(), is(paramValue));
@@ -58,7 +58,7 @@ public class TestRouting extends _SimpleClientBaseTest {
 
     @Test
     public void test_encdedParamAndEncodedSplat() throws Exception {
-        app.get("/:param/path/*", (req, res) -> res.body(req.param("param") + req.splat(0)));
+        app.get("/:param/path/*", ctx -> ctx.body(ctx.param("param") + ctx.splat(0)));
         TestResponse response = simpleHttpClient.http_GET(
             origin + "/"
                 + URLEncoder.encode("java/kotlin", "UTF-8")
@@ -70,14 +70,14 @@ public class TestRouting extends _SimpleClientBaseTest {
 
     @Test
     public void test_caseSensitive_paramName() throws Exception {
-        app.get("/:ParaM", (req, res) -> res.body(req.param("pArAm")));
+        app.get("/:ParaM", ctx -> ctx.body(ctx.param("pArAm")));
         TestResponse response = simpleHttpClient.http_GET(origin + "/param");
         assertThat(response.getBody(), is("param"));
     }
 
     @Test
     public void test_caseSensitive_paramValue() throws Exception {
-        app.get("/:param", (req, res) -> res.body(req.param("param")));
+        app.get("/:param", ctx -> ctx.body(ctx.param("param")));
         TestResponse response = simpleHttpClient.http_GET(origin + "/SomeCamelCasedValue");
         assertThat(response.getBody(), is("SomeCamelCasedValue"));
     }
