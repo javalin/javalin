@@ -128,7 +128,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun queryString(): String? = servletRequest.queryString
 
-    fun requestMethod(): String = servletRequest.method
+    fun method(): String = servletRequest.method
 
     fun scheme(): String = servletRequest.scheme
 
