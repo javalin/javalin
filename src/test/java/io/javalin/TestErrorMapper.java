@@ -17,7 +17,7 @@ public class TestErrorMapper extends _UnirestBaseTest {
     @Test
     public void test_404mapper_works() throws Exception {
         app.error(404, ctx -> {
-            ctx.body("Custom 404 page");
+            ctx.result("Custom 404 page");
         });
         assertThat(GET_body("/unmapped"), is("Custom 404 page"));
     }
@@ -27,7 +27,7 @@ public class TestErrorMapper extends _UnirestBaseTest {
         app.get("/exception", ctx -> {
             throw new RuntimeException();
         }).error(500, ctx -> {
-            ctx.body("Custom 500 page");
+            ctx.result("Custom 500 page");
         });
         assertThat(GET_body("/exception"), is("Custom 500 page"));
     }
@@ -37,9 +37,9 @@ public class TestErrorMapper extends _UnirestBaseTest {
         app.get("/exception", ctx -> {
             throw new RuntimeException();
         }).exception(Exception.class, (e, ctx) -> {
-            ctx.status(500).body("Exception handled!");
+            ctx.status(500).result("Exception handled!");
         }).error(500, ctx -> {
-            ctx.body("Custom 500 page");
+            ctx.result("Custom 500 page");
         });
         assertThat(GET_body("/exception"), is("Custom 500 page"));
     }
@@ -49,9 +49,9 @@ public class TestErrorMapper extends _UnirestBaseTest {
         app.get("/exception", ctx -> {
             throw new RuntimeException();
         }).exception(Exception.class, (e, ctx) -> {
-            ctx.status(500).body("Exception handled!");
+            ctx.status(500).result("Exception handled!");
         }).error(500, ctx -> {
-            ctx.body("Custom 500 page");
+            ctx.result("Custom 500 page");
             throw new RuntimeException();
         });
         assertThat(GET_body("/exception"), is("Exception handled!"));

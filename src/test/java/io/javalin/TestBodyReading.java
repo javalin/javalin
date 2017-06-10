@@ -21,7 +21,7 @@ public class TestBodyReading {
     public void test_bodyReader() throws Exception {
         Javalin app = Javalin.create().port(0).start().awaitInitialization();
         app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.body() + ctx.queryParam("qp")));
-        app.post("/body-reader", ctx -> ctx.body(ctx.body() + ctx.queryParam("qp")));
+        app.post("/body-reader", ctx -> ctx.result(ctx.body() + ctx.queryParam("qp")));
         app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.body() + ctx.queryParam("qp")));
 
         HttpResponse<String> response = Unirest
@@ -40,7 +40,7 @@ public class TestBodyReading {
     public void test_bodyReader_reverse() throws Exception {
         Javalin app = Javalin.create().port(0).start().awaitInitialization();
         app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.queryParam("qp") + ctx.body()));
-        app.post("/body-reader", ctx -> ctx.body(ctx.queryParam("qp") + ctx.body()));
+        app.post("/body-reader", ctx -> ctx.result(ctx.queryParam("qp") + ctx.body()));
         app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.queryParam("qp") + ctx.body()));
 
         HttpResponse<String> response = Unirest
@@ -59,7 +59,7 @@ public class TestBodyReading {
     public void test_formParams_work() throws Exception {
         Javalin app = Javalin.create().port(0).start().awaitInitialization();
         app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.bodyParam("username")));
-        app.post("/body-reader", ctx -> ctx.body(ctx.bodyParam("password")));
+        app.post("/body-reader", ctx -> ctx.result(ctx.bodyParam("password")));
         app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.bodyParam("repeat-password")));
 
         HttpResponse<String> response = Unirest

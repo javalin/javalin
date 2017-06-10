@@ -32,10 +32,10 @@ public class TestResponse extends _UnirestBaseTest {
         + "I often try to fill if up with wine. - Tim Minchin";
 
     @Test
-    public void test_responseBuilder() throws Exception {
+    public void test_resultString() throws Exception {
         app.get("/hello", ctx ->
             ctx.status(418)
-                .body(MY_BODY)
+                .result(MY_BODY)
                 .header("X-HEADER-1", "my-header-1")
                 .header("X-HEADER-2", "my-header-2"));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
@@ -46,10 +46,10 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_responseStream() throws Exception {
+    public void test_resultStream() throws Exception {
         byte[] buf = new byte[65537]; // big and not on a page boundary
         new Random().nextBytes(buf);
-        app.get("/stream", ctx -> ctx.body(new ByteArrayInputStream(buf)));
+        app.get("/stream", ctx -> ctx.result(new ByteArrayInputStream(buf)));
         HttpResponse<String> response = call(HttpMethod.GET, "/stream");
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -60,14 +60,14 @@ public class TestResponse extends _UnirestBaseTest {
     @Test
     public void test_redirect() throws Exception {
         app.get("/hello", ctx -> ctx.redirect("/hello-2"));
-        app.get("/hello-2", ctx -> ctx.body("Redirected"));
+        app.get("/hello-2", ctx -> ctx.result("Redirected"));
         assertThat(GET_body("/hello"), is("Redirected"));
     }
 
     @Test
     public void test_redirectWithStatus() throws Exception {
         app.get("/hello", ctx -> ctx.redirect("/hello-2", 302));
-        app.get("/hello-2", ctx -> ctx.body("Redirected"));
+        app.get("/hello-2", ctx -> ctx.result("Redirected"));
         Unirest.setHttpClient(noRedirectClient); // disable redirects
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(302));
@@ -94,10 +94,14 @@ public class TestResponse extends _UnirestBaseTest {
         assertThat(cookies, is(nullValue()));
     }
 
+    @Test
     public void test_cookieBuilder() throws Exception {
         app.post("/create-cookie", ctx -> {
             ctx.cookie(CookieBuilder.cookieBuilder("Test", "Tast"));
         });
+        HttpResponse<String> response = call(HttpMethod.POST, "/create-cookie");
+        List<String> cookies = response.getHeaders().get("Set-Cookie");
+        assertThat(cookies, hasItem("Test=Tast"));
     }
 
 }

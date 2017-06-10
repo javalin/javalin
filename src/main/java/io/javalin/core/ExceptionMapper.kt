@@ -28,7 +28,7 @@ class ExceptionMapper {
     internal fun handle(exception: Exception, ctx: Context) {
         if (exception is HaltException) {
             ctx.status(exception.statusCode)
-            ctx.body(exception.body)
+            ctx.result(exception.body)
             return
         }
         val exceptionHandler = this.getHandler(exception.javaClass)
@@ -36,7 +36,7 @@ class ExceptionMapper {
             exceptionHandler.handle(exception, ctx)
         } else {
             log.warn("Uncaught exception", exception)
-            ctx.body("Internal server error")
+            ctx.result("Internal server error")
             ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
         }
     }

@@ -51,7 +51,7 @@ public class TestTranslators extends _UnirestBaseTest {
         app.post("/hello", ctx -> {
             Object o = ctx.bodyAsClass(TestObject_Serializable.class);
             if (o instanceof TestObject_Serializable) {
-                ctx.body("success");
+                ctx.result("success");
             }
         });
         HttpResponse<String> response = Unirest.post(origin + "/hello").body(new ObjectMapper().writeValueAsString(new TestObject_Serializable())).asString();

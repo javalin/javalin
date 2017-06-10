@@ -38,14 +38,14 @@ public class TestApiBuilder extends _UnirestBaseTest {
     }
 
     private Handler simpleAnswer(String body) {
-        return ctx -> ctx.body(body);
+        return ctx -> ctx.result(body);
     }
 
     @Test
     public void test_pathWorks_forFilters() throws Exception {
         app.routes(() -> {
             path("/level-1", () -> {
-                before("/*", ctx -> ctx.body("1"));
+                before("/*", ctx -> ctx.result("1"));
                 path("/level-2", () -> {
                     path("/level-3", () -> {
                         get("/hello", updateAnswer("Hello"));
@@ -58,12 +58,12 @@ public class TestApiBuilder extends _UnirestBaseTest {
     }
 
     private Handler updateAnswer(String body) {
-        return ctx -> ctx.body(ctx.responseBody() + body);
+        return ctx -> ctx.result(ctx.resultString() + body);
     }
 
     @Test(expected = IllegalStateException.class)
     public void test_throwsException_ifUsedWithoutRoutes() throws Exception {
-        get("/null-static", ctx -> ctx.body("Shouldn't work"));
+        get("/null-static", ctx -> ctx.result("Shouldn't work"));
     }
 
 }

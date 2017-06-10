@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
                 server.connectors = arrayOf<Connector>(sslConnector, connector)
                 server
             })
-            .get("/") { ctx -> ctx.body("Hello World") } // valid endpoint for both connectors
+            .get("/") { ctx -> ctx.result("Hello World") } // valid endpoint for both connectors
 }
 
 private fun sslContextFactory(): SslContextFactory {

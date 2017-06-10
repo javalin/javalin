@@ -28,7 +28,7 @@ public class TestAccessManager {
         if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
             handler.handle(ctx);
         } else {
-            ctx.status(401).body("Unauthorized");
+            ctx.status(401).result("Unauthorized");
         }
     };
 
@@ -41,7 +41,7 @@ public class TestAccessManager {
     @Test
     public void test_noAccessManager_throwsException() throws Exception {
         Javalin app = Javalin.create().port(1234).start().awaitInitialization();
-        app.get("/secured", ctx -> ctx.body("Hello"), roles(ROLE_ONE));
+        app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE));
         assertThat(callWithRole("/secured", "ROLE_ONE"), is("Internal server error"));
         app.stop().awaitTermination();
     }
@@ -50,7 +50,7 @@ public class TestAccessManager {
     public void test_accessManager_restrictsAccess() throws Exception {
         Javalin app = Javalin.create().port(1234).start().awaitInitialization();
         app.accessManager(accessManager);
-        app.get("/secured", ctx -> ctx.body("Hello"), roles(ROLE_ONE, ROLE_TWO));
+        app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE, ROLE_TWO));
         assertThat(callWithRole("/secured", "ROLE_ONE"), is("Hello"));
         assertThat(callWithRole("/secured", "ROLE_TWO"), is("Hello"));
         assertThat(callWithRole("/secured", "ROLE_THREE"), is("Unauthorized"));
@@ -62,7 +62,7 @@ public class TestAccessManager {
         Javalin app = Javalin.create().port(1234).start().awaitInitialization();
         app.accessManager(accessManager);
         app.routes(() -> {
-            get("/static-secured", ctx -> ctx.body("Hello"), roles(ROLE_ONE, ROLE_TWO));
+            get("/static-secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE, ROLE_TWO));
         });
         assertThat(callWithRole("/static-secured", "ROLE_ONE"), is("Hello"));
         assertThat(callWithRole("/static-secured", "ROLE_TWO"), is("Hello"));

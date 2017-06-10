@@ -39,7 +39,7 @@ public class TestGetPortAfterRandomPortInit {
 
     @Test
     public void test_get_helloWorld() throws Exception {
-        app.get("/hello", ctx -> ctx.body("Hello World"));
+        app.get("/hello", ctx -> ctx.result("Hello World"));
         assertThat(Unirest.get("http://localhost:" + port + "/hello").asString().getStatus(), is(200));
     }
 

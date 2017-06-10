@@ -23,7 +23,7 @@ import com.mashape.unirest.request.HttpRequestWithBody;
 
 public class _UnirestBaseTest {
 
-    static Handler OK_HANDLER = ctx -> ctx.body("OK");
+    static Handler OK_HANDLER = ctx -> ctx.result("OK");
 
     static Javalin app;
     static String origin = "http://localhost:7777";

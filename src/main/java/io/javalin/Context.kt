@@ -31,8 +31,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private var passedToNextHandler: Boolean = false
 
-    private var body: String? = null
-    private var bodyStream: InputStream? = null
+    private var resultString: String? = null
+    private var resultStream: InputStream? = null
     private var encoding: String? = null
 
     fun next() {
@@ -42,7 +42,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun nexted(): Boolean = passedToNextHandler
 
     //
-    // Request methods
+    // Request-ish methods
     //
 
     fun request(): HttpServletRequest = servletRequest
@@ -139,7 +139,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun userAgent(): String? = servletRequest.getHeader("user-agent")
 
     //
-    // Response methods
+    // Response-ish methods
     //
 
     fun response(): HttpServletResponse = servletResponse
@@ -151,24 +151,26 @@ class Context(private val servletResponse: HttpServletResponse,
         return this
     }
 
-    fun body(body: String): Context {
-        this.body = body
-        this.bodyStream = null // can only have one or the other
+    fun result(result: String): Context {
+        this.resultString = result
+        this.resultStream = null // can only have one or the other
         return this
     }
 
-    fun bodyStream(): InputStream? = bodyStream
+    fun resultString(): String? = resultString
 
-    fun body(bodyStream: InputStream): Context {
-        this.body = null // can only have one or the other
-        this.bodyStream = bodyStream
+    fun resultStream(): InputStream? = resultStream
+
+    fun result(resultStream: InputStream): Context {
+        this.resultString = null // can only have one or the other
+        this.resultStream = resultStream
         return this
     }
 
     fun encoding(): String? = encoding
 
     fun encoding(charset: String): Context {
-        encoding = charset
+        this.encoding = charset
         return this
     }
 
@@ -177,7 +179,7 @@ class Context(private val servletResponse: HttpServletResponse,
         return this
     }
 
-    fun html(html: String): Context = body(html).contentType("text/html")
+    fun html(html: String): Context = result(html).contentType("text/html")
 
     fun redirect(location: String) {
         try {
@@ -191,10 +193,6 @@ class Context(private val servletResponse: HttpServletResponse,
         servletResponse.status = httpStatusCode
         redirect(location)
     }
-
-    fun responseBody(): String? = body
-
-    fun responseHeader(headerName: String): String? = servletResponse.getHeader(headerName)
 
     fun status(): Int = servletResponse.status
 
@@ -231,10 +229,10 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     // Translator methods
-
+    // TODO: Consider moving rendering to JavalinServlet, where response is written
     fun json(`object`: Any): Context {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-        return body(Jackson.toJson(`object`)).contentType("application/json")
+        return result(Jackson.toJson(`object`)).contentType("application/json")
     }
 
     fun renderVelocity(templatePath: String, model: Map<String, Any>): Context {

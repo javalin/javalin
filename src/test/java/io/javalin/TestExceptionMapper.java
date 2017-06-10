@@ -32,7 +32,7 @@ public class TestExceptionMapper extends _UnirestBaseTest {
     public void test_mappedException_isHandled() throws Exception {
         app.get("/mapped-exception", ctx -> {
             throw new Exception();
-        }).exception(Exception.class, (e, ctx) -> ctx.body("It's been handled."));
+        }).exception(Exception.class, (e, ctx) -> ctx.result("It's been handled."));
         HttpResponse<String> response = GET_asString("/mapped-exception");
         assertThat(response.getBody(), is("It's been handled."));
         assertThat(response.getStatus(), is(200));
@@ -43,7 +43,7 @@ public class TestExceptionMapper extends _UnirestBaseTest {
         app.get("/typed-exception", ctx -> {
             throw new TypedException();
         }).exception(TypedException.class, (e, ctx) -> {
-            ctx.body(e.proofOfType());
+            ctx.result(e.proofOfType());
         });
         HttpResponse<String> response = GET_asString("/typed-exception");
         assertThat(response.getBody(), is("I'm so typed"));
@@ -55,9 +55,9 @@ public class TestExceptionMapper extends _UnirestBaseTest {
         app.get("/exception-priority", ctx -> {
             throw new TypedException();
         }).exception(Exception.class, (e, ctx) -> {
-            ctx.body("This shouldn't run");
+            ctx.result("This shouldn't run");
         }).exception(TypedException.class, (e, ctx) -> {
-            ctx.body("Typed!");
+            ctx.result("Typed!");
         });
         HttpResponse<String> response = GET_asString("/exception-priority");
         assertThat(response.getBody(), is("Typed!"));

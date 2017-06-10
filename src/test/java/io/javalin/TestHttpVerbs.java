@@ -18,13 +18,13 @@ public class TestHttpVerbs extends _UnirestBaseTest {
 
     @Test
     public void test_get_helloWorld() throws Exception {
-        app.get("/hello", ctx -> ctx.body("Hello World"));
+        app.get("/hello", ctx -> ctx.result("Hello World"));
         assertThat(GET_body("/hello"), is("Hello World"));
     }
 
     @Test
     public void test_get_helloOtherWorld() throws Exception {
-        app.get("/hello", ctx -> ctx.body("Hello New World"));
+        app.get("/hello", ctx -> ctx.result("Hello New World"));
         assertThat(GET_body("/hello"), is("Hello New World"));
     }
 

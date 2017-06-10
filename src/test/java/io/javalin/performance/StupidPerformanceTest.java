@@ -43,10 +43,10 @@ public class StupidPerformanceTest {
                     get("/hello", simpleAnswer("Hello from level 1"));
                     get("/hello-2", simpleAnswer("Hello again from level 1"));
                     get("/param/:param", ctx -> {
-                        ctx.body(ctx.param("param"));
+                        ctx.result(ctx.param("param"));
                     });
                     get("/queryparam", ctx -> {
-                        ctx.body(ctx.queryParam("queryparam"));
+                        ctx.result(ctx.queryParam("queryparam"));
                     });
                     post("/create-1", simpleAnswer("Created something at level 1"));
                     path("/level-2", () -> {
@@ -61,7 +61,7 @@ public class StupidPerformanceTest {
     }
 
     private static Handler simpleAnswer(String body) {
-        return ctx -> ctx.body(body);
+        return ctx -> ctx.result(body);
     }
 
     @Test

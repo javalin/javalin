@@ -22,7 +22,7 @@ public class TestHaltException extends _UnirestBaseTest {
         app.before("/admin/*", ctx -> {
             throw new HaltException(401);
         });
-        app.get("/admin/protected", ctx -> ctx.body("Protected resource"));
+        app.get("/admin/protected", ctx -> ctx.result("Protected resource"));
         HttpResponse<String> response = call(HttpMethod.GET, "/admin/protected");
         assertThat(response.getStatus(), is(401));
         assertThat(response.getBody(), not("Protected resource"));

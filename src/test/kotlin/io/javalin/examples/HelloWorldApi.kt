@@ -14,12 +14,12 @@ fun main(args: Array<String>) {
     Javalin.create()
             .port(7070)
             .routes {
-                get("/hello") { ctx -> ctx.body("Hello World") }
+                get("/hello") { ctx -> ctx.result("Hello World") }
                 path("/api") {
-                    get("/test") { ctx -> ctx.body("Hello World") }
-                    get("/tast") { ctx -> ctx.status(200).body("Hello world") }
-                    get("/hest") { ctx -> ctx.status(200).body("Hello World") }
-                    get("/hast") { ctx -> ctx.status(200).body("Hello World").header("test", "tast") }
+                    get("/test") { ctx -> ctx.result("Hello World") }
+                    get("/tast") { ctx -> ctx.status(200).result("Hello world") }
+                    get("/hest") { ctx -> ctx.status(200).result("Hello World") }
+                    get("/hast") { ctx -> ctx.status(200).result("Hello World").header("test", "tast") }
                 }
             }
 }
