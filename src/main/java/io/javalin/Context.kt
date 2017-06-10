@@ -33,6 +33,13 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private var body: String? = null
     private var bodyStream: InputStream? = null
+    private var encoding: String? = null
+
+    fun next() {
+        passedToNextHandler = true
+    }
+
+    fun nexted(): Boolean = passedToNextHandler
 
     //
     // Request methods
@@ -105,12 +112,6 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun ip(): String = servletRequest.remoteAddr
 
-    fun next() {
-        passedToNextHandler = true
-    }
-
-    fun nexted(): Boolean = passedToNextHandler
-
     fun path(): String? = servletRequest.pathInfo
 
     fun port(): Int = servletRequest.serverPort
@@ -141,11 +142,7 @@ class Context(private val servletResponse: HttpServletResponse,
     // Response methods
     //
 
-    private var encoding: String? = null
-
     fun response(): HttpServletResponse = servletResponse
-
-    fun responseBody(): String? = body
 
     fun contentType(): String? = servletResponse.contentType
 
@@ -175,8 +172,6 @@ class Context(private val servletResponse: HttpServletResponse,
         return this
     }
 
-    fun resHeader(headerName: String): String? = servletResponse.getHeader(headerName)
-
     fun header(headerName: String, headerValue: String): Context {
         servletResponse.setHeader(headerName, headerValue)
         return this
@@ -196,6 +191,10 @@ class Context(private val servletResponse: HttpServletResponse,
         servletResponse.status = httpStatusCode
         redirect(location)
     }
+
+    fun responseBody(): String? = body
+
+    fun responseHeader(headerName: String): String? = servletResponse.getHeader(headerName)
 
     fun status(): Int = servletResponse.status
 
