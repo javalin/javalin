@@ -8,5 +8,5 @@ package io.javalin;
 
 @FunctionalInterface
 public interface ExceptionHandler<T extends Exception> {
-    void handle(T exception, Request request, Response response);
+    void handle(T exception, Context ctx);
 }

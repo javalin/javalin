@@ -8,11 +8,10 @@ package io.javalin.security;
 
 import java.util.List;
 
+import io.javalin.Context;
 import io.javalin.Handler;
-import io.javalin.Request;
-import io.javalin.Response;
 
 @FunctionalInterface
 public interface AccessManager {
-    void manage(Handler handler, Request request, Response response, List<Role> permittedRoles) throws Exception;
+    void manage(Handler handler, Context ctx, List<Role> permittedRoles) throws Exception;
 }

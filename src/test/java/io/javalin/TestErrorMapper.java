@@ -16,42 +16,42 @@ public class TestErrorMapper extends _UnirestBaseTest {
 
     @Test
     public void test_404mapper_works() throws Exception {
-        app.error(404, (req, res) -> {
-            res.body("Custom 404 page");
+        app.error(404, ctx -> {
+            ctx.body("Custom 404 page");
         });
         assertThat(GET_body("/unmapped"), is("Custom 404 page"));
     }
 
     @Test
     public void test_500mapper_works() throws Exception {
-        app.get("/exception", (req, res) -> {
+        app.get("/exception", ctx -> {
             throw new RuntimeException();
-        }).error(500, (req, res) -> {
-            res.body("Custom 500 page");
+        }).error(500, ctx -> {
+            ctx.body("Custom 500 page");
         });
         assertThat(GET_body("/exception"), is("Custom 500 page"));
     }
 
     @Test
     public void testError_higherPriority_thanException() throws Exception {
-        app.get("/exception", (req, res) -> {
+        app.get("/exception", ctx -> {
             throw new RuntimeException();
-        }).exception(Exception.class, (e, req, res) -> {
-            res.status(500).body("Exception handled!");
-        }).error(500, (req, res) -> {
-            res.body("Custom 500 page");
+        }).exception(Exception.class, (e, ctx) -> {
+            ctx.status(500).body("Exception handled!");
+        }).error(500, ctx -> {
+            ctx.body("Custom 500 page");
         });
         assertThat(GET_body("/exception"), is("Custom 500 page"));
     }
 
     @Test
     public void testError_throwingException_isCaughtByExceptionMapper() throws Exception {
-        app.get("/exception", (req, res) -> {
+        app.get("/exception", ctx -> {
             throw new RuntimeException();
-        }).exception(Exception.class, (e, req, res) -> {
-            res.status(500).body("Exception handled!");
-        }).error(500, (req, res) -> {
-            res.body("Custom 500 page");
+        }).exception(Exception.class, (e, ctx) -> {
+            ctx.status(500).body("Exception handled!");
+        }).error(500, ctx -> {
+            ctx.body("Custom 500 page");
             throw new RuntimeException();
         });
         assertThat(GET_body("/exception"), is("Exception handled!"));

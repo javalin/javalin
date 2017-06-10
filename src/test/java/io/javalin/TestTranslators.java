@@ -27,20 +27,20 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_json_jacksonMapsObjectToJson() throws Exception {
-        app.get("/hello", (req, res) -> res.status(200).json(new TestObject_Serializable()));
+        app.get("/hello", ctx -> ctx.status(200).json(new TestObject_Serializable()));
         String expected = new ObjectMapper().writeValueAsString(new TestObject_Serializable());
         assertThat(GET_body("/hello"), is(expected));
     }
 
     @Test
     public void test_json_jacksonMapsStringsToJson() throws Exception {
-        app.get("/hello", (req, res) -> res.status(200).json("\"ok\""));
+        app.get("/hello", ctx -> ctx.status(200).json("\"ok\""));
         assertThat(GET_body("/hello"), is("\"\\\"ok\\\"\""));
     }
 
     @Test
     public void test_json_jackson_throwsForBadObject() throws Exception {
-        app.get("/hello", (req, res) -> res.status(200).json(new TestObject_NonSerializable()));
+        app.get("/hello", ctx -> ctx.status(200).json(new TestObject_NonSerializable()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
         assertThat(response.getBody(), is("Internal server error"));
@@ -48,10 +48,10 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_json_jacksonMapsJsonToObject() throws Exception {
-        app.post("/hello", (req, res) -> {
-            Object o = req.bodyAsClass(TestObject_Serializable.class);
+        app.post("/hello", ctx -> {
+            Object o = ctx.bodyAsClass(TestObject_Serializable.class);
             if (o instanceof TestObject_Serializable) {
-                res.body("success");
+                ctx.body("success");
             }
         });
         HttpResponse<String> response = Unirest.post(origin + "/hello").body(new ObjectMapper().writeValueAsString(new TestObject_Serializable())).asString();
@@ -60,7 +60,7 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_json_jacksonMapsJsonToObject_throwsForBadObject() throws Exception {
-        app.get("/hello", (req, res) -> res.json(req.bodyAsClass(TestObject_NonSerializable.class).getClass().getSimpleName()));
+        app.get("/hello", ctx -> ctx.json(ctx.bodyAsClass(TestObject_NonSerializable.class).getClass().getSimpleName()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
         assertThat(response.getBody(), is("Internal server error"));
@@ -68,13 +68,13 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_renderVelocity_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", TemplateUtil.INSTANCE.model("message", "Hello Velocity!")));
+        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm", TemplateUtil.INSTANCE.model("message", "Hello Velocity!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Velocity!</h1>"));
     }
 
     @Test
     public void test_customVelocityEngine_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderVelocity("/templates/velocity/test.vm", TemplateUtil.INSTANCE.model()));
+        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm", TemplateUtil.INSTANCE.model()));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
         Velocity.INSTANCE.configure(strictVelocityEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
@@ -90,19 +90,19 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_renderFreemarker_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderFreemarker("/templates/freemarker/test.ftl", TemplateUtil.INSTANCE.model("message", "Hello Freemarker!")));
+        app.get("/hello", ctx -> ctx.renderFreemarker("/templates/freemarker/test.ftl", TemplateUtil.INSTANCE.model("message", "Hello Freemarker!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Freemarker!</h1>"));
     }
 
     @Test
     public void test_renderThymeleaf_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderThymeleaf("/templates/thymeleaf/test.html", TemplateUtil.INSTANCE.model("message", "Hello Thymeleaf!")));
+        app.get("/hello", ctx -> ctx.renderThymeleaf("/templates/thymeleaf/test.html", TemplateUtil.INSTANCE.model("message", "Hello Thymeleaf!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Thymeleaf!</h1>"));
     }
 
     @Test
     public void test_renderMustache_works() throws Exception {
-        app.get("/hello", (req, res) -> res.renderMustache("/templates/mustache/test.mustache", TemplateUtil.INSTANCE.model("message", "Hello Mustache!")));
+        app.get("/hello", ctx -> ctx.renderMustache("/templates/mustache/test.mustache", TemplateUtil.INSTANCE.model("message", "Hello Mustache!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Mustache!</h1>"));
     }
 

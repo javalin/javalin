@@ -6,10 +6,9 @@
 
 package io.javalin.core
 
+import io.javalin.Context
 import io.javalin.ExceptionHandler
 import io.javalin.HaltException
-import io.javalin.Request
-import io.javalin.Response
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.servlet.http.HttpServletResponse
@@ -26,19 +25,19 @@ class ExceptionMapper {
 
     fun clear() = this.exceptionMap.clear()
 
-    internal fun handle(exception: Exception, request: Request, response: Response) {
+    internal fun handle(exception: Exception, ctx: Context) {
         if (exception is HaltException) {
-            response.status(exception.statusCode)
-            response.body(exception.body)
+            ctx.status(exception.statusCode)
+            ctx.body(exception.body)
             return
         }
         val exceptionHandler = this.getHandler(exception.javaClass)
         if (exceptionHandler != null) {
-            exceptionHandler.handle(exception, request, response)
+            exceptionHandler.handle(exception, ctx)
         } else {
             log.warn("Uncaught exception", exception)
-            response.body("Internal server error")
-            response.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            ctx.body("Internal server error")
+            ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
         }
     }
 

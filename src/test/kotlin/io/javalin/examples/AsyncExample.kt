@@ -15,19 +15,19 @@ fun main(args: Array<String>) {
 
     val app = Javalin.create().port(5454)
 
-    app.get("/test-custom") { req, res ->
-        val asyncContext = req.unwrap().startAsync()
+    app.get("/test-custom") { ctx ->
+        val asyncContext = ctx.request().startAsync()
         simulateAsyncTask({
-            res.status(418)
+            ctx.status(418)
             asyncContext.complete()
         })
     }
 
-    app.get("/test-async") { req, res ->
-        req.async {
+    app.get("/test-async") { ctx ->
+        ctx.async {
             val future = CompletableFuture<Void>()
             simulateAsyncTask({
-                res.status(418)
+                ctx.status(418)
                 future.complete(null)
             })
             future

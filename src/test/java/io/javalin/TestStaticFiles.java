@@ -72,7 +72,7 @@ public class TestStaticFiles {
 
     @Test
     public void test_beforeFilter() throws Exception {
-        app.before("/protected/*", (request, response) -> {
+        app.before("/protected/*", ctx -> {
             throw new HaltException(401, "Protected");
         });
         HttpResponse<String> response = Unirest.get(origin + "/protected/secret.html").asString();

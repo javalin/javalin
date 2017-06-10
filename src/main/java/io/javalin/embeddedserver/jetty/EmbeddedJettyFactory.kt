@@ -10,7 +10,6 @@ import io.javalin.core.ErrorMapper
 import io.javalin.core.ExceptionMapper
 import io.javalin.core.JavalinServlet
 import io.javalin.core.PathMatcher
-import io.javalin.core.util.Util
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.EmbeddedServerFactory
 import org.eclipse.jetty.server.Server

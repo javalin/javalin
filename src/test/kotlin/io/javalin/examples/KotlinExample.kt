@@ -16,32 +16,32 @@ fun main(args: Array<String>) {
 
     with(app) {
 
-        get("/users") { req, res ->
-            res.body("");
+        get("/users") { ctx ->
+            ctx.body("");
         }
 
-        post("/users/create") { req, res ->
-            res.status(201)
+        post("/users/create") { ctx ->
+            ctx.status(201)
         }
 
-        patch("/users/update/:id") { req, res ->
-            res.status(204)
+        patch("/users/update/:id") { ctx ->
+            ctx.status(204)
         }
 
-        delete("/users/delete/:id") { req, res ->
-            res.status(204)
+        delete("/users/delete/:id") { ctx ->
+            ctx.status(204)
         }
 
-        exception(Exception::class.java) { e, req, res ->
+        exception(Exception::class.java) { e, ctx ->
             e.printStackTrace()
         }
 
-        exception(TypedException::class.java) { e, req, res ->
+        exception(TypedException::class.java) { e, ctx ->
             e.proofOfType()
         }
 
-        error(404) { req, res ->
-            res.body("not found");
+        error(404) { ctx ->
+            ctx.body("not found");
         }
 
     }

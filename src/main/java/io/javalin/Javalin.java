@@ -50,7 +50,7 @@ public class Javalin {
     private CountDownLatch startLatch = new CountDownLatch(1);
     private CountDownLatch stopLatch = new CountDownLatch(1);
 
-    private AccessManager accessManager = (Handler handler, Request request, Response response, List<Role> permittedRoles) -> {
+    private AccessManager accessManager = (Handler handler, Context ctx, List<Role> permittedRoles) -> {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
 
@@ -239,39 +239,39 @@ public class Javalin {
 
     // Secured HTTP verbs
     public Javalin get(String path, Handler handler, List<Role> permittedRoles) {
-        return this.get(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.get(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     public Javalin post(String path, Handler handler, List<Role> permittedRoles) {
-        return this.post(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.post(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     public Javalin put(String path, Handler handler, List<Role> permittedRoles) {
-        return this.put(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.put(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     public Javalin patch(String path, Handler handler, List<Role> permittedRoles) {
-        return this.patch(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.patch(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     public Javalin delete(String path, Handler handler, List<Role> permittedRoles) {
-        return this.delete(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.delete(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     public Javalin head(String path, Handler handler, List<Role> permittedRoles) {
-        return this.head(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.head(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     public Javalin trace(String path, Handler handler, List<Role> permittedRoles) {
-        return this.trace(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.trace(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     public Javalin connect(String path, Handler handler, List<Role> permittedRoles) {
-        return this.connect(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.connect(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     public Javalin options(String path, Handler handler, List<Role> permittedRoles) {
-        return this.options(path, (req, res) -> accessManager.manage(handler, req, res, permittedRoles));
+        return this.options(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     // Filters

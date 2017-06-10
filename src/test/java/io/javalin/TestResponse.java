@@ -33,8 +33,8 @@ public class TestResponse extends _UnirestBaseTest {
 
     @Test
     public void test_responseBuilder() throws Exception {
-        app.get("/hello", (req, res) ->
-            res.status(418)
+        app.get("/hello", ctx ->
+            ctx.status(418)
                 .body(MY_BODY)
                 .header("X-HEADER-1", "my-header-1")
                 .header("X-HEADER-2", "my-header-2"));
@@ -49,7 +49,7 @@ public class TestResponse extends _UnirestBaseTest {
     public void test_responseStream() throws Exception {
         byte[] buf = new byte[65537]; // big and not on a page boundary
         new Random().nextBytes(buf);
-        app.get("/stream", (req, res) -> res.body(new ByteArrayInputStream(buf)));
+        app.get("/stream", ctx -> ctx.body(new ByteArrayInputStream(buf)));
         HttpResponse<String> response = call(HttpMethod.GET, "/stream");
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -59,15 +59,15 @@ public class TestResponse extends _UnirestBaseTest {
 
     @Test
     public void test_redirect() throws Exception {
-        app.get("/hello", (req, res) -> res.redirect("/hello-2"));
-        app.get("/hello-2", (req, res) -> res.body("Redirected"));
+        app.get("/hello", ctx -> ctx.redirect("/hello-2"));
+        app.get("/hello-2", ctx -> ctx.body("Redirected"));
         assertThat(GET_body("/hello"), is("Redirected"));
     }
 
     @Test
     public void test_redirectWithStatus() throws Exception {
-        app.get("/hello", (req, res) -> res.redirect("/hello-2", 302));
-        app.get("/hello-2", (req, res) -> res.body("Redirected"));
+        app.get("/hello", ctx -> ctx.redirect("/hello-2", 302));
+        app.get("/hello-2", ctx -> ctx.body("Redirected"));
         Unirest.setHttpClient(noRedirectClient); // disable redirects
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(302));
@@ -78,7 +78,7 @@ public class TestResponse extends _UnirestBaseTest {
 
     @Test
     public void test_createCookie() throws Exception {
-        app.post("/create-cookies", (req, res) -> res.cookie("name1", "value1").cookie("name2", "value2"));
+        app.post("/create-cookies", ctx -> ctx.cookie("name1", "value1").cookie("name2", "value2"));
         HttpResponse<String> response = call(HttpMethod.POST, "/create-cookies");
         List<String> cookies = response.getHeaders().get("Set-Cookie");
         assertThat(cookies, hasItem("name1=value1"));
@@ -87,16 +87,16 @@ public class TestResponse extends _UnirestBaseTest {
 
     @Test
     public void test_deleteCookie() throws Exception {
-        app.post("/create-cookie", (req, res) -> res.cookie("name1", "value1"));
-        app.post("/delete-cookie", (req, res) -> res.removeCookie("name1"));
+        app.post("/create-cookie", ctx -> ctx.cookie("name1", "value1"));
+        app.post("/delete-cookie", ctx -> ctx.removeCookie("name1"));
         HttpResponse<String> response = call(HttpMethod.POST, "/create-cookies");
         List<String> cookies = response.getHeaders().get("Set-Cookie");
         assertThat(cookies, is(nullValue()));
     }
 
     public void test_cookieBuilder() throws Exception {
-        app.post("/create-cookie", (req, res) -> {
-            res.cookie(CookieBuilder.cookieBuilder("Test", "Tast"));
+        app.post("/create-cookie", ctx -> {
+            ctx.cookie(CookieBuilder.cookieBuilder("Test", "Tast"));
         });
     }
 

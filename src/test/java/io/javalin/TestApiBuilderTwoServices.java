@@ -23,16 +23,16 @@ public class TestApiBuilderTwoServices {
         Javalin app1 = Javalin.create().port(0).start().awaitInitialization();
         Javalin app2 = Javalin.create().port(0).start().awaitInitialization();
         app1.routes(() -> {
-            get("/hello1", (req, res) -> res.body("Hello1"));
+            get("/hello1", ctx -> ctx.body("Hello1"));
         });
         app2.routes(() -> {
-            get("/hello1", (req, res) -> res.body("Hello1"));
+            get("/hello1", ctx -> ctx.body("Hello1"));
         });
         app1.routes(() -> {
-            get("/hello2", (req, res) -> res.body("Hello2"));
+            get("/hello2", ctx -> ctx.body("Hello2"));
         });
         app2.routes(() -> {
-            get("/hello2", (req, res) -> res.body("Hello2"));
+            get("/hello2", ctx -> ctx.body("Hello2"));
         });
         assertThat(call(app1.port(), "/hello1"), is("Hello1"));
         assertThat(call(app2.port(), "/hello1"), is("Hello1"));

@@ -40,12 +40,12 @@ public class TestAsync {
             .start()
             .awaitInitialization();
 
-        app.get("/test-async", (req, res) -> req.async(() -> {
+        app.get("/test-async", ctx -> ctx.async(() -> {
             CompletableFuture<Void> future = new CompletableFuture<>();
             new Timer().schedule(
                 new TimerTask() {
                     public void run() {
-                        res.status(418);
+                        ctx.status(418);
                         future.complete(null);
                     }
                 },

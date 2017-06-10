@@ -20,18 +20,18 @@ public class AsyncExample {
 
         Javalin app = Javalin.create().port(5454);
 
-        app.get("/test-custom", (req, res) -> {
-            AsyncContext asyncContext = req.unwrap().startAsync();
+        app.get("/test-custom", ctx -> {
+            AsyncContext asyncContext = ctx.request().startAsync();
             simulateAsyncTask(() -> {
-                res.status(418);
+                ctx.status(418);
                 asyncContext.complete();
             });
         });
 
-        app.get("/test-async", (req, res) -> req.async(() -> {
+        app.get("/test-async", ctx -> ctx.async(() -> {
             CompletableFuture<Void> future = new CompletableFuture<>();
             simulateAsyncTask(() -> {
-                res.status(418);
+                ctx.status(418);
                 future.complete(null);
             });
             return future;
