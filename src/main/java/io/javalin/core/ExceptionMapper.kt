@@ -6,7 +6,9 @@
 
 package io.javalin.core
 
-import io.javalin.*
+import io.javalin.Context
+import io.javalin.ExceptionHandler
+import io.javalin.HaltException
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.servlet.http.HttpServletResponse

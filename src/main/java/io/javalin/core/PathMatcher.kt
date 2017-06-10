@@ -40,8 +40,8 @@ class PathMatcher {
         val hpp = Util.pathToList(handlerPath) // handler-path-parts
         val rpp = Util.pathToList(fullRequestPath) // request-path-parts
 
-        fun isLastAndSplat(i : Int) = i == hpp.lastIndex && hpp[i] == "*"
-        fun isNotPathOrSplat(i: Int) =  hpp[i].first() != ':' && hpp[i] != "*"
+        fun isLastAndSplat(i: Int) = i == hpp.lastIndex && hpp[i] == "*"
+        fun isNotPathOrSplat(i: Int) = hpp[i].first() != ':' && hpp[i] != "*"
 
         if (hpp.size == rpp.size) {
             for (i in hpp.indices) {
