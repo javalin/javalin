@@ -33,7 +33,6 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private var resultString: String? = null
     private var resultStream: InputStream? = null
-    private var encoding: String? = null
 
     fun next() {
         passedToNextHandler = true
@@ -144,15 +143,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun response(): HttpServletResponse = servletResponse
 
-    fun contentType(): String? = servletResponse.contentType
-
-    fun contentType(contentType: String): Context {
-        servletResponse.contentType = contentType
-        return this
-    }
-
-    fun result(result: String): Context {
-        this.resultString = result
+    fun result(resultString: String): Context {
+        this.resultString = resultString
         this.resultStream = null // can only have one or the other
         return this
     }
@@ -167,10 +159,13 @@ class Context(private val servletResponse: HttpServletResponse,
         return this
     }
 
-    fun encoding(): String? = encoding
+    fun charset(charset: String): Context {
+        servletResponse.characterEncoding = charset
+        return this
+    }
 
-    fun encoding(charset: String): Context {
-        this.encoding = charset
+    fun contentType(contentType: String): Context {
+        servletResponse.contentType = contentType
         return this
     }
 

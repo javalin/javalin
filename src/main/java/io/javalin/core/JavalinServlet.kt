@@ -78,13 +78,12 @@ class JavalinServlet(
         }
 
         // javalin is done doing stuff, write result to servlet-response
-        if (ctx.contentType() == null) {
+        if (res.contentType == null) {
             res.contentType = "text/plain"
         }
-        if (ctx.encoding() == null) {
+        if (res.characterEncoding == "iso-8859-1") {
             res.characterEncoding = StandardCharsets.UTF_8.name()
         }
-
         if (ctx.resultString() != null) {
             res.writer.write(ctx.resultString())
             res.writer.flush()
