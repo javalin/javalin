@@ -54,7 +54,6 @@ public class TestStaticFiles_external {
         HttpResponse<String> response = Unirest.get(origin + "/html.html").asString();
         assertThat(response.getStatus(), is(200));
         assertThat(response.getBody(), containsString("HTML works"));
-
     }
 
 }

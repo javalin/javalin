@@ -14,7 +14,7 @@ interface StaticResourceHandler {
     fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean
 }
 
-data class StaticFileConfig (val path : String, val location : Location)
+data class StaticFileConfig(val path: String, val location: Location)
 
 enum class Location {
     CLASSPATH, EXTERNAL;
