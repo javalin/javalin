@@ -12,6 +12,7 @@ import io.javalin.core.JavalinServlet
 import io.javalin.core.PathMatcher
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.EmbeddedServerFactory
+import io.javalin.embeddedserver.StaticFileConfig
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.QueuedThreadPool
@@ -30,8 +31,8 @@ class EmbeddedJettyFactory : EmbeddedServerFactory {
         this.server = jettyServer.invoke()
     }
 
-    override fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileDirectory: String?): EmbeddedServer {
-        val resourceHandler = JettyResourceHandler(staticFileDirectory)
+    override fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileConfig: StaticFileConfig?): EmbeddedServer {
+        val resourceHandler = JettyResourceHandler(staticFileConfig)
         val javalinServlet = JavalinServlet(pathMatcher, exceptionMapper, errorMapper, resourceHandler)
         return EmbeddedJettyServer(server, JettyHandler(javalinServlet))
     }

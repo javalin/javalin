@@ -13,3 +13,9 @@ interface StaticResourceHandler {
     // should return if request has been handled
     fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean
 }
+
+data class StaticFileConfig (val path : String, val location : Location)
+
+enum class Location {
+    CLASSPATH, EXTERNAL;
+}
