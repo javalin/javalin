@@ -6,6 +6,8 @@
 
 package io.javalin.embeddedserver.jetty
 
+import io.javalin.embeddedserver.Location
+import io.javalin.embeddedserver.StaticFileConfig
 import io.javalin.embeddedserver.StaticResourceHandler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -14,7 +16,7 @@ import org.slf4j.LoggerFactory
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler(staticFileDirectory: String?) : StaticResourceHandler {
+class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResourceHandler {
 
     private val log = LoggerFactory.getLogger(JettyResourceHandler::class.java)
 
@@ -22,8 +24,13 @@ class JettyResourceHandler(staticFileDirectory: String?) : StaticResourceHandler
     private val resourceHandler = ResourceHandler()
 
     init {
-        if (staticFileDirectory != null) {
-            resourceHandler.resourceBase = Resource.newClassPathResource(staticFileDirectory).toString()
+        if (staticFileConfig != null) {
+            val path = if (staticFileConfig.location == Location.CLASSPATH) {
+                Resource.newClassPathResource(staticFileConfig.path).toString()
+            } else {
+                staticFileConfig.path;
+            }
+            resourceHandler.resourceBase = path;
             resourceHandler.isDirAllowed = false
             resourceHandler.isEtags = true
             resourceHandler.cacheControl = "no-store,no-cache,must-revalidate"

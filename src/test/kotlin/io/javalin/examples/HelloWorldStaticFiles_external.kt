@@ -7,11 +7,11 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
+import io.javalin.embeddedserver.Location
 
 fun main(args: Array<String>) {
     Javalin.create()
             .port(7070)
-            .enableStaticFiles("/public")
+            .enableStaticFiles("src/test/external/", Location.EXTERNAL)
             .start()
 }
-

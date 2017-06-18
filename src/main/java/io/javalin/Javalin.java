@@ -20,6 +20,8 @@ import io.javalin.core.PathMatcher;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
 import io.javalin.embeddedserver.EmbeddedServerFactory;
+import io.javalin.embeddedserver.Location;
+import io.javalin.embeddedserver.StaticFileConfig;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import io.javalin.lifecycle.Event;
 import io.javalin.lifecycle.EventListener;
@@ -40,7 +42,7 @@ public class Javalin {
     private EmbeddedServer embeddedServer;
     private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
 
-    private String staticFileDirectory = null;
+    private StaticFileConfig staticFileConfig = null;
     PathMatcher pathMatcher = new PathMatcher();
     ExceptionMapper exceptionMapper = new ExceptionMapper();
     ErrorMapper errorMapper = new ErrorMapper();
@@ -69,7 +71,7 @@ public class Javalin {
             new Thread(() -> {
                 eventManager.fireEvent(Event.Type.SERVER_STARTING, this);
                 try {
-                    embeddedServer = embeddedServerFactory.create(pathMatcher, exceptionMapper, errorMapper, staticFileDirectory);
+                    embeddedServer = embeddedServerFactory.create(pathMatcher, exceptionMapper, errorMapper, staticFileConfig);
                     port = embeddedServer.start(ipAddress, port);
                 } catch (Exception e) {
                     log.error("Failed to start Javalin", e);
@@ -135,10 +137,14 @@ public class Javalin {
         return embeddedServer;
     }
 
-    public synchronized Javalin enableStaticFiles(String location) {
+    public synchronized Javalin enableStaticFiles(String classpathPath) {
+        return enableStaticFiles(classpathPath, Location.CLASSPATH);
+    }
+
+    public synchronized Javalin enableStaticFiles(String path, Location location) {
         ensureServerHasNotStarted();
-        Util.INSTANCE.notNull("Location cannot be null", location);
-        staticFileDirectory = location;
+        Util.INSTANCE.notNull("Location cannot be null", path);
+        staticFileConfig = new StaticFileConfig(path, location);
         return this;
     }
 
