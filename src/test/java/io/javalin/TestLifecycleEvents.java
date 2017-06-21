@@ -9,7 +9,7 @@ package io.javalin;
 
 import org.junit.Test;
 
-import io.javalin.lifecycle.Event;
+import io.javalin.event.EventType;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -24,10 +24,10 @@ public class TestLifecycleEvents {
     @Test
     public void testLifecycleEvents() {
         Javalin.create()
-            .event(Event.Type.SERVER_STARTING, e -> startingMsg = "Starting")
-            .event(Event.Type.SERVER_STARTED, e -> startedMsg = "Started")
-            .event(Event.Type.SERVER_STOPPING, e -> stoppingMsg = "Stopping")
-            .event(Event.Type.SERVER_STOPPED, e -> stoppedMsg = "Stopped")
+            .event(EventType.SERVER_STARTING, e -> startingMsg = "Starting")
+            .event(EventType.SERVER_STARTED, e -> startedMsg = "Started")
+            .event(EventType.SERVER_STOPPING, e -> stoppingMsg = "Stopping")
+            .event(EventType.SERVER_STOPPED, e -> stoppedMsg = "Stopped")
             .start()
             .awaitInitialization()
             .stop()

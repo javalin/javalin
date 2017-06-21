@@ -23,9 +23,9 @@ import io.javalin.embeddedserver.EmbeddedServerFactory;
 import io.javalin.embeddedserver.Location;
 import io.javalin.embeddedserver.StaticFileConfig;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
-import io.javalin.lifecycle.Event;
-import io.javalin.lifecycle.EventListener;
-import io.javalin.lifecycle.EventManager;
+import io.javalin.event.EventListener;
+import io.javalin.event.EventManager;
+import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 
@@ -69,15 +69,15 @@ public class Javalin {
             log.info(Util.INSTANCE.javalinBanner());
             Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
             new Thread(() -> {
-                eventManager.fireEvent(Event.Type.SERVER_STARTING, this);
+                eventManager.fireEvent(EventType.SERVER_STARTING, this);
                 try {
                     embeddedServer = embeddedServerFactory.create(pathMatcher, exceptionMapper, errorMapper, staticFileConfig);
                     port = embeddedServer.start(ipAddress, port);
                 } catch (Exception e) {
                     log.error("Failed to start Javalin", e);
-                    eventManager.fireEvent(Event.Type.SERVER_START_FAILED, this);
+                    eventManager.fireEvent(EventType.SERVER_START_FAILED, this);
                 }
-                eventManager.fireEvent(Event.Type.SERVER_STARTED, this);
+                eventManager.fireEvent(EventType.SERVER_STARTED, this);
                 try {
                     startLatch.countDown();
                     embeddedServer.join();
@@ -105,10 +105,10 @@ public class Javalin {
     }
 
     public synchronized Javalin stop() {
-        eventManager.fireEvent(Event.Type.SERVER_STOPPING, this);
+        eventManager.fireEvent(EventType.SERVER_STOPPING, this);
         new Thread(() -> {
             embeddedServer.stop();
-            eventManager.fireEvent(Event.Type.SERVER_STOPPED, this);
+            eventManager.fireEvent(EventType.SERVER_STOPPED, this);
             stopLatch.countDown();
         }).start();
         return this;
@@ -182,7 +182,7 @@ public class Javalin {
         return this;
     }
 
-    public synchronized Javalin event(Event.Type eventType, EventListener eventListener) {
+    public synchronized Javalin event(EventType eventType, EventListener eventListener) {
         ensureServerHasNotStarted();
         eventManager.addEventListener(eventType, eventListener);
         return this;

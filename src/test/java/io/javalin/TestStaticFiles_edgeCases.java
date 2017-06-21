@@ -11,7 +11,7 @@ import java.io.File;
 import org.junit.Test;
 
 import io.javalin.embeddedserver.Location;
-import io.javalin.lifecycle.Event;
+import io.javalin.event.EventType;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
@@ -41,7 +41,7 @@ public class TestStaticFiles_edgeCases {
         String[] message = {""};
         Javalin.create()
             .enableStaticFiles("some-fake-folder")
-            .event(Event.Type.SERVER_START_FAILED, event -> message[0] = "failed")
+            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
             .start()
             .awaitInitialization();
         assertThat(message[0], is("failed"));
@@ -52,7 +52,7 @@ public class TestStaticFiles_edgeCases {
         String[] message = {""};
         Javalin.create()
             .enableStaticFiles("some-fake-folder", Location.EXTERNAL)
-            .event(Event.Type.SERVER_START_FAILED, event -> message[0] = "failed")
+            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
             .start()
             .awaitInitialization();
         assertThat(message[0], is("failed"));
@@ -64,7 +64,7 @@ public class TestStaticFiles_edgeCases {
         String[] message = {""};
         Javalin.create()
             .enableStaticFiles("src/test/external/empty", Location.CLASSPATH)
-            .event(Event.Type.SERVER_START_FAILED, event -> message[0] = "failed")
+            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
             .start()
             .awaitInitialization();
         assertThat(message[0], is("failed"));
@@ -76,7 +76,7 @@ public class TestStaticFiles_edgeCases {
         String[] message = {""};
         Javalin.create()
             .enableStaticFiles("src/test/external/empty", Location.EXTERNAL)
-            .event(Event.Type.SERVER_START_FAILED, event -> message[0] = "failed")
+            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
             .start()
             .awaitInitialization();
         assertThat(message[0], not("failed"));
