@@ -13,6 +13,8 @@ import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.util.resource.Resource
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -25,12 +27,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
 
     init {
         if (staticFileConfig != null) {
-            val path = if (staticFileConfig.location == Location.CLASSPATH) {
-                Resource.newClassPathResource(staticFileConfig.path).toString()
-            } else {
-                staticFileConfig.path;
-            }
-            resourceHandler.resourceBase = path;
+            resourceHandler.resourceBase = getResourcePath(staticFileConfig);
             resourceHandler.isDirAllowed = false
             resourceHandler.isEtags = true
             resourceHandler.cacheControl = "no-store,no-cache,must-revalidate"
@@ -41,6 +38,21 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
                 log.error("Exception occurred starting static resource handler", e)
             }
         }
+    }
+
+    fun getResourcePath(staticFileConfig: StaticFileConfig): String {
+        val nosuchdir = "Static resource directory with path: '${staticFileConfig.path}' does not exist.";
+        if (staticFileConfig.location == Location.CLASSPATH) {
+            val classPathResource = Resource.newClassPathResource(staticFileConfig.path);
+            if (classPathResource == null) {
+                throw RuntimeException(nosuchdir + " Depending on your setup, empty folders might not get copied to classpath.")
+            }
+            return classPathResource.toString()
+        }
+        if (Files.notExists(Paths.get(staticFileConfig.path))) {
+            throw RuntimeException(nosuchdir)
+        }
+        return staticFileConfig.path;
     }
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
