@@ -8,7 +8,6 @@ package io.javalin;
 
 import java.io.File;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import io.javalin.embeddedserver.Location;
@@ -19,7 +18,6 @@ import com.mashape.unirest.http.Unirest;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-
 
 public class TestStaticFiles_edgeCases {
 
