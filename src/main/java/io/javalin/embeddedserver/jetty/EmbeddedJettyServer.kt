@@ -35,12 +35,10 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
         }
 
         if (server.connectors.isEmpty()) {
-            val serverConnector = ServerConnector(server).apply {
+            server.connectors = arrayOf<Connector>(ServerConnector(server).apply {
                 this.host = host
                 this.port = port
-            }
-            server = serverConnector.server
-            server.connectors = arrayOf<Connector>(serverConnector)
+            })
         }
 
         server.handler = javalinHandler
