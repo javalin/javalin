@@ -6,21 +6,34 @@
 
 package io.javalin.embeddedserver.jetty
 
+import io.javalin.core.JavalinServlet
+import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.EmbeddedServer
+import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.session.SessionHandler
 import org.slf4j.LoggerFactory
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server, private val javalinHandler: SessionHandler) : EmbeddedServer {
+class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
     override fun start(host: String, port: Int): Int {
 
         server.apply {
-            handler = javalinHandler
-            connectors = if (connectors.isNotEmpty()) connectors else arrayOf(ServerConnector(server).apply {
+            handler = object : SessionHandler() {
+                override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+                    javalinServlet.service(CachedRequestWrapper(request).apply {
+                        setAttribute("jetty-target", target)
+                        setAttribute("jetty-request", jettyRequest)
+                    }, response)
+                    jettyRequest.isHandled = true
+                }
+            }
+            connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.host = host
                 this.port = port
             })

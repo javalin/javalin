@@ -29,9 +29,7 @@ class EmbeddedJettyFactory : EmbeddedServerFactory {
     }
 
     override fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileConfig: StaticFileConfig?): EmbeddedServer {
-        return EmbeddedJettyServer(server, JettyHandler(
-                JavalinServlet(pathMatcher, exceptionMapper, errorMapper, JettyResourceHandler(staticFileConfig))
-        ))
+        return EmbeddedJettyServer(server, JavalinServlet(pathMatcher, exceptionMapper, errorMapper, JettyResourceHandler(staticFileConfig)))
     }
 
 }
