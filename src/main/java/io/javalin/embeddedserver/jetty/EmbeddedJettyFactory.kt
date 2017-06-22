@@ -14,14 +14,11 @@ import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.EmbeddedServerFactory
 import io.javalin.embeddedserver.StaticFileConfig
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import java.util.concurrent.TimeUnit
-
 
 class EmbeddedJettyFactory : EmbeddedServerFactory {
 
-    private var server: Server;
+    private val server: Server;
 
     constructor() {
         this.server = Server(QueuedThreadPool(200, 8, 60000))
@@ -32,9 +29,9 @@ class EmbeddedJettyFactory : EmbeddedServerFactory {
     }
 
     override fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileConfig: StaticFileConfig?): EmbeddedServer {
-        val resourceHandler = JettyResourceHandler(staticFileConfig)
-        val javalinServlet = JavalinServlet(pathMatcher, exceptionMapper, errorMapper, resourceHandler)
-        return EmbeddedJettyServer(server, JettyHandler(javalinServlet))
+        return EmbeddedJettyServer(server, JettyHandler(
+                JavalinServlet(pathMatcher, exceptionMapper, errorMapper, JettyResourceHandler(staticFileConfig))
+        ))
     }
 
 }
