@@ -13,7 +13,7 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.session.SessionHandler
 import org.slf4j.LoggerFactory
 
-class EmbeddedJettyServer(private var server: Server, private val javalinHandler: SessionHandler) : EmbeddedServer {
+class EmbeddedJettyServer(private val server: Server, private val javalinHandler: SessionHandler) : EmbeddedServer {
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
