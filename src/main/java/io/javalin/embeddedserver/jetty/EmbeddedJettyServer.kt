@@ -7,7 +7,6 @@
 package io.javalin.embeddedserver.jetty
 
 import io.javalin.embeddedserver.EmbeddedServer
-import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.session.SessionHandler
