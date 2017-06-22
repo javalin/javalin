@@ -37,15 +37,4 @@ class EmbeddedJettyFactory : EmbeddedServerFactory {
         return EmbeddedJettyServer(server, JettyHandler(javalinServlet))
     }
 
-    companion object {
-        fun defaultConnector(server: Server, host: String, port: Int): ServerConnector {
-            val connector = ServerConnector(server)
-            connector.idleTimeout = TimeUnit.HOURS.toMillis(1)
-            connector.soLingerTime = -1
-            connector.host = host
-            connector.port = port
-            return connector
-        }
-    }
-
 }
