@@ -6,10 +6,8 @@
 
 package io.javalin.embeddedserver
 
-import io.javalin.core.ErrorMapper
-import io.javalin.core.ExceptionMapper
-import io.javalin.core.PathMatcher
+import io.javalin.core.JavalinServlet
 
 interface EmbeddedServerFactory {
-    fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileConfig: StaticFileConfig?): EmbeddedServer
+    fun create(javalinServlet: JavalinServlet, staticFileConfig: StaticFileConfig?): EmbeddedServer
 }

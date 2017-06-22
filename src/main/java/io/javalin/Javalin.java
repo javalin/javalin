@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import io.javalin.core.ErrorMapper;
 import io.javalin.core.ExceptionMapper;
 import io.javalin.core.HandlerType;
+import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
@@ -71,7 +72,7 @@ public class Javalin {
             new Thread(() -> {
                 eventManager.fireEvent(EventType.SERVER_STARTING, this);
                 try {
-                    embeddedServer = embeddedServerFactory.create(pathMatcher, exceptionMapper, errorMapper, staticFileConfig);
+                    embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper), staticFileConfig);
                     log.info("Starting Javalin ...");
                     port = embeddedServer.start(ipAddress, port);
                     log.info("Javalin has started \\o/");

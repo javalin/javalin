@@ -19,8 +19,9 @@ import javax.servlet.http.HttpServletResponse
 class JavalinServlet(
         private val matcher: PathMatcher,
         private val exceptionMapper: ExceptionMapper,
-        private val errorMapper: ErrorMapper,
-        private val staticResourceHandler: StaticResourceHandler) : Servlet {
+        private val errorMapper: ErrorMapper) : Servlet {
+
+    var staticResourceHandler: StaticResourceHandler? = null;
 
     @Throws(ServletException::class, IOException::class)
     override fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
@@ -48,7 +49,7 @@ class JavalinServlet(
                     }
                 }
             } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty()) {
-                if (staticResourceHandler.handle(req, res)) {
+                if (staticResourceHandler!!.handle(req, res)) {
                     return
                 }
                 throw HaltException(404, "Not found")

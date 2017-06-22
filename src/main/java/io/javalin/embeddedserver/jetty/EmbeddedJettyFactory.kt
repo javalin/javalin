@@ -6,10 +6,7 @@
 
 package io.javalin.embeddedserver.jetty
 
-import io.javalin.core.ErrorMapper
-import io.javalin.core.ExceptionMapper
 import io.javalin.core.JavalinServlet
-import io.javalin.core.PathMatcher
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.EmbeddedServerFactory
 import io.javalin.embeddedserver.StaticFileConfig
@@ -28,8 +25,8 @@ class EmbeddedJettyFactory : EmbeddedServerFactory {
         this.server = jettyServer.invoke()
     }
 
-    override fun create(pathMatcher: PathMatcher, exceptionMapper: ExceptionMapper, errorMapper: ErrorMapper, staticFileConfig: StaticFileConfig?): EmbeddedServer {
-        return EmbeddedJettyServer(server, JavalinServlet(pathMatcher, exceptionMapper, errorMapper, JettyResourceHandler(staticFileConfig)))
+    override fun create(javalinServlet: JavalinServlet, staticFileConfig: StaticFileConfig?): EmbeddedServer {
+        return EmbeddedJettyServer(server, javalinServlet.apply { staticResourceHandler = JettyResourceHandler(staticFileConfig) })
     }
 
 }
