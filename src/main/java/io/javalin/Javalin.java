@@ -72,7 +72,9 @@ public class Javalin {
                 eventManager.fireEvent(EventType.SERVER_STARTING, this);
                 try {
                     embeddedServer = embeddedServerFactory.create(pathMatcher, exceptionMapper, errorMapper, staticFileConfig);
+                    log.info("Starting Javalin ...");
                     port = embeddedServer.start(ipAddress, port);
+                    log.info("Javalin has started \\o/");
                 } catch (Exception e) {
                     log.error("Failed to start Javalin", e);
                     eventManager.fireEvent(EventType.SERVER_START_FAILED, this);
@@ -107,7 +109,13 @@ public class Javalin {
     public synchronized Javalin stop() {
         eventManager.fireEvent(EventType.SERVER_STOPPING, this);
         new Thread(() -> {
-            embeddedServer.stop();
+            log.info("Stopping Javalin ...");
+            try {
+                embeddedServer.stop();
+            } catch (Exception e) {
+                log.error("Javalin failed to stop gracefully", e);
+            }
+            log.info("Javalin has stopped");
             eventManager.fireEvent(EventType.SERVER_STOPPED, this);
             stopLatch.countDown();
         }).start();

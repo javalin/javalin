@@ -14,7 +14,10 @@ interface EmbeddedServer {
     @Throws(InterruptedException::class)
     fun join()
 
+    @Throws(Exception::class)
     fun stop()
+
     fun activeThreadCount(): Int
     fun attribute(key: String): Any
+
 }

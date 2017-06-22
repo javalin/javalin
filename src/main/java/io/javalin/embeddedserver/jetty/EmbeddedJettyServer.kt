@@ -17,7 +17,6 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
-    @Throws(Exception::class)
     override fun start(host: String, port: Int): Int {
 
         if (server.connectors.isEmpty()) {
@@ -30,32 +29,14 @@ class EmbeddedJettyServer(private var server: Server, private val javalinHandler
         server.handler = javalinHandler
         server.start()
 
-        log.info("Javalin has started \\o/")
-
-        for (connector in server.connectors) {
-            log.info("Localhost: " + getProtocol(connector) + "://localhost:" + (connector as ServerConnector).localPort)
-        }
+        log.info("Jetty is listening on: " + server.connectors.map { (if (it.protocols.contains("ssl")) "https" else "http") + "://localhost:" + (it as ServerConnector).localPort })
 
         return (server.connectors[0] as ServerConnector).localPort
     }
 
-    @Throws(InterruptedException::class)
     override fun join() = server.join()
-
-    override fun stop() {
-        log.info("Stopping Javalin ...")
-        try {
-            server.stop()
-        } catch (e: Exception) {
-            log.error("Javalin failed to stop gracefully", e)
-        }
-        log.info("Javalin has stopped")
-    }
-
+    override fun stop() = server.stop()
     override fun activeThreadCount(): Int = server.threadPool.threads - server.threadPool.idleThreads
-
     override fun attribute(key: String): Any = server.getAttribute(key)
-
-    private fun getProtocol(connector: Connector): String = if (connector.protocols.contains("ssl")) "https" else "http"
 
 }
