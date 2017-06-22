@@ -19,15 +19,13 @@ class EmbeddedJettyServer(private val server: Server, private val javalinHandler
 
     override fun start(host: String, port: Int): Int {
 
-        if (server.connectors.isEmpty()) {
-            server.connectors = arrayOf<Connector>(ServerConnector(server).apply {
+        server.apply {
+            handler = javalinHandler
+            connectors = if (connectors.isNotEmpty()) connectors else arrayOf(ServerConnector(server).apply {
                 this.host = host
                 this.port = port
             })
-        }
-
-        server.handler = javalinHandler
-        server.start()
+        }.start()
 
         log.info("Jetty is listening on: " + server.connectors.map { (if (it.protocols.contains("ssl")) "https" else "http") + "://localhost:" + (it as ServerConnector).localPort })
 
