@@ -17,7 +17,7 @@ class ExceptionMapper {
 
     private val log = LoggerFactory.getLogger(ExceptionMapper::class.java)
 
-    private val exceptionMap: MutableMap<Class<out Exception>, ExceptionHandler<Exception>?> = HashMap()
+    private val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     fun put(exceptionClass: Class<out Exception>, handler: ExceptionHandler<Exception>?) {
         this.exceptionMap[exceptionClass] = handler

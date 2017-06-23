@@ -19,7 +19,6 @@ constructor(request: HttpServletRequest) : HttpServletRequestWrapper(request) {
 
     private val cachedBytes: ByteArray = ContextUtil.toByteArray(super.getInputStream())
 
-    @Throws(IOException::class)
     override fun getInputStream(): ServletInputStream = if (chunkedTransferEncoding()) super.getInputStream() else CachedServletInputStream()
 
     private fun chunkedTransferEncoding(): Boolean = "chunked" == (super.getRequest() as HttpServletRequest).getHeader("Transfer-Encoding")

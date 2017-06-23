@@ -15,7 +15,7 @@ class PathMatcher {
 
     private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
-    private val handlerEntries: MutableList<HandlerEntry> = ArrayList<HandlerEntry>()
+    private val handlerEntries = ArrayList<HandlerEntry>()
 
     fun add(type: HandlerType, path: String, handler: Handler) = handlerEntries.add(HandlerEntry(type, path, handler))
 

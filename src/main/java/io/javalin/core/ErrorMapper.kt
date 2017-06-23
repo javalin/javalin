@@ -12,7 +12,7 @@ import java.util.*
 
 class ErrorMapper {
 
-    private val errorHandlerMap: MutableMap<Int, ErrorHandler> = HashMap()
+    private val errorHandlerMap = HashMap<Int, ErrorHandler>()
 
     fun put(statusCode: Int, handler: ErrorHandler) {
         this.errorHandlerMap[statusCode] = handler
