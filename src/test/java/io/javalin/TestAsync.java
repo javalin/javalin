@@ -37,8 +37,7 @@ public class TestAsync {
         Javalin app = Javalin.create()
             .embeddedServer(new EmbeddedJettyFactory(() -> new Server(new QueuedThreadPool(16, 10, 60_000))))
             .port(5454)
-            .start()
-            .awaitInitialization();
+            .start();
 
         app.get("/test-async", ctx -> ctx.async(() -> {
             CompletableFuture<Void> future = new CompletableFuture<>();
@@ -67,7 +66,7 @@ public class TestAsync {
         ).get();
         log.info("took " + (System.currentTimeMillis() - startTime) + " milliseconds");
 
-        app.stop().awaitTermination();
+        app.stop();
     }
 
 }

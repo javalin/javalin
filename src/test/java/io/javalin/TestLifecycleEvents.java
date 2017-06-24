@@ -29,9 +29,7 @@ public class TestLifecycleEvents {
             .event(EventType.SERVER_STOPPING, e -> stoppingMsg = "Stopping")
             .event(EventType.SERVER_STOPPED, e -> stoppedMsg = "Stopped")
             .start()
-            .awaitInitialization()
-            .stop()
-            .awaitTermination();
+            .stop();
         assertThat(startingMsg, is("Starting"));
         assertThat(startedMsg, is("Started"));
         assertThat(stoppingMsg, is("Stopping"));

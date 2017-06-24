@@ -37,6 +37,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
                 initialized = true
             } catch (e: Exception) {
                 log.error("Exception occurred starting static resource handler", e)
+                throw(e)
             }
         }
     }

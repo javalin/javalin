@@ -26,14 +26,13 @@ public class TestStaticFiles_edgeCases {
         Javalin app = Javalin.create()
             .port(7777)
             .enableStaticFiles("src/test/external/", Location.EXTERNAL)
-            .start()
-            .awaitInitialization();
+            .start();
 
         HttpResponse<String> response = Unirest.get("http://localhost:7777/html.html").asString();
         assertThat(response.getStatus(), is(200));
         assertThat(response.getBody(), containsString("HTML works"));
 
-        app.stop().awaitTermination();
+        app.stop();
     }
 
     @Test
@@ -42,8 +41,7 @@ public class TestStaticFiles_edgeCases {
         Javalin.create()
             .enableStaticFiles("some-fake-folder")
             .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start()
-            .awaitInitialization();
+            .start().stop();
         assertThat(message[0], is("failed"));
     }
 
@@ -53,8 +51,7 @@ public class TestStaticFiles_edgeCases {
         Javalin.create()
             .enableStaticFiles("some-fake-folder", Location.EXTERNAL)
             .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start()
-            .awaitInitialization();
+            .start().stop();
         assertThat(message[0], is("failed"));
     }
 
@@ -65,8 +62,7 @@ public class TestStaticFiles_edgeCases {
         Javalin.create()
             .enableStaticFiles("src/test/external/empty", Location.CLASSPATH)
             .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start()
-            .awaitInitialization();
+            .start().stop();
         assertThat(message[0], is("failed"));
     }
 
@@ -77,8 +73,7 @@ public class TestStaticFiles_edgeCases {
         Javalin.create()
             .enableStaticFiles("src/test/external/empty", Location.EXTERNAL)
             .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start()
-            .awaitInitialization();
+            .start().stop();
         assertThat(message[0], not("failed"));
     }
 

@@ -40,26 +40,26 @@ public class TestAccessManager {
 
     @Test
     public void test_noAccessManager_throwsException() throws Exception {
-        Javalin app = Javalin.create().port(1234).start().awaitInitialization();
+        Javalin app = Javalin.create().port(1234).start();
         app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE));
         assertThat(callWithRole("/secured", "ROLE_ONE"), is("Internal server error"));
-        app.stop().awaitTermination();
+        app.stop();
     }
 
     @Test
     public void test_accessManager_restrictsAccess() throws Exception {
-        Javalin app = Javalin.create().port(1234).start().awaitInitialization();
+        Javalin app = Javalin.create().port(1234).start();
         app.accessManager(accessManager);
         app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE, ROLE_TWO));
         assertThat(callWithRole("/secured", "ROLE_ONE"), is("Hello"));
         assertThat(callWithRole("/secured", "ROLE_TWO"), is("Hello"));
         assertThat(callWithRole("/secured", "ROLE_THREE"), is("Unauthorized"));
-        app.stop().awaitTermination();
+        app.stop();
     }
 
     @Test
     public void test_accessManager_restrictsAccess_forStaticApi() throws Exception {
-        Javalin app = Javalin.create().port(1234).start().awaitInitialization();
+        Javalin app = Javalin.create().port(1234).start();
         app.accessManager(accessManager);
         app.routes(() -> {
             get("/static-secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE, ROLE_TWO));
@@ -67,7 +67,7 @@ public class TestAccessManager {
         assertThat(callWithRole("/static-secured", "ROLE_ONE"), is("Hello"));
         assertThat(callWithRole("/static-secured", "ROLE_TWO"), is("Hello"));
         assertThat(callWithRole("/static-secured", "ROLE_THREE"), is("Unauthorized"));
-        app.stop().awaitTermination();
+        app.stop();
     }
 
     private String callWithRole(String path, String role) throws UnirestException {

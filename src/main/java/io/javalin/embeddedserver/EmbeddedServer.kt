@@ -11,9 +11,6 @@ interface EmbeddedServer {
     @Throws(Exception::class)
     fun start(host: String, port: Int): Int
 
-    @Throws(InterruptedException::class)
-    fun join()
-
     @Throws(Exception::class)
     fun stop()
 

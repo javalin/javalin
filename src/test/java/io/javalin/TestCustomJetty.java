@@ -27,10 +27,9 @@ public class TestCustomJetty {
                 server.setAttribute("is-custom-server", true);
                 return server;
             }))
-            .start()
-            .awaitInitialization();
+            .start();
         MatcherAssert.assertThat(app.embeddedServer().attribute("is-custom-server"), is(true));
-        app.stop().awaitTermination();
+        app.stop();
     }
 
 }

@@ -35,8 +35,7 @@ public class _UnirestBaseTest {
     public static void setup() throws IOException {
         app = Javalin.create()
             .port(7777)
-            .start()
-            .awaitInitialization();
+            .start();
     }
 
     @After
@@ -49,7 +48,6 @@ public class _UnirestBaseTest {
     @AfterClass
     public static void tearDown() {
         app.stop();
-        app.awaitTermination();
     }
 
     static String GET_body(String pathname) throws UnirestException {

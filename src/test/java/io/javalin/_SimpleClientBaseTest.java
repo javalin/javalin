@@ -26,8 +26,7 @@ public class _SimpleClientBaseTest {
     public static void setup() throws IOException {
         app = Javalin.create()
             .port(7777)
-            .start()
-            .awaitInitialization();
+            .start();
         simpleHttpClient = new SimpleHttpClient();
     }
 
@@ -41,6 +40,5 @@ public class _SimpleClientBaseTest {
     @AfterClass
     public static void tearDown() {
         app.stop();
-        app.awaitTermination();
     }
 }

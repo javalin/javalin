@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+
 class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
@@ -44,8 +45,11 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         return (server.connectors[0] as ServerConnector).localPort
     }
 
-    override fun join() = server.join()
-    override fun stop() = server.stop()
+    override fun stop() {
+        server.stop()
+        server.join();
+    }
+
     override fun activeThreadCount(): Int = server.threadPool.threads - server.threadPool.idleThreads
     override fun attribute(key: String): Any = server.getAttribute(key)
 

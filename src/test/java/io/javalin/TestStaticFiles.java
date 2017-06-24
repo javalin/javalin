@@ -31,8 +31,7 @@ public class TestStaticFiles {
         app = Javalin.create()
             .port(7777)
             .enableStaticFiles("/public")
-            .start()
-            .awaitInitialization();
+            .start();
     }
 
     @After
@@ -45,7 +44,6 @@ public class TestStaticFiles {
     @AfterClass
     public static void tearDown() {
         app.stop();
-        app.awaitTermination();
     }
 
     @Test

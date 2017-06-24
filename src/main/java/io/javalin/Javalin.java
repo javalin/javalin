@@ -8,7 +8,6 @@
 package io.javalin;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +49,6 @@ public class Javalin {
 
     private EventManager eventManager = new EventManager();
 
-    private CountDownLatch startLatch = new CountDownLatch(1);
-    private CountDownLatch stopLatch = new CountDownLatch(1);
-
     private AccessManager accessManager = (Handler handler, Context ctx, List<Role> permittedRoles) -> {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
@@ -69,70 +65,32 @@ public class Javalin {
         if (!started) {
             log.info(Util.INSTANCE.javalinBanner());
             Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
-            new Thread(() -> {
-                eventManager.fireEvent(EventType.SERVER_STARTING, this);
-                try {
-                    embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper), staticFileConfig);
-                    log.info("Starting Javalin ...");
-                    port = embeddedServer.start(ipAddress, port);
-                    log.info("Javalin has started \\o/");
-                } catch (Exception e) {
-                    log.error("Failed to start Javalin", e);
-                    eventManager.fireEvent(EventType.SERVER_START_FAILED, this);
-                }
+            eventManager.fireEvent(EventType.SERVER_STARTING, this);
+            try {
+                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper), staticFileConfig);
+                log.info("Starting Javalin ...");
+                port = embeddedServer.start(ipAddress, port);
+                log.info("Javalin has started \\o/");
                 eventManager.fireEvent(EventType.SERVER_STARTED, this);
-                try {
-                    startLatch.countDown();
-                    embeddedServer.join();
-                } catch (InterruptedException e) {
-                    log.error("Server startup interrupted", e);
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
-            started = true;
-        }
-        return this;
-    }
-
-    public synchronized Javalin awaitInitialization() {
-        if (!started) {
-            throw new IllegalStateException("Server hasn't been started. Call start() before calling this method.");
-        }
-        try {
-            startLatch.await();
-        } catch (InterruptedException e) {
-            log.info("awaitInitialization was interrupted");
-            Thread.currentThread().interrupt();
+                started = true;
+            } catch (Exception e) {
+                log.error("Failed to start Javalin", e);
+                eventManager.fireEvent(EventType.SERVER_START_FAILED, this);
+            }
         }
         return this;
     }
 
     public synchronized Javalin stop() {
         eventManager.fireEvent(EventType.SERVER_STOPPING, this);
-        new Thread(() -> {
-            log.info("Stopping Javalin ...");
-            try {
-                embeddedServer.stop();
-            } catch (Exception e) {
-                log.error("Javalin failed to stop gracefully", e);
-            }
-            log.info("Javalin has stopped");
-            eventManager.fireEvent(EventType.SERVER_STOPPED, this);
-            stopLatch.countDown();
-        }).start();
-        return this;
-    }
-
-    public synchronized Javalin awaitTermination() {
-        if (!started) {
-            throw new IllegalStateException("Server hasn't been stopped. Call stop() before calling this method.");
-        }
+        log.info("Stopping Javalin ...");
         try {
-            stopLatch.await();
-        } catch (InterruptedException e) {
-            log.info("awaitTermination was interrupted");
-            Thread.currentThread().interrupt();
+            embeddedServer.stop();
+        } catch (Exception e) {
+            log.error("Javalin failed to stop gracefully", e);
         }
+        log.info("Javalin has stopped");
+        eventManager.fireEvent(EventType.SERVER_STOPPED, this);
         return this;
     }
 

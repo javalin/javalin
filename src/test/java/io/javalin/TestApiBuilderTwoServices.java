@@ -20,8 +20,8 @@ public class TestApiBuilderTwoServices {
 
     @Test
     public void testApiBuilder_twoServices() throws Exception {
-        Javalin app1 = Javalin.create().port(0).start().awaitInitialization();
-        Javalin app2 = Javalin.create().port(0).start().awaitInitialization();
+        Javalin app1 = Javalin.create().port(0).start();
+        Javalin app2 = Javalin.create().port(0).start();
         app1.routes(() -> {
             get("/hello1", ctx -> ctx.result("Hello1"));
         });
@@ -38,8 +38,8 @@ public class TestApiBuilderTwoServices {
         assertThat(call(app2.port(), "/hello1"), is("Hello1"));
         assertThat(call(app1.port(), "/hello2"), is("Hello2"));
         assertThat(call(app2.port(), "/hello2"), is("Hello2"));
-        app1.stop().awaitTermination();
-        app2.stop().awaitTermination();
+        app1.stop();
+        app2.stop();
     }
 
     private String call(int port, String path) throws UnirestException {
