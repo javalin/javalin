@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
     with(app) {
 
         get("/users") { ctx ->
-            ctx.result("");
+            ctx.result("")
         }
 
         post("/users/create") { ctx ->
@@ -41,7 +41,7 @@ fun main(args: Array<String>) {
         }
 
         error(404) { ctx ->
-            ctx.result("not found");
+            ctx.result("not found")
         }
 
     }

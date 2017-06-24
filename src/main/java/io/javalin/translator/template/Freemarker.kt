@@ -19,7 +19,7 @@ object Freemarker {
     }
 
     fun render(templatePath: String, model: Map<String, Any>): String {
-        configuration = configuration ?: defaultFreemarkerEngine();
+        configuration = configuration ?: defaultFreemarkerEngine()
         try {
             val stringWriter = StringWriter()
             configuration!!.getTemplate(templatePath).process(model, stringWriter)
@@ -32,7 +32,7 @@ object Freemarker {
     fun defaultFreemarkerEngine(): Configuration {
         val configuration = Configuration(Version(2, 3, 26))
         configuration.setClassForTemplateLoading(Freemarker::class.java, "/")
-        return configuration;
+        return configuration
     }
 
 }

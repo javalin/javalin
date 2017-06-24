@@ -33,10 +33,7 @@ public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    public static int DEFAULT_PORT = 7000;
-
-    private int port = DEFAULT_PORT;
-
+    private int port = 7000;
     private String ipAddress = "0.0.0.0";
 
     private EmbeddedServer embeddedServer;
@@ -167,7 +164,7 @@ public class Javalin {
         return this;
     }
 
-    public synchronized Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
+    private synchronized Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
         start();
         pathMatcher.add(httpMethod, path, handler);
         return this;

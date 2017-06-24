@@ -47,7 +47,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
 
     override fun stop() {
         server.stop()
-        server.join();
+        server.join()
     }
 
     override fun activeThreadCount(): Int = server.threadPool.threads - server.threadPool.idleThreads

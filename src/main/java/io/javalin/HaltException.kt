@@ -8,10 +8,10 @@ package io.javalin
 
 class HaltException(var statusCode: Int = 200, var body: String = "Execution halted") : RuntimeException() {
     constructor(statusCode: Int) : this() {
-        this.statusCode = statusCode;
+        this.statusCode = statusCode
     }
 
     constructor(body: String) : this() {
-        this.body = body;
+        this.body = body
     }
 }

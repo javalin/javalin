@@ -31,7 +31,7 @@ object Thymeleaf {
         val templateResolver = ClassLoaderTemplateResolver()
         templateResolver.templateMode = TemplateMode.HTML
         templateEngine.setTemplateResolver(templateResolver)
-        return templateEngine;
+        return templateEngine
     }
 
 }

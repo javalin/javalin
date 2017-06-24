@@ -29,7 +29,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
         if (staticFileConfig != null) {
             try {
                 resourceHandler.apply {
-                    resourceBase = getResourcePath(staticFileConfig);
+                    resourceBase = getResourcePath(staticFileConfig)
                     isDirAllowed = false
                     isEtags = true
                     cacheControl = "no-store,no-cache,must-revalidate"
@@ -43,9 +43,9 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
     }
 
     fun getResourcePath(staticFileConfig: StaticFileConfig): String {
-        val nosuchdir = "Static resource directory with path: '${staticFileConfig.path}' does not exist.";
+        val nosuchdir = "Static resource directory with path: '${staticFileConfig.path}' does not exist."
         if (staticFileConfig.location == Location.CLASSPATH) {
-            val classPathResource = Resource.newClassPathResource(staticFileConfig.path);
+            val classPathResource = Resource.newClassPathResource(staticFileConfig.path)
             if (classPathResource == null) {
                 throw RuntimeException(nosuchdir + " Depending on your setup, empty folders might not get copied to classpath.")
             }
@@ -54,7 +54,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
         if (Files.notExists(Paths.get(staticFileConfig.path))) {
             throw RuntimeException(nosuchdir)
         }
-        return staticFileConfig.path;
+        return staticFileConfig.path
     }
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {

@@ -9,7 +9,6 @@ package io.javalin.core.util
 import io.javalin.Context
 import io.javalin.core.HandlerEntry
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.io.InputStream
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
@@ -29,7 +28,7 @@ object ContextUtil {
         val matchedList = Util.pathToList(handlerEntry.path)
         ctx.paramMap = getParams(requestList, matchedList)
         ctx.splatList = getSplat(requestList, matchedList)
-        return ctx;
+        return ctx
     }
 
     fun getSplat(request: List<String>, matched: List<String>): List<String> {

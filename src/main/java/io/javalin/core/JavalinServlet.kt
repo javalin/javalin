@@ -10,7 +10,6 @@ import io.javalin.HaltException
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Util
 import io.javalin.embeddedserver.StaticResourceHandler
-import java.io.IOException
 import java.nio.charset.StandardCharsets
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
@@ -21,7 +20,7 @@ class JavalinServlet(
         private val exceptionMapper: ExceptionMapper,
         private val errorMapper: ErrorMapper) : Servlet {
 
-    var staticResourceHandler: StaticResourceHandler? = null;
+    var staticResourceHandler: StaticResourceHandler? = null
 
     override fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 

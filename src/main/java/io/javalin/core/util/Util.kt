@@ -57,7 +57,7 @@ object Util {
             Javalin: https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
             Javalin: then add it to your dependencies (pom.xml or build.gradle)
             Javalin: Visit https://javalin.io/documentation#logging if you need more help
-            """.trimIndent();
+            """.trimIndent()
             System.err.println(message)
         }
     }
