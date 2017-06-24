@@ -93,14 +93,8 @@ class JavalinServlet(
 
     }
 
-    @Throws(ServletException::class)
-    override fun init(config: ServletConfig) {
-    }
-
+    override fun init(config: ServletConfig) {}
     override fun getServletConfig(): ServletConfig? = null
-
     override fun getServletInfo(): String? = null
-
     override fun destroy() {}
-
 }
