@@ -57,14 +57,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun body(): String = ContextUtil.byteArrayToString(bodyAsBytes(), servletRequest.characterEncoding)
 
-    fun bodyAsBytes(): ByteArray {
-        try {
-            return ContextUtil.toByteArray(servletRequest.inputStream)
-        } catch (e: IOException) {
-            log.error("Failed to read body. Something is very wrong.", e)
-            throw RuntimeException("Failed to read body. Something is very wrong.")
-        }
-    }
+    fun bodyAsBytes(): ByteArray = ContextUtil.toByteArray(servletRequest.inputStream)
 
     fun <T> bodyAsClass(clazz: Class<T>): T {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")

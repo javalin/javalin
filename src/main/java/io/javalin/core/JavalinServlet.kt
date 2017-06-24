@@ -23,7 +23,6 @@ class JavalinServlet(
 
     var staticResourceHandler: StaticResourceHandler? = null;
 
-    @Throws(ServletException::class, IOException::class)
     override fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 
         val req = servletRequest as HttpServletRequest
