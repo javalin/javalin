@@ -15,14 +15,11 @@ import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServlet(
-        private val matcher: PathMatcher,
-        private val exceptionMapper: ExceptionMapper,
-        private val errorMapper: ErrorMapper) : Servlet {
+class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMapper, val errorMapper: ErrorMapper) {
 
     var staticResourceHandler: StaticResourceHandler? = null
 
-    override fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
+    fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 
         val req = servletRequest as HttpServletRequest
         val res = servletResponse as HttpServletResponse
@@ -93,8 +90,4 @@ class JavalinServlet(
 
     }
 
-    override fun init(config: ServletConfig) {}
-    override fun getServletConfig(): ServletConfig? = null
-    override fun getServletInfo(): String? = null
-    override fun destroy() {}
 }
