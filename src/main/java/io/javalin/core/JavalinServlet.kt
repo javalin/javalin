@@ -11,7 +11,8 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Util
 import io.javalin.embeddedserver.StaticResourceHandler
 import java.nio.charset.StandardCharsets
-import javax.servlet.*
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
