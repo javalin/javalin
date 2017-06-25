@@ -23,6 +23,7 @@ import io.javalin.embeddedserver.EmbeddedServerFactory;
 import io.javalin.embeddedserver.Location;
 import io.javalin.embeddedserver.StaticFileConfig;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
+import io.javalin.embeddedserver.undertow.EmbeddedUndertowFactory;
 import io.javalin.event.EventListener;
 import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
@@ -37,7 +38,7 @@ public class Javalin {
     private String ipAddress = "0.0.0.0";
 
     private EmbeddedServer embeddedServer;
-    private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
+    private EmbeddedServerFactory embeddedServerFactory = new EmbeddedUndertowFactory();
 
     private StaticFileConfig staticFileConfig = null;
     PathMatcher pathMatcher = new PathMatcher();
