@@ -8,14 +8,12 @@ package io.javalin.embeddedserver
 
 import io.javalin.core.util.ContextUtil
 import java.io.ByteArrayInputStream
-import java.io.IOException
 import javax.servlet.ReadListener
 import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 
-class CachedRequestWrapper @Throws(IOException::class)
-constructor(request: HttpServletRequest) : HttpServletRequestWrapper(request) {
+class CachedRequestWrapper(request: HttpServletRequest) : HttpServletRequestWrapper(request) {
 
     private val cachedBytes: ByteArray = ContextUtil.toByteArray(super.getInputStream())
 
