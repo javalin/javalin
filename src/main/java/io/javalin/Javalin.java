@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import io.javalin.core.ErrorMapper;
 import io.javalin.core.ExceptionMapper;
+import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
@@ -142,7 +143,7 @@ public class Javalin {
     }
 
     public synchronized <T extends Exception> Javalin exception(Class<T> exceptionClass, ExceptionHandler<? super T> exceptionHandler) {
-        exceptionMapper.put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        exceptionMapper.getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
@@ -153,7 +154,7 @@ public class Javalin {
     }
 
     public synchronized Javalin error(int statusCode, ErrorHandler errorHandler) {
-        errorMapper.put(statusCode, errorHandler);
+        errorMapper.getErrorHandlerMap().put(statusCode, errorHandler);
         return this;
     }
 
@@ -166,7 +167,7 @@ public class Javalin {
 
     private synchronized Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
         start();
-        pathMatcher.add(httpMethod, path, handler);
+        pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, path, handler));
         return this;
     }
 

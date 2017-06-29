@@ -17,13 +17,7 @@ class ExceptionMapper {
 
     private val log = LoggerFactory.getLogger(ExceptionMapper::class.java)
 
-    private val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
-
-    fun put(exceptionClass: Class<out Exception>, handler: ExceptionHandler<Exception>?) {
-        this.exceptionMap[exceptionClass] = handler
-    }
-
-    fun clear() = this.exceptionMap.clear()
+    val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
         if (exception is HaltException) {
@@ -41,7 +35,7 @@ class ExceptionMapper {
         }
     }
 
-    fun getHandler(exceptionClass: Class<out Exception>): ExceptionHandler<Exception>? {
+    private fun getHandler(exceptionClass: Class<out Exception>): ExceptionHandler<Exception>? {
         if (this.exceptionMap.containsKey(exceptionClass)) {
             return this.exceptionMap[exceptionClass]
         }

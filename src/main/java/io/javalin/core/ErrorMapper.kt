@@ -11,15 +11,6 @@ import io.javalin.ErrorHandler
 import java.util.*
 
 class ErrorMapper {
-
-    private val errorHandlerMap = HashMap<Int, ErrorHandler>()
-
-    fun put(statusCode: Int, handler: ErrorHandler) {
-        this.errorHandlerMap[statusCode] = handler
-    }
-
-    fun clear() = this.errorHandlerMap.clear()
-
+    val errorHandlerMap = HashMap<Int, ErrorHandler>()
     fun handle(statusCode: Int, ctx: Context) = errorHandlerMap[statusCode]?.handle(ctx)
-
 }

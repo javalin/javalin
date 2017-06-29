@@ -11,15 +11,13 @@ import io.javalin.core.util.Util
 import org.slf4j.LoggerFactory
 import java.util.*
 
+data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler)
+
 class PathMatcher {
 
     private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
-    private val handlerEntries = ArrayList<HandlerEntry>()
-
-    fun add(type: HandlerType, path: String, handler: Handler) = handlerEntries.add(HandlerEntry(type, path, handler))
-
-    fun clear() = handlerEntries.clear()
+    val handlerEntries = ArrayList<HandlerEntry>()
 
     fun findEntries(requestType: HandlerType, requestUri: String): List<HandlerEntry> {
         return handlerEntries.filter { he -> match(he, requestType, requestUri) }
