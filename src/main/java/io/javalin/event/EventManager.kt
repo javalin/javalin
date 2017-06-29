@@ -10,13 +10,8 @@ import io.javalin.Javalin
 import java.util.*
 
 class EventManager {
-
-    private val listenerMap: Map<EventType, LinkedList<EventListener>> = EventType.values().map { it to LinkedList<EventListener>() }.toMap()
-
-    fun addEventListener(eventType: EventType, listener: EventListener) = listenerMap[eventType]!!.add(listener)
-
+    val listenerMap: Map<EventType, LinkedList<EventListener>> = EventType.values().map { it to LinkedList<EventListener>() }.toMap()
     fun fireEvent(eventType: EventType, javalin: Javalin) = listenerMap[eventType]!!.forEach { listener -> listener.handleEvent(Event(eventType, javalin)) }
-
 }
 
 data class Event(var eventType: EventType, var javalin: Javalin? = null)

@@ -149,7 +149,7 @@ public class Javalin {
 
     public synchronized Javalin event(EventType eventType, EventListener eventListener) {
         ensureServerHasNotStarted();
-        eventManager.addEventListener(eventType, eventListener);
+        eventManager.getListenerMap().get(eventType).add(eventListener);
         return this;
     }
 
