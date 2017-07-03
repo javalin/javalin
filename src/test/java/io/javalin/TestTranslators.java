@@ -10,8 +10,10 @@ package io.javalin;
 import org.apache.velocity.app.VelocityEngine;
 import org.junit.Test;
 
+import io.javalin.translator.json.Jackson;
 import io.javalin.translator.template.TemplateUtil;
 import io.javalin.translator.template.Velocity;
+import io.javalin.util.CustomMapper;
 import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;
 
@@ -36,6 +38,13 @@ public class TestTranslators extends _UnirestBaseTest {
     public void test_json_jacksonMapsStringsToJson() throws Exception {
         app.get("/hello", ctx -> ctx.status(200).json("\"ok\""));
         assertThat(GET_body("/hello"), is("\"\\\"ok\\\"\""));
+    }
+
+    @Test
+    public void test_json_customMapper_works() throws Exception {
+        Jackson.INSTANCE.configure(new CustomMapper());
+        app.get("/hello", ctx -> ctx.status(200).json(new TestObject_Serializable()));
+        assertThat(GET_body("/hello").split("\r\n|\r|\n").length, is(4));
     }
 
     @Test

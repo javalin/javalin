@@ -12,6 +12,10 @@ object Jackson {
 
     private var objectMapper: ObjectMapper? = null
 
+    fun configure(staticObjectMapper: ObjectMapper) {
+        objectMapper = staticObjectMapper
+    }
+
     fun toJson(`object`: Any): String {
         objectMapper = objectMapper ?: ObjectMapper()
         try {
