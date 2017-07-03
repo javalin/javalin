@@ -8,6 +8,7 @@
 package io.javalin;
 
 import org.apache.velocity.app.VelocityEngine;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import io.javalin.translator.json.Jackson;
@@ -17,7 +18,6 @@ import io.javalin.util.CustomMapper;
 import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
@@ -27,10 +27,15 @@ import static org.hamcrest.Matchers.*;
 
 public class TestTranslators extends _UnirestBaseTest {
 
+    @BeforeClass
+    public static void setObjectMapper() {
+        Jackson.INSTANCE.configure(new CustomMapper());
+    }
+
     @Test
     public void test_json_jacksonMapsObjectToJson() throws Exception {
         app.get("/hello", ctx -> ctx.status(200).json(new TestObject_Serializable()));
-        String expected = new ObjectMapper().writeValueAsString(new TestObject_Serializable());
+        String expected = new CustomMapper().writeValueAsString(new TestObject_Serializable());
         assertThat(GET_body("/hello"), is(expected));
     }
 
@@ -42,7 +47,6 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_json_customMapper_works() throws Exception {
-        Jackson.INSTANCE.configure(new CustomMapper());
         app.get("/hello", ctx -> ctx.status(200).json(new TestObject_Serializable()));
         assertThat(GET_body("/hello").split("\r\n|\r|\n").length, is(4));
     }
@@ -63,7 +67,7 @@ public class TestTranslators extends _UnirestBaseTest {
                 ctx.result("success");
             }
         });
-        HttpResponse<String> response = Unirest.post(origin + "/hello").body(new ObjectMapper().writeValueAsString(new TestObject_Serializable())).asString();
+        HttpResponse<String> response = Unirest.post(origin + "/hello").body(new CustomMapper().writeValueAsString(new TestObject_Serializable())).asString();
         assertThat(response.getBody(), is("success"));
     }
 
