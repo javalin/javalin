@@ -9,11 +9,48 @@ package io.javalin;
 
 import org.junit.Test;
 
+import com.mashape.unirest.http.HttpMethod;
+
 import static io.javalin.ApiBuilder.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
 public class TestApiBuilder extends _UnirestBaseTest {
+
+    @Test
+    public void autoPrefix_path_works() throws Exception {
+        app.routes(() -> {
+            path("level-1", () -> {
+                get("/hello", simpleAnswer("Hello from level 1"));
+            });
+        });
+        assertThat(GET_body("/level-1/hello"), is("Hello from level 1"));
+    }
+
+    @Test
+    public void routesWithoutPathArg_works() throws Exception {
+        app.routes(() -> {
+            path("api", () -> {
+                get(OK_HANDLER);
+                post(OK_HANDLER);
+                put(OK_HANDLER);
+                delete(OK_HANDLER);
+                patch(OK_HANDLER);
+                path("user", () -> {
+                    get(OK_HANDLER);
+                    post(OK_HANDLER);
+                    put(OK_HANDLER);
+                    delete(OK_HANDLER);
+                    patch(OK_HANDLER);
+                });
+            });
+        });
+        HttpMethod[] httpMethods = new HttpMethod[] {HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH};
+        for (HttpMethod httpMethod : httpMethods) {
+            assertThat(call(httpMethod, "/api").getStatus(), is(200));
+            assertThat(call(httpMethod, "/api/user").getStatus(), is(200));
+        }
+    }
 
     @Test
     public void test_pathWorks_forGet() throws Exception {
