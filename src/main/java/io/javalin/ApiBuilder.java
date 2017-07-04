@@ -71,22 +71,6 @@ public class ApiBuilder {
         staticInstance().delete(prefixPath(path), handler);
     }
 
-    public static void head(String path, Handler handler) {
-        staticInstance().head(prefixPath(path), handler);
-    }
-
-    public static void trace(String path, Handler handler) {
-        staticInstance().trace(prefixPath(path), handler);
-    }
-
-    public static void connect(String path, Handler handler) {
-        staticInstance().connect(prefixPath(path), handler);
-    }
-
-    public static void options(String path, Handler handler) {
-        staticInstance().options(prefixPath(path), handler);
-    }
-
     // Secured HTTP verbs
     public static void get(String path, Handler handler, List<Role> permittedRoles) {
         staticInstance().get(prefixPath(path), handler, permittedRoles);
@@ -106,22 +90,6 @@ public class ApiBuilder {
 
     public static void delete(String path, Handler handler, List<Role> permittedRoles) {
         staticInstance().delete(prefixPath(path), handler, permittedRoles);
-    }
-
-    public static void head(String path, Handler handler, List<Role> permittedRoles) {
-        staticInstance().head(prefixPath(path), handler, permittedRoles);
-    }
-
-    public static void trace(String path, Handler handler, List<Role> permittedRoles) {
-        staticInstance().trace(prefixPath(path), handler, permittedRoles);
-    }
-
-    public static void connect(String path, Handler handler, List<Role> permittedRoles) {
-        staticInstance().connect(prefixPath(path), handler, permittedRoles);
-    }
-
-    public static void options(String path, Handler handler, List<Role> permittedRoles) {
-        staticInstance().options(prefixPath(path), handler, permittedRoles);
     }
 
     // Filters
