@@ -74,6 +74,12 @@ class Context(private val servletResponse: HttpServletResponse,
                 .firstOrNull()
     }
 
+    fun mapQueryParams(vararg keys: String): List<String>? = try {
+        keys.map { servletRequest.getParameter(it) }.requireNoNulls().toList()
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
     fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
 
     fun paramMap(): Map<String, String> = paramMap.toMap()
