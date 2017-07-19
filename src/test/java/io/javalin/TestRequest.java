@@ -109,6 +109,24 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_anyQueryParamNullTrue_allParamsNull() throws Exception {
+        app.get("/", ctx -> ctx.result("" + ctx.anyQueryParamNull("nullkey", "othernullkey")));
+        assertThat(GET_body("/"), is("true"));
+    }
+
+    @Test
+    public void test_anyQueryParamNullTrue_someParamsNull() throws Exception {
+        app.get("/", ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "nullkey")));
+        assertThat(GET_body("/?qp1=1&qp2=2"), is("true"));
+    }
+
+    @Test
+    public void test_anyQueryParamNullFalse_allParamsNonNull() throws Exception {
+        app.get("/", ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "qp3")));
+        assertThat(GET_body("/?qp1=1&qp2=2&qp3=3"), is("false"));
+    }
+
+    @Test
     public void test_nextWorks_whenMultipleHandlers() throws Exception {
         app.get("/test", ctx -> ctx.next());
         app.get("/*", ctx -> ctx.result("Skipped first handler"));
