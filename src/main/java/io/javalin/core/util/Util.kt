@@ -8,7 +8,6 @@ package io.javalin.core.util
 
 import io.javalin.HaltException
 import org.slf4j.LoggerFactory
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
@@ -76,7 +75,6 @@ object Util {
             |_________________________________________|""".trimIndent()
     }
 
-    @Throws(IOException::class)
     fun copyStream(inputStream: InputStream, out: OutputStream): Long {
         val buf = ByteArray(8192)
         var totalBytesCopied: Long = 0
