@@ -19,6 +19,15 @@ import static org.hamcrest.Matchers.*;
 public class TestFilters extends _UnirestBaseTest {
 
     @Test
+    public void test_filtersRunForRoot() throws Exception {
+        app.before(ctx -> ctx.header("X-BEFOREFILTER", "Before-filter ran"));
+        app.after(ctx -> ctx.header("X-AFTERFILTER", "After-filter ran"));
+        app.get("/", OK_HANDLER);
+        assertThat(getAndGetHeader("/", "X-BEFOREFILTER"), is("Before-filter ran"));
+        assertThat(getAndGetHeader("/", "X-AFTERFILTER"), is("After-filter ran"));
+    }
+
+    @Test
     public void test_justFilters_is404() throws Exception {
         Handler emptyHandler = ctx -> {
         };

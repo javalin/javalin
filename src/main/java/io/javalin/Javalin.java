@@ -251,7 +251,7 @@ public class Javalin {
     }
 
     public Javalin before(Handler handler) {
-        return before("/*", handler);
+        return before("*", handler);
     }
 
     public Javalin after(String path, Handler handler) {
@@ -259,7 +259,7 @@ public class Javalin {
     }
 
     public Javalin after(Handler handler) {
-        return after("/*", handler);
+        return after("*", handler);
     }
 
     // Reverse routing

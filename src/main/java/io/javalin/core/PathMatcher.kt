@@ -26,6 +26,7 @@ class PathMatcher {
     // TODO: Consider optimizing this
     private fun match(handlerEntry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean = when {
         handlerEntry.type !== requestType -> false
+        handlerEntry.path == "*" -> true
         handlerEntry.path == requestPath -> true
         slashMismatch(handlerEntry.path, requestPath) -> false
         else -> matchParamAndWildcard(handlerEntry.path, requestPath)
