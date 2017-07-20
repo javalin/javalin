@@ -15,7 +15,7 @@ The project webpage is [javalin.io](https://javalin.io).
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>0.3.4</version>
+    <version>0.3.5</version>
 </dependency>
 ```
 
