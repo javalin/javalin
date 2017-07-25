@@ -63,7 +63,7 @@ public class Javalin {
 
     private boolean started = false;
 
-    public synchronized Javalin start() {
+    public Javalin start() {
         if (!started) {
             log.info(Util.INSTANCE.javalinBanner());
             Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
@@ -84,7 +84,7 @@ public class Javalin {
         return this;
     }
 
-    public synchronized Javalin stop() {
+    public Javalin stop() {
         eventManager.fireEvent(EventType.SERVER_STOPPING, this);
         log.info("Stopping Javalin ...");
         try {
@@ -97,7 +97,7 @@ public class Javalin {
         return this;
     }
 
-    public synchronized Javalin embeddedServer(EmbeddedServerFactory embeddedServerFactory) {
+    public Javalin embeddedServer(EmbeddedServerFactory embeddedServerFactory) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
         this.embeddedServerFactory = embeddedServerFactory;
         return this;
@@ -107,28 +107,28 @@ public class Javalin {
         return embeddedServer;
     }
 
-    public synchronized Javalin enableStaticFiles(String classpathPath) {
+    public Javalin enableStaticFiles(String classpathPath) {
         return enableStaticFiles(classpathPath, Location.CLASSPATH);
     }
 
-    public synchronized Javalin enableStaticFiles(String path, Location location) {
+    public Javalin enableStaticFiles(String path, Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         Util.INSTANCE.notNull("Location cannot be null", path);
         staticFileConfig = new StaticFileConfig(path, location);
         return this;
     }
 
-    public synchronized Javalin ipAddress(String ipAddress) {
+    public Javalin ipAddress(String ipAddress) {
         ensureActionIsPerformedBeforeServerStart("Setting the ip");
         this.ipAddress = ipAddress;
         return this;
     }
 
-    public synchronized int port() {
+    public int port() {
         return started ? port : -1;
     }
 
-    public synchronized Javalin port(int port) {
+    public Javalin port(int port) {
         ensureActionIsPerformedBeforeServerStart("Setting the port");
         this.port = port;
         return this;
@@ -142,35 +142,35 @@ public class Javalin {
 
     // End embedded server methods
 
-    public synchronized Javalin accessManager(AccessManager accessManager) {
+    public Javalin accessManager(AccessManager accessManager) {
         this.accessManager = accessManager;
         return this;
     }
 
-    public synchronized <T extends Exception> Javalin exception(Class<T> exceptionClass, ExceptionHandler<? super T> exceptionHandler) {
+    public <T extends Exception> Javalin exception(Class<T> exceptionClass, ExceptionHandler<? super T> exceptionHandler) {
         exceptionMapper.getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
-    public synchronized Javalin event(EventType eventType, EventListener eventListener) {
+    public Javalin event(EventType eventType, EventListener eventListener) {
         ensureActionIsPerformedBeforeServerStart("Event-mapping");
         eventManager.getListenerMap().get(eventType).add(eventListener);
         return this;
     }
 
-    public synchronized Javalin error(int statusCode, ErrorHandler errorHandler) {
+    public Javalin error(int statusCode, ErrorHandler errorHandler) {
         errorMapper.getErrorHandlerMap().put(statusCode, errorHandler);
         return this;
     }
 
-    public synchronized Javalin routes(ApiBuilder.EndpointGroup endpointGroup) {
+    public Javalin routes(ApiBuilder.EndpointGroup endpointGroup) {
         ApiBuilder.setStaticJavalin(this);
         endpointGroup.addEndpoints();
         ApiBuilder.clearStaticJavalin();
         return this;
     }
 
-    private synchronized Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
+    private Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
         pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, path, handler));
         return this;
     }
