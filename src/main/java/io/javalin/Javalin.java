@@ -51,7 +51,11 @@ public class Javalin {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
 
+    private Javalin() {
+    }
+
     public static Javalin create() {
+        Util.INSTANCE.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
         return new Javalin();
     }
 
@@ -63,6 +67,7 @@ public class Javalin {
         if (!started) {
             log.info(Util.INSTANCE.javalinBanner());
             Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
+            Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
                 embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper), staticFileConfig);
@@ -131,7 +136,7 @@ public class Javalin {
 
     private void ensureServerHasNotStarted() {
         if (started) {
-            throw new IllegalStateException("This must be done before starting the server (adding handlers automatically starts the server)");
+            throw new IllegalStateException("This must be done before starting the server");
         }
     }
 
@@ -166,7 +171,6 @@ public class Javalin {
     }
 
     private synchronized Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
-        start();
         pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, path, handler));
         return this;
     }

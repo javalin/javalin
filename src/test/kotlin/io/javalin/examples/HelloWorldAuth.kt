@@ -21,6 +21,7 @@ fun main(args: Array<String>) {
 
     Javalin.create()
             .port(7070)
+            .start()
             .accessManager { handler, ctx, permittedRoles ->
                 val userRole = ctx.queryParam("role")
                 if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {

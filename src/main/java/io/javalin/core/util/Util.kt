@@ -16,6 +16,8 @@ object Util {
 
     private val log = LoggerFactory.getLogger(Util::class.java)
 
+    var noServerHasBeenStarted = true
+
     fun notNull(obj: Any?, message: String) {
         if (obj == null) {
             throw IllegalArgumentException(message)
@@ -43,6 +45,19 @@ object Util {
             throw HaltException(500, message)
         }
         dependencyCheckCache[className] = true
+    }
+
+    fun printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond() {
+        // per instance checks are not considered necessary
+        // this helper is not intended for people with more than one instance
+        Thread {
+            Thread.sleep(1000)
+            if (noServerHasBeenStarted) {
+                log.info("It looks like you created a Javalin instance, but you never started it.")
+                log.info("Try: Javalin app = Javalin.create().start();")
+                log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+            }
+        }.start()
     }
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }

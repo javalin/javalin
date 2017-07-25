@@ -31,6 +31,7 @@ public class HelloWorldSecure {
                 server.setConnectors(new Connector[] {sslConnector, connector});
                 return server;
             }))
+            .start()
             .get("/", ctx -> ctx.result("Hello World")); // valid endpoint for both connectors
     }
 
