@@ -98,7 +98,7 @@ public class Javalin {
     }
 
     public synchronized Javalin embeddedServer(EmbeddedServerFactory embeddedServerFactory) {
-        ensureServerHasNotStarted();
+        ensureActionIsPerformedBeforeServerStart("Setting a custom server");
         this.embeddedServerFactory = embeddedServerFactory;
         return this;
     }
@@ -112,14 +112,14 @@ public class Javalin {
     }
 
     public synchronized Javalin enableStaticFiles(String path, Location location) {
-        ensureServerHasNotStarted();
+        ensureActionIsPerformedBeforeServerStart("Enabling static files");
         Util.INSTANCE.notNull("Location cannot be null", path);
         staticFileConfig = new StaticFileConfig(path, location);
         return this;
     }
 
     public synchronized Javalin ipAddress(String ipAddress) {
-        ensureServerHasNotStarted();
+        ensureActionIsPerformedBeforeServerStart("Setting the ip");
         this.ipAddress = ipAddress;
         return this;
     }
@@ -129,14 +129,14 @@ public class Javalin {
     }
 
     public synchronized Javalin port(int port) {
-        ensureServerHasNotStarted();
+        ensureActionIsPerformedBeforeServerStart("Setting the port");
         this.port = port;
         return this;
     }
 
-    private void ensureServerHasNotStarted() {
+    private void ensureActionIsPerformedBeforeServerStart(String action) {
         if (started) {
-            throw new IllegalStateException("This must be done before starting the server");
+            throw new IllegalStateException(action + " must be done before starting the server");
         }
     }
 
@@ -153,7 +153,7 @@ public class Javalin {
     }
 
     public synchronized Javalin event(EventType eventType, EventListener eventListener) {
-        ensureServerHasNotStarted();
+        ensureActionIsPerformedBeforeServerStart("Event-mapping");
         eventManager.getListenerMap().get(eventType).add(eventListener);
         return this;
     }
