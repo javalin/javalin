@@ -11,6 +11,10 @@ import java.net.URLEncoder;
 
 import org.junit.Test;
 
+import com.mashape.unirest.http.HttpMethod;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
@@ -37,6 +41,22 @@ public class TestEncoding extends _UnirestBaseTest {
         app.get("/", ctx -> ctx.result(ctx.queryParam("qp")));
         String encoded = URLEncoder.encode("!#$&'()*+,/:;=?@[]", "UTF-8");
         assertThat(GET_body("/?qp=" + encoded), is("!#$&'()*+,/:;=?@[]"));
+    }
+
+    @Test
+    public void test_queryParam_manuallyEncoded() throws Exception {
+        app.get("/", ctx -> ctx.result(ctx.queryParam("qp")));
+        assertThat(GET_body("/?qp=" + "8%3A00+PM"), is("8:00 PM"));
+    }
+
+    @Test
+    public void test_formParam_encoded() throws Exception {
+        app.post("/", ctx -> ctx.result(ctx.formParam("qp")));
+        HttpResponse<String> response = Unirest
+            .post("http://localhost:" + app.port() + "/")
+            .body("qp=8%3A00+PM")
+            .asString();
+        assertThat(response.getBody(), is("8:00 PM"));
     }
 
 }

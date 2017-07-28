@@ -17,6 +17,7 @@ import io.javalin.translator.template.Velocity
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.InputStream
+import java.net.URLDecoder
 import java.util.concurrent.CompletableFuture
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
@@ -67,11 +68,12 @@ class Context(private val servletResponse: HttpServletResponse,
     fun bodyParam(bodyParam: String): String? = formParam(bodyParam)
 
     fun formParam(formParam: String): String? {
-        return body().split("&")
+        val value = body().split("&")
                 .map { it.split("=") }
                 .filter { it.first().equals(formParam, ignoreCase = true) }
                 .map { it.last() }
                 .firstOrNull()
+        return if (value != null) URLDecoder.decode(value, "UTF-8") else null;
     }
 
     fun mapQueryParams(vararg keys: String): List<String>? = try {
