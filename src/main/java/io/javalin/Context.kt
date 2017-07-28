@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.builder.CookieBuilder
 import io.javalin.core.util.ContextUtil
+import io.javalin.core.util.UploadUtil
 import io.javalin.core.util.Util
 import io.javalin.translator.json.Jackson
 import io.javalin.translator.template.Freemarker
@@ -67,13 +68,20 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun bodyParam(bodyParam: String): String? = formParam(bodyParam)
 
+    fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
+
+    fun uploadedFiles(fileName: String): List<UploadedFile> {
+        Util.ensureDependencyPresent("FileUpload", "org.apache.commons.fileupload.servlet.ServletFileUpload", "commons-fileupload/commons-fileupload")
+        return UploadUtil.getUploadedFiles(servletRequest, fileName)
+    }
+
     fun formParam(formParam: String): String? {
         val value = body().split("&")
                 .map { it.split("=") }
                 .filter { it.first().equals(formParam, ignoreCase = true) }
                 .map { it.last() }
                 .firstOrNull()
-        return if (value != null) URLDecoder.decode(value, "UTF-8") else null;
+        return if (value != null) URLDecoder.decode(value, "UTF-8") else null
     }
 
     fun mapQueryParams(vararg keys: String): List<String>? = try {
