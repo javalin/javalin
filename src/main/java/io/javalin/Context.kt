@@ -90,6 +90,12 @@ class Context(private val servletResponse: HttpServletResponse,
         null
     }
 
+    fun mapFormParams(vararg keys: String): List<String>? = try {
+        keys.map { formParam(it) }.requireNoNulls().toList()
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.filter { servletRequest.getParameter(it) == null }.isNotEmpty()
 
     fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]

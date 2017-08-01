@@ -53,7 +53,7 @@ public class TestEncoding extends _UnirestBaseTest {
     public void test_formParam_encoded() throws Exception {
         app.post("/", ctx -> ctx.result(ctx.formParam("qp")));
         HttpResponse<String> response = Unirest
-            .post("http://localhost:" + app.port() + "/")
+            .post(origin)
             .body("qp=8%3A00+PM")
             .asString();
         assertThat(response.getBody(), is("8:00 PM"));
