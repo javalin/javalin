@@ -84,17 +84,9 @@ class Context(private val servletResponse: HttpServletResponse,
         return if (value != null) URLDecoder.decode(value, "UTF-8") else null
     }
 
-    fun mapQueryParams(vararg keys: String): List<String>? = try {
-        keys.map { servletRequest.getParameter(it) }.requireNoNulls().toList()
-    } catch (e: IllegalArgumentException) {
-        null
-    }
+    fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { servletRequest.getParameter(it) }
 
-    fun mapFormParams(vararg keys: String): List<String>? = try {
-        keys.map { formParam(it) }.requireNoNulls().toList()
-    } catch (e: IllegalArgumentException) {
-        null
-    }
+    fun mapFormParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys){ formParam(it) }
 
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.filter { servletRequest.getParameter(it) == null }.isNotEmpty()
 

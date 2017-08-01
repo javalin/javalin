@@ -68,6 +68,12 @@ object ContextUtil {
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
+    fun mapKeysOrReturnNullIfAnyNulls(keys: Array<out String>, f: (s: String) -> String?): List<String>? = try {
+        keys.map { f.invoke(it) }.requireNoNulls().toList()
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
     fun byteArrayToString(bytes: ByteArray, encoding: String?): String {
         var string: String
         if (encoding != null && Charset.isSupported(encoding)) {
