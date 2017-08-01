@@ -2,7 +2,6 @@
  * Javalin - https://javalin.io
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
- *
  */
 
 package io.javalin;
@@ -124,6 +123,20 @@ public class TestRequest extends _UnirestBaseTest {
     public void test_anyQueryParamNullFalse_allParamsNonNull() throws Exception {
         app.get("/", ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "qp3")));
         assertThat(GET_body("/?qp1=1&qp2=2&qp3=3"), is("false"));
+    }
+
+    @Test
+    public void test_anyFormParamNullTrue_someParamsNull() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "nullkey")));
+        HttpResponse<String> response = Unirest.post("http://localhost:7777").body("fp1=1&fp2=2").asString();
+        assertThat(response.getBody(), is("true"));
+    }
+
+    @Test
+    public void test_anyFormParamNullFalse_allParamsNonNull() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "fp3")));
+        HttpResponse<String> response = Unirest.post("http://localhost:7777").body("fp1=1&fp2=2&fp3=3").asString();
+        assertThat(response.getBody(), is("false"));
     }
 
     @Test

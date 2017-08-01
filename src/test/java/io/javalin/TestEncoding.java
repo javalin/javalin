@@ -11,7 +11,6 @@ import java.net.URLEncoder;
 
 import org.junit.Test;
 
-import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 
