@@ -7,11 +7,9 @@
 
 The project webpage is [javalin.io](https://javalin.io).
 
-## Getting started
+## Java quickstart
 
-### Java
-
-#### Add dependency (maven)
+### Add dependency (maven)
 
 ```xml
 <dependency>
@@ -21,7 +19,7 @@ The project webpage is [javalin.io](https://javalin.io).
 </dependency>
 ```
 
-#### Start programming:
+### Start programming:
 
 ```java
 import io.javalin.Javalin;
@@ -34,14 +32,14 @@ public class HelloWorld {
 }
 ```
 
-### Kotlin
+## Kotlin quickstart
 
-#### Add dependency (gradle)
+### Add dependency (gradle)
 ```kotlin
 compile 'io.javalin:javalin:0.3.6'
 ```
 
-#### Start programming
+### Start programming
 ```kotlin
 import io.javalin.Javalin
 
@@ -51,7 +49,7 @@ fun main(args: Array<String>) {
 }
 ```
 
-#### Special thanks
+## Special thanks
 * Blake Mizerany, for creating [Sinatra](http://www.sinatrarb.com/)
 * Per Wendel, for creating [Spark](http://sparkjava.com/)
 * [Christian Rasmussen](https://github.com/chrrasmussen), for being a great guy
