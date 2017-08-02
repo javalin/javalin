@@ -9,7 +9,9 @@ The project webpage is [javalin.io](https://javalin.io).
 
 ## Getting started
 
-### Add the dependency
+### Java
+
+#### Add dependency (maven)
 
 ```xml
 <dependency>
@@ -19,7 +21,7 @@ The project webpage is [javalin.io](https://javalin.io).
 </dependency>
 ```
 
-### Start programming:
+#### Start programming:
 
 ```java
 import io.javalin.Javalin;
@@ -29,6 +31,23 @@ public class HelloWorld {
         Javalin app = Javalin.create().port(7000).start();
         app.get("/", ctx -> ctx.result("Hello World"));
     }
+}
+```
+
+### Kotlin
+
+#### Add dependency (gradle)
+```kotlin
+compile 'io.javalin:javalin:0.3.6'
+```
+
+#### Start programming
+```kotlin
+import io.javalin.Javalin
+
+fun main(args: Array<String>) {
+    val app = Javalin.create().port(7000).start()
+    app.get("/") { ctx -> ctx.result("Hello World") }
 }
 ```
 
