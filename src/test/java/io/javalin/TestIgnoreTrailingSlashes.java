@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 /**
  * Created by enchanting on 03.08.17.
@@ -31,6 +32,10 @@ public class TestIgnoreTrailingSlashes {
         app.get(endpoint, (ctx) -> ctx.result(endpointResponse));
         assertThat(simpleHttpClient.http_GET("localhost" + endpoint).getBody(), is(endpointResponse));
         assertThat(simpleHttpClient.http_GET("localhost" + endpoint + "/").getBody(), is(endpointResponse));
+        app.setTrailingSlashesIgnored(false);
+        assertThat(simpleHttpClient.http_GET("localhost" + endpoint).getBody(), is(endpointResponse));
+        assertThat(simpleHttpClient.http_GET("localhost" + endpoint + "/").getBody(), not(endpointResponse));
 
+        app.stop();
     }
 }

@@ -33,11 +33,11 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
 
         try { // before-handlers, endpoint-handlers, static-files
 
-            for (beforeEntry in matcher.findEntries(HandlerType.BEFORE, requestUri, ignoreTrailingSlashes)) {
+            for (beforeEntry in matcher.findEntries(HandlerType.BEFORE, requestUri)) {
                 beforeEntry.handler.handle(ContextUtil.update(ctx, beforeEntry, requestUri))
             }
 
-            val entries = matcher.findEntries(type, requestUri, ignoreTrailingSlashes)
+            val entries = matcher.findEntries(type, requestUri)
             if (!entries.isEmpty()) {
                 for (endpointEntry in entries) {
                     endpointEntry.handler.handle(ContextUtil.update(ctx, endpointEntry, requestUri))
@@ -45,7 +45,7 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
                         break
                     }
                 }
-            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri, ignoreTrailingSlashes).isEmpty()) {
+            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty()) {
                 if (staticResourceHandler!!.handle(req, res)) {
                     return
                 }
@@ -59,7 +59,7 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
         }
 
         try { // after-handlers
-            for (afterEntry in matcher.findEntries(HandlerType.AFTER, requestUri, ignoreTrailingSlashes)) {
+            for (afterEntry in matcher.findEntries(HandlerType.AFTER, requestUri)) {
                 afterEntry.handler.handle(ContextUtil.update(ctx, afterEntry, requestUri))
             }
         } catch (e: Exception) {
