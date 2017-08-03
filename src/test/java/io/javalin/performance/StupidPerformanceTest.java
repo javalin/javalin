@@ -34,7 +34,7 @@ public class StupidPerformanceTest {
     @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()
-            .port(7000)
+            .setPort(7000)
             .routes(() -> {
                 before(ctx -> ctx.status(123));
                 before(ctx -> ctx.status(200));

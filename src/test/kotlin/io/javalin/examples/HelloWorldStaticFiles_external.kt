@@ -11,7 +11,7 @@ import io.javalin.embeddedserver.Location
 
 fun main(args: Array<String>) {
     Javalin.create()
-            .port(7070)
+            .setPort(7070)
             .enableStaticFiles("src/test/external/", Location.EXTERNAL)
             .start()
 }

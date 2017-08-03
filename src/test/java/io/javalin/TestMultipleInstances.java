@@ -27,9 +27,9 @@ public class TestMultipleInstances {
 
     @BeforeClass
     public static void setup() throws IOException {
-        app1 = Javalin.create().port(7001).start();
-        app2 = Javalin.create().port(7002).start();
-        app3 = Javalin.create().port(7003).start();
+        app1 = Javalin.create().setPort(7001).start();
+        app2 = Javalin.create().setPort(7002).start();
+        app3 = Javalin.create().setPort(7003).start();
     }
 
     @AfterClass

@@ -25,7 +25,7 @@ public class _SimpleClientBaseTest {
     @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()
-            .port(7777)
+            .setPort(7777)
             .start();
         simpleHttpClient = new SimpleHttpClient();
     }

@@ -107,6 +107,19 @@ public class Javalin {
         return embeddedServer;
     }
 
+    public Javalin setStaticFileLocation(String location){
+        enableStaticFiles(location);
+        return this;
+    }
+
+    public String getStaticFileLocation(){
+        if(staticFileConfig != null){
+            return staticFileConfig.getPath();
+        }else{
+            return null;
+        }
+    }
+
     public Javalin enableStaticFiles(String classpathPath) {
         return enableStaticFiles(classpathPath, Location.CLASSPATH);
     }
@@ -124,12 +137,12 @@ public class Javalin {
         return this;
     }
 
-    public int port() {
+    public int getPort() {
         return started ? port : -1;
     }
 
-    public Javalin port(int port) {
-        ensureActionIsPerformedBeforeServerStart("Setting the port");
+    public Javalin setPort(int port) {
+        ensureActionIsPerformedBeforeServerStart("Setting the getPort");
         this.port = port;
         return this;
     }
