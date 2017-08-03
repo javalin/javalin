@@ -59,6 +59,13 @@ public class Javalin {
         return new Javalin();
     }
 
+    public static Javalin start(int port) {
+        return new Javalin()
+            .port(port)
+            .enableStaticFiles("/public")
+            .start();
+    }
+
     // Begin embedded server methods
 
     private boolean started = false;
