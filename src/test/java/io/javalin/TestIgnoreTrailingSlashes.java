@@ -25,14 +25,11 @@ public class TestIgnoreTrailingSlashes {
         SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
         Javalin app = Javalin.create()
                 .port(port)
+                .dontIgnoreTrailingSlashes()
                 .start();
 
-        app.setTrailingSlashesIgnored(true);
 
         app.get(endpoint, (ctx) -> ctx.result(endpointResponse));
-        assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint).getBody(), is(endpointResponse));
-        assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint + "/").getBody(), is(endpointResponse));
-        app.setTrailingSlashesIgnored(false);
         assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint).getBody(), is(endpointResponse));
         assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint + "/").getBody(), not(endpointResponse));
 
