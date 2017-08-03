@@ -1,15 +1,20 @@
+/*
+ * Javalin - https://javalin.io
+ * Copyright 2017 David Åse
+ * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ *
+ */
+
 package io.javalin;
 
-import io.javalin.util.SimpleHttpClient;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.util.logging.Logger;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import org.junit.Test;
+
+import io.javalin.util.SimpleHttpClient;
+
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Created by enchanting on 03.08.17.
@@ -24,12 +29,11 @@ public class TestIgnoreTrailingSlashes {
         int port = 7787;
         SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
         Javalin app = Javalin.create()
-                .port(port)
-                .dontIgnoreTrailingSlashes()
-                .start();
+            .port(port)
+            .dontIgnoreTrailingSlashes()
+            .start();
 
-
-        app.get(endpoint, (ctx) -> ctx.result(endpointResponse));
+        app.get(endpoint, ctx -> ctx.result(endpointResponse));
         assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint).getBody(), is(endpointResponse));
         assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint + "/").getBody(), not(endpointResponse));
 
@@ -44,10 +48,10 @@ public class TestIgnoreTrailingSlashes {
         int port = 7787;
         SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
         Javalin app = Javalin.create()
-                .port(port)
-                .start();
+            .port(port)
+            .start();
 
-        app.get(endpoint, (ctx) -> ctx.result(endpointResponse));
+        app.get(endpoint, ctx -> ctx.result(endpointResponse));
         assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint).getBody(), is(endpointResponse));
         assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint + "/").getBody(), is(endpointResponse));
 

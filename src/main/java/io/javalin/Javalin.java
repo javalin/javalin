@@ -84,7 +84,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin dontIgnoreTrailingSlashes(){
+    public Javalin dontIgnoreTrailingSlashes() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore slashes");
         pathMatcher.setIgnoreTrailingSlashes(false);
         return this;
