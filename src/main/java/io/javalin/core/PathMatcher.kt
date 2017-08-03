@@ -15,7 +15,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
 class PathMatcher {
 
-    var ignoreTrailingSlashes = false
+    var ignoreTrailingSlashes = true
 
     private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
