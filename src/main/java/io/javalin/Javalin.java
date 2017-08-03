@@ -37,6 +37,7 @@ public class Javalin {
     private int port = 7000;
     private String ipAddress = "0.0.0.0";
 
+    private JavalinServlet servlet = null;
     private EmbeddedServer embeddedServer;
     private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
 
@@ -70,7 +71,8 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper), staticFileConfig);
+                servlet = new JavalinServlet(pathMatcher, exceptionMapper, errorMapper);
+                embeddedServer = embeddedServerFactory.create(servlet, staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(ipAddress, port);
                 log.info("Javalin has started \\o/");
@@ -82,6 +84,10 @@ public class Javalin {
             }
         }
         return this;
+    }
+
+    public void setTrailingSlashesIgnored(boolean ignored){
+        servlet.setIgnoreTrailingSlashes(ignored);
     }
 
     public Javalin stop() {
