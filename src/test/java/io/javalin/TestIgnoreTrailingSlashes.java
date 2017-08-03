@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.not;
 public class TestIgnoreTrailingSlashes {
 
     @Test()
-    public void init() throws IOException {
+    public void dontIgnoreTrailingSlashes() throws IOException {
 
         String endpointResponse = "Hello, slash!";
         String endpoint = "/hello";
@@ -32,6 +32,24 @@ public class TestIgnoreTrailingSlashes {
         app.get(endpoint, (ctx) -> ctx.result(endpointResponse));
         assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint).getBody(), is(endpointResponse));
         assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint + "/").getBody(), not(endpointResponse));
+
+        app.stop();
+    }
+
+    @Test()
+    public void ignoreTrailingSlashes() throws IOException {
+
+        String endpointResponse = "Hello, slash!";
+        String endpoint = "/hello";
+        int port = 7787;
+        SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
+        Javalin app = Javalin.create()
+                .port(port)
+                .start();
+
+        app.get(endpoint, (ctx) -> ctx.result(endpointResponse));
+        assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint).getBody(), is(endpointResponse));
+        assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint + "/").getBody(), is(endpointResponse));
 
         app.stop();
     }
