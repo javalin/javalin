@@ -35,6 +35,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
                     cacheControl = "no-store,no-cache,must-revalidate"
                 }.start()
                 initialized = true
+                log.info("Static files enabled: {$staticFileConfig}. Absolute path: '${resourceHandler.resourceBase}'")
             } catch (e: Exception) {
                 log.error("Exception occurred starting static resource handler", e)
                 throw(e)
