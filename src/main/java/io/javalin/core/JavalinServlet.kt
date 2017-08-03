@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletResponse
 class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMapper, val errorMapper: ErrorMapper) {
 
     var staticResourceHandler: StaticResourceHandler? = null
-    var ignoreTrailingSlashes = false
 
     fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 

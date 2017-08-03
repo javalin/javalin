@@ -84,19 +84,10 @@ public class Javalin {
         return this;
     }
 
-
-    public Javalin ignoreTrailingSlashes(){
-        pathMatcher.setIgnoreTrailingSlashes(true);
-        return this;
-    }
-
     public Javalin dontIgnoreTrailingSlashes(){
+        ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore slashes");
         pathMatcher.setIgnoreTrailingSlashes(false);
         return this;
-    }
-
-    public void setTrailingSlashesIgnored(boolean ignored){
-        pathMatcher.setIgnoreTrailingSlashes(ignored);
     }
 
     public Javalin stop() {
