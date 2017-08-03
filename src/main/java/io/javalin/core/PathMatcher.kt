@@ -30,7 +30,7 @@ class PathMatcher {
         handlerEntry.type !== requestType -> false
         handlerEntry.path == "*" -> true
         handlerEntry.path == requestPath -> true
-        slashMismatch(handlerEntry.path, requestPath) && !this.ignoreTrailingSlashes -> false
+        !this.ignoreTrailingSlashes && slashMismatch(handlerEntry.path, requestPath) -> false
         else -> matchParamAndWildcard(handlerEntry.path, requestPath)
     }
 
