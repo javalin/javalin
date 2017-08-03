@@ -29,7 +29,7 @@ public class TestStaticFiles {
     @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()
-            .port(7777)
+            .setPort(7777)
             .enableStaticFiles("/public")
             .start();
     }

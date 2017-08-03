@@ -24,7 +24,7 @@ public class TestStaticFiles_edgeCases {
     @Test
     public void test_externalFolder() throws Exception {
         Javalin app = Javalin.create()
-            .port(7777)
+            .setPort(7777)
             .enableStaticFiles("src/test/external/", Location.EXTERNAL)
             .start();
 

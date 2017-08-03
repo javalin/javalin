@@ -21,7 +21,7 @@ public class TestCustomJetty {
     @Test
     public void test_embeddedServer_setsCustomServer() throws Exception {
         Javalin app = Javalin.create()
-            .port(0)
+            .setPort(0)
             .embeddedServer(new EmbeddedJettyFactory(() -> {
                 Server server = new Server(new QueuedThreadPool(200, 8, 60_000));
                 server.setAttribute("is-custom-server", true);

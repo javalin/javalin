@@ -17,7 +17,7 @@ public class FileUploadExample {
 
     public static void main(String[] args) {
 
-        Javalin app = Javalin.create().port(7000).start();
+        Javalin app = Javalin.create().setPort(7000).start();
 
         app.get("/", ctx ->
             ctx.html(

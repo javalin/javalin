@@ -22,7 +22,7 @@ public class HelloWorldAuth {
 
     public static void main(String[] args) {
         Javalin.create()
-            .port(7070)
+            .setPort(7070)
             .start()
             .accessManager((handler, ctx, permittedRoles) -> {
                 String userRole = ctx.queryParam("role");

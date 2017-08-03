@@ -26,9 +26,9 @@ public class TestGetPortAfterRandomPortInit {
     @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()
-            .port(0)
+            .setPort(0)
             .start();
-        port = app.port();
+        port = app.getPort();
     }
 
     @AfterClass

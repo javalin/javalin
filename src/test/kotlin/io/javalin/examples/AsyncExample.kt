@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture
 
 fun main(args: Array<String>) {
 
-    val app = Javalin.create().port(5454).start()
+    val app = Javalin.create().setPort(5454).start()
 
     app.get("/test-custom") { ctx ->
         val asyncContext = ctx.request().startAsync()

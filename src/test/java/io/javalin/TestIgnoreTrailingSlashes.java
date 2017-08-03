@@ -29,7 +29,7 @@ public class TestIgnoreTrailingSlashes {
         int port = 7787;
         SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
         Javalin app = Javalin.create()
-            .port(port)
+            .setPort(port)
             .dontIgnoreTrailingSlashes()
             .start();
 
@@ -48,7 +48,7 @@ public class TestIgnoreTrailingSlashes {
         int port = 7787;
         SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
         Javalin app = Javalin.create()
-            .port(port)
+            .setPort(port)
             .start();
 
         app.get(endpoint, ctx -> ctx.result(endpointResponse));

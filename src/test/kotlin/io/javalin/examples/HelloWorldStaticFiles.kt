@@ -10,7 +10,7 @@ import io.javalin.Javalin
 
 fun main(args: Array<String>) {
     Javalin.create()
-            .port(7070)
+            .setPort(7070)
             .enableStaticFiles("/public")
             .start()
 }
