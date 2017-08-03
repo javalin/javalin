@@ -15,6 +15,8 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
 class PathMatcher {
 
+    var ignoreTrailingSlashes = true
+
     private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
     val handlerEntries = ArrayList<HandlerEntry>()
@@ -28,7 +30,7 @@ class PathMatcher {
         handlerEntry.type !== requestType -> false
         handlerEntry.path == "*" -> true
         handlerEntry.path == requestPath -> true
-        slashMismatch(handlerEntry.path, requestPath) -> false
+        !this.ignoreTrailingSlashes && slashMismatch(handlerEntry.path, requestPath) -> false
         else -> matchParamAndWildcard(handlerEntry.path, requestPath)
     }
 
