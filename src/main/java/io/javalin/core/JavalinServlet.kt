@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse
 class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMapper, val errorMapper: ErrorMapper) {
 
     var staticResourceHandler: StaticResourceHandler? = null
+    var ignoreTrailingSlashes = false
 
     fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 
@@ -32,11 +33,11 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
 
         try { // before-handlers, endpoint-handlers, static-files
 
-            for (beforeEntry in matcher.findEntries(HandlerType.BEFORE, requestUri)) {
+            for (beforeEntry in matcher.findEntries(HandlerType.BEFORE, requestUri, ignoreTrailingSlashes)) {
                 beforeEntry.handler.handle(ContextUtil.update(ctx, beforeEntry, requestUri))
             }
 
-            val entries = matcher.findEntries(type, requestUri)
+            val entries = matcher.findEntries(type, requestUri, ignoreTrailingSlashes)
             if (!entries.isEmpty()) {
                 for (endpointEntry in entries) {
                     endpointEntry.handler.handle(ContextUtil.update(ctx, endpointEntry, requestUri))
@@ -44,7 +45,7 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
                         break
                     }
                 }
-            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty()) {
+            } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri, ignoreTrailingSlashes).isEmpty()) {
                 if (staticResourceHandler!!.handle(req, res)) {
                     return
                 }
@@ -58,7 +59,7 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
         }
 
         try { // after-handlers
-            for (afterEntry in matcher.findEntries(HandlerType.AFTER, requestUri)) {
+            for (afterEntry in matcher.findEntries(HandlerType.AFTER, requestUri, ignoreTrailingSlashes)) {
                 afterEntry.handler.handle(ContextUtil.update(ctx, afterEntry, requestUri))
             }
         } catch (e: Exception) {

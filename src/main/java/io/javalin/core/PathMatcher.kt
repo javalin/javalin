@@ -19,16 +19,16 @@ class PathMatcher {
 
     val handlerEntries = ArrayList<HandlerEntry>()
 
-    fun findEntries(requestType: HandlerType, requestUri: String): List<HandlerEntry> {
-        return handlerEntries.filter { he -> match(he, requestType, requestUri) }
+    fun findEntries(requestType: HandlerType, requestUri: String, ignoreTrailingSlashes: Boolean): List<HandlerEntry> {
+        return handlerEntries.filter { he -> match(he, requestType, requestUri, ignoreTrailingSlashes) }
     }
 
     // TODO: Consider optimizing this
-    private fun match(handlerEntry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean = when {
+    private fun match(handlerEntry: HandlerEntry, requestType: HandlerType, requestPath: String, ignoreTrailingSlashes: Boolean): Boolean = when {
         handlerEntry.type !== requestType -> false
         handlerEntry.path == "*" -> true
         handlerEntry.path == requestPath -> true
-        slashMismatch(handlerEntry.path, requestPath) -> false
+        slashMismatch(handlerEntry.path, requestPath) && !ignoreTrailingSlashes -> false
         else -> matchParamAndWildcard(handlerEntry.path, requestPath)
     }
 
