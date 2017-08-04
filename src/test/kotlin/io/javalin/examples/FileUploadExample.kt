@@ -25,6 +25,7 @@ fun main(args: Array<String>) {
         )
     }
 
+
     app.post("/") { ctx ->
         ctx.uploadedFiles("files").forEach { (_, content, name) ->
             FileUtils.copyInputStreamToFile(content, File("upload/" + name))

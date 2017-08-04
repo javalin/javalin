@@ -6,7 +6,15 @@
 
 package io.javalin
 
+import org.apache.commons.io.FileUtils
+import java.io.File
 import java.io.InputStream
 
-data class UploadedFile(val contentType: String, val content: InputStream, val name: String, val extension: String)
+data class UploadedFile(val contentType: String, val content: InputStream, val name: String, val extension: String){
+    fun getFile(): File {
+        val uploadedFile = createTempFile()
+        FileUtils.copyInputStreamToFile(this.content, uploadedFile)
+        return uploadedFile
+    }
+}
 
