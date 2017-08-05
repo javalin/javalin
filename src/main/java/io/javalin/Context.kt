@@ -248,19 +248,27 @@ class Context(private val servletResponse: HttpServletResponse,
         return html(Velocity.render(templatePath, model))
     }
 
+    fun renderVelocity(templatePath: String): Context = renderVelocity(templatePath, mapOf())
+
     fun renderFreemarker(templatePath: String, model: Map<String, Any>): Context {
         Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
         return html(Freemarker.render(templatePath, model))
     }
+
+    fun renderFreemarker(templatePath: String): Context = renderFreemarker(templatePath, mapOf())
 
     fun renderThymeleaf(templatePath: String, model: Map<String, Any>): Context {
         Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3")
         return html(Thymeleaf.render(templatePath, model))
     }
 
+    fun renderThymeleaf(templatePath: String): Context = renderThymeleaf(templatePath, mapOf())
+
     fun renderMustache(templatePath: String, model: Map<String, Any>): Context {
         Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
         return html(Mustache.render(templatePath, model))
     }
+
+    fun renderMustache(templatePath: String): Context = renderMustache(templatePath, mapOf())
 
 }
