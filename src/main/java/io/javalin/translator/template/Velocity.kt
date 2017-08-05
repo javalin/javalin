@@ -15,6 +15,7 @@ object Velocity {
 
     private var velocityEngine: VelocityEngine? = null
 
+    @JvmStatic
     fun configure(staticVelocityEngine: VelocityEngine) {
         velocityEngine = staticVelocityEngine
     }

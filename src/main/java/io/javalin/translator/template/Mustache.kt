@@ -15,6 +15,7 @@ object Mustache {
 
     private var mustacheFactory: MustacheFactory? = null
 
+    @JvmStatic
     fun configure(staticMustacheFactory: MustacheFactory) {
         mustacheFactory = staticMustacheFactory
     }

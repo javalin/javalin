@@ -9,6 +9,7 @@ package io.javalin.translator.template
 import java.util.*
 
 object TemplateUtil {
+    @JvmStatic
     fun model(vararg args: Any): Map<String, Any> {
         if (args.size % 2 != 0) {
             throw IllegalArgumentException("Number of arguments must be even (key value pairs)")

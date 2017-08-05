@@ -15,6 +15,7 @@ object Thymeleaf {
 
     private var templateEngine: TemplateEngine? = null
 
+    @JvmStatic
     fun configure(staticTemplateEngine: TemplateEngine) {
         templateEngine = staticTemplateEngine
     }

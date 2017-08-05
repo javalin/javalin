@@ -14,6 +14,7 @@ object Freemarker {
 
     private var configuration: Configuration? = null
 
+    @JvmStatic
     fun configure(staticConfiguration: Configuration) {
         configuration = staticConfiguration
     }

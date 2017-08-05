@@ -12,6 +12,7 @@ object Jackson {
 
     private var objectMapper: ObjectMapper? = null
 
+    @JvmStatic
     fun configure(staticObjectMapper: ObjectMapper) {
         objectMapper = staticObjectMapper
     }
