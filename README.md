@@ -26,7 +26,7 @@ import io.javalin.Javalin;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().port(7000).start();
+        Javalin app = Javalin.start(7000);
         app.get("/", ctx -> ctx.result("Hello World"));
     }
 }
@@ -44,7 +44,7 @@ compile 'io.javalin:javalin:0.3.7'
 import io.javalin.Javalin
 
 fun main(args: Array<String>) {
-    val app = Javalin.create().port(7000).start()
+    val app = Javalin.start(7000)
     app.get("/") { ctx -> ctx.result("Hello World") }
 }
 ```
