@@ -33,6 +33,9 @@ object Velocity {
         val velocityEngine = VelocityEngine()
         velocityEngine.setProperty("resource.loader", "class")
         velocityEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
+        velocityEngine.setProperty("velocimacro.library.autoreload", "true")
+        velocityEngine.setProperty("file.resource.loader.cache", "false")
+        velocityEngine.setProperty("velocimacro.permissions.allow.inline.to.replace.global", "true")
         return velocityEngine
     }
 }
