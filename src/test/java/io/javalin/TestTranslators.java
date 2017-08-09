@@ -11,9 +11,9 @@ import org.apache.velocity.app.VelocityEngine;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import io.javalin.translator.json.Jackson;
+import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.translator.template.TemplateUtil;
-import io.javalin.translator.template.Velocity;
+import io.javalin.translator.template.JavalinVelocityPlugin;
 import io.javalin.util.CustomMapper;
 import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;
@@ -29,7 +29,7 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @BeforeClass
     public static void setObjectMapper() {
-        Jackson.configure(new CustomMapper());
+        JavalinJacksonPlugin.configure(new CustomMapper());
     }
 
     @Test
@@ -89,7 +89,7 @@ public class TestTranslators extends _UnirestBaseTest {
     public void test_customVelocityEngine_works() throws Exception {
         app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm"));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
-        Velocity.configure(strictVelocityEngine());
+        JavalinVelocityPlugin.configure(strictVelocityEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
     }
 

@@ -8,7 +8,7 @@ package io.javalin.translator.json
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
-object Jackson {
+object JavalinJacksonPlugin {
 
     private var objectMapper: ObjectMapper? = null
 

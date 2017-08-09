@@ -10,11 +10,11 @@ import io.javalin.builder.CookieBuilder
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.UploadUtil
 import io.javalin.core.util.Util
-import io.javalin.translator.json.Jackson
-import io.javalin.translator.template.Freemarker
-import io.javalin.translator.template.Mustache
-import io.javalin.translator.template.Thymeleaf
-import io.javalin.translator.template.Velocity
+import io.javalin.translator.json.JavalinJacksonPlugin
+import io.javalin.translator.template.JavalinFreemarkerPlugin
+import io.javalin.translator.template.JavalinMustachePlugin
+import io.javalin.translator.template.JavalinThymeleafPlugin
+import io.javalin.translator.template.JavalinVelocityPlugin
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.InputStream
@@ -63,7 +63,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun <T> bodyAsClass(clazz: Class<T>): T {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-        return Jackson.toObject(body(), clazz)
+        return JavalinJacksonPlugin.toObject(body(), clazz)
     }
 
     fun bodyParam(bodyParam: String): String? = formParam(bodyParam)
@@ -240,33 +240,33 @@ class Context(private val servletResponse: HttpServletResponse,
     // TODO: Consider moving rendering to JavalinServlet, where response is written
     fun json(`object`: Any): Context {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-        return result(Jackson.toJson(`object`)).contentType("application/json")
+        return result(JavalinJacksonPlugin.toJson(`object`)).contentType("application/json")
     }
 
     fun renderVelocity(templatePath: String, model: Map<String, Any>): Context {
         Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
-        return html(Velocity.render(templatePath, model))
+        return html(JavalinVelocityPlugin.render(templatePath, model))
     }
 
     fun renderVelocity(templatePath: String): Context = renderVelocity(templatePath, mapOf())
 
     fun renderFreemarker(templatePath: String, model: Map<String, Any>): Context {
         Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
-        return html(Freemarker.render(templatePath, model))
+        return html(JavalinFreemarkerPlugin.render(templatePath, model))
     }
 
     fun renderFreemarker(templatePath: String): Context = renderFreemarker(templatePath, mapOf())
 
     fun renderThymeleaf(templatePath: String, model: Map<String, Any>): Context {
         Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3")
-        return html(Thymeleaf.render(templatePath, model))
+        return html(JavalinThymeleafPlugin.render(templatePath, model))
     }
 
     fun renderThymeleaf(templatePath: String): Context = renderThymeleaf(templatePath, mapOf())
 
     fun renderMustache(templatePath: String, model: Map<String, Any>): Context {
         Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
-        return html(Mustache.render(templatePath, model))
+        return html(JavalinMustachePlugin.render(templatePath, model))
     }
 
     fun renderMustache(templatePath: String): Context = renderMustache(templatePath, mapOf())

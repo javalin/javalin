@@ -11,7 +11,7 @@ import org.apache.velocity.app.VelocityEngine
 import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 
-object Velocity {
+object JavalinVelocityPlugin {
 
     private var velocityEngine: VelocityEngine? = null
 
@@ -38,4 +38,5 @@ object Velocity {
         velocityEngine.setProperty("velocimacro.permissions.allow.inline.to.replace.global", "true")
         return velocityEngine
     }
+
 }
