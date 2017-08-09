@@ -27,19 +27,14 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
 
     init {
         if (staticFileConfig != null) {
-            try {
-                resourceHandler.apply {
-                    resourceBase = getResourcePath(staticFileConfig)
-                    isDirAllowed = false
-                    isEtags = true
-                    cacheControl = "no-store,no-cache,must-revalidate"
-                }.start()
-                initialized = true
-                log.info("Static files enabled: {$staticFileConfig}. Absolute path: '${resourceHandler.resourceBase}'")
-            } catch (e: Exception) {
-                log.error("Exception occurred starting static resource handler", e)
-                throw(e)
-            }
+            resourceHandler.apply {
+                resourceBase = getResourcePath(staticFileConfig)
+                isDirAllowed = false
+                isEtags = true
+                cacheControl = "no-store,no-cache,must-revalidate"
+            }.start()
+            initialized = true
+            log.info("Static files enabled: {$staticFileConfig}. Absolute path: '${resourceHandler.resourceBase}'")
         }
     }
 
