@@ -11,10 +11,11 @@ import org.thymeleaf.context.Context
 import org.thymeleaf.templatemode.TemplateMode
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
-object Thymeleaf {
+object JavalinThymeleafPlugin {
 
     private var templateEngine: TemplateEngine? = null
 
+    @JvmStatic
     fun configure(staticTemplateEngine: TemplateEngine) {
         templateEngine = staticTemplateEngine
     }
@@ -26,7 +27,7 @@ object Thymeleaf {
         return templateEngine!!.process(templatePath, context)
     }
 
-    fun defaultThymeLeafEngine(): TemplateEngine {
+    private fun defaultThymeLeafEngine(): TemplateEngine {
         val templateEngine = TemplateEngine()
         val templateResolver = ClassLoaderTemplateResolver()
         templateResolver.templateMode = TemplateMode.HTML

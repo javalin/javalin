@@ -11,10 +11,11 @@ import org.apache.velocity.app.VelocityEngine
 import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 
-object Velocity {
+object JavalinVelocityPlugin {
 
     private var velocityEngine: VelocityEngine? = null
 
+    @JvmStatic
     fun configure(staticVelocityEngine: VelocityEngine) {
         velocityEngine = staticVelocityEngine
     }
@@ -32,6 +33,10 @@ object Velocity {
         val velocityEngine = VelocityEngine()
         velocityEngine.setProperty("resource.loader", "class")
         velocityEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
+        velocityEngine.setProperty("velocimacro.library.autoreload", "true")
+        velocityEngine.setProperty("file.resource.loader.cache", "false")
+        velocityEngine.setProperty("velocimacro.permissions.allow.inline.to.replace.global", "true")
         return velocityEngine
     }
+
 }

@@ -11,9 +11,9 @@ import org.apache.velocity.app.VelocityEngine;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import io.javalin.translator.json.Jackson;
+import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.translator.template.TemplateUtil;
-import io.javalin.translator.template.Velocity;
+import io.javalin.translator.template.JavalinVelocityPlugin;
 import io.javalin.util.CustomMapper;
 import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;
@@ -29,7 +29,7 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @BeforeClass
     public static void setObjectMapper() {
-        Jackson.INSTANCE.configure(new CustomMapper());
+        JavalinJacksonPlugin.configure(new CustomMapper());
     }
 
     @Test
@@ -81,15 +81,15 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_renderVelocity_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm", TemplateUtil.INSTANCE.model("message", "Hello Velocity!")));
+        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm", TemplateUtil.model("message", "Hello Velocity!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Velocity!</h1>"));
     }
 
     @Test
     public void test_customVelocityEngine_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm", TemplateUtil.INSTANCE.model()));
+        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm"));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
-        Velocity.INSTANCE.configure(strictVelocityEngine());
+        JavalinVelocityPlugin.configure(strictVelocityEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
     }
 
@@ -103,19 +103,19 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_renderFreemarker_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderFreemarker("/templates/freemarker/test.ftl", TemplateUtil.INSTANCE.model("message", "Hello Freemarker!")));
+        app.get("/hello", ctx -> ctx.renderFreemarker("/templates/freemarker/test.ftl", TemplateUtil.model("message", "Hello Freemarker!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Freemarker!</h1>"));
     }
 
     @Test
     public void test_renderThymeleaf_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderThymeleaf("/templates/thymeleaf/test.html", TemplateUtil.INSTANCE.model("message", "Hello Thymeleaf!")));
+        app.get("/hello", ctx -> ctx.renderThymeleaf("/templates/thymeleaf/test.html", TemplateUtil.model("message", "Hello Thymeleaf!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Thymeleaf!</h1>"));
     }
 
     @Test
     public void test_renderMustache_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderMustache("/templates/mustache/test.mustache", TemplateUtil.INSTANCE.model("message", "Hello Mustache!")));
+        app.get("/hello", ctx -> ctx.renderMustache("/templates/mustache/test.mustache", TemplateUtil.model("message", "Hello Mustache!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Mustache!</h1>"));
     }
 

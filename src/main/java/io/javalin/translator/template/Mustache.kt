@@ -11,10 +11,11 @@ import com.github.mustachejava.MustacheFactory
 import java.io.IOException
 import java.io.StringWriter
 
-object Mustache {
+object JavalinMustachePlugin {
 
     private var mustacheFactory: MustacheFactory? = null
 
+    @JvmStatic
     fun configure(staticMustacheFactory: MustacheFactory) {
         mustacheFactory = staticMustacheFactory
     }

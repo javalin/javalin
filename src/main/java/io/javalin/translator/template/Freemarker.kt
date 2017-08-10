@@ -10,10 +10,11 @@ import freemarker.template.Configuration
 import freemarker.template.Version
 import java.io.StringWriter
 
-object Freemarker {
+object JavalinFreemarkerPlugin {
 
     private var configuration: Configuration? = null
 
+    @JvmStatic
     fun configure(staticConfiguration: Configuration) {
         configuration = staticConfiguration
     }
@@ -29,9 +30,9 @@ object Freemarker {
         }
     }
 
-    fun defaultFreemarkerEngine(): Configuration {
+    private fun defaultFreemarkerEngine(): Configuration {
         val configuration = Configuration(Version(2, 3, 26))
-        configuration.setClassForTemplateLoading(Freemarker::class.java, "/")
+        configuration.setClassForTemplateLoading(JavalinFreemarkerPlugin::class.java, "/")
         return configuration
     }
 

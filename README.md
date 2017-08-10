@@ -15,7 +15,7 @@ The project webpage is [javalin.io](https://javalin.io).
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>0.3.6</version>
+    <version>0.3.7</version>
 </dependency>
 ```
 
@@ -26,7 +26,7 @@ import io.javalin.Javalin;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().port(7000).start();
+        Javalin app = Javalin.start(7000);
         app.get("/", ctx -> ctx.result("Hello World"));
     }
 }
@@ -36,7 +36,7 @@ public class HelloWorld {
 
 ### Add dependency (gradle)
 ```kotlin
-compile 'io.javalin:javalin:0.3.6'
+compile 'io.javalin:javalin:0.3.7'
 ```
 
 ### Start programming
@@ -44,7 +44,7 @@ compile 'io.javalin:javalin:0.3.6'
 import io.javalin.Javalin
 
 fun main(args: Array<String>) {
-    val app = Javalin.create().port(7000).start()
+    val app = Javalin.start(7000)
     app.get("/") { ctx -> ctx.result("Hello World") }
 }
 ```
