@@ -18,6 +18,7 @@ import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
+import io.javalin.core.util.ContextUtil;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
 import io.javalin.embeddedserver.EmbeddedServerFactory;
@@ -144,6 +145,13 @@ public class Javalin {
     public Javalin port(int port) {
         ensureActionIsPerformedBeforeServerStart("Setting the port");
         this.port = port;
+        return this;
+    }
+
+    public Javalin enableCorsForOrigin(String origin) {
+        ensureActionIsPerformedBeforeServerStart("Enabling CORS");
+        options("*", ContextUtil.INSTANCE::setCorsOptions);
+        before("*", ctx -> ContextUtil.INSTANCE.enableCors(ctx, origin));
         return this;
     }
 

@@ -98,4 +98,18 @@ object ContextUtil {
         }
         return baos.toByteArray()
     }
+
+    fun setCorsOptions(ctx: Context) {
+        ctx.header("Access-Control-Request-Headers")?.let {
+            ctx.header("Access-Control-Allow-Headers", it)
+        }
+        ctx.header("Access-Control-Request-Method")?.let {
+            ctx.header("Access-Control-Allow-Methods", it)
+        }
+    }
+
+    fun enableCors(ctx: Context, origin: String) {
+        ctx.header("Access-Control-Allow-Origin", origin)
+    }
+
 }
