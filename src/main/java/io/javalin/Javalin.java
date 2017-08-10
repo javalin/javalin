@@ -63,7 +63,6 @@ public class Javalin {
     public static Javalin start(int port) {
         return new Javalin()
             .port(port)
-            .enableStaticFiles("/public")
             .start();
     }
 
