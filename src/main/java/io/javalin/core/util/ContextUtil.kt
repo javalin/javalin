@@ -110,7 +110,7 @@ object ContextUtil {
 
     fun enableCors(ctx: Context, origins: Array<String>) {
         val header = ctx.header("Origin") ?: ctx.header("Referer") ?: return
-        origins.map { it.removeSuffix("/") }.filter { header.startsWith(it) }.firstOrNull()?.let {
+        origins.map { it.removeSuffix("/") }.firstOrNull { header.startsWith(it) }?.let {
             ctx.header("Access-Control-Allow-Origin", it)
         }
     }
