@@ -53,3 +53,4 @@ fun main(args: Array<String>) {
 * Blake Mizerany, for creating [Sinatra](http://www.sinatrarb.com/)
 * Per Wendel, for creating [Spark](http://sparkjava.com/)
 * [Christian Rasmussen](https://github.com/chrrasmussen), for being a great guy
+* [Per Kristian Kummermo](https://github.com/pkkummermo), also for being a great guy
