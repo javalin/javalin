@@ -147,7 +147,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin enableCorsForOrigin(String origin) {
+    public Javalin enableCorsForOrigin(String... origin) {
         ensureActionIsPerformedBeforeServerStart("Enabling CORS");
         options("*", ContextUtil.INSTANCE::setCorsOptions);
         before("*", ctx -> ContextUtil.INSTANCE.enableCors(ctx, origin));

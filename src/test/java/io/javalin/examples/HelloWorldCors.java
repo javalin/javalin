@@ -16,7 +16,7 @@ public class HelloWorldCors {
 
         Javalin corsApp = Javalin.create()
             .port(7000)
-            .enableCorsForOrigin("http://localhost:7001")
+            .enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002")
             .start();
 
         corsApp.routes(() -> {
@@ -26,6 +26,8 @@ public class HelloWorldCors {
         });
 
         Javalin.start(7001).get("/", ctx -> ctx.html("Try some CORS"));
+        Javalin.start(7002).get("/", ctx -> ctx.html("Try some CORS"));
+        Javalin.start(7003).get("/", ctx -> ctx.html("No CORS here"));
 
     }
 
