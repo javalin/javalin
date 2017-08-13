@@ -6,11 +6,13 @@
 
 package io.javalin.core.util
 
+import io.javalin.BasicAuthCredentials
 import io.javalin.Context
 import io.javalin.core.HandlerEntry
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.UnsupportedEncodingException
+import java.lang.Exception
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.*
@@ -113,6 +115,13 @@ object ContextUtil {
         origins.map { it.removeSuffix("/") }.firstOrNull { header.startsWith(it) }?.let {
             ctx.header("Access-Control-Allow-Origin", it)
         }
+    }
+
+    fun getBasicAuthCredentials(header: String?): BasicAuthCredentials? = try {
+        val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(":")
+        BasicAuthCredentials(username, password)
+    } catch (e: Exception) {
+        null
     }
 
 }

@@ -10,3 +10,4 @@ import java.io.InputStream
 
 data class UploadedFile(val contentType: String, val content: InputStream, val name: String, val extension: String)
 
+data class BasicAuthCredentials(val username: String, val password: String)

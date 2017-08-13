@@ -152,4 +152,13 @@ public class TestRequest extends _UnirestBaseTest {
         assertThat(GET_body("/test"), is(""));
     }
 
+    @Test
+    public void test_basicAuth_works() throws Exception {
+        app.get("/", ctx -> {
+            BasicAuthCredentials basicAuthCredentials = ctx.basicAuthCredentials();
+            ctx.result(basicAuthCredentials.getUsername() + "|" + basicAuthCredentials.getPassword());
+        });
+        HttpResponse<String> response = Unirest.get(origin + "/").basicAuth("some-username", "some-password").asString();
+        assertThat(response.getBody(), is("some-username|some-password"));
+    }
 }
