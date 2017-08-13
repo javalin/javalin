@@ -12,8 +12,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import io.javalin.translator.json.JavalinJacksonPlugin;
-import io.javalin.translator.template.TemplateUtil;
 import io.javalin.translator.template.JavalinVelocityPlugin;
+import io.javalin.translator.template.TemplateUtil;
 import io.javalin.util.CustomMapper;
 import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;

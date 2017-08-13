@@ -1,12 +1,13 @@
 package io.javalin;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
+import java.io.File;
+import java.io.IOException;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -28,8 +29,8 @@ public class TestFileUpload extends _UnirestBaseTest {
         });
 
         HttpResponse<String> response = Unirest.post("http://localhost:7777/testFileUpload")
-                .field("upload", createTempFile(EXPECTED_CONTENT))
-                .asString();
+            .field("upload", createTempFile(EXPECTED_CONTENT))
+            .asString();
 
         assertThat(response.getBody(), is(EXPECTED_CONTENT));
 
