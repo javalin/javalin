@@ -102,8 +102,6 @@ class Context(private val servletResponse: HttpServletResponse,
 
     // wrapper methods for HttpServletRequest
 
-    fun basicAuthCredentials(): BasicAuthCredentials? = ContextUtil.getBasicAuthCredentials(header("Authorization"))
-
     fun attribute(attribute: String, value: Any) = servletRequest.setAttribute(attribute, value)
 
     fun <T> attribute(attribute: String): T = servletRequest.getAttribute(attribute) as T
