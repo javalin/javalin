@@ -75,13 +75,17 @@ class Context(private val servletResponse: HttpServletResponse,
         return UploadUtil.getUploadedFiles(servletRequest, fileName)
     }
 
-    fun formParam(formParam: String): String? {
-        val value = body().split("&")
-                .map { it.split("=") }
-                .filter { it.first().equals(formParam, ignoreCase = true) }
-                .map { it.last() }
-                .firstOrNull()
-        return if (value != null) URLDecoder.decode(value, "UTF-8") else null
+    fun formParam(formParam: String): String? = formParams(formParam)?.get(0)
+
+    fun formParamOrDefault(formParam: String, defaultValue: String): String = formParam(formParam) ?: defaultValue
+
+    fun formParams(formParam: String): Array<String>? = formParamMap()[formParam]
+
+    fun formParamMap(): Map<String, Array<String>> {
+        return body().split("&").map { it.split("=") }.groupBy(
+                { it[0] },
+                { if (it.size > 1) URLDecoder.decode(it[1], "UTF-8") else "" }
+        ).mapValues { it.value.toTypedArray() }
     }
 
     fun mapFormParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { formParam(it) }

@@ -7,6 +7,10 @@
 
 package io.javalin;
 
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.junit.Test;
 
 import com.mashape.unirest.http.HttpResponse;
@@ -70,6 +74,34 @@ public class TestBodyReading {
         assertThat(response.getHeaders().getFirst("X-BEFORE"), is("some-user-name"));
         assertThat(response.getBody(), is("password"));
         assertThat(response.getHeaders().getFirst("X-AFTER"), is("password"));
+        app.stop();
+    }
+
+    @Test
+    public void test_formParamsWork_multipleValues() throws Exception {
+        Javalin app = Javalin.create().port(0).start();
+        app.post("/body-reader", ctx -> {
+            String formParamString = ctx.formParamMap().keySet().stream().map(key -> {
+                return key + ": " + ctx.formParam(key) + ", " + key + "s: " + Arrays.toString(ctx.formParams(key));
+            }).collect(Collectors.joining(". "));
+            String queryParamString = ctx.queryParamMap().keySet().stream().map(key -> {
+                return key + ": " + ctx.queryParam(key) + ", " + key + "s: " + Arrays.toString(ctx.queryParams(key));
+            }).collect(Collectors.joining(". "));
+            boolean singleMissingSame = Objects.equals(ctx.formParam("missing"), ctx.queryParam("missing"));
+            boolean pluralMissingSame = Arrays.equals(ctx.formParams("missing"), ctx.queryParams("missing"));
+            boolean nonMissingSame = Objects.equals(formParamString, queryParamString);
+            if (singleMissingSame && pluralMissingSame && nonMissingSame) {
+                ctx.result(formParamString);
+            }
+        });
+
+        String params = "a=1&a=2&a=3&b=1&b=2&c=1&d=&e&f=%28%23%29";
+        HttpResponse<String> response = Unirest
+            .post("http://localhost:" + app.port() + "/body-reader?" + params)
+            .body(params)
+            .asString();
+
+        assertThat(response.getBody(), is("a: 1, as: [1, 2, 3]. b: 1, bs: [1, 2]. c: 1, cs: [1]. d: , ds: []. e: , es: []. f: (#), fs: [(#)]"));
         app.stop();
     }
 
