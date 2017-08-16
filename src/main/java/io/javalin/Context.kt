@@ -114,7 +114,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun contentLength(): Int = servletRequest.contentLength
 
-    fun contentType(): String = servletRequest.contentType
+    fun contentType(): String? = servletRequest.contentType
 
     fun cookie(name: String): String? = (servletRequest.cookies ?: arrayOf<Cookie>()).find { it.name == name }?.value
 
