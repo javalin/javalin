@@ -7,6 +7,7 @@
 package io.javalin.core.util
 
 import io.javalin.Context
+import io.javalin.Javalin
 import io.javalin.core.HandlerEntry
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -99,20 +100,23 @@ object ContextUtil {
         return baos.toByteArray()
     }
 
-    fun setCorsOptions(ctx: Context) {
-        ctx.header("Access-Control-Request-Headers")?.let {
-            ctx.header("Access-Control-Allow-Headers", it)
-        }
-        ctx.header("Access-Control-Request-Method")?.let {
-            ctx.header("Access-Control-Allow-Methods", it)
-        }
-    }
 
-    fun enableCors(ctx: Context, origins: Array<String>) {
-        val header = ctx.header("Origin") ?: ctx.header("Referer") ?: return
-        origins.map { it.removeSuffix("/") }.firstOrNull { header.startsWith(it) }?.let {
-            ctx.header("Access-Control-Allow-Origin", it)
+    fun enableCors(app: Javalin, origins: Array<String>): Javalin {
+        app.options("*") { ctx ->
+            ctx.header("Access-Control-Request-Headers")?.let {
+                ctx.header("Access-Control-Allow-Headers", it)
+            }
+            ctx.header("Access-Control-Request-Method")?.let {
+                ctx.header("Access-Control-Allow-Methods", it)
+            }
         }
+        app.before("*") { ctx ->
+            val header = ctx.header("Origin") ?: ctx.header("Referer") ?: "NOT_AVAILABLE"
+            origins.map { it.removeSuffix("/") }.firstOrNull { header.startsWith(it) }?.let {
+                ctx.header("Access-Control-Allow-Origin", it)
+            }
+        }
+        return app;
     }
 
 }
