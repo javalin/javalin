@@ -7,7 +7,6 @@
 package io.javalin.embeddedserver.jetty
 
 import io.javalin.core.JavalinServlet
-import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.EmbeddedServer
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -27,7 +26,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         server.apply {
             handler = object : SessionHandler() {
                 override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                    javalinServlet.service(CachedRequestWrapper(request).apply {
+                    javalinServlet.service(request.apply {
                         setAttribute("jetty-target", target)
                         setAttribute("jetty-request", jettyRequest)
                     }, response)
