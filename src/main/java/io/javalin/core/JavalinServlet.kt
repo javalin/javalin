@@ -45,10 +45,9 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
                     }
                 }
             } else if (type !== HandlerType.HEAD || type === HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty()) {
-                if (staticResourceHandler!!.handle(req, res)) {
-                    return
+                if (!staticResourceHandler!!.handle(req, res)) {
+                    throw HaltException(404, "Not found")
                 }
-                throw HaltException(404, "Not found")
             }
 
         } catch (e: Exception) {
