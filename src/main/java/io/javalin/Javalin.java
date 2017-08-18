@@ -19,6 +19,7 @@ import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.ContextUtil;
+import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
 import io.javalin.embeddedserver.EmbeddedServerFactory;
@@ -160,7 +161,7 @@ public class Javalin {
 
     public Javalin enableCorsForOrigin(String... origin) {
         ensureActionIsPerformedBeforeServerStart("Enabling CORS");
-        return ContextUtil.INSTANCE.enableCors(this, origin);
+        return CorsUtil.INSTANCE.enableCors(this, origin);
     }
 
     private void ensureActionIsPerformedBeforeServerStart(String action) {

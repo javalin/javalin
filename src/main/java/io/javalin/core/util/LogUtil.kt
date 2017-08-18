@@ -12,6 +12,7 @@ import io.javalin.embeddedserver.CachedResponseWrapper
 import org.slf4j.Logger
 
 object LogUtil {
+
     fun logRequestAndResponse(ctx: Context, logLevel: LogLevel, log: Logger) {
         val startTime: Long = ctx.attribute("javalin-request-log-start-time")
         val executionTime = "%.2f".format((System.nanoTime() - startTime) / 1000000f)
@@ -41,4 +42,5 @@ object LogUtil {
             }
         }
     }
+
 }
