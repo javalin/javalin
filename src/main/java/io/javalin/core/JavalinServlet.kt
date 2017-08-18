@@ -7,28 +7,38 @@
 package io.javalin.core
 
 import io.javalin.HaltException
+import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
+import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
+import io.javalin.embeddedserver.CachedRequestWrapper
+import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
+import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMapper, val errorMapper: ErrorMapper) {
+class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMapper, val errorMapper: ErrorMapper, val logLevel: LogLevel) {
+
+    private val log = LoggerFactory.getLogger(JavalinServlet::class.java)
 
     var staticResourceHandler: StaticResourceHandler? = null
 
     fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 
-        val req = servletRequest as HttpServletRequest
-        val res = servletResponse as HttpServletResponse
+        val req = CachedRequestWrapper(servletRequest as HttpServletRequest) // cached for reading multiple times
+        val res =
+                if (logLevel == LogLevel.EXTENSIVE) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
+                else servletResponse as HttpServletResponse
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI
         val ctx = ContextUtil.create(res, req)
 
         ctx.header("Server", "Javalin")
+        ctx.attribute("javalin-request-log-start-time", System.nanoTime())
 
         try { // before-handlers, endpoint-handlers, static-files
 
@@ -87,6 +97,8 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
         } else if (ctx.resultStream() != null) {
             Util.copyStream(ctx.resultStream()!!, res.outputStream)
         }
+
+        LogUtil.logRequestAndResponse(ctx, logLevel, log)
 
     }
 

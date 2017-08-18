@@ -45,6 +45,7 @@ public class Javalin {
     PathMatcher pathMatcher = new PathMatcher();
     ExceptionMapper exceptionMapper = new ExceptionMapper();
     ErrorMapper errorMapper = new ErrorMapper();
+    LogLevel logLevel = LogLevel.OFF;
 
     private EventManager eventManager = new EventManager();
 
@@ -77,7 +78,7 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper), staticFileConfig);
+                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper, logLevel), staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(ipAddress, port);
                 log.info("Javalin has started \\o/");
@@ -144,6 +145,16 @@ public class Javalin {
     public Javalin port(int port) {
         ensureActionIsPerformedBeforeServerStart("Setting the port");
         this.port = port;
+        return this;
+    }
+
+    public Javalin enableDefaultLevelRequestLogging() {
+        return requestLogLevel(LogLevel.DEFAULT);
+    }
+
+    public Javalin requestLogLevel(LogLevel logLevel) {
+        ensureActionIsPerformedBeforeServerStart("Enabling request-logging");
+        this.logLevel = logLevel;
         return this;
     }
 
