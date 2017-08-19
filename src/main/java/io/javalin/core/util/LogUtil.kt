@@ -10,12 +10,13 @@ import io.javalin.Context
 import io.javalin.LogLevel
 import io.javalin.embeddedserver.CachedResponseWrapper
 import org.slf4j.Logger
+import java.util.*
 
 object LogUtil {
 
     fun logRequestAndResponse(ctx: Context, logLevel: LogLevel, log: Logger) {
         val startTime: Long = ctx.attribute("javalin-request-log-start-time")
-        val executionTime = "%.2f".format((System.nanoTime() - startTime) / 1000000f)
+        val executionTime = Formatter(Locale.US).format("%.2f", (System.nanoTime() - startTime) / 1000000f)
         with(ctx) {
             val resContentType = response().contentType ?: "content-type-not-set"
             when (logLevel) {
