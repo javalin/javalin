@@ -21,7 +21,7 @@ object LogUtil {
             when (logLevel) {
                 LogLevel.OFF -> false
                 LogLevel.MINIMAL -> log.info("${method()} -> ${status()} ($executionTime ms)")
-                LogLevel.DEFAULT -> log.info("${method()} ${path()} -> ${status()} [$resContentType] (took $executionTime ms)")
+                LogLevel.STANDARD -> log.info("${method()} ${path()} -> ${status()} [$resContentType] (took $executionTime ms)")
                 LogLevel.EXTENSIVE -> {
                     val resBody = (response() as CachedResponseWrapper).getCopy()
                     val resHeaders = response().headerNames.asSequence().map { it to response().getHeader(it) }.toMap()

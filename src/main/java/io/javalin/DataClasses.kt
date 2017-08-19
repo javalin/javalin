@@ -10,4 +10,4 @@ import java.io.InputStream
 
 data class UploadedFile(val contentType: String, val content: InputStream, val name: String, val extension: String)
 
-enum class LogLevel { EXTENSIVE, DEFAULT, MINIMAL, OFF; }
+enum class LogLevel { EXTENSIVE, STANDARD, MINIMAL, OFF; }

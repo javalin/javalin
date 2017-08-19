@@ -18,7 +18,6 @@ import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
-import io.javalin.core.util.ContextUtil;
 import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
@@ -149,8 +148,8 @@ public class Javalin {
         return this;
     }
 
-    public Javalin enableDefaultLevelRequestLogging() {
-        return requestLogLevel(LogLevel.DEFAULT);
+    public Javalin enableStandardRequestLogging() {
+        return requestLogLevel(LogLevel.STANDARD);
     }
 
     public Javalin requestLogLevel(LogLevel logLevel) {
