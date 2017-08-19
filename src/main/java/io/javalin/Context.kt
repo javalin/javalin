@@ -66,6 +66,7 @@ class Context(private val servletResponse: HttpServletResponse,
         return JavalinJacksonPlugin.toObject(body(), clazz)
     }
 
+    @Deprecated("Use formParam()", ReplaceWith("formParam(bodyParam)"))
     fun bodyParam(bodyParam: String): String? = formParam(bodyParam)
 
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
