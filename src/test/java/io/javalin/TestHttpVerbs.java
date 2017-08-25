@@ -62,4 +62,14 @@ public class TestHttpVerbs extends _UnirestBaseTest {
         assertThat(call(HttpMethod.HEAD, "/mapped").getStatus(), is(200));
     }
 
+    @Test
+    public void test_filterOrder_preserved() throws Exception {
+        app.before(ctx -> ctx.result("1"));
+        app.before(ctx -> ctx.result(ctx.resultString() + "2"));
+        app.before(ctx -> ctx.result(ctx.resultString() + "3"));
+        app.before(ctx -> ctx.result(ctx.resultString() + "4"));
+        app.get("/hello", ctx -> ctx.result(ctx.resultString() + "Hello"));
+        assertThat(GET_body("/hello"), is("1234Hello"));
+    }
+
 }
