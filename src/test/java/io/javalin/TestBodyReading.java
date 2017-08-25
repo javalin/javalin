@@ -62,9 +62,9 @@ public class TestBodyReading {
     @Test
     public void test_formParams_work() throws Exception {
         Javalin app = Javalin.create().port(0).start();
-        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.bodyParam("username")));
-        app.post("/body-reader", ctx -> ctx.result(ctx.bodyParam("password")));
-        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.bodyParam("repeat-password")));
+        app.before("/body-reader", ctx -> ctx.header("X-BEFORE", ctx.formParam("username")));
+        app.post("/body-reader", ctx -> ctx.result(ctx.formParam("password")));
+        app.after("/body-reader", ctx -> ctx.header("X-AFTER", ctx.formParam("repeat-password")));
 
         HttpResponse<String> response = Unirest
             .post("http://localhost:" + app.port() + "/body-reader")
