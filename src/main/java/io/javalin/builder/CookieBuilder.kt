@@ -16,7 +16,8 @@ class CookieBuilder(
         var httpOnly: Boolean = false) {
 
     companion object {
-        @JvmStatic fun cookieBuilder(name: String, value: String): CookieBuilder {
+        @JvmStatic
+        fun cookieBuilder(name: String, value: String): CookieBuilder {
             return CookieBuilder(name, value)
         }
     }

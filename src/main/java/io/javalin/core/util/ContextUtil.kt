@@ -7,7 +7,6 @@
 package io.javalin.core.util
 
 import io.javalin.Context
-import io.javalin.Javalin
 import io.javalin.core.HandlerEntry
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
