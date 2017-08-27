@@ -90,12 +90,12 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
         if (res.characterEncoding == "iso-8859-1") {
             res.characterEncoding = StandardCharsets.UTF_8.name()
         }
-        if (ctx.resultString() != null) { // transform string to stream
-            ctx.result(ByteArrayInputStream(ctx.resultString()!!.toByteArray()))
+        ctx.resultString()?.let { resultString ->
+            ctx.result(ByteArrayInputStream(resultString.toByteArray()))
         }
-        if (ctx.resultStream() != null) {
-            ctx.resultStream()!!.copyTo(res.outputStream)
-            ctx.resultStream()!!.close()
+        ctx.resultStream()?.let { resultStream ->
+            resultStream.copyTo(res.outputStream)
+            resultStream.close()
             res.outputStream.close()
         }
 
