@@ -33,7 +33,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
                 resourceBase = getResourcePath(staticFileConfig)
                 isDirAllowed = false
                 isEtags = true
-                cacheControl = "no-store,no-cache,must-revalidate"
+                cacheControl = "max-age=0"
             }.start()
             initialized = true
             log.info("Static files enabled: {$staticFileConfig}. Absolute path: '${resourceHandler.resourceBase}'")
