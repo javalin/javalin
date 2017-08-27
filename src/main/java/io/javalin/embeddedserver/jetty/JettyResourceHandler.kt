@@ -11,6 +11,7 @@ import io.javalin.embeddedserver.StaticFileConfig
 import io.javalin.embeddedserver.StaticResourceHandler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
+import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -24,6 +25,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
 
     private var initialized = false
     private val resourceHandler = ResourceHandler()
+    private val gzipHandler = GzipHandler().apply { handler = resourceHandler }
 
     init {
         if (staticFileConfig != null) {
@@ -59,10 +61,10 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
             val baseRequest = httpRequest.getAttribute("jetty-request") as Request // org.eclipse.jetty.server.Request
             try {
                 if (!resourceHandler.getResource(target).isDirectory) {
-                    resourceHandler.handle(target, baseRequest, httpRequest, httpResponse)
+                    gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
                     return true;
                 } else if (resourceHandler.getResource(target + "index.html").exists()) {
-                    resourceHandler.handle(target, baseRequest, httpRequest, httpResponse)
+                    gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
                     return true;
                 }
             } catch (e: Exception) { // it's fine
