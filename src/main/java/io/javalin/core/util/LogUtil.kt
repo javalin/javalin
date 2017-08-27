@@ -37,7 +37,7 @@ object LogUtil {
                         |Response: [${status()}], execution took $executionTime ms
                         |    Headers: ${resHeaders}
                         |    Body: (starts on next line)
-                        |${if (resBody!!.isNotEmpty()) resBody else "No body was set (or this is a static file)"}
+                        |${if (resBody.isNotEmpty()) resBody else "No body was set"}
                         |----------------------------------------------------------------------------------""".trimMargin())
                 }
             }

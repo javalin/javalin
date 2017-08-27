@@ -12,11 +12,11 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import io.javalin.builder.CookieBuilder;
-import io.javalin.core.util.Util;
 
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
@@ -54,7 +54,7 @@ public class TestResponse extends _UnirestBaseTest {
         HttpResponse<String> response = call(HttpMethod.GET, "/stream");
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        assertThat(Util.INSTANCE.copyStream(response.getRawBody(), bout), is((long) buf.length));
+        assertThat(IOUtils.copy(response.getRawBody(), bout), is(buf.length));
         assertThat(buf, equalTo(bout.toByteArray()));
     }
 

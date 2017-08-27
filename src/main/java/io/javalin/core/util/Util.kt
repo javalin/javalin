@@ -8,8 +8,6 @@ package io.javalin.core.util
 
 import io.javalin.HaltException
 import org.slf4j.LoggerFactory
-import java.io.InputStream
-import java.io.OutputStream
 import java.util.*
 
 object Util {
@@ -90,15 +88,4 @@ object Util {
             |_________________________________________|""".trimIndent()
     }
 
-    fun copyStream(inputStream: InputStream, out: OutputStream): Long {
-        val buf = ByteArray(8192)
-        var totalBytesCopied: Long = 0
-        var bytesReadThisPass = inputStream.read(buf)
-        while (bytesReadThisPass > 0) {
-            out.write(buf, 0, bytesReadThisPass)
-            totalBytesCopied += bytesReadThisPass.toLong()
-            bytesReadThisPass = inputStream.read(buf)
-        }
-        return totalBytesCopied
-    }
 }

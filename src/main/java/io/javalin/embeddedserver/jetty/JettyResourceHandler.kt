@@ -60,13 +60,14 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
             try {
                 if (!resourceHandler.getResource(target).isDirectory) {
                     resourceHandler.handle(target, baseRequest, httpRequest, httpResponse)
+                    return true;
                 } else if (resourceHandler.getResource(target + "index.html").exists()) {
                     resourceHandler.handle(target, baseRequest, httpRequest, httpResponse)
+                    return true;
                 }
             } catch (e: Exception) { // it's fine
                 log.error("Exception occurred while handling static resource", e)
             }
-            return baseRequest.isHandled
         }
         return false
     }

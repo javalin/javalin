@@ -10,11 +10,11 @@ import io.javalin.HaltException
 import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.LogUtil
-import io.javalin.core.util.Util
 import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
@@ -90,12 +90,13 @@ class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMap
         if (res.characterEncoding == "iso-8859-1") {
             res.characterEncoding = StandardCharsets.UTF_8.name()
         }
-        if (ctx.resultString() != null) {
-            res.writer.write(ctx.resultString())
-            res.writer.flush()
-            res.writer.close()
-        } else if (ctx.resultStream() != null) {
-            Util.copyStream(ctx.resultStream()!!, res.outputStream)
+        if (ctx.resultString() != null) { // transform string to stream
+            ctx.result(ByteArrayInputStream(ctx.resultString()!!.toByteArray()))
+        }
+        if (ctx.resultStream() != null) {
+            ctx.resultStream()!!.copyTo(res.outputStream)
+            ctx.resultStream()!!.close()
+            res.outputStream.close()
         }
 
         LogUtil.logRequestAndResponse(ctx, logLevel, log)

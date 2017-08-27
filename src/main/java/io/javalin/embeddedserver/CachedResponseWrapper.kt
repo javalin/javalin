@@ -6,20 +6,25 @@
 
 package io.javalin.embeddedserver
 
-import java.io.OutputStream
-import java.io.PrintWriter
+import java.io.ByteArrayOutputStream
+import javax.servlet.ServletOutputStream
+import javax.servlet.WriteListener
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpServletResponseWrapper
 
 class CachedResponseWrapper(response: HttpServletResponse) : HttpServletResponseWrapper(response) {
-    private val copyWriter = CopyWriter(response.outputStream)
-    override fun getWriter(): PrintWriter = copyWriter
-    fun getCopy() = copyWriter.copy;
-    class CopyWriter(outputStream: OutputStream) : PrintWriter(outputStream) {
-        var copy: String? = ""
-        override fun write(s: String?) {
-            copy = s
-            super.write(s)
+    private val copier = ServletOutputStreamCopier(response.outputStream)
+    override fun getOutputStream() = copier
+    fun getCopy() = copier.streamCopy.toString()
+    class ServletOutputStreamCopier(private val outputStream: ServletOutputStream) : ServletOutputStream() {
+        internal val streamCopy: ByteArrayOutputStream = ByteArrayOutputStream(1024)
+        override fun isReady(): Boolean = outputStream.isReady
+        override fun setWriteListener(writeListener: WriteListener?) = outputStream.setWriteListener(writeListener)
+        override fun write(b: Int) {
+            outputStream.write(b)
+            streamCopy.write(b)
         }
     }
 }
+
+
