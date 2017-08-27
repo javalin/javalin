@@ -92,4 +92,12 @@ public class TestStaticFiles {
         assertThat(response.getBody(), is("<h1>Welcome file</h1>"));
     }
 
+    @Test
+    public void test_expiresWorksAsExpected() throws Exception {
+        HttpResponse<String> response1 = Unirest.get(origin + "/script.js").asString();
+        assertThat(response1.getHeaders().get("Cache-Control").get(0), is("max-age=0"));
+        HttpResponse<String> response2 = Unirest.get(origin + "/immutable/library-1.0.0.min.js").asString();
+        assertThat(response2.getHeaders().get("Cache-Control").get(0), is("max-age=31622400"));
+    }
+
 }

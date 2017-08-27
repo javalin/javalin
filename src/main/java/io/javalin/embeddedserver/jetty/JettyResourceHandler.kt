@@ -33,7 +33,6 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
                 resourceBase = getResourcePath(staticFileConfig)
                 isDirAllowed = false
                 isEtags = true
-                cacheControl = "max-age=0"
             }.start()
             initialized = true
             log.info("Static files enabled: {$staticFileConfig}. Absolute path: '${resourceHandler.resourceBase}'")
@@ -60,10 +59,9 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
             val target = httpRequest.getAttribute("jetty-target") as String
             val baseRequest = httpRequest.getAttribute("jetty-request") as Request // org.eclipse.jetty.server.Request
             try {
-                if (!resourceHandler.getResource(target).isDirectory) {
-                    gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
-                    return true;
-                } else if (resourceHandler.getResource(target + "index.html").exists()) {
+                if (!resourceHandler.getResource(target).isDirectory || resourceHandler.getResource(target + "index.html").exists()) {
+                    val maxAge = if (target.startsWith("/immutable")) 31622400 else 0
+                    httpResponse.setHeader("Cache-Control", "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
                     return true;
                 }
