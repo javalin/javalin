@@ -8,7 +8,6 @@ package io.javalin.translator.template
 
 import com.github.mustachejava.DefaultMustacheFactory
 import com.github.mustachejava.MustacheFactory
-import java.io.IOException
 import java.io.StringWriter
 
 object JavalinMustachePlugin {
@@ -22,13 +21,9 @@ object JavalinMustachePlugin {
 
     fun render(templatePath: String, model: Map<String, Any>): String {
         mustacheFactory = mustacheFactory ?: DefaultMustacheFactory("./")
-        try {
-            val stringWriter = StringWriter()
-            mustacheFactory!!.compile(templatePath).execute(stringWriter, model).close()
-            return stringWriter.toString()
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        }
+        val stringWriter = StringWriter()
+        mustacheFactory!!.compile(templatePath).execute(stringWriter, model).close()
+        return stringWriter.toString()
     }
 
 }

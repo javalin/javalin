@@ -21,13 +21,9 @@ object JavalinFreemarkerPlugin {
 
     fun render(templatePath: String, model: Map<String, Any>): String {
         configuration = configuration ?: defaultFreemarkerEngine()
-        try {
-            val stringWriter = StringWriter()
-            configuration!!.getTemplate(templatePath).process(model, stringWriter)
-            return stringWriter.toString()
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
+        val stringWriter = StringWriter()
+        configuration!!.getTemplate(templatePath).process(model, stringWriter)
+        return stringWriter.toString()
     }
 
     private fun defaultFreemarkerEngine(): Configuration {

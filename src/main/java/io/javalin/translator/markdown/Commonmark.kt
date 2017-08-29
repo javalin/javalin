@@ -23,12 +23,8 @@ object JavalinCommonmarkPlugin {
     fun render(markdownFilePath: String): String {
         renderer = renderer ?: HtmlRenderer.builder().build()
         parser = parser ?: Parser.builder().build()
-        try {
-            val fileContent = JavalinCommonmarkPlugin::class.java.getResource(markdownFilePath).readText()
-            return renderer!!.render(parser!!.parse(fileContent))
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
+        val fileContent = JavalinCommonmarkPlugin::class.java.getResource(markdownFilePath).readText()
+        return renderer!!.render(parser!!.parse(fileContent))
     }
 
 }
