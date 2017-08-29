@@ -30,7 +30,7 @@ object LogUtil {
                         |Request: ${method()} [${path()}]
                         |    Headers: ${headerMap()}
                         |    Cookies: ${cookieMap()}
-                        |    Body: ${body()}
+                        |    Body: ${if (ctx.isMultipart()) "Multipart data ..." else body()}
                         |    QueryString: ${queryString()}
                         |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.contentToString() }}
                         |    FormParams: ${formParamMap().mapValues { (_, v) -> v.contentToString() }}
