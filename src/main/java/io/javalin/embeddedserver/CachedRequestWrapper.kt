@@ -6,7 +6,6 @@
 
 package io.javalin.embeddedserver
 
-import io.javalin.core.util.ContextUtil
 import java.io.ByteArrayInputStream
 import javax.servlet.ReadListener
 import javax.servlet.ServletInputStream
@@ -15,7 +14,7 @@ import javax.servlet.http.HttpServletRequestWrapper
 
 class CachedRequestWrapper(request: HttpServletRequest) : HttpServletRequestWrapper(request) {
 
-    private val cachedBytes: ByteArray = ContextUtil.toByteArray(super.getInputStream())
+    private val cachedBytes: ByteArray = super.getInputStream().readBytes()
 
     override fun getInputStream(): ServletInputStream = if (chunkedTransferEncoding()) super.getInputStream() else CachedServletInputStream()
 

@@ -27,7 +27,7 @@ object UploadUtil {
                 files.add(
                         UploadedFile(
                                 contentType = item.contentType,
-                                content = ByteArrayInputStream(ContextUtil.toByteArray(item.openStream())),
+                                content = ByteArrayInputStream(item.openStream().readBytes()),
                                 name = item.name,
                                 extension = item.name.replaceBeforeLast(".", "")
                         )

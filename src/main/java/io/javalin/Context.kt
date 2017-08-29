@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.InputStream
 import java.net.URLDecoder
+import java.nio.charset.Charset
 import java.util.concurrent.CompletableFuture
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
@@ -58,9 +59,9 @@ class Context(private val servletResponse: HttpServletResponse,
                 }
     }
 
-    fun body(): String = ContextUtil.byteArrayToString(bodyAsBytes(), servletRequest.characterEncoding)
+    fun body(): String = bodyAsBytes().toString(Charset.forName(servletRequest.characterEncoding ?: "UTF-8"))
 
-    fun bodyAsBytes(): ByteArray = ContextUtil.toByteArray(servletRequest.inputStream)
+    fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
 
     fun <T> bodyAsClass(clazz: Class<T>): T {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")

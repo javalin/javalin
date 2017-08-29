@@ -8,11 +8,7 @@ package io.javalin.core.util
 
 import io.javalin.Context
 import io.javalin.core.HandlerEntry
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
-import java.nio.charset.Charset
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -72,31 +68,6 @@ object ContextUtil {
         keys.map { f.invoke(it) }.requireNoNulls().toList()
     } catch (e: IllegalArgumentException) {
         null
-    }
-
-    fun byteArrayToString(bytes: ByteArray, encoding: String?): String {
-        var string: String
-        if (encoding != null && Charset.isSupported(encoding)) {
-            try {
-                string = String(bytes, Charset.forName(encoding))
-            } catch (e: UnsupportedEncodingException) {
-                string = String(bytes)
-            }
-        } else {
-            string = String(bytes)
-        }
-        return string
-    }
-
-    fun toByteArray(input: InputStream): ByteArray {
-        val baos = ByteArrayOutputStream()
-        val byteBuffer = ByteArray(1024)
-        var b = input.read(byteBuffer)
-        while (b != -1) {
-            baos.write(byteBuffer, 0, b)
-            b = input.read(byteBuffer)
-        }
-        return baos.toByteArray()
     }
 
 }
