@@ -85,6 +85,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun formParams(formParam: String): Array<String>? = formParamMap()[formParam]
 
     fun formParamMap(): Map<String, Array<String>> {
+        if (isMultipart()) return mapOf()
         return body().split("&").map { it.split("=") }.groupBy(
                 { it[0] },
                 { if (it.size > 1) URLDecoder.decode(it[1], "UTF-8") else "" }
@@ -130,6 +131,8 @@ class Context(private val servletResponse: HttpServletResponse,
     fun host(): String? = servletRequest.getHeader("host")
 
     fun ip(): String = servletRequest.remoteAddr
+
+    fun isMultipart(): Boolean = (header("Content-Type") ?: "").toLowerCase().contains("multipart/form-data")
 
     fun path(): String? = servletRequest.pathInfo
 
