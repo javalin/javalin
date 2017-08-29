@@ -21,40 +21,27 @@ import static org.hamcrest.Matchers.*;
  */
 public class TestIgnoreTrailingSlashes {
 
-    @Test()
+    private SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
+
+    @Test
     public void dontIgnoreTrailingSlashes() throws IOException {
-
-        String endpointResponse = "Hello, slash!";
-        String endpoint = "/hello";
-        int port = 7787;
-        SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
         Javalin app = Javalin.create()
-            .port(port)
             .dontIgnoreTrailingSlashes()
-            .start();
-
-        app.get(endpoint, ctx -> ctx.result(endpointResponse));
-        assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint).getBody(), is(endpointResponse));
-        assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint + "/").getBody(), not(endpointResponse));
-
+            .start()
+            .get("/hello", ctx -> ctx.result("Hello, slash!"));
+        assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello").getBody(), is("Hello, slash!"));
+        assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello/").getBody(), is("Not found"));
         app.stop();
     }
 
-    @Test()
+    @Test
     public void ignoreTrailingSlashes() throws IOException {
-
-        String endpointResponse = "Hello, slash!";
-        String endpoint = "/hello";
-        int port = 7787;
-        SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
-        Javalin app = Javalin.create()
-            .port(port)
-            .start();
-
-        app.get(endpoint, ctx -> ctx.result(endpointResponse));
-        assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint).getBody(), is(endpointResponse));
-        assertThat(simpleHttpClient.http_GET("http://localhost:" + port + endpoint + "/").getBody(), is(endpointResponse));
-
+        Javalin app =Javalin.create()
+            .start()
+            .get("/hello", ctx -> ctx.result("Hello, slash!"));
+        assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello").getBody(), is("Hello, slash!"));
+        assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello/").getBody(), is("Hello, slash!"));
         app.stop();
     }
+
 }
