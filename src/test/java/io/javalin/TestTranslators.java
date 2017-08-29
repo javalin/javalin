@@ -119,4 +119,10 @@ public class TestTranslators extends _UnirestBaseTest {
         assertThat(GET_body("/hello"), is("<h1>Hello Mustache!</h1>"));
     }
 
+    @Test
+    public void test_renderMarkdown_works() throws Exception {
+        app.get("/hello", ctx -> ctx.renderMarkdown("/markdown/test.md"));
+        assertThat(GET_body("/hello"), is("<h1>Hello Markdown!</h1>\n"));
+    }
+
 }

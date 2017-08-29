@@ -11,6 +11,7 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.UploadUtil
 import io.javalin.core.util.Util
 import io.javalin.translator.json.JavalinJacksonPlugin
+import io.javalin.translator.markdown.JavalinCommonmarkPlugin
 import io.javalin.translator.template.JavalinFreemarkerPlugin
 import io.javalin.translator.template.JavalinMustachePlugin
 import io.javalin.translator.template.JavalinThymeleafPlugin
@@ -275,5 +276,10 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     fun renderMustache(templatePath: String): Context = renderMustache(templatePath, mapOf())
+
+    fun renderMarkdown(markdownFilePath: String): Context {
+        Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
+        return html(JavalinCommonmarkPlugin.render(markdownFilePath))
+    }
 
 }
