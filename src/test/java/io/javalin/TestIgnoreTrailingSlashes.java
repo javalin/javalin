@@ -36,7 +36,7 @@ public class TestIgnoreTrailingSlashes {
 
     @Test
     public void ignoreTrailingSlashes() throws IOException {
-        Javalin app =Javalin.create()
+        Javalin app = Javalin.create()
             .start()
             .get("/hello", ctx -> ctx.result("Hello, slash!"));
         assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello").getBody(), is("Hello, slash!"));
