@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.builder.CookieBuilder
 import io.javalin.core.util.ContextUtil
+import io.javalin.core.util.Header
 import io.javalin.core.util.UploadUtil
 import io.javalin.core.util.Util
 import io.javalin.translator.json.JavalinJacksonPlugin
@@ -125,11 +126,11 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().map { it to servletRequest.getHeader(it) }.toMap()
 
-    fun host(): String? = servletRequest.getHeader("host")
+    fun host(): String? = servletRequest.getHeader(Header.HOST)
 
     fun ip(): String = servletRequest.remoteAddr
 
-    fun isMultipart(): Boolean = (header("Content-Type") ?: "").toLowerCase().contains("multipart/form-data")
+    fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
 
     fun path(): String? = servletRequest.pathInfo
 
@@ -155,7 +156,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun url(): String = servletRequest.requestURL.toString()
 
-    fun userAgent(): String? = servletRequest.getHeader("user-agent")
+    fun userAgent(): String? = servletRequest.getHeader(Header.USER_AGENT)
 
     //
     // Response-ish methods

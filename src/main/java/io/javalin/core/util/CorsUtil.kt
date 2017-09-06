@@ -12,17 +12,17 @@ object CorsUtil {
 
     fun enableCors(app: Javalin, origins: Array<String>): Javalin {
         app.options("*") { ctx ->
-            ctx.header("Access-Control-Request-Headers")?.let {
-                ctx.header("Access-Control-Allow-Headers", it)
+            ctx.header(Header.ACCESS_CONTROL_REQUEST_HEADERS)?.let {
+                ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, it)
             }
-            ctx.header("Access-Control-Request-Method")?.let {
-                ctx.header("Access-Control-Allow-Methods", it)
+            ctx.header(Header.ACCESS_CONTROL_REQUEST_METHOD)?.let {
+                ctx.header(Header.ACCESS_CONTROL_ALLOW_METHODS, it)
             }
         }
         app.before("*") { ctx ->
-            val header = ctx.header("Origin") ?: ctx.header("Referer") ?: "NOT_AVAILABLE"
+            val header = ctx.header(Header.ORIGIN) ?: ctx.header(Header.REFERER) ?: "NOT_AVAILABLE"
             origins.map { it.removeSuffix("/") }.firstOrNull { header.startsWith(it) }?.let {
-                ctx.header("Access-Control-Allow-Origin", it)
+                ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, it)
             }
         }
         return app;

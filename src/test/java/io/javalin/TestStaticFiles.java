@@ -14,6 +14,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import io.javalin.core.util.Header;
+
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 
@@ -95,9 +97,9 @@ public class TestStaticFiles {
     @Test
     public void test_expiresWorksAsExpected() throws Exception {
         HttpResponse<String> response1 = Unirest.get(origin + "/script.js").asString();
-        assertThat(response1.getHeaders().get("Cache-Control").get(0), is("max-age=0"));
+        assertThat(response1.getHeaders().get(Header.CACHE_CONTROL).get(0), is("max-age=0"));
         HttpResponse<String> response2 = Unirest.get(origin + "/immutable/library-1.0.0.min.js").asString();
-        assertThat(response2.getHeaders().get("Cache-Control").get(0), is("max-age=31622400"));
+        assertThat(response2.getHeaders().get(Header.CACHE_CONTROL).get(0), is("max-age=31622400"));
     }
 
 }

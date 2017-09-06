@@ -10,6 +10,8 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
+import io.javalin.core.util.Header;
+
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 
@@ -30,7 +32,7 @@ public class TestRequest extends _UnirestBaseTest {
     @Test
     public void test_getSingleCookie_worksForCookie() throws Exception {
         app.get("/read-cookie", ctx -> ctx.result(ctx.cookie("my-cookie")));
-        HttpResponse<String> response = Unirest.get(origin + "/read-cookie").header("Cookie", "my-cookie=my-cookie-value").asString();
+        HttpResponse<String> response = Unirest.get(origin + "/read-cookie").header(Header.COOKIE, "my-cookie=my-cookie-value").asString();
         assertThat(response.getBody(), is("my-cookie-value"));
     }
 
@@ -43,7 +45,7 @@ public class TestRequest extends _UnirestBaseTest {
     @Test
     public void test_getMultipleCookies_worksForMultipleCookies() throws Exception {
         app.get("/read-cookie", ctx -> ctx.result(ctx.cookieMap().toString()));
-        HttpResponse<String> response = Unirest.get(origin + "/read-cookie").header("Cookie", "k1=v1;k2=v2;k3=v3").asString();
+        HttpResponse<String> response = Unirest.get(origin + "/read-cookie").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString();
         assertThat(response.getBody(), is("{k1=v1, k2=v2, k3=v3}"));
     }
 
