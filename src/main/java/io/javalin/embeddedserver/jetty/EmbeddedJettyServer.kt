@@ -21,7 +21,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
-    override fun start(host: String, port: Int): Int {
+    override fun start(port: Int): Int {
 
         server.apply {
             handler = object : SessionHandler() {
@@ -34,7 +34,6 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
                 }
             }
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
-                this.host = host
                 this.port = port
             })
         }.start()

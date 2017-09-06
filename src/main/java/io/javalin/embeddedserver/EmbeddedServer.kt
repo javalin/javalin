@@ -9,7 +9,7 @@ package io.javalin.embeddedserver
 interface EmbeddedServer {
 
     @Throws(Exception::class)
-    fun start(host: String, port: Int): Int
+    fun start(port: Int): Int
 
     @Throws(Exception::class)
     fun stop()

@@ -36,7 +36,6 @@ public class Javalin {
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     private int port = 7000;
-    private String ipAddress = "0.0.0.0";
 
     private EmbeddedServer embeddedServer;
     private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
@@ -80,7 +79,7 @@ public class Javalin {
             try {
                 embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper, logLevel), staticFileConfig);
                 log.info("Starting Javalin ...");
-                port = embeddedServer.start(ipAddress, port);
+                port = embeddedServer.start(port);
                 log.info("Javalin has started \\o/");
                 eventManager.fireEvent(EventType.SERVER_STARTED, this);
                 started = true;
@@ -129,12 +128,6 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         Util.INSTANCE.notNull("Location cannot be null", path);
         staticFileConfig = new StaticFileConfig(path, location);
-        return this;
-    }
-
-    public Javalin ipAddress(String ipAddress) {
-        ensureActionIsPerformedBeforeServerStart("Setting the ip");
-        this.ipAddress = ipAddress;
         return this;
     }
 
