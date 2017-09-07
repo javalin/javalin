@@ -8,6 +8,7 @@ package io.javalin;
 
 import java.util.Arrays;
 
+import org.junit.After;
 import org.junit.Test;
 
 import io.javalin.core.util.Header;
@@ -19,6 +20,11 @@ import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
 public class TestRequest extends _UnirestBaseTest {
+
+    @After
+    public void after() throws Exception {
+        clearCookies();
+    }
 
     /*
      * Cookies

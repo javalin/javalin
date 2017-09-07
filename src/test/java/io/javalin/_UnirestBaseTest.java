@@ -31,6 +31,11 @@ public class _UnirestBaseTest {
     static HttpClient defaultHttpClient = HttpClients.custom().build();
     static HttpClient noRedirectClient = HttpClients.custom().disableRedirectHandling().build();
 
+    public void clearCookies() throws Exception {
+        app.get("/cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
+        GET_body("/cookie-cleaner");
+    }
+
     @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Ignore;
+import org.junit.After;
 import org.junit.Test;
 
 import io.javalin.builder.CookieBuilder;
@@ -26,6 +26,11 @@ import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
 public class TestResponse extends _UnirestBaseTest {
+
+    @After
+    public void after() throws Exception {
+        clearCookies();
+    }
 
     private String MY_BODY = ""
         + "This is my body, and I live in it. It's 31 and 6 months old. "
@@ -96,7 +101,6 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
-    @Ignore("Interferes with TestRequest#test_getMultipleCookies on Travis for some reason...")
     public void test_cookieBuilder() throws Exception {
         app.post("/create-cookie", ctx -> {
             ctx.cookie(CookieBuilder.cookieBuilder("Test", "Tast"));
