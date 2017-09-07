@@ -67,4 +67,4 @@ object Header {
     const val VIA = "Via"
     const val WARNING = "Warning"
     const val WWW_AUTHENTICATE = "WWW-Authenticate"
-    }
+}
