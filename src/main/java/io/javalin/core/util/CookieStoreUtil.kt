@@ -12,16 +12,18 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.util.*
 
-object CookieUtil {
+object CookieStoreUtil {
 
-    fun writeMapToCookie(cookieStore: MutableMap<String, Any>): String {
+    const val name = "javalin-cookie-store"
+
+    fun mapToString(cookieStore: MutableMap<String, Any>): String {
         val byteArrayOutputStream = ByteArrayOutputStream()
         ObjectOutputStream(byteArrayOutputStream).writeObject(cookieStore)
         return Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray())
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun readMapFromCookie(cookie: String?): MutableMap<String, Any> {
+    fun stringToMap(cookie: String?): MutableMap<String, Any> {
         if (cookie.isNullOrEmpty()) return mutableMapOf()
         return ObjectInputStream(
                 ByteArrayInputStream(

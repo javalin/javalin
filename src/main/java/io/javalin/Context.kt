@@ -36,20 +36,20 @@ class Context(private val servletResponse: HttpServletResponse,
     private var resultString: String? = null
     private var resultStream: InputStream? = null
 
-    private var cookiesStoreHasBeenRead = false
-    private val cookieStore: MutableMap<String, Any> = mutableMapOf()
+    private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
 
     fun cookieStore(key: String, value: Any) {
         cookieStore[key] = value
-        cookie("javalin-cookie-store", CookieUtil.writeMapToCookie(cookieStore))
+        cookie(CookieStoreUtil.name, CookieStoreUtil.mapToString(cookieStore))
+    }
+
+    fun clearCookieStore() {
+        cookieStore.clear();
+        removeCookie(CookieStoreUtil.name)
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <T> cookieStore(key: String): T {
-        if (!cookiesStoreHasBeenRead) {
-            CookieUtil.readMapFromCookie(cookie("javalin-cookie-store")).forEach { k, v -> cookieStore.putIfAbsent(k, v) }
-            cookiesStoreHasBeenRead = true
-        }
         return cookieStore[key] as T
     }
 

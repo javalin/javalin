@@ -38,6 +38,16 @@ public class TestCookieStore extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_cookieStore_clear() throws Exception {
+        app.get("/cookie-storer", ctx -> ctx.cookieStore("test-object", new TestObject_Serializable()));
+        app.get("/cookie-clearer", Context::clearCookieStore);
+        app.get("/cookie-checker", ctx -> ctx.result("stored: " + ctx.cookie("javalin-cookie-store")));
+        GET_body("/cookie-storer");
+        GET_body("/cookie-clearer");
+        assertThat(GET_body("/cookie-checker"), is("stored: null"));
+    }
+
+    @Test
     public void test_cookieStore_betweenRequests() throws Exception {
         app.get("/cookie-storer", ctx -> ctx.cookieStore("test-object", new TestObject_Serializable()));
         app.get("/cookie-reader", ctx -> {
