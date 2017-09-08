@@ -19,21 +19,12 @@ object JavalinJacksonPlugin {
 
     fun toJson(`object`: Any): String {
         objectMapper = objectMapper ?: ObjectMapper()
-        try {
-            return objectMapper!!.writeValueAsString(`object`)
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
-
+        return objectMapper!!.writeValueAsString(`object`)
     }
 
     fun <T> toObject(json: String, clazz: Class<T>): T {
         objectMapper = objectMapper ?: ObjectMapper()
-        try {
-            return objectMapper!!.readValue(json, clazz)
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
+        return objectMapper!!.readValue(json, clazz)
     }
 
 }
