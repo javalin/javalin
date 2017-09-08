@@ -7,10 +7,7 @@
 package io.javalin
 
 import io.javalin.builder.CookieBuilder
-import io.javalin.core.util.ContextUtil
-import io.javalin.core.util.Header
-import io.javalin.core.util.UploadUtil
-import io.javalin.core.util.Util
+import io.javalin.core.util.*
 import io.javalin.translator.json.JavalinJacksonPlugin
 import io.javalin.translator.markdown.JavalinCommonmarkPlugin
 import io.javalin.translator.template.JavalinFreemarkerPlugin
@@ -38,6 +35,23 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private var resultString: String? = null
     private var resultStream: InputStream? = null
+
+    private var cookiesStoreHasBeenRead = false
+    private val cookieStore: MutableMap<String, Any> = mutableMapOf()
+
+    fun cookieStore(key: String, value: Any) {
+        cookieStore[key] = value
+        cookie("javalin-cookie-store", CookieUtil.writeMapToCookie(cookieStore))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> cookieStore(key: String): T {
+        if (!cookiesStoreHasBeenRead) {
+            CookieUtil.readMapFromCookie(cookie("javalin-cookie-store")).forEach { k, v -> cookieStore.putIfAbsent(k, v) }
+            cookiesStoreHasBeenRead = true
+        }
+        return cookieStore[key] as T
+    }
 
     fun next() {
         passedToNextHandler = true
@@ -110,8 +124,10 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun attribute(attribute: String, value: Any) = servletRequest.setAttribute(attribute, value)
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> attribute(attribute: String): T = servletRequest.getAttribute(attribute) as T
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().map { it to servletRequest.getAttribute(it) as T }.toMap()
 
     fun contentLength(): Int = servletRequest.contentLength
