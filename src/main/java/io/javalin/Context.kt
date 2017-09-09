@@ -38,6 +38,9 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
 
+    @Suppress("UNCHECKED_CAST")
+    fun <T> cookieStore(key: String): T = cookieStore[key] as T
+
     fun cookieStore(key: String, value: Any) {
         cookieStore[key] = value
         cookie(CookieStoreUtil.name, CookieStoreUtil.mapToString(cookieStore))
@@ -46,11 +49,6 @@ class Context(private val servletResponse: HttpServletResponse,
     fun clearCookieStore() {
         cookieStore.clear();
         removeCookie(CookieStoreUtil.name)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun <T> cookieStore(key: String): T {
-        return cookieStore[key] as T
     }
 
     fun next() {
