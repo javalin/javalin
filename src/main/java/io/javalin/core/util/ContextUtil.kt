@@ -6,6 +6,7 @@
 
 package io.javalin.core.util
 
+import io.javalin.BasicAuthCredentials
 import io.javalin.Context
 import io.javalin.core.HandlerEntry
 import java.net.URLDecoder
@@ -67,6 +68,13 @@ object ContextUtil {
     fun mapKeysOrReturnNullIfAnyNulls(keys: Array<out String>, f: (s: String) -> String?): List<String>? = try {
         keys.map { f.invoke(it) }.requireNoNulls().toList()
     } catch (e: IllegalArgumentException) {
+        null
+    }
+
+    fun getBasicAuthCredentials(header: String?): BasicAuthCredentials? = try {
+        val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(":")
+        BasicAuthCredentials(username, password)
+    } catch (e: Exception) {
         null
     }
 

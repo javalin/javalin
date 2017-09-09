@@ -120,6 +120,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     // wrapper methods for HttpServletRequest
 
+    fun basicAuthCredentials(): BasicAuthCredentials? = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
+
     fun attribute(attribute: String, value: Any) = servletRequest.setAttribute(attribute, value)
 
     @Suppress("UNCHECKED_CAST")
