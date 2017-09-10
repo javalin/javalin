@@ -10,7 +10,7 @@ package io.javalin;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 

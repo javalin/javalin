@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 
 import io.javalin.builder.CookieBuilder;
 
@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.*;
 
 public class TestResponse extends _UnirestBaseTest {
 
-    @AfterEach
+    @After
     public void after() throws Exception {
         clearCookies();
     }

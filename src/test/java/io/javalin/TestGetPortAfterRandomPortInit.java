@@ -9,9 +9,9 @@ package io.javalin;
 
 import java.io.IOException;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.mashape.unirest.http.Unirest;
 
@@ -23,7 +23,7 @@ public class TestGetPortAfterRandomPortInit {
     private static Javalin app;
     private static int port;
 
-    @BeforeAll
+    @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()
             .port(0)
@@ -31,7 +31,7 @@ public class TestGetPortAfterRandomPortInit {
         port = app.port();
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         app.stop();
     }

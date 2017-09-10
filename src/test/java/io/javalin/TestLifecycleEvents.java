@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import io.javalin.event.EventType;
 

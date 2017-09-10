@@ -9,8 +9,8 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
+import org.junit.Ignore
+import org.junit.Test
 
 
 class TestRequest_KotlinSpecific : _UnirestBaseTest() {
@@ -34,7 +34,7 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
     }
 
     @Test
-    @Disabled("See comment at end of file")
+    @Ignore("See comment at end of file")
     fun test_mapFormParams_worksForGoodInput() {
         app.post("/") { ctx ->
             val (name, email, phone) = ctx.mapFormParams("name", "email", "phone") ?: throw IllegalArgumentException()
@@ -45,7 +45,7 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
     }
 
     @Test
-    @Disabled("See comment at end of file")
+    @Ignore("See comment at end of file")
     fun test_mapFormParams_isNullForBadInput() {
         app.post("/") { ctx ->
             val (name, missing) = ctx.mapFormParams("missing") ?: throw IllegalArgumentException()

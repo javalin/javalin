@@ -10,8 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 
 import io.javalin.translator.template.TemplateUtil;
 import io.javalin.util.TestObject_Serializable;
@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.*;
 
 public class TestCookieStore extends _UnirestBaseTest {
 
-    @AfterEach
+    @After
     public void after() throws Exception {
         clearCookies();
     }

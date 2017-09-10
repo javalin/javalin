@@ -15,8 +15,8 @@ import java.util.stream.IntStream;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public class TestAsync {
     private static Logger log = LoggerFactory.getLogger(TestAsync.class);
 
     @Test
-    @Disabled("Just for running manually")
+    @Ignore("Just for running manually")
     public void test_async() throws Exception {
 
         Javalin app = Javalin.create()

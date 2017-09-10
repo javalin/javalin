@@ -9,7 +9,7 @@ package io.javalin;
 
 import java.net.URLEncoder;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import io.javalin.util.TestResponse;
 

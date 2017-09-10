@@ -8,7 +8,7 @@ package io.javalin;
 
 import java.io.File;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import io.javalin.embeddedserver.Location;
 import io.javalin.event.EventType;

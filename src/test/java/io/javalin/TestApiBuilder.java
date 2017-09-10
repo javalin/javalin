@@ -7,14 +7,13 @@
 
 package io.javalin;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import com.mashape.unirest.http.HttpMethod;
 
 import static io.javalin.ApiBuilder.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class TestApiBuilder extends _UnirestBaseTest {
 
@@ -99,8 +98,9 @@ public class TestApiBuilder extends _UnirestBaseTest {
         return ctx -> ctx.result(ctx.resultString() + body);
     }
 
+    @Test(expected = IllegalStateException.class)
     public void test_throwsException_ifUsedWithoutRoutes() throws Exception {
-        assertThrows(IllegalStateException.class, () -> get("/null-static", ctx -> ctx.result("Shouldn't work")));
+        get("/null-static", ctx -> ctx.result("Shouldn't work"));
     }
 
 }
