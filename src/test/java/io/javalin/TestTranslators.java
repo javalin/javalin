@@ -8,8 +8,8 @@
 package io.javalin;
 
 import org.apache.velocity.app.VelocityEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.translator.template.JavalinVelocityPlugin;
@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.*;
 
 public class TestTranslators extends _UnirestBaseTest {
 
-    @BeforeClass
+    @BeforeAll
     public static void setObjectMapper() {
         JavalinJacksonPlugin.configure(new CustomMapper());
     }

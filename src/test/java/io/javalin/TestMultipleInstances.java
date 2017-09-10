@@ -9,9 +9,9 @@ package io.javalin;
 
 import java.io.IOException;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -25,14 +25,14 @@ public class TestMultipleInstances {
     private static Javalin app2;
     private static Javalin app3;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         app1 = Javalin.create().port(7001).start();
         app2 = Javalin.create().port(7002).start();
         app3 = Javalin.create().port(7003).start();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         app1.stop();
         app2.stop();

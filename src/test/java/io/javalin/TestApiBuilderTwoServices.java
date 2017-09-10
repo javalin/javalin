@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;

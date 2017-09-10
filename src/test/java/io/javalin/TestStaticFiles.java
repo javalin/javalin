@@ -9,10 +9,10 @@ package io.javalin;
 
 import java.io.IOException;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.javalin.core.util.Header;
 
@@ -28,7 +28,7 @@ public class TestStaticFiles {
     private static Javalin app;
     private static String origin = "http://localhost:7777";
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         app = Javalin.create()
             .port(7777)
@@ -36,14 +36,14 @@ public class TestStaticFiles {
             .start();
     }
 
-    @After
+    @AfterEach
     public void clearRoutes() {
         app.pathMatcher.getHandlerEntries().clear();
         app.errorMapper.getErrorHandlerMap().clear();
         app.exceptionMapper.getExceptionMap().clear();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         app.stop();
     }

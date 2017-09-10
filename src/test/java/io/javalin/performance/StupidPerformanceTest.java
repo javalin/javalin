@@ -9,10 +9,10 @@ package io.javalin.performance;
 
 import java.io.IOException;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import io.javalin.Handler;
 import io.javalin.Javalin;
@@ -26,12 +26,12 @@ public class StupidPerformanceTest {
 
     private static Javalin app;
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         app.stop();
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         app = Javalin.create()
             .port(7000)
@@ -65,7 +65,7 @@ public class StupidPerformanceTest {
     }
 
     @Test
-    @Ignore("Just for running manually")
+    @Disabled("Just for running manually")
     public void testPerformanceMaybe() throws Exception {
 
         long startTime = System.currentTimeMillis();

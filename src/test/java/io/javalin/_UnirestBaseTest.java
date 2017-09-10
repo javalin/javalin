@@ -11,9 +11,9 @@ import java.io.IOException;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
@@ -36,21 +36,21 @@ public class _UnirestBaseTest {
         GET_body("/cookie-cleaner");
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() throws IOException {
         app = Javalin.create()
             .port(7777)
             .start();
     }
 
-    @After
+    @AfterEach
     public void clearRoutes() {
         app.pathMatcher.getHandlerEntries().clear();
         app.errorMapper.getErrorHandlerMap().clear();
         app.exceptionMapper.getExceptionMap().clear();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDown() {
         app.stop();
     }

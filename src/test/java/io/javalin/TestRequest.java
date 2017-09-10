@@ -8,8 +8,8 @@ package io.javalin;
 
 import java.util.Arrays;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.javalin.core.util.Header;
 
@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.*;
 
 public class TestRequest extends _UnirestBaseTest {
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         clearCookies();
     }

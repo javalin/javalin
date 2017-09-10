@@ -9,7 +9,7 @@ package io.javalin;
 
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.javalin.util.SimpleHttpClient;
 

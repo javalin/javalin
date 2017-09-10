@@ -6,13 +6,13 @@
 
 package io.javalin;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.javalin.core.HandlerType;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
 
 public class TestReverseRouting extends _UnirestBaseTest {
 
