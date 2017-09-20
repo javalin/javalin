@@ -22,5 +22,4 @@ fun main(args: Array<String>) {
         ws.onError { throwable -> println("Errored") }
     }
     app.start()
-    app.get("/test", { ctx -> })
 }
