@@ -11,6 +11,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.javalin.embeddedserver.jetty.websocket.WebSocketContext;
 import io.javalin.security.Role;
 
 public class ApiBuilder {
@@ -149,6 +150,10 @@ public class ApiBuilder {
 
     public static void delete(Handler handler, List<Role> permittedRoles) {
         staticInstance().delete(prefixPath(""), handler, permittedRoles);
+    }
+
+    public static void ws(String path, WebSocketContext ws) {
+        staticJavalin.ws(prefixPath(path), ws);
     }
 
 }

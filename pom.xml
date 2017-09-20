@@ -84,12 +84,6 @@
             <version>${jetty.version}</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-client</artifactId>
-            <version>${jetty.version}</version>
-            <scope>test</scope>
-        </dependency>
 
         <!-- BEGIN Optional dependencies -->
         <dependency>
@@ -153,6 +147,12 @@
             <groupId>com.mashape.unirest</groupId>
             <artifactId>unirest-java</artifactId>
             <version>1.4.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.3.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

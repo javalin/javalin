@@ -18,7 +18,7 @@ import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
 
-public final class WebSocketHandler {
+public class WebSocketHandler {
     private Optional<ConnectHandler> connectHandler;
     private Optional<MessageHandler> messageHandler;
     private Optional<CloseHandler> closeHandler;

@@ -305,10 +305,11 @@ public class Javalin {
     // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
     private Map<String, WebSocketHandler> pathWsHandlers = new HashMap<>();
     public Javalin ws(String path, WebSocketContext ws) {
+        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         Util.INSTANCE.ensureDependencyPresent("Jetty WebSocket", "org.eclipse.jetty.websocket.api.Session", "org.eclipse.jetty.websocket/websocket-server");
-        WebSocketHandler configureHandler = new WebSocketHandler();
-        ws.configure(configureHandler);
-        pathWsHandlers.put(path, configureHandler);
+        WebSocketHandler configuredHandler = new WebSocketHandler();
+        ws.configure(configuredHandler);
+        pathWsHandlers.put(path, configuredHandler);
         return this;
     }
 
