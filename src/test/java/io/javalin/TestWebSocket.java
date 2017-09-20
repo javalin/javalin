@@ -56,17 +56,18 @@ public class TestWebSocket {
 
         TestClient testClient = new TestClient(URI.create("ws://localhost:1234/test-websocket"));
         testClient.connect();
-        Thread.sleep(100);
+        Thread.sleep(200);
         testClient.send("Hello");
-        Thread.sleep(100);
+        Thread.sleep(200);
         testClient.close();
-        Thread.sleep(100);
+        Thread.sleep(200);
         TestClient testClient2 = new TestClient(URI.create("ws://localhost:1234/test-websocket-2"));
         testClient2.connect();
-        Thread.sleep(100);
+        Thread.sleep(200);
         testClient2.close();
-        Thread.sleep(100);
+        Thread.sleep(200);
         assertThat(testList.toString(), is("[Connected, Received:Hello, Echo:Hello, Closed, Connected2, Closed2]"));
+        app.stop();
     }
 
     class TestClient extends WebSocketClient {
