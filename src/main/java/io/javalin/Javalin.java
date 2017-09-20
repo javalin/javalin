@@ -7,7 +7,9 @@
 
 package io.javalin;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,8 @@ import io.javalin.embeddedserver.EmbeddedServerFactory;
 import io.javalin.embeddedserver.Location;
 import io.javalin.embeddedserver.StaticFileConfig;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketContext;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
 import io.javalin.event.EventListener;
 import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
@@ -295,6 +299,17 @@ public class Javalin {
 
     public String pathFinder(Handler handler, HandlerType handlerType) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
+    }
+
+    // WebSockets
+    // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
+    public static Map<String, WebSocketContext> pathWsContexts = new HashMap<>();
+    public Javalin ws(String path, WebSocketHandler ws) {
+        Util.INSTANCE.ensureDependencyPresent("Jetty WebSocket", "org.eclipse.jetty.websocket.api.Session", "org.eclipse.jetty.websocket/websocket-server");
+        WebSocketContext configuredContext = new WebSocketContext();
+        ws.configure(configuredContext);
+        pathWsContexts.put(path, configuredContext);
+        return this;
     }
 
 }
