@@ -81,7 +81,7 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper, logLevel), staticFileConfig);
+                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper, pathWsHandlers, logLevel), staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
                 log.info("Javalin has started \\o/");
@@ -303,12 +303,12 @@ public class Javalin {
 
     // WebSockets
     // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
-    public static Map<String, WebSocketContext> pathWsContexts = new HashMap<>();
-    public Javalin ws(String path, WebSocketHandler ws) {
+    private Map<String, WebSocketHandler> pathWsHandlers = new HashMap<>();
+    public Javalin ws(String path, WebSocketContext ws) {
         Util.INSTANCE.ensureDependencyPresent("Jetty WebSocket", "org.eclipse.jetty.websocket.api.Session", "org.eclipse.jetty.websocket/websocket-server");
-        WebSocketContext configuredContext = new WebSocketContext();
-        ws.configure(configuredContext);
-        pathWsContexts.put(path, configuredContext);
+        WebSocketHandler configureHandler = new WebSocketHandler();
+        ws.configure(configureHandler);
+        pathWsHandlers.put(path, configureHandler);
         return this;
     }
 

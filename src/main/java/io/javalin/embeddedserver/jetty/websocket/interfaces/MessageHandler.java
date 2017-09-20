@@ -8,5 +8,5 @@ package io.javalin.embeddedserver.jetty.websocket.interfaces;
 
 @FunctionalInterface
 public interface MessageHandler {
-    void handle(String msg) throws Exception;
+    void handle(String msg);
 }

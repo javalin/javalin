@@ -8,5 +8,5 @@ package io.javalin.embeddedserver.jetty.websocket.interfaces;
 
 @FunctionalInterface
 public interface CloseHandler {
-    void handle(int statusCode, String reason) throws Exception;
+    void handle(int statusCode, String reason);
 }

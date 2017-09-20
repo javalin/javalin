@@ -6,7 +6,6 @@
 
 package io.javalin.embeddedserver.jetty
 
-import io.javalin.Javalin
 import io.javalin.core.JavalinServlet
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
@@ -41,10 +40,10 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         }
 
         val webSocketHandler = ServletContextHandler()
-        Javalin.pathWsContexts.forEach { path, wsCtx ->
+        javalinServlet.wsHandlers.forEach { path, handler ->
             webSocketHandler.addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
-                    factory.creator = CustomWebSocketCreator(wsCtx.webSocketAdapter)
+                    factory.creator = CustomWebSocketCreator(handler.webSocketAdapter)
                 }
             }), path)
         }
