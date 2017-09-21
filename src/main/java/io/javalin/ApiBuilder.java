@@ -156,12 +156,12 @@ public class ApiBuilder {
         staticJavalin.ws(prefixPath(path), ws);
     }
 
-    public static void ws(String path, Class clazz) {
-        staticJavalin.ws(prefixPath(path), clazz);
+    public static void ws(String path, Class webSocketClass) {
+        staticJavalin.ws(prefixPath(path), webSocketClass);
     }
 
-    public static void ws(String path, Object ws) {
-        staticJavalin.ws(prefixPath(path), ws);
+    public static void ws(String path, Object webSocketObject) {
+        staticJavalin.ws(prefixPath(path), webSocketObject);
     }
 
 }
