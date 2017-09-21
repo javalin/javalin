@@ -12,42 +12,69 @@ import java.util.Optional;
 import org.eclipse.jetty.websocket.api.RemoteEndpoint;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 
 import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
 
+@WebSocket
 public class WebSocketHandler {
+
     private Optional<ConnectHandler> connectHandler;
     private Optional<MessageHandler> messageHandler;
     private Optional<CloseHandler> closeHandler;
     private Optional<ErrorHandler> errorHandler;
 
-    private WebSocketAdapter webSocketAdapter = new WebSocketAdapter() {
-
-        public void onWebSocketConnect(Session session) {
-            super.onWebSocketConnect(session);
-            connectHandler.ifPresent(it -> it.handle(session));
+        @OnWebSocketConnect
+        public void onConnect(Session session) {
+            connectHandler.ifPresent(it -> {
+                try {
+                    it.handle(session);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
-        public void onWebSocketText(String message) {
-            messageHandler.ifPresent(it -> it.handle(message));
+        @OnWebSocketMessage
+        public void onMessage(Session session, String message) {
+            messageHandler.ifPresent(it -> {
+                try {
+                    it.handle(session, message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
-        public void onWebSocketClose(int statusCode, String reason) {
-            closeHandler.ifPresent(it -> it.handle(statusCode, reason));
-            super.onWebSocketClose(statusCode, reason);
+        @OnWebSocketClose
+        public void onClose(Session session, int statusCode, String reason) {
+            closeHandler.ifPresent(it -> {
+                try {
+                    it.handle(session, statusCode, reason);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
-        public void onWebSocketError(Throwable throwable) {
-            errorHandler.ifPresent(it -> it.handle(throwable));
+        @OnWebSocketError
+        public void onError(Session session, Throwable throwable) {
+            errorHandler.ifPresent(it -> {
+                try {
+                    it.handle(session, throwable);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
-    };
 
-    public WebSocketAdapter getWebSocketAdapter() {
-        return webSocketAdapter;
-    }
 
     public void onConnect(ConnectHandler connectHandler) {
         this.connectHandler = Optional.of(connectHandler);
@@ -63,30 +90,6 @@ public class WebSocketHandler {
 
     public void onError(ErrorHandler errorHandler) {
         this.errorHandler = Optional.of(errorHandler);
-    }
-
-    public void send(String msg) {
-        try {
-            this.webSocketAdapter.getRemote().sendString(msg);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Session session() {
-        return this.webSocketAdapter.getSession();
-    }
-
-    public RemoteEndpoint remote() {
-        return this.webSocketAdapter.getRemote();
-    }
-
-    public boolean isConnected() {
-        return this.webSocketAdapter.isConnected();
-    }
-
-    public boolean isNotConnected() {
-        return this.webSocketAdapter.isNotConnected();
     }
 
 }

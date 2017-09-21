@@ -6,7 +6,9 @@
 
 package io.javalin.embeddedserver.jetty.websocket.interfaces;
 
+import org.eclipse.jetty.websocket.api.Session;
+
 @FunctionalInterface
 public interface ErrorHandler {
-    void handle(Throwable throwable);
+    void handle(Session session, Throwable throwable) throws Exception;
 }

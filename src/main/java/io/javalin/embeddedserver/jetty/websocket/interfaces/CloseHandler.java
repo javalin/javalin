@@ -6,7 +6,9 @@
 
 package io.javalin.embeddedserver.jetty.websocket.interfaces;
 
+import org.eclipse.jetty.websocket.api.Session;
+
 @FunctionalInterface
 public interface CloseHandler {
-    void handle(int statusCode, String reason);
+    void handle(Session session, int statusCode, String reason) throws Exception;
 }

@@ -43,7 +43,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         javalinServlet.wsHandlers.forEach { path, handler ->
             webSocketHandler.addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
-                    factory.creator = CustomWebSocketCreator(handler.webSocketAdapter)
+                    factory.creator = CustomWebSocketCreator(handler)
                 }
             }), path)
         }

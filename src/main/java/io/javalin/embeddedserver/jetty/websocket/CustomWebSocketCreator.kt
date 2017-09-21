@@ -11,8 +11,8 @@ import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 
-class CustomWebSocketCreator(internal val handler: WebSocketAdapter) : WebSocketCreator {
-    override fun createWebSocket(request: ServletUpgradeRequest, response: ServletUpgradeResponse): WebSocketAdapter {
+class CustomWebSocketCreator(internal val handler: Any) : WebSocketCreator {
+    override fun createWebSocket(request: ServletUpgradeRequest, response: ServletUpgradeResponse): Any {
         return handler
     }
 }

@@ -6,7 +6,12 @@
 
 package io.javalin.examples;
 
+import java.io.IOException;
+
+import org.eclipse.jetty.websocket.api.Session;
+
 import io.javalin.Javalin;
+import io.javalin.util.EventSocket;
 
 // WebSockets also work with ssl,
 // see HelloWorldSecure for how to set that up
@@ -17,17 +22,18 @@ public class HelloWorldWebSockets {
             ws.onConnect(session -> {
                 System.out.println("Connected");
             });
-            ws.onMessage(message -> {
+            ws.onMessage((session, message) -> {
                 System.out.println("Received: " + message);
-                ws.send("Echo: " + message);
+                session.getRemote().sendString("Echo: " + message);
             });
-            ws.onClose((statusCode, reason) -> {
+            ws.onClose((session, statusCode, reason) -> {
                 System.out.println("Closed");
             });
-            ws.onError(throwable -> {
+            ws.onError((session, throwable) -> {
                 System.out.println("Errored");
             });
         });
+        app.ws("/ws-2", new EventSocket());
         app.start();
     }
 }

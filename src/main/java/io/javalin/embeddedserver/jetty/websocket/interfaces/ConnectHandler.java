@@ -10,5 +10,5 @@ import org.eclipse.jetty.websocket.api.Session;
 
 @FunctionalInterface
 public interface ConnectHandler {
-    void handle(Session session);
+    void handle(Session session) throws Exception;
 }

@@ -14,12 +14,12 @@ fun main(args: Array<String>) {
     val app = Javalin.create().port(7000)
     app.ws("/websocket") { ws ->
         ws.onConnect { session -> println("Connected") }
-        ws.onMessage { message ->
+        ws.onMessage { session, message ->
             println("Received: " + message)
-            ws.send("Echo: " + message)
+            session.remote.sendString("Echo: " + message)
         }
-        ws.onClose { statusCode, reason -> println("Closed") }
-        ws.onError { throwable -> println("Errored") }
+        ws.onClose { session, statusCode, reason -> println("Closed") }
+        ws.onError { session, throwable -> println("Errored") }
     }
     app.start()
 }

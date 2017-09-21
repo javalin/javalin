@@ -156,4 +156,8 @@ public class ApiBuilder {
         staticJavalin.ws(prefixPath(path), ws);
     }
 
+    public static void ws(String path, Object ws) {
+        staticJavalin.ws(prefixPath(path), ws);
+    }
+
 }

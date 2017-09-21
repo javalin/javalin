@@ -13,7 +13,6 @@ import io.javalin.core.util.LogUtil
 import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
-import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
@@ -26,7 +25,7 @@ class JavalinServlet(
         val matcher: PathMatcher,
         val exceptionMapper: ExceptionMapper,
         val errorMapper: ErrorMapper,
-        val wsHandlers: Map<String, WebSocketHandler>,
+        val wsHandlers: Map<String, Any>,
         val logLevel: LogLevel) {
 
     private val log = LoggerFactory.getLogger(JavalinServlet::class.java)

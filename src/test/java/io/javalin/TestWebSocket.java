@@ -34,11 +34,11 @@ public class TestWebSocket {
             ws.onConnect(session -> {
                 testList.add("Connected");
             });
-            ws.onMessage(message -> {
+            ws.onMessage((session, message) -> {
                 testList.add("Received:" + message);
-                ws.send("Echo:" + message);
+                session.getRemote().sendString("Echo:" + message);
             });
-            ws.onClose((statusCode, reason) -> {
+            ws.onClose((session, statusCode, reason) -> {
                 testList.add("Closed");
             });
         });
@@ -47,7 +47,7 @@ public class TestWebSocket {
                 ws.onConnect(session -> {
                     testList.add("Connected2");
                 });
-                ws.onClose((statusCode, reason) -> {
+                ws.onClose((session, statusCode, reason) -> {
                     testList.add("Closed2");
                 });
             });
