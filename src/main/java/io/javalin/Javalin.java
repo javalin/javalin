@@ -27,7 +27,7 @@ import io.javalin.embeddedserver.EmbeddedServerFactory;
 import io.javalin.embeddedserver.Location;
 import io.javalin.embeddedserver.StaticFileConfig;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
-import io.javalin.embeddedserver.jetty.websocket.WebSocketContext;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
 import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
 import io.javalin.event.EventListener;
 import io.javalin.event.EventManager;
@@ -306,7 +306,7 @@ public class Javalin {
 
     private Map<String, Object> pathWsHandlers = new HashMap<>();
 
-    public Javalin ws(String path, WebSocketContext ws) {
+    public Javalin ws(String path, WebSocketConfig ws) {
         ensureWebSocketsCallWillWork();
         WebSocketHandler configuredHandler = new WebSocketHandler();
         ws.configure(configuredHandler);

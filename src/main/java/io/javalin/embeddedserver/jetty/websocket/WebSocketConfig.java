@@ -7,6 +7,6 @@
 package io.javalin.embeddedserver.jetty.websocket;
 
 @FunctionalInterface
-public interface WebSocketContext {
+public interface WebSocketConfig {
     void configure(WebSocketHandler webSocketHandler);
 }
