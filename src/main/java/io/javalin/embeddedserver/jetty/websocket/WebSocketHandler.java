@@ -47,7 +47,7 @@ public class WebSocketHandler {
     // Jetty annotations
 
     @OnWebSocketConnect
-    public void onConnect(Session session) {
+    public void _internalOnConnectProxy(Session session) {
         connectHandler.ifPresent(it -> {
             try {
                 it.handle(session);
@@ -58,7 +58,7 @@ public class WebSocketHandler {
     }
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String message) {
+    public void _internalOnMessageProxy(Session session, String message) {
         messageHandler.ifPresent(it -> {
             try {
                 it.handle(session, message);
@@ -69,7 +69,7 @@ public class WebSocketHandler {
     }
 
     @OnWebSocketClose
-    public void onClose(Session session, int statusCode, String reason) {
+    public void _internalOnCloseProxy(Session session, int statusCode, String reason) {
         closeHandler.ifPresent(it -> {
             try {
                 it.handle(session, statusCode, reason);
@@ -80,7 +80,7 @@ public class WebSocketHandler {
     }
 
     @OnWebSocketError
-    public void onError(Session session, Throwable throwable) {
+    public void _internalOnErrorProxy(Session session, Throwable throwable) {
         errorHandler.ifPresent(it -> {
             try {
                 it.handle(session, throwable);
