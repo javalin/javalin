@@ -7,7 +7,6 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.util.EventSocket;
 
 // WebSockets also work with ssl,
 // see HelloWorldSecure for how to set that up
