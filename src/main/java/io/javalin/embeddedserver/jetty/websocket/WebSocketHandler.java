@@ -52,7 +52,7 @@ public class WebSocketHandler {
             try {
                 it.handle(session);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         });
     }
@@ -63,7 +63,7 @@ public class WebSocketHandler {
             try {
                 it.handle(session, message);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         });
     }
@@ -74,7 +74,7 @@ public class WebSocketHandler {
             try {
                 it.handle(session, statusCode, reason);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         });
     }
@@ -85,7 +85,7 @@ public class WebSocketHandler {
             try {
                 it.handle(session, throwable);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         });
     }
