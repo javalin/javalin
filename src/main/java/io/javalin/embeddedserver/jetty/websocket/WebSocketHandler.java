@@ -6,12 +6,9 @@
 
 package io.javalin.embeddedserver.jetty.websocket;
 
-import java.io.IOException;
 import java.util.Optional;
 
-import org.eclipse.jetty.websocket.api.RemoteEndpoint;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
@@ -31,51 +28,6 @@ public class WebSocketHandler {
     private Optional<CloseHandler> closeHandler;
     private Optional<ErrorHandler> errorHandler;
 
-        @OnWebSocketConnect
-        public void onConnect(Session session) {
-            connectHandler.ifPresent(it -> {
-                try {
-                    it.handle(session);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-        @OnWebSocketMessage
-        public void onMessage(Session session, String message) {
-            messageHandler.ifPresent(it -> {
-                try {
-                    it.handle(session, message);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-        @OnWebSocketClose
-        public void onClose(Session session, int statusCode, String reason) {
-            closeHandler.ifPresent(it -> {
-                try {
-                    it.handle(session, statusCode, reason);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-        @OnWebSocketError
-        public void onError(Session session, Throwable throwable) {
-            errorHandler.ifPresent(it -> {
-                try {
-                    it.handle(session, throwable);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-
     public void onConnect(ConnectHandler connectHandler) {
         this.connectHandler = Optional.of(connectHandler);
     }
@@ -90,6 +42,52 @@ public class WebSocketHandler {
 
     public void onError(ErrorHandler errorHandler) {
         this.errorHandler = Optional.of(errorHandler);
+    }
+
+    // Jetty annotations
+
+    @OnWebSocketConnect
+    public void onConnect(Session session) {
+        connectHandler.ifPresent(it -> {
+            try {
+                it.handle(session);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @OnWebSocketMessage
+    public void onMessage(Session session, String message) {
+        messageHandler.ifPresent(it -> {
+            try {
+                it.handle(session, message);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @OnWebSocketClose
+    public void onClose(Session session, int statusCode, String reason) {
+        closeHandler.ifPresent(it -> {
+            try {
+                it.handle(session, statusCode, reason);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @OnWebSocketError
+    public void onError(Session session, Throwable throwable) {
+        errorHandler.ifPresent(it -> {
+            try {
+                it.handle(session, throwable);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
 }

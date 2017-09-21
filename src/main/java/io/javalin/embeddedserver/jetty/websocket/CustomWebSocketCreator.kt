@@ -6,7 +6,6 @@
 
 package io.javalin.embeddedserver.jetty.websocket
 
-import org.eclipse.jetty.websocket.api.WebSocketAdapter
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator

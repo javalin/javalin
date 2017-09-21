@@ -6,10 +6,6 @@
 
 package io.javalin.examples;
 
-import java.io.IOException;
-
-import org.eclipse.jetty.websocket.api.Session;
-
 import io.javalin.Javalin;
 import io.javalin.util.EventSocket;
 
@@ -33,7 +29,6 @@ public class HelloWorldWebSockets {
                 System.out.println("Errored");
             });
         });
-        app.ws("/ws-2", new EventSocket());
         app.start();
     }
 }

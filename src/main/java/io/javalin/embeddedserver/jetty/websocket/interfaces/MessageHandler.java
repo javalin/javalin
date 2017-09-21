@@ -6,8 +6,6 @@
 
 package io.javalin.embeddedserver.jetty.websocket.interfaces;
 
-import java.io.IOException;
-
 import org.eclipse.jetty.websocket.api.Session;
 
 @FunctionalInterface
