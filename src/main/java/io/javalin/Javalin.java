@@ -7,7 +7,9 @@
 
 package io.javalin;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,8 @@ import io.javalin.embeddedserver.EmbeddedServerFactory;
 import io.javalin.embeddedserver.Location;
 import io.javalin.embeddedserver.StaticFileConfig;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
 import io.javalin.event.EventListener;
 import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
@@ -77,7 +81,7 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper, logLevel), staticFileConfig);
+                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper, pathWsHandlers, logLevel), staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
                 log.info("Javalin has started \\o/");
@@ -295,6 +299,36 @@ public class Javalin {
 
     public String pathFinder(Handler handler, HandlerType handlerType) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
+    }
+
+    // WebSockets
+    // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
+
+    private Map<String, Object> pathWsHandlers = new HashMap<>();
+
+    public Javalin ws(String path, WebSocketConfig ws) {
+        ensureWebSocketsCallWillWork();
+        WebSocketHandler configuredHandler = new WebSocketHandler();
+        ws.configure(configuredHandler);
+        pathWsHandlers.put(path, configuredHandler);
+        return this;
+    }
+
+    public Javalin ws(String path, Class webSocketClass) {
+        ensureWebSocketsCallWillWork();
+        pathWsHandlers.put(path, webSocketClass);
+        return this;
+    }
+
+    public Javalin ws(String path, Object webSocketObject) {
+        ensureWebSocketsCallWillWork();
+        pathWsHandlers.put(path, webSocketObject);
+        return this;
+    }
+
+    private void ensureWebSocketsCallWillWork() {
+        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
+        Util.INSTANCE.ensureDependencyPresent("Jetty WebSocket", "org.eclipse.jetty.websocket.api.Session", "org.eclipse.jetty.websocket/websocket-server");
     }
 
 }

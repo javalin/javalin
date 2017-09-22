@@ -21,7 +21,12 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServlet(val matcher: PathMatcher, val exceptionMapper: ExceptionMapper, val errorMapper: ErrorMapper, val logLevel: LogLevel) {
+class JavalinServlet(
+        val matcher: PathMatcher,
+        val exceptionMapper: ExceptionMapper,
+        val errorMapper: ErrorMapper,
+        val wsHandlers: Map<String, Any>,
+        val logLevel: LogLevel) {
 
     private val log = LoggerFactory.getLogger(JavalinServlet::class.java)
 

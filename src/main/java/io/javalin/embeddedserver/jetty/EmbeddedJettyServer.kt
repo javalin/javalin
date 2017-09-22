@@ -8,14 +8,19 @@ package io.javalin.embeddedserver.jetty
 
 import io.javalin.core.JavalinServlet
 import io.javalin.embeddedserver.EmbeddedServer
+import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.server.handler.HandlerList
 import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
+import org.eclipse.jetty.websocket.servlet.WebSocketServlet
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.LoggerFactory
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-
 
 class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
 
@@ -23,16 +28,29 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
 
     override fun start(port: Int): Int {
 
-        server.apply {
-            handler = object : SessionHandler() {
-                override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                    javalinServlet.service(request.apply {
-                        setAttribute("jetty-target", target)
-                        setAttribute("jetty-request", jettyRequest)
-                    }, response)
-                    jettyRequest.isHandled = true
-                }
+        val httpHandler = object : SessionHandler() {
+            override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+                if (request.isWebSocket()) return // don't touch websocket requests
+                javalinServlet.service(request.apply {
+                    setAttribute("jetty-target", target)
+                    setAttribute("jetty-request", jettyRequest)
+                }, response)
+                jettyRequest.isHandled = true
             }
+        }
+
+        val webSocketHandler = ServletContextHandler()
+        javalinServlet.wsHandlers.forEach { path, handler ->
+            webSocketHandler.addServlet(ServletHolder(object : WebSocketServlet() {
+                override fun configure(factory: WebSocketServletFactory) {
+                    val h = if (handler is Class<*>) handler.newInstance() else handler;
+                    factory.creator = CustomWebSocketCreator(h)
+                }
+            }), path)
+        }
+
+        server.apply {
+            handler = HandlerList(httpHandler, webSocketHandler)
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = port
             })
@@ -52,3 +70,5 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
     override fun attribute(key: String): Any = server.getAttribute(key)
 
 }
+
+fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null
