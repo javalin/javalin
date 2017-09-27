@@ -67,7 +67,7 @@ class JavalinServlet(
 
         } catch (e: Exception) {
             // both before-handlers and endpoint-handlers can throw Exception,
-            // we need to handle those here in order to run after-filters even if an exception was thrown
+            // we need to handle these exceptions here in order to run after-handlers even if an exception was thrown
             exceptionMapper.handle(e, ctx)
         }
 
@@ -76,7 +76,7 @@ class JavalinServlet(
                 afterEntry.handler.handle(ContextUtil.update(ctx, afterEntry, requestUri))
             }
         } catch (e: Exception) {
-            // after filters can also throw exceptions
+            // after-handlers can also throw exceptions
             exceptionMapper.handle(e, ctx)
         }
 
