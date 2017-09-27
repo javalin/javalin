@@ -73,8 +73,8 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
         return false
     }
 
-    private fun Resource.isFile() = this.exists() && !this.isDirectory
+    private fun Resource.isFile() = this != null && this.exists() && !this.isDirectory
     private fun Resource.isDirectoryWithWelcomeFile(target: String) =
-            this.isDirectory && resourceHandler.getResource(target + "index.html").exists()
+            this != null && this.isDirectory && resourceHandler.getResource(target + "index.html").exists()
 
 }
