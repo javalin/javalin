@@ -40,6 +40,7 @@ public class _UnirestBaseTest {
     public static void setup() throws IOException {
         app = Javalin.create()
             .port(7777)
+            .enableStaticFiles("/public")
             .start();
     }
 

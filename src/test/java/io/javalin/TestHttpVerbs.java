@@ -50,13 +50,6 @@ public class TestHttpVerbs extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_all_nonMapped_verbs_404() throws Exception {
-        for (HttpMethod httpMethod : HttpMethod.values()) {
-            assertThat(call(httpMethod, "/not-mapped").getStatus(), is(404));
-        }
-    }
-
-    @Test
     public void test_headOk_ifGetMapped() throws Exception {
         app.get("/mapped", OK_HANDLER);
         assertThat(call(HttpMethod.HEAD, "/mapped").getStatus(), is(200));

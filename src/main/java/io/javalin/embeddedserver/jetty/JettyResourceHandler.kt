@@ -59,7 +59,8 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
             val target = httpRequest.getAttribute("jetty-target") as String
             val baseRequest = httpRequest.getAttribute("jetty-request") as Request // org.eclipse.jetty.server.Request
             try {
-                if (!resourceHandler.getResource(target).isDirectory || resourceHandler.getResource(target + "index.html").exists()) {
+                val resource = resourceHandler.getResource(target)
+                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(target)) {
                     val maxAge = if (target.startsWith("/immutable")) 31622400 else 0
                     httpResponse.setHeader("Cache-Control", "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
@@ -71,5 +72,9 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
         }
         return false
     }
+
+    private fun Resource.isFile() = this.exists() && !this.isDirectory
+    private fun Resource.isDirectoryWithWelcomeFile(target: String) =
+            this.isDirectory && resourceHandler.getResource(target + "index.html").exists()
 
 }
