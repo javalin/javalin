@@ -33,6 +33,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
                 resourceBase = getResourcePath(staticFileConfig)
                 isDirAllowed = false
                 isEtags = true
+                isRedirectWelcome = true // can be removed after next jetty release: https://github.com/eclipse/jetty.project/issues/1856#issuecomment-333700807
             }.start()
             initialized = true
             log.info("Static files enabled: {$staticFileConfig}. Absolute path: '${resourceHandler.resourceBase}'")
