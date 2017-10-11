@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,7 +115,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin embeddedServer(EmbeddedServerFactory embeddedServerFactory) {
+    public Javalin embeddedServer(@NotNull EmbeddedServerFactory embeddedServerFactory) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
         this.embeddedServerFactory = embeddedServerFactory;
         return this;
@@ -124,11 +125,11 @@ public class Javalin {
         return embeddedServer;
     }
 
-    public Javalin enableStaticFiles(String classpathPath) {
+    public Javalin enableStaticFiles(@NotNull String classpathPath) {
         return enableStaticFiles(classpathPath, Location.CLASSPATH);
     }
 
-    public Javalin enableStaticFiles(String path, Location location) {
+    public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         Util.INSTANCE.notNull("Location cannot be null", path);
         staticFileConfig = new StaticFileConfig(path, location);
@@ -149,18 +150,18 @@ public class Javalin {
         return requestLogLevel(LogLevel.STANDARD);
     }
 
-    public Javalin requestLogLevel(LogLevel logLevel) {
+    public Javalin requestLogLevel(@NotNull LogLevel logLevel) {
         ensureActionIsPerformedBeforeServerStart("Enabling request-logging");
         this.logLevel = logLevel;
         return this;
     }
 
-    public Javalin enableCorsForOrigin(String... origin) {
+    public Javalin enableCorsForOrigin(@NotNull String... origin) {
         ensureActionIsPerformedBeforeServerStart("Enabling CORS");
         return CorsUtil.INSTANCE.enableCors(this, origin);
     }
 
-    private void ensureActionIsPerformedBeforeServerStart(String action) {
+    private void ensureActionIsPerformedBeforeServerStart(@NotNull String action) {
         if (started) {
             throw new IllegalStateException(action + " must be done before starting the server");
         }
@@ -168,136 +169,136 @@ public class Javalin {
 
     // End embedded server methods
 
-    public Javalin accessManager(AccessManager accessManager) {
+    public Javalin accessManager(@NotNull AccessManager accessManager) {
         this.accessManager = accessManager;
         return this;
     }
 
-    public <T extends Exception> Javalin exception(Class<T> exceptionClass, ExceptionHandler<? super T> exceptionHandler) {
+    public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
         exceptionMapper.getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
-    public Javalin event(EventType eventType, EventListener eventListener) {
+    public Javalin event(@NotNull EventType eventType, @NotNull EventListener eventListener) {
         ensureActionIsPerformedBeforeServerStart("Event-mapping");
         eventManager.getListenerMap().get(eventType).add(eventListener);
         return this;
     }
 
-    public Javalin error(int statusCode, ErrorHandler errorHandler) {
+    public Javalin error(int statusCode, @NotNull ErrorHandler errorHandler) {
         errorMapper.getErrorHandlerMap().put(statusCode, errorHandler);
         return this;
     }
 
-    public Javalin routes(ApiBuilder.EndpointGroup endpointGroup) {
+    public Javalin routes(@NotNull ApiBuilder.EndpointGroup endpointGroup) {
         ApiBuilder.setStaticJavalin(this);
         endpointGroup.addEndpoints();
         ApiBuilder.clearStaticJavalin();
         return this;
     }
 
-    private Javalin addHandler(HandlerType httpMethod, String path, Handler handler) {
+    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
         pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, path, handler));
         return this;
     }
 
     // HTTP verbs
-    public Javalin get(String path, Handler handler) {
+    public Javalin get(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.GET, path, handler);
     }
 
-    public Javalin post(String path, Handler handler) {
+    public Javalin post(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.POST, path, handler);
     }
 
-    public Javalin put(String path, Handler handler) {
+    public Javalin put(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.PUT, path, handler);
     }
 
-    public Javalin patch(String path, Handler handler) {
+    public Javalin patch(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.PATCH, path, handler);
     }
 
-    public Javalin delete(String path, Handler handler) {
+    public Javalin delete(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.DELETE, path, handler);
     }
 
-    public Javalin head(String path, Handler handler) {
+    public Javalin head(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.HEAD, path, handler);
     }
 
-    public Javalin trace(String path, Handler handler) {
+    public Javalin trace(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.TRACE, path, handler);
     }
 
-    public Javalin connect(String path, Handler handler) {
+    public Javalin connect(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.CONNECT, path, handler);
     }
 
-    public Javalin options(String path, Handler handler) {
+    public Javalin options(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.OPTIONS, path, handler);
     }
 
     // Secured HTTP verbs
-    public Javalin get(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.get(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
-    public Javalin post(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.post(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
-    public Javalin put(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.put(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
-    public Javalin patch(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.patch(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
-    public Javalin delete(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.delete(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
-    public Javalin head(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.head(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
-    public Javalin trace(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin trace(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.trace(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
-    public Javalin connect(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin connect(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.connect(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
-    public Javalin options(String path, Handler handler, List<Role> permittedRoles) {
+    public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return this.options(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
     }
 
     // Filters
-    public Javalin before(String path, Handler handler) {
+    public Javalin before(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.BEFORE, path, handler);
     }
 
-    public Javalin before(Handler handler) {
+    public Javalin before(@NotNull Handler handler) {
         return before("*", handler);
     }
 
-    public Javalin after(String path, Handler handler) {
+    public Javalin after(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.AFTER, path, handler);
     }
 
-    public Javalin after(Handler handler) {
+    public Javalin after(@NotNull Handler handler) {
         return after("*", handler);
     }
 
     // Reverse routing
-    public String pathFinder(Handler handler) {
+    public String pathFinder(@NotNull Handler handler) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler));
     }
 
-    public String pathFinder(Handler handler, HandlerType handlerType) {
+    public String pathFinder(@NotNull Handler handler, @NotNull HandlerType handlerType) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
     }
 
@@ -306,7 +307,7 @@ public class Javalin {
 
     private Map<String, Object> pathWsHandlers = new HashMap<>();
 
-    public Javalin ws(String path, WebSocketConfig ws) {
+    public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
         ensureWebSocketsCallWillWork();
         WebSocketHandler configuredHandler = new WebSocketHandler();
         ws.configure(configuredHandler);
@@ -314,13 +315,13 @@ public class Javalin {
         return this;
     }
 
-    public Javalin ws(String path, Class webSocketClass) {
+    public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
         ensureWebSocketsCallWillWork();
         pathWsHandlers.put(path, webSocketClass);
         return this;
     }
 
-    public Javalin ws(String path, Object webSocketObject) {
+    public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
         ensureWebSocketsCallWillWork();
         pathWsHandlers.put(path, webSocketObject);
         return this;
