@@ -31,10 +31,13 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         val httpHandler = object : SessionHandler() {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 if (request.isWebSocket()) return // don't touch websocket requests
-                javalinServlet.service(request.apply {
-                    setAttribute("jetty-target", target)
-                    setAttribute("jetty-request", jettyRequest)
-                }, response)
+                try {
+                    request.setAttribute("jetty-target", target)
+                    request.setAttribute("jetty-request", jettyRequest)
+                    javalinServlet.service(request, response)
+                } catch (e: Exception) {
+                    log.error("Exception occurred while servicing http-request", e)
+                }
                 jettyRequest.isHandled = true
             }
         }
