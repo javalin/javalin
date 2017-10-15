@@ -41,6 +41,7 @@ public class Javalin {
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     private int port = 7000;
+    private String contextPath = "/";
 
     private EmbeddedServer embeddedServer;
     private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
@@ -82,7 +83,7 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(pathMatcher, exceptionMapper, errorMapper, pathWsHandlers, logLevel), staticFileConfig);
+                embeddedServer = embeddedServerFactory.create(new JavalinServlet(contextPath, pathMatcher, exceptionMapper, errorMapper, pathWsHandlers, logLevel), staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
                 log.info("Javalin has started \\o/");
@@ -129,6 +130,16 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         Util.INSTANCE.notNull("Location cannot be null", path);
         staticFileConfig = new StaticFileConfig(path, location);
+        return this;
+    }
+
+    public String contextPath() {
+        return this.contextPath;
+    }
+
+    public Javalin contextPath(@NotNull String contextPath) {
+        ensureActionIsPerformedBeforeServerStart("Setting the context path");
+        this.contextPath = Util.INSTANCE.normalizeContextPath(contextPath);
         return this;
     }
 
@@ -194,7 +205,8 @@ public class Javalin {
     }
 
     private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
-        pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, path, handler));
+        String prefixedPath = Util.INSTANCE.prefixContextPath(path, contextPath);
+        pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, prefixedPath, handler));
         return this;
     }
 

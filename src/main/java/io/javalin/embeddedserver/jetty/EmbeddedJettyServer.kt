@@ -19,6 +19,7 @@ import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -26,9 +27,11 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
+    val parent = null // javalin handlers are orphans
+
     override fun start(port: Int): Int {
 
-        val httpHandler = object : SessionHandler() {
+        val httpHandler = object : ServletContextHandler(parent, javalinServlet.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 if (request.isWebSocket()) return // don't touch websocket requests
                 try {
@@ -42,18 +45,29 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
             }
         }
 
-        val webSocketHandler = ServletContextHandler()
-        javalinServlet.wsHandlers.forEach { path, handler ->
-            webSocketHandler.addServlet(ServletHolder(object : WebSocketServlet() {
-                override fun configure(factory: WebSocketServletFactory) {
-                    val h = if (handler is Class<*>) handler.newInstance() else handler;
-                    factory.creator = CustomWebSocketCreator(h)
-                }
-            }), path)
+        val webSocketHandler = ServletContextHandler(parent, javalinServlet.contextPath).apply {
+            javalinServlet.wsHandlers.forEach { path, handler ->
+                addServlet(ServletHolder(object : WebSocketServlet() {
+                    override fun configure(factory: WebSocketServletFactory) {
+                        val h = if (handler is Class<*>) handler.newInstance() else handler;
+                        factory.creator = CustomWebSocketCreator(h)
+                    }
+                }), path)
+            }
+        }
+
+        val notFoundHandler = object : SessionHandler() {
+            override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+                val msg = "Not found. Request is below context-path (context-path: '${javalinServlet.contextPath}')"
+                response.status = 404
+                ByteArrayInputStream(msg.toByteArray()).copyTo(response.outputStream)
+                response.outputStream.close()
+                log.warn("Received a request below context-path (context-path: '${javalinServlet.contextPath}'). Returned 404.")
+            }
         }
 
         server.apply {
-            handler = HandlerList(httpHandler, webSocketHandler)
+            handler = HandlerList(httpHandler, webSocketHandler, notFoundHandler)
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = port
             })

@@ -148,7 +148,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
 
-    fun path(): String? = servletRequest.pathInfo
+    fun path(): String = servletRequest.requestURI
 
     fun port(): Int = servletRequest.serverPort
 

@@ -16,6 +16,9 @@ object Util {
 
     var noServerHasBeenStarted = true
 
+    fun normalizeContextPath(contextPath: String) = ("/" + contextPath).replace("/{2,}".toRegex(), "/").removeSuffix("/")
+    fun prefixContextPath(path: String, contextPath: String) = if (path == "*") path else (contextPath + "/" + path).replace("/{2,}".toRegex(), "/")
+
     fun notNull(obj: Any?, message: String) {
         if (obj == null) {
             throw IllegalArgumentException(message)
