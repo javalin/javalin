@@ -88,20 +88,22 @@ class JavalinServlet(
             exceptionMapper.handle(e, ctx)
         }
 
-        // javalin is done doing stuff, write result to servlet-response
-        if (res.contentType == null) {
-            res.contentType = "text/plain"
-        }
-        if (res.characterEncoding == "iso-8859-1") {
-            res.characterEncoding = StandardCharsets.UTF_8.name()
-        }
-        ctx.resultString()?.let { resultString ->
-            ctx.result(ByteArrayInputStream(resultString.toByteArray()))
-        }
-        ctx.resultStream()?.let { resultStream ->
-            resultStream.copyTo(res.outputStream)
-            resultStream.close()
-            res.outputStream.close()
+        // write result to servlet-response (if not already committed)
+        if (!res.isCommitted) {
+            if (res.contentType == null) {
+                res.contentType = "text/plain"
+            }
+            if (res.characterEncoding == "iso-8859-1") {
+                res.characterEncoding = StandardCharsets.UTF_8.name()
+            }
+            ctx.resultString()?.let { resultString ->
+                ctx.result(ByteArrayInputStream(resultString.toByteArray()))
+            }
+            ctx.resultStream()?.let { resultStream ->
+                resultStream.copyTo(res.outputStream)
+                resultStream.close()
+                res.outputStream.close()
+            }
         }
 
         LogUtil.logRequestAndResponse(ctx, logLevel, log)
