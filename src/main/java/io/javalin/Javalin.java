@@ -46,9 +46,9 @@ public class Javalin {
     private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
 
     private StaticFileConfig staticFileConfig = null;
-    PathMatcher pathMatcher = new PathMatcher();
-    ExceptionMapper exceptionMapper = new ExceptionMapper();
-    ErrorMapper errorMapper = new ErrorMapper();
+    private PathMatcher pathMatcher = new PathMatcher();
+    private ExceptionMapper exceptionMapper = new ExceptionMapper();
+    private ErrorMapper errorMapper = new ErrorMapper();
     private LogLevel logLevel = LogLevel.OFF;
 
     private EventManager eventManager = new EventManager();
@@ -119,10 +119,6 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
         this.embeddedServerFactory = embeddedServerFactory;
         return this;
-    }
-
-    /*testing*/ EmbeddedServer embeddedServer() {
-        return embeddedServer;
     }
 
     public Javalin enableStaticFiles(@NotNull String classpathPath) {
@@ -330,6 +326,18 @@ public class Javalin {
     private void ensureWebSocketsCallWillWork() {
         ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         Util.INSTANCE.ensureDependencyPresent("Jetty WebSocket", "org.eclipse.jetty.websocket.api.Session", "org.eclipse.jetty.websocket/websocket-server");
+    }
+
+    // package private method used for testing
+    EmbeddedServer embeddedServer() {
+        return embeddedServer;
+    }
+
+    // package private method used for testing
+    void clearMatcherAndMappers() {
+        pathMatcher.getHandlerEntries().clear();
+        errorMapper.getErrorHandlerMap().clear();
+        exceptionMapper.getExceptionMap().clear();
     }
 
 }
