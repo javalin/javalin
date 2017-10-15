@@ -49,7 +49,7 @@ public class Javalin {
     PathMatcher pathMatcher = new PathMatcher();
     ExceptionMapper exceptionMapper = new ExceptionMapper();
     ErrorMapper errorMapper = new ErrorMapper();
-    LogLevel logLevel = LogLevel.OFF;
+    private LogLevel logLevel = LogLevel.OFF;
 
     private EventManager eventManager = new EventManager();
 
