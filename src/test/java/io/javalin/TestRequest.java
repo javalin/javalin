@@ -27,6 +27,17 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     /*
+     * Session
+     */
+    @Test
+    public void test_session_works() throws Exception {
+        app.get("/store-session", ctx -> ctx.request().getSession().setAttribute("test", "tast"));
+        app.get("/read-session", ctx -> ctx.result((String) ctx.request().getSession().getAttribute("test")));
+        GET_body("/store-session");
+        assertThat(GET_body("/read-session"), is("tast"));
+    }
+
+    /*
      * Cookies
      */
     @Test

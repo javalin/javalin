@@ -23,12 +23,12 @@ import static org.hamcrest.Matchers.*;
  */
 public class TestWebSocket {
 
-    List<String> testList = new ArrayList<>();
+    private List<String> testList = new ArrayList<>();
 
     @Test
     public void test_allListenersWork() throws Exception {
 
-        Javalin app = Javalin.create().port(1234);
+        Javalin app = Javalin.create().contextPath("/websocket").port(1234);
 
         app.ws("/test-websocket", ws -> {
             ws.onConnect(session -> {
@@ -54,14 +54,14 @@ public class TestWebSocket {
         });
         app.start();
 
-        TestClient testClient = new TestClient(URI.create("ws://localhost:1234/test-websocket"));
+        TestClient testClient = new TestClient(URI.create("ws://localhost:1234/websocket/test-websocket"));
         testClient.connect();
         Thread.sleep(200);
         testClient.send("Hello");
         Thread.sleep(200);
         testClient.close();
         Thread.sleep(200);
-        TestClient testClient2 = new TestClient(URI.create("ws://localhost:1234/test-websocket-2"));
+        TestClient testClient2 = new TestClient(URI.create("ws://localhost:1234/websocket/test-websocket-2"));
         testClient2.connect();
         Thread.sleep(200);
         testClient2.close();

@@ -33,7 +33,6 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
                 resourceBase = getResourcePath(staticFileConfig)
                 isDirAllowed = false
                 isEtags = true
-                isRedirectWelcome = true // can be removed after next jetty release: https://github.com/eclipse/jetty.project/issues/1856#issuecomment-333700807
             }.start()
             initialized = true
             log.info("Static files enabled: {$staticFileConfig}. Absolute path: '${resourceHandler.resourceBase}'")
@@ -58,7 +57,7 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         if (initialized) {
             val target = httpRequest.getAttribute("jetty-target") as String
-            val baseRequest = httpRequest.getAttribute("jetty-request") as Request // org.eclipse.jetty.server.Request
+            val baseRequest = httpRequest.getAttribute("jetty-request") as Request
             try {
                 val resource = resourceHandler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(target)) {
