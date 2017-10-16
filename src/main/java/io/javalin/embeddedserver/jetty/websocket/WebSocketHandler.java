@@ -14,6 +14,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.jetbrains.annotations.NotNull;
 
 import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
@@ -28,19 +29,19 @@ public class WebSocketHandler {
     private Optional<CloseHandler> closeHandler;
     private Optional<ErrorHandler> errorHandler;
 
-    public void onConnect(ConnectHandler connectHandler) {
+    public void onConnect(@NotNull ConnectHandler connectHandler) {
         this.connectHandler = Optional.of(connectHandler);
     }
 
-    public void onMessage(MessageHandler messageHandler) {
+    public void onMessage(@NotNull MessageHandler messageHandler) {
         this.messageHandler = Optional.of(messageHandler);
     }
 
-    public void onClose(CloseHandler closeHandler) {
+    public void onClose(@NotNull CloseHandler closeHandler) {
         this.closeHandler = Optional.of(closeHandler);
     }
 
-    public void onError(ErrorHandler errorHandler) {
+    public void onError(@NotNull ErrorHandler errorHandler) {
         this.errorHandler = Optional.of(errorHandler);
     }
 
