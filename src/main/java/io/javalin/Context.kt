@@ -164,6 +164,14 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun queryString(): String? = servletRequest.queryString
 
+    fun sessionAttribute(attribute: String, value: Any) = servletRequest.session.setAttribute(attribute, value)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> sessionAttribute(attribute: String): T = servletRequest.session.getAttribute(attribute) as T
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().map { it to servletRequest.session.getAttribute(it) as T }.toMap()
+
     fun method(): String = servletRequest.method
 
     fun scheme(): String = servletRequest.scheme

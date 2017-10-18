@@ -37,6 +37,25 @@ public class TestRequest extends _UnirestBaseTest {
         assertThat(GET_body("/read-session"), is("tast"));
     }
 
+    @Test
+    public void test_sessionShorthand_works() throws Exception {
+        app.get("/store-session", ctx -> ctx.sessionAttribute("test", "tast"));
+        app.get("/read-session", ctx -> ctx.result((String) ctx.sessionAttribute("test")));
+        GET_body("/store-session");
+        assertThat(GET_body("/read-session"), is("tast"));
+    }
+
+    @Test
+    public void test_sessionAttributeMap_works() throws Exception {
+        app.get("/store-session", ctx -> {
+            ctx.sessionAttribute("test", "tast");
+            ctx.sessionAttribute("hest", "hast");
+        });
+        app.get("/read-session", ctx -> ctx.result(ctx.sessionAttributeMap().toString()));
+        GET_body("/store-session");
+        assertThat(GET_body("/read-session"), is("{test=tast, hest=hast}"));
+    }
+
     /*
      * Cookies
      */
