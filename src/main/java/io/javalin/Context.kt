@@ -148,6 +148,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
 
+    fun method(): String = servletRequest.method
+
     fun path(): String = servletRequest.requestURI
 
     fun port(): Int = servletRequest.serverPort
@@ -164,6 +166,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun queryString(): String? = servletRequest.queryString
 
+    fun scheme(): String = servletRequest.scheme
+
     fun sessionAttribute(attribute: String, value: Any) = servletRequest.session.setAttribute(attribute, value)
 
     @Suppress("UNCHECKED_CAST")
@@ -171,10 +175,6 @@ class Context(private val servletResponse: HttpServletResponse,
 
     @Suppress("UNCHECKED_CAST")
     fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().map { it to servletRequest.session.getAttribute(it) as T }.toMap()
-
-    fun method(): String = servletRequest.method
-
-    fun scheme(): String = servletRequest.scheme
 
     fun uri(): String = servletRequest.requestURI
 
