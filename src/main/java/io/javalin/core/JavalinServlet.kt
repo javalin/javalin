@@ -41,20 +41,24 @@ class JavalinServlet(
                 else servletResponse as HttpServletResponse
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI
-        val ctx = ContextUtil.create(res, req)
 
-        ctx.header("Server", "Javalin")
-        ctx.attribute("javalin-request-log-start-time", System.nanoTime())
+        val beforeEntries = matcher.findEntries(HandlerType.BEFORE, requestUri)
+        val endpointEntries = matcher.findEntries(type, requestUri)
+        val afterEntries = matcher.findEntries(HandlerType.AFTER, requestUri)
+
+        val ctx = ContextUtil.create(res, req, (beforeEntries + endpointEntries + afterEntries)).apply {
+            header("Server", "Javalin")
+            attribute("javalin-request-log-start-time", System.nanoTime())
+        }
 
         try { // before-handlers, endpoint-handlers, static-files
 
-            for (beforeEntry in matcher.findEntries(HandlerType.BEFORE, requestUri)) {
+            for (beforeEntry in beforeEntries) {
                 beforeEntry.handler.handle(ContextUtil.update(ctx, beforeEntry, requestUri))
             }
 
-            val entries = matcher.findEntries(type, requestUri)
-            if (!entries.isEmpty()) {
-                for (endpointEntry in entries) {
+            if (!endpointEntries.isEmpty()) {
+                for (endpointEntry in endpointEntries) {
                     endpointEntry.handler.handle(ContextUtil.update(ctx, endpointEntry, requestUri))
                     if (!ctx.nexted()) {
                         break
@@ -73,7 +77,7 @@ class JavalinServlet(
         }
 
         try { // after-handlers
-            for (afterEntry in matcher.findEntries(HandlerType.AFTER, requestUri)) {
+            for (afterEntry in afterEntries) {
                 afterEntry.handler.handle(ContextUtil.update(ctx, afterEntry, requestUri))
             }
         } catch (e: Exception) {
