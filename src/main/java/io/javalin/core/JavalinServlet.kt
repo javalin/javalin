@@ -107,7 +107,7 @@ class JavalinServlet(
             }
         }
 
-        LogUtil.logRequestAndResponse(ctx, logLevel, log)
+        LogUtil.logRequestAndResponse(ctx, logLevel, matcher, type, requestUri, log)
 
     }
 
