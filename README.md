@@ -15,7 +15,7 @@ The project webpage is [javalin.io](https://javalin.io).
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>0.5.3</version>
+    <version>0.5.4</version>
 </dependency>
 ```
 
@@ -36,7 +36,7 @@ public class HelloWorld {
 
 ### Add dependency (gradle)
 ```kotlin
-compile 'io.javalin:javalin:0.5.3'
+compile 'io.javalin:javalin:0.5.4'
 ```
 
 ### Start programming
