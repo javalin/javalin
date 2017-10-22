@@ -199,4 +199,19 @@ public class TestRequest extends _UnirestBaseTest {
         HttpResponse<String> response = Unirest.get(origin + "/").basicAuth("some-username", "some-password").asString();
         assertThat(response.getBody(), is("some-username|some-password"));
     }
+
+    @Test
+    public void test_matchingPaths_works() throws Exception {
+        Handler noop = ctx -> {
+        };
+        app.before(noop);
+        app.get("/matched", ctx -> ctx.result(ctx.matchedPath()));
+        app.get("/matching", ctx -> ctx.result(ctx.matchingPaths().toString()));
+        app.get("/:param", noop);
+        app.get("*", noop);
+        app.after(noop);
+        assertThat(GET_body("/matched"), is("/matched"));
+        assertThat(GET_body("/matching"), is("[BEFORE=*, GET=/matching, GET=/:param, GET=*, AFTER=*]"));
+    }
+
 }

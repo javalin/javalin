@@ -16,13 +16,14 @@ import javax.servlet.http.HttpServletResponse
 
 object ContextUtil {
 
-    fun create(response: HttpServletResponse, request: HttpServletRequest): Context {
-        return Context(response, request, HashMap<String, String>(), ArrayList<String>())
+    fun create(response: HttpServletResponse, request: HttpServletRequest, handlerEntries: List<HandlerEntry>): Context {
+        return Context(response, request, mapOf(), listOf(), "-", handlerEntries.map { it.type.name + "=" + it.path })
     }
 
     fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String): Context {
         val requestList = Util.pathToList(requestUri)
         val matchedList = Util.pathToList(handlerEntry.path)
+        ctx.matchedPath = handlerEntry.path
         ctx.paramMap = getParams(requestList, matchedList)
         ctx.splatList = getSplat(requestList, matchedList)
         return ctx

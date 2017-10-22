@@ -27,7 +27,9 @@ import javax.servlet.http.HttpServletResponse
 class Context(private val servletResponse: HttpServletResponse,
               private val servletRequest: HttpServletRequest,
               internal var paramMap: Map<String, String>,
-              internal var splatList: List<String>) {
+              internal var splatList: List<String>,
+              internal var matchedPath: String,
+              internal var matchingPaths: List<String>) {
 
     private val log = LoggerFactory.getLogger(Context::class.java)
 
@@ -149,6 +151,10 @@ class Context(private val servletResponse: HttpServletResponse,
     fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
 
     fun method(): String = servletRequest.method
+
+    fun matchingPaths(): List<String> = matchingPaths
+
+    fun matchedPath(): String = matchedPath
 
     fun path(): String = servletRequest.requestURI
 
