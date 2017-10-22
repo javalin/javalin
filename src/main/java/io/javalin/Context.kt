@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse
 
 class Context(private val servletResponse: HttpServletResponse,
               private val servletRequest: HttpServletRequest,
+              internal var matchedPath: String,
               internal var paramMap: Map<String, String>,
               internal var splatList: List<String>) {
 
@@ -147,6 +148,8 @@ class Context(private val servletResponse: HttpServletResponse,
     fun ip(): String = servletRequest.remoteAddr
 
     fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
+
+    fun matchedPath() = matchedPath
 
     fun method(): String = servletRequest.method
 
