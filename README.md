@@ -1,7 +1,7 @@
 [![Chat at https://gitter.im/javalin-io/general](https://badges.gitter.im/javalin-io/general.svg)](https://gitter.im/javalin-io/general)
-![](https://img.shields.io/travis/tipsy/javalin.svg) 
-![](https://img.shields.io/github/license/tipsy/javalin.svg)
-![](https://img.shields.io/maven-central/v/io.javalin/javalin.svg)
+![Travis](https://img.shields.io/travis/tipsy/javalin.svg) 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![Maven](https://img.shields.io/maven-central/v/io.javalin/javalin.svg)
 
 # Javalin - A Simple REST API Library for Java/Kotlin
 
