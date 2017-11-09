@@ -144,7 +144,7 @@ public class Javalin {
     }
 
     public int port() {
-        return started ? port : -1;
+        return port;
     }
 
     public Javalin port(int port) {
