@@ -19,7 +19,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.URLDecoder
 import java.nio.charset.Charset
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -64,7 +64,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun request(): HttpServletRequest = servletRequest
 
-    fun async(asyncHandler: () -> CompletableFuture<Void>) {
+    fun async(asyncHandler: () -> CompletionStage<Void>) {
         val asyncContext = servletRequest.startAsync()
         asyncHandler().thenAccept { _ -> asyncContext.complete() }
                 .exceptionally { e ->
