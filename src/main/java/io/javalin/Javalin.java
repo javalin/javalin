@@ -87,8 +87,8 @@ public class Javalin {
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
                 log.info("Javalin has started \\o/");
-                eventManager.fireEvent(EventType.SERVER_STARTED, this);
                 started = true;
+                eventManager.fireEvent(EventType.SERVER_STARTED, this);
             } catch (Exception e) {
                 log.error("Failed to start Javalin", e);
                 eventManager.fireEvent(EventType.SERVER_START_FAILED, this);
