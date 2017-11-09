@@ -17,14 +17,14 @@ public class HelloWorldWebSockets {
             ws.onConnect(session -> {
                 System.out.println("Connected");
             });
-            ws.onMessage((session, message) -> {
-                System.out.println("Received: " + message);
-                session.getRemote().sendString("Echo: " + message);
+            ws.onMessage(wsCtx -> {
+                System.out.println("Received: " + wsCtx.message);
+                wsCtx.send("Echo: " + wsCtx.message);
             });
-            ws.onClose((session, statusCode, reason) -> {
+            ws.onClose(wsCtx -> {
                 System.out.println("Closed");
             });
-            ws.onError((session, throwable) -> {
+            ws.onError(wsCtx -> {
                 System.out.println("Errored");
             });
         });
