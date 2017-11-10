@@ -6,9 +6,9 @@
 
 package io.javalin.embeddedserver.jetty.websocket.interfaces;
 
-import org.eclipse.jetty.websocket.api.Session;
+import io.javalin.embeddedserver.jetty.websocket.WsSession;
 
 @FunctionalInterface
 public interface ConnectHandler {
-    void handle(Session session) throws Exception;
+    void handle(WsSession session) throws Exception;
 }

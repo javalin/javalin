@@ -17,7 +17,6 @@ import io.javalin.translator.template.JavalinVelocityPlugin
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.InputStream
-import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.concurrent.CompletionStage
 import javax.servlet.http.Cookie
@@ -96,21 +95,15 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun formParams(formParam: String): Array<String>? = formParamMap()[formParam]
 
-    fun formParamMap(): Map<String, Array<String>> {
-        if ((header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")) return mapOf()
-        return body().split("&").map { it.split("=") }.groupBy(
-                { it[0] },
-                { if (it.size > 1) URLDecoder.decode(it[1], "UTF-8") else "" }
-        ).mapValues { it.value.toTypedArray() }
-    }
+    fun formParamMap(): Map<String, Array<String>> = if (isMultipartFormData()) mapOf() else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
     fun mapFormParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { formParam(it) }
 
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { servletRequest.getParameter(it) }
 
-    fun anyFormParamNull(vararg keys: String): Boolean = keys.filter { formParam(it) == null }.isNotEmpty()
+    fun anyFormParamNull(vararg keys: String): Boolean = keys.any { formParam(it) == null }
 
-    fun anyQueryParamNull(vararg keys: String): Boolean = keys.filter { servletRequest.getParameter(it) == null }.isNotEmpty()
+    fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { servletRequest.getParameter(it) == null }
 
     fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
 
@@ -149,6 +142,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun ip(): String = servletRequest.remoteAddr
 
     fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/")
+    fun isMultipartFormData(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
 
     fun matchedPath() = matchedPath
 

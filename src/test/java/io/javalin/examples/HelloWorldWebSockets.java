@@ -19,7 +19,7 @@ public class HelloWorldWebSockets {
             });
             ws.onMessage((session, message) -> {
                 System.out.println("Received: " + message);
-                session.getRemote().sendString("Echo: " + message);
+                session.send("Echo: " + message);
             });
             ws.onClose((session, statusCode, reason) -> {
                 System.out.println("Closed");

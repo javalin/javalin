@@ -1,0 +1,47 @@
+/*
+ * Javalin - https://javalin.io
+ * Copyright 2017 David Åse
+ * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ */
+
+package io.javalin.embeddedserver.jetty.websocket
+
+import io.javalin.core.util.ContextUtil
+import org.eclipse.jetty.websocket.api.*
+import org.eclipse.jetty.websocket.common.WebSocketSession
+import java.net.InetSocketAddress
+import java.net.URLDecoder
+
+class WsSession(session: Session) : Session {
+
+    private val webSocketSession = session as WebSocketSession
+
+    fun send(message: String) = webSocketSession.remote.sendString(message)
+
+    fun queryString() = webSocketSession.upgradeRequest!!.queryString;
+    fun queryParam(queryParam: String): String? = queryParams(queryParam)?.get(0)
+    fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
+    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
+    fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
+    fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
+
+    // interface overrides + equals/hash
+    override fun close() = webSocketSession.close()
+    override fun close(closeStatus: CloseStatus) = webSocketSession.close(closeStatus)
+    override fun close(statusCode: Int, reason: String) = webSocketSession.close(statusCode, reason)
+    override fun disconnect() = webSocketSession.disconnect()
+    override fun getIdleTimeout() = webSocketSession.idleTimeout;
+    override fun getLocalAddress(): InetSocketAddress = webSocketSession.localAddress
+    override fun getPolicy(): WebSocketPolicy = webSocketSession.policy
+    override fun getProtocolVersion(): String = webSocketSession.protocolVersion
+    override fun getRemote(): RemoteEndpoint = webSocketSession.remote
+    override fun getRemoteAddress(): InetSocketAddress = webSocketSession.remoteAddress
+    override fun getUpgradeRequest(): UpgradeRequest = webSocketSession.upgradeRequest
+    override fun getUpgradeResponse(): UpgradeResponse = webSocketSession.upgradeResponse
+    override fun isOpen() = webSocketSession.isOpen
+    override fun isSecure() = webSocketSession.isSecure
+    override fun setIdleTimeout(ms: Long) = webSocketSession.setIdleTimeout(ms)
+    override fun suspend(): SuspendToken = webSocketSession.suspend()
+    override fun equals(other: Any?) = webSocketSession == (other as WsSession).webSocketSession
+    override fun hashCode() = webSocketSession.hashCode()
+}
