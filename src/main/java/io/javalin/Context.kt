@@ -64,6 +64,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun request(): HttpServletRequest = servletRequest
 
+    @Deprecated("This is an experimental feature, it might be removed/reworked later")
     fun async(asyncHandler: () -> CompletionStage<Void>) {
         val asyncContext = servletRequest.startAsync()
         asyncHandler().thenAccept { _ -> asyncContext.complete() }
