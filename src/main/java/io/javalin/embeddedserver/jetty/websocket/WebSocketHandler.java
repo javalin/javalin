@@ -16,32 +16,27 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.jetbrains.annotations.NotNull;
 
-import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
-
 @WebSocket
 public class WebSocketHandler {
 
-    private Optional<ConnectHandler> connectHandler;
-    private Optional<MessageHandler> messageHandler;
-    private Optional<CloseHandler> closeHandler;
-    private Optional<ErrorHandler> errorHandler;
+    private Optional<WsHandler> connectHandler;
+    private Optional<WsHandler> messageHandler;
+    private Optional<WsHandler> closeHandler;
+    private Optional<WsHandler> errorHandler;
 
-    public void onConnect(@NotNull ConnectHandler connectHandler) {
+    public void onConnect(@NotNull WsHandler connectHandler) {
         this.connectHandler = Optional.of(connectHandler);
     }
 
-    public void onMessage(@NotNull MessageHandler messageHandler) {
+    public void onMessage(@NotNull WsHandler messageHandler) {
         this.messageHandler = Optional.of(messageHandler);
     }
 
-    public void onClose(@NotNull CloseHandler closeHandler) {
+    public void onClose(@NotNull WsHandler closeHandler) {
         this.closeHandler = Optional.of(closeHandler);
     }
 
-    public void onError(@NotNull ErrorHandler errorHandler) {
+    public void onError(@NotNull WsHandler errorHandler) {
         this.errorHandler = Optional.of(errorHandler);
     }
 
@@ -51,7 +46,7 @@ public class WebSocketHandler {
     public void _internalOnConnectProxy(Session session) {
         connectHandler.ifPresent(it -> {
             try {
-                it.handle(session);
+                it.handle(new WsContext(session));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -62,7 +57,7 @@ public class WebSocketHandler {
     public void _internalOnMessageProxy(Session session, String message) {
         messageHandler.ifPresent(it -> {
             try {
-                it.handle(session, message);
+                it.handle(new WsContext(session, message));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -73,7 +68,7 @@ public class WebSocketHandler {
     public void _internalOnCloseProxy(Session session, int statusCode, String reason) {
         closeHandler.ifPresent(it -> {
             try {
-                it.handle(session, statusCode, reason);
+                it.handle(new WsContext(session, statusCode, reason));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -84,7 +79,7 @@ public class WebSocketHandler {
     public void _internalOnErrorProxy(Session session, Throwable throwable) {
         errorHandler.ifPresent(it -> {
             try {
-                it.handle(session, throwable);
+                it.handle(new WsContext(session, throwable));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

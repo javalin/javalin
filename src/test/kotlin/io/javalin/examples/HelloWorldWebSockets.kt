@@ -14,13 +14,13 @@ fun main(args: Array<String>) {
     Javalin.create().apply {
         port(7000)
         ws("/websocket") { ws ->
-            ws.onConnect { session -> println("Connected") }
-            ws.onMessage { session, message ->
-                println("Received: " + message)
-                session.remote.sendString("Echo: " + message)
+            ws.onConnect { wsCtx -> println("Connected") }
+            ws.onMessage { wsCtx ->
+                println("Received: " + wsCtx.message)
+                wsCtx.send("Echo: " + wsCtx.message)
             }
-            ws.onClose { session, statusCode, reason -> println("Closed") }
-            ws.onError { session, throwable -> println("Errored") }
+            ws.onClose { wsCtx -> println("Closed") }
+            ws.onError { wsCtx -> println("Errored") }
         }
     }.start()
 }
