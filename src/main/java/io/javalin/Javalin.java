@@ -168,6 +168,10 @@ public class Javalin {
         return CorsUtil.INSTANCE.enableCors(this, origin);
     }
 
+    public Javalin enableCorsForAllOrigins() {
+        return enableCorsForOrigin("*");
+    }
+
     private void ensureActionIsPerformedBeforeServerStart(@NotNull String action) {
         if (started) {
             throw new IllegalStateException(action + " must be done before starting the server");

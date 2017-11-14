@@ -11,6 +11,7 @@ import io.javalin.Javalin
 object CorsUtil {
 
     fun enableCors(app: Javalin, origins: Array<String>): Javalin {
+        if (origins.isEmpty()) throw IllegalArgumentException("Origins cannot be empty")
         app.options("*") { ctx ->
             ctx.header(Header.ACCESS_CONTROL_REQUEST_HEADERS)?.let {
                 ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, it)
@@ -20,9 +21,10 @@ object CorsUtil {
             }
         }
         app.before("*") { ctx ->
-            val header = ctx.header(Header.ORIGIN) ?: ctx.header(Header.REFERER) ?: "NOT_AVAILABLE"
-            origins.map { it.removeSuffix("/") }.firstOrNull { header.startsWith(it) }?.let {
-                ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, it)
+            (ctx.header(Header.ORIGIN) ?: ctx.header(Header.REFERER))?.let { header ->
+                origins.map { it.removeSuffix("/") }.firstOrNull { it == "*" || header.startsWith(it) }?.let {
+                    ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, header)
+                }
             }
         }
         return app;
