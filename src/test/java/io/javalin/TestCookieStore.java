@@ -6,18 +6,15 @@
 
 package io.javalin;
 
+import io.javalin.translator.template.TemplateUtil;
+import io.javalin.util.TestObject_Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.After;
 import org.junit.Test;
-
-import io.javalin.translator.template.TemplateUtil;
-import io.javalin.util.TestObject_Serializable;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestCookieStore extends _UnirestBaseTest {
 

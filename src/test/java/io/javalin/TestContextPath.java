@@ -6,18 +6,15 @@
 
 package io.javalin;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import org.junit.Test;
-
-import io.javalin.core.util.Util;
-
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import io.javalin.core.util.Util;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 
 public class TestContextPath {
 

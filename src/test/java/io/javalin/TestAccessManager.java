@@ -7,19 +7,17 @@
 
 package io.javalin;
 
-import org.junit.Test;
-
-import io.javalin.security.AccessManager;
-import io.javalin.security.Role;
-
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-
-import static io.javalin.ApiBuilder.*;
-import static io.javalin.TestAccessManager.MyRoles.*;
+import io.javalin.security.AccessManager;
+import io.javalin.security.Role;
+import org.junit.Test;
+import static io.javalin.ApiBuilder.get;
+import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
+import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
 import static io.javalin.security.Role.roles;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestAccessManager {
 

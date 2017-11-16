@@ -7,14 +7,13 @@
 
 package io.javalin.examples;
 
+import io.javalin.Javalin;
+import io.javalin.embeddedserver.EmbeddedServer;
+import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-
-import io.javalin.Javalin;
-import io.javalin.embeddedserver.EmbeddedServer;
-import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 
 public class HelloWorldSecure {
 
@@ -28,7 +27,7 @@ public class HelloWorldSecure {
                 sslConnector.setPort(443);
                 ServerConnector connector = new ServerConnector(server);
                 connector.setPort(80);
-                server.setConnectors(new Connector[] {sslConnector, connector});
+                server.setConnectors(new Connector[]{sslConnector, connector});
                 return server;
             }))
             .start()

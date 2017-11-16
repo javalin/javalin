@@ -6,25 +6,22 @@
 
 package io.javalin;
 
+import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
+import io.javalin.util.SimpleHttpClient;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
-import io.javalin.util.SimpleHttpClient;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestAsync {
 

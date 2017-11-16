@@ -7,14 +7,12 @@
 
 package io.javalin;
 
-import java.net.URLEncoder;
-
-import org.junit.Test;
-
 import io.javalin.util.TestResponse;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import java.net.URLEncoder;
+import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 public class TestRouting extends _SimpleClientBaseTest {
 

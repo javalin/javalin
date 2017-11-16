@@ -6,15 +6,13 @@
 
 package io.javalin;
 
+import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
+import io.javalin.security.Role;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.jetbrains.annotations.NotNull;
-
-import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
-import io.javalin.security.Role;
 
 public class ApiBuilder {
 

@@ -6,12 +6,10 @@
 
 package io.javalin.examples;
 
+import io.javalin.Javalin;
 import java.io.File;
 import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
-
-import io.javalin.Javalin;
 
 public class FileUploadExample {
 

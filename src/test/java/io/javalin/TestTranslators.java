@@ -7,23 +7,20 @@
 
 package io.javalin;
 
-import org.apache.velocity.app.VelocityEngine;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
+import com.mashape.unirest.http.HttpMethod;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
 import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.translator.template.JavalinVelocityPlugin;
 import io.javalin.translator.template.TemplateUtil;
 import io.javalin.util.CustomMapper;
 import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;
-
-import com.mashape.unirest.http.HttpMethod;
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import org.apache.velocity.app.VelocityEngine;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestTranslators extends _UnirestBaseTest {
 

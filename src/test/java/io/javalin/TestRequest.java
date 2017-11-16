@@ -6,18 +6,14 @@
 
 package io.javalin;
 
-import java.util.Arrays;
-
-import org.junit.After;
-import org.junit.Test;
-
-import io.javalin.core.util.Header;
-
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import io.javalin.core.util.Header;
+import java.util.Arrays;
+import org.junit.After;
+import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestRequest extends _UnirestBaseTest {
 

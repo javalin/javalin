@@ -7,13 +7,18 @@
 
 package io.javalin;
 
-import org.junit.Test;
-
 import com.mashape.unirest.http.HttpMethod;
-
-import static io.javalin.ApiBuilder.*;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import org.junit.Test;
+import static io.javalin.ApiBuilder.after;
+import static io.javalin.ApiBuilder.before;
+import static io.javalin.ApiBuilder.delete;
+import static io.javalin.ApiBuilder.get;
+import static io.javalin.ApiBuilder.patch;
+import static io.javalin.ApiBuilder.path;
+import static io.javalin.ApiBuilder.post;
+import static io.javalin.ApiBuilder.put;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestApiBuilder extends _UnirestBaseTest {
 
@@ -45,7 +50,7 @@ public class TestApiBuilder extends _UnirestBaseTest {
                 });
             });
         });
-        HttpMethod[] httpMethods = new HttpMethod[] {HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH};
+        HttpMethod[] httpMethods = new HttpMethod[]{HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.PATCH};
         for (HttpMethod httpMethod : httpMethods) {
             assertThat(call(httpMethod, "/api").getStatus(), is(200));
             assertThat(call(httpMethod, "/api/user").getStatus(), is(200));

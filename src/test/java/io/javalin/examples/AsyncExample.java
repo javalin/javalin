@@ -6,13 +6,11 @@
 
 package io.javalin.examples;
 
+import io.javalin.Javalin;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
-
 import javax.servlet.AsyncContext;
-
-import io.javalin.Javalin;
 
 public class AsyncExample {
 

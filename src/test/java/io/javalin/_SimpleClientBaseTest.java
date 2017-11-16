@@ -7,13 +7,11 @@
 
 package io.javalin;
 
+import io.javalin.util.SimpleHttpClient;
 import java.io.IOException;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-
-import io.javalin.util.SimpleHttpClient;
 
 public class _SimpleClientBaseTest {
 

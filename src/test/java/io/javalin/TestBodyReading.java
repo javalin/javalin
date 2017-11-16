@@ -7,17 +7,14 @@
 
 package io.javalin;
 
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.junit.Test;
-
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestBodyReading {
 

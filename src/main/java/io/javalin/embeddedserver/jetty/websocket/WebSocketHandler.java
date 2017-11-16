@@ -6,8 +6,11 @@
 
 package io.javalin.embeddedserver.jetty.websocket;
 
+import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
+import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
+import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
+import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
 import java.util.Optional;
-
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -15,11 +18,6 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.jetbrains.annotations.NotNull;
-
-import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
 
 @WebSocket
 public class WebSocketHandler {

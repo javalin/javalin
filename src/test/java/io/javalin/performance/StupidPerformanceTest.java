@@ -7,20 +7,20 @@
 
 package io.javalin.performance;
 
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import io.javalin.Handler;
+import io.javalin.Javalin;
 import java.io.IOException;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import io.javalin.Handler;
-import io.javalin.Javalin;
-
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-
-import static io.javalin.ApiBuilder.*;
+import static io.javalin.ApiBuilder.after;
+import static io.javalin.ApiBuilder.before;
+import static io.javalin.ApiBuilder.get;
+import static io.javalin.ApiBuilder.path;
+import static io.javalin.ApiBuilder.post;
 
 public class StupidPerformanceTest {
 

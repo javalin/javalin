@@ -7,19 +7,17 @@
 
 package io.javalin;
 
-import java.io.IOException;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.HttpRequestWithBody;
+import java.io.IOException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 public class _UnirestBaseTest {
 

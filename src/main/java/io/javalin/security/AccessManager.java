@@ -6,10 +6,9 @@
 
 package io.javalin.security;
 
-import java.util.List;
-
 import io.javalin.Context;
 import io.javalin.Handler;
+import java.util.List;
 
 @FunctionalInterface
 public interface AccessManager {

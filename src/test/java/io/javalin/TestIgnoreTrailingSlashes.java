@@ -7,14 +7,11 @@
 
 package io.javalin;
 
-import java.io.IOException;
-
-import org.junit.Test;
-
 import io.javalin.util.SimpleHttpClient;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import java.io.IOException;
+import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Created by enchanting on 03.08.17.

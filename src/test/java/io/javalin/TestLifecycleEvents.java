@@ -7,12 +7,10 @@
 
 package io.javalin;
 
-import org.junit.Test;
-
 import io.javalin.event.EventType;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import org.junit.Test;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestLifecycleEvents {
 

@@ -9,14 +9,12 @@ package io.javalin;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.junit.Test;
-
-import static io.javalin.ApiBuilder.*;
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static io.javalin.ApiBuilder.ws;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 /**
  * This test is not very good...

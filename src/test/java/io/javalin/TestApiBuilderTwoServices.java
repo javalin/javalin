@@ -7,14 +7,12 @@
 
 package io.javalin;
 
-import org.junit.Test;
-
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-
-import static io.javalin.ApiBuilder.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import org.junit.Test;
+import static io.javalin.ApiBuilder.get;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestApiBuilderTwoServices {
 

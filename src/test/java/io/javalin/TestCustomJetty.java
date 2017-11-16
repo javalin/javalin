@@ -7,14 +7,12 @@
 
 package io.javalin;
 
+import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
-
-import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
-
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
 
 public class TestCustomJetty {
 

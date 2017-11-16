@@ -6,18 +6,16 @@
 
 package io.javalin;
 
-import java.io.File;
-
-import org.junit.Test;
-
-import io.javalin.embeddedserver.Location;
-import io.javalin.event.EventType;
-
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import io.javalin.embeddedserver.Location;
+import io.javalin.event.EventType;
+import java.io.File;
+import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 public class TestStaticFiles_edgeCases {
 
