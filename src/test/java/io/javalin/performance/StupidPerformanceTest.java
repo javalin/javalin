@@ -57,7 +57,7 @@ public class StupidPerformanceTest {
                     });
                 });
                 after(ctx -> ctx.header("X-AFTER", "After"));
-            });
+            }).start();
     }
 
     private static Handler simpleAnswer(String body) {

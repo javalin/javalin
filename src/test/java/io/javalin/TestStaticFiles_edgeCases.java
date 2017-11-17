@@ -22,11 +22,11 @@ public class TestStaticFiles_edgeCases {
     @Test
     public void test_externalFolder() throws Exception {
         Javalin app = Javalin.create()
-            .port(7777)
+            .port(0)
             .enableStaticFiles("src/test/external/", Location.EXTERNAL)
             .start();
 
-        HttpResponse<String> response = Unirest.get("http://localhost:7777/html.html").asString();
+        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/html.html").asString();
         assertThat(response.getStatus(), is(200));
         assertThat(response.getBody(), containsString("HTML works"));
 

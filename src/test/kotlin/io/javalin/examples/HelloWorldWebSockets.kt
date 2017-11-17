@@ -12,7 +12,7 @@ import io.javalin.Javalin
 // see HelloWorldSecure for how to set that up
 fun main(args: Array<String>) {
     Javalin.create().apply {
-        port(7000)
+        port(7070)
         ws("/websocket") { ws ->
             ws.onConnect { session -> println("Connected") }
             ws.onMessage { session, message ->

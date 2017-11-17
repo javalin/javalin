@@ -23,14 +23,15 @@ import static org.hamcrest.Matchers.is;
 public class TestStaticFiles {
 
     private static Javalin app;
-    private static String origin = "http://localhost:7777";
+    private static String origin = null;
 
     @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()
-            .port(7777)
+            .port(0)
             .enableStaticFiles("/public")
             .start();
+        origin =  "http://localhost:" + app.port();
     }
 
     @After

@@ -25,7 +25,7 @@ public class TestFileUpload extends _UnirestBaseTest {
             ctx.result(FileUtils.readFileToString(uploadedFile));
         });
 
-        HttpResponse<String> response = Unirest.post("http://localhost:7777/testFileUpload")
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin + "/testFileUpload")
             .field("upload", createTempFile(EXPECTED_CONTENT))
             .asString();
 

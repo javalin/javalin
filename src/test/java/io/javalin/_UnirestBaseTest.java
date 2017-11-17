@@ -24,7 +24,7 @@ public class _UnirestBaseTest {
     static Handler OK_HANDLER = ctx -> ctx.result("OK");
 
     static Javalin app;
-    static String origin = "http://localhost:7777";
+    static String origin = null;
 
     static HttpClient defaultHttpClient = HttpClients.custom().build();
     static HttpClient noRedirectClient = HttpClients.custom().disableRedirectHandling().build();
@@ -37,9 +37,10 @@ public class _UnirestBaseTest {
     @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()
-            .port(7777)
+            .port(0)
             .enableStaticFiles("/public")
             .start();
+        origin =  "http://localhost:" + app.port();
     }
 
     @After

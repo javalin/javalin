@@ -16,16 +16,17 @@ import org.junit.BeforeClass;
 public class _SimpleClientBaseTest {
 
     static Javalin app;
-    static String origin = "http://localhost:7777";
+    static String origin = null;
 
     static SimpleHttpClient simpleHttpClient;
 
     @BeforeClass
     public static void setup() throws IOException {
         app = Javalin.create()
-            .port(7777)
+            .port(0)
             .start();
         simpleHttpClient = new SimpleHttpClient();
+        origin =  "http://localhost:" + app.port();
     }
 
     @After

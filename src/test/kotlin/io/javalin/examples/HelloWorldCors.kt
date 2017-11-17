@@ -13,7 +13,7 @@ import io.javalin.Javalin
 fun main(args: Array<String>) {
 
     val corsApp = Javalin.create()
-            .port(7000)
+            .port(7070)
             .enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002")
             .start()
 

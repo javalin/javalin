@@ -26,18 +26,15 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
  */
 public class TestWebSocket {
 
-    private static Map<WsSession, Integer> userUsernameMap = new LinkedHashMap<>();
-    private AtomicInteger atomicInteger = new AtomicInteger();
-    private TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:1234/websocket/test-websocket-1"));
-    private TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:1234/websocket/test-websocket-1"));
-    private TestClient testClient2_1 = new TestClient(URI.create("ws://localhost:1234/websocket/test-websocket-2"));
     private List<String> log = new ArrayList<>();
 
     @Test
     public void test_allListenersWork() throws Exception {
 
-        Javalin app = Javalin.create().contextPath("/websocket").port(1234);
+        Javalin app = Javalin.create().contextPath("/websocket").port(0);
 
+        Map<WsSession, Integer> userUsernameMap = new LinkedHashMap<>();
+        AtomicInteger atomicInteger = new AtomicInteger();
         app.ws("/test-websocket-1", ws -> {
             ws.onConnect(session -> {
                 userUsernameMap.put(session, atomicInteger.getAndIncrement());
@@ -60,14 +57,19 @@ public class TestWebSocket {
             });
         });
         app.start();
-        doAndSleepWhile(() -> testClient1_1.connect(), () -> !testClient1_1.isOpen());
-        doAndSleepWhile(() -> testClient1_2.connect(), () -> !testClient1_2.isOpen());
+
+        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+        TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+        TestClient testClient2_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-2"));
+
+        doAndSleepWhile(testClient1_1::connect, () -> !testClient1_1.isOpen());
+        doAndSleepWhile(testClient1_2::connect, () -> !testClient1_2.isOpen());
         doAndSleep(() -> testClient1_1.send("A"));
         doAndSleep(() -> testClient1_2.send("B"));
-        doAndSleepWhile(() -> testClient1_1.close(), () -> testClient1_1.isClosing());
-        doAndSleepWhile(() -> testClient1_2.close(), () -> testClient1_2.isClosing());
-        doAndSleepWhile(() -> testClient2_1.connect(), () -> !testClient2_1.isOpen());
-        doAndSleepWhile(() -> testClient2_1.close(), testClient2_1::isClosing);
+        doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
+        doAndSleepWhile(testClient1_2::close, testClient1_2::isClosing);
+        doAndSleepWhile(testClient2_1::connect, () -> !testClient2_1.isOpen());
+        doAndSleepWhile(testClient2_1::close, testClient2_1::isClosing);
         assertThat(log, containsInAnyOrder(
             "0 connected",
             "1 connected",

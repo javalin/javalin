@@ -12,7 +12,7 @@ import java.io.File
 
 fun main(args: Array<String>) {
 
-    val app = Javalin.create().port(7000).start()
+    val app = Javalin.create().port(7070).start()
 
     app.get("/") { ctx ->
         ctx.html(

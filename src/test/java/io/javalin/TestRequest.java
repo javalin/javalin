@@ -162,14 +162,14 @@ public class TestRequest extends _UnirestBaseTest {
     @Test
     public void test_anyFormParamNullTrue_someParamsNull() throws Exception {
         app.post("/", ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "nullkey")));
-        HttpResponse<String> response = Unirest.post("http://localhost:7777").body("fp1=1&fp2=2").asString();
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2").asString();
         assertThat(response.getBody(), is("true"));
     }
 
     @Test
     public void test_anyFormParamNullFalse_allParamsNonNull() throws Exception {
         app.post("/", ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "fp3")));
-        HttpResponse<String> response = Unirest.post("http://localhost:7777").body("fp1=1&fp2=2&fp3=3").asString();
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2&fp3=3").asString();
         assertThat(response.getBody(), is("false"));
     }
 

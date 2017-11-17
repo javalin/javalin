@@ -24,9 +24,9 @@ public class TestMultipleInstances {
 
     @BeforeClass
     public static void setup() throws IOException {
-        app1 = Javalin.create().port(7001).start();
-        app2 = Javalin.create().port(7002).start();
-        app3 = Javalin.create().port(7003).start();
+        app1 = Javalin.start(0);
+        app2 = Javalin.start(0);
+        app3 = Javalin.start(0);
     }
 
     @AfterClass
@@ -41,12 +41,12 @@ public class TestMultipleInstances {
         app1.get("/hello-1", ctx -> ctx.result("Hello first World"));
         app2.get("/hello-2", ctx -> ctx.result("Hello second World"));
         app3.get("/hello-3", ctx -> ctx.result("Hello third World"));
-        assertThat(getBody("7001", "/hello-1"), is("Hello first World"));
-        assertThat(getBody("7002", "/hello-2"), is("Hello second World"));
-        assertThat(getBody("7003", "/hello-3"), is("Hello third World"));
+        assertThat(getBody(app1.port(), "/hello-1"), is("Hello first World"));
+        assertThat(getBody(app2.port(), "/hello-2"), is("Hello second World"));
+        assertThat(getBody(app3.port(), "/hello-3"), is("Hello third World"));
     }
 
-    static String getBody(String port, String pathname) throws UnirestException {
+    static String getBody(int port, String pathname) throws UnirestException {
         return Unirest.get("http://localhost:" + port + pathname).asString().getBody();
     }
 

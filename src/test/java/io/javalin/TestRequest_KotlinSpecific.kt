@@ -21,7 +21,7 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
             val (name, email, phone) = ctx.mapQueryParams("name", "email", "phone") ?: throw IllegalArgumentException()
             ctx.result("$name|$email|$phone")
         }
-        assertThat(Unirest.get("http://localhost:7777/?name=some%20name&email=some%20email&phone=some%20phone").asString().body, `is`("some name|some email|some phone"))
+        assertThat(Unirest.get(_UnirestBaseTest.origin + "/?name=some%20name&email=some%20email&phone=some%20phone").asString().body, `is`("some name|some email|some phone"))
     }
 
     @Test
@@ -30,7 +30,7 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
             val (name, missing) = ctx.mapQueryParams("name", "missing") ?: throw IllegalArgumentException()
             ctx.result("$name|$missing")
         }
-        assertThat(Unirest.get("http://localhost:7777/?name=some%20name").asString().body, `is`("Internal server error"))
+        assertThat(Unirest.get(_UnirestBaseTest.origin + "/?name=some%20name").asString().body, `is`("Internal server error"))
     }
 
     @Test
@@ -40,7 +40,7 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
             val (name, email, phone) = ctx.mapFormParams("name", "email", "phone") ?: throw IllegalArgumentException()
             ctx.result("$name|$email|$phone")
         }
-        val response = Unirest.post("http://localhost:7777").body("name=some%20name&email=some%20email&phone=some%20phone").asString()
+        val response = Unirest.post(_UnirestBaseTest.origin).body("name=some%20name&email=some%20email&phone=some%20phone").asString()
         assertThat(response.body, `is`("some name|some email|some phone"))
     }
 
@@ -51,7 +51,7 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
             val (name, missing) = ctx.mapFormParams("missing") ?: throw IllegalArgumentException()
             ctx.result("$name|$missing")
         }
-        val response = Unirest.post("http://localhost:7777").body("name=some%20name").asString()
+        val response = Unirest.post(_UnirestBaseTest.origin).body("name=some%20name").asString()
         assertThat(response.body, `is`("Internal server error"))
     }
 

@@ -12,7 +12,7 @@ import io.javalin.util.TypedException
 
 fun main(args: Array<String>) {
 
-    val app = Javalin.create().port(7000).start()
+    val app = Javalin.create().port(7070).start()
 
     with(app) {
 

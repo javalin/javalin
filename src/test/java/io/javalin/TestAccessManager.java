@@ -34,42 +34,40 @@ public class TestAccessManager {
         ROLE_ONE, ROLE_TWO, ROLE_THREE;
     }
 
-    static String origin = "http://localhost:1234";
-
     @Test
     public void test_noAccessManager_throwsException() throws Exception {
-        Javalin app = Javalin.create().port(1234).start();
+        Javalin app = Javalin.start(0);
         app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE));
-        assertThat(callWithRole("/secured", "ROLE_ONE"), is("Internal server error"));
+        assertThat(callWithRole(app.port(), "/secured", "ROLE_ONE"), is("Internal server error"));
         app.stop();
     }
 
     @Test
     public void test_accessManager_restrictsAccess() throws Exception {
-        Javalin app = Javalin.create().port(1234).start();
+        Javalin app = Javalin.start(0);
         app.accessManager(accessManager);
         app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE, ROLE_TWO));
-        assertThat(callWithRole("/secured", "ROLE_ONE"), is("Hello"));
-        assertThat(callWithRole("/secured", "ROLE_TWO"), is("Hello"));
-        assertThat(callWithRole("/secured", "ROLE_THREE"), is("Unauthorized"));
+        assertThat(callWithRole(app.port(), "/secured", "ROLE_ONE"), is("Hello"));
+        assertThat(callWithRole(app.port(), "/secured", "ROLE_TWO"), is("Hello"));
+        assertThat(callWithRole(app.port(), "/secured", "ROLE_THREE"), is("Unauthorized"));
         app.stop();
     }
 
     @Test
     public void test_accessManager_restrictsAccess_forStaticApi() throws Exception {
-        Javalin app = Javalin.create().port(1234).start();
+        Javalin app = Javalin.start(0);
         app.accessManager(accessManager);
         app.routes(() -> {
             get("/static-secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE, ROLE_TWO));
         });
-        assertThat(callWithRole("/static-secured", "ROLE_ONE"), is("Hello"));
-        assertThat(callWithRole("/static-secured", "ROLE_TWO"), is("Hello"));
-        assertThat(callWithRole("/static-secured", "ROLE_THREE"), is("Unauthorized"));
+        assertThat(callWithRole(app.port(), "/static-secured", "ROLE_ONE"), is("Hello"));
+        assertThat(callWithRole(app.port(), "/static-secured", "ROLE_TWO"), is("Hello"));
+        assertThat(callWithRole(app.port(), "/static-secured", "ROLE_THREE"), is("Unauthorized"));
         app.stop();
     }
 
-    private String callWithRole(String path, String role) throws UnirestException {
-        return Unirest.get(origin + path).queryString("role", role).asString().getBody();
+    private String callWithRole(int port, String path, String role) throws UnirestException {
+        return Unirest.get("http://localhost:" + port + path).queryString("role", role).asString().getBody();
     }
 
 }
