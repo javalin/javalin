@@ -17,6 +17,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.common.WebSocketSession;
 import org.jetbrains.annotations.NotNull;
 
 @WebSocket
@@ -49,7 +50,7 @@ public class WebSocketHandler {
     public void _internalOnConnectProxy(Session session) {
         connectHandler.ifPresent(it -> {
             try {
-                it.handle(session);
+                it.handle(new WsSession(session));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -60,7 +61,7 @@ public class WebSocketHandler {
     public void _internalOnMessageProxy(Session session, String message) {
         messageHandler.ifPresent(it -> {
             try {
-                it.handle(session, message);
+                it.handle(new WsSession(session), message);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -71,7 +72,7 @@ public class WebSocketHandler {
     public void _internalOnCloseProxy(Session session, int statusCode, String reason) {
         closeHandler.ifPresent(it -> {
             try {
-                it.handle(session, statusCode, reason);
+                it.handle(new WsSession(session), statusCode, reason);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -82,7 +83,7 @@ public class WebSocketHandler {
     public void _internalOnErrorProxy(Session session, Throwable throwable) {
         errorHandler.ifPresent(it -> {
             try {
-                it.handle(session, throwable);
+                it.handle(new WsSession(session), throwable);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

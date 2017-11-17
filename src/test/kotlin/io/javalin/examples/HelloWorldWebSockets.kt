@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
             ws.onConnect { session -> println("Connected") }
             ws.onMessage { session, message ->
                 println("Received: " + message)
-                session.remote.sendString("Echo: " + message)
+                session.send("Echo: " + message)
             }
             ws.onClose { session, statusCode, reason -> println("Closed") }
             ws.onError { session, throwable -> println("Errored") }

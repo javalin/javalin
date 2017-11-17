@@ -64,6 +64,13 @@ object ContextUtil {
         return params
     }
 
+    fun splitKeyValueStringAndGroupByKey(string: String): Map<String, Array<String>> {
+        return string.split("&").map { it.split("=") }.groupBy(
+                { it[0] },
+                { if (it.size > 1) URLDecoder.decode(it[1], "UTF-8") else "" }
+        ).mapValues { it.value.toTypedArray() }
+    }
+
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
     fun mapKeysOrReturnNullIfAnyNulls(keys: Array<out String>, f: (s: String) -> String?): List<String>? = try {
