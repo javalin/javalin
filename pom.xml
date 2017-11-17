@@ -43,7 +43,7 @@
         <jetty.version>9.4.7.v20170914</jetty.version>
         <slf4j.version>1.7.25</slf4j.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.1.51</kotlin.version>
+        <kotlin.version>1.1.60</kotlin.version>
     </properties>
 
     <dependencies>
@@ -95,7 +95,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.8.8.1</version>
+            <version>2.9.2</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -107,25 +107,25 @@
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <version>2.3.26-incubating</version>
+            <version>2.3.27-incubating</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.thymeleaf</groupId>
             <artifactId>thymeleaf</artifactId>
-            <version>3.0.6.RELEASE</version>
+            <version>3.0.9.RELEASE</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>
             <artifactId>compiler</artifactId>
-            <version>0.9.4</version>
+            <version>0.9.5</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.atlassian.commonmark</groupId>
             <artifactId>commonmark</artifactId>
-            <version>0.9.0</version>
+            <version>0.10.0</version>
             <optional>true</optional>
         </dependency>
         <!-- END Optional dependencies -->
