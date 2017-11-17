@@ -40,6 +40,7 @@ public class Javalin {
 
     private int port = 7000;
     private String contextPath = "/";
+    private boolean dynamicGzipEnabled = false;
 
     private EmbeddedServer embeddedServer;
     private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
@@ -81,7 +82,15 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(contextPath, pathMatcher, exceptionMapper, errorMapper, pathWsHandlers, logLevel), staticFileConfig);
+                embeddedServer = embeddedServerFactory.create(new JavalinServlet(
+                    contextPath,
+                    pathMatcher,
+                    exceptionMapper,
+                    errorMapper,
+                    pathWsHandlers,
+                    logLevel,
+                    dynamicGzipEnabled
+                ), staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
                 log.info("Javalin has started \\o/");
@@ -168,6 +177,12 @@ public class Javalin {
 
     public Javalin enableCorsForAllOrigins() {
         return enableCorsForOrigin("*");
+    }
+
+    public Javalin enableDynamicGzip() {
+        ensureActionIsPerformedBeforeServerStart("Enabling dynamic GZIP");
+        this.dynamicGzipEnabled = true;
+        return this;
     }
 
     private void ensureActionIsPerformedBeforeServerStart(@NotNull String action) {

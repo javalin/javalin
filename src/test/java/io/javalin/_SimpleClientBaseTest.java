@@ -26,7 +26,7 @@ public class _SimpleClientBaseTest {
             .port(0)
             .start();
         simpleHttpClient = new SimpleHttpClient();
-        origin =  "http://localhost:" + app.port();
+        origin = "http://localhost:" + app.port();
     }
 
     @After

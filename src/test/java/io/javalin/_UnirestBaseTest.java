@@ -40,7 +40,7 @@ public class _UnirestBaseTest {
             .port(0)
             .enableStaticFiles("/public")
             .start();
-        origin =  "http://localhost:" + app.port();
+        origin = "http://localhost:" + app.port();
     }
 
     @After

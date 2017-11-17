@@ -9,6 +9,7 @@ package io.javalin.core
 import io.javalin.HaltException
 import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
+import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.CachedResponseWrapper
@@ -16,6 +17,7 @@ import io.javalin.embeddedserver.StaticResourceHandler
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
+import java.util.zip.GZIPOutputStream
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
@@ -27,7 +29,8 @@ class JavalinServlet(
         val exceptionMapper: ExceptionMapper,
         val errorMapper: ErrorMapper,
         val wsHandlers: Map<String, Any>,
-        val logLevel: LogLevel) {
+        val logLevel: LogLevel,
+        val dynamicGzipEnabled: Boolean) {
 
     private val log = LoggerFactory.getLogger(JavalinServlet::class.java)
 
@@ -90,6 +93,7 @@ class JavalinServlet(
         }
 
         // write result to servlet-response (if not already committed)
+        val doGzip = gzipShouldBeDone(ctx.resultString(), req)
         if (!res.isCommitted) {
             if (res.contentType == null) {
                 res.contentType = "text/plain"
@@ -101,14 +105,25 @@ class JavalinServlet(
                 ctx.result(ByteArrayInputStream(resultString.toByteArray()))
             }
             ctx.resultStream()?.let { resultStream ->
-                resultStream.copyTo(res.outputStream)
-                resultStream.close()
-                res.outputStream.close()
+                if (doGzip) {
+                    GZIPOutputStream(res.outputStream, true).let { gzippedStream ->
+                        res.setHeader(Header.CONTENT_ENCODING, "gzip")
+                        resultStream.copyTo(gzippedStream)
+                        gzippedStream.close()
+                    }
+                } else {
+                    resultStream.copyTo(res.outputStream)
+                    res.outputStream.close()
+                }
             }
         }
 
-        LogUtil.logRequestAndResponse(ctx, logLevel, matcher, type, requestUri, log)
+        LogUtil.logRequestAndResponse(ctx, logLevel, matcher, type, requestUri, log, doGzip)
 
     }
+
+    private fun gzipShouldBeDone(resultString: String?, req: CachedRequestWrapper) = dynamicGzipEnabled
+            && (resultString ?: "").length > 1500 // mtu is apparently ~1500 bytes
+            && (req.getHeader(Header.ACCEPT_ENCODING) ?: "").contains("gzip", ignoreCase = true)
 
 }

@@ -16,7 +16,7 @@ import java.util.*
 
 object LogUtil {
 
-    fun logRequestAndResponse(ctx: Context, logLevel: LogLevel, matcher: PathMatcher, type: HandlerType, requestUri: String, log: Logger) {
+    fun logRequestAndResponse(ctx: Context, logLevel: LogLevel, matcher: PathMatcher, type: HandlerType, requestUri: String, log: Logger, gzipped: Boolean) {
         val startTime: Long = ctx.attribute("javalin-request-log-start-time")
         val executionTime = Formatter(Locale.US).format("%.2f", (System.nanoTime() - startTime) / 1000000f)
         with(ctx) {
@@ -40,8 +40,8 @@ object LogUtil {
                         |    FormParams: ${formParamMap().mapValues { (_, v) -> v.contentToString() }}
                         |Response: [${status()}], execution took $executionTime ms
                         |    Headers: ${resHeaders}
-                        |    Body: (starts on next line)
-                        |${if (resBody.isNotEmpty()) resBody else "No body was set"}
+                        |    Body: ${resBody.length} bytes (starts on next line)
+                        |${if (resBody.isNotEmpty()) (if (gzipped) "dynamically gzipped response ..." else resBody) else "No body was set"}
                         |----------------------------------------------------------------------------------""".trimMargin())
                 }
             }

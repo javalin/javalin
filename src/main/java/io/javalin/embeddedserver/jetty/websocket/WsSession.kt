@@ -10,7 +10,6 @@ import io.javalin.core.util.ContextUtil
 import org.eclipse.jetty.websocket.api.*
 import org.eclipse.jetty.websocket.common.WebSocketSession
 import java.net.InetSocketAddress
-import java.net.URLDecoder
 
 class WsSession(session: Session) : Session {
 
