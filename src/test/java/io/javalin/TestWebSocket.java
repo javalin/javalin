@@ -29,7 +29,7 @@ public class TestWebSocket {
     private List<String> log = new ArrayList<>();
 
     @Test
-    public void test_allListenersWork() throws Exception {
+    public void test_everything() throws Exception {
 
         Javalin app = Javalin.create().contextPath("/websocket").port(0);
 
@@ -110,14 +110,14 @@ public class TestWebSocket {
         long timeMillis = System.currentTimeMillis();
         runnable.run();
         while ((boolean) callable.call() && System.currentTimeMillis() < timeMillis + 1000) {
-            Thread.sleep(15);
+            Thread.sleep(25);
         }
     }
 
     public void doAndSleep(Runnable runnable) {
         runnable.run();
         try {
-            Thread.sleep(15);
+            Thread.sleep(25);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
