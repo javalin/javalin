@@ -105,8 +105,9 @@ public class TestWebSocket {
     }
 
     public void doAndSleepWhile(Runnable runnable, Callable callable) throws Exception {
+        long timeMillis = System.currentTimeMillis();
         runnable.run();
-        while ((boolean) callable.call()) {
+        while ((boolean) callable.call() && System.currentTimeMillis() < timeMillis + 1000) {
             Thread.sleep(15);
         }
     }
