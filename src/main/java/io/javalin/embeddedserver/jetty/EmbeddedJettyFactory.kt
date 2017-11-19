@@ -11,11 +11,22 @@ import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.EmbeddedServerFactory
 import io.javalin.embeddedserver.StaticFileConfig
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 
-class EmbeddedJettyFactory(jettyServer: () -> Server = { Server(QueuedThreadPool(250, 8, 60000)) }) : EmbeddedServerFactory {
+class EmbeddedJettyFactory constructor(jettyServer: () -> Server = { Server(QueuedThreadPool(250, 8, 60000)) }) : EmbeddedServerFactory {
     private val server = jettyServer()
+    private var statisticsHandler: StatisticsHandler? = null
+
+    @JvmOverloads constructor(statisticsHandler: StatisticsHandler?,
+                              jettyServer: () -> Server = { Server(QueuedThreadPool(250, 8, 60000)) }) : this(jettyServer) {
+        this.statisticsHandler = statisticsHandler
+    }
+
     override fun create(javalinServlet: JavalinServlet, staticFileConfig: StaticFileConfig?): EmbeddedServer {
-        return EmbeddedJettyServer(server, javalinServlet.apply { staticResourceHandler = JettyResourceHandler(staticFileConfig) })
+        return EmbeddedJettyServer(
+            server,
+            javalinServlet.apply { staticResourceHandler = JettyResourceHandler(staticFileConfig) },
+            statisticsHandler)
     }
 }

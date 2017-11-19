@@ -13,6 +13,7 @@ import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerList
+import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
@@ -23,7 +24,9 @@ import java.io.ByteArrayInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
+class EmbeddedJettyServer(private val server: Server,
+                          private val javalinServlet: JavalinServlet,
+                          private val statisticsHandler: StatisticsHandler? = null) : EmbeddedServer {
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
@@ -67,7 +70,8 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         }
 
         server.apply {
-            handler = HandlerList(httpHandler, webSocketHandler, notFoundHandler)
+            val h = HandlerList(httpHandler, webSocketHandler, notFoundHandler)
+            handler = statisticsHandler?.apply { handler = h } ?: h
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = port
             })
