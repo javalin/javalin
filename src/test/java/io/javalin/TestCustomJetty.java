@@ -14,6 +14,7 @@ import static org.hamcrest.CoreMatchers.is;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
+import java.util.Collections;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -41,7 +42,7 @@ public class TestCustomJetty {
         StatisticsHandler handler = new StatisticsHandler();
         Javalin app = Javalin.create()
             .port(0)
-            .embeddedServer(new EmbeddedJettyFactory(handler))
+            .embeddedServer(new EmbeddedJettyFactory(Collections.singletonList(handler)))
             .routes(() -> get("/", ctx -> ctx.result("hello world")))
             .start();
 
@@ -66,7 +67,7 @@ public class TestCustomJetty {
         StatisticsHandler handler = new StatisticsHandler();
         Javalin app = Javalin.create()
             .port(0)
-            .embeddedServer(new EmbeddedJettyFactory(handler, () -> {
+            .embeddedServer(new EmbeddedJettyFactory(Collections.singletonList(handler), () -> {
                 Server server = new Server(new QueuedThreadPool(200, 8, 60_000));
                 server.setAttribute("is-custom-server", true);
                 return server;
