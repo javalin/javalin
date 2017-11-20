@@ -13,6 +13,7 @@ import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerList
+import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
@@ -23,7 +24,9 @@ import java.io.ByteArrayInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
+class EmbeddedJettyServer(private val server: Server,
+                          private val javalinServlet: JavalinServlet,
+                          private val decorator: HandlerWrapper? = null) : EmbeddedServer {
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
@@ -67,7 +70,26 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         }
 
         server.apply {
-            handler = HandlerList(httpHandler, webSocketHandler, notFoundHandler)
+            val always = HandlerList(httpHandler, webSocketHandler, notFoundHandler)
+
+            handler =
+                decorator?.let {
+                    // we might be a chain. So we have to find the end of the chain...
+                    var tail = it
+
+                    while (tail.handler != null && tail.handler is HandlerWrapper) {
+                        tail = tail.handler as HandlerWrapper
+                    }
+                    if (tail.handler != null) {
+                        throw IllegalArgumentException(
+                            "tail of the Decorator chain is not null and is not a HandlerWrapper")
+                    }
+                    tail.handler = always
+
+                    // but make sure to return the head of the chain..
+                    it
+                } ?: always
+
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = port
             })
