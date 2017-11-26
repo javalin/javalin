@@ -10,7 +10,6 @@ import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
-import java.util.Optional;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -22,71 +21,55 @@ import org.jetbrains.annotations.NotNull;
 @WebSocket
 public class WebSocketHandler {
 
-    private Optional<ConnectHandler> connectHandler;
-    private Optional<MessageHandler> messageHandler;
-    private Optional<CloseHandler> closeHandler;
-    private Optional<ErrorHandler> errorHandler;
+    private ConnectHandler connectHandler = null;
+    private MessageHandler messageHandler = null;
+    private CloseHandler closeHandler = null;
+    private ErrorHandler errorHandler = null;
 
     public void onConnect(@NotNull ConnectHandler connectHandler) {
-        this.connectHandler = Optional.of(connectHandler);
+        this.connectHandler = connectHandler;
     }
 
     public void onMessage(@NotNull MessageHandler messageHandler) {
-        this.messageHandler = Optional.of(messageHandler);
+        this.messageHandler = messageHandler;
     }
 
     public void onClose(@NotNull CloseHandler closeHandler) {
-        this.closeHandler = Optional.of(closeHandler);
+        this.closeHandler = closeHandler;
     }
 
     public void onError(@NotNull ErrorHandler errorHandler) {
-        this.errorHandler = Optional.of(errorHandler);
+        this.errorHandler = errorHandler;
     }
 
     // Jetty annotations
 
     @OnWebSocketConnect
-    public void _internalOnConnectProxy(Session session) {
-        connectHandler.ifPresent(it -> {
-            try {
-                it.handle(new WsSession(session));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+    public void _internalOnConnectProxy(Session session) throws Exception {
+        if (connectHandler != null) {
+            connectHandler.handle(new WsSession(session));
+        }
     }
 
     @OnWebSocketMessage
-    public void _internalOnMessageProxy(Session session, String message) {
-        messageHandler.ifPresent(it -> {
-            try {
-                it.handle(new WsSession(session), message);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+    public void _internalOnMessageProxy(Session session, String message) throws Exception {
+        if (messageHandler != null) {
+            messageHandler.handle(new WsSession(session), message);
+        }
     }
 
     @OnWebSocketClose
-    public void _internalOnCloseProxy(Session session, int statusCode, String reason) {
-        closeHandler.ifPresent(it -> {
-            try {
-                it.handle(new WsSession(session), statusCode, reason);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+    public void _internalOnCloseProxy(Session session, int statusCode, String reason) throws Exception {
+        if (closeHandler != null) {
+            closeHandler.handle(new WsSession(session), statusCode, reason);
+        }
     }
 
     @OnWebSocketError
-    public void _internalOnErrorProxy(Session session, Throwable throwable) {
-        errorHandler.ifPresent(it -> {
-            try {
-                it.handle(new WsSession(session), throwable);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+    public void _internalOnErrorProxy(Session session, Throwable throwable) throws Exception {
+        if (errorHandler != null) {
+            errorHandler.handle(new WsSession(session), throwable);
+        }
     }
 
 }
