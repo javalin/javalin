@@ -7,22 +7,29 @@
 
 package io.javalin.performance;
 
-import com.mashape.unirest.http.HttpResponse;
+import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
+import com.carrotsearch.junitbenchmarks.BenchmarkRule;
+import com.carrotsearch.junitbenchmarks.Clock;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.Handler;
 import io.javalin.Javalin;
 import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import static io.javalin.ApiBuilder.after;
 import static io.javalin.ApiBuilder.before;
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.ApiBuilder.path;
 import static io.javalin.ApiBuilder.post;
 
+@BenchmarkOptions(callgc = false, benchmarkRounds = 10000, warmupRounds = 500, concurrency = 4, clock = Clock.NANO_TIME)
 public class StupidPerformanceTest {
+
+    @Rule
+    public TestRule benchmarkRun = new BenchmarkRule();
 
     private static Javalin app;
 
@@ -38,21 +45,21 @@ public class StupidPerformanceTest {
             .routes(() -> {
                 before(ctx -> ctx.status(123));
                 before(ctx -> ctx.status(200));
-                get("/hello", simpleAnswer("Hello from level 0"));
+                get("/hello", ctx -> ctx.result("Hello from level 0"));
                 path("/level-1", () -> {
-                    get("/hello", simpleAnswer("Hello from level 1"));
-                    get("/hello-2", simpleAnswer("Hello again from level 1"));
+                    get("/hello", ctx -> ctx.result("Hello from level 1"));
+                    get("/hello-2", ctx -> ctx.result("Hello again from level 1"));
                     get("/param/:param", ctx -> {
                         ctx.result(ctx.param("param"));
                     });
                     get("/queryparam", ctx -> {
                         ctx.result(ctx.queryParam("queryparam"));
                     });
-                    post("/create-1", simpleAnswer("Created something at level 1"));
+                    post("/create-1", ctx -> ctx.result("Created something at level 1"));
                     path("/level-2", () -> {
-                        get("/hello", simpleAnswer("Hello from level 2"));
+                        get("/hello", ctx -> ctx.result("Hello from level 2"));
                         path("/level-3", () -> {
-                            get("/hello", simpleAnswer("Hello from level 3"));
+                            get("/hello", ctx -> ctx.result("Hello from level 3"));
                         });
                     });
                 });
@@ -60,23 +67,13 @@ public class StupidPerformanceTest {
             }).start();
     }
 
-    private static Handler simpleAnswer(String body) {
-        return ctx -> ctx.result(body);
-    }
-
     @Test
     @Ignore("Just for running manually")
     public void testPerformanceMaybe() throws Exception {
-
-        long startTime = System.currentTimeMillis();
-        HttpResponse<String> response;
-        for (int i = 0; i < 1000; i++) {
-            response = Unirest.get("http://localhost:7000/param/test").asString();
-            response = Unirest.get("http://localhost:7000/queryparam/").queryString("queryparam", "value").asString();
-            response = Unirest.get("http://localhost:7000/level-1/level-2/level-3/hello").asString();
-            response = Unirest.get("http://localhost:7000/level-1/level-2/level-3/hello").asString();
-        }
-        System.out.println("took " + (System.currentTimeMillis() - startTime) + " milliseconds");
+        Unirest.get("http://localhost:7000/param/test").asString();
+        Unirest.get("http://localhost:7000/queryparam/").queryString("queryparam", "value").asString();
+        Unirest.get("http://localhost:7000/level-1/level-2/level-3/hello").asString();
+        Unirest.get("http://localhost:7000/level-1/level-2/level-3/hello").asString();
     }
 
 }
