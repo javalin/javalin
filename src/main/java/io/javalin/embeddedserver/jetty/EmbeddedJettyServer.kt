@@ -9,10 +9,12 @@ package io.javalin.embeddedserver.jetty
 import io.javalin.core.JavalinServlet
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
+import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerList
+import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
@@ -23,7 +25,9 @@ import java.io.ByteArrayInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
+class EmbeddedJettyServer(private val server: Server,
+                          private val javalinServlet: JavalinServlet,
+                          private val interceptors: List<Handler>) : EmbeddedServer {
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
@@ -67,7 +71,34 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         }
 
         server.apply {
-            handler = HandlerList(httpHandler, webSocketHandler, notFoundHandler)
+            // for us to build a proper chain, all the interceptors must be HandlerWrapper instances
+            // The out-of-the-box handlers (i.e. StatisticsHandler, RequestLogHandler, etc.) are all HandlerWrapper
+            // derivatives so we return them as is.
+            val wrappedInterceptors =
+                interceptors.map {
+                    if (it is HandlerWrapper)
+                        it
+                    else {
+                        val w = HandlerWrapper()
+                        w.handler = it
+                        w
+                    }
+                }
+
+            // this Handler will always be used...
+            val always = ShortCircuitHandlerList(httpHandler, webSocketHandler, notFoundHandler)
+
+            handler =
+                if (wrappedInterceptors.isNotEmpty()) {
+                    val folded = wrappedInterceptors.drop(1).fold(wrappedInterceptors.first()) {
+                        acc, wrapper -> acc.insertHandler(wrapper); wrapper
+                    }
+                    folded.handler = always
+                    folded
+                } else {
+                    always
+                }
+
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = port
             })
@@ -89,3 +120,18 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
 }
 
 fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null
+
+// HandlerList will dispatch the request even if it has already been handled. So let's not do that
+// Reason being - if any of the interceptors handle the request, no reason to pass it on.
+private class ShortCircuitHandlerList(vararg handlers: Handler) : HandlerList(*handlers) {
+    override fun handle(target: String?,
+                        baseRequest: Request?,
+                        request: HttpServletRequest?,
+                        response: HttpServletResponse?) {
+        if (baseRequest != null && baseRequest.isHandled) {
+            return
+        }
+
+        super.handle(target, baseRequest, request, response)
+    }
+}
