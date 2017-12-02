@@ -10,11 +10,11 @@ import io.javalin.Javalin
 import java.util.*
 
 class EventManager {
-    val listenerMap: Map<EventType, LinkedList<EventListener>> = EventType.values().map { it to LinkedList<EventListener>() }.toMap()
+    val listenerMap = EventType.values().associate { it to ArrayList<EventListener>() }
     fun fireEvent(eventType: EventType, javalin: Javalin) = listenerMap[eventType]!!.forEach { listener -> listener.handleEvent(Event(eventType, javalin)) }
 }
 
-data class Event(var eventType: EventType, var javalin: Javalin? = null)
+data class Event(val eventType: EventType, val javalin: Javalin)
 
 enum class EventType {
     SERVER_STARTING,
