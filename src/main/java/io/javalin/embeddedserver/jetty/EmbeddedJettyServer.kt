@@ -9,6 +9,7 @@ package io.javalin.embeddedserver.jetty
 import io.javalin.core.JavalinServlet
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
+import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -24,9 +25,7 @@ import java.io.ByteArrayInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server,
-                          private val javalinServlet: JavalinServlet,
-                          private val decorator: HandlerWrapper? = null) : EmbeddedServer {
+class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
 
@@ -70,26 +69,7 @@ class EmbeddedJettyServer(private val server: Server,
         }
 
         server.apply {
-            val always = HandlerList(httpHandler, webSocketHandler, notFoundHandler)
-
-            handler =
-                decorator?.let {
-                    // we might be a chain. So we have to find the end of the chain...
-                    var tail = it
-
-                    while (tail.handler != null && tail.handler is HandlerWrapper) {
-                        tail = tail.handler as HandlerWrapper
-                    }
-                    if (tail.handler != null) {
-                        throw IllegalArgumentException(
-                            "tail of the Decorator chain is not null and is not a HandlerWrapper")
-                    }
-                    tail.handler = always
-
-                    // but make sure to return the head of the chain..
-                    it
-                } ?: always
-
+            handler = attachHandlersToTail(server.handler, HandlerList(httpHandler, webSocketHandler, notFoundHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = port
             })
@@ -108,6 +88,12 @@ class EmbeddedJettyServer(private val server: Server,
     override fun activeThreadCount(): Int = server.threadPool.threads - server.threadPool.idleThreads
     override fun attribute(key: String): Any = server.getAttribute(key)
 
+}
+
+private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList): HandlerWrapper {
+    val handlerWrapper = (userHandler ?: HandlerWrapper()) as HandlerWrapper
+    HandlerWrapper().apply { handler = handlerList }.insertHandler(handlerWrapper)
+    return handlerWrapper
 }
 
 fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null
