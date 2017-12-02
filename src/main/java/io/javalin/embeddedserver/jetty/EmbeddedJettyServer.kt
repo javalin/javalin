@@ -9,10 +9,12 @@ package io.javalin.embeddedserver.jetty
 import io.javalin.core.JavalinServlet
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
+import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerList
+import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
@@ -67,7 +69,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         }
 
         server.apply {
-            handler = HandlerList(httpHandler, webSocketHandler, notFoundHandler)
+            handler = attachHandlersToTail(server.handler, HandlerList(httpHandler, webSocketHandler, notFoundHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = port
             })
@@ -86,6 +88,12 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
     override fun activeThreadCount(): Int = server.threadPool.threads - server.threadPool.idleThreads
     override fun attribute(key: String): Any = server.getAttribute(key)
 
+}
+
+private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList): HandlerWrapper {
+    val handlerWrapper = (userHandler ?: HandlerWrapper()) as HandlerWrapper
+    HandlerWrapper().apply { handler = handlerList }.insertHandler(handlerWrapper)
+    return handlerWrapper
 }
 
 fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null
