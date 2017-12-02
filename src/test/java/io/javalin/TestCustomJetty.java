@@ -7,11 +7,6 @@
 
 package io.javalin;
 
-import static io.javalin.ApiBuilder.get;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-
-import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,118 +14,86 @@ import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.hamcrest.MatcherAssert;
 import org.junit.Test;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestCustomJetty {
 
     @Test
-    public void test_embeddedServer_setsCustomServer() throws Exception {
+    public void test_embeddedServer_withCustomServer() throws Exception {
         Javalin app = Javalin.create()
             .port(0)
             .embeddedServer(new EmbeddedJettyFactory(() -> {
-                Server server = new Server(new QueuedThreadPool(200, 8, 60_000));
+                Server server = new Server();
                 server.setAttribute("is-custom-server", true);
                 return server;
             }))
             .start();
-        MatcherAssert.assertThat(app.embeddedServer().attribute("is-custom-server"), is(true));
+        assertThat(app.embeddedServer().attribute("is-custom-server"), is(true));
         app.stop();
     }
 
     @Test
-    public void test_embeddedServer_setsStatisticsHandler() throws Exception {
-        StatisticsHandler handler = new StatisticsHandler();
+    public void test_embeddedServer_withStatisticsHandler() throws Exception {
+        StatisticsHandler statisticsHandler = new StatisticsHandler();
+
         Javalin app = Javalin.create()
             .port(0)
-            .embeddedServer(new EmbeddedJettyFactory(handler))
-            .routes(() -> get("/", ctx -> ctx.result("hello world")))
-            .start();
-
-        final String origin = "http://localhost:" + app.port();
-
-        // make sure the internal handlers dispatch...
-        String s = Unirest.get(origin + "/").asString().getBody();
-        MatcherAssert.assertThat(s, is(equalTo("hello world")));
-
-        HttpResponse<String> response = Unirest.get(origin + "/not_there").asString();
-        MatcherAssert.assertThat(response.getStatus(), is(equalTo(404)));
-
-        MatcherAssert.assertThat(handler.getDispatched(), is(equalTo(2)));
-        MatcherAssert.assertThat(handler.getResponses2xx(), is(equalTo(1)));
-        MatcherAssert.assertThat(handler.getResponses4xx(), is(equalTo(1)));
-
-        app.stop();
-    }
-
-    @Test
-    public void test_embeddedServer_setsStatisticsHandlerAndCustomServer() throws Exception {
-        StatisticsHandler handler = new StatisticsHandler();
-        Javalin app = Javalin.create()
-            .port(0)
-            .embeddedServer(new EmbeddedJettyFactory(handler, () -> {
-                Server server = new Server(new QueuedThreadPool(200, 8, 60_000));
-                server.setAttribute("is-custom-server", true);
+            .embeddedServer(new EmbeddedJettyFactory(() -> {
+                Server server = new Server();
+                server.setHandler(statisticsHandler);
                 return server;
             }))
-            .routes(() -> get("/", ctx -> ctx.result("hello world")))
+            .get("/", ctx -> ctx.result("Hello World"))
             .start();
 
-        final String origin = "http://localhost:" + app.port();
+        String origin = "http://localhost:" + app.port();
 
-        // make sure the internal handlers dispatch...
-        String s = Unirest.get(origin + "/").asString().getBody();
-        MatcherAssert.assertThat(s, is(equalTo("hello world")));
+        int requests = 5;
+        for (int i = 0; i < requests; i++) {
+            assertThat(Unirest.get(origin + "/").asString().getBody(), is("Hello World"));
+            assertThat(Unirest.get(origin + "/not_there").asString().getStatus(), is(404));
+        }
 
-        HttpResponse<String> response = Unirest.get(origin + "/not_there").asString();
-        MatcherAssert.assertThat(response.getStatus(), is(equalTo(404)));
-
-        MatcherAssert.assertThat(app.embeddedServer().attribute("is-custom-server"), is(true));
-
-        MatcherAssert.assertThat(handler.getDispatched(), is(equalTo(2)));
-        MatcherAssert.assertThat(handler.getResponses2xx(), is(equalTo(1)));
-        MatcherAssert.assertThat(handler.getResponses4xx(), is(equalTo(1)));
-
+        assertThat(statisticsHandler.getDispatched(), is(requests * 2));
+        assertThat(statisticsHandler.getResponses2xx(), is(requests));
+        assertThat(statisticsHandler.getResponses4xx(), is(requests));
         app.stop();
     }
 
     @Test
-    public void test_embeddedServer_setsDecoratorChain() throws Exception {
-        final AtomicLong logCount = new AtomicLong(0);
+    public void test_embeddedServer_withHandlerChain() throws Exception {
+        AtomicLong logCount = new AtomicLong(0);
         RequestLog requestLog = (request, response) -> logCount.incrementAndGet();
         RequestLogHandler requestLogHandler = new RequestLogHandler();
         requestLogHandler.setRequestLog(requestLog);
-
-        StatisticsHandler statisticsHandler = new StatisticsHandler();
-        statisticsHandler.setHandler(requestLogHandler);
+        StatisticsHandler handlerChain = new StatisticsHandler();
+        handlerChain.setHandler(requestLogHandler);
 
         Javalin app = Javalin.create()
             .port(0)
-            .embeddedServer(new EmbeddedJettyFactory(statisticsHandler, () -> {
-              Server server = new Server(new QueuedThreadPool(200, 8, 60_000));
-              server.setAttribute("is-custom-server", true);
-              return server;
+            .embeddedServer(new EmbeddedJettyFactory(() -> {
+                Server server = new Server();
+                server.setHandler(handlerChain);
+                return server;
             }))
-            .routes(() -> get("/", ctx -> ctx.result("hello world")))
+            .get("/", ctx -> ctx.result("Hello World"))
             .start();
 
-        final String origin = "http://localhost:" + app.port();
+        String origin = "http://localhost:" + app.port();
 
-        // make sure the internal handlers dispatch...
-        String s = Unirest.get(origin + "/").asString().getBody();
-        MatcherAssert.assertThat(s, is(equalTo("hello world")));
+        int requests = 10;
+        for (int i = 0; i < requests; i++) {
+            assertThat(Unirest.get(origin + "/").asString().getBody(), is("Hello World"));
+            assertThat(Unirest.get(origin + "/not_there").asString().getStatus(), is(404));
+        }
 
-        HttpResponse<String> response = Unirest.get(origin + "/not_there").asString();
-        MatcherAssert.assertThat(response.getStatus(), is(equalTo(404)));
+        assertThat(handlerChain.getDispatched(), is(requests * 2));
+        assertThat(handlerChain.getResponses2xx(), is(requests));
+        assertThat(handlerChain.getResponses4xx(), is(requests));
 
-        MatcherAssert.assertThat(app.embeddedServer().attribute("is-custom-server"), is(true));
-
-        MatcherAssert.assertThat(statisticsHandler.getDispatched(), is(equalTo(2)));
-        MatcherAssert.assertThat(statisticsHandler.getResponses2xx(), is(equalTo(1)));
-        MatcherAssert.assertThat(statisticsHandler.getResponses4xx(), is(equalTo(1)));
-
-        MatcherAssert.assertThat(logCount.get(), is(equalTo(2L)));
+        assertThat(logCount.get(), is((long) (requests * 2)));
 
         app.stop();
     }
