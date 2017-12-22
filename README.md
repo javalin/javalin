@@ -7,6 +7,8 @@
 
 The project webpage is [javalin.io](https://javalin.io).
 
+![1k-christmas fw](https://user-images.githubusercontent.com/1521451/34294323-4158108c-e708-11e7-98d1-329344af80b0.png)
+
 ## Java quickstart
 
 ### Add dependency (maven)
