@@ -29,7 +29,7 @@ object Util {
     private val dependencyCheckCache = HashMap<String, Boolean>()
 
     fun ensureDependencyPresent(dependencyName: String, className: String, url: String) {
-        if (dependencyCheckCache[className] ?: false) {
+        if (dependencyCheckCache[className] == true) {
             return
         }
         if (!classExists(className)) {
