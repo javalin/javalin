@@ -20,7 +20,7 @@ object JavalinVelocityPlugin {
         velocityEngine = staticVelocityEngine
     }
 
-    fun render(templatePath: String, model: Map<String, Any>): String {
+    fun render(templatePath: String, model: Map<String, Any?>): String {
         velocityEngine = velocityEngine ?: defaultVelocityEngine()
         val stringWriter = StringWriter()
         velocityEngine!!.getTemplate(templatePath, StandardCharsets.UTF_8.name()).merge(

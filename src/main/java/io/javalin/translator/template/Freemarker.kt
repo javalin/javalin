@@ -19,7 +19,7 @@ object JavalinFreemarkerPlugin {
         configuration = staticConfiguration
     }
 
-    fun render(templatePath: String, model: Map<String, Any>): String {
+    fun render(templatePath: String, model: Map<String, Any?>): String {
         configuration = configuration ?: defaultFreemarkerEngine()
         val stringWriter = StringWriter()
         configuration!!.getTemplate(templatePath).process(model, stringWriter)

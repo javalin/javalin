@@ -20,7 +20,7 @@ object JavalinThymeleafPlugin {
         templateEngine = staticTemplateEngine
     }
 
-    fun render(templatePath: String, model: Map<String, Any>): String {
+    fun render(templatePath: String, model: Map<String, Any?>): String {
         templateEngine = templateEngine ?: defaultThymeLeafEngine()
         val context = Context()
         context.setVariables(model)

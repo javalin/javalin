@@ -19,7 +19,7 @@ object JavalinMustachePlugin {
         mustacheFactory = staticMustacheFactory
     }
 
-    fun render(templatePath: String, model: Map<String, Any>): String {
+    fun render(templatePath: String, model: Map<String, Any?>): String {
         mustacheFactory = mustacheFactory ?: DefaultMustacheFactory("./")
         val stringWriter = StringWriter()
         mustacheFactory!!.compile(templatePath).execute(stringWriter, model).close()

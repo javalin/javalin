@@ -273,28 +273,28 @@ class Context(private val servletResponse: HttpServletResponse,
         return result(JavalinJacksonPlugin.toJson(`object`)).contentType("application/json")
     }
 
-    fun renderVelocity(templatePath: String, model: Map<String, Any>): Context {
+    fun renderVelocity(templatePath: String, model: Map<String, Any?>): Context {
         Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
         return html(JavalinVelocityPlugin.render(templatePath, model))
     }
 
     fun renderVelocity(templatePath: String): Context = renderVelocity(templatePath, mapOf())
 
-    fun renderFreemarker(templatePath: String, model: Map<String, Any>): Context {
+    fun renderFreemarker(templatePath: String, model: Map<String, Any?>): Context {
         Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
         return html(JavalinFreemarkerPlugin.render(templatePath, model))
     }
 
     fun renderFreemarker(templatePath: String): Context = renderFreemarker(templatePath, mapOf())
 
-    fun renderThymeleaf(templatePath: String, model: Map<String, Any>): Context {
+    fun renderThymeleaf(templatePath: String, model: Map<String, Any?>): Context {
         Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3")
         return html(JavalinThymeleafPlugin.render(templatePath, model))
     }
 
     fun renderThymeleaf(templatePath: String): Context = renderThymeleaf(templatePath, mapOf())
 
-    fun renderMustache(templatePath: String, model: Map<String, Any>): Context {
+    fun renderMustache(templatePath: String, model: Map<String, Any?>): Context {
         Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
         return html(JavalinMustachePlugin.render(templatePath, model))
     }
