@@ -39,7 +39,7 @@ object LogUtil {
                         |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.contentToString() }}
                         |    FormParams: ${formParamMap().mapValues { (_, v) -> v.contentToString() }}
                         |Response: [${status()}], execution took $executionTime ms
-                        |    Headers: ${resHeaders}
+                        |    Headers: $resHeaders
                         |    Body: ${resBody.length} bytes (starts on next line)
                         |${if (resBody.isNotEmpty()) (if (gzipped) "dynamically gzipped response ..." else resBody) else "No body was set"}
                         |----------------------------------------------------------------------------------""".trimMargin())
