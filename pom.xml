@@ -86,6 +86,14 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Compile-only -->
+        <dependency>
+            <groupId>tech.harmonysoft</groupId>
+            <artifactId>traute-javac</artifactId>
+            <version>1.0.10</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- BEGIN Optional dependencies -->
         <dependency>
             <groupId>commons-fileupload</groupId>
@@ -237,6 +245,9 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <optimize>true</optimize>
+                    <compilerArgs>
+                        <arg>-Xplugin:Traute</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
