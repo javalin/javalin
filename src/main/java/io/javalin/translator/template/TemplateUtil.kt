@@ -10,11 +10,11 @@ import java.util.*
 
 object TemplateUtil {
     @JvmStatic
-    fun model(vararg args: Any): Map<String, Any> {
+    fun model(vararg args: Any?): Map<String, Any?> {
         if (args.size % 2 != 0) {
             throw IllegalArgumentException("Number of arguments must be even (key value pairs)")
         }
-        val model = HashMap<String, Any>()
+        val model = HashMap<String, Any?>()
         var i = 0
         while (i < args.size) {
             if (args[i] is String) {
