@@ -19,13 +19,11 @@ object Util {
     fun normalizeContextPath(contextPath: String) = ("/" + contextPath).replace("/{2,}".toRegex(), "/").removeSuffix("/")
     fun prefixContextPath(path: String, contextPath: String) = if (path == "*") path else (contextPath + "/" + path).replace("/{2,}".toRegex(), "/")
 
-    fun classExists(className: String): Boolean {
-        return try {
-            Class.forName(className)
-            true
-        } catch (e: ClassNotFoundException) {
-            false
-        }
+    private fun classExists(className: String) = try {
+        Class.forName(className)
+        true
+    } catch (e: ClassNotFoundException) {
+        false
     }
 
     private val dependencyCheckCache = HashMap<String, Boolean>()
