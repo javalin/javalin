@@ -43,7 +43,7 @@
         <jetty.version>9.4.8.v20171121</jetty.version>
         <slf4j.version>1.7.25</slf4j.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.2.0</kotlin.version>
+        <kotlin.version>1.2.10</kotlin.version>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
     </properties>
 
