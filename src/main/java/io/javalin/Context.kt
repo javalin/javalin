@@ -47,7 +47,7 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     fun clearCookieStore() {
-        cookieStore.clear();
+        cookieStore.clear()
         removeCookie(CookieStoreUtil.name)
     }
 

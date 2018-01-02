@@ -27,7 +27,7 @@ object CorsUtil {
                 }
             }
         }
-        return app;
+        return app
     }
 
 }

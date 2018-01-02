@@ -17,7 +17,7 @@ class WsSession(session: Session) : Session {
 
     fun send(message: String) = webSocketSession.remote.sendString(message)
 
-    fun queryString() = webSocketSession.upgradeRequest!!.queryString;
+    fun queryString() = webSocketSession.upgradeRequest!!.queryString
     fun queryParam(queryParam: String): String? = queryParams(queryParam)?.get(0)
     fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
     fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
@@ -29,7 +29,7 @@ class WsSession(session: Session) : Session {
     override fun close(closeStatus: CloseStatus) = webSocketSession.close(closeStatus)
     override fun close(statusCode: Int, reason: String) = webSocketSession.close(statusCode, reason)
     override fun disconnect() = webSocketSession.disconnect()
-    override fun getIdleTimeout() = webSocketSession.idleTimeout;
+    override fun getIdleTimeout() = webSocketSession.idleTimeout
     override fun getLocalAddress(): InetSocketAddress = webSocketSession.localAddress
     override fun getPolicy(): WebSocketPolicy = webSocketSession.policy
     override fun getProtocolVersion(): String = webSocketSession.protocolVersion
