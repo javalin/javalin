@@ -30,7 +30,7 @@ public class TestAccessManager {
         }
     };
 
-    enum MyRoles implements Role {
+    public enum MyRoles implements Role {
         ROLE_ONE, ROLE_TWO, ROLE_THREE;
     }
 
