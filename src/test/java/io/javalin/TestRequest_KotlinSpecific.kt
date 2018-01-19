@@ -34,7 +34,6 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
     }
 
     @Test
-    @Ignore("See comment at end of file")
     fun test_mapFormParams_worksForGoodInput() {
         app.post("/") { ctx ->
             val (name, email, phone) = ctx.mapFormParams("name", "email", "phone") ?: throw IllegalArgumentException()
@@ -45,7 +44,6 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
     }
 
     @Test
-    @Ignore("See comment at end of file")
     fun test_mapFormParams_isNullForBadInput() {
         app.post("/") { ctx ->
             val (name, missing) = ctx.mapFormParams("missing") ?: throw IllegalArgumentException()
@@ -54,16 +52,5 @@ class TestRequest_KotlinSpecific : _UnirestBaseTest() {
         val response = Unirest.post(_UnirestBaseTest.origin).body("name=some%20name").asString()
         assertThat(response.body, `is`("Internal server error"))
     }
-
-    /**
-     * Comment at end of file
-     *
-     * You get 'Software caused connection abort: recv failed' if the two post-tests
-     * are run together with any other test outside of this class
-     * Everything is fine if you run them alone, everything is fine if you only run this class.
-     *
-     * It's sad to have to @Ignore them, but I can't figure out what's wrong.
-     *
-     */
 
 }
