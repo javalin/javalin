@@ -226,6 +226,10 @@ public class Javalin {
         return this;
     }
 
+    private Javalin addSecuredHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+        return addHandler(httpMethod, path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+    }
+
     // HTTP verbs
     public Javalin get(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.GET, path, handler);
@@ -265,39 +269,39 @@ public class Javalin {
 
     // Secured HTTP verbs
     public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.get(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.GET, path, handler, permittedRoles);
     }
 
     public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.post(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.POST, path, handler, permittedRoles);
     }
 
     public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.put(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.PUT, path, handler, permittedRoles);
     }
 
     public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.patch(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.PATCH, path, handler, permittedRoles);
     }
 
     public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.delete(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.DELETE, path, handler, permittedRoles);
     }
 
     public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.head(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.HEAD, path, handler, permittedRoles);
     }
 
     public Javalin trace(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.trace(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.TRACE, path, handler, permittedRoles);
     }
 
     public Javalin connect(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.connect(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.CONNECT, path, handler, permittedRoles);
     }
 
     public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return this.options(path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+        return addSecuredHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
     }
 
     // Filters
