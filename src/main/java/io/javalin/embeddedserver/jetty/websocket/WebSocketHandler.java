@@ -18,8 +18,17 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+
 @WebSocket
 public class WebSocketHandler {
+
+    private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
 
     private ConnectHandler connectHandler = null;
     private MessageHandler messageHandler = null;
@@ -42,34 +51,67 @@ public class WebSocketHandler {
         this.errorHandler = errorHandler;
     }
 
+    public Collection<WsSession> getSessions() {
+        return sessions.keySet()
+                .stream()
+                .filter(Session::isOpen)
+                .map(this::createWsSession)
+                .collect(Collectors.toList());
+    }
+
     // Jetty annotations
 
     @OnWebSocketConnect
     public void _internalOnConnectProxy(Session session) throws Exception {
+        String sessionId = registerSession(session);
         if (connectHandler != null) {
-            connectHandler.handle(new WsSession(session));
+            connectHandler.handle(createWsSession(session));
         }
     }
 
     @OnWebSocketMessage
     public void _internalOnMessageProxy(Session session, String message) throws Exception {
+        String sessionId = registerSession(session);
         if (messageHandler != null) {
-            messageHandler.handle(new WsSession(session), message);
+            messageHandler.handle(createWsSession(session), message);
         }
     }
 
     @OnWebSocketClose
     public void _internalOnCloseProxy(Session session, int statusCode, String reason) throws Exception {
+        String sessionId = registerSession(session);
         if (closeHandler != null) {
-            closeHandler.handle(new WsSession(session), statusCode, reason);
+            closeHandler.handle(createWsSession(session), statusCode, reason);
         }
+
+        sessions.remove(session);
     }
 
     @OnWebSocketError
     public void _internalOnErrorProxy(Session session, Throwable throwable) throws Exception {
+        String sessionId = registerSession(session);
         if (errorHandler != null) {
-            errorHandler.handle(new WsSession(session), throwable);
+            errorHandler.handle(createWsSession(session), throwable);
         }
     }
 
+    private String registerSession(Session session) {
+        return Objects.requireNonNull(sessions.computeIfAbsent(session, (s) -> nextSessionId()));
+    }
+
+    private void unregisterSession(Session session) {
+        sessions.remove(Objects.requireNonNull(session));
+    }
+
+    private WsSession createWsSession(Session session) {
+        return new WsSession(getSessionId(session), session);
+    }
+
+    private String getSessionId(Session session) {
+        return sessions.get(session);
+    }
+
+    private String nextSessionId() {
+        return UUID.randomUUID().toString();
+    }
 }

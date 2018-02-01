@@ -11,7 +11,7 @@ import org.eclipse.jetty.websocket.api.*
 import org.eclipse.jetty.websocket.common.WebSocketSession
 import java.net.InetSocketAddress
 
-class WsSession(session: Session) : Session {
+class WsSession(val id: String, session: Session) : Session {
 
     private val webSocketSession = session as WebSocketSession
 
