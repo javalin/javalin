@@ -52,8 +52,6 @@ public class TestWebSocket {
     public void test_id_generation() throws Exception {
         Javalin app = Javalin.create().contextPath("/websocket").port(0);
 
-        Map<WsSession, Integer> userUsernameMap = new LinkedHashMap<>();
-        AtomicInteger atomicInteger = new AtomicInteger();
         app.ws("/test-websocket-1", ws -> {
             ws.onConnect(session -> log.add(session.getId()) );
             ws.onMessage( (session, msg) -> log.add(session.getId()) );
