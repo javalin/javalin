@@ -19,23 +19,19 @@ import java.nio.file.Paths
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResourceHandler {
+class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) : StaticResourceHandler {
 
     private val log = LoggerFactory.getLogger(JettyResourceHandler::class.java)
 
-    private var initialized = false
-    private val resourceHandler = ResourceHandler()
-    private val gzipHandler = GzipHandler().apply { handler = resourceHandler }
-
-    init {
-        if (staticFileConfig != null) {
-            resourceHandler.apply {
-                resourceBase = getResourcePath(staticFileConfig)
+    private val handlers = staticFileConfig.map { config ->
+        GzipHandler().apply {
+            handler = ResourceHandler().apply {
+                resourceBase = getResourcePath(config)
                 isDirAllowed = false
                 isEtags = true
-            }.start()
-            initialized = true
-            log.info("Static files enabled: {$staticFileConfig}. Absolute path: '${resourceHandler.resourceBase}'")
+                start()
+            }
+            log.info("Static files enabled: {$config}. Absolute path: '${getResourcePath(config)}'")
         }
     }
 
@@ -55,12 +51,13 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
     }
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
-        if (initialized) {
-            val target = httpRequest.getAttribute("jetty-target") as String
-            val baseRequest = httpRequest.getAttribute("jetty-request") as Request
+        val target = httpRequest.getAttribute("jetty-target") as String
+        val baseRequest = httpRequest.getAttribute("jetty-request") as Request
+        for (gzipHandler in handlers) {
             try {
+                val resourceHandler = (gzipHandler.handler as ResourceHandler)
                 val resource = resourceHandler.getResource(target)
-                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(target)) {
+                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target)) {
                     val maxAge = if (target.startsWith("/immutable")) 31622400 else 0
                     httpResponse.setHeader("Cache-Control", "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
@@ -73,8 +70,8 @@ class JettyResourceHandler(staticFileConfig: StaticFileConfig?) : StaticResource
         return false
     }
 
-    private fun Resource.isFile() = this != null && this.exists() && !this.isDirectory
-    private fun Resource.isDirectoryWithWelcomeFile(target: String) =
-            this != null && this.isDirectory && resourceHandler.getResource(target + "index.html").exists()
+    private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
+    private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
+            this != null && this.isDirectory && handler.getResource(target + "index.html").exists()
 
 }
