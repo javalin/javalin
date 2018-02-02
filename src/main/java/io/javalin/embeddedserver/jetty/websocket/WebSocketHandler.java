@@ -10,6 +10,11 @@ import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -17,14 +22,6 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
 
 @WebSocket
 public class WebSocketHandler {
@@ -61,10 +58,10 @@ public class WebSocketHandler {
      */
     public Set<WsSession> getSessions() {
         return sessions.keySet()
-                .stream()
-                .filter(Session::isOpen)
-                .map(this::createWsSession)
-                .collect(Collectors.toSet());
+            .stream()
+            .filter(Session::isOpen)
+            .map(this::createWsSession)
+            .collect(Collectors.toSet());
     }
 
     // Jetty annotations
@@ -95,7 +92,7 @@ public class WebSocketHandler {
 
     @OnWebSocketError
     public void _internalOnErrorProxy(Session session, Throwable throwable) throws Exception {
-       registerSession(session);
+        registerSession(session);
         if (errorHandler != null) {
             errorHandler.handle(createWsSession(session), throwable);
         }

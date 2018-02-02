@@ -8,10 +8,15 @@ package io.javalin;
 
 import io.javalin.embeddedserver.jetty.websocket.WsSession;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.hamcrest.Matchers;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -40,7 +45,7 @@ public class TestWebSocket {
 
         app.ws("/test-websocket-1", ws -> {
             assertThat(ws.getSessions(), Matchers.hasSize(0));
-            ws.onClose( (session, statusCode, reason) -> log.add(String.valueOf(ws.getSessions().size())) );
+            ws.onClose((session, statusCode, reason) -> log.add(String.valueOf(ws.getSessions().size())));
         });
 
         app.start();
@@ -68,9 +73,9 @@ public class TestWebSocket {
         app.ws("/test-websocket-1", ws -> {
             assertThat(ws.getSessions(), Matchers.hasSize(0));
 
-            ws.onConnect(session -> log.add(session.getId()) );
-            ws.onMessage( (session, msg) -> log.add(session.getId()) );
-            ws.onClose( (session, statusCode, reason) -> log.add(session.getId()) );
+            ws.onConnect(session -> log.add(session.getId()));
+            ws.onMessage((session, msg) -> log.add(session.getId()));
+            ws.onClose((session, statusCode, reason) -> log.add(session.getId()));
         });
         app.start();
     }
@@ -80,15 +85,15 @@ public class TestWebSocket {
         Javalin app = Javalin.create().contextPath("/websocket").port(0);
 
         app.ws("/test-websocket-1", ws -> {
-            ws.onConnect(session -> log.add(session.getId()) );
-            ws.onMessage( (session, msg) -> log.add(session.getId()) );
-            ws.onClose( (session, statusCode, reason) -> log.add(session.getId()) );
+            ws.onConnect(session -> log.add(session.getId()));
+            ws.onMessage((session, msg) -> log.add(session.getId()));
+            ws.onClose((session, statusCode, reason) -> log.add(session.getId()));
         });
         app.routes(() -> {
             ws("/test-websocket-2", ws -> {
-                ws.onConnect(session -> log.add(session.getId()) );
-                ws.onMessage( (session, msg) -> log.add(session.getId()) );
-                ws.onClose( (session, statusCode, reason) -> log.add(session.getId()) );
+                ws.onConnect(session -> log.add(session.getId()));
+                ws.onMessage((session, msg) -> log.add(session.getId()));
+                ws.onClose((session, statusCode, reason) -> log.add(session.getId()));
             });
         });
         app.start();

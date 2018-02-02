@@ -9,7 +9,6 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
-import org.junit.Ignore
 import org.junit.Test
 
 

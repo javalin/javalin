@@ -82,8 +82,8 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     /*
-    * Path params
-    */
+     * Path params
+     */
     @Test
     public void test_paramWorks_noParam() throws Exception {
         app.get("/my/path", ctx -> ctx.result("" + ctx.param("param")));
@@ -115,8 +115,8 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     /*
-    * Query params
-    */
+     * Query params
+     */
     @Test
     public void test_queryParamWorks_noParam() throws Exception {
         app.get("/", ctx -> ctx.result("" + ctx.queryParam("qp")));
