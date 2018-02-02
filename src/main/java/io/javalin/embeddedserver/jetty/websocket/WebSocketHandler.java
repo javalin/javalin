@@ -60,7 +60,7 @@ public class WebSocketHandler {
         return sessions.keySet()
             .stream()
             .filter(Session::isOpen)
-            .map(this::registerAndWrapSession)
+            .map(s -> new WsSession(sessions.get(s), s))
             .collect(Collectors.toSet());
     }
 
