@@ -8,29 +8,116 @@ package io.javalin;
 
 import io.javalin.embeddedserver.jetty.websocket.WsSession;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.hamcrest.Matchers;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.junit.Before;
 import org.junit.Test;
 import static io.javalin.ApiBuilder.ws;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * This test could be better
  */
 public class TestWebSocket {
 
-    private List<String> log = new ArrayList<>();
+    private List<String> log;
+
+    @Before
+    public void setup() {
+        log = new ArrayList<>();
+    }
+
+    @Test
+    public void test_get_sessions_after_activity() throws Exception {
+        Javalin app = Javalin.create().contextPath("/websocket").port(0);
+
+        app.ws("/test-websocket-1", ws -> {
+            assertThat(ws.getSessions(), Matchers.hasSize(0));
+            ws.onClose( (session, statusCode, reason) -> log.add(String.valueOf(ws.getSessions().size())) );
+        });
+
+        app.start();
+
+        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+        TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+        TestClient testClient1_3 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+
+        doAndSleepWhile(testClient1_1::connect, () -> !testClient1_1.isOpen()); // 0 + 1 = 1
+        doAndSleepWhile(testClient1_2::connect, () -> !testClient1_2.isOpen()); // 1 + 1 = 2
+        doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);        // 2 - 1 = 1
+        doAndSleepWhile(testClient1_3::connect, () -> !testClient1_2.isOpen()); // final: 1
+
+        assertThat(log, hasSize(1));
+        int connections = Integer.parseInt(log.get(0));
+        assertThat(connections, Matchers.equalTo(1));
+
+        app.stop();
+    }
+
+    @Test
+    public void test_get_sessions_returns_empty_set_when_no_sessions_registered() throws Exception {
+        Javalin app = Javalin.create().contextPath("/websocket").port(0);
+
+        app.ws("/test-websocket-1", ws -> {
+            assertThat(ws.getSessions(), Matchers.hasSize(0));
+
+            ws.onConnect(session -> log.add(session.getId()) );
+            ws.onMessage( (session, msg) -> log.add(session.getId()) );
+            ws.onClose( (session, statusCode, reason) -> log.add(session.getId()) );
+        });
+        app.start();
+    }
+
+    @Test
+    public void test_id_generation() throws Exception {
+        Javalin app = Javalin.create().contextPath("/websocket").port(0);
+
+        app.ws("/test-websocket-1", ws -> {
+            ws.onConnect(session -> log.add(session.getId()) );
+            ws.onMessage( (session, msg) -> log.add(session.getId()) );
+            ws.onClose( (session, statusCode, reason) -> log.add(session.getId()) );
+        });
+        app.routes(() -> {
+            ws("/test-websocket-2", ws -> {
+                ws.onConnect(session -> log.add(session.getId()) );
+                ws.onMessage( (session, msg) -> log.add(session.getId()) );
+                ws.onClose( (session, statusCode, reason) -> log.add(session.getId()) );
+            });
+        });
+        app.start();
+
+        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+        TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+        TestClient testClient2_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-2"));
+
+        doAndSleepWhile(testClient1_1::connect, () -> !testClient1_1.isOpen());
+        doAndSleepWhile(testClient1_2::connect, () -> !testClient1_2.isOpen());
+        doAndSleep(() -> testClient1_1.send("A"));
+        doAndSleep(() -> testClient1_2.send("B"));
+        doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
+        doAndSleepWhile(testClient1_2::close, testClient1_2::isClosing);
+        doAndSleepWhile(testClient2_1::connect, () -> !testClient2_1.isOpen());
+        doAndSleepWhile(testClient2_1::close, testClient2_1::isClosing);
+
+        // 3 clients and a lot of operations should only yield three unique identifiers for the clients
+        Set<String> uniqueLog = new HashSet<>(log);
+        assertThat(uniqueLog, hasSize(3));
+        for (String id : uniqueLog) {
+            assertThat(1, Matchers.equalTo(Collections.frequency(uniqueLog, id)));
+        }
+
+        app.stop();
+    }
 
     @Test
     public void test_everything() throws Exception {
-
         Javalin app = Javalin.create().contextPath("/websocket").port(0);
 
         Map<WsSession, Integer> userUsernameMap = new LinkedHashMap<>();
