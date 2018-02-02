@@ -60,7 +60,7 @@ public class WebSocketHandler {
         return sessions.keySet()
             .stream()
             .filter(Session::isOpen)
-            .map(this::createWsSession)
+            .map(this::registerAndWrapSession)
             .collect(Collectors.toSet());
     }
 
@@ -68,45 +68,39 @@ public class WebSocketHandler {
 
     @OnWebSocketConnect
     public void _internalOnConnectProxy(Session session) throws Exception {
-        registerSession(session);
+        WsSession wsSession = registerAndWrapSession(session);
         if (connectHandler != null) {
-            connectHandler.handle(createWsSession(session));
+            connectHandler.handle(wsSession);
         }
     }
 
     @OnWebSocketMessage
     public void _internalOnMessageProxy(Session session, String message) throws Exception {
-        registerSession(session);
+        WsSession wsSession = registerAndWrapSession(session);
         if (messageHandler != null) {
-            messageHandler.handle(createWsSession(session), message);
+            messageHandler.handle(wsSession, message);
         }
     }
 
     @OnWebSocketClose
     public void _internalOnCloseProxy(Session session, int statusCode, String reason) throws Exception {
+        WsSession wsSession = registerAndWrapSession(session);
         if (closeHandler != null) {
-            closeHandler.handle(createWsSession(session), statusCode, reason);
+            closeHandler.handle(wsSession, statusCode, reason);
         }
-        unregisterSession(session);
+        sessions.remove(session);
     }
 
     @OnWebSocketError
     public void _internalOnErrorProxy(Session session, Throwable throwable) throws Exception {
-        registerSession(session);
+        WsSession wsSession = registerAndWrapSession(session);
         if (errorHandler != null) {
-            errorHandler.handle(createWsSession(session), throwable);
+            errorHandler.handle(wsSession, throwable);
         }
     }
 
-    private void registerSession(Session session) {
+    private WsSession registerAndWrapSession(Session session) {
         sessions.putIfAbsent(session, UUID.randomUUID().toString());
-    }
-
-    private void unregisterSession(Session session) {
-        sessions.remove(session);
-    }
-
-    private WsSession createWsSession(Session session) {
         return new WsSession(sessions.get(session), session);
     }
 
