@@ -99,7 +99,7 @@ public class WebSocketHandler {
     }
 
     private void registerSession(Session session) {
-        sessions.putIfAbsent(session, nextSessionId());
+        sessions.putIfAbsent(session, UUID.randomUUID().toString());
     }
 
     private void unregisterSession(Session session) {
@@ -110,7 +110,4 @@ public class WebSocketHandler {
         return new WsSession(sessions.get(session), session);
     }
 
-    private String nextSessionId() {
-        return UUID.randomUUID().toString();
-    }
 }
