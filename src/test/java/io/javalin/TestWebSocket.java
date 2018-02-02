@@ -35,6 +35,33 @@ public class TestWebSocket {
     }
 
     @Test
+    public void test_get_sessions_after_activity() throws Exception {
+        Javalin app = Javalin.create().contextPath("/websocket").port(0);
+
+        app.ws("/test-websocket-1", ws -> {
+            assertThat(ws.getSessions(), Matchers.hasSize(0));
+            ws.onClose( (session, statusCode, reason) -> log.add(String.valueOf(ws.getSessions().size())) );
+        });
+
+        app.start();
+
+        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+        TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+        TestClient testClient1_3 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"));
+
+        doAndSleepWhile(testClient1_1::connect, () -> !testClient1_1.isOpen()); // 0 + 1 = 1
+        doAndSleepWhile(testClient1_2::connect, () -> !testClient1_2.isOpen()); // 1 + 1 = 2
+        doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);        // 2 - 1 = 1
+        doAndSleepWhile(testClient1_3::connect, () -> !testClient1_2.isOpen()); // final: 1
+
+        assertThat(log, hasSize(1));
+        int connections = Integer.parseInt(log.get(0));
+        assertThat(connections, Matchers.equalTo(1));
+
+        app.stop();
+    }
+
+    @Test
     public void test_get_sessions_returns_empty_set_when_no_sessions_registered() throws Exception {
         Javalin app = Javalin.create().contextPath("/websocket").port(0);
 
