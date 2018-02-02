@@ -35,6 +35,20 @@ public class TestWebSocket {
     }
 
     @Test
+    public void test_get_sessions_returns_empty_set_when_no_sessions_registered() throws Exception {
+        Javalin app = Javalin.create().contextPath("/websocket").port(0);
+
+        app.ws("/test-websocket-1", ws -> {
+            assertThat(ws.getSessions(), Matchers.hasSize(0));
+
+            ws.onConnect(session -> log.add(session.getId()) );
+            ws.onMessage( (session, msg) -> log.add(session.getId()) );
+            ws.onClose( (session, statusCode, reason) -> log.add(session.getId()) );
+        });
+        app.start();
+    }
+
+    @Test
     public void test_id_generation() throws Exception {
         Javalin app = Javalin.create().contextPath("/websocket").port(0);
 
