@@ -337,20 +337,20 @@ public class Javalin {
     private Map<String, Object> pathWsHandlers = new HashMap<>();
 
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
-        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         WebSocketHandler configuredHandler = new WebSocketHandler();
         ws.configure(configuredHandler);
-        pathWsHandlers.put(path, configuredHandler);
-        return this;
+        return addWebSocketHandler(path, configuredHandler);
     }
 
     public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
-        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
-        pathWsHandlers.put(path, webSocketClass);
-        return this;
+        return addWebSocketHandler(path, webSocketClass);
     }
 
     public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
+        return addWebSocketHandler(path, webSocketObject);
+    }
+
+    private Javalin addWebSocketHandler(@NotNull String path, @NotNull Object webSocketObject) {
         ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         pathWsHandlers.put(path, webSocketObject);
         return this;
