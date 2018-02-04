@@ -27,6 +27,7 @@ import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class Javalin {
     private EmbeddedServer embeddedServer;
     private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
 
-    private StaticFileConfig staticFileConfig = null;
+    private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
     private PathMatcher pathMatcher = new PathMatcher();
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
     private ErrorMapper errorMapper = new ErrorMapper();
@@ -135,7 +136,7 @@ public class Javalin {
 
     public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
-        staticFileConfig = new StaticFileConfig(path, location);
+        staticFileConfig.add(new StaticFileConfig(path, location));
         return this;
     }
 

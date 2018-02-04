@@ -15,7 +15,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool
 
 class EmbeddedJettyFactory(jettyServer: () -> Server = { Server(QueuedThreadPool(250, 8, 60000)) }) : EmbeddedServerFactory {
     private val server = jettyServer()
-    override fun create(javalinServlet: JavalinServlet, staticFileConfig: StaticFileConfig?): EmbeddedServer {
+    override fun create(javalinServlet: JavalinServlet, staticFileConfig: List<StaticFileConfig>): EmbeddedServer {
         return EmbeddedJettyServer(server, javalinServlet.apply { staticResourceHandler = JettyResourceHandler(staticFileConfig) })
     }
 }
