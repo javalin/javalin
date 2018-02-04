@@ -49,21 +49,6 @@ public class WebSocketHandler {
         this.errorHandler = errorHandler;
     }
 
-    /**
-     * Returns all open sessions at the time of invocation. If you intend to use this method to build a client broadcast
-     * capability then you should handle connection errors due to difference in time between retrieval and
-     * {@link WsSession#send(String)}.
-     *
-     * @return a collection of {@link WsSession}
-     */
-    public Set<WsSession> getSessions() {
-        return sessions.keySet()
-            .stream()
-            .filter(Session::isOpen)
-            .map(s -> new WsSession(sessions.get(s), s))
-            .collect(Collectors.toSet());
-    }
-
     // Jetty annotations
 
     @OnWebSocketConnect
