@@ -337,7 +337,7 @@ public class Javalin {
     private Map<String, Object> pathWsHandlers = new HashMap<>();
 
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
-        ensureWebSocketsCallWillWork();
+        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         WebSocketHandler configuredHandler = new WebSocketHandler();
         ws.configure(configuredHandler);
         pathWsHandlers.put(path, configuredHandler);
@@ -345,20 +345,15 @@ public class Javalin {
     }
 
     public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
-        ensureWebSocketsCallWillWork();
+        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         pathWsHandlers.put(path, webSocketClass);
         return this;
     }
 
     public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
-        ensureWebSocketsCallWillWork();
+        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         pathWsHandlers.put(path, webSocketObject);
         return this;
-    }
-
-    private void ensureWebSocketsCallWillWork() {
-        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
-        Util.INSTANCE.ensureDependencyPresent("Jetty WebSocket", "org.eclipse.jetty.websocket.api.Session", "org.eclipse.jetty.websocket/websocket-server");
     }
 
     // package private method used for testing
