@@ -27,6 +27,8 @@ import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +53,8 @@ public class Javalin {
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
     private ErrorMapper errorMapper = new ErrorMapper();
     private LogLevel logLevel = LogLevel.OFF;
+    private String defaultContentType = "text/plain";
+    private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
 
     private EventManager eventManager = new EventManager();
 
@@ -90,7 +94,9 @@ public class Javalin {
                     errorMapper,
                     pathWsHandlers,
                     logLevel,
-                    dynamicGzipEnabled
+                    dynamicGzipEnabled,
+                    defaultContentType,
+                    defaultCharacterEncoding
                 ), staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
@@ -182,6 +188,18 @@ public class Javalin {
     public Javalin enableDynamicGzip() {
         ensureActionIsPerformedBeforeServerStart("Enabling dynamic GZIP");
         this.dynamicGzipEnabled = true;
+        return this;
+    }
+
+    public Javalin defaultContentType(String contentType) {
+        ensureActionIsPerformedBeforeServerStart("Changing default content type");
+        this.defaultContentType = contentType;
+        return this;
+    }
+
+    public Javalin defaultCharacterEncoding(String characterEncoding) {
+        ensureActionIsPerformedBeforeServerStart("Changing default character encoding");
+        this.defaultCharacterEncoding = characterEncoding;
         return this;
     }
 
