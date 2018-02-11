@@ -16,7 +16,6 @@ import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
 import java.util.zip.GZIPOutputStream
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
@@ -30,7 +29,9 @@ class JavalinServlet(
         val errorMapper: ErrorMapper,
         val wsHandlers: Map<String, Any>,
         val logLevel: LogLevel,
-        val dynamicGzipEnabled: Boolean) {
+        val dynamicGzipEnabled: Boolean,
+        val defaultContentType: String,
+        val defaultCharacterEncoding: String) {
 
     private val log = LoggerFactory.getLogger(JavalinServlet::class.java)
 
@@ -48,6 +49,9 @@ class JavalinServlet(
 
         ctx.header("Server", "Javalin")
         ctx.attribute("javalin-request-log-start-time", System.nanoTime())
+
+        res.characterEncoding = defaultCharacterEncoding
+        res.contentType = defaultContentType
 
         try { // before-handlers, endpoint-handlers, static-files
 
@@ -95,12 +99,6 @@ class JavalinServlet(
         // write result to servlet-response (if not already committed)
         val doGzip = gzipShouldBeDone(ctx.resultString(), req)
         if (!res.isCommitted) {
-            if (res.contentType == null) {
-                res.contentType = "text/plain"
-            }
-            if (res.characterEncoding == "iso-8859-1") {
-                res.characterEncoding = StandardCharsets.UTF_8.name()
-            }
             ctx.resultString()?.let { resultString ->
                 ctx.result(ByteArrayInputStream(resultString.toByteArray()))
             }
