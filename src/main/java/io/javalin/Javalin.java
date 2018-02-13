@@ -64,11 +64,29 @@ public class Javalin {
     private Javalin() {
     }
 
+    /**
+     * Creates an instance of the application for further configuration. The server does not run until {@link Javalin#start()} is called.
+     *
+     * @see Javalin#start()
+     * @see Javalin#start(int)
+     *
+     * @return instance of application for configuration.
+     */
     public static Javalin create() {
         Util.INSTANCE.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
         return new Javalin();
     }
 
+    /**
+     * Creates and starts the application with default parameters on specified port.
+     *
+     * @param port to run on
+     *
+     * @see Javalin#create()
+     * @see Javalin#start()
+     *
+     * @return running application instance.
+     */
     public static Javalin start(int port) {
         return new Javalin()
             .port(port)
@@ -79,6 +97,13 @@ public class Javalin {
 
     private boolean started = false;
 
+    /**
+     * Synchronously starts an instance of the application.
+     *
+     * @see Javalin#create()
+     *
+     * @return running application instance.
+     */
     public Javalin start() {
         if (!started) {
             log.info(Util.INSTANCE.javalinBanner());
@@ -110,6 +135,11 @@ public class Javalin {
         return this;
     }
 
+    /**
+     * Synchronously stops application instance.
+     *
+     * @return stopped application instance.
+     */
     public Javalin stop() {
         eventManager.fireEvent(EventType.SERVER_STOPPING, this);
         log.info("Stopping Javalin ...");
@@ -123,67 +153,134 @@ public class Javalin {
         return this;
     }
 
+    /**
+     * Treat '/test/' and '/test' as different URLs.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin dontIgnoreTrailingSlashes() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore slashes");
         pathMatcher.setIgnoreTrailingSlashes(false);
         return this;
     }
 
+    /**
+     * Sets custom server implementation.
+     *
+     * @see <a href="https://javalin.io/documentation#custom-server">Documentation example</a>
+     *
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin embeddedServer(@NotNull EmbeddedServerFactory embeddedServerFactory) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
         this.embeddedServerFactory = embeddedServerFactory;
         return this;
     }
 
+    /**
+     * Serves static files from path in classpath.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     *
+     * @see <a href="https://javalin.io/documentation#static-files>Static files in docs</a>
+     */
     public Javalin enableStaticFiles(@NotNull String classpathPath) {
         return enableStaticFiles(classpathPath, Location.CLASSPATH);
     }
 
+    /**
+     * Serves static files from path in given location.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     *
+     * @see <a href="https://javalin.io/documentation#static-files>Static files in docs</a>
+     */
     public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         staticFileConfig.add(new StaticFileConfig(path, location));
         return this;
     }
 
+    /**
+     * Context path (common prefix) for the instance.
+     */
     public String contextPath() {
         return this.contextPath;
     }
 
+    /**
+     * Sets the context path (common prefix) for the instance.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin contextPath(@NotNull String contextPath) {
         ensureActionIsPerformedBeforeServerStart("Setting the context path");
         this.contextPath = Util.INSTANCE.normalizeContextPath(contextPath);
         return this;
     }
 
+    /**
+     * Port which is assigned to the instance.
+     */
     public int port() {
         return port;
     }
 
+    /**
+     * Sets the port to run the instance on.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin port(int port) {
         ensureActionIsPerformedBeforeServerStart("Setting the port");
         this.port = port;
         return this;
     }
 
+    /**
+     * Sets internal logger level to {@link LogLevel#STANDARD}.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin enableStandardRequestLogging() {
         return requestLogLevel(LogLevel.STANDARD);
     }
 
+    /**
+     * Sets internal logger level.
+     * 
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin requestLogLevel(@NotNull LogLevel logLevel) {
         ensureActionIsPerformedBeforeServerStart("Enabling request-logging");
         this.logLevel = logLevel;
         return this;
     }
 
+    /**
+     * Enables cross origin requests for defined origins.
+     * 
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin enableCorsForOrigin(@NotNull String... origin) {
         ensureActionIsPerformedBeforeServerStart("Enabling CORS");
         return CorsUtil.INSTANCE.enableCors(this, origin);
     }
 
+    /**
+     * Enables cross origin requests for all origins.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin enableCorsForAllOrigins() {
         return enableCorsForOrigin("*");
     }
 
+    /**
+     * Enables dynamic gzip compression.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin enableDynamicGzip() {
         ensureActionIsPerformedBeforeServerStart("Enabling dynamic GZIP");
         this.dynamicGzipEnabled = true;
@@ -210,27 +307,55 @@ public class Javalin {
 
     // End embedded server methods
 
+    /**
+     * Defines an access manager for the instance. Secured endpoints require one to be set.
+     *
+     * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
+     */
     public Javalin accessManager(@NotNull AccessManager accessManager) {
         this.accessManager = accessManager;
         return this;
     }
 
+    /**
+     * Handles exceptions thrown in the handlers.
+     *
+     * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
+     */
     public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
         exceptionMapper.getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
+    /**
+     * Adds a lifecycle event listener.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     *
+     * @see <a href="https://javalin.io/documentation#lifecycle-events">Events in docs</a>
+     */
     public Javalin event(@NotNull EventType eventType, @NotNull EventListener eventListener) {
         ensureActionIsPerformedBeforeServerStart("Event-mapping");
         eventManager.getListenerMap().get(eventType).add(eventListener);
         return this;
     }
 
+    /**
+     * Handles error cases in handlers based on status code
+     *
+     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
+     */
     public Javalin error(int statusCode, @NotNull ErrorHandler errorHandler) {
         errorMapper.getErrorHandlerMap().put(statusCode, errorHandler);
         return this;
     }
 
+    /**
+     * Accepts all requests defined by this handler group.
+     *
+     * @see <a href="https://javalin.io/documentation#handler-groups">Handler groups in documentation</a>
+     * @see ApiBuilder
+     */
     public Javalin routes(@NotNull ApiBuilder.EndpointGroup endpointGroup) {
         ApiBuilder.setStaticJavalin(this);
         endpointGroup.addEndpoints();
@@ -249,101 +374,266 @@ public class Javalin {
     }
 
     // HTTP verbs
+    /**
+     * Accepts all GET requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin get(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.GET, path, handler);
     }
 
+    /**
+     * Accepts all POST requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin post(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.POST, path, handler);
     }
 
+    /**
+     * Accepts all PUT requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin put(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.PUT, path, handler);
     }
 
+    /**
+     * Accepts all PATCH requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin patch(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.PATCH, path, handler);
     }
 
+    /**
+     * Accepts all DELETE requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin delete(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.DELETE, path, handler);
     }
 
+    /**
+     * Accepts all HEAD requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin head(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.HEAD, path, handler);
     }
 
+    /**
+     * Accepts all TRACE requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin trace(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.TRACE, path, handler);
     }
 
+    /**
+     * Accepts all CONNECT requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin connect(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.CONNECT, path, handler);
     }
 
+    /**
+     * Accepts all OPTIONS requests for given path.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin options(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.OPTIONS, path, handler);
     }
 
     // Secured HTTP verbs
+    /**
+     * Accepts managed GET requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.GET, path, handler, permittedRoles);
     }
 
+    /**
+     * Accepts managed POST requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.POST, path, handler, permittedRoles);
     }
 
+    /**
+     * Accepts managed PUT requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.PUT, path, handler, permittedRoles);
     }
 
+    /**
+     * Accepts managed PATCH requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.PATCH, path, handler, permittedRoles);
     }
 
+    /**
+     * Accepts managed DELETE requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.DELETE, path, handler, permittedRoles);
     }
 
+    /**
+     * Accepts managed HEAD requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.HEAD, path, handler, permittedRoles);
     }
 
+    /**
+     * Accepts managed TRACE requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin trace(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.TRACE, path, handler, permittedRoles);
     }
 
+    /**
+     * Accepts managed CONNECT requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin connect(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.CONNECT, path, handler, permittedRoles);
     }
 
+    /**
+     * Accepts managed OPTIONS requests for given path.
+     *
+     * Requires defined access manager in the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
         return addSecuredHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
     }
 
     // Filters
+
+    /**
+     * Fires the handler before request for given path is handled.
+     *
+     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
+     */
     public Javalin before(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.BEFORE, path, handler);
     }
 
+    /**
+     * Fires the handler before any request is handled.
+     *
+     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
+     */
     public Javalin before(@NotNull Handler handler) {
         return before("*", handler);
     }
 
+    /**
+     * Fires the handler after request for given path is handled.
+     *
+     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
+     */
     public Javalin after(@NotNull String path, @NotNull Handler handler) {
         return addHandler(HandlerType.AFTER, path, handler);
     }
 
+    /**
+     * Fires the handler after any request is handled.
+     *
+     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
+     */
     public Javalin after(@NotNull Handler handler) {
         return after("*", handler);
     }
 
     // Reverse routing
+
+    /**
+     * Finds the path for given handler
+     */
     public String pathFinder(@NotNull Handler handler) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler));
     }
 
+    /**
+     * Finds the path for given handler with given type
+     *
+     * @see HandlerType
+     */
     public String pathFinder(@NotNull Handler handler, @NotNull HandlerType handlerType) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
     }
@@ -353,16 +643,37 @@ public class Javalin {
 
     private Map<String, Object> pathWsHandlers = new HashMap<>();
 
+    /**
+     * Accepts websocket connection requests for given path with lambda handler.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     *
+     * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
+     */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
         WebSocketHandler configuredHandler = new WebSocketHandler();
         ws.configure(configuredHandler);
         return addWebSocketHandler(path, configuredHandler);
     }
 
+    /**
+     * Accepts websocket connection requests for given path with Jetty-annotated class.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     *
+     * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
+     */
     public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
         return addWebSocketHandler(path, webSocketClass);
     }
 
+    /**
+     * Accepts websocket connection requests for given path with Jetty websocket object.
+     *
+     * The method must be called before {@link Javalin#start()}.
+     *
+     * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
+     */
     public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
         return addWebSocketHandler(path, webSocketObject);
     }
