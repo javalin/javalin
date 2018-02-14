@@ -189,7 +189,7 @@ public class Javalin {
     }
 
     /**
-     * Serves static files from path in given location.
+     * Serves static files from path in the given location.
      *
      * The method must be called before {@link Javalin#start()}.
      *
@@ -238,7 +238,7 @@ public class Javalin {
     }
 
     /**
-     * Sets internal logger level to {@link LogLevel#STANDARD}.
+     * Sets request logger level to {@link LogLevel#STANDARD}.
      *
      * The method must be called before {@link Javalin#start()}.
      */
@@ -247,7 +247,7 @@ public class Javalin {
     }
 
     /**
-     * Sets internal logger level.
+     * Sets request logger level to the given one.
      * 
      * The method must be called before {@link Javalin#start()}.
      */
@@ -318,7 +318,7 @@ public class Javalin {
     }
 
     /**
-     * Handles exceptions thrown in the handlers.
+     * Adds an exception mapper to the instance.
      *
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
@@ -341,7 +341,7 @@ public class Javalin {
     }
 
     /**
-     * Handles error cases in handlers based on status code
+     * Adds an error mapper to the instance.
      *
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
@@ -351,7 +351,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all requests defined by this handler group.
+     * Adds a group of handlers defined by ApiBuilder static methods.
      *
      * @see <a href="https://javalin.io/documentation#handler-groups">Handler groups in documentation</a>
      * @see ApiBuilder
@@ -375,7 +375,7 @@ public class Javalin {
 
     // HTTP verbs
     /**
-     * Accepts all GET requests for given path.
+     * Adds a GET request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -384,7 +384,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all POST requests for given path.
+     * Adds a POST request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -393,7 +393,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all PUT requests for given path.
+     * Adds a PUT request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -402,7 +402,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all PATCH requests for given path.
+     * Adds a PATCH request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -411,7 +411,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all DELETE requests for given path.
+     * Adds a DELETE request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -420,7 +420,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all HEAD requests for given path.
+     * Adds a HEAD request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -429,7 +429,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all TRACE requests for given path.
+     * Adds a TRACE request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -438,7 +438,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all CONNECT requests for given path.
+     * Adds a CONNECT request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -447,7 +447,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts all OPTIONS requests for given path.
+     * Adds a OPTIONS request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -457,7 +457,8 @@ public class Javalin {
 
     // Secured HTTP verbs
     /**
-     * Accepts managed GET requests for given path.
+     * Adds a GET request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -471,7 +472,8 @@ public class Javalin {
     }
 
     /**
-     * Accepts managed POST requests for given path.
+     * Adds a POST request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -485,7 +487,8 @@ public class Javalin {
     }
 
     /**
-     * Accepts managed PUT requests for given path.
+     * Adds a PUT request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -499,7 +502,8 @@ public class Javalin {
     }
 
     /**
-     * Accepts managed PATCH requests for given path.
+     * Adds a PATCH request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -513,7 +517,8 @@ public class Javalin {
     }
 
     /**
-     * Accepts managed DELETE requests for given path.
+     * Adds a DELETE request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -527,7 +532,8 @@ public class Javalin {
     }
 
     /**
-     * Accepts managed HEAD requests for given path.
+     * Adds a HEAD request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -541,7 +547,8 @@ public class Javalin {
     }
 
     /**
-     * Accepts managed TRACE requests for given path.
+     * Adds a TRACE request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -555,7 +562,8 @@ public class Javalin {
     }
 
     /**
-     * Accepts managed CONNECT requests for given path.
+     * Adds a CONNECT request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -569,7 +577,8 @@ public class Javalin {
     }
 
     /**
-     * Accepts managed OPTIONS requests for given path.
+     * Adds a CONNECT request handler for the given path to the instance.
+     * The list of permitted roles will be handled to access manager on request.
      *
      * Requires defined access manager in the instance.
      *
@@ -585,7 +594,7 @@ public class Javalin {
     // Filters
 
     /**
-     * Fires the handler before request for given path is handled.
+     * Adds a before request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -594,7 +603,7 @@ public class Javalin {
     }
 
     /**
-     * Fires the handler before any request is handled.
+     * Adds a before request handler for all routes in the instance.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -603,7 +612,7 @@ public class Javalin {
     }
 
     /**
-     * Fires the handler after request for given path is handled.
+     * Adds an after request handler for the given path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -612,7 +621,7 @@ public class Javalin {
     }
 
     /**
-     * Fires the handler after any request is handled.
+     * Adds an after request handler for all routes in the instance.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -623,14 +632,14 @@ public class Javalin {
     // Reverse routing
 
     /**
-     * Finds the path for given handler
+     * Finds the path for the given handler.
      */
     public String pathFinder(@NotNull Handler handler) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler));
     }
 
     /**
-     * Finds the path for given handler with given type
+     * Finds the path for the given handler with the given {@link HandlerType}.
      *
      * @see HandlerType
      */
@@ -644,7 +653,7 @@ public class Javalin {
     private Map<String, Object> pathWsHandlers = new HashMap<>();
 
     /**
-     * Accepts websocket connection requests for given path with lambda handler.
+     * Adds a lambda handler for web socket connection requests for the given path.
      *
      * The method must be called before {@link Javalin#start()}.
      *
@@ -657,7 +666,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts websocket connection requests for given path with Jetty-annotated class.
+     * Adds a Jetty annotated class as a handler for web socket connection requests for the given path.
      *
      * The method must be called before {@link Javalin#start()}.
      *
@@ -668,7 +677,7 @@ public class Javalin {
     }
 
     /**
-     * Accepts websocket connection requests for given path with Jetty websocket object.
+     * Adds a Jetty websocket object as a handler for web socket connection requests for the given path.
      *
      * The method must be called before {@link Javalin#start()}.
      *
