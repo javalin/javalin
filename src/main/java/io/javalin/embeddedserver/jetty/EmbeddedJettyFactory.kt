@@ -13,6 +13,11 @@ import io.javalin.embeddedserver.StaticFileConfig
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 
+/**
+ * Default Javalin [EmbeddedServerFactory] implementation. Allows customization of internal Jetty server instance.
+ *
+ * @see <a href="https://javalin.io/documentation#custom-server">Custom server in docs</a>
+ */
 class EmbeddedJettyFactory(jettyServer: () -> Server = { Server(QueuedThreadPool(250, 8, 60000)) }) : EmbeddedServerFactory {
     private val server = jettyServer()
     override fun create(javalinServlet: JavalinServlet, staticFileConfig: List<StaticFileConfig>): EmbeddedServer {
