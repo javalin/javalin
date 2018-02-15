@@ -241,17 +241,12 @@ class Context(private val servletResponse: HttpServletResponse,
 
     // cookie methods
 
-    fun cookie(name: String, value: String): Context = cookie(CookieBuilder.cookieBuilder(name, value))
+    fun cookie(name: String, value: String): Context = cookie(CookieBuilder(name, value))
 
-    fun cookie(name: String, value: String, maxAge: Int): Context = cookie(CookieBuilder.cookieBuilder(name, value).maxAge(maxAge))
+    fun cookie(name: String, value: String, maxAge: Int): Context = cookie(CookieBuilder(name, value, maxAge = maxAge))
 
     fun cookie(cookieBuilder: CookieBuilder): Context {
-        val cookie = Cookie(cookieBuilder.name, cookieBuilder.value)
-        cookie.path = cookieBuilder.path
-        cookie.domain = cookieBuilder.domain
-        cookie.maxAge = cookieBuilder.maxAge
-        cookie.secure = cookieBuilder.secure
-        cookie.isHttpOnly = cookieBuilder.httpOnly
+        val cookie = cookieBuilder.build()
         servletResponse.addCookie(cookie)
         return this
     }
