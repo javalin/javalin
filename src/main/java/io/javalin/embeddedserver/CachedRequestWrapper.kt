@@ -6,19 +6,27 @@
 
 package io.javalin.embeddedserver
 
+import io.javalin.core.util.Header
 import java.io.ByteArrayInputStream
 import javax.servlet.ReadListener
 import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 
-class CachedRequestWrapper(request: HttpServletRequest) : HttpServletRequestWrapper(request) {
+class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize: Long) : HttpServletRequestWrapper(request) {
 
-    private val cachedBytes: ByteArray = super.getInputStream().readBytes()
+    private val size = request.contentLengthLong
+    private val chunkedTransferEncoding by lazy { request.getHeader(Header.TRANSFER_ENCODING)?.contains("chunked") ?: false }
 
-    override fun getInputStream(): ServletInputStream = if (chunkedTransferEncoding()) super.getInputStream() else CachedServletInputStream()
+    // Do not read unless we have to
+    private val cachedBytes: ByteArray by lazy { super.getInputStream().readBytes() }
 
-    private fun chunkedTransferEncoding(): Boolean = "chunked" == (super.getRequest() as HttpServletRequest).getHeader("Transfer-Encoding")
+    override fun getInputStream(): ServletInputStream =
+        if (chunkedTransferEncoding || maxCacheSize < size) {
+            super.getInputStream()
+        } else  {
+            CachedServletInputStream()
+        }
 
     private inner class CachedServletInputStream : ServletInputStream() {
         private val byteArrayInputStream: ByteArrayInputStream = ByteArrayInputStream(cachedBytes)
