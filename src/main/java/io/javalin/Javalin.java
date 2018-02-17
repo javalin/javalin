@@ -27,6 +27,7 @@ import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,6 +55,7 @@ public class Javalin {
     private LogLevel logLevel = LogLevel.OFF;
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
+    private long maxRequestCacheBodySize = Long.MAX_VALUE;
 
     private EventManager eventManager = new EventManager();
 
@@ -95,7 +97,8 @@ public class Javalin {
                     logLevel,
                     dynamicGzipEnabled,
                     defaultContentType,
-                    defaultCharacterEncoding
+                    defaultCharacterEncoding,
+                    maxRequestCacheBodySize
                 ), staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
@@ -200,6 +203,20 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Changing default character encoding");
         this.defaultCharacterEncoding = characterEncoding;
         return this;
+    }
+
+    public Javalin maxBodySizeForRequestCache(long value) {
+        ensureActionIsPerformedBeforeServerStart("Changing request cache body size");
+        this.maxRequestCacheBodySize = value;
+        return this;
+    }
+
+    public Javalin disableRequestBodyCache() {
+        return maxBodySizeForRequestCache(0);
+    }
+
+    public long maxBodySizeForRequestCache() {
+        return maxRequestCacheBodySize;
     }
 
     private void ensureActionIsPerformedBeforeServerStart(@NotNull String action) {

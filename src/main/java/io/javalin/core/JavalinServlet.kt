@@ -31,7 +31,8 @@ class JavalinServlet(
         val logLevel: LogLevel,
         val dynamicGzipEnabled: Boolean,
         val defaultContentType: String,
-        val defaultCharacterEncoding: String) {
+        val defaultCharacterEncoding: String,
+        val maxRequestCacheBodySize: Long) {
 
     private val log = LoggerFactory.getLogger(JavalinServlet::class.java)
 
@@ -39,7 +40,7 @@ class JavalinServlet(
 
     fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 
-        val req = CachedRequestWrapper(servletRequest as HttpServletRequest) // cached for reading multiple times
+        val req = CachedRequestWrapper(servletRequest as HttpServletRequest, maxRequestCacheBodySize) // cached for reading multiple times
         val res =
                 if (logLevel == LogLevel.EXTENSIVE) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
                 else servletResponse as HttpServletResponse
