@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.builder.CookieBuilder
+import io.javalin.cookie.CookieStore
 import io.javalin.core.util.*
 import io.javalin.translator.json.JavalinJacksonPlugin
 import io.javalin.translator.markdown.JavalinCommonmarkPlugin
@@ -36,19 +37,18 @@ class Context(private val servletResponse: HttpServletResponse,
     private var resultString: String? = null
     private var resultStream: InputStream? = null
 
-    private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
+    private val cookieStore by lazy { CookieStore(cookie(CookieStore.NAME)) }
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T> cookieStore(key: String): T = cookieStore[key] as T
+    fun <T> cookieStore(key: String): T = cookieStore[key]
 
     fun cookieStore(key: String, value: Any) {
         cookieStore[key] = value
-        cookie(CookieStoreUtil.name, CookieStoreUtil.mapToString(cookieStore))
+        cookie(cookieStore.cookie())
     }
 
     fun clearCookieStore() {
         cookieStore.clear()
-        removeCookie(CookieStoreUtil.name)
+        removeCookie(CookieStore.NAME)
     }
 
     fun next() {
