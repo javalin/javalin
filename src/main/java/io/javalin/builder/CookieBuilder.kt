@@ -6,45 +6,39 @@
 
 package io.javalin.builder
 
+import javax.servlet.http.Cookie
+
 class CookieBuilder(
-        val name: String,
-        val value: String,
-        var domain: String = "",
-        var path: String = "",
-        var maxAge: Int = -1,
-        var secure: Boolean = false,
-        var httpOnly: Boolean = false) {
+        private val name: String,
+        private val value: String,
+        private var domain: String = "",
+        private var path: String = "",
+        private var maxAge: Int = -1,
+        private var secure: Boolean = false,
+        private var httpOnly: Boolean = false) {
 
     companion object {
         @JvmStatic
-        fun cookieBuilder(name: String, value: String): CookieBuilder {
-            return CookieBuilder(name, value)
-        }
+        fun cookieBuilder(name: String, value: String): CookieBuilder = CookieBuilder(name, value)
     }
 
-    fun domain(domain: String): CookieBuilder {
-        this.domain = domain
-        return this
-    }
+    fun domain(domain: String): CookieBuilder = this.apply { this.domain = domain }
 
-    fun path(path: String): CookieBuilder {
-        this.path = path
-        return this
-    }
+    fun path(path: String): CookieBuilder = this.apply { this.path = path }
 
-    fun maxAge(maxAge: Int): CookieBuilder {
-        this.maxAge = maxAge
-        return this
-    }
+    fun maxAge(maxAge: Int): CookieBuilder = this.apply { this.maxAge = maxAge }
 
-    fun secure(secure: Boolean): CookieBuilder {
-        this.secure = secure
-        return this
-    }
+    fun secure(secure: Boolean): CookieBuilder = this.apply { this.secure = secure }
 
-    fun httpOnly(httpOnly: Boolean): CookieBuilder {
-        this.httpOnly = httpOnly
-        return this
-    }
+    fun httpOnly(httpOnly: Boolean): CookieBuilder = this.apply { this.httpOnly = httpOnly }
 
+    fun build(): Cookie {
+        val cookie = Cookie(name, value)
+        cookie.domain = domain
+        cookie.path = path
+        cookie.maxAge = maxAge
+        cookie.secure = secure
+        cookie.isHttpOnly = httpOnly
+        return cookie
+    }
 }
