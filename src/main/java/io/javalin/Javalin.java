@@ -7,7 +7,12 @@
 
 package io.javalin;
 
-import io.javalin.core.*;
+import io.javalin.core.ErrorMapper;
+import io.javalin.core.ExceptionMapper;
+import io.javalin.core.HandlerEntry;
+import io.javalin.core.HandlerType;
+import io.javalin.core.JavalinServlet;
+import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
@@ -22,15 +27,15 @@ import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Javalin {
 
@@ -50,7 +55,7 @@ public class Javalin {
     private LogLevel logLevel = LogLevel.OFF;
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
-    private long maxRequestCacheBodySize = 8 * 1024;
+    private long maxRequestCacheBodySize = Long.MAX_VALUE;
 
     private EventManager eventManager = new EventManager();
 
@@ -200,29 +205,16 @@ public class Javalin {
         return this;
     }
 
-    /**
-     * Sets maximum body size allowed to cache in request. Requests with [Transfer-Encoding: chunked] are not cached.
-     *
-     * The method must be called before {@link Javalin#start()}.
-     */
     public Javalin maxBodySizeForRequestCache(long value) {
         ensureActionIsPerformedBeforeServerStart("Changing request cache body size");
         this.maxRequestCacheBodySize = value;
         return this;
     }
 
-    /**
-     * Disables request body caching.
-     *
-     * The method must be called before {@link Javalin#start()}.
-     */
     public Javalin disableRequestBodyCache() {
         return maxBodySizeForRequestCache(0);
     }
 
-    /**
-     * @return maximum body size allowed to cache in request. Requests with [Transfer-Encoding: chunked] are not cached.
-     */
     public long maxBodySizeForRequestCache() {
         return maxRequestCacheBodySize;
     }

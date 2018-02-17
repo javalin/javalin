@@ -16,7 +16,9 @@ import javax.servlet.http.HttpServletRequestWrapper
 class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize: Long) : HttpServletRequestWrapper(request) {
 
     private val size = request.contentLengthLong
-    private val chunkedTransferEncoding by lazy { request.getHeader(Header.TRANSFER_ENCODING)?.contains("chunked") ?: false }
+    private val chunkedTransferEncoding by lazy {
+        request.getHeader(Header.TRANSFER_ENCODING)?.contains("chunked") ?: false
+    }
 
     // Do not read unless we have to
     private val cachedBytes: ByteArray by lazy { super.getInputStream().readBytes() }
@@ -24,7 +26,7 @@ class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize
     override fun getInputStream(): ServletInputStream =
         if (chunkedTransferEncoding || maxCacheSize < size) {
             super.getInputStream()
-        } else  {
+        } else {
             CachedServletInputStream()
         }
 
