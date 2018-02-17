@@ -19,19 +19,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestRequestCache {
 
-    private static Javalin app;
+    private static Javalin appCacheEnabled;
     private static Javalin appCacheDisabled;
-    private static String origin;
+    private static String originCacheEnabled;
     private static String originCacheDisabled;
 
     @BeforeClass
     public static void setUp() {
-        app = Javalin.create()
-                .start();
-        origin = "http://localhost:" + app.port();
+        appCacheEnabled = Javalin.start(0);
+        originCacheEnabled = "http://localhost:" + appCacheEnabled.port();
 
         appCacheDisabled = Javalin.create()
-            .port(5000)
+            .port(0)
             .disableRequestBodyCache()
             .start();
         originCacheDisabled = "http://localhost:" + appCacheDisabled.port();
@@ -39,13 +38,13 @@ public class TestRequestCache {
 
     @AfterClass
     public static void tearDown() {
-        app.stop();
+        appCacheEnabled.stop();
         appCacheDisabled.stop();
     }
 
     @Test
     public void test_cache_not_draining_InputStream() throws Exception {
-        app.post("/cache-chunked-encoding", ctx -> ctx.result(ctx.request().getInputStream()));
+        appCacheEnabled.post("/cache-chunked-encoding", ctx -> ctx.result(ctx.request().getInputStream()));
 
         byte[] body = new byte[10000];
         for (int i = 0; i < body.length; i++) {
@@ -53,7 +52,7 @@ public class TestRequestCache {
         }
 
         CloseableHttpClient client = HttpClients.createDefault();
-        HttpPost post = new HttpPost(origin + "/cache-chunked-encoding");
+        HttpPost post = new HttpPost(originCacheEnabled + "/cache-chunked-encoding");
         ByteArrayEntity entity = new ByteArrayEntity(body);
         entity.setChunked(true);
         post.setEntity(entity);
