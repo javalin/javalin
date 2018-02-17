@@ -229,7 +229,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun redirect(location: String, httpStatusCode: Int) {
         servletResponse.status = httpStatusCode
-        redirect(location)
+        servletResponse.setHeader(Header.LOCATION, location)
     }
 
     fun status(): Int = servletResponse.status

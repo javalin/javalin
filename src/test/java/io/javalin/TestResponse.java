@@ -71,13 +71,25 @@ public class TestResponse extends _UnirestBaseTest {
 
     @Test
     public void test_redirectWithStatus() throws Exception {
-        app.get("/hello", ctx -> ctx.redirect("/hello-2", 302));
+        app.get("/hello", ctx -> ctx.redirect("/hello-2", 301));
         app.get("/hello-2", ctx -> ctx.result("Redirected"));
         Unirest.setHttpClient(noRedirectClient); // disable redirects
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
-        assertThat(response.getStatus(), is(302));
+        assertThat(response.getStatus(), is(301));
         Unirest.setHttpClient(defaultHttpClient); // re-enable redirects
         response = call(HttpMethod.GET, "/hello");
+        assertThat(response.getBody(), is("Redirected"));
+    }
+
+    @Test
+    public void test_redirectWithStatus_absolutePath() throws Exception {
+        app.get("/hello-abs", ctx -> ctx.redirect(origin + "/hello-abs-2", 303));
+        app.get("/hello-abs-2", ctx -> ctx.result("Redirected"));
+        Unirest.setHttpClient(noRedirectClient); // disable redirects
+        HttpResponse<String> response = call(HttpMethod.GET, "/hello-abs");
+        assertThat(response.getStatus(), is(303));
+        Unirest.setHttpClient(defaultHttpClient); // re-enable redirects
+        response = call(HttpMethod.GET, "/hello-abs");
         assertThat(response.getBody(), is("Redirected"));
     }
 
