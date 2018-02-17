@@ -82,6 +82,18 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_redirectWithStatus_absolutePath() throws Exception {
+        app.get("/hello-abs", ctx -> ctx.redirect(origin + "/hello-abs-2", 303));
+        app.get("/hello-abs-2", ctx -> ctx.result("Redirected"));
+        Unirest.setHttpClient(noRedirectClient); // disable redirects
+        HttpResponse<String> response = call(HttpMethod.GET, "/hello-abs");
+        assertThat(response.getStatus(), is(303));
+        Unirest.setHttpClient(defaultHttpClient); // re-enable redirects
+        response = call(HttpMethod.GET, "/hello-abs");
+        assertThat(response.getBody(), is("Redirected"));
+    }
+
+    @Test
     public void test_createCookie() throws Exception {
         app.post("/create-cookies", ctx -> ctx.cookie("name1", "value1").cookie("name2", "value2"));
         HttpResponse<String> response = call(HttpMethod.POST, "/create-cookies");
