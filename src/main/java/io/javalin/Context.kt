@@ -91,9 +91,6 @@ class Context(private val servletResponse: HttpServletResponse,
     // Request-ish methods
     //
 
-    /**
-     * @return underlying [HttpServletRequest] request object.
-     */
     fun request(): HttpServletRequest = servletRequest
 
     /**
@@ -111,18 +108,13 @@ class Context(private val servletResponse: HttpServletResponse,
                 }
     }
 
-    /**
-     * @return request body as [String].
-     */
     fun body(): String = bodyAsBytes().toString(Charset.forName(servletRequest.characterEncoding ?: "UTF-8"))
 
-    /**
-     * @return request body as [ByteArray].
-     */
     fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
 
     /**
-     * @return JSON body to java object using Jackson library.
+     * Maps a JSON body to a Java object using Jackson ObjectMapper
+     * @return The mapped object
      *
      * Requires Jackson library in the classpath.
      */
@@ -148,246 +140,102 @@ class Context(private val servletResponse: HttpServletResponse,
         return UploadUtil.getUploadedFiles(servletRequest, fileName)
     }
 
-    /**
-     * @return single form value for the name.
-     */
     fun formParam(formParam: String): String? = formParams(formParam)?.get(0)
 
-    /**
-     * @return single form value for the name or default if value is not found.
-     */
     fun formParamOrDefault(formParam: String, defaultValue: String): String = formParam(formParam) ?: defaultValue
 
-    /**
-     * @return all form values for the name.
-     */
     fun formParams(formParam: String): Array<String>? = formParamMap()[formParam]
 
-    /**
-     * @return all form key-value pairs as a map.
-     */
     fun formParamMap(): Map<String, Array<String>> = if (isMultipartFormData()) mapOf() else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
-    /**
-     * @return form values for given keys.
-     */
     fun mapFormParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { formParam(it) }
 
-    /**
-     * @return query values for given keys.
-     */
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { servletRequest.getParameter(it) }
 
-    /**
-     * @return whether form values for given keys is absent.
-     */
     fun anyFormParamNull(vararg keys: String): Boolean = keys.any { formParam(it) == null }
 
-    /**
-     * @return whether query values for given keys is absent.
-     */
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { servletRequest.getParameter(it) == null }
 
-    /**
-     * @return named param value in the path.
-     */
     fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
 
-    /**
-     * @return values for all named parameters in the path.
-     */
     fun paramMap(): Map<String, String> = paramMap.toMap()
 
-    /**
-     * @return value for given splat (*) ordinal in the path.
-     */
     fun splat(splatNr: Int): String? = splatList[splatNr]
 
-    /**
-     * @return values for all splats (*) in the path.
-     */
     fun splats(): Array<String> = splatList.toTypedArray()
 
     // wrapper methods for HttpServletRequest
 
-    /**
-     * @return basic credentials used in the request.
-     */
     fun basicAuthCredentials(): BasicAuthCredentials? = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
-    /**
-     * Sets attribute to the current request.
-     *
-     * @see HttpServletRequest.setAttribute
-     */
     fun attribute(attribute: String, value: Any) = servletRequest.setAttribute(attribute, value)
 
-    /**
-     * @return attribute from the current request.
-     */
     @Suppress("UNCHECKED_CAST")
     fun <T> attribute(attribute: String): T = servletRequest.getAttribute(attribute) as T
 
-    /**
-     * @return all attributes from the current request as a map.
-     */
     @Suppress("UNCHECKED_CAST")
     fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().map { it to servletRequest.getAttribute(it) as T }.toMap()
 
-    /**
-     * @return content length of the body (in bytes).
-     */
     fun contentLength(): Int = servletRequest.contentLength
 
-    /**
-     * @return content type of the request.
-     */
     fun contentType(): String? = servletRequest.contentType
 
-    /**
-     * @return cookie value for given name.
-     */
     fun cookie(name: String): String? = (servletRequest.cookies ?: arrayOf<Cookie>()).find { it.name == name }?.value
 
-    /**
-     * @return all cookie values in the request as a map.
-     */
     fun cookieMap(): Map<String, String> = (servletRequest.cookies ?: arrayOf<Cookie>()).map { it.name to it.value }.toMap()
 
-    /**
-     * @return header value for given name.
-     */
     fun header(header: String): String? = servletRequest.getHeader(header)
 
-    /**
-     * @return all header name-value pairs in the request as a map.
-     */
     fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().map { it to servletRequest.getHeader(it) }.toMap()
 
-    /**
-     * @return value of the Host header.
-     */
     fun host(): String? = servletRequest.getHeader(Header.HOST)
 
-    /**
-     * @return ip address of the client.
-     */
     fun ip(): String = servletRequest.remoteAddr
 
-    /**
-     * @return whether the request is multipart.
-     */
     fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/")
 
-    /**
-     * @return whether the request is multipart with form data.
-     */
     fun isMultipartFormData(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
 
-    /**
-     * @return current matched path.
-     */
     fun matchedPath() = matchedPath
 
-    /**
-     * @return request method.
-     */
     fun method(): String = servletRequest.method
 
-    /**
-     * @return part of actual URL from protocol name to query string.
-     *
-     * @see HttpServletRequest.getRequestURI
-     */
     fun path(): String = servletRequest.requestURI
 
-    /**
-     * @return port number to which request was sent.
-     *
-     * @see HttpServletRequest.getServerPort
-     */
     fun port(): Int = servletRequest.serverPort
 
-    /**
-     * @return protocol name and version number
-     *
-     * @see HttpServletRequest.getProtocol
-     */
     fun protocol(): String = servletRequest.protocol
 
-    /**
-     * @return query value for given parameter name.
-     */
     fun queryParam(queryParam: String): String? = servletRequest.getParameter(queryParam)
 
-    /**
-     * @return query value for given parameter name or default value if one does not exists.
-     */
     fun queryParamOrDefault(queryParam: String, defaultValue: String): String = servletRequest.getParameter(queryParam) ?: defaultValue
 
-    /**
-     * @return all query values for given parameter name.
-     */
     fun queryParams(queryParam: String): Array<String>? = servletRequest.getParameterValues(queryParam)
 
-    /**
-     * @return all query parameters in the request.
-     */
     fun queryParamMap(): Map<String, Array<String>> = servletRequest.parameterMap
 
-    /**
-     * @return query string from the request.
-     */
     fun queryString(): String? = servletRequest.queryString
 
-    /**
-     * @return name of scheme used for the request.
-     */
     fun scheme(): String = servletRequest.scheme
 
-    /**
-     * Sets attribute with given name and value to the request session.
-     */
     fun sessionAttribute(attribute: String, value: Any) = servletRequest.session.setAttribute(attribute, value)
 
-    /**
-     * @return attribute value for given name.
-     */
     @Suppress("UNCHECKED_CAST")
     fun <T> sessionAttribute(attribute: String): T = servletRequest.session.getAttribute(attribute) as T
 
-    /**
-     * @return all attribute name-value pairs in the request as a map.
-     */
     @Suppress("UNCHECKED_CAST")
     fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().map { it to servletRequest.session.getAttribute(it) as T }.toMap()
 
-    /**
-     * @return part of actual URL from protocol name to query string.
-     *
-     * @see HttpServletRequest.getRequestURI
-     */
     fun uri(): String = servletRequest.requestURI
 
-    /**
-     * @return request url without query parameters.
-     *
-     * @see HttpServletRequest.getRequestURL
-     */
     fun url(): String = servletRequest.requestURL.toString()
 
-    /**
-     * @return value of User-Agent header.
-     */
     fun userAgent(): String? = servletRequest.getHeader(Header.USER_AGENT)
 
     //
     // Response-ish methods
     //
 
-    /**
-     * @return underlying [HttpServletResponse] response object.
-     */
     fun response(): HttpServletResponse = servletResponse
 
     /**
@@ -418,25 +266,16 @@ class Context(private val servletResponse: HttpServletResponse,
         return this
     }
 
-    /**
-     * Sets the charset for the response.
-     */
     fun charset(charset: String): Context {
         servletResponse.characterEncoding = charset
         return this
     }
 
-    /**
-     * Sets the content type for the response.
-     */
     fun contentType(contentType: String): Context {
         servletResponse.contentType = contentType
         return this
     }
 
-    /**
-     * Sets header with given name and value in the response.
-     */
     fun header(headerName: String, headerValue: String): Context {
         servletResponse.setHeader(headerName, headerValue)
         return this
@@ -444,6 +283,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     /**
      * Sets response result to given html string.
+     *
+     * @see result
      */
     fun html(html: String): Context = result(html).contentType("text/html")
 
@@ -462,22 +303,14 @@ class Context(private val servletResponse: HttpServletResponse,
 
     /**
      * Sets the response status code and redirects to given location.
-     *
-     * @see HttpServletResponse.sendRedirect
      */
     fun redirect(location: String, httpStatusCode: Int) {
         servletResponse.status = httpStatusCode
         servletResponse.setHeader(Header.LOCATION, location)
     }
 
-    /**
-     * @return the response status.
-     */
     fun status(): Int = servletResponse.status
 
-    /**
-     * Sets the response status to given value.
-     */
     fun status(statusCode: Int): Context {
         servletResponse.status = statusCode
         return this
@@ -485,33 +318,18 @@ class Context(private val servletResponse: HttpServletResponse,
 
     // cookie methods
 
-    /**
-     * Sets cookie with given name and value.
-     */
     fun cookie(name: String, value: String): Context = cookie(CookieBuilder(name, value))
 
-    /**
-     * Sets cookie with given name, value and maximum age.
-     */
     fun cookie(name: String, value: String, maxAge: Int): Context = cookie(CookieBuilder(name, value, maxAge = maxAge))
 
-    /**
-     * Sets cookie from given [CookieBuilder] builder.
-     */
     fun cookie(cookieBuilder: CookieBuilder): Context {
         val cookie = cookieBuilder.build()
         servletResponse.addCookie(cookie)
         return this
     }
 
-    /**
-     * Remove cookie with given key.
-     */
     fun removeCookie(name: String): Context = removeCookie(null, name)
 
-    /**
-     * Remove cookie with given key from path.
-     */
     fun removeCookie(path: String?, name: String): Context {
         val cookie = Cookie(name, "")
         cookie.path = path
@@ -523,7 +341,7 @@ class Context(private val servletResponse: HttpServletResponse,
     // Translator methods
     // TODO: Consider moving rendering to JavalinServlet, where response is written
     /**
-     * Render json object as the response result.
+     * Sets content type to application/json and result to the JSON representation of a given object using Jackson ObjectMapper.
      *
      * Requires Jackson library in the classpath.
      */
@@ -533,7 +351,7 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Render velocity template with given values as the response result.
+     * Renders velocity template with given values as html and sets it as the response result.
      *
      * Requires Apache Velocity library in the classpath.
      */
@@ -543,14 +361,14 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Render velocity template as the response result.
+     * Renders velocity template with empty model as html and sets it as the response result.
      *
      * Requires Apache Velocity library in the classpath.
      */
     fun renderVelocity(templatePath: String): Context = renderVelocity(templatePath, mapOf())
 
     /**
-     * Render freemarker template with given values as the response result.
+     * Renders freemarker template with given values as html and sets it as the response result.
      *
      * Requires Apache Freemarker library in the classpath.
      */
@@ -560,14 +378,14 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Render freemarker template as the response result.
+     * Renders freemarker template with empty model as html and sets it as the response result.
      *
      * Requires Apache Freemarker library in the classpath.
      */
     fun renderFreemarker(templatePath: String): Context = renderFreemarker(templatePath, mapOf())
 
     /**
-     * Render thymeleaf template with given values as the response result.
+     * Renders thymeleaf template with given values as html and sets it as the response result.
      *
      * Requires thymeleaf library in the classpath.
      */
@@ -577,14 +395,14 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Render thymeleaf template as the response result.
+     * Renders thymeleaf template with empty model as html and sets it as the response result.
      *
      * Requires thymeleaf library in the classpath.
      */
     fun renderThymeleaf(templatePath: String): Context = renderThymeleaf(templatePath, mapOf())
 
     /**
-     * Render mustache template with given values as the response result.
+     * Renders mustache template with given values as html and sets it as the response result.
      *
      * Requires com.github.mustachejava.Mustache library in the classpath.
      */
@@ -594,14 +412,14 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Render mustache template as the response result.
+     * Renders mustache template with empty model as html and sets it as the response result.
      *
      * Requires com.github.mustachejava.Mustache library in the classpath.
      */
     fun renderMustache(templatePath: String): Context = renderMustache(templatePath, mapOf())
 
     /**
-     * Render markdown template with given values as the response result.
+     * Renders markdown template as html and sets it as the response result.
      *
      * Requires commonmark markdown library in the classpath.
      */
