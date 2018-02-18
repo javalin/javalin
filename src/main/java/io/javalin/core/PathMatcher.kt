@@ -33,6 +33,8 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
             .replace("/$".toRegex(), "/?")
             // Add slash if doesn't have one
             .run { if (!endsWith("/?")) this + "/?" else this }
+            // Let the matcher know that it is the whole path
+            .run { "^" + this + "$" }
             .toRegex()
 
     // Use param wildcard as a capturing group
