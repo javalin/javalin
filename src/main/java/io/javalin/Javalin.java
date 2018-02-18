@@ -27,7 +27,6 @@ import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -213,10 +212,6 @@ public class Javalin {
 
     public Javalin disableRequestBodyCache() {
         return maxBodySizeForRequestCache(0);
-    }
-
-    public long maxBodySizeForRequestCache() {
-        return maxRequestCacheBodySize;
     }
 
     private void ensureActionIsPerformedBeforeServerStart(@NotNull String action) {
