@@ -18,6 +18,7 @@ public class TestDefaultContentType {
     @BeforeClass
     public static void setUp() {
         app = Javalin.create()
+            .port(0)
             .defaultCharacterEncoding("windows-1251")
             .defaultContentType("application/json")
             .start();
