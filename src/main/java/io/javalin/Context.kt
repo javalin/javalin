@@ -15,7 +15,6 @@ import io.javalin.translator.template.JavalinMustachePlugin
 import io.javalin.translator.template.JavalinThymeleafPlugin
 import io.javalin.translator.template.JavalinVelocityPlugin
 import org.slf4j.LoggerFactory
-import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.concurrent.CompletionStage

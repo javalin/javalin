@@ -10,8 +10,6 @@ import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
 import java.nio.file.PathMatcher
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
     private val paramNames = path.split("/")
@@ -41,7 +39,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
     private val paramRegex = matchRegex.pattern.replace("[^/]*?", "([^/]*?)").toRegex()
 
     // Use splat wildcard as a capturing group
-    private val splatRegex = matchRegex.pattern.replace(".*?","(.*?)").toRegex()
+    private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex()
 
     fun match(requestUri: String) = requestUri matches matchRegex
 
@@ -83,7 +81,7 @@ class PathMatcher {
     // TODO: Consider optimizing this
     private fun match(entry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean = when {
         entry.type != requestType -> false
-        entry.path == "*"         -> true
+        entry.path == "*" -> true
         entry.path == requestPath -> true
         !this.ignoreTrailingSlashes && slashMismatch(entry.path, requestPath) -> false
         else -> matchParamAndWildcard(entry, requestPath)
