@@ -33,7 +33,7 @@ public class ApiBuilder {
     private static Deque<String> pathDeque = new ArrayDeque<>();
 
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
-        path = path.startsWith("/") ? path : "/" + path;
+        path = (path + "/").replaceAll("/{2,}", "/");
         pathDeque.addLast(path);
         endpointGroup.addEndpoints();
         pathDeque.removeLast();
@@ -124,11 +124,11 @@ public class ApiBuilder {
 
     // Filters
     public static void before(@NotNull Handler handler) {
-        staticInstance().before(prefixPath("/*"), handler);
+        staticInstance().before(prefixPath("*"), handler);
     }
 
     public static void after(@NotNull Handler handler) {
-        staticInstance().after(prefixPath("/*"), handler);
+        staticInstance().after(prefixPath("*"), handler);
     }
 
     // Secured HTTP verbs (no path specified)

@@ -80,4 +80,12 @@ public class TestRouting extends _SimpleClientBaseTest {
         assertThat(response.getBody(), is("SomeCamelCasedValue"));
     }
 
+    @Test
+    public void test_regex_path() throws Exception {
+        app.get("/:param/[0-9]+/", ctx -> ctx.result(ctx.param("param")));
+        TestResponse response = simpleHttpClient.http_GET(origin + "/test/param");
+        assertThat(response.getBody(), is("Not found"));
+        response = simpleHttpClient.http_GET(origin + "/test/21");
+        assertThat(response.getBody(), is("test"));
+    }
 }
