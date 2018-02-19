@@ -31,7 +31,7 @@ public class TestRequestCache {
 
         appCacheDisabled = Javalin.create()
             .port(0)
-            .disableRequestBodyCache()
+            .disableRequestCache()
             .start();
         originCacheDisabled = "http://localhost:" + appCacheDisabled.port();
     }

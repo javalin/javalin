@@ -210,7 +210,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin disableRequestBodyCache() {
+    public Javalin disableRequestCache() {
         return maxBodySizeForRequestCache(0);
     }
 
