@@ -219,15 +219,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun html(html: String): Context = result(html).contentType("text/html")
 
-    fun redirect(location: String) {
-        try {
-            servletResponse.sendRedirect(location)
-        } catch (e: IOException) {
-            log.warn("Exception while trying to redirect response", e)
-        }
-    }
-
-    fun redirect(location: String, httpStatusCode: Int) {
+    @JvmOverloads
+    fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
         servletResponse.status = httpStatusCode
         servletResponse.setHeader(Header.LOCATION, location)
     }
@@ -241,9 +234,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     // cookie methods
 
-    fun cookie(name: String, value: String): Context = cookie(CookieBuilder(name, value))
-
-    fun cookie(name: String, value: String, maxAge: Int): Context = cookie(CookieBuilder(name, value, maxAge = maxAge))
+    @JvmOverloads
+    fun cookie(name: String, value: String, maxAge: Int = -1): Context = cookie(CookieBuilder(name, value, maxAge = maxAge))
 
     fun cookie(cookieBuilder: CookieBuilder): Context {
         val cookie = cookieBuilder.build()
@@ -268,33 +260,29 @@ class Context(private val servletResponse: HttpServletResponse,
         return result(JavalinJacksonPlugin.toJson(`object`)).contentType("application/json")
     }
 
-    fun renderVelocity(templatePath: String, model: Map<String, Any?>): Context {
+    @JvmOverloads
+    fun renderVelocity(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
         return html(JavalinVelocityPlugin.render(templatePath, model))
     }
 
-    fun renderVelocity(templatePath: String): Context = renderVelocity(templatePath, mapOf())
-
-    fun renderFreemarker(templatePath: String, model: Map<String, Any?>): Context {
+    @JvmOverloads
+    fun renderFreemarker(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
         return html(JavalinFreemarkerPlugin.render(templatePath, model))
     }
 
-    fun renderFreemarker(templatePath: String): Context = renderFreemarker(templatePath, mapOf())
-
-    fun renderThymeleaf(templatePath: String, model: Map<String, Any?>): Context {
+    @JvmOverloads
+    fun renderThymeleaf(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3")
         return html(JavalinThymeleafPlugin.render(templatePath, model))
     }
 
-    fun renderThymeleaf(templatePath: String): Context = renderThymeleaf(templatePath, mapOf())
-
-    fun renderMustache(templatePath: String, model: Map<String, Any?>): Context {
+    @JvmOverloads
+    fun renderMustache(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
         return html(JavalinMustachePlugin.render(templatePath, model))
     }
-
-    fun renderMustache(templatePath: String): Context = renderMustache(templatePath, mapOf())
 
     fun renderMarkdown(markdownFilePath: String): Context {
         Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
