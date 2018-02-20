@@ -25,30 +25,28 @@ public class TestRouteOverview_Java {
         }
     }
 
-    private static void methodReference(Context context) {
+    private void methodReference(Context context) {
     }
 
     @Test
     public void field_works() {
-        assertThat(RouteOverviewUtil.INSTANCE.getFieldName(lambdaField), is("lambdaField"));
-        assertThat(RouteOverviewUtil.INSTANCE.getMetaInfo(lambdaField), is("io.javalin.routeoverview.TestRouteOverview_Java.lambdaField"));
+        assertThat(RouteOverviewUtil.getMetaInfo(lambdaField), is("io.javalin.routeoverview.TestRouteOverview_Java.lambdaField"));
     }
 
     @Test
     public void class_works() {
-        assertThat(RouteOverviewUtil.INSTANCE.getMetaInfo(new ImplementingClass()), is("io.javalin.routeoverview.TestRouteOverview_Java$ImplementingClass.class"));
-        assertThat(RouteOverviewUtil.INSTANCE.getMetaInfo(new HandlerImplementation()), is("io.javalin.util.HandlerImplementation.class"));
+        assertThat(RouteOverviewUtil.getMetaInfo(new ImplementingClass()), is("io.javalin.routeoverview.TestRouteOverview_Java$ImplementingClass.class"));
+        assertThat(RouteOverviewUtil.getMetaInfo(new HandlerImplementation()), is("io.javalin.util.HandlerImplementation.class"));
     }
 
     @Test
     public void methodRef_works() {
-        assertThat(RouteOverviewUtil.INSTANCE.getMethodName(TestRouteOverview_Java::methodReference), is("methodReference"));
-        assertThat(RouteOverviewUtil.INSTANCE.getMetaInfo(TestRouteOverview_Java::methodReference), is("io.javalin.routeoverview.TestRouteOverview_Java::methodReference"));
+        assertThat(RouteOverviewUtil.getMetaInfo(new TestRouteOverview_Java()::methodReference), is("io.javalin.routeoverview.TestRouteOverview_Java::methodReference"));
     }
 
     @Test
     public void lambda_works() {
-        assertThat(RouteOverviewUtil.INSTANCE.getMetaInfo(ctx -> ctx.result("")), is("io.javalin.routeoverview.TestRouteOverview_Java::??? (anonymous lambda)"));
+        assertThat(RouteOverviewUtil.getMetaInfo(ctx -> ctx.result("")), is("io.javalin.routeoverview.TestRouteOverview_Java::??? (anonymous lambda)"));
     }
 
 }

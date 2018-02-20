@@ -8,37 +8,32 @@ package io.javalin.routeoverview
 
 import io.javalin.Context
 import io.javalin.Handler
-import io.javalin.util.HandlerImplementation
+import io.javalin.core.util.metaInfo
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 class TestRouteOverview_Kotlin {
 
     @Test
     fun test_field_works() {
-        assertThat(RouteOverviewUtilWrapper.fieldName(KotlinHandlers.lambdaField), `is`("lambdaField"))
-        assertThat(RouteOverviewUtilWrapper.metaInfo(KotlinHandlers.lambdaField), `is`("io.javalin.routeoverview.KotlinHandlers.lambdaField"))
+        assertThat(KotlinHandlers.lambdaField.metaInfo, `is`("io.javalin.routeoverview.KotlinHandlers.lambdaField"))
     }
 
     @Test
     fun test_class_works() {
-        assertThat(RouteOverviewUtilWrapper.metaInfo(KotlinHandlers.ImplementingClass()), `is`("io.javalin.routeoverview.KotlinHandlers\$ImplementingClass.class"))
-        assertThat(RouteOverviewUtilWrapper.metaInfo(HandlerImplementation()), `is`("io.javalin.util.HandlerImplementation.class"))
+        assertThat(KotlinHandlers.ImplementingClass().metaInfo, `is`("io.javalin.routeoverview.KotlinHandlers\$ImplementingClass.class"))
+        assertThat(HandlerImplementation().metaInfo, `is`("io.javalin.routeoverview.HandlerImplementation.class"))
     }
 
     @Test
-    @Ignore("Broken")
     fun methodRef_works() {
-        assertThat(RouteOverviewUtilWrapper.methodName(KotlinHandlers::methodReference), `is`("methodReference"))
-        assertThat(RouteOverviewUtilWrapper.metaInfo(KotlinHandlers::methodReference), `is`("io.javalin.TestRouteOverview_Java::methodReference"))
+        assertThat(RouteOverviewUtilWrapper.getMetaInfo(KotlinHandlers::methodReference), `is`("io.javalin.routeoverview.KotlinHandlers::methodReference"))
     }
 
     @Test
-    @Ignore("Broken")
     fun test_lambda_works() {
-        assertThat(RouteOverviewUtilWrapper.metaInfo({ ctx -> ctx.result("") }), `is`("io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)"))
+        assertThat(RouteOverviewUtilWrapper.getMetaInfo({}), `is`("io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)"))
     }
 
 }
@@ -48,5 +43,10 @@ object KotlinHandlers {
     fun methodReference(context: Context) {}
     class ImplementingClass : Handler {
         override fun handle(context: Context) {}
+    }
+}
+
+class HandlerImplementation : Handler {
+    override fun handle(ctx: Context?) {
     }
 }
