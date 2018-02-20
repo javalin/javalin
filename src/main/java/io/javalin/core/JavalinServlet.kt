@@ -42,8 +42,9 @@ class JavalinServlet(
     fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 
         val req = CachedRequestWrapper(servletRequest as HttpServletRequest, maxRequestCacheBodySize) // cached for reading multiple times
-        val res = if (logLevel == LogLevel.EXTENSIVE) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
-                  else servletResponse as HttpServletResponse
+        val res =
+                if (logLevel == LogLevel.EXTENSIVE) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
+                else servletResponse as HttpServletResponse
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI
         val ctx = ContextUtil.create(res, req)
@@ -56,12 +57,9 @@ class JavalinServlet(
         res.contentType = defaultContentType
 
         tryWithMapper {
-            // before-handlers
             matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
-
-            // endpoint-handlers, static-files
             val endpointEntries = matcher.findEntries(type, requestUri)
             endpointEntries.forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
@@ -69,25 +67,18 @@ class JavalinServlet(
                     return@tryWithMapper
                 }
             }
-
-
-            if (endpointEntries.isEmpty() && type != HandlerType.HEAD || (type == HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty())) {
-                if (!staticResourceHandler.handle(req, res)) {
-                    throw HaltException(404, "Not found")
-                }
+            if (shouldCheckForStaticFiles(endpointEntries, type, requestUri)) {
+                staticResourceHandler.handle(req, res)
             }
-
         }
 
         tryWithMapper {
-            // after-handlers
             matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
         }
 
         tryWithMapper {
-            // error mapping (turning status codes into standardized messages/pages)
             errorMapper.handle(ctx.status(), ctx)
         }
 
@@ -109,6 +100,12 @@ class JavalinServlet(
 
         LogUtil.logRequestAndResponse(ctx, logLevel, matcher, type, requestUri, log, doGzip)
 
+    }
+
+    private fun shouldCheckForStaticFiles(endpointEntries: List<HandlerEntry>, type: HandlerType, requestUri: String) = when {
+        type != HandlerType.HEAD && endpointEntries.isEmpty() -> true
+        type == HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty() -> true
+        else -> false
     }
 
     private fun gzipShouldBeDone(resultStream: InputStream?, req: CachedRequestWrapper) = dynamicGzipEnabled
