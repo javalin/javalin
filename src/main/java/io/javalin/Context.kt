@@ -32,7 +32,6 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private var passedToNextHandler: Boolean = false
 
-    private var resultString: String? = null
     private var resultStream: InputStream? = null
 
     private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
@@ -186,17 +185,25 @@ class Context(private val servletResponse: HttpServletResponse,
     fun response(): HttpServletResponse = servletResponse
 
     fun result(resultString: String): Context {
-        this.resultString = resultString
-        this.resultStream = null // can only have one or the other
+        resultStream = resultString.byteInputStream(stringCharset())
         return this
     }
 
-    fun resultString(): String? = resultString
+    fun resultString(): String? {
+        val string = resultStream?.readBytes()?.toString(stringCharset())
+        resultStream?.reset()
+        return string
+    }
+
+    private fun stringCharset() = try {
+        Charset.forName(servletResponse.characterEncoding)
+    } catch (e: Exception) {
+        Charset.defaultCharset()
+    }
 
     fun resultStream(): InputStream? = resultStream
 
     fun result(resultStream: InputStream): Context {
-        this.resultString = null // can only have one or the other
         this.resultStream = resultStream
         return this
     }
