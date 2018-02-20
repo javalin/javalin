@@ -35,12 +35,10 @@ class ExceptionMapper {
         }
     }
 
-    internal inline fun catchException(ctx: Context, f: () -> Unit) {
-        try {
-            f()
-        } catch (e: Exception) {
-            handle(e, ctx)
-        }
+    internal inline fun catchException(ctx: Context, f: () -> Unit) = try {
+        f()
+    } catch (e: Exception) {
+        handle(e, ctx)
     }
 
     private fun getHandler(exceptionClass: Class<out Exception>): ExceptionHandler<Exception>? {
