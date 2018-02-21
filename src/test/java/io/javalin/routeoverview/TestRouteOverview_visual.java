@@ -28,7 +28,7 @@ public class TestRouteOverview_visual {
         app.get("/6", ctx -> ctx.result(""), roles(ROLE_ONE));
         app.get("/7", TestRouteOverview_visual.lambdaField, roles(ROLE_ONE, ROLE_THREE));
         app.get("/8", TestRouteOverview_visual::methodReference, roles(ROLE_ONE, ROLE_TWO));
-        app.get("/", ctx -> ctx.html(RouteOverviewUtil.INSTANCE.createHtmlOverview(app)));
+        app.get("/", ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(app)));
     }
 
     private static Handler lambdaField = ctx -> {
