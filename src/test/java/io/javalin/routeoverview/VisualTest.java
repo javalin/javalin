@@ -16,19 +16,27 @@ import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
 import static io.javalin.security.Role.roles;
 
-public class TestRouteOverview_visual {
+public class VisualTest {
 
     public static void main(String[] args) {
         Javalin app = Javalin.start(7000);
-        app.get("/1", TestRouteOverview_visual.lambdaField);
+        app.get("/1", VisualTest.lambdaField);
         app.get("/2", new ImplementingClass());
         app.get("/3", new HandlerImplementation());
-        app.get("/4", TestRouteOverview_visual::methodReference);
+        app.get("/4", VisualTest::methodReference);
         app.get("/5", ctx -> ctx.result(""));
         app.get("/6", ctx -> ctx.result(""), roles(ROLE_ONE));
-        app.get("/7", TestRouteOverview_visual.lambdaField, roles(ROLE_ONE, ROLE_THREE));
-        app.get("/8", TestRouteOverview_visual::methodReference, roles(ROLE_ONE, ROLE_TWO));
+        app.get("/7", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_THREE));
+        app.get("/8", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
         app.get("/", ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(app)));
+        app.head("/head", ctx -> ctx.result(""));
+        app.get("/get", ctx -> ctx.result(""));
+        app.post("/post", ctx -> ctx.result(""));
+        app.put("/put", ctx -> ctx.result(""));
+        app.patch("/patch", ctx -> ctx.result(""));
+        app.delete("/delete", ctx -> ctx.result(""));
+        app.options("/options", ctx -> ctx.result(""));
+        app.trace("/trace", ctx -> ctx.result(""));
     }
 
     private static Handler lambdaField = ctx -> {

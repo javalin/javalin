@@ -21,47 +21,87 @@ fun createHtmlOverview(app: Javalin): String {
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
             b, thead {
-                font-weight:700
+                font-weight: 700;
+            }
+            html {
+                background: #333;
             }
             body {
-                font-family:monospace;
-                padding:15px
+                font-family: monospace;
+                padding: 25px;
             }
             table {
-                border-collapse:collapse;
-                font-size:14px;
-                border:1px solid #d5d5d5;
-                width:100%;
-                white-space:pre
+                background: #fff;
+                border-collapse: collapse;
+                font-size: 14px;
+                border: 2px solid #000;
+                width: 100%;
+                white-space: pre;
+                box-shadow: 0 0 33px rgba(0,0,0,0.33);
             }
             thead {
-                background:#e9e9e9;
-                border-bottom:1px solid #d5d5d5
+                background: #555;
+                border-bottom: 2px solid #000;
+                color: #fff;
             }
-            tbody tr:hover {
-                background:#f5f5f5
+            tr + tr td {
+                border-top: 1px solid rgba(0, 0, 0, 0.25);
+            }
+            tr + tr td:first-of-type {
+                border-top: 1px solid rgba(0, 0, 0, 0.35);
             }
             td {
-                padding:6px 15px
+                padding: 10px 15px;
             }
-            b {
-                color:#33D
+            tbody td:not(:first-of-type) {
+                background-color: rgba(255,255,255,0.925);
+            }
+            tbody tr:hover td:not(:first-of-type) {
+                background-color: rgba(255,255,255,0.85);
+            }
+            .method td:first-of-type {
+                text-align: center;
+                max-width: 80px;
+            }
+            tbody .method td:first-of-type {
+                color: #fff;
+                text-shadow: 1px 1px 0px rgba(0,0,0,0.15);
+            }
+            .GET {
+                background: #5a76ff;
+            }
+            .POST {
+                background: #5dca5d;
+            }
+            .PUT, .PATCH {
+                background: #ef9a00;
+            }
+            .DELETE {
+                background: #ef4848;
+            }
+            .HEAD, .TRACE, .OPTIONS  {
+                background: #00b9b9;
             }
         </style>
         <body>
-            <h1>All mapped routes</h1>
             <table>
                 <thead>
-                    <tr>
-                        <td>Method</td>
+                    <tr class="method">
+                        <td width="80px">Method</td>
                         <td>Path</td>
                         <td>Handler</td>
                         <td>Roles</td>
                     </tr>
                 </thead>
                 ${app.routeOverviewEntries.map { (httpMethod, path, handler, roles) ->
-        "<tr><td>$httpMethod</td><td>$path</td><td><b>${handler.metaInfo}</b></td><td>${roles?.toString()
-                ?: "-"}</td></tr>"
+        """
+                    <tr class="method $httpMethod">
+                        <td>$httpMethod</span></td>
+                        <td>$path</td>
+                        <td><b>${handler.metaInfo}</b></td>
+                        <td>${roles?.toString() ?: "-"}</td>
+                    </tr>
+                    """
     }.joinToString("")}
             </table>
         </body>
