@@ -19,24 +19,24 @@ import static io.javalin.security.Role.roles;
 public class VisualTest {
 
     public static void main(String[] args) {
-        Javalin app = Javalin.start(7000);
-        app.get("/1", VisualTest.lambdaField);
-        app.get("/2", new ImplementingClass());
-        app.get("/3", new HandlerImplementation());
-        app.get("/4", VisualTest::methodReference);
-        app.get("/5", ctx -> ctx.result(""));
-        app.get("/6", ctx -> ctx.result(""), roles(ROLE_ONE));
-        app.get("/7", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_THREE));
-        app.get("/8", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
-        app.get("/", ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(app)));
-        app.head("/head", ctx -> ctx.result(""));
-        app.get("/get", ctx -> ctx.result(""));
-        app.post("/post", ctx -> ctx.result(""));
-        app.put("/put", ctx -> ctx.result(""));
-        app.patch("/patch", ctx -> ctx.result(""));
-        app.delete("/delete", ctx -> ctx.result(""));
-        app.options("/options", ctx -> ctx.result(""));
-        app.trace("/trace", ctx -> ctx.result(""));
+        Javalin app = Javalin.create().enableCorsForAllOrigins().start();
+        app.get("/", ctx -> ctx.redirect("/route-overview"));
+        app.get("/route-overview", ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(app)));
+        app.get("/just-some-path", new HandlerImplementation());
+        app.post("/test/:hmm/", VisualTest::methodReference);
+        app.put("/user/*", ctx -> ctx.result(""), roles(ROLE_ONE));
+        app.get("/nonsense-paths/:test", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_THREE));
+        app.delete("/just-words", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
+        app.before("*", VisualTest.lambdaField);
+        app.after("*", VisualTest.lambdaField);
+        app.head("/check/the/head", VisualTest::methodReference);
+        app.get("/:path1/:path2", VisualTest.lambdaField);
+        app.post("/user/create",  VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
+        app.put("/user/:user-id", VisualTest.lambdaField);
+        app.patch("/patchy-mcpatchface", new ImplementingClass(), roles(ROLE_ONE, ROLE_TWO));
+        app.delete("/users/:user-id", new HandlerImplementation());
+        app.options("/what/:are/*/my-options", new HandlerImplementation());
+        app.trace("/tracer", new HandlerImplementation());
     }
 
     private static Handler lambdaField = ctx -> {

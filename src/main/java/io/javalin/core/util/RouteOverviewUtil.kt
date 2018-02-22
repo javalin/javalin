@@ -88,6 +88,9 @@ fun createHtmlOverview(app: Javalin): String {
             .HEAD, .TRACE, .OPTIONS  {
                 background: #00b9b9;
             }
+            .BEFORE, .AFTER {
+                background: #777;
+            }
         </style>
         <body>
             <table>
