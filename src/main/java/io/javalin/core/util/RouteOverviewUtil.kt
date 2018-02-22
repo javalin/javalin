@@ -3,6 +3,7 @@
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
+
 @file:JvmName("RouteOverviewUtil")
 
 package io.javalin.core.util
@@ -15,16 +16,18 @@ import sun.reflect.ConstantPool
 
 data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Handler, val roles: List<Role>?)
 
-
 fun createHtmlOverview(app: Javalin): String {
     return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
+            * {
+                box-sizing: border-box;
+            }
             b, thead {
                 font-weight: 700;
             }
             html {
-                background: #333;
+                background: #363e4c;
             }
             body {
                 font-family: monospace;
@@ -32,17 +35,18 @@ fun createHtmlOverview(app: Javalin): String {
             }
             table {
                 background: #fff;
-                border-collapse: collapse;
+                border-spacing: 0;
                 font-size: 14px;
-                border: 2px solid #000;
                 width: 100%;
                 white-space: pre;
-                box-shadow: 0 0 33px rgba(0,0,0,0.33);
+                box-shadow: 0 5px 25px rgba(0,0,0,0.25);
             }
             thead {
-                background: #555;
-                border-bottom: 2px solid #000;
+                background: #1a202b;
                 color: #fff;
+            }
+            thead td {
+                border-bottom: 2px solid #000;
             }
             tr + tr td {
                 border-top: 1px solid rgba(0, 0, 0, 0.25);
@@ -66,6 +70,8 @@ fun createHtmlOverview(app: Javalin): String {
             tbody .method td:first-of-type {
                 color: #fff;
                 text-shadow: 1px 1px 0px rgba(0,0,0,0.15);
+                border-left: 6px solid rgba(0, 0, 0, 0.35);
+                border-right: 1px solid rgba(0, 0, 0, 0.15);
             }
             .GET {
                 background: #5a76ff;
@@ -87,7 +93,7 @@ fun createHtmlOverview(app: Javalin): String {
             <table>
                 <thead>
                     <tr class="method">
-                        <td width="80px">Method</td>
+                        <td width="90px">Method</td>
                         <td>Path</td>
                         <td>Handler</td>
                         <td>Roles</td>
