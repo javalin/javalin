@@ -47,6 +47,7 @@ fun createHtmlOverview(app: Javalin): String {
             }
             thead td {
                 border-bottom: 2px solid #000;
+                cursor: pointer;
             }
             tr + tr td {
                 border-top: 1px solid rgba(0, 0, 0, 0.25);
@@ -113,6 +114,22 @@ fun createHtmlOverview(app: Javalin): String {
                     """
     }.joinToString("")}
             </table>
+            <script>
+                const cachedRows = Array.from(document.querySelectorAll("tbody tr"));
+                const verbOrder = ["BEFORE", "GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "TRACE", "HEAD", "AFTER"];
+                document.querySelector("thead").addEventListener("click", function (e) {
+                    cachedRows.map(function (el) {
+                        return {key: el.children[e.target.cellIndex].textContent, row: el};
+                    }).sort((a, b) => {
+                        if (e.target.textContent === "Method") {
+                            return verbOrder.indexOf(a.key) - verbOrder.indexOf(b.key);
+                        }
+                        return a.key.localeCompare(b.key);
+                    }).forEach((pair, i) => {
+                        document.querySelector("tbody").children[i].outerHTML = pair.row.outerHTML
+                    });
+                });
+            </script>
         </body>
     """
 }

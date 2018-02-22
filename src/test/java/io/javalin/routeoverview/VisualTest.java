@@ -11,6 +11,11 @@ import io.javalin.Handler;
 import io.javalin.Javalin;
 import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.util.HandlerImplementation;
+import static io.javalin.ApiBuilder.delete;
+import static io.javalin.ApiBuilder.get;
+import static io.javalin.ApiBuilder.patch;
+import static io.javalin.ApiBuilder.path;
+import static io.javalin.ApiBuilder.post;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
@@ -37,6 +42,26 @@ public class VisualTest {
         app.delete("/users/:user-id", new HandlerImplementation());
         app.options("/what/:are/*/my-options", new HandlerImplementation());
         app.trace("/tracer", new HandlerImplementation());
+        app.routes(() -> {
+            path("users", () -> {
+                get(new HandlerImplementation());
+                post(new HandlerImplementation());
+                path(":id", () -> {
+                    get(new HandlerImplementation());
+                    patch(new HandlerImplementation());
+                    delete(new HandlerImplementation());
+                });
+            });
+            path("admins", () -> {
+                get(new HandlerImplementation());
+                post(new HandlerImplementation());
+                path(":id", () -> {
+                    get(new HandlerImplementation());
+                    patch(new HandlerImplementation());
+                    delete(new HandlerImplementation());
+                });
+            });
+        });
     }
 
     private static Handler lambdaField = ctx -> {
