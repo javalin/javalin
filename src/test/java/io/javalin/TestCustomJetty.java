@@ -30,7 +30,7 @@ public class TestCustomJetty {
                 return server;
             }))
             .start();
-        assertThat(app.embeddedServer().attribute("is-custom-server"), is(true));
+        assertThat(((JavalinInstance) app).embeddedServer().attribute("is-custom-server"), is(true));
         app.stop();
     }
 

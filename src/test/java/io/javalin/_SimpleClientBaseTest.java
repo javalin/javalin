@@ -31,7 +31,7 @@ public class _SimpleClientBaseTest {
 
     @After
     public void clear() {
-        app.clearMatcherAndMappers();
+        ((JavalinInstance) app).clearMatcherAndMappers();
     }
 
     @AfterClass
