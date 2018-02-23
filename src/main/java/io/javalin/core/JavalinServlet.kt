@@ -6,7 +6,6 @@
 
 package io.javalin.core
 
-import io.javalin.HaltException
 import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
@@ -48,7 +47,6 @@ class JavalinServlet(
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI
         val ctx = ContextUtil.create(res, req)
-        fun tryWithMapper(f: () -> Unit) = exceptionMapper.catchException(ctx, f)
 
         ctx.header("Server", "Javalin")
         ctx.attribute("javalin-request-log-start-time", System.nanoTime())
@@ -56,7 +54,9 @@ class JavalinServlet(
         res.characterEncoding = defaultCharacterEncoding
         res.contentType = defaultContentType
 
-        tryWithMapper {
+        fun tryWithExceptionMapper(f: () -> Unit) = exceptionMapper.catchException(ctx, f)
+
+        tryWithExceptionMapper {
             matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
@@ -64,7 +64,7 @@ class JavalinServlet(
             endpointEntries.forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
                 if (!ctx.nexted()) {
-                    return@tryWithMapper
+                    return@tryWithExceptionMapper
                 }
             }
             if (shouldCheckForStaticFiles(endpointEntries, type, requestUri)) {
@@ -72,13 +72,13 @@ class JavalinServlet(
             }
         }
 
-        tryWithMapper {
+        tryWithExceptionMapper {
             matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
         }
 
-        tryWithMapper {
+        tryWithExceptionMapper {
             errorMapper.handle(ctx.status(), ctx)
         }
 
