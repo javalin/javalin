@@ -23,21 +23,23 @@ public class TestIgnoreTrailingSlashes {
     @Test
     public void dontIgnoreTrailingSlashes() throws IOException {
         Javalin app = Javalin.create()
+            .port(0)
             .dontIgnoreTrailingSlashes()
             .start()
             .get("/hello", ctx -> ctx.result("Hello, slash!"));
-        assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello").getBody(), is("Hello, slash!"));
-        assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello/").getBody(), is("Not found"));
+        assertThat(simpleHttpClient.http_GET("http://localhost:" + app.port() + "/hello").getBody(), is("Hello, slash!"));
+        assertThat(simpleHttpClient.http_GET("http://localhost:" + app.port() + "/hello/").getBody(), is("Not found"));
         app.stop();
     }
 
     @Test
     public void ignoreTrailingSlashes() throws IOException {
         Javalin app = Javalin.create()
+            .port(0)
             .start()
             .get("/hello", ctx -> ctx.result("Hello, slash!"));
-        assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello").getBody(), is("Hello, slash!"));
-        assertThat(simpleHttpClient.http_GET("http://localhost:7000/hello/").getBody(), is("Hello, slash!"));
+        assertThat(simpleHttpClient.http_GET("http://localhost:" + app.port() + "/hello").getBody(), is("Hello, slash!"));
+        assertThat(simpleHttpClient.http_GET("http://localhost:" + app.port() + "/hello/").getBody(), is("Hello, slash!"));
         app.stop();
     }
 
