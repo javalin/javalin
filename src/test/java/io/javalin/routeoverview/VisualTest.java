@@ -24,9 +24,11 @@ import static io.javalin.security.Role.roles;
 public class VisualTest {
 
     public static void main(String[] args) {
-        Javalin app = Javalin.create().enableCorsForAllOrigins().start();
+        Javalin app = Javalin.create()
+            .enableRouteOverview("/route-overview")
+            .enableCorsForAllOrigins()
+            .start();
         app.get("/", ctx -> ctx.redirect("/route-overview"));
-        app.get("/route-overview", ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(app)));
         app.get("/just-some-path", new HandlerImplementation());
         app.post("/test/:hmm/", VisualTest::methodReference);
         app.put("/user/*", ctx -> ctx.result(""), roles(ROLE_ONE));

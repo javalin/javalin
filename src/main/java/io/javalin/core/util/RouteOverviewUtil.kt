@@ -16,7 +16,9 @@ import sun.reflect.ConstantPool
 
 data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Handler, val roles: List<Role>?)
 
-fun createHtmlOverview(app: Javalin): String {
+fun enableRouteOverview(path: String, app: Javalin) = app.get(path) { ctx -> ctx.html(createHtmlOverview(app)) }
+
+internal fun createHtmlOverview(app: Javalin): String {
     return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
@@ -69,8 +71,9 @@ fun createHtmlOverview(app: Javalin): String {
                 max-width: 80px;
             }
             tbody .method td:first-of-type {
+                font-weight: 700;
                 color: #fff;
-                text-shadow: 1px 1px 0px rgba(0,0,0,0.15);
+                text-shadow: 1px 1px 0px rgba(0,0,0,0.25);
                 border-left: 6px solid rgba(0, 0, 0, 0.35);
                 border-right: 1px solid rgba(0, 0, 0, 0.15);
             }
@@ -145,11 +148,11 @@ private val Handler.isKotlinField: Boolean get() = this.javaClass.fields.any { i
 
 private val Handler.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
 private val Handler.isJavaMethodReference: Boolean get() = this.methodName != null
-private val Handler.isJavaField: Boolean get() = this.fieldName != null
+private val Handler.isJavaField: Boolean get() = this.javaFieldName != null
 
 private fun Any.runMethod(name: String): Any = this.javaClass.getMethod(name).apply { isAccessible = true }.invoke(this)
 
-val Handler.metaInfo: String
+internal val Handler.metaInfo: String
     get() {
         // this is just guesswork...
         return when {
@@ -160,24 +163,27 @@ val Handler.metaInfo: String
                 f.runMethod("getOwner").runMethod("getJClass").runMethod("getName").toString() + "::" + f.runMethod("getName")
             }
             isKotlinAnonymousLambda -> parentClass.name + "::" + lambdaSign
-            isKotlinField -> parentClass.name + "." + fieldName
+            isKotlinField -> parentClass.name + "." + kotlinFieldName
 
             isJavaMethodReference -> parentClass.name + "::" + methodName
-            isJavaField -> parentClass.name + "." + fieldName
+            isJavaField -> parentClass.name + "." + javaFieldName
             isJavaAnonymousLambda -> parentClass.name + "::" + lambdaSign
 
             else -> implementingClassName + ".class"
         }
     }
 
-val Handler.fieldName: String?
+private val Handler.kotlinFieldName // this is most likely a very stupid solution
+    get() = this.javaClass.toString().removePrefix(this.parentClass.toString() + "$").takeWhile { it != '$' }
+
+private val Handler.javaFieldName: String?
     get() = try {
         parentClass.declaredFields.find { it.isAccessible = true; it.get(it) == this }?.name
     } catch (ignored: Exception) { // Nothing really matters.
         null
     }
 
-val Handler.methodName: String?
+private val Handler.methodName: String?
     get() {
         val constantPool = Class::class.java.getDeclaredMethod("getConstantPool").apply { isAccessible = true }.invoke(javaClass) as ConstantPool
         for (i in constantPool.size downTo 0) {

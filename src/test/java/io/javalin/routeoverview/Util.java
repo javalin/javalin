@@ -9,7 +9,7 @@ package io.javalin.routeoverview;
 import io.javalin.Handler;;
 import io.javalin.core.util.RouteOverviewUtil;
 
-public class RouteOverviewUtilWrapper {
+public class Util {
     static String getMetaInfo(Handler handler) {
         return RouteOverviewUtil.getMetaInfo(handler);
     }

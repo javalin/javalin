@@ -15,6 +15,7 @@ import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.RouteOverviewEntry;
+import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
 import io.javalin.embeddedserver.EmbeddedServerFactory;
@@ -41,7 +42,7 @@ public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    public List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>();
+    private List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>();
 
     private int port = 7000;
     private String contextPath = "/";
@@ -192,6 +193,12 @@ public class Javalin {
     public Javalin enableDynamicGzip() {
         ensureActionIsPerformedBeforeServerStart("Enabling dynamic GZIP");
         this.dynamicGzipEnabled = true;
+        return this;
+    }
+
+    public Javalin enableRouteOverview(@NotNull String path) {
+        ensureActionIsPerformedBeforeServerStart("Enabling route overview");
+        RouteOverviewUtil.enableRouteOverview(path, this);
         return this;
     }
 
@@ -402,4 +409,8 @@ public class Javalin {
         exceptionMapper.getExceptionMap().clear();
     }
 
+    // getter for route-entries
+    public List<RouteOverviewEntry> getRouteOverviewEntries() {
+        return this.routeOverviewEntries;
+    }
 }
