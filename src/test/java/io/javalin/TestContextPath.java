@@ -18,6 +18,8 @@ import static org.hamcrest.Matchers.is;
 
 public class TestContextPath {
 
+    static Javalin app;
+
     @Test
     public void test_normalizeContextPath_works() throws Exception {
         Function<String, String> normalize = Util.INSTANCE::normalizeContextPath;
@@ -43,7 +45,7 @@ public class TestContextPath {
 
     @Test
     public void test_router_works() throws Exception {
-        Javalin app = createAppWithContextPath("/context-path")
+        app = createAppWithContextPath("/context-path")
             .get("/hello", ctx -> ctx.result("Hello World"))
             .start();
         assertThat(GET_asString("/hello").getBody(), is("Not found. Request is below context-path (context-path: '/context-path')"));
@@ -53,7 +55,7 @@ public class TestContextPath {
 
     @Test
     public void test_twoLevelContextPath_works() throws Exception {
-        Javalin app = createAppWithContextPath("/context-path/path-context")
+        app = createAppWithContextPath("/context-path/path-context")
             .get("/hello", ctx -> ctx.result("Hello World"))
             .start();
         assertThat(GET_asString("/context-path/").getStatus(), is(404));
@@ -63,7 +65,7 @@ public class TestContextPath {
 
     @Test
     public void test_staticFiles_work() throws Exception {
-        Javalin app = createAppWithContextPath("/context-path").enableStaticFiles("/public").start();
+        app = createAppWithContextPath("/context-path").enableStaticFiles("/public").start();
         assertThat(GET_asString("/script.js").getStatus(), is(404));
         assertThat(GET_asString("/context-path/script.js").getBody(), containsString("JavaScript works"));
         app.stop();
@@ -71,17 +73,17 @@ public class TestContextPath {
 
     @Test
     public void test_welcomeFile_works() throws Exception {
-        Javalin app = createAppWithContextPath("/context-path").enableStaticFiles("/public").start();
+        app = createAppWithContextPath("/context-path").enableStaticFiles("/public").start();
         assertThat(GET_asString("/context-path/subdir/").getBody(), is("<h1>Welcome file</h1>"));
         app.stop();
     }
 
     private Javalin createAppWithContextPath(String contextPath) {
-        return Javalin.create().port(7733).contextPath(contextPath);
+        return Javalin.create().port(0).contextPath(contextPath);
     }
 
     private static HttpResponse<String> GET_asString(String pathname) throws Exception {
-        return Unirest.get("http://localhost:7733/" + pathname).asString();
+        return Unirest.get("http://localhost:" + app.port() + "/" + pathname).asString();
     }
 
 }
