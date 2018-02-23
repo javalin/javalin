@@ -261,15 +261,15 @@ public class Javalin {
     }
 
     private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, List<Role> roles) {
-        routeOverviewEntries.add(new RouteOverviewEntry(httpMethod, path, handler, roles));
         String prefixedPath = Util.INSTANCE.prefixContextPath(path, contextPath);
         Handler handlerWrap = roles == null ? handler : ctx -> accessManager.manage(handler, ctx, roles);
         pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, prefixedPath, handlerWrap));
+        routeOverviewEntries.add(new RouteOverviewEntry(httpMethod, prefixedPath, handler, roles));
         return this;
     }
 
     private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
-        return addHandler(httpMethod, path, handler, null);
+        return addHandler(httpMethod, path, handler, null); // no roles set for this route (open to everyone)
     }
 
     // HTTP verbs

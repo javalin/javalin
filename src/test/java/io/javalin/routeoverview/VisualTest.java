@@ -25,6 +25,7 @@ public class VisualTest {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create()
+            .contextPath("/context-path")
             .enableRouteOverview("/route-overview")
             .enableCorsForAllOrigins()
             .start();
