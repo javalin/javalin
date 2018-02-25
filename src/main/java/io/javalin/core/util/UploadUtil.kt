@@ -37,5 +37,20 @@ object UploadUtil {
         return files
     }
 
+    fun getMultipartFormParams(servletRequest: HttpServletRequest, formParam: String): List<String> {
+        if (!ServletFileUpload.isMultipartContent(servletRequest)) {
+            return listOf()
+        }
+        val iterator = ServletFileUpload().getItemIterator(servletRequest)
+        val formParams = mutableListOf<String>()
+        while (iterator.hasNext()) {
+            val item = iterator.next()
+            if (item.fieldName == formParam && item.isFormField) {
+                formParams.add(item.openStream().bufferedReader().use { it.readText() })
+            }
+        }
+        return formParams
+    }
+
 }
 
