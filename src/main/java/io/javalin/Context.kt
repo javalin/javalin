@@ -148,7 +148,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
     fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
-    fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { servletRequest.getParameter(it) == null }
+    fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
 
     fun queryString(): String? = servletRequest.queryString
 
