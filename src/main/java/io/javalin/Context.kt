@@ -88,20 +88,11 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     fun formParam(formParam: String): String? = formParams(formParam)?.get(0)
-
     fun formParamOrDefault(formParam: String, defaultValue: String): String = formParam(formParam) ?: defaultValue
-
     fun formParams(formParam: String): Array<String>? = formParamMap()[formParam]
-
     fun formParamMap(): Map<String, Array<String>> = if (isMultipartFormData()) mapOf() else ContextUtil.splitKeyValueStringAndGroupByKey(body())
-
     fun mapFormParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { formParam(it) }
-
-    fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
-
     fun anyFormParamNull(vararg keys: String): Boolean = keys.any { formParam(it) == null }
-
-    fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { servletRequest.getParameter(it) == null }
 
     fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
 
@@ -153,12 +144,11 @@ class Context(private val servletResponse: HttpServletResponse,
     fun protocol(): String = servletRequest.protocol
 
     fun queryParam(queryParam: String): String? = queryParams(queryParam)?.get(0)
-
     fun queryParamOrDefault(queryParam: String, defaultValue: String): String = queryParam(queryParam) ?: defaultValue
-
     fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
-
     fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
+    fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
+    fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { servletRequest.getParameter(it) == null }
 
     fun queryString(): String? = servletRequest.queryString
 
