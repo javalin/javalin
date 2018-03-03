@@ -227,8 +227,8 @@ class Context(private val servletResponse: HttpServletResponse,
 
     @JvmOverloads
     fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
-        servletResponse.status = httpStatusCode
         servletResponse.setHeader(Header.LOCATION, location)
+        throw HaltException(httpStatusCode, "")
     }
 
     fun status(): Int = servletResponse.status
