@@ -97,7 +97,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun mapFormParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { formParam(it) }
 
-    fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { servletRequest.getParameter(it) }
+    fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
 
     fun anyFormParamNull(vararg keys: String): Boolean = keys.any { formParam(it) == null }
 
@@ -152,13 +152,13 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun protocol(): String = servletRequest.protocol
 
-    fun queryParam(queryParam: String): String? = servletRequest.getParameter(queryParam)
+    fun queryParam(queryParam: String): String? = queryParams(queryParam)?.get(0)
 
-    fun queryParamOrDefault(queryParam: String, defaultValue: String): String = servletRequest.getParameter(queryParam) ?: defaultValue
+    fun queryParamOrDefault(queryParam: String, defaultValue: String): String = queryParam(queryParam) ?: defaultValue
 
-    fun queryParams(queryParam: String): Array<String>? = servletRequest.getParameterValues(queryParam)
+    fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
 
-    fun queryParamMap(): Map<String, Array<String>> = servletRequest.parameterMap
+    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
 
     fun queryString(): String? = servletRequest.queryString
 
