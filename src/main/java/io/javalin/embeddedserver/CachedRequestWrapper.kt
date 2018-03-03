@@ -27,10 +27,10 @@ class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize
             if (chunkedTransferEncoding || maxCacheSize < size) {
                 super.getInputStream()
             } else {
-                CachedServletInputStream()
+                CachedServletInputStream(cachedBytes)
             }
 
-    private inner class CachedServletInputStream : ServletInputStream() {
+    private inner class CachedServletInputStream(cachedBytes: ByteArray) : ServletInputStream() {
         private val byteArrayInputStream: ByteArrayInputStream = ByteArrayInputStream(cachedBytes)
         override fun read(): Int = byteArrayInputStream.read()
         override fun available(): Int = byteArrayInputStream.available()
