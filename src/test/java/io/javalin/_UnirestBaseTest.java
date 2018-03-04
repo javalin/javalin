@@ -45,7 +45,7 @@ public class _UnirestBaseTest {
 
     @After
     public void clear() {
-        app.clearMatcherAndMappers();
+        ((JavalinInstance) app).clearMatcherAndMappers();
     }
 
     @AfterClass

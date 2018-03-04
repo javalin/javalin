@@ -36,7 +36,7 @@ public class TestStaticFiles {
 
     @After
     public void clear() {
-        app.clearMatcherAndMappers();
+        ((JavalinInstance) app).clearMatcherAndMappers();
     }
 
     @AfterClass
