@@ -6,6 +6,7 @@
 
 package io.javalin.embeddedserver.jetty
 
+import io.javalin.HaltException
 import io.javalin.embeddedserver.Location
 import io.javalin.embeddedserver.StaticFileConfig
 import io.javalin.embeddedserver.StaticResourceHandler
@@ -67,7 +68,7 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) : StaticRes
                 log.error("Exception occurred while handling static resource", e)
             }
         }
-        return false
+        throw HaltException(404, "Not found")
     }
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory

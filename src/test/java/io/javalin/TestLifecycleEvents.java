@@ -22,6 +22,7 @@ public class TestLifecycleEvents {
     @Test
     public void testLifecycleEvents() {
         Javalin.create()
+            .port(0)
             .event(EventType.SERVER_STARTING, e -> startingMsg = "Starting")
             .event(EventType.SERVER_STARTED, e -> startedMsg = "Started")
             .event(EventType.SERVER_STOPPING, e -> stoppingMsg = "Stopping")

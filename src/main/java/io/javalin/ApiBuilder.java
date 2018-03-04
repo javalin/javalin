@@ -45,7 +45,7 @@ public class ApiBuilder {
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
-        path = path.startsWith("/") ? path : "/" + path;
+        path = (path + "/").replaceAll("/{2,}", "/");
         pathDeque.addLast(path);
         endpointGroup.addEndpoints();
         pathDeque.removeLast();
@@ -282,7 +282,7 @@ public class ApiBuilder {
      * @see ApiBuilder#path(String, EndpointGroup)
      */
     public static void before(@NotNull Handler handler) {
-        staticInstance().before(prefixPath("/*"), handler);
+        staticInstance().before(prefixPath("*"), handler);
     }
 
     /**
@@ -293,7 +293,7 @@ public class ApiBuilder {
      * @see ApiBuilder#path(String, EndpointGroup)
      */
     public static void after(@NotNull Handler handler) {
-        staticInstance().after(prefixPath("/*"), handler);
+        staticInstance().after(prefixPath("*"), handler);
     }
 
     // Secured HTTP verbs (no path specified)
