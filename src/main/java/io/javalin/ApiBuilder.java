@@ -41,7 +41,6 @@ public class ApiBuilder {
     /**
      * Prefixes all handlers defined inside the endpoint group with the given path.
      * All paths are assumed to be relative, so the leading slash will be omitted.
-     *
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
@@ -63,6 +62,7 @@ public class ApiBuilder {
     }
 
     // HTTP verbs
+
     /**
      * Adds a GET request handler for the given path to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
@@ -139,12 +139,10 @@ public class ApiBuilder {
      * Adds a GET request handler for the given path to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     // Secured HTTP verbs
@@ -156,12 +154,10 @@ public class ApiBuilder {
      * Adds a POST request handler for the given path to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -172,12 +168,10 @@ public class ApiBuilder {
      * Adds a PUT request handler for the given path to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -188,12 +182,10 @@ public class ApiBuilder {
      * Adds a PATCH request handler for the given path to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -204,12 +196,10 @@ public class ApiBuilder {
      * Adds a DELETE request handler for the given path to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -217,6 +207,7 @@ public class ApiBuilder {
     }
 
     // HTTP verbs (no path specified)
+
     /**
      * Adds a GET request handler to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
@@ -302,13 +293,11 @@ public class ApiBuilder {
      * Adds a GET request handler to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
      * @see ApiBuilder#path(String, EndpointGroup)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -319,13 +308,11 @@ public class ApiBuilder {
      * Adds a POST request handler to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
      * @see ApiBuilder#path(String, EndpointGroup)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -336,13 +323,11 @@ public class ApiBuilder {
      * Adds a PUT request handler to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
      * @see ApiBuilder#path(String, EndpointGroup)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -353,13 +338,11 @@ public class ApiBuilder {
      * Adds a PATCH request handler to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
      * @see ApiBuilder#path(String, EndpointGroup)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -370,13 +353,11 @@ public class ApiBuilder {
      * Adds a DELETE request handler to the {@link Javalin} instance.
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
      * @see ApiBuilder#path(String, EndpointGroup)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -385,7 +366,6 @@ public class ApiBuilder {
 
     /**
      * Adds a lambda handler for web socket connection requests for the given path.
-     *
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only and before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
@@ -396,7 +376,6 @@ public class ApiBuilder {
 
     /**
      * Adds a Jetty annotated class as a handler for web socket connection requests for the given path.
-     *
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only and before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
@@ -407,7 +386,6 @@ public class ApiBuilder {
 
     /**
      * Adds a Jetty websocket object as a handler for web socket connection requests for the given path.
-     *
      * The method must be called inside {@link Javalin#routes(EndpointGroup)} only and before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>

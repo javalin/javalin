@@ -70,12 +70,12 @@ public class Javalin {
     }
 
     /**
-     * Creates an instance of the application for further configuration. The server does not run until {@link Javalin#start()} is called.
-     *
-     * @see Javalin#start()
-     * @see Javalin#start(int)
+     * Creates an instance of the application for further configuration.
+     * The server does not run until {@link Javalin#start()} is called.
      *
      * @return instance of application for configuration.
+     * @see Javalin#start()
+     * @see Javalin#start(int)
      */
     public static Javalin create() {
         Util.INSTANCE.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
@@ -86,11 +86,9 @@ public class Javalin {
      * Creates and starts the application with default parameters on specified port.
      *
      * @param port to run on
-     *
+     * @return running application instance.
      * @see Javalin#create()
      * @see Javalin#start()
-     *
-     * @return running application instance.
      */
     public static Javalin start(int port) {
         return new Javalin()
@@ -105,9 +103,8 @@ public class Javalin {
     /**
      * Synchronously starts an instance of the application.
      *
-     * @see Javalin#create()
-     *
      * @return running application instance.
+     * @see Javalin#create()
      */
     public Javalin start() {
         if (!started) {
@@ -161,7 +158,6 @@ public class Javalin {
 
     /**
      * Treat '/test/' and '/test' as different URLs.
-     *
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin dontIgnoreTrailingSlashes() {
@@ -174,7 +170,6 @@ public class Javalin {
      * Sets custom server implementation.
      *
      * @see <a href="https://javalin.io/documentation#custom-server">Documentation example</a>
-     *
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin embeddedServer(@NotNull EmbeddedServerFactory embeddedServerFactory) {
@@ -185,7 +180,6 @@ public class Javalin {
 
     /**
      * Serves static files from path in classpath.
-     *
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#static-files>Static files in docs</a>
@@ -196,7 +190,6 @@ public class Javalin {
 
     /**
      * Serves static files from path in the given location.
-     *
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#static-files>Static files in docs</a>
@@ -216,7 +209,6 @@ public class Javalin {
 
     /**
      * Sets the context path (common prefix) for the instance.
-     *
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin contextPath(@NotNull String contextPath) {
@@ -234,7 +226,6 @@ public class Javalin {
 
     /**
      * Sets the port to run the instance on.
-     *
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin port(int port) {
@@ -245,7 +236,6 @@ public class Javalin {
 
     /**
      * Sets request logger level to {@link LogLevel#STANDARD}.
-     *
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableStandardRequestLogging() {
@@ -254,7 +244,6 @@ public class Javalin {
 
     /**
      * Sets request logger level to the given one.
-     * 
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin requestLogLevel(@NotNull LogLevel logLevel) {
@@ -265,7 +254,6 @@ public class Javalin {
 
     /**
      * Enables cross origin requests for defined origins.
-     * 
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableCorsForOrigin(@NotNull String... origin) {
@@ -275,7 +263,6 @@ public class Javalin {
 
     /**
      * Enables cross origin requests for all origins.
-     *
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableCorsForAllOrigins() {
@@ -284,7 +271,6 @@ public class Javalin {
 
     /**
      * Enables dynamic gzip compression.
-     *
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableDynamicGzip() {
@@ -351,7 +337,6 @@ public class Javalin {
 
     /**
      * Adds a lifecycle event listener.
-     *
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#lifecycle-events">Events in docs</a>
@@ -398,6 +383,7 @@ public class Javalin {
     }
 
     // HTTP verbs
+
     /**
      * Adds a GET request handler for the given path to the instance.
      *
@@ -480,15 +466,14 @@ public class Javalin {
     }
 
     // Secured HTTP verbs
+
     /**
      * Adds a GET request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -498,12 +483,10 @@ public class Javalin {
     /**
      * Adds a POST request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -513,12 +496,10 @@ public class Javalin {
     /**
      * Adds a PUT request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -528,12 +509,10 @@ public class Javalin {
     /**
      * Adds a PATCH request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -543,12 +522,10 @@ public class Javalin {
     /**
      * Adds a DELETE request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -558,12 +535,10 @@ public class Javalin {
     /**
      * Adds a HEAD request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -573,12 +548,10 @@ public class Javalin {
     /**
      * Adds a TRACE request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin trace(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -588,12 +561,10 @@ public class Javalin {
     /**
      * Adds a CONNECT request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin connect(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -603,12 +574,10 @@ public class Javalin {
     /**
      * Adds a CONNECT request handler for the given path to the instance.
      * The list of permitted roles will be handled to access manager on request.
-     *
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
-     *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
@@ -678,7 +647,6 @@ public class Javalin {
 
     /**
      * Adds a lambda handler for web socket connection requests for the given path.
-     *
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
@@ -691,7 +659,6 @@ public class Javalin {
 
     /**
      * Adds a Jetty annotated class as a handler for web socket connection requests for the given path.
-     *
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
@@ -702,7 +669,6 @@ public class Javalin {
 
     /**
      * Adds a Jetty websocket object as a handler for web socket connection requests for the given path.
-     *
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>

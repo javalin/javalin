@@ -378,7 +378,7 @@ class Context(private val servletResponse: HttpServletResponse,
         Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
         return html(JavalinMustachePlugin.render(templatePath, model))
     }
-  
+
     /**
      * Renders markdown template as html and sets it as the response result.
      *
