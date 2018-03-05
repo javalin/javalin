@@ -83,7 +83,7 @@ public class Javalin {
     }
 
     /**
-     * Creates and starts the application with default parameters on specified port.
+     * Creates and starts the application with default parameters on the specified port.
      *
      * @param port to run on
      * @return running application instance.
@@ -101,7 +101,7 @@ public class Javalin {
     private boolean started = false;
 
     /**
-     * Synchronously starts an instance of the application.
+     * Synchronously starts the application instance.
      *
      * @return running application instance.
      * @see Javalin#create()
@@ -139,7 +139,7 @@ public class Javalin {
     }
 
     /**
-     * Synchronously stops application instance.
+     * Synchronously stops the application instance.
      *
      * @return stopped application instance.
      */
@@ -157,7 +157,7 @@ public class Javalin {
     }
 
     /**
-     * Treat '/test/' and '/test' as different URLs.
+     * Configure instance to treat '/test/' and '/test' as different URLs.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin dontIgnoreTrailingSlashes() {
@@ -167,7 +167,7 @@ public class Javalin {
     }
 
     /**
-     * Sets custom server implementation.
+     * Configure instance to use a custom embedded server.
      *
      * @see <a href="https://javalin.io/documentation#custom-server">Documentation example</a>
      * The method must be called before {@link Javalin#start()}.
@@ -179,7 +179,8 @@ public class Javalin {
     }
 
     /**
-     * Serves static files from path in classpath.
+     * Configure instance to serves static files from path in classpath.
+     * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#static-files>Static files in docs</a>
@@ -189,7 +190,8 @@ public class Javalin {
     }
 
     /**
-     * Serves static files from path in the given location.
+     * Configure instance to serves static files from path in the given location.
+     * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#static-files>Static files in docs</a>
@@ -200,15 +202,13 @@ public class Javalin {
         return this;
     }
 
-    /**
-     * Context path (common prefix) for the instance.
-     */
+    // Context path (common prefix) for the instance.
     public String contextPath() {
         return this.contextPath;
     }
 
     /**
-     * Sets the context path (common prefix) for the instance.
+     * Configure instance to run on specified context path (common prefix).
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin contextPath(@NotNull String contextPath) {
@@ -218,14 +218,15 @@ public class Javalin {
     }
 
     /**
-     * Port which is assigned to the instance.
+     * Get which port instance is running on
+     * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
         return port;
     }
 
     /**
-     * Sets the port to run the instance on.
+     * Configure instance to run on specified port.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin port(int port) {
@@ -235,7 +236,7 @@ public class Javalin {
     }
 
     /**
-     * Sets request logger level to {@link LogLevel#STANDARD}.
+     * Configure instance to use {@link LogLevel#STANDARD} for request logs.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableStandardRequestLogging() {
@@ -243,7 +244,7 @@ public class Javalin {
     }
 
     /**
-     * Sets request logger level to the given one.
+     * Configure instance use specified log level for request logs.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin requestLogLevel(@NotNull LogLevel logLevel) {
@@ -253,7 +254,7 @@ public class Javalin {
     }
 
     /**
-     * Enables cross origin requests for defined origins.
+     * Configure instance to accept cross origin requests for specified origins.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableCorsForOrigin(@NotNull String... origin) {
@@ -262,7 +263,7 @@ public class Javalin {
     }
 
     /**
-     * Enables cross origin requests for all origins.
+     * Configure instance to accept cross origin requests for all origins.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableCorsForAllOrigins() {
@@ -270,7 +271,8 @@ public class Javalin {
     }
 
     /**
-     * Enables dynamic gzip compression.
+     * Configure instance to use dynamic gzip compression.
+     * This will compress all responses larger than 1500 bytes.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableDynamicGzip() {
@@ -279,30 +281,55 @@ public class Javalin {
         return this;
     }
 
+    /**
+     * Configure instance to display a visual overview of all its mapped routes
+     * on the specified path.
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin enableRouteOverview(@NotNull String path) {
         ensureActionIsPerformedBeforeServerStart("Enabling route overview");
         RouteOverviewUtil.enableRouteOverview(path, this);
         return this;
     }
 
+    /**
+     * Configure instance to use the specified content-type as a default
+     * value for all responses. This can be overridden in any Handler.
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin defaultContentType(@NotNull String contentType) {
         ensureActionIsPerformedBeforeServerStart("Changing default content type");
         this.defaultContentType = contentType;
         return this;
     }
 
+    /**
+     * Configure instance to use the specified character-encoding as a default
+     * value for all responses. This can be overridden in any Handler.
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin defaultCharacterEncoding(@NotNull String characterEncoding) {
         ensureActionIsPerformedBeforeServerStart("Changing default character encoding");
         this.defaultCharacterEncoding = characterEncoding;
         return this;
     }
 
-    public Javalin maxBodySizeForRequestCache(long value) {
+    /**
+     * Configure instance to stop caching requests larger than the specified body size.
+     * The default value is Long.MAX_VALUE
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin maxBodySizeForRequestCache(long bodySizeInBytes) {
         ensureActionIsPerformedBeforeServerStart("Changing request cache body size");
-        this.maxRequestCacheBodySize = value;
+        this.maxRequestCacheBodySize = bodySizeInBytes;
         return this;
     }
 
+    /**
+     * Configure instance to not cache any requests.
+     * If you call this method you will not be able to log request-bodies.
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin disableRequestCache() {
         return maxBodySizeForRequestCache(0);
     }
@@ -316,9 +343,10 @@ public class Javalin {
     // End embedded server methods
 
     /**
-     * Defines an access manager for the instance. Secured endpoints require one to be set.
+     * Sets the access manager for the instance. Secured endpoints require one to be set.
      *
      * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
+     * @see AccessManager
      */
     public Javalin accessManager(@NotNull AccessManager accessManager) {
         this.accessManager = accessManager;
@@ -327,6 +355,7 @@ public class Javalin {
 
     /**
      * Adds an exception mapper to the instance.
+     * Useful for turning exceptions into standardized errors/messages/pages
      *
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
@@ -349,6 +378,7 @@ public class Javalin {
 
     /**
      * Adds an error mapper to the instance.
+     * Useful for turning error-codes (404, 500) into standardized messages/pages
      *
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
@@ -358,7 +388,8 @@ public class Javalin {
     }
 
     /**
-     * Adds a group of handlers defined by ApiBuilder static methods.
+     * Creates a temporary static instance in the scope of the endpointGroup.
+     * Allows you to call get(handler), post(handler), etc. without without using the instance prefix.
      *
      * @see <a href="https://javalin.io/documentation#handler-groups">Handler groups in documentation</a>
      * @see ApiBuilder
@@ -468,8 +499,7 @@ public class Javalin {
     // Secured HTTP verbs
 
     /**
-     * Adds a GET request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a GET handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -481,8 +511,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a POST request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a POST handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -494,8 +523,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a PUT request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a PUT handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -507,8 +535,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a PATCH request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a PATCH handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -520,8 +547,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a DELETE request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a DELETE handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -533,8 +559,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a HEAD request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a HEAD handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -546,8 +571,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a TRACE request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a TRACE handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -559,8 +583,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a CONNECT request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a CONNECT handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -572,8 +595,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a CONNECT request handler for the given path to the instance.
-     * The list of permitted roles will be handled to access manager on request.
+     * Wraps a OPTIONS handler using the current AccessManager and adds it to the instance
      * Requires defined access manager in the instance.
      *
      * @see AccessManager
@@ -587,7 +609,7 @@ public class Javalin {
     // Filters
 
     /**
-     * Adds a before request handler for the given path to the instance.
+     * Adds a BEFORE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -596,7 +618,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a before request handler for all routes in the instance.
+     * Adds a BEFORE request handler for all routes in the instance.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -605,7 +627,7 @@ public class Javalin {
     }
 
     /**
-     * Adds an after request handler for the given path to the instance.
+     * Adds an AFTER request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -614,7 +636,7 @@ public class Javalin {
     }
 
     /**
-     * Adds an after request handler for all routes in the instance.
+     * Adds an AFTER request handler for all routes in the instance.
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
@@ -625,14 +647,14 @@ public class Javalin {
     // Reverse routing
 
     /**
-     * Finds the path for the given handler.
+     * Finds the mapped path for the specified handler
      */
     public String pathFinder(@NotNull Handler handler) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler));
     }
 
     /**
-     * Finds the path for the given handler with the given {@link HandlerType}.
+     * Finds the path for the specified handler and handler type (GET, POST, etc)
      *
      * @see HandlerType
      */
@@ -646,10 +668,10 @@ public class Javalin {
     private Map<String, Object> pathWsHandlers = new HashMap<>();
 
     /**
-     * Adds a lambda handler for web socket connection requests for the given path.
+     * Adds a lambda handler for a WebSocket connection on the given path.
      * The method must be called before {@link Javalin#start()}.
      *
-     * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
         WebSocketHandler configuredHandler = new WebSocketHandler();
@@ -658,20 +680,20 @@ public class Javalin {
     }
 
     /**
-     * Adds a Jetty annotated class as a handler for web socket connection requests for the given path.
+     * Adds a Jetty annotated class as a handler for a WebSocket connection on the given path.
      * The method must be called before {@link Javalin#start()}.
      *
-     * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
         return addWebSocketHandler(path, webSocketClass);
     }
 
     /**
-     * Adds a Jetty websocket object as a handler for web socket connection requests for the given path.
+     * Adds a Jetty WebSocket object as a handler for a WebSocket connection on the given path.
      * The method must be called before {@link Javalin#start()}.
      *
-     * @see <a href="https://javalin.io/documentation#websockets">Websockets in docs</a>
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
         return addWebSocketHandler(path, webSocketObject);
@@ -681,6 +703,14 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         pathWsHandlers.put(path, webSocketObject);
         return this;
+    }
+
+    /**
+     * Gets the list of RouteOverviewEntry-objects used to build
+     * the visual route-overview
+     */
+    public List<RouteOverviewEntry> getRouteOverviewEntries() {
+        return this.routeOverviewEntries;
     }
 
     // package private method used for testing
@@ -695,8 +725,4 @@ public class Javalin {
         exceptionMapper.getExceptionMap().clear();
     }
 
-    // getter for route-entries
-    public List<RouteOverviewEntry> getRouteOverviewEntries() {
-        return this.routeOverviewEntries;
-    }
 }
