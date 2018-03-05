@@ -22,6 +22,11 @@ import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * Provides access to request and response
+ *
+ * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
+ */
 class Context(private val servletResponse: HttpServletResponse,
               private val servletRequest: HttpServletRequest,
               internal var matchedPath: String,
@@ -36,23 +41,48 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
 
+    /**
+     * Provides cookie store values for given key.
+     *
+     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
+     */
     @Suppress("UNCHECKED_CAST")
     fun <T> cookieStore(key: String): T = cookieStore[key] as T
 
+    /**
+     * Sets cookie store value for given key.
+     *
+     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
+     */
     fun cookieStore(key: String, value: Any) {
         cookieStore[key] = value
         cookie(CookieStoreUtil.name, CookieStoreUtil.mapToString(cookieStore))
     }
 
+    /**
+     * Clears cookie store in the request and context.
+     *
+     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
+     */
     fun clearCookieStore() {
         cookieStore.clear()
         removeCookie(CookieStoreUtil.name)
     }
 
+    /**
+     * Passes request to the next matching handler.
+     *
+     * @see nexted
+     */
     fun next() {
         passedToNextHandler = true
     }
 
+    /**
+     * Checks whether the request was passed before.
+     *
+     * @see next
+     */
     fun nexted(): Boolean = passedToNextHandler
 
     //
@@ -61,6 +91,11 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun request(): HttpServletRequest = servletRequest
 
+    /**
+     * Runs the request asynchronously.
+     *
+     * @see HttpServletRequest.startAsync
+     */
     @Deprecated("This is an experimental feature, it might be removed/reworked later")
     fun async(asyncHandler: () -> CompletionStage<Void>) {
         val asyncContext = servletRequest.startAsync()
@@ -75,13 +110,29 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
 
+    /**
+     * Maps a JSON body to a Java object using Jackson ObjectMapper
+     * @return The mapped object
+     *
+     * Requires Jackson library in the classpath.
+     */
     fun <T> bodyAsClass(clazz: Class<T>): T {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
         return JavalinJacksonPlugin.toObject(body(), clazz)
     }
 
+    /**
+     * @return first uploaded file for the name.
+     *
+     * Requires Apache commons-fileupload library in the classpath.
+     */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
 
+    /**
+     * @return list of uploaded files for the name
+     *
+     * Requires Apache commons-fileupload library in the classpath.
+     */
     fun uploadedFiles(fileName: String): List<UploadedFile> {
         Util.ensureDependencyPresent("FileUpload", "org.apache.commons.fileupload.servlet.ServletFileUpload", "commons-fileupload/commons-fileupload")
         return UploadUtil.getUploadedFiles(servletRequest, fileName)
@@ -131,6 +182,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun ip(): String = servletRequest.remoteAddr
 
     fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/")
+
     fun isMultipartFormData(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
 
     fun matchedPath() = matchedPath
@@ -174,11 +226,18 @@ class Context(private val servletResponse: HttpServletResponse,
 
     fun response(): HttpServletResponse = servletResponse
 
+    /**
+     * Sets response result to the parameter. The parameter replaces any previous values passed to [result].
+     */
     fun result(resultString: String): Context {
         resultStream = resultString.byteInputStream(stringCharset())
         return this
     }
 
+
+    /**
+     * @return current response result as string or null otherwise
+     */
     fun resultString(): String? {
         val string = resultStream?.readBytes()?.toString(stringCharset())
         resultStream?.reset()
@@ -191,8 +250,14 @@ class Context(private val servletResponse: HttpServletResponse,
         Charset.defaultCharset()
     }
 
+    /**
+     * @return current response result as stream or null otherwise.
+     */
     fun resultStream(): InputStream? = resultStream
 
+    /**
+     * Sets response result to the parameter. The parameter replaces any previous values passed to [result].
+     */
     fun result(resultStream: InputStream): Context {
         this.resultStream = resultStream
         return this
@@ -213,10 +278,19 @@ class Context(private val servletResponse: HttpServletResponse,
         return this
     }
 
+    /**
+     * Sets response result to given html string.
+     *
+     * @see result
+     */
     fun html(html: String): Context = result(html).contentType("text/html")
 
+    /**
+     * Sets the response status code and redirects to given location.
+     */
     @JvmOverloads
     fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
+
         servletResponse.setHeader(Header.LOCATION, location)
         throw HaltException(httpStatusCode, "")
     }
@@ -251,35 +325,65 @@ class Context(private val servletResponse: HttpServletResponse,
 
     // Translator methods
     // TODO: Consider moving rendering to JavalinServlet, where response is written
+    /**
+     * Sets content type to application/json and result to the JSON representation of a given object using Jackson ObjectMapper.
+     *
+     * Requires Jackson library in the classpath.
+     */
     fun json(`object`: Any): Context {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
         return result(JavalinJacksonPlugin.toJson(`object`)).contentType("application/json")
     }
 
+    /**
+     * Renders velocity template with given values as html and sets it as the response result.
+     *
+     * Requires Apache Velocity library in the classpath.
+     */
     @JvmOverloads
     fun renderVelocity(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
         return html(JavalinVelocityPlugin.render(templatePath, model))
     }
 
+    /**
+     * Renders freemarker template with given values as html and sets it as the response result.
+     *
+     * Requires Apache Freemarker library in the classpath.
+     */
     @JvmOverloads
     fun renderFreemarker(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
         return html(JavalinFreemarkerPlugin.render(templatePath, model))
     }
 
+    /**
+     * Renders thymeleaf template with given values as html and sets it as the response result.
+     *
+     * Requires thymeleaf library in the classpath.
+     */
     @JvmOverloads
     fun renderThymeleaf(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3")
         return html(JavalinThymeleafPlugin.render(templatePath, model))
     }
 
+    /**
+     * Renders mustache template with given values as html and sets it as the response result.
+     *
+     * Requires mustache library in the classpath.
+     */
     @JvmOverloads
     fun renderMustache(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
         return html(JavalinMustachePlugin.render(templatePath, model))
     }
-
+  
+    /**
+     * Renders markdown template as html and sets it as the response result.
+     *
+     * Requires commonmark markdown library in the classpath.
+     */
     fun renderMarkdown(markdownFilePath: String): Context {
         Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
         return html(JavalinCommonmarkPlugin.render(markdownFilePath))
