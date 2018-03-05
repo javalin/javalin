@@ -73,7 +73,7 @@ internal fun createHtmlOverview(app: Javalin): String {
             tbody .method td:first-of-type {
                 font-weight: 700;
                 color: #fff;
-                text-shadow: 1px 1px 0px rgba(0,0,0,0.25);
+                text-shadow: 1px 1px 0px rgba(0,0,0,0.5);
                 border-left: 6px solid rgba(0, 0, 0, 0.35);
                 border-right: 1px solid rgba(0, 0, 0, 0.15);
             }
@@ -83,11 +83,14 @@ internal fun createHtmlOverview(app: Javalin): String {
             .POST {
                 background: #5dca5d;
             }
-            .PUT, .PATCH {
+            .PUT {
+                background: #d9cc00;
+            }
+            .PATCH {
                 background: #ef9a00;
             }
             .DELETE {
-                background: #ef4848;
+                background: #e44848;
             }
             .HEAD, .TRACE, .OPTIONS  {
                 background: #00b9b9;
@@ -119,7 +122,7 @@ internal fun createHtmlOverview(app: Javalin): String {
             </table>
             <script>
                 const cachedRows = Array.from(document.querySelectorAll("tbody tr"));
-                const verbOrder = ["BEFORE", "GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "TRACE", "HEAD", "AFTER"];
+                const verbOrder = ["BEFORE", "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "HEAD", "AFTER"];
                 document.querySelector("thead").addEventListener("click", function (e) {
                     cachedRows.map(function (el) {
                         return {key: el.children[e.target.cellIndex].textContent, row: el};
