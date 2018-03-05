@@ -202,13 +202,13 @@ public class Javalin {
         return this;
     }
 
-    public Javalin defaultContentType(String contentType) {
+    public Javalin defaultContentType(@NotNull String contentType) {
         ensureActionIsPerformedBeforeServerStart("Changing default content type");
         this.defaultContentType = contentType;
         return this;
     }
 
-    public Javalin defaultCharacterEncoding(String characterEncoding) {
+    public Javalin defaultCharacterEncoding(@NotNull String characterEncoding) {
         ensureActionIsPerformedBeforeServerStart("Changing default character encoding");
         this.defaultCharacterEncoding = characterEncoding;
         return this;
