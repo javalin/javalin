@@ -14,6 +14,8 @@ import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsUtil;
+import io.javalin.core.util.RouteOverviewEntry;
+import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
 import io.javalin.embeddedserver.EmbeddedServer;
 import io.javalin.embeddedserver.EmbeddedServerFactory;
@@ -39,6 +41,8 @@ import org.slf4j.LoggerFactory;
 public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
+
+    private List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>();
 
     private int port = 7000;
     private String contextPath = "/";
@@ -192,6 +196,12 @@ public class Javalin {
         return this;
     }
 
+    public Javalin enableRouteOverview(@NotNull String path) {
+        ensureActionIsPerformedBeforeServerStart("Enabling route overview");
+        RouteOverviewUtil.enableRouteOverview(path, this);
+        return this;
+    }
+
     public Javalin defaultContentType(String contentType) {
         ensureActionIsPerformedBeforeServerStart("Changing default content type");
         this.defaultContentType = contentType;
@@ -250,14 +260,16 @@ public class Javalin {
         return this;
     }
 
-    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
+    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, List<Role> roles) {
         String prefixedPath = Util.INSTANCE.prefixContextPath(path, contextPath);
-        pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, prefixedPath, handler));
+        Handler handlerWrap = roles == null ? handler : ctx -> accessManager.manage(handler, ctx, roles);
+        pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, prefixedPath, handlerWrap));
+        routeOverviewEntries.add(new RouteOverviewEntry(httpMethod, prefixedPath, handler, roles));
         return this;
     }
 
-    private Javalin addSecuredHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addHandler(httpMethod, path, ctx -> accessManager.manage(handler, ctx, permittedRoles));
+    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
+        return addHandler(httpMethod, path, handler, null); // no roles set for this route (open to everyone)
     }
 
     // HTTP verbs
@@ -299,39 +311,39 @@ public class Javalin {
 
     // Secured HTTP verbs
     public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.GET, path, handler, permittedRoles);
+        return addHandler(HandlerType.GET, path, handler, permittedRoles);
     }
 
     public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.POST, path, handler, permittedRoles);
+        return addHandler(HandlerType.POST, path, handler, permittedRoles);
     }
 
     public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.PUT, path, handler, permittedRoles);
+        return addHandler(HandlerType.PUT, path, handler, permittedRoles);
     }
 
     public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.PATCH, path, handler, permittedRoles);
+        return addHandler(HandlerType.PATCH, path, handler, permittedRoles);
     }
 
     public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.DELETE, path, handler, permittedRoles);
+        return addHandler(HandlerType.DELETE, path, handler, permittedRoles);
     }
 
     public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.HEAD, path, handler, permittedRoles);
+        return addHandler(HandlerType.HEAD, path, handler, permittedRoles);
     }
 
     public Javalin trace(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.TRACE, path, handler, permittedRoles);
+        return addHandler(HandlerType.TRACE, path, handler, permittedRoles);
     }
 
     public Javalin connect(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.CONNECT, path, handler, permittedRoles);
+        return addHandler(HandlerType.CONNECT, path, handler, permittedRoles);
     }
 
     public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        return addSecuredHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
+        return addHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
     }
 
     // Filters
@@ -397,4 +409,8 @@ public class Javalin {
         exceptionMapper.getExceptionMap().clear();
     }
 
+    // getter for route-entries
+    public List<RouteOverviewEntry> getRouteOverviewEntries() {
+        return this.routeOverviewEntries;
+    }
 }
