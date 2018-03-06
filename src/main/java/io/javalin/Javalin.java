@@ -500,7 +500,7 @@ public class Javalin {
 
     /**
      * Wraps a GET handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -512,7 +512,7 @@ public class Javalin {
 
     /**
      * Wraps a POST handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -524,7 +524,7 @@ public class Javalin {
 
     /**
      * Wraps a PUT handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -536,7 +536,7 @@ public class Javalin {
 
     /**
      * Wraps a PATCH handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -548,7 +548,7 @@ public class Javalin {
 
     /**
      * Wraps a DELETE handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -560,7 +560,7 @@ public class Javalin {
 
     /**
      * Wraps a HEAD handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -572,7 +572,7 @@ public class Javalin {
 
     /**
      * Wraps a TRACE handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -584,7 +584,7 @@ public class Javalin {
 
     /**
      * Wraps a CONNECT handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -596,7 +596,7 @@ public class Javalin {
 
     /**
      * Wraps a OPTIONS handler using the current AccessManager and adds it to the instance
-     * Requires defined access manager in the instance.
+     * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
