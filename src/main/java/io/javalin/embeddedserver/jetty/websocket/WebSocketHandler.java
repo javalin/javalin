@@ -31,23 +31,43 @@ public class WebSocketHandler {
     private CloseHandler closeHandler = null;
     private ErrorHandler errorHandler = null;
 
+    /**
+     * Add a ConnectHandler to the WebSocketConfig.
+     * The handler is called when a WebSocket client connects.
+     */
     public void onConnect(@NotNull ConnectHandler connectHandler) {
         this.connectHandler = connectHandler;
     }
 
+    /**
+     * Add a MessageHandler to the WebSocketConfig.
+     * The handler is called when a WebSocket client sends
+     * a String message.
+     */
     public void onMessage(@NotNull MessageHandler messageHandler) {
         this.messageHandler = messageHandler;
     }
 
+    /**
+     * Add a CloseHandler to the WebSocketConfig.
+     * The handler is called when a WebSocket client closes
+     * the connection. The handler is not called in case of
+     * network issues, only when the client actively closes the
+     * connection (or times out).
+     */
     public void onClose(@NotNull CloseHandler closeHandler) {
         this.closeHandler = closeHandler;
     }
 
+    /**
+     * Add a errorHandler to the WebSocketConfig.
+     * The handler is called when an error is detected.
+     */
     public void onError(@NotNull ErrorHandler errorHandler) {
         this.errorHandler = errorHandler;
     }
 
-    // Jetty annotations
+    // Jetty annotations, nothing to see here.
 
     @OnWebSocketConnect
     public void _internalOnConnectProxy(Session session) throws Exception {
