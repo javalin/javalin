@@ -160,7 +160,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Maps form params to values, or returns null if any of the params are null.
      * Ex: val (username, email) = ctx.mapFormParams("username", "email") ?: throw MissingFormParamException()
-     * This is method is mainly useful when calling from Kotlin.
+     * This method is mainly useful when calling from Kotlin.
      */
     fun mapFormParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { formParam(it) }
 
@@ -327,7 +327,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Maps query params to values, or returns null if any of the params are null.
      * Ex: val (username, email) = ctx.mapQueryParams("username", "email") ?: throw MissingQueryParamException()
-     * This is method is mainly useful when calling from Kotlin.
+     * This method is mainly useful when calling from Kotlin.
      */
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
 
