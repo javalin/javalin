@@ -21,47 +21,10 @@ object ContextUtil {
     }
 
     fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String): Context {
-        val requestList = Util.pathToList(requestUri)
-        val matchedList = Util.pathToList(handlerEntry.path)
         ctx.matchedPath = handlerEntry.path
-        ctx.paramMap = getParams(requestList, matchedList)
-        ctx.splatList = getSplat(requestList, matchedList)
+        ctx.paramMap = handlerEntry.extractParams(requestUri)
+        ctx.splatList = handlerEntry.extractSplats(requestUri)
         return ctx
-    }
-
-    fun getSplat(request: List<String>, matched: List<String>): List<String> {
-        val numRequestParts = request.size
-        val numHandlerParts = matched.size
-        val splat = ArrayList<String>()
-        var i = 0
-        while (i < numRequestParts && i < numHandlerParts) {
-            val matchedPart = matched[i]
-            if (matchedPart == "*") {
-                val splatParam = StringBuilder(request[i])
-                if (numRequestParts != numHandlerParts && i == numHandlerParts - 1) {
-                    for (j in i + 1..numRequestParts - 1) {
-                        splatParam.append("/")
-                        splatParam.append(request[j])
-                    }
-                }
-                splat.add(urlDecode(splatParam.toString()))
-            }
-            i++
-        }
-        return splat
-    }
-
-    fun getParams(requestPaths: List<String>, handlerPaths: List<String>): Map<String, String> {
-        val params = HashMap<String, String>()
-        var i = 0
-        while (i < requestPaths.size && i < handlerPaths.size) {
-            val matchedPart = handlerPaths[i]
-            if (matchedPart.startsWith(":")) {
-                params[matchedPart.toLowerCase()] = urlDecode(requestPaths[i])
-            }
-            i++
-        }
-        return params
     }
 
     fun splitKeyValueStringAndGroupByKey(string: String): Map<String, Array<String>> {

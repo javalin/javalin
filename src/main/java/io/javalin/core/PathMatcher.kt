@@ -7,11 +7,64 @@
 package io.javalin.core
 
 import io.javalin.Handler
-import io.javalin.core.util.Util
+import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.nio.file.PathMatcher
 
-data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler)
+data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
+    private val paramNames = path.split("/")
+            .filter { it.startsWith(":") }
+            .map { it.replace(":", "") }
+
+    private val matchRegex = paramNames
+            // Replace param names with wildcards (accepting everything except slash)
+            .fold(path) { path, name -> path.replace(":" + name, "[^/]*?") }
+            // Replace double slash occurrences
+            .replace("//", "/")
+            // Replace splat between slashes to a wildcard
+            .replace("/*/", "/.*?/")
+            // Replace splat in the beginning of path to a wildcard (allow paths like (*/path/)
+            .replace("^\\*".toRegex(), ".*?")
+            // Replace splat in the end of string to a wildcard
+            .replace("/*", "/.*?")
+            // Replace trailing slash to optional one
+            .replace("/$".toRegex(), "/?")
+            // Add slash if doesn't have one
+            .run { if (!endsWith("/?")) this + "/?" else this }
+            // Let the matcher know that it is the whole path
+            .run { "^" + this + "$" }
+            .toRegex()
+
+    // Use param wildcard as a capturing group
+    private val paramRegex = matchRegex.pattern.replace("[^/]*?", "([^/]*?)").toRegex()
+
+    // Use splat wildcard as a capturing group
+    private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex()
+
+    fun match(requestUri: String) = requestUri matches matchRegex
+
+    fun extractParams(requestUri: String): Map<String, String> {
+        val values = paramRegex.matchEntire(requestUri)?.groupValues
+        val map = HashMap<String, String>()
+        values?.let {
+            (1 until values.size).forEach { index ->
+                map[":" + paramNames[index - 1].toLowerCase()] = urlDecode(values[index])
+            }
+        }
+        return map
+    }
+
+    fun extractSplats(requestUri: String): List<String> {
+        val values = splatRegex.matchEntire(requestUri)?.groupValues
+        val result = ArrayList<String>()
+        values?.let {
+            (1 until values.size).forEach { index ->
+                result.add(urlDecode(values[index]))
+            }
+        }
+        return result
+    }
+}
 
 class PathMatcher {
 
@@ -26,44 +79,17 @@ class PathMatcher {
     }
 
     // TODO: Consider optimizing this
-    private fun match(handlerEntry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean = when {
-        handlerEntry.type !== requestType -> false
-        handlerEntry.path == "*" -> true
-        handlerEntry.path == requestPath -> true
-        !this.ignoreTrailingSlashes && slashMismatch(handlerEntry.path, requestPath) -> false
-        else -> matchParamAndWildcard(handlerEntry.path, requestPath)
+    private fun match(entry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean = when {
+        entry.type != requestType -> false
+        entry.path == "*" -> true
+        entry.path == requestPath -> true
+        !this.ignoreTrailingSlashes && slashMismatch(entry.path, requestPath) -> false
+        else -> matchParamAndWildcard(entry, requestPath)
     }
 
     private fun slashMismatch(s1: String, s2: String): Boolean = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
 
-    private fun matchParamAndWildcard(handlerPath: String, fullRequestPath: String): Boolean {
-
-        val hpp = Util.pathToList(handlerPath) // handler-path-parts
-        val rpp = Util.pathToList(fullRequestPath) // request-path-parts
-
-        fun isLastAndSplat(i: Int) = i == hpp.lastIndex && hpp[i] == "*"
-        fun isNotPathOrSplat(i: Int) = hpp[i].first() != ':' && hpp[i] != "*"
-
-        if (hpp.size == rpp.size) {
-            for (i in hpp.indices) {
-                when {
-                    isLastAndSplat(i) && handlerPath.endsWith('*') -> return true
-                    isNotPathOrSplat(i) && hpp[i] != rpp[i] -> return false
-                }
-            }
-            return true
-        }
-        if (hpp.size < rpp.size && handlerPath.endsWith('*')) {
-            for (i in hpp.indices) {
-                when {
-                    isLastAndSplat(i) -> return true
-                    isNotPathOrSplat(i) && hpp[i] != rpp[i] -> return false
-                }
-            }
-            return false
-        }
-        return false
-    }
+    private fun matchParamAndWildcard(entry: HandlerEntry, fullRequestPath: String) = entry.match(fullRequestPath)
 
     fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
         val entries = handlerEntries.filter(predicate)

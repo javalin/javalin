@@ -37,9 +37,11 @@ public class TestStaticFiles_edgeCases {
     public void test_nonExistent_classpathFolder() throws Exception {
         String[] message = {""};
         Javalin.create()
+            .port(0)
             .enableStaticFiles("some-fake-folder")
             .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start().stop();
+            .start()
+            .stop();
         assertThat(message[0], is("failed"));
     }
 
@@ -47,9 +49,11 @@ public class TestStaticFiles_edgeCases {
     public void test_nonExistent_externalFolder() throws Exception {
         String[] message = {""};
         Javalin.create()
+            .port(0)
             .enableStaticFiles("some-fake-folder", Location.EXTERNAL)
             .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start().stop();
+            .start()
+            .stop();
         assertThat(message[0], is("failed"));
     }
 
@@ -58,9 +62,11 @@ public class TestStaticFiles_edgeCases {
         new File("src/test/external/empty").mkdir();
         String[] message = {""};
         Javalin.create()
+            .port(0)
             .enableStaticFiles("src/test/external/empty", Location.CLASSPATH)
             .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start().stop();
+            .start()
+            .stop();
         assertThat(message[0], is("failed"));
     }
 
@@ -69,9 +75,11 @@ public class TestStaticFiles_edgeCases {
         new File("src/test/external/empty").mkdir();
         String[] message = {""};
         Javalin.create()
+            .port(0)
             .enableStaticFiles("src/test/external/empty", Location.EXTERNAL)
             .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start().stop();
+            .start()
+            .stop();
         assertThat(message[0], not("failed"));
     }
 
