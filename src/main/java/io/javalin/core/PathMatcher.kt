@@ -18,7 +18,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
     private val matchRegex = paramNames
             // Replace param names with wildcards (accepting everything except slash)
-            .fold(path) { path, name -> path.replace(":" + name, "[^/]*?") }
+            .fold(path) { path, name -> path.replace(":$name", "[^/]+?") }
             // Replace double slash occurrences
             .replace("//", "/")
             // Replace splat between slashes to a wildcard
@@ -36,7 +36,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
             .toRegex()
 
     // Use param wildcard as a capturing group
-    private val paramRegex = matchRegex.pattern.replace("[^/]*?", "([^/]*?)").toRegex()
+    private val paramRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
 
     // Use splat wildcard as a capturing group
     private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex()
