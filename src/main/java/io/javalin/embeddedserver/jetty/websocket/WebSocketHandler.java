@@ -32,7 +32,7 @@ public class WebSocketHandler {
     private ErrorHandler errorHandler = null;
 
     /**
-     * Add a ConnectHandler to the WebSocketConfig.
+     * Add a ConnectHandler to the WebSocketHandler.
      * The handler is called when a WebSocket client connects.
      */
     public void onConnect(@NotNull ConnectHandler connectHandler) {
@@ -40,7 +40,7 @@ public class WebSocketHandler {
     }
 
     /**
-     * Add a MessageHandler to the WebSocketConfig.
+     * Add a MessageHandler to the WebSocketHandler.
      * The handler is called when a WebSocket client sends
      * a String message.
      */
@@ -49,7 +49,7 @@ public class WebSocketHandler {
     }
 
     /**
-     * Add a CloseHandler to the WebSocketConfig.
+     * Add a CloseHandler to the WebSocketHandler.
      * The handler is called when a WebSocket client closes
      * the connection. The handler is not called in case of
      * network issues, only when the client actively closes the
@@ -60,7 +60,7 @@ public class WebSocketHandler {
     }
 
     /**
-     * Add a errorHandler to the WebSocketConfig.
+     * Add a errorHandler to the WebSocketHandler.
      * The handler is called when an error is detected.
      */
     public void onError(@NotNull ErrorHandler errorHandler) {

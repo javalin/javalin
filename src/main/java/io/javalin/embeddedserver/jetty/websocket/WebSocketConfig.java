@@ -8,7 +8,8 @@ package io.javalin.embeddedserver.jetty.websocket;
 
 /**
  * WebSocketConfig is a functional interface which is used
- * to configure a WebSocketHandler. The recommended shortname is "ws":
+ * to configure a WebSocketHandler. The recommended shortname
+ * for the WebSocketHandler is "ws":
  * <pre>
  * {@code
  * app.ws("/my-websocket-path", ws -> {
