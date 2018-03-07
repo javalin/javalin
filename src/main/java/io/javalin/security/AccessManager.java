@@ -8,12 +8,15 @@ package io.javalin.security;
 
 import io.javalin.Context;
 import io.javalin.Handler;
+import io.javalin.core.HandlerType;
+
 import java.util.List;
 
 /**
- * Sets authentication and authorization per endpoint.
- *
+ * The access manager is a way of implementing per endpoint security management. It is enabled
+ * only for the endpoints where restricted list of roles is provided.
  * @see Role
+ * @see io.javalin.Javalin#addHandler(HandlerType, String, Handler, List)
  * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
  */
 @FunctionalInterface
