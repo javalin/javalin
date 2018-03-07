@@ -63,6 +63,13 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_redirectInBefore() throws Exception {
+        app.before("/before", ctx -> ctx.redirect("/redirected"));
+        app.get("/redirected", ctx -> ctx.result("Redirected"));
+        assertThat(GET_body("/before"), is("Redirected"));
+    }
+
+    @Test
     public void test_redirect() throws Exception {
         app.get("/hello", ctx -> ctx.redirect("/hello-2"));
         app.get("/hello-2", ctx -> ctx.result("Redirected"));

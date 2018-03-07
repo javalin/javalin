@@ -10,6 +10,9 @@ package io.javalin;
 import io.javalin.util.TestResponse;
 import java.net.URLEncoder;
 import org.junit.Test;
+
+import static io.javalin.ApiBuilder.get;
+import static io.javalin.ApiBuilder.path;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -86,6 +89,23 @@ public class TestRouting extends _SimpleClientBaseTest {
         TestResponse response = simpleHttpClient.http_GET(origin + "/test/param");
         assertThat(response.getBody(), is("Not found"));
         response = simpleHttpClient.http_GET(origin + "/test/21");
+        assertThat(response.getBody(), is("test"));
+    }
+
+    @Test
+    public void test_trailing_slashes_and_params() throws Exception {
+        app.routes(() -> {
+            path("test", () -> {
+                path(":id", () -> {
+                    get(ctx -> ctx.result(ctx.param("id")));
+                });
+                get(ctx -> ctx.result("test"));
+            });
+        });
+
+        TestResponse response = simpleHttpClient.http_GET(origin + "/test/param/");
+        assertThat(response.getBody(), is("param"));
+        response = simpleHttpClient.http_GET(origin + "/test/");
         assertThat(response.getBody(), is("test"));
     }
 }

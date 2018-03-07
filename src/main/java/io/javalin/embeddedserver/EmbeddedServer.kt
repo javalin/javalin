@@ -6,6 +6,9 @@
 
 package io.javalin.embeddedserver
 
+/**
+ * Defines the underlying Javalin server.
+ */
 interface EmbeddedServer {
 
     @Throws(Exception::class)

@@ -16,8 +16,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 
 
 public class TestStaticFiles {
@@ -48,6 +50,7 @@ public class TestStaticFiles {
     public void test_Html() throws Exception {
         HttpResponse<String> response = Unirest.get(origin + "/html.html").asString();
         assertThat(response.getStatus(), is(200));
+        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("text/html"));
         assertThat(response.getBody(), containsString("HTML works"));
 
     }
@@ -56,6 +59,7 @@ public class TestStaticFiles {
     public void test_getJs() throws Exception {
         HttpResponse<String> response = Unirest.get(origin + "/script.js").asString();
         assertThat(response.getStatus(), is(200));
+        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("application/javascript"));
         assertThat(response.getBody(), containsString("JavaScript works"));
     }
 
@@ -63,6 +67,7 @@ public class TestStaticFiles {
     public void test_getCss() throws Exception {
         HttpResponse<String> response = Unirest.get(origin + "/styles.css").asString();
         assertThat(response.getStatus(), is(200));
+        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("text/css"));
         assertThat(response.getBody(), containsString("CSS works"));
     }
 
