@@ -1,7 +1,6 @@
 package io.javalin.performance
 
 import com.carrotsearch.junitbenchmarks.BenchmarkOptions
-import com.carrotsearch.junitbenchmarks.BenchmarkOptions.CONCURRENCY_AVAILABLE_CORES
 import com.carrotsearch.junitbenchmarks.BenchmarkRule
 import com.carrotsearch.junitbenchmarks.Clock
 import io.javalin.Handler
@@ -9,11 +8,9 @@ import io.javalin.core.HandlerEntry
 import io.javalin.core.HandlerType
 import io.javalin.core.util.ContextUtil.urlDecode
 import io.javalin.core.util.Util
-import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestRule
 
 typealias NewHandlerEntry = HandlerEntry
 
@@ -104,8 +101,8 @@ class RouteMatcherPerformanceTest {
                 "/test/*"
         )
 
-        val oldEntries = routes.map { OldHandlerEntry(HandlerType.AFTER, it, Handler {  }) }
-        val newEntries = routes.map { NewHandlerEntry(HandlerType.AFTER, it, Handler {  }) }
+        val oldEntries = routes.map { OldHandlerEntry(HandlerType.AFTER, it, Handler { }) }
+        val newEntries = routes.map { NewHandlerEntry(HandlerType.AFTER, it, Handler { }) }
 
         val testEntries = listOf(
                 "/test/1234/some/path/here",

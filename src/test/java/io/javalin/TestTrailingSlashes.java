@@ -21,8 +21,8 @@ public class TestTrailingSlashes {
         Javalin app = Javalin.create()
             .port(0)
             .dontIgnoreTrailingSlashes()
-            .start()
-            .get("/hello", ctx -> ctx.result("Hello, slash!"));
+            .get("/hello", ctx -> ctx.result("Hello, slash!"))
+            .start();
         assertThat(getBody(app, "/hello"), is("Hello, slash!"));
         assertThat(getBody(app, "/hello/"), is("Not found"));
         app.stop();
@@ -32,8 +32,8 @@ public class TestTrailingSlashes {
     public void test_ignore_works() throws Exception {
         Javalin app = Javalin.create()
             .port(0)
-            .start()
-            .get("/hello", ctx -> ctx.result("Hello, slash!"));
+            .get("/hello", ctx -> ctx.result("Hello, slash!"))
+            .start();
         assertThat(getBody(app, "/hello"), is("Hello, slash!"));
         assertThat(getBody(app, "/hello/"), is("Hello, slash!"));
         app.stop();

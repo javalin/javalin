@@ -9,7 +9,6 @@ package io.javalin.routeoverview;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.Javalin;
-import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.util.HandlerImplementation;
 import static io.javalin.ApiBuilder.delete;
 import static io.javalin.ApiBuilder.get;
@@ -39,7 +38,7 @@ public class VisualTest {
         app.after("*", VisualTest.lambdaField);
         app.head("/check/the/head", VisualTest::methodReference);
         app.get("/:path1/:path2", VisualTest.lambdaField);
-        app.post("/user/create",  VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
+        app.post("/user/create", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
         app.put("/user/:user-id", VisualTest.lambdaField);
         app.patch("/patchy-mcpatchface", new ImplementingClass(), roles(ROLE_ONE, ROLE_TWO));
         app.delete("/users/:user-id", new HandlerImplementation());

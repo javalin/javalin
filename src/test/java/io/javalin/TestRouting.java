@@ -10,7 +10,6 @@ package io.javalin;
 import io.javalin.util.TestResponse;
 import java.net.URLEncoder;
 import org.junit.Test;
-
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.ApiBuilder.path;
 import static org.hamcrest.MatcherAssert.assertThat;
