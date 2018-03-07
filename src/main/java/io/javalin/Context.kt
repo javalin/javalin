@@ -87,11 +87,15 @@ class Context(private val servletResponse: HttpServletResponse,
         return UploadUtil.getUploadedFiles(servletRequest, fileName)
     }
 
-    fun multipartFormParam(formParam: String): String? = multipartFormParams(formParam).firstOrNull()
+    fun multipartFormParam(formParam: String): String? = multipartFormParams(formParam)?.firstOrNull()
 
-    fun multipartFormParams(formParam: String): List<String> {
+    fun multipartFormParamOrDefault(formParam: String, defaultValue: String): String = multipartFormParam(formParam) ?: defaultValue
+
+    fun multipartFormParams(formParam: String): List<String>? = multipartFormParamMap()[formParam]
+
+    fun multipartFormParamMap(): Map<String, List<String>> {
         Util.ensureDependencyPresent("FileUpload", "org.apache.commons.fileupload.servlet.ServletFileUpload", "commons-fileupload/commons-fileupload")
-        return UploadUtil.getMultipartFormParams(servletRequest, formParam)
+        return UploadUtil.getMultipartFormParamMap(servletRequest)
     }
 
     fun formParam(formParam: String): String? = formParams(formParam)?.get(0)

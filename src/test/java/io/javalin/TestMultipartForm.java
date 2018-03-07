@@ -16,28 +16,39 @@ public class TestMultipartForm extends _UnirestBaseTest {
     // Using OkHttp because Unirest doesn't allow to send non-files as form-data
     private final OkHttpClient okHttp = new OkHttpClient();
 
-    private static final String EXPECTED_CONTENT = "foo: foo-1, foo-2; bar: bar-1";
-
     @Test
-    public void testSubmitMultipartForm() throws Exception {
-        app.post("/testMultipartForm", ctx -> {
+    public void testMultipartFormTextFields() throws Exception {
+        app.post("/testMultipartForm_text", ctx -> {
             List<String> foos = ctx.multipartFormParams("foo");
+            List<String> foosExtractedManually = ctx.multipartFormParamMap().get("foo");
+
             String bar = ctx.multipartFormParam("bar");
-            ctx.result(String.format("foo: %s, %s; bar: %s", foos.get(0), foos.get(1), bar));
+            String baz = ctx.multipartFormParamOrDefault("baz", "default");
+
+            ctx.result("foos match: " + foos.equals(foosExtractedManually) + "\n"
+                    + "foo: " + String.join(", ", foos) + "\n"
+                    + "bar: " + bar + "\n"
+                    + "baz: " + baz
+            );
         });
 
         RequestBody body = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("foo", "foo-1")
-                .addFormDataPart("foo", "foo-2")
                 .addFormDataPart("bar", "bar-1")
+                .addFormDataPart("foo", "foo-2")
                 .build();
 
-        Request request = new Request.Builder().url(_UnirestBaseTest.origin + "/testMultipartForm").post(body).build();
+        Request request = new Request.Builder().url(_UnirestBaseTest.origin + "/testMultipartForm_text").post(body).build();
 
         String responseAsString = okHttp.newCall(request).execute().body().string();
 
-        assertThat(responseAsString, is(EXPECTED_CONTENT));
+        String expectedContent = "foos match: true" + "\n"
+                + "foo: foo-1, foo-2" + "\n"
+                + "bar: bar-1" + "\n"
+                + "baz: default";
+
+        assertThat(responseAsString, is(expectedContent));
 
         app.stop();
     }
