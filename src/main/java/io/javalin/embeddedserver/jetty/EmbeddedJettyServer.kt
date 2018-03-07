@@ -9,6 +9,7 @@ package io.javalin.embeddedserver.jetty
 import io.javalin.core.JavalinServlet
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
+import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -45,6 +46,8 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
                 }
                 jettyRequest.isHandled = true
             }
+        }.apply {
+            mimeTypes = MimeTypes()
         }
 
         val webSocketHandler = ServletContextHandler(parent, javalinServlet.contextPath).apply {
