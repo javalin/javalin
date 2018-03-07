@@ -11,6 +11,12 @@ import org.eclipse.jetty.websocket.api.*
 import org.eclipse.jetty.websocket.common.WebSocketSession
 import java.net.InetSocketAddress
 
+/**
+ * The [WsSession] class is a wrapper for Jetty's [Session].
+ * It adds functionality for extracting query params, identical to
+ * the API found in [io.javalin.Context].
+ * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
+ */
 class WsSession(val id: String, session: Session) : Session {
 
     private val webSocketSession = session as WebSocketSession
