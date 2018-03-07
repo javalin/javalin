@@ -45,7 +45,7 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
-        path = (path + "/").replaceAll("/{2,}", "/");
+        path = path.startsWith("/") ? path : "/" + path;
         pathDeque.addLast(path);
         endpointGroup.addEndpoints();
         pathDeque.removeLast();
@@ -259,7 +259,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void before(@NotNull Handler handler) {
-        staticInstance().before(prefixPath("*"), handler);
+        staticInstance().before(prefixPath("/*"), handler);
     }
 
     /**
@@ -269,7 +269,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void after(@NotNull Handler handler) {
-        staticInstance().after(prefixPath("*"), handler);
+        staticInstance().after(prefixPath("/*"), handler);
     }
 
     /**

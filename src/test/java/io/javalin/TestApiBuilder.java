@@ -86,13 +86,13 @@ public class TestApiBuilder extends _UnirestBaseTest {
     @Test
     public void test_pathWorks_forFilters() throws Exception {
         app.routes(() -> {
-            path("/level-1", () -> {
-                before("/*", ctx -> ctx.result("1"));
-                path("/level-2", () -> {
-                    path("/level-3", () -> {
+            path("level-1", () -> {
+                before(ctx -> ctx.result("1"));
+                path("level-2", () -> {
+                    path("level-3", () -> {
                         get("/hello", updateAnswer("Hello"));
                     });
-                    after("/*", updateAnswer("2"));
+                    after(updateAnswer("2"));
                 });
             });
         });
