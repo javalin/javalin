@@ -9,7 +9,11 @@ package io.javalin
 import java.io.InputStream
 
 /**
- * Description of a file uploaded as a multipart content
+ * Data class containing the content and meta-info of an uploaded file.
+ * [contentType]: the content-type passed by the client
+ * [inputStream]: the file-content as an [InputStream]
+ * [name]: the file-name reported by the client
+ * [extension]: the file-extension, extracted from the [name]
  * @see Context.uploadedFile
  * @see <a href="https://javalin.io/documentation#faq">Uploads in FAQ</a>
  */
@@ -24,7 +28,7 @@ enum class LogLevel { EXTENSIVE, STANDARD, MINIMAL, OFF; }
 
 /**
  * Auth credentials for basic HTTP authorization.
+ * Contains the Base64 decoded [username] and [password] from the Authorization header.
  * @see Context.basicAuthCredentials
- * @see <a href="https://javalin.io/documentation#faq">Authorization in FAQ</a>
  */
 data class BasicAuthCredentials(val username: String, val password: String)
