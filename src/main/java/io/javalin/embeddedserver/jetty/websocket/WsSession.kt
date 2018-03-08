@@ -32,6 +32,7 @@ class WsSession(val id: String, session: Session) : Session {
 
     // interface overrides + equals/hash
     override fun close() = webSocketSession.close()
+
     override fun close(closeStatus: CloseStatus) = webSocketSession.close(closeStatus)
     override fun close(statusCode: Int, reason: String) = webSocketSession.close(statusCode, reason)
     override fun disconnect() = webSocketSession.disconnect()

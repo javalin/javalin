@@ -7,8 +7,9 @@
 package io.javalin;
 
 /**
- * Basic interface for endpoint action. A handler has a void return type, so you have to use
- * {@link Context#result} to return data to the user.
+ * Main interface for endpoint actions. A handler has a void return type,
+ * so you have to use {@link Context#result} to return data to the client.
+ *
  * @see Context
  * @see <a href="https://javalin.io/documentation#handlers">Handler in documentation</a>
  */

@@ -9,12 +9,13 @@ package io.javalin.security;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.core.HandlerType;
-
 import java.util.List;
 
 /**
- * The access manager is a way of implementing per endpoint security management. It is enabled
- * only for the endpoints where restricted list of roles is provided.
+ * The access manager is a way of implementing per-endpoint security management.
+ * It's only enabled for endpoints if a list of roles is provided.
+ * Ex: get("/secured", SecuredController::get, roles(LOGGED_IN));
+ *
  * @see Role
  * @see io.javalin.Javalin#addHandler(HandlerType, String, Handler, List)
  * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>

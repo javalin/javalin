@@ -7,8 +7,9 @@
 package io.javalin;
 
 /**
- * A handler for use with {@link Javalin#exception(Class, ExceptionHandler)} and process general exceptions
- * which {@link Handler} can produce.
+ * A handler for use with {@link Javalin#exception(Class, ExceptionHandler)}.
+ * Is triggered when exceptions are thrown by a {@link Handler}.
+ *
  * @see Context
  * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
  */
