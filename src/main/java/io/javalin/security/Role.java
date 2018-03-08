@@ -10,8 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Base interface for roles used in {@link AccessManager}
- *
+ * Base interface for role used in {@link AccessManager}. List of roles should be provided to endpoint definition
+ * to enable access management there.
  * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
  */
 public interface Role {

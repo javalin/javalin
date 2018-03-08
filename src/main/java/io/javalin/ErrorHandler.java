@@ -6,7 +6,13 @@
 
 package io.javalin;
 
+/**
+ * A handler for use with {@link Javalin#error(int, ErrorHandler)} which triggers on context result codes produced by
+ * general {@link Handler}.
+ * @see Context
+ * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
+ */
 @FunctionalInterface
 public interface ErrorHandler {
-    void handle(Context ctx);  // similar to handler, can't throw exception
+    void handle(Context ctx);
 }
