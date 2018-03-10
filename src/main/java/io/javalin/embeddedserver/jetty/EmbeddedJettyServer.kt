@@ -11,6 +11,7 @@ import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.Request.__MULTIPART_CONFIG_ELEMENT
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerList
@@ -22,12 +23,21 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
+import javax.servlet.MultipartConfigElement
+import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
+class EmbeddedJettyServer(
+        private val server: Server,
+        private val javalinServlet: JavalinServlet,
+
+        temporaryFilesLocation: String
+) : EmbeddedServer {
 
     private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
+
+    private val multipartConfig = MultipartConfigElement(temporaryFilesLocation)
 
     val parent = null // javalin handlers are orphans
 
@@ -39,6 +49,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
                 try {
                     request.setAttribute("jetty-target", target)
                     request.setAttribute("jetty-request", jettyRequest)
+                    request.setAttribute(__MULTIPART_CONFIG_ELEMENT, multipartConfig)
                     javalinServlet.service(request, response)
                 } catch (e: Exception) {
                     log.error("Exception occurred while servicing http-request", e)

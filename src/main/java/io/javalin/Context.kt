@@ -8,14 +8,17 @@ package io.javalin
 
 import io.javalin.builder.CookieBuilder
 import io.javalin.core.util.*
+import io.javalin.core.util.CookieStoreUtil.name
 import io.javalin.translator.json.JavalinJacksonPlugin
 import io.javalin.translator.markdown.JavalinCommonmarkPlugin
 import io.javalin.translator.template.JavalinFreemarkerPlugin
 import io.javalin.translator.template.JavalinMustachePlugin
 import io.javalin.translator.template.JavalinThymeleafPlugin
 import io.javalin.translator.template.JavalinVelocityPlugin
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.nio.file.Paths
 import java.util.concurrent.CompletionStage
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
@@ -131,8 +134,14 @@ class Context(private val servletResponse: HttpServletResponse,
      * Requires Apache commons-fileupload library in the classpath.
      */
     fun uploadedFiles(fileName: String): List<UploadedFile> {
-        Util.ensureDependencyPresent("FileUpload", "org.apache.commons.fileupload.servlet.ServletFileUpload", "commons-fileupload/commons-fileupload")
-        return UploadUtil.getUploadedFiles(servletRequest, fileName)
+        return servletRequest.parts.filter { it.name == fileName }.map { filePart ->
+            UploadedFile(
+                    contentType = filePart.contentType,
+                    content = filePart.inputStream,
+                    name = Paths.get(filePart.submittedFileName).fileName.toString(),
+                    extension = filePart.name.replaceBeforeLast(".", "")
+            )
+        }
     }
 
     /**
