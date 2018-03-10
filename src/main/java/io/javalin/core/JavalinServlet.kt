@@ -93,8 +93,8 @@ class JavalinServlet(
                     }
                 } else {
                     resultStream.copyTo(res.outputStream)
-                    res.outputStream.close()
                 }
+                res.outputStream.close()
             }
         }
 
