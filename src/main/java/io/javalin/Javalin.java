@@ -29,15 +29,18 @@ import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
 public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
@@ -395,13 +398,15 @@ public class Javalin {
      * @see ApiBuilder
      */
     public Javalin routes(@NotNull ApiBuilder.EndpointGroup endpointGroup) {
-        ApiBuilder.setStaticJavalin(this);
-        endpointGroup.addEndpoints();
-        ApiBuilder.clearStaticJavalin();
+        synchronized (ApiBuilder.class) {
+            ApiBuilder.setStaticJavalin(this);
+            endpointGroup.addEndpoints();
+            ApiBuilder.clearStaticJavalin();
+        }
         return this;
     }
 
-    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, List<Role> roles) {
+    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, @Nullable List<Role> roles) {
         String prefixedPath = Util.INSTANCE.prefixContextPath(path, contextPath);
         Handler handlerWrap = roles == null ? handler : ctx -> accessManager.manage(handler, ctx, roles);
         pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, prefixedPath, handlerWrap));
@@ -506,7 +511,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin get(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.GET, path, handler, permittedRoles);
     }
 
@@ -518,7 +523,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin post(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.POST, path, handler, permittedRoles);
     }
 
@@ -530,7 +535,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin put(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.PUT, path, handler, permittedRoles);
     }
 
@@ -542,7 +547,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin patch(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.PATCH, path, handler, permittedRoles);
     }
 
@@ -554,7 +559,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin delete(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.DELETE, path, handler, permittedRoles);
     }
 
@@ -566,7 +571,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin head(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.HEAD, path, handler, permittedRoles);
     }
 
@@ -578,7 +583,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin trace(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin trace(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.TRACE, path, handler, permittedRoles);
     }
 
@@ -590,7 +595,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin connect(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin connect(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.CONNECT, path, handler, permittedRoles);
     }
 
@@ -602,7 +607,7 @@ public class Javalin {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public Javalin options(@NotNull String path, @NotNull Handler handler, @Nullable List<Role> permittedRoles) {
         return addHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
     }
 
