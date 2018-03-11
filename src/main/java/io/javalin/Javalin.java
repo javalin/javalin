@@ -59,6 +59,7 @@ public class Javalin {
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
     private long maxRequestCacheBodySize = Long.MAX_VALUE;
+    private String temporaryFilesLocation = "temp";
 
     private EventManager eventManager = new EventManager();
 
@@ -113,18 +114,21 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(
-                    contextPath,
-                    pathMatcher,
-                    exceptionMapper,
-                    errorMapper,
-                    pathWsHandlers,
-                    logLevel,
-                    dynamicGzipEnabled,
-                    defaultContentType,
-                    defaultCharacterEncoding,
-                    maxRequestCacheBodySize
-                ), staticFileConfig);
+                embeddedServer = embeddedServerFactory.create(
+                    new JavalinServlet(
+                        contextPath,
+                        pathMatcher,
+                        exceptionMapper,
+                        errorMapper,
+                        pathWsHandlers,
+                        logLevel,
+                        dynamicGzipEnabled,
+                        defaultContentType,
+                        defaultCharacterEncoding,
+                        maxRequestCacheBodySize
+                    ),
+                    staticFileConfig,
+                    temporaryFilesLocation);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
                 log.info("Javalin has started \\o/");
@@ -179,7 +183,7 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to serves static files from path in classpath.
+     * Configure instance to serve static files from path in classpath.
      * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
@@ -190,7 +194,7 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to serves static files from path in the given location.
+     * Configure instance to serve static files from path in the given location.
      * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
@@ -199,6 +203,19 @@ public class Javalin {
     public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         staticFileConfig.add(new StaticFileConfig(path, location));
+        return this;
+    }
+
+    /**
+     * Configure instance to use given path as a temporary location of multipart file data.
+     * Default value is a folder named temp made in run location.
+     *
+     * @see Context#uploadedFile(String)
+     * @see javax.servlet.MultipartConfigElement
+     */
+    public Javalin temporaryFilesLocation(@NotNull String path) {
+        ensureActionIsPerformedBeforeServerStart("Changing temporary file path");
+        temporaryFilesLocation = path;
         return this;
     }
 

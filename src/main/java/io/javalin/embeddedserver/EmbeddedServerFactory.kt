@@ -15,5 +15,5 @@ import io.javalin.core.JavalinServlet
  */
 interface EmbeddedServerFactory {
 
-    fun create(javalinServlet: JavalinServlet, staticFileConfig: List<StaticFileConfig>): EmbeddedServer
+    fun create(javalinServlet: JavalinServlet, staticFileConfig: List<StaticFileConfig>, temporaryFilesLocation: String): EmbeddedServer
 }
