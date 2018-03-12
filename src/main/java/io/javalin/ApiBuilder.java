@@ -9,11 +9,14 @@ package io.javalin;
 import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Static methods for routes definitions in Javalin
@@ -37,6 +40,7 @@ public class ApiBuilder {
 
     private static Javalin staticJavalin;
     private static Deque<String> pathDeque = new ArrayDeque<>();
+    private static Deque<Role> roleDeque = new ArrayDeque<>();
 
     /**
      * Prefixes all handlers defined in its scope with the specified path.
@@ -49,6 +53,24 @@ public class ApiBuilder {
         pathDeque.addLast(path);
         endpointGroup.addEndpoints();
         pathDeque.removeLast();
+    }
+
+    /**
+     * Wraps an endpoint group using the current AccessManager and adds it to the instance
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void role(@NotNull Role role, @NotNull EndpointGroup endpointGroup) {
+        roleDeque.addLast(role);
+        endpointGroup.addEndpoints();
+        roleDeque.removeLast();
+    }
+
+    @Nullable
+    private static List<Role> getRoles() {
+        return roleDeque.isEmpty() ? null : new ArrayList<>(roleDeque);
     }
 
     private static String prefixPath(@NotNull String path) {
@@ -71,7 +93,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().get(prefixPath(path), handler);
+        staticInstance().get(prefixPath(path), handler, getRoles());
     }
 
     /**
@@ -81,7 +103,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().post(prefixPath(path), handler);
+        staticInstance().post(prefixPath(path), handler, getRoles());
     }
 
     /**
@@ -91,7 +113,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().put(prefixPath(path), handler);
+        staticInstance().put(prefixPath(path), handler, getRoles());
     }
 
     /**
@@ -101,7 +123,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().patch(prefixPath(path), handler);
+        staticInstance().patch(prefixPath(path), handler, getRoles());
     }
 
     /**
@@ -111,7 +133,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().delete(prefixPath(path), handler);
+        staticInstance().delete(prefixPath(path), handler, getRoles());
     }
 
     // Filters
@@ -147,7 +169,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().get(prefixPath(path), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().get(prefixPath(path), handler, roles);
     }
 
     /**
@@ -159,7 +183,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().post(prefixPath(path), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().post(prefixPath(path), handler, roles);
     }
 
     /**
@@ -171,7 +197,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().put(prefixPath(path), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().put(prefixPath(path), handler, roles);
     }
 
     /**
@@ -183,7 +211,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().patch(prefixPath(path), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().patch(prefixPath(path), handler, roles);
     }
 
     /**
@@ -195,7 +225,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().delete(prefixPath(path), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().delete(prefixPath(path), handler, roles);
     }
 
     // HTTP verbs (no path specified)
@@ -207,7 +239,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler) {
-        staticInstance().get(prefixPath(""), handler);
+        staticInstance().get(prefixPath(""), handler, getRoles());
     }
 
     /**
@@ -217,7 +249,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler) {
-        staticInstance().post(prefixPath(""), handler);
+        staticInstance().post(prefixPath(""), handler, getRoles());
     }
 
     /**
@@ -227,7 +259,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler) {
-        staticInstance().put(prefixPath(""), handler);
+        staticInstance().put(prefixPath(""), handler, getRoles());
     }
 
     /**
@@ -237,7 +269,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler) {
-        staticInstance().patch(prefixPath(""), handler);
+        staticInstance().patch(prefixPath(""), handler, getRoles());
     }
 
     /**
@@ -247,7 +279,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler) {
-        staticInstance().delete(prefixPath(""), handler);
+        staticInstance().delete(prefixPath(""), handler, getRoles());
     }
 
     // Filters
@@ -282,7 +314,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().get(prefixPath(""), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().get(prefixPath(""), handler, roles);
     }
 
     /**
@@ -295,7 +329,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().post(prefixPath(""), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().post(prefixPath(""), handler, roles);
     }
 
     /**
@@ -308,7 +344,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().put(prefixPath(""), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().put(prefixPath(""), handler, roles);
     }
 
     /**
@@ -321,7 +359,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().patch(prefixPath(""), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().patch(prefixPath(""), handler, roles);
     }
 
     /**
@@ -334,7 +374,9 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
-        staticInstance().delete(prefixPath(""), handler, permittedRoles);
+        ArrayList<Role> roles = new ArrayList<>(permittedRoles);
+        roles.addAll(roleDeque);
+        staticInstance().delete(prefixPath(""), handler, roles);
     }
 
     /**

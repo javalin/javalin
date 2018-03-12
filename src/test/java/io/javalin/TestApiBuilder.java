@@ -8,15 +8,12 @@
 package io.javalin;
 
 import com.mashape.unirest.http.HttpMethod;
+import io.javalin.security.Role;
 import org.junit.Test;
-import static io.javalin.ApiBuilder.after;
-import static io.javalin.ApiBuilder.before;
-import static io.javalin.ApiBuilder.delete;
-import static io.javalin.ApiBuilder.get;
-import static io.javalin.ApiBuilder.patch;
-import static io.javalin.ApiBuilder.path;
-import static io.javalin.ApiBuilder.post;
-import static io.javalin.ApiBuilder.put;
+
+import java.util.Collections;
+
+import static io.javalin.ApiBuilder.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -99,6 +96,42 @@ public class TestApiBuilder extends _UnirestBaseTest {
         assertThat(GET_body("/level-1/level-2/level-3/hello"), is("1Hello2"));
     }
 
+    @Test
+    public void test_pathWorks_forRoles() throws Exception {
+        app.accessManager((handler, ctx, permittedRoles) -> {
+            StringBuilder roles = new StringBuilder();
+            permittedRoles.forEach((it) -> roles.append(it.getClass().getSimpleName()));
+            ctx.result(roles.toString());
+        });
+
+        app.routes(() -> {
+            role(new Role1(), () -> {
+                get("role1", ctx -> {});
+            });
+
+            role(new Role2(), () -> {
+                get("role2", ctx -> {});
+
+                role(new Role1(), () -> {
+                    get("both", ctx -> {});
+                });
+
+                get("combined", ctx -> {}, Collections.singletonList(new Role1()));
+            });
+
+            get("without", ctx -> {
+                if (ctx.resultStream() == null) {
+                    ctx.result("passed");
+                }
+            });
+        });
+        assertThat(GET_body("/role1"), is("Role1"));
+        assertThat(GET_body("/role2"), is("Role2"));
+        assertThat(GET_body("/both"), is("Role2Role1"));
+        assertThat(GET_body("/combined"), is("Role1Role2"));
+        assertThat(GET_body("/without"), is("passed"));
+    }
+
     private Handler updateAnswer(String body) {
         return ctx -> ctx.result(ctx.resultString() + body);
     }
@@ -108,5 +141,7 @@ public class TestApiBuilder extends _UnirestBaseTest {
         get("/null-static", ctx -> ctx.result("Shouldn't work"));
     }
 
+    class Role1 implements Role { }
+    class Role2 implements Role { }
 }
 
