@@ -190,7 +190,7 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to serves static files from path in the given location.
+     * Configure instance to serves static files from path in the specified location.
      * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
@@ -416,7 +416,7 @@ public class Javalin {
     // HTTP verbs
 
     /**
-     * Adds a GET request handler for the given path to the instance.
+     * Adds a GET request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -425,7 +425,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a POST request handler for the given path to the instance.
+     * Adds a POST request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -434,7 +434,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a PUT request handler for the given path to the instance.
+     * Adds a PUT request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -443,7 +443,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a PATCH request handler for the given path to the instance.
+     * Adds a PATCH request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -452,7 +452,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a DELETE request handler for the given path to the instance.
+     * Adds a DELETE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -461,7 +461,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a HEAD request handler for the given path to the instance.
+     * Adds a HEAD request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -470,7 +470,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a TRACE request handler for the given path to the instance.
+     * Adds a TRACE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -479,7 +479,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a CONNECT request handler for the given path to the instance.
+     * Adds a CONNECT request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -488,7 +488,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a OPTIONS request handler for the given path to the instance.
+     * Adds a OPTIONS request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -668,7 +668,7 @@ public class Javalin {
     private Map<String, Object> pathWsHandlers = new HashMap<>();
 
     /**
-     * Adds a lambda handler for a WebSocket connection on the given path.
+     * Adds a lambda handler for a WebSocket connection on the specified path.
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
@@ -680,7 +680,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a Jetty annotated class as a handler for a WebSocket connection on the given path.
+     * Adds a Jetty annotated class as a handler for a WebSocket connection on the specified path.
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
@@ -690,7 +690,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a Jetty WebSocket object as a handler for a WebSocket connection on the given path.
+     * Adds a Jetty WebSocket object as a handler for a WebSocket connection on the specified path.
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
