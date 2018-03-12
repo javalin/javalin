@@ -11,6 +11,7 @@ import com.mashape.unirest.http.Unirest;
 import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.util.UploadInfo;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,7 +25,7 @@ public class TestMultipartForms {
     public void test_upload_text() throws Exception {
         Javalin app = Javalin.start(0);
         app.post("/test-upload", ctx -> {
-            ctx.result(IOUtils.toString(ctx.uploadedFile("upload").getContent()));
+            ctx.result(IOUtils.toString(ctx.uploadedFile("upload").getContent(), StandardCharsets.UTF_8));
         });
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
             .field("upload", new File("src/test/resources/upload-test/text.txt"))
@@ -68,6 +69,31 @@ public class TestMultipartForms {
         assertThat(uploadInfo.getFilename(), is(uploadFile.getName()));
         assertThat(uploadInfo.getContentType(), is("image/png"));
         assertThat(uploadInfo.getExtension(), is(".png"));
+        app.stop();
+    }
+
+    @Test
+    public void test_multipleFiles() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.post("/test-upload", ctx -> ctx.result(String.valueOf(ctx.uploadedFiles("upload").size())));
+        HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
+            .field("upload", new File("src/test/resources/upload-test/image.png"))
+            .field("upload", new File("src/test/resources/upload-test/sound.mp3"))
+            .field("upload", new File("src/test/resources/upload-test/text.txt"))
+            .asString();
+        assertThat(response.getBody(), is("3"));
+        app.stop();
+    }
+
+    @Test
+    public void test_doesntCrash_whenNotMultipart() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.post("/test-upload", ctx -> {
+            ctx.uploadedFile("non-existing-file");
+            ctx.result("OK");
+        });
+        HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload").asString();
+        assertThat(response.getBody(), is("OK"));
         app.stop();
     }
 
