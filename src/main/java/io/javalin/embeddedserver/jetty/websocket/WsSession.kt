@@ -17,7 +17,7 @@ import java.net.InetSocketAddress
  * the API found in [io.javalin.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-class WsSession(val id: String, session: Session) : Session {
+class WsSession(val id: String, session: Session, internal var paramMap: Map<String, String>) : Session {
 
     private val webSocketSession = session as WebSocketSession
 
@@ -29,6 +29,8 @@ class WsSession(val id: String, session: Session) : Session {
     fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
+    fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
+    fun paramMap(): Map<String, String> = paramMap.toMap()
 
     // interface overrides + equals/hash
 

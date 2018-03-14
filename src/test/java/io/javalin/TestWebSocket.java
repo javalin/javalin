@@ -139,6 +139,28 @@ public class TestWebSocket {
         app.stop();
     }
 
+    @Test
+    public void test_path_params() throws Exception {
+        System.out.println("test");
+        Javalin app = Javalin.create().contextPath("/websocket").port(0);
+        app.ws("/params/:1/:2/:3", ws -> {
+           ws.onConnect(session -> {
+               System.out.println(log);
+               log.add(session.param("1")+ " " + session.param("2") + " " + session.param("3"));
+           });
+        });
+        app.start();
+
+        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one/test/path"));
+        doAndSleepWhile(testClient1_1::connect, ()-> !testClient1_1.isOpen());
+        doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
+
+        assertThat(log, containsInAnyOrder(
+                "one test path"
+        ));
+        app.stop();
+    }
+
     class TestClient extends WebSocketClient {
         public TestClient(URI serverUri) {
             super(serverUri);

@@ -6,6 +6,7 @@
 
 package io.javalin.embeddedserver.jetty.websocket;
 
+import io.javalin.core.PathParser;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
@@ -23,6 +24,12 @@ import org.jetbrains.annotations.NotNull;
 
 @WebSocket
 public class WebSocketHandler {
+
+	public WebSocketHandler(@NotNull String path) {
+		pathParser = new PathParser(path);
+	}
+
+	private final PathParser pathParser;
 
     private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
 
@@ -104,7 +111,7 @@ public class WebSocketHandler {
 
     private WsSession registerAndWrapSession(Session session) {
         sessions.putIfAbsent(session, UUID.randomUUID().toString());
-        return new WsSession(sessions.get(session), session);
+        return new WsSession(sessions.get(session), session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
     }
 
 }
