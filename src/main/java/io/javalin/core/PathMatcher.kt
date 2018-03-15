@@ -11,7 +11,7 @@ import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
 import java.nio.file.PathMatcher
 
-data class PathParser(val path: String){
+class PathParser(val path: String){
     private val paramNames = path.split("/")
             .filter { it.startsWith(":") }
             .map { it.replace(":", "") }
