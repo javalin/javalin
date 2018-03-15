@@ -674,7 +674,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
-        WebSocketHandler configuredHandler = new WebSocketHandler(path);
+        WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
         ws.configure(configuredHandler);
         return addWebSocketHandler(path, configuredHandler);
     }

@@ -25,10 +25,12 @@ import org.jetbrains.annotations.NotNull;
 @WebSocket
 public class WebSocketHandler {
 
-	public WebSocketHandler(@NotNull String path) {
-		pathParser = new PathParser(path);
+	public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
+	    this.path = path;
+		pathParser = new PathParser(contextPath + path);
 	}
 
+	private final String path;
 	private final PathParser pathParser;
 
     private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
@@ -112,6 +114,10 @@ public class WebSocketHandler {
     private WsSession registerAndWrapSession(Session session) {
         sessions.putIfAbsent(session, UUID.randomUUID().toString());
         return new WsSession(sessions.get(session), session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
+    }
+
+    public String getPathWithWildcards() {
+        return path.replaceAll(":[^/?]*", "*");
     }
 
 }

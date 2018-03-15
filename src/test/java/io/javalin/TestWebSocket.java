@@ -141,22 +141,25 @@ public class TestWebSocket {
 
     @Test
     public void test_path_params() throws Exception {
-        System.out.println("test");
         Javalin app = Javalin.create().contextPath("/websocket").port(0);
-        app.ws("/params/:1/:2/:3", ws -> {
+        app.ws("/params/:1", ws -> {
            ws.onConnect(session -> {
-               System.out.println(log);
-               log.add(session.param("1")+ " " + session.param("2") + " " + session.param("3"));
+               log.add(session.param("1"));
            });
         });
         app.start();
 
-        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one/test/path"));
+        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one"));
         doAndSleepWhile(testClient1_1::connect, ()-> !testClient1_1.isOpen());
         doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
 
+        TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/this-is-a-path"));
+        doAndSleepWhile(testClient1_2::connect, ()-> !testClient1_2.isOpen());
+        doAndSleepWhile(testClient1_2::close, testClient1_2::isClosing);
+
         assertThat(log, containsInAnyOrder(
-                "one test path"
+                "one",
+                "this-is-a-path"
         ));
         app.stop();
     }
