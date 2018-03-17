@@ -142,24 +142,36 @@ public class TestWebSocket {
     @Test
     public void test_path_params() throws Exception {
         Javalin app = Javalin.create().contextPath("/websocket").port(0);
+        app.start();
+
         app.ws("/params/:1", ws -> {
+            ws.onConnect(session -> {
+                log.add(session.param("1"));
+            });
+        });
+
+        app.ws("/params/:1/test/:2/:3", ws -> {
            ws.onConnect(session -> {
-               log.add(session.param("1"));
+               log.add(session.param("1")+ " " + session.param("2")+ " " + session.param("3"));
            });
         });
-        app.start();
 
         TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one"));
         doAndSleepWhile(testClient1_1::connect, ()-> !testClient1_1.isOpen());
         doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
 
-        TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/this-is-a-path"));
+        TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/this/should/not/work"));
         doAndSleepWhile(testClient1_2::connect, ()-> !testClient1_2.isOpen());
         doAndSleepWhile(testClient1_2::close, testClient1_2::isClosing);
 
+        TestClient testClient2_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/another/test/long/path"));
+        doAndSleepWhile(testClient2_1::connect, ()-> !testClient2_1.isOpen());
+        doAndSleepWhile(testClient2_1::close, testClient2_1::isClosing);
+
+
         assertThat(log, containsInAnyOrder(
                 "one",
-                "this-is-a-path"
+                "another long path"
         ));
         app.stop();
     }

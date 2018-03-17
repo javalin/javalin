@@ -11,6 +11,9 @@ import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -26,12 +29,12 @@ import org.jetbrains.annotations.NotNull;
 public class WebSocketHandler {
 
 	public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
-	    this.path = path;
 		pathParser = new PathParser(contextPath + path);
+		params = new HashMap<>();
 	}
 
-	private final String path;
 	private final PathParser pathParser;
+	private Map<String, String> params;
 
     private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
 
@@ -76,17 +79,14 @@ public class WebSocketHandler {
         this.errorHandler = errorHandler;
     }
 
-    // Jetty annotations, nothing to see here.
-
-    @OnWebSocketConnect
     public void _internalOnConnectProxy(Session session) throws Exception {
+        params = pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath());
         WsSession wsSession = registerAndWrapSession(session);
         if (connectHandler != null) {
             connectHandler.handle(wsSession);
         }
     }
 
-    @OnWebSocketMessage
     public void _internalOnMessageProxy(Session session, String message) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (messageHandler != null) {
@@ -94,7 +94,6 @@ public class WebSocketHandler {
         }
     }
 
-    @OnWebSocketClose
     public void _internalOnCloseProxy(Session session, int statusCode, String reason) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (closeHandler != null) {
@@ -103,7 +102,6 @@ public class WebSocketHandler {
         sessions.remove(session);
     }
 
-    @OnWebSocketError
     public void _internalOnErrorProxy(Session session, Throwable throwable) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (errorHandler != null) {
@@ -111,13 +109,12 @@ public class WebSocketHandler {
         }
     }
 
+    public boolean match(String requestUri){
+        return pathParser.match(requestUri);
+    }
+
     private WsSession registerAndWrapSession(Session session) {
         sessions.putIfAbsent(session, UUID.randomUUID().toString());
-        return new WsSession(sessions.get(session), session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
+        return new WsSession(sessions.get(session), session, params);
     }
-
-    public String getPathWithWildcards() {
-        return path.replaceAll(":[^/?]*", "*");
-    }
-
 }
