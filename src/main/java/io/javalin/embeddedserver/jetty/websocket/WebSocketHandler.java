@@ -30,11 +30,9 @@ public class WebSocketHandler {
 
 	public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
 		pathParser = new PathParser(contextPath + path);
-		params = new HashMap<>();
 	}
 
 	private final PathParser pathParser;
-	private Map<String, String> params;
 
     private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
 
@@ -80,7 +78,6 @@ public class WebSocketHandler {
     }
 
     public void _internalOnConnectProxy(Session session) throws Exception {
-        params = pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath());
         WsSession wsSession = registerAndWrapSession(session);
         if (connectHandler != null) {
             connectHandler.handle(wsSession);
@@ -115,6 +112,6 @@ public class WebSocketHandler {
 
     private WsSession registerAndWrapSession(Session session) {
         sessions.putIfAbsent(session, UUID.randomUUID().toString());
-        return new WsSession(sessions.get(session), session, params);
+        return new WsSession(sessions.get(session), session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
     }
 }

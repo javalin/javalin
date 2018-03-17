@@ -15,25 +15,21 @@ class JavalinWebSocketHandler(private val handlers: List<WebSocketHandler>) {
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
-        println("Connected: " + session.upgradeRequest.requestURI.path)
         findWebSocketHandlers(session.upgradeRequest.requestURI.path).forEach { handler ->  handler._internalOnConnectProxy(session)}
     }
 
     @OnWebSocketMessage
     fun webSocketMessage(session: Session, message: String) {
-        println("Message: $message")
         findWebSocketHandlers(session.upgradeRequest.requestURI.path).forEach { handler ->  handler._internalOnMessageProxy(session, message)}
     }
 
     @OnWebSocketClose
     fun webSocketClose(session: Session, statusCode: Int, reason: String) {
-        println("Close:" + session.upgradeRequest.requestURI.path)
         findWebSocketHandlers(session.upgradeRequest.requestURI.path).forEach { handler ->  handler._internalOnCloseProxy(session, statusCode, reason)}
     }
 
     @OnWebSocketError
     fun webSocketError(session: Session, throwable: Throwable) {
-        println("Error")
         findWebSocketHandlers(session.upgradeRequest.requestURI.path).forEach { handler ->  handler._internalOnErrorProxy(session, throwable)}
     }
 
