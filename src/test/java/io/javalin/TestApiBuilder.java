@@ -99,6 +99,18 @@ public class TestApiBuilder extends _UnirestBaseTest {
         assertThat(GET_body("/level-1/level-2/level-3/hello"), is("1Hello2"));
     }
 
+    @Test
+    public void test_pathWorks_forNonSlashVerb() throws Exception {
+        app.routes(() -> {
+            path("level-1", () -> {
+                get(ctx -> ctx.result("level-1"));
+                get("hello", ctx -> ctx.result("Hello"));
+            });
+        });
+        assertThat(GET_body("/level-1"), is("level-1"));
+        assertThat(GET_body("/level-1/hello"), is("Hello"));
+    }
+
     private Handler updateAnswer(String body) {
         return ctx -> ctx.result(ctx.resultString() + body);
     }

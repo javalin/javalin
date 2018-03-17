@@ -52,7 +52,7 @@ public class ApiBuilder {
     }
 
     private static String prefixPath(@NotNull String path) {
-        return pathDeque.stream().collect(Collectors.joining("")) + path;
+        return pathDeque.stream().collect(Collectors.joining("")) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
     }
 
     private static Javalin staticInstance() {
