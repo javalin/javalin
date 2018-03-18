@@ -7,9 +7,9 @@
 package io.javalin.embeddedserver.jetty
 
 import io.javalin.core.JavalinServlet
-import io.javalin.embeddedserver.jetty.websocket.WebSocketHandlerRoot
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
+import io.javalin.embeddedserver.jetty.websocket.WebSocketHandlerRoot
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server

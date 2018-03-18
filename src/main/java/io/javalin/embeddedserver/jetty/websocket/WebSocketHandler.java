@@ -11,7 +11,6 @@ import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
-
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -22,11 +21,11 @@ import org.jetbrains.annotations.NotNull;
 @WebSocket
 public class WebSocketHandler {
 
-	public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
-		pathParser = new PathParser(contextPath + path);
-	}
+    public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
+        pathParser = new PathParser(contextPath + path);
+    }
 
-	private final PathParser pathParser;
+    private final PathParser pathParser;
 
     private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
 
@@ -100,7 +99,7 @@ public class WebSocketHandler {
         }
     }
 
-    public boolean match(String requestUri){
+    public boolean match(String requestUri) {
         return pathParser.match(requestUri);
     }
 
