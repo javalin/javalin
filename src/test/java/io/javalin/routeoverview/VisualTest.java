@@ -9,6 +9,8 @@ package io.javalin.routeoverview;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.Javalin;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
 import io.javalin.util.HandlerImplementation;
 import static io.javalin.ApiBuilder.delete;
 import static io.javalin.ApiBuilder.get;
@@ -44,6 +46,10 @@ public class VisualTest {
         app.delete("/users/:user-id", new HandlerImplementation());
         app.options("/what/:are/*/my-options", new HandlerImplementation());
         app.trace("/tracer", new HandlerImplementation());
+        app.ws("/websocket", ws -> {
+           ws.onConnect(session -> session.getRemote().sendString("Connected!"));
+        });
+        app.ws("/websocket/:path", new ImplementingClass());
         app.routes(() -> {
             path("users", () -> {
                 get(new HandlerImplementation());
@@ -69,9 +75,14 @@ public class VisualTest {
     private static Handler lambdaField = ctx -> {
     };
 
-    private static class ImplementingClass implements Handler {
+    private static class ImplementingClass implements Handler, WebSocketConfig {
         @Override
         public void handle(Context context) {
+        }
+
+        @Override
+        public void configure(WebSocketHandler webSocketHandler) {
+            webSocketHandler.onConnect(session -> session.getRemote().sendString("Connected!"));
         }
     }
 

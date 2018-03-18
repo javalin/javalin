@@ -41,12 +41,12 @@ public class TestRouteOverview_Java {
 
     @Test
     public void methodRef_works() {
-        assertThat(RouteOverviewUtil.getMetaInfo(new TestRouteOverview_Java()::methodReference), is("io.javalin.routeoverview.TestRouteOverview_Java::methodReference"));
+        assertThat(RouteOverviewUtil.getMetaInfo((Handler) new TestRouteOverview_Java()::methodReference), is("io.javalin.routeoverview.TestRouteOverview_Java::methodReference"));
     }
 
     @Test
     public void lambda_works() {
-        assertThat(RouteOverviewUtil.getMetaInfo(ctx -> ctx.result("")), is("io.javalin.routeoverview.TestRouteOverview_Java::??? (anonymous lambda)"));
+        assertThat(RouteOverviewUtil.getMetaInfo((Handler) (ctx -> ctx.result(""))), is("io.javalin.routeoverview.TestRouteOverview_Java::??? (anonymous lambda)"));
     }
 
 }
