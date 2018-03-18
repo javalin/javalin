@@ -24,7 +24,7 @@ class JavalinWebSocketHandler(private val handlers: List<WebSocketHandler>) {
     }
 
     @OnWebSocketClose
-    fun webSocketClose(session: Session, statusCode: Int, reason: String) {
+    fun webSocketClose(session: Session, statusCode: Int, reason: String?) {
         findWebSocketHandlers(session.upgradeRequest.requestURI.path).forEach { handler ->  handler._internalOnCloseProxy(session, statusCode, reason)}
     }
 
