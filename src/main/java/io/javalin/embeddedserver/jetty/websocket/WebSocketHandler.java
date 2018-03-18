@@ -6,23 +6,27 @@
 
 package io.javalin.embeddedserver.jetty.websocket;
 
+import io.javalin.core.PathParser;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
+
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.jetbrains.annotations.NotNull;
 
 @WebSocket
 public class WebSocketHandler {
+
+	public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
+		pathParser = new PathParser(contextPath + path);
+	}
+
+	private final PathParser pathParser;
 
     private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
 
@@ -67,26 +71,21 @@ public class WebSocketHandler {
         this.errorHandler = errorHandler;
     }
 
-    // Jetty annotations, nothing to see here.
-
-    @OnWebSocketConnect
-    public void _internalOnConnectProxy(Session session) throws Exception {
+    void onConnect(Session session) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (connectHandler != null) {
             connectHandler.handle(wsSession);
         }
     }
 
-    @OnWebSocketMessage
-    public void _internalOnMessageProxy(Session session, String message) throws Exception {
+    void onMessage(Session session, String message) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (messageHandler != null) {
             messageHandler.handle(wsSession, message);
         }
     }
 
-    @OnWebSocketClose
-    public void _internalOnCloseProxy(Session session, int statusCode, String reason) throws Exception {
+    void onClose(Session session, int statusCode, String reason) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (closeHandler != null) {
             closeHandler.handle(wsSession, statusCode, reason);
@@ -94,17 +93,19 @@ public class WebSocketHandler {
         sessions.remove(session);
     }
 
-    @OnWebSocketError
-    public void _internalOnErrorProxy(Session session, Throwable throwable) throws Exception {
+    void onError(Session session, Throwable throwable) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (errorHandler != null) {
             errorHandler.handle(wsSession, throwable);
         }
     }
 
-    private WsSession registerAndWrapSession(Session session) {
-        sessions.putIfAbsent(session, UUID.randomUUID().toString());
-        return new WsSession(sessions.get(session), session);
+    public boolean match(String requestUri){
+        return pathParser.match(requestUri);
     }
 
+    private WsSession registerAndWrapSession(Session session) {
+        sessions.putIfAbsent(session, UUID.randomUUID().toString());
+        return new WsSession(sessions.get(session), session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
+    }
 }

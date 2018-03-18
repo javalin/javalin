@@ -7,6 +7,7 @@
 package io.javalin.embeddedserver.jetty
 
 import io.javalin.core.JavalinServlet
+import io.javalin.embeddedserver.jetty.websocket.WebSocketHandlerRoot
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
 import org.eclipse.jetty.server.Handler
@@ -48,6 +49,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         }
 
         val webSocketHandler = ServletContextHandler(parent, javalinServlet.contextPath).apply {
+
             javalinServlet.wsHandlers.forEach { path, handler ->
                 addServlet(ServletHolder(object : WebSocketServlet() {
                     override fun configure(factory: WebSocketServletFactory) {
@@ -56,6 +58,13 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
                     }
                 }), path)
             }
+
+            addServlet(ServletHolder(object : WebSocketServlet() {
+                override fun configure(factory: WebSocketServletFactory) {
+                    factory.creator = CustomWebSocketCreator(WebSocketHandlerRoot(javalinServlet.mappedWsHandlers))
+                }
+            }), "/*")
+
         }
 
         val notFoundHandler = object : SessionHandler() {

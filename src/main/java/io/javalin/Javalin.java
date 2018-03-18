@@ -119,6 +119,7 @@ public class Javalin {
                     exceptionMapper,
                     errorMapper,
                     pathWsHandlers,
+                    mappedPathWsHandlers,
                     logLevel,
                     dynamicGzipEnabled,
                     defaultContentType,
@@ -666,17 +667,18 @@ public class Javalin {
     // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
 
     private Map<String, Object> pathWsHandlers = new HashMap<>();
+    private List<WebSocketHandler> mappedPathWsHandlers = new ArrayList<>();
 
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
-        WebSocketHandler configuredHandler = new WebSocketHandler();
+        WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
         ws.configure(configuredHandler);
-        return addWebSocketHandler(path, configuredHandler);
+        mappedPathWsHandlers.add(configuredHandler);
+        return this;
     }
 
     /**

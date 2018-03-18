@@ -11,7 +11,7 @@ import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
 import java.nio.file.PathMatcher
 
-data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
+class PathParser(val path: String){
     private val paramNames = path.split("/")
             .filter { it.startsWith(":") }
             .map { it.replace(":", "") }
@@ -64,6 +64,17 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
         }
         return result
     }
+
+}
+
+data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
+    private val parser: PathParser = PathParser(path)
+
+    fun match(requestUri: String) = parser.match(requestUri)
+
+    fun extractParams(requestUri: String): Map<String, String> = parser.extractParams(requestUri)
+
+    fun extractSplats(requestUri: String): List<String> = parser.extractSplats(requestUri)
 }
 
 class PathMatcher {
