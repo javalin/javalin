@@ -12,16 +12,10 @@ import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,21 +71,21 @@ public class WebSocketHandler {
         this.errorHandler = errorHandler;
     }
 
-    public void _internalOnConnectProxy(Session session) throws Exception {
+    void onConnect(Session session) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (connectHandler != null) {
             connectHandler.handle(wsSession);
         }
     }
 
-    public void _internalOnMessageProxy(Session session, String message) throws Exception {
+    void onMessage(Session session, String message) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (messageHandler != null) {
             messageHandler.handle(wsSession, message);
         }
     }
 
-    public void _internalOnCloseProxy(Session session, int statusCode, String reason) throws Exception {
+    void onClose(Session session, int statusCode, String reason) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (closeHandler != null) {
             closeHandler.handle(wsSession, statusCode, reason);
@@ -99,7 +93,7 @@ public class WebSocketHandler {
         sessions.remove(session);
     }
 
-    public void _internalOnErrorProxy(Session session, Throwable throwable) throws Exception {
+    void onError(Session session, Throwable throwable) throws Exception {
         WsSession wsSession = registerAndWrapSession(session);
         if (errorHandler != null) {
             errorHandler.handle(wsSession, throwable);
