@@ -8,13 +8,12 @@
 
 package io.javalin.core.util
 
-import io.javalin.Handler
 import io.javalin.Javalin
 import io.javalin.core.HandlerType
 import io.javalin.security.Role
 import sun.reflect.ConstantPool
 
-data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Handler, val roles: List<Role>?)
+data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: List<Role>?)
 
 fun enableRouteOverview(path: String, app: Javalin) = app.get(path) { ctx -> ctx.html(createHtmlOverview(app)) }
 
@@ -98,6 +97,11 @@ internal fun createHtmlOverview(app: Javalin): String {
             .BEFORE, .AFTER {
                 background: #777;
             }
+
+            .WEBSOCKET {
+                background: #546E7A;
+            }
+
         </style>
         <body>
             <table>
@@ -114,7 +118,12 @@ internal fun createHtmlOverview(app: Javalin): String {
                     <tr class="method $httpMethod">
                         <td>$httpMethod</span></td>
                         <td>$path</td>
-                        <td><b>${handler.metaInfo}</b></td>
+                        <td><b>${if(handler is Class<*>){
+                           handler.name + ".class"
+                        }else{
+                           handler.metaInfo
+                        }
+                        }</b></td>
                         <td>${roles?.toString() ?: "-"}</td>
                     </tr>
                     """
@@ -142,20 +151,20 @@ internal fun createHtmlOverview(app: Javalin): String {
 
 private const val lambdaSign = "??? (anonymous lambda)"
 
-private val Handler.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
-private val Handler.implementingClassName: String? get() = this.javaClass.name
+private val Any.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
+private val Any.implementingClassName: String? get() = this.javaClass.name
 
-private val Handler.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
-private val Handler.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
-private val Handler.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
+private val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
+private val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
+private val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
 
-private val Handler.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
-private val Handler.isJavaMethodReference: Boolean get() = this.methodName != null
-private val Handler.isJavaField: Boolean get() = this.javaFieldName != null
+private val Any.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
+private val Any.isJavaMethodReference: Boolean get() = this.methodName != null
+private val Any.isJavaField: Boolean get() = this.javaFieldName != null
 
 private fun Any.runMethod(name: String): Any = this.javaClass.getMethod(name).apply { isAccessible = true }.invoke(this)
 
-internal val Handler.metaInfo: String
+internal val Any.metaInfo: String
     get() {
         // this is just guesswork...
         return when {
@@ -176,17 +185,17 @@ internal val Handler.metaInfo: String
         }
     }
 
-private val Handler.kotlinFieldName // this is most likely a very stupid solution
+private val Any.kotlinFieldName // this is most likely a very stupid solution
     get() = this.javaClass.toString().removePrefix(this.parentClass.toString() + "$").takeWhile { it != '$' }
 
-private val Handler.javaFieldName: String?
+private val Any.javaFieldName: String?
     get() = try {
         parentClass.declaredFields.find { it.isAccessible = true; it.get(it) == this }?.name
     } catch (ignored: Exception) { // Nothing really matters.
         null
     }
 
-private val Handler.methodName: String?
+private val Any.methodName: String?
     get() {
         val constantPool = Class::class.java.getDeclaredMethod("getConstantPool").apply { isAccessible = true }.invoke(javaClass) as ConstantPool
         for (i in constantPool.size downTo 0) {

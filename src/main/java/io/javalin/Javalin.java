@@ -680,6 +680,7 @@ public class Javalin {
         WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
         ws.configure(configuredHandler);
         javalinWsHandlers.add(configuredHandler);
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), ws, null));
         return this;
     }
 
@@ -690,6 +691,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), webSocketClass, null));
         return addWebSocketHandler(path, webSocketClass);
     }
 
@@ -700,6 +702,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), webSocketObject, null));
         return addWebSocketHandler(path, webSocketObject);
     }
 
