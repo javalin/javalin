@@ -12,6 +12,10 @@ import io.javalin.Javalin;
 import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
 import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
 import io.javalin.util.HandlerImplementation;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+
 import static io.javalin.ApiBuilder.delete;
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.ApiBuilder.patch;
@@ -26,10 +30,14 @@ public class VisualTest {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create()
-            .contextPath("/context-path")
-            .enableRouteOverview("/route-overview")
-            .enableCorsForAllOrigins()
-            .start();
+                .contextPath("/context-path")
+                .enableRouteOverview("/route-overview")
+                .enableCorsForAllOrigins();
+        app.ws("/websocket/jetty-class", TestWebSocketHandler.class);
+        app.ws("/websocket/jetty-object", new TestWebSocketHandler());
+
+        app.start();
+
         app.get("/", ctx -> ctx.redirect("/route-overview"));
         app.get("/just-some-path", new HandlerImplementation());
         app.post("/test/:hmm/", VisualTest::methodReference);
@@ -47,7 +55,7 @@ public class VisualTest {
         app.options("/what/:are/*/my-options", new HandlerImplementation());
         app.trace("/tracer", new HandlerImplementation());
         app.ws("/websocket", ws -> {
-           ws.onConnect(session -> session.getRemote().sendString("Connected!"));
+            ws.onConnect(session -> session.getRemote().sendString("Connected!"));
         });
         app.ws("/websocket/:path", new ImplementingClass());
         app.routes(() -> {
@@ -87,6 +95,16 @@ public class VisualTest {
     }
 
     private static void methodReference(Context context) {
+    }
+
+    @WebSocket
+    public static class TestWebSocketHandler {
+
+        @OnWebSocketConnect
+        public void onConnect(Session session) throws Exception{
+            session.getRemote().sendString("Connected");
+        }
+
     }
 
 }

@@ -118,7 +118,12 @@ internal fun createHtmlOverview(app: Javalin): String {
                     <tr class="method $httpMethod">
                         <td>$httpMethod</span></td>
                         <td>$path</td>
-                        <td><b>${handler.metaInfo}</b></td>
+                        <td><b>${if(handler is Class<*>){
+                           handler.name + ".class"
+                        }else{
+                           handler.metaInfo
+                        }
+                        }</b></td>
                         <td>${roles?.toString() ?: "-"}</td>
                     </tr>
                     """
