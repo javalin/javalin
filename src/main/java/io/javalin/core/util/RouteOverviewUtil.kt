@@ -8,13 +8,12 @@
 
 package io.javalin.core.util
 
-import io.javalin.AbstractHandler
 import io.javalin.Javalin
 import io.javalin.core.HandlerType
 import io.javalin.security.Role
 import sun.reflect.ConstantPool
 
-data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: AbstractHandler, val roles: List<Role>?)
+data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: List<Role>?)
 
 fun enableRouteOverview(path: String, app: Javalin) = app.get(path) { ctx -> ctx.html(createHtmlOverview(app)) }
 
@@ -147,20 +146,20 @@ internal fun createHtmlOverview(app: Javalin): String {
 
 private const val lambdaSign = "??? (anonymous lambda)"
 
-private val AbstractHandler.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
-private val AbstractHandler.implementingClassName: String? get() = this.javaClass.name
+private val Any.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
+private val Any.implementingClassName: String? get() = this.javaClass.name
 
-private val AbstractHandler.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
-private val AbstractHandler.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
-private val AbstractHandler.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
+private val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
+private val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
+private val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
 
-private val AbstractHandler.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
-private val AbstractHandler.isJavaMethodReference: Boolean get() = this.methodName != null
-private val AbstractHandler.isJavaField: Boolean get() = this.javaFieldName != null
+private val Any.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
+private val Any.isJavaMethodReference: Boolean get() = this.methodName != null
+private val Any.isJavaField: Boolean get() = this.javaFieldName != null
 
 private fun Any.runMethod(name: String): Any = this.javaClass.getMethod(name).apply { isAccessible = true }.invoke(this)
 
-internal val AbstractHandler.metaInfo: String
+internal val Any.metaInfo: String
     get() {
         // this is just guesswork...
         return when {
@@ -181,17 +180,17 @@ internal val AbstractHandler.metaInfo: String
         }
     }
 
-private val AbstractHandler.kotlinFieldName // this is most likely a very stupid solution
+private val Any.kotlinFieldName // this is most likely a very stupid solution
     get() = this.javaClass.toString().removePrefix(this.parentClass.toString() + "$").takeWhile { it != '$' }
 
-private val AbstractHandler.javaFieldName: String?
+private val Any.javaFieldName: String?
     get() = try {
         parentClass.declaredFields.find { it.isAccessible = true; it.get(it) == this }?.name
     } catch (ignored: Exception) { // Nothing really matters.
         null
     }
 
-private val AbstractHandler.methodName: String?
+private val Any.methodName: String?
     get() {
         val constantPool = Class::class.java.getDeclaredMethod("getConstantPool").apply { isAccessible = true }.invoke(javaClass) as ConstantPool
         for (i in constantPool.size downTo 0) {

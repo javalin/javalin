@@ -14,6 +14,6 @@ package io.javalin;
  * @see <a href="https://javalin.io/documentation#handlers">Handler in documentation</a>
  */
 @FunctionalInterface
-public interface Handler extends AbstractHandler {
+public interface Handler {
     void handle(Context ctx) throws Exception;
 }

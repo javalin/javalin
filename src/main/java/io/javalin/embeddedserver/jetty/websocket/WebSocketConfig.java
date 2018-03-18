@@ -6,8 +6,6 @@
 
 package io.javalin.embeddedserver.jetty.websocket;
 
-import io.javalin.AbstractHandler;
-
 /**
  * WebSocketConfig is a functional interface which is used
  * to configure a WebSocketHandler. The recommended shortname
@@ -25,6 +23,6 @@ import io.javalin.AbstractHandler;
  * @see io.javalin.Javalin#ws(String, WebSocketConfig)
  */
 @FunctionalInterface
-public interface WebSocketConfig extends AbstractHandler {
+public interface WebSocketConfig {
     void configure(WebSocketHandler webSocketHandler);
 }

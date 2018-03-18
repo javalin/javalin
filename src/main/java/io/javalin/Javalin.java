@@ -680,7 +680,7 @@ public class Javalin {
         WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
         ws.configure(configuredHandler);
         javalinWsHandlers.add(configuredHandler);
-        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, path, ws, null));
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), ws, null));
         return this;
     }
 
