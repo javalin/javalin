@@ -41,7 +41,7 @@ class PathParser(val path: String) {
     // Use splat wildcard as a capturing group
     private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex()
 
-    fun match(requestUri: String) = requestUri matches matchRegex
+    fun matches(requestUri: String) = requestUri matches matchRegex
 
     fun extractParams(requestUri: String): Map<String, String> {
         val values = paramRegex.matchEntire(requestUri)?.groupValues
@@ -70,7 +70,7 @@ class PathParser(val path: String) {
 data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
     private val parser: PathParser = PathParser(path)
 
-    fun match(requestUri: String) = parser.match(requestUri)
+    fun matches(requestUri: String) = parser.matches(requestUri)
 
     fun extractParams(requestUri: String): Map<String, String> = parser.extractParams(requestUri)
 
@@ -95,12 +95,10 @@ class PathMatcher {
         entry.path == "*" -> true
         entry.path == requestPath -> true
         !this.ignoreTrailingSlashes && slashMismatch(entry.path, requestPath) -> false
-        else -> matchParamAndWildcard(entry, requestPath)
+        else -> entry.matches(requestPath)
     }
 
     private fun slashMismatch(s1: String, s2: String): Boolean = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
-
-    private fun matchParamAndWildcard(entry: HandlerEntry, fullRequestPath: String) = entry.match(fullRequestPath)
 
     fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
         val entries = handlerEntries.filter(predicate)

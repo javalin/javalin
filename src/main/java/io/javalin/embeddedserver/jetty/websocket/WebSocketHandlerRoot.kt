@@ -13,17 +13,17 @@ import org.eclipse.jetty.websocket.api.annotations.*
 class WebSocketHandlerRoot(private val handlers: List<WebSocketHandler>) {
 
     @OnWebSocketConnect
-    fun webSocketConnect(session: Session) = findWebSocketHandlers(session).forEach { it.onConnect(session) }
+    fun webSocketConnect(session: Session) = findHandlers(session).forEach { it.onConnect(session) }
 
     @OnWebSocketMessage
-    fun webSocketMessage(session: Session, message: String) = findWebSocketHandlers(session).forEach { it.onMessage(session, message) }
+    fun webSocketMessage(session: Session, message: String) = findHandlers(session).forEach { it.onMessage(session, message) }
 
     @OnWebSocketClose
-    fun webSocketClose(session: Session, statusCode: Int, reason: String?) = findWebSocketHandlers(session).forEach { it.onClose(session, statusCode, reason) }
+    fun webSocketClose(session: Session, statusCode: Int, reason: String?) = findHandlers(session).forEach { it.onClose(session, statusCode, reason) }
 
     @OnWebSocketError
-    fun webSocketError(session: Session, throwable: Throwable?) = findWebSocketHandlers(session).forEach { it.onError(session, throwable) }
+    fun webSocketError(session: Session, throwable: Throwable?) = findHandlers(session).forEach { it.onError(session, throwable) }
 
-    private fun findWebSocketHandlers(session: Session) = handlers.filter { it.match(session.upgradeRequest.requestURI.path) }
+    private fun findHandlers(session: Session) = handlers.filter { it.matches(session.upgradeRequest.requestURI.path) }
 
 }

@@ -99,8 +99,8 @@ public class WebSocketHandler {
         }
     }
 
-    public boolean match(String requestUri) {
-        return pathParser.match(requestUri);
+    public boolean matches(String requestUri) {
+        return pathParser.matches(requestUri);
     }
 
     private WsSession registerAndWrapSession(Session session) {

@@ -85,7 +85,7 @@ class RouteMatcherPerformanceTest {
         return params
     }
 
-    fun newMatch(entry: NewHandlerEntry, path: String) = entry.match(path)
+    fun newMatch(entry: NewHandlerEntry, path: String) = entry.matches(path)
 
     fun newSplat(entry: NewHandlerEntry, path: String) = entry.extractSplats(path)
     fun newParams(entry: NewHandlerEntry, path: String) = entry.extractParams(path)
