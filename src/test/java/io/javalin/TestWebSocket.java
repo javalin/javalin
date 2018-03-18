@@ -23,8 +23,11 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.junit.Before;
 import org.junit.Test;
 import static io.javalin.ApiBuilder.ws;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 
 /**
@@ -156,6 +159,12 @@ public class TestWebSocket {
             });
         });
 
+        app.ws("/*", ws -> { // this should not be triggered since all calls match more specific handlers
+            ws.onConnect(session -> {
+                log.add("catchall");
+            });
+        });
+
         TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one"));
         doAndSleepWhile(testClient1_1::connect, () -> !testClient1_1.isOpen());
         doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
@@ -163,10 +172,6 @@ public class TestWebSocket {
         TestClient testClient1_2 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/%E2%99%94"));
         doAndSleepWhile(testClient1_2::connect, () -> !testClient1_2.isOpen());
         doAndSleepWhile(testClient1_2::close, testClient1_2::isClosing);
-
-        TestClient testClient1_3 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/this/should/not/work"));
-        doAndSleepWhile(testClient1_3::connect, () -> !testClient1_3.isOpen());
-        doAndSleepWhile(testClient1_3::close, testClient1_3::isClosing);
 
         TestClient testClient2_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/another/test/long/path"));
         doAndSleepWhile(testClient2_1::connect, () -> !testClient2_1.isOpen());
@@ -177,6 +182,7 @@ public class TestWebSocket {
             "♔",
             "another long path"
         ));
+        assertThat(log, not(hasItem("catchall")));
         app.stop();
     }
 
