@@ -4,8 +4,6 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-@file:JvmName("RouteOverviewUtil")
-
 package io.javalin.core.util
 
 import io.javalin.Javalin
@@ -15,10 +13,14 @@ import sun.reflect.ConstantPool
 
 data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: List<Role>?)
 
-fun enableRouteOverview(path: String, app: Javalin) = app.get(path) { ctx -> ctx.html(createHtmlOverview(app)) }
+object RouteOverviewUtil {
 
-internal fun createHtmlOverview(app: Javalin): String {
-    return """
+    @JvmStatic
+    fun enableRouteOverview(path: String, app: Javalin) = app.get(path) { ctx -> ctx.html(createHtmlOverview(app)) }
+
+    @JvmStatic
+    fun createHtmlOverview(app: Javalin): String {
+        return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
             * {
@@ -114,7 +116,7 @@ internal fun createHtmlOverview(app: Javalin): String {
                     </tr>
                 </thead>
                 ${app.routeOverviewEntries.map { (httpMethod, path, handler, roles) ->
-        """
+            """
                     <tr class="method $httpMethod">
                         <td>$httpMethod</span></td>
                         <td>$path</td>
@@ -122,7 +124,7 @@ internal fun createHtmlOverview(app: Javalin): String {
                         <td>${roles?.toString() ?: "-"}</td>
                     </tr>
                     """
-    }.joinToString("")}
+        }.joinToString("")}
             </table>
             <script>
                 const cachedRows = Array.from(document.querySelectorAll("tbody tr"));
@@ -142,46 +144,31 @@ internal fun createHtmlOverview(app: Javalin): String {
             </script>
         </body>
     """
-}
-
-private const val lambdaSign = "??? (anonymous lambda)"
-
-private val Any.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
-private val Any.implementingClassName: String? get() = this.javaClass.name
-
-private val Any.isClass: Boolean get() = this is Class<*>
-
-private val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
-private val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
-private val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
-
-private val Any.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
-private val Any.isJavaMethodReference: Boolean get() = this.methodName != null
-private val Any.isJavaField: Boolean get() = this.javaFieldName != null
-
-private fun Any.runMethod(name: String): Any = this.javaClass.getMethod(name).apply { isAccessible = true }.invoke(this)
-
-internal val Any.metaInfo: String
-    get() {
-        // this is just guesswork...
-        return when {
-            isClass -> (this as Class<*>).name + ".class"
-            isKotlinMethodReference -> {
-                val f = this.javaClass.getDeclaredField("function")
-                        .apply { isAccessible = true }
-                        .get(this)
-                f.runMethod("getOwner").runMethod("getJClass").runMethod("getName").toString() + "::" + f.runMethod("getName")
-            }
-            isKotlinAnonymousLambda -> parentClass.name + "::" + lambdaSign
-            isKotlinField -> parentClass.name + "." + kotlinFieldName
-
-            isJavaMethodReference -> parentClass.name + "::" + methodName
-            isJavaField -> parentClass.name + "." + javaFieldName
-            isJavaAnonymousLambda -> parentClass.name + "::" + lambdaSign
-
-            else -> implementingClassName + ".class"
-        }
     }
+
+    @JvmStatic
+    val Any.metaInfo: String
+        get() {
+            // this is just guesswork...
+            return when {
+                isClass -> (this as Class<*>).name + ".class"
+                isKotlinMethodReference -> {
+                    val f = this.javaClass.getDeclaredField("function")
+                            .apply { isAccessible = true }
+                            .get(this)
+                    f.runMethod("getOwner").runMethod("getJClass").runMethod("getName").toString() + "::" + f.runMethod("getName")
+                }
+                isKotlinAnonymousLambda -> parentClass.name + "::" + lambdaSign
+                isKotlinField -> parentClass.name + "." + kotlinFieldName
+
+                isJavaMethodReference -> parentClass.name + "::" + methodName
+                isJavaField -> parentClass.name + "." + javaFieldName
+                isJavaAnonymousLambda -> parentClass.name + "::" + lambdaSign
+
+                else -> implementingClassName + ".class"
+            }
+        }
+}
 
 private val Any.kotlinFieldName // this is most likely a very stupid solution
     get() = this.javaClass.toString().removePrefix(this.parentClass.toString() + "$").takeWhile { it != '$' }
@@ -210,3 +197,20 @@ private val Any.methodName: String?
         }
         return null
     }
+
+private const val lambdaSign = "??? (anonymous lambda)"
+
+private val Any.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
+private val Any.implementingClassName: String? get() = this.javaClass.name
+
+private val Any.isClass: Boolean get() = this is Class<*>
+
+private val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
+private val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
+private val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
+
+private val Any.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
+private val Any.isJavaMethodReference: Boolean get() = this.methodName != null
+private val Any.isJavaField: Boolean get() = this.javaFieldName != null
+
+private fun Any.runMethod(name: String): Any = this.javaClass.getMethod(name).apply { isAccessible = true }.invoke(this)
