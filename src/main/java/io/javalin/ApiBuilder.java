@@ -339,7 +339,8 @@ public class ApiBuilder {
 
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
+     * Has some added functionality (path params, wrapped session) compared to
+     * the other ws methods.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */

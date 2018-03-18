@@ -118,8 +118,8 @@ public class Javalin {
                     pathMatcher,
                     exceptionMapper,
                     errorMapper,
-                    pathWsHandlers,
-                    mappedPathWsHandlers,
+                    jettyWsHandlers,
+                    javalinWsHandlers,
                     logLevel,
                     dynamicGzipEnabled,
                     defaultContentType,
@@ -666,18 +666,20 @@ public class Javalin {
     // WebSockets
     // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
 
-    private Map<String, Object> pathWsHandlers = new HashMap<>();
-    private List<WebSocketHandler> mappedPathWsHandlers = new ArrayList<>();
+    private List<WebSocketHandler> javalinWsHandlers = new ArrayList<>();
+    private Map<String, Object> jettyWsHandlers = new HashMap<>();
 
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
+     * Has some added functionality (path params, wrapped session) compared to
+     * the other ws methods.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
         WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
         ws.configure(configuredHandler);
-        mappedPathWsHandlers.add(configuredHandler);
+        javalinWsHandlers.add(configuredHandler);
         return this;
     }
 
@@ -703,7 +705,7 @@ public class Javalin {
 
     private Javalin addWebSocketHandler(@NotNull String path, @NotNull Object webSocketObject) {
         ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
-        pathWsHandlers.put(path, webSocketObject);
+        jettyWsHandlers.put(path, webSocketObject);
         return this;
     }
 
