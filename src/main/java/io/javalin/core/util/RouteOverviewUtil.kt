@@ -67,7 +67,7 @@ internal fun createHtmlOverview(app: Javalin): String {
             }
             .method td:first-of-type {
                 text-align: center;
-                max-width: 80px;
+                max-width: 90px;
             }
             tbody .method td:first-of-type {
                 font-weight: 700;
@@ -107,7 +107,7 @@ internal fun createHtmlOverview(app: Javalin): String {
             <table>
                 <thead>
                     <tr class="method">
-                        <td width="90px">Method</td>
+                        <td width="105px">Method</td>
                         <td>Path</td>
                         <td>Handler</td>
                         <td>Roles</td>
@@ -118,12 +118,7 @@ internal fun createHtmlOverview(app: Javalin): String {
                     <tr class="method $httpMethod">
                         <td>$httpMethod</span></td>
                         <td>$path</td>
-                        <td><b>${if(handler is Class<*>){
-                           handler.name + ".class"
-                        }else{
-                           handler.metaInfo
-                        }
-                        }</b></td>
+                        <td><b>${handler.metaInfo}</b></td>
                         <td>${roles?.toString() ?: "-"}</td>
                     </tr>
                     """
@@ -131,7 +126,7 @@ internal fun createHtmlOverview(app: Javalin): String {
             </table>
             <script>
                 const cachedRows = Array.from(document.querySelectorAll("tbody tr"));
-                const verbOrder = ["BEFORE", "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "HEAD", "AFTER"];
+                const verbOrder = ["BEFORE", "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "HEAD", "AFTER", "WEBSOCKET"];
                 document.querySelector("thead").addEventListener("click", function (e) {
                     cachedRows.map(function (el) {
                         return {key: el.children[e.target.cellIndex].textContent, row: el};
@@ -154,6 +149,8 @@ private const val lambdaSign = "??? (anonymous lambda)"
 private val Any.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
 private val Any.implementingClassName: String? get() = this.javaClass.name
 
+private val Any.isClass: Boolean get() = this is Class<*>
+
 private val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
 private val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
 private val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
@@ -168,6 +165,7 @@ internal val Any.metaInfo: String
     get() {
         // this is just guesswork...
         return when {
+            isClass -> (this as Class<*>).name + ".class"
             isKotlinMethodReference -> {
                 val f = this.javaClass.getDeclaredField("function")
                         .apply { isAccessible = true }

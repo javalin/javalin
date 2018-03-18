@@ -15,7 +15,6 @@ import io.javalin.util.HandlerImplementation;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
-
 import static io.javalin.ApiBuilder.delete;
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.ApiBuilder.patch;
@@ -30,9 +29,9 @@ public class VisualTest {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create()
-                .contextPath("/context-path")
-                .enableRouteOverview("/route-overview")
-                .enableCorsForAllOrigins();
+            .contextPath("/context-path")
+            .enableRouteOverview("/route-overview")
+            .enableCorsForAllOrigins();
         app.ws("/websocket/jetty-class", TestWebSocketHandler.class);
         app.ws("/websocket/jetty-object", new TestWebSocketHandler());
 
@@ -54,10 +53,8 @@ public class VisualTest {
         app.delete("/users/:user-id", new HandlerImplementation());
         app.options("/what/:are/*/my-options", new HandlerImplementation());
         app.trace("/tracer", new HandlerImplementation());
-        app.ws("/websocket", ws -> {
-            ws.onConnect(session -> session.getRemote().sendString("Connected!"));
-        });
-        app.ws("/websocket/:path", new ImplementingClass());
+        app.ws("/websocket", VisualTest::wsMethodRef);
+        app.ws("/websocket/:path", new ImplementingWsClass());
         app.routes(() -> {
             path("users", () -> {
                 get(new HandlerImplementation());
@@ -68,29 +65,25 @@ public class VisualTest {
                     delete(new HandlerImplementation());
                 });
             });
-            path("admins", () -> {
-                get(new HandlerImplementation());
-                post(new HandlerImplementation());
-                path(":id", () -> {
-                    get(new HandlerImplementation());
-                    patch(new HandlerImplementation());
-                    delete(new HandlerImplementation());
-                });
-            });
         });
+    }
+
+    private static void wsMethodRef(WebSocketHandler webSocketHandler) {
+        webSocketHandler.onConnect(session -> session.getRemote().sendString("Connected!"));
     }
 
     private static Handler lambdaField = ctx -> {
     };
 
-    private static class ImplementingClass implements Handler, WebSocketConfig {
+    private static class ImplementingClass implements Handler {
         @Override
         public void handle(Context context) {
         }
+    }
 
+    private static class ImplementingWsClass implements WebSocketConfig {
         @Override
         public void configure(WebSocketHandler webSocketHandler) {
-            webSocketHandler.onConnect(session -> session.getRemote().sendString("Connected!"));
         }
     }
 
@@ -101,7 +94,7 @@ public class VisualTest {
     public static class TestWebSocketHandler {
 
         @OnWebSocketConnect
-        public void onConnect(Session session) throws Exception{
+        public void onConnect(Session session) throws Exception {
             session.getRemote().sendString("Connected");
         }
 
