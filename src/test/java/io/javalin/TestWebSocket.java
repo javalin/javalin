@@ -6,6 +6,9 @@
 
 package io.javalin;
 
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import io.javalin.embeddedserver.jetty.websocket.WsSession;
 import java.net.URI;
 import java.util.ArrayList;
@@ -27,6 +30,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 
@@ -183,6 +187,20 @@ public class TestWebSocket {
             "another long path"
         ));
         assertThat(log, not(hasItem("catchall")));
+        app.stop();
+    }
+
+    @Test
+    public void test_ws_404() throws Exception {
+        Javalin app = Javalin.start(0);
+        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
+            .header("Connection", "Upgrade")
+            .header("Upgrade", "websocket")
+            .header("Host", "localhost:" + app.port())
+            .header("Sec-WebSocket-Key", "SGVsbG8sIHdvcmxkIQ==")
+            .header("Sec-WebSocket-Version", "13")
+            .asString();
+        assertThat(response.getBody(), containsString("WebSocket handler not found"));
         app.stop();
     }
 
