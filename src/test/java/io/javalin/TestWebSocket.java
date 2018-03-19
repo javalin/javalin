@@ -9,13 +9,6 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.embeddedserver.jetty.websocket.WsSession;
-import org.hamcrest.Matchers;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.drafts.Draft_6455;
-import org.java_websocket.handshake.ServerHandshake;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +19,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import org.hamcrest.Matchers;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_6455;
+import org.java_websocket.handshake.ServerHandshake;
+import org.junit.Before;
+import org.junit.Test;
 import static io.javalin.ApiBuilder.ws;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
