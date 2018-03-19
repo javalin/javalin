@@ -13,7 +13,7 @@ import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 class RootWebSocketCreator(private val handlerRoot: WebSocketHandlerRoot, private val javalinWsHandlers: List<WebSocketHandler>) : WebSocketCreator {
 
     override fun createWebSocket(req: ServletUpgradeRequest, resp: ServletUpgradeResponse): Any {
-        if (javalinWsHandlers.find { it.matches(req.requestPath) } == null) {
+        if (javalinWsHandlers.find { it.matches(req.requestURI.path) } == null) {
             resp.sendError(404, "Not found")
         }
         return handlerRoot
