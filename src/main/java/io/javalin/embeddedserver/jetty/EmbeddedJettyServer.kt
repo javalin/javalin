@@ -9,6 +9,7 @@ package io.javalin.embeddedserver.jetty
 import io.javalin.core.JavalinServlet
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.CustomWebSocketCreator
+import io.javalin.embeddedserver.jetty.websocket.RootWebSocketCreator
 import io.javalin.embeddedserver.jetty.websocket.WebSocketHandlerRoot
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
@@ -60,10 +61,12 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
                 }), path)
             }
 
+            val rootHandler = WebSocketHandlerRoot(javalinServlet.javalinWsHandlers)
+
             // add custom javalin websocket handler (root websocket handler which does routing)
             addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
-                    factory.creator = CustomWebSocketCreator(WebSocketHandlerRoot(javalinServlet.javalinWsHandlers))
+                    factory.creator = RootWebSocketCreator(rootHandler, javalinServlet.javalinWsHandlers)
                 }
             }), "/*")
 
