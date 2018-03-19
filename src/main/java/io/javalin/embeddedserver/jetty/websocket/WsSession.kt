@@ -31,6 +31,9 @@ class WsSession(val id: String, session: Session, private var paramMap: Map<Stri
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
     fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
     fun paramMap(): Map<String, String> = paramMap
+    fun host(): String = webSocketSession.upgradeRequest.host
+    fun header(header: String): String = webSocketSession.upgradeRequest.getHeader(header)
+    fun headerMap(): Map<String, String> = webSocketSession.upgradeRequest.headers.keys.map { it to webSocketSession.upgradeRequest.getHeader(it) }.toMap()
 
     // interface overrides + equals/hash
 

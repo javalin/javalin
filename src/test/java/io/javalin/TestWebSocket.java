@@ -8,8 +8,14 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import io.javalin.embeddedserver.jetty.websocket.WsSession;
+import org.hamcrest.Matchers;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_6455;
+import org.java_websocket.handshake.ServerHandshake;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,15 +26,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.hamcrest.Matchers;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-import org.junit.Before;
-import org.junit.Test;
+
 import static io.javalin.ApiBuilder.ws;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -204,9 +205,35 @@ public class TestWebSocket {
         app.stop();
     }
 
+    @Test
+    public void test_headers_and_host() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.ws("websocket", ws -> {
+            ws.onConnect(session -> {
+                log.add("Header: " + session.header("Test"));
+            });
+            ws.onClose((session, statusCode, reason) -> {
+                log.add("Closed connection from: " + session.host());
+            });
+        });
+
+        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), Collections.singletonMap("Test", "HeaderParameter"));
+        doAndSleepWhile(testClient1_1::connect, () -> !testClient1_1.isOpen());
+        doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
+
+        assertThat(log, containsInAnyOrder(
+            "Header: HeaderParameter"
+            , "Closed connection from: localhost"));
+        app.stop();
+    }
+
     class TestClient extends WebSocketClient {
         public TestClient(URI serverUri) {
             super(serverUri);
+        }
+
+        public TestClient(URI serverUri, Map<String, String> headers) {
+            super(serverUri, new Draft_6455(), headers, 0);
         }
 
         public void onOpen(ServerHandshake serverHandshake) {
