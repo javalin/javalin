@@ -61,12 +61,10 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
                 }), path)
             }
 
-            val rootHandler = WebSocketHandlerRoot(javalinServlet.javalinWsHandlers)
-
             // add custom javalin websocket handler (root websocket handler which does routing)
             addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
-                    factory.creator = RootWebSocketCreator(rootHandler, javalinServlet.javalinWsHandlers)
+                    factory.creator = RootWebSocketCreator(WebSocketHandlerRoot(javalinServlet.javalinWsHandlers), javalinServlet.javalinWsHandlers)
                 }
             }), "/*")
 
