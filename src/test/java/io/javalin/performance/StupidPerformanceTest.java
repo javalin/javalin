@@ -27,7 +27,7 @@ import static io.javalin.ApiBuilder.patch;
 import static io.javalin.ApiBuilder.path;
 import static io.javalin.ApiBuilder.post;
 
-@BenchmarkOptions(benchmarkRounds = 10000, warmupRounds = 500, concurrency = 4, clock = Clock.NANO_TIME)
+@BenchmarkOptions(benchmarkRounds = 40000, warmupRounds = 5000, concurrency = 4, clock = Clock.NANO_TIME)
 public class StupidPerformanceTest {
 
     @Rule
@@ -42,7 +42,8 @@ public class StupidPerformanceTest {
     }
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() throws Exception {
+        // Thread.sleep(7500) // uncomment if running with VisualVM
         app = Javalin.create()
             .port(0)
             .routes(() -> {
@@ -70,9 +71,6 @@ public class StupidPerformanceTest {
                         });
                     });
                 });
-
-                get("redirect/*", ctx -> ctx.redirect(ctx.splat(0)));
-                post("redirect/*", ctx -> ctx.redirect(ctx.splat(0)));
 
                 get("health", ctx -> {
                 });
@@ -105,10 +103,6 @@ public class StupidPerformanceTest {
         Unirest.patch(origin + "/message/1/drafts/2/").asString();
 
         Unirest.get(origin + "/health/draft/asd/creep/").asString();
-
-        Unirest.get(origin + "/redirect/new/payment/").asString();
-        Unirest.get(origin + "/redirect/old/payment/").asString();
-        Unirest.post(origin + "/redirect/old/accept/").asString();
 
         Unirest.get(origin + "/health").asString();
     }
