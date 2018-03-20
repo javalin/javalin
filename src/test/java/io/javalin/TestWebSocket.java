@@ -9,6 +9,7 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.embeddedserver.jetty.websocket.WsSession;
+import io.javalin.security.Role;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -222,6 +223,47 @@ public class TestWebSocket {
         assertThat(log, containsInAnyOrder(
             "Header: HeaderParameter"
             , "Closed connection from: localhost"));
+        app.stop();
+    }
+
+    private enum Roles implements Role {
+        ROLE_ONE
+    }
+
+    @Test
+    public void test_websocket_access_manager() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.accessManager((handler, ctx, permittedRoles) -> {
+            String token = ctx.header("Token");
+            if (token != null && token.equals("test-token")) {
+                handler.handle(ctx);
+            } else {
+                ctx.status(401).result("Unauthorized");
+            }
+        });
+
+        app.ws("websocket", ws -> {
+            ws.onConnect(session -> {
+                log.add("Connected with token: " + session.header("Token"));
+            });
+        }, Role.roles(Roles.ROLE_ONE));
+
+        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), Collections.singletonMap("Token", "test-token"));
+
+        doAndSleepWhile(testClient1_1::connect, () -> !testClient1_1.isOpen());
+        doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
+
+        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/websocket")
+            .header("Connection", "Upgrade")
+            .header("Upgrade", "websocket")
+            .header("Host", "localhost:" + app.port())
+            .header("Sec-WebSocket-Key", "SGVsbG8sIHdvcmxkIQ==")
+            .header("Sec-WebSocket-Version", "13")
+            .asString();
+
+        assertThat(log, containsInAnyOrder("Connected with token: test-token"));
+        assertThat(response.getBody(), containsString("HTTP ERROR 401"));
+
         app.stop();
     }
 

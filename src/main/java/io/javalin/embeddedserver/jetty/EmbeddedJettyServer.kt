@@ -6,7 +6,10 @@
 
 package io.javalin.embeddedserver.jetty
 
+import io.javalin.core.HandlerEntry
+import io.javalin.core.HandlerType
 import io.javalin.core.JavalinServlet
+import io.javalin.core.util.ContextUtil
 import io.javalin.embeddedserver.EmbeddedServer
 import io.javalin.embeddedserver.jetty.websocket.JettyWebSocketCreator
 import io.javalin.embeddedserver.jetty.websocket.RootWebSocketCreator
@@ -37,7 +40,19 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
 
         val httpHandler = object : ServletContextHandler(parent, javalinServlet.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                if (request.isWebSocket()) return // don't touch websocket requests
+                if (request.isWebSocket()) {
+                    val handler = javalinServlet.javalinWsHandlers.find { it.matches(request.requestURI) }
+                    if (handler != null) {
+                        var ctx = ContextUtil.create(response, request)
+                        ctx = ContextUtil.update(ctx, HandlerEntry(HandlerType.WEBSOCKET, handler.path, handler.handshakeHandler), request.requestURI)
+                        handler.handshakeHandler.handle(ctx)
+
+                        if (ctx.status() >= 400) {
+                            response.sendError(ctx.status(), ctx.resultString())
+                        }
+                    }
+                    return
+                }
                 try {
                     request.setAttribute("jetty-target", target)
                     request.setAttribute("jetty-request", jettyRequest)

@@ -6,6 +6,7 @@
 
 package io.javalin.embeddedserver.jetty.websocket;
 
+import io.javalin.Handler;
 import io.javalin.core.PathParser;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
@@ -21,10 +22,14 @@ import org.jetbrains.annotations.NotNull;
 @WebSocket
 public class WebSocketHandler {
 
-    public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
+    public WebSocketHandler(@NotNull String contextPath, @NotNull String path, @NotNull Handler handshakeHandler) {
+        this.path = path;
+        this.handshakeHandler = handshakeHandler;
         pathParser = new PathParser(contextPath + path);
     }
 
+    private final String path;
+    private final Handler handshakeHandler;
     private final PathParser pathParser;
 
     private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
@@ -97,6 +102,14 @@ public class WebSocketHandler {
         if (errorHandler != null) {
             errorHandler.handle(wsSession, throwable);
         }
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public Handler getHandshakeHandler() {
+        return handshakeHandler;
     }
 
     public boolean matches(String requestUri) {

@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -677,7 +678,21 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
-        WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
+        return addJavalinWsHandler(path, ws, null);
+    }
+
+    public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws, @Nullable List<Role> permittedRoles) {
+        return addJavalinWsHandler(path, ws, permittedRoles);
+    }
+
+    private Javalin addJavalinWsHandler(@NotNull String path, @NotNull WebSocketConfig ws, @Nullable List<Role> permittedRoles) {
+        Handler defaultHandler = ctx -> {
+            // Do nothing by default
+        };
+
+        Handler handlerWrap = permittedRoles == null ? defaultHandler : ctx -> accessManager.manage(defaultHandler, ctx, permittedRoles);
+
+        WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path, handlerWrap);
         ws.configure(configuredHandler);
         javalinWsHandlers.add(configuredHandler);
         routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), ws, null));
