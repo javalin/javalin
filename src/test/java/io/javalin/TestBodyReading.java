@@ -75,6 +75,20 @@ public class TestBodyReading {
     }
 
     @Test
+    public void test_unicodeFormParams_work() throws Exception {
+        Javalin app = Javalin.create().port(0).start();
+        app.post("/unicode", ctx -> ctx.result(ctx.formParam("unicode")));
+
+        HttpResponse<String> response = Unirest
+            .post("http://localhost:" + app.port() + "/unicode")
+            .body("unicode=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
+            .asString();
+
+        assertThat(response.getBody(), is("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"));
+        app.stop();
+    }
+
+    @Test
     public void test_formParamsWork_multipleValues() throws Exception {
         Javalin app = Javalin.create().port(0).start();
         app.post("/body-reader", ctx -> {

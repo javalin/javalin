@@ -133,6 +133,17 @@ public class TestMultipartForms {
         app.stop();
     }
 
+    @Test
+    public void test_unicodeTextFields() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.post("/test-upload", ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload").getName()));
+        HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
+            .field("upload", new File("src/test/resources/upload-test/text.txt"))
+            .field("field", "♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
+            .asString();
+        assertThat(response.getBody(), is("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟ and text.txt"));
+        app.stop();
+    }
 
     @Test
     public void test_textFields() throws Exception {
