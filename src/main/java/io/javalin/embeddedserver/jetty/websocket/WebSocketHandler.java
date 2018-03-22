@@ -22,10 +22,12 @@ import org.jetbrains.annotations.NotNull;
 @WebSocket
 public class WebSocketHandler {
 
-    public WebSocketHandler(@NotNull String contextPath, @NotNull String path, @NotNull Handler handshakeHandler) {
-        this.path = path;
+    public static Handler defaultHandshake = ctx -> {/*Do nothing by default*/};
+
+    public WebSocketHandler(@NotNull String prefixedPath , @NotNull Handler handshakeHandler) {
+        this.path = prefixedPath;
         this.handshakeHandler = handshakeHandler;
-        pathParser = new PathParser(contextPath + path);
+        pathParser = new PathParser(prefixedPath);
     }
 
     private final String path;

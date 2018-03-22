@@ -41,17 +41,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         val httpHandler = object : ServletContextHandler(parent, javalinServlet.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 if (request.isWebSocket()) {
-                    val handler = javalinServlet.javalinWsHandlers.find { it.matches(request.requestURI) }
-                    if (handler != null) {
-                        var ctx = ContextUtil.create(response, request)
-                        ctx = ContextUtil.update(ctx, HandlerEntry(HandlerType.WEBSOCKET, handler.path, handler.handshakeHandler), request.requestURI)
-                        handler.handshakeHandler.handle(ctx)
-
-                        if (ctx.status() >= 400) {
-                            response.sendError(ctx.status(), ctx.resultString())
-                        }
-                    }
-                    return
+                    return handleWebSocketUpgrade(request, response, javalinServlet)
                 }
                 try {
                     request.setAttribute("jetty-target", target)
@@ -121,6 +111,19 @@ private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList
     val handlerWrapper = (userHandler ?: HandlerWrapper()) as HandlerWrapper
     HandlerWrapper().apply { handler = handlerList }.insertHandler(handlerWrapper)
     return handlerWrapper
+}
+
+private fun handleWebSocketUpgrade(request: HttpServletRequest, response: HttpServletResponse, javalinServlet: JavalinServlet){
+    val handler = javalinServlet.javalinWsHandlers.find { it.matches(request.requestURI) }
+    if (handler != null) {
+        var ctx = ContextUtil.create(response, request)
+        ctx = ContextUtil.update(ctx, HandlerEntry(HandlerType.WEBSOCKET, handler.path, handler.handshakeHandler), request.requestURI)
+        handler.handshakeHandler.handle(ctx)
+
+        if (ctx.status() >= 400) {
+            response.sendError(ctx.status(), ctx.resultString())
+        }
+    }
 }
 
 fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null

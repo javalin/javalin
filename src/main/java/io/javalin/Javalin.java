@@ -686,16 +686,14 @@ public class Javalin {
     }
 
     private Javalin addJavalinWsHandler(@NotNull String path, @NotNull WebSocketConfig ws, @Nullable List<Role> permittedRoles) {
-        Handler defaultHandler = ctx -> {
-            // Do nothing by default
-        };
+        String prefixedPath = Util.INSTANCE.prefixContextPath(path, contextPath);
 
-        Handler handlerWrap = permittedRoles == null ? defaultHandler : ctx -> accessManager.manage(defaultHandler, ctx, permittedRoles);
+        Handler handlerWrap = permittedRoles == null ? WebSocketHandler.defaultHandshake : ctx -> accessManager.manage(WebSocketHandler.defaultHandshake, ctx, permittedRoles);
 
-        WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path, handlerWrap);
+        WebSocketHandler configuredHandler = new WebSocketHandler(prefixedPath, handlerWrap);
         ws.configure(configuredHandler);
         javalinWsHandlers.add(configuredHandler);
-        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), ws, null));
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, prefixedPath, ws, null));
         return this;
     }
 
