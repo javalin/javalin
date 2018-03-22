@@ -12,6 +12,13 @@ import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.util.UploadInfo;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -20,6 +27,11 @@ import static org.hamcrest.Matchers.is;
 public class TestMultipartForms {
 
     private String EOL = System.getProperty("line.separator");
+
+    private String TEXT_FILE_CONTENT = "This is my content." + EOL + "It's two lines." + EOL;
+
+    // Using OkHttp because Unirest doesn't allow to send non-files as form-data
+    private final OkHttpClient okHttp = new OkHttpClient();
 
     @Test
     public void test_upload_text() throws Exception {
@@ -30,7 +42,7 @@ public class TestMultipartForms {
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
             .field("upload", new File("src/test/resources/upload-test/text.txt"))
             .asString();
-        assertThat(response.getBody(), is("This is my content." + EOL + "It's two lines." + EOL));
+        assertThat(response.getBody(), is(TEXT_FILE_CONTENT));
         app.stop();
     }
 
@@ -94,6 +106,72 @@ public class TestMultipartForms {
         });
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload").asString();
         assertThat(response.getBody(), is("OK"));
+        app.stop();
+    }
+
+    @Test
+    public void test_textFields() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.post("/test-multipart-text-fields", ctx -> {
+            String[] foos = ctx.formParams("foo");
+            String[] foosExtractedManually = ctx.formParamMap().get("foo");
+
+            String bar = ctx.formParam("bar");
+            String baz = ctx.formParamOrDefault("baz", "default");
+
+            ctx.result("foos match: " + Arrays.equals(foos, foosExtractedManually) + "\n"
+                    + "foo: " + String.join(", ", foos) + "\n"
+                    + "bar: " + bar + "\n"
+                    + "baz: " + baz
+            );
+        });
+
+        RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("foo", "foo-1")
+                .addFormDataPart("bar", "bar-1")
+                .addFormDataPart("foo", "foo-2")
+                .build();
+
+        Request request = new Request.Builder().url("http://localhost:" + app.port() + "/test-multipart-text-fields").post(body).build();
+
+        String responseAsString = okHttp.newCall(request).execute().body().string();
+
+        String expectedContent = "foos match: true" + "\n"
+                + "foo: foo-1, foo-2" + "\n"
+                + "bar: bar-1" + "\n"
+                + "baz: default";
+
+        assertThat(responseAsString, is(expectedContent));
+
+        app.stop();
+    }
+
+    @Test
+    public void test_fileAndTextFields() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.post("/test-multipart-file-and-text", ctx -> {
+            String prefix = ctx.formParam("prefix");
+            String fileContent = IOUtils.toString(ctx.uploadedFile("upload").getContent(), StandardCharsets.UTF_8);
+            ctx.result(prefix + fileContent);
+        });
+
+        String prefix = "PREFIX: ";
+
+        File tempFile = new File("src/test/resources/upload-test/text.txt");
+
+        RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("prefix", prefix)
+                .addFormDataPart("upload", tempFile.getName(), RequestBody.create(MediaType.parse("text/plain"), tempFile))
+                .build();
+
+        Request request = new Request.Builder().url("http://localhost:" + app.port() + "/test-multipart-file-and-text").post(body).build();
+
+        String responseAsString = okHttp.newCall(request).execute().body().string();
+
+        assertThat(responseAsString, is(prefix + TEXT_FILE_CONTENT));
+
         app.stop();
     }
 

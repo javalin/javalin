@@ -134,17 +134,6 @@ class Context(private val servletResponse: HttpServletResponse,
         return if (isMultipartFormData()) UploadUtil.getUploadedFiles(servletRequest, fileName) else listOf()
     }
 
-    fun multipartFormParam(formParam: String): String? = multipartFormParams(formParam)?.firstOrNull()
-
-    fun multipartFormParamOrDefault(formParam: String, defaultValue: String): String = multipartFormParam(formParam) ?: defaultValue
-
-    fun multipartFormParams(formParam: String): List<String>? = multipartFormParamMap()[formParam]
-
-    fun multipartFormParamMap(): Map<String, List<String>> {
-        Util.ensureDependencyPresent("FileUpload", "org.apache.commons.fileupload.servlet.ServletFileUpload", "commons-fileupload/commons-fileupload")
-        return UploadUtil.getMultipartFormParamMap(servletRequest)
-    }
-
     /**
      * Gets a form param for the specified key from the request
      */
@@ -165,7 +154,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map with all the form param keys and values.
      */
-    fun formParamMap(): Map<String, Array<String>> = if (isMultipartFormData()) mapOf() else ContextUtil.splitKeyValueStringAndGroupByKey(body())
+    fun formParamMap(): Map<String, Array<String>> = if (isMultipartFormData()) UploadUtil.getMultipartFormFields(servletRequest) else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
     /**
      * Maps form params to values, or returns null if any of the params are null.

@@ -23,4 +23,18 @@ object UploadUtil {
             )
         }
     }
+
+    fun getMultipartFormFields(servletRequest: HttpServletRequest): Map<String, Array<String>> {
+        servletRequest.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")));
+
+        val tempResult = mutableMapOf<String, MutableList<String>>()
+
+        servletRequest.parts.filter { part -> part.contentType == null }.forEach { part ->
+            val fieldValue = part.inputStream.bufferedReader().use { it.readText() }
+            tempResult.putIfAbsent(part.name, mutableListOf())
+            tempResult[part.name]!!.add(fieldValue)
+        }
+
+        return tempResult.entries.associate { it.key to it.value.toTypedArray() }
+    }
 }
