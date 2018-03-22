@@ -131,7 +131,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Requires Apache commons-fileupload library in the classpath.
      */
     fun uploadedFiles(fileName: String): List<UploadedFile> {
-        return if (isMultipartFormData()) UploadUtil.getUploadedFiles(servletRequest, fileName) else listOf()
+        return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(servletRequest, fileName) else listOf()
     }
 
     /**
@@ -154,7 +154,9 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map with all the form param keys and values.
      */
-    fun formParamMap(): Map<String, Array<String>> = if (isMultipartFormData()) UploadUtil.getMultipartFormFields(servletRequest) else ContextUtil.splitKeyValueStringAndGroupByKey(body())
+    fun formParamMap(): Map<String, Array<String>> =
+            if (isMultipartFormData()) MultipartUtil.getFieldMap(servletRequest)
+            else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
     /**
      * Maps form params to values, or returns null if any of the params are null.

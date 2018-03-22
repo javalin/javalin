@@ -13,7 +13,6 @@ import io.javalin.util.UploadInfo;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -110,9 +109,36 @@ public class TestMultipartForms {
     }
 
     @Test
+    public void test_files_and_fields() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.post("/test-upload", ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload").getName()));
+        HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
+            .field("upload", new File("src/test/resources/upload-test/image.png"))
+            .field("field", "text-value")
+            .asString();
+        assertThat(response.getBody(), is("text-value and image.png"));
+        app.stop();
+    }
+
+    @Test
+    public void test_files_and_multiple_fields() throws Exception {
+        Javalin app = Javalin.start(0);
+        app.post("/test-upload", ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.formParam("field2")));
+        HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
+            .field("upload", new File("src/test/resources/upload-test/image.png"))
+            .field("field", "text-value")
+            .field("field2", "text-value-2")
+            .asString();
+        assertThat(response.getBody(), is("text-value and text-value-2"));
+        app.stop();
+    }
+
+
+    @Test
     public void test_textFields() throws Exception {
         Javalin app = Javalin.start(0);
         app.post("/test-multipart-text-fields", ctx -> {
+
             String[] foos = ctx.formParams("foo");
             String[] foosExtractedManually = ctx.formParamMap().get("foo");
 
@@ -120,27 +146,27 @@ public class TestMultipartForms {
             String baz = ctx.formParamOrDefault("baz", "default");
 
             ctx.result("foos match: " + Arrays.equals(foos, foosExtractedManually) + "\n"
-                    + "foo: " + String.join(", ", foos) + "\n"
-                    + "bar: " + bar + "\n"
-                    + "baz: " + baz
+                + "foo: " + String.join(", ", foos) + "\n"
+                + "bar: " + bar + "\n"
+                + "baz: " + baz
             );
         });
 
         RequestBody body = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("foo", "foo-1")
-                .addFormDataPart("bar", "bar-1")
-                .addFormDataPart("foo", "foo-2")
-                .build();
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("foo", "foo-1")
+            .addFormDataPart("bar", "bar-1")
+            .addFormDataPart("foo", "foo-2")
+            .build();
 
         Request request = new Request.Builder().url("http://localhost:" + app.port() + "/test-multipart-text-fields").post(body).build();
 
         String responseAsString = okHttp.newCall(request).execute().body().string();
 
         String expectedContent = "foos match: true" + "\n"
-                + "foo: foo-1, foo-2" + "\n"
-                + "bar: bar-1" + "\n"
-                + "baz: default";
+            + "foo: foo-1, foo-2" + "\n"
+            + "bar: bar-1" + "\n"
+            + "baz: default";
 
         assertThat(responseAsString, is(expectedContent));
 
@@ -161,10 +187,10 @@ public class TestMultipartForms {
         File tempFile = new File("src/test/resources/upload-test/text.txt");
 
         RequestBody body = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("prefix", prefix)
-                .addFormDataPart("upload", tempFile.getName(), RequestBody.create(MediaType.parse("text/plain"), tempFile))
-                .build();
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("prefix", prefix)
+            .addFormDataPart("upload", tempFile.getName(), RequestBody.create(MediaType.parse("text/plain"), tempFile))
+            .build();
 
         Request request = new Request.Builder().url("http://localhost:" + app.port() + "/test-multipart-file-and-text").post(body).build();
 
