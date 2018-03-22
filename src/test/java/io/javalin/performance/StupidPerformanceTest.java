@@ -12,7 +12,6 @@ import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.carrotsearch.junitbenchmarks.Clock;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.Javalin;
-import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
