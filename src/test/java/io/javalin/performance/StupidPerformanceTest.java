@@ -19,10 +19,15 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
+import static io.javalin.ApiBuilder.after;
+import static io.javalin.ApiBuilder.before;
+import static io.javalin.ApiBuilder.delete;
+import static io.javalin.ApiBuilder.get;
+import static io.javalin.ApiBuilder.patch;
+import static io.javalin.ApiBuilder.path;
+import static io.javalin.ApiBuilder.post;
 
-import static io.javalin.ApiBuilder.*;
-
-@BenchmarkOptions(benchmarkRounds = 10000, warmupRounds = 500, concurrency = 4, clock = Clock.NANO_TIME)
+@BenchmarkOptions(benchmarkRounds = 40000, warmupRounds = 5000, concurrency = 4, clock = Clock.NANO_TIME)
 public class StupidPerformanceTest {
 
     @Rule
@@ -37,42 +42,41 @@ public class StupidPerformanceTest {
     }
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() throws Exception {
+        // Thread.sleep(7500) // uncomment if running with VisualVM
         app = Javalin.create()
-                .port(0)
-                .routes(() -> {
-                    before(ctx -> ctx.header("X-BEFORE", "Before"));
-                    before(ctx -> ctx.status(200));
-                    //Some CRUD API
-                    path("user", () -> {
-                        post(ctx -> ctx.result("Created"));
-                        path(":userId", () -> {
-                            get(ctx -> ctx.result("Get user " + ctx.param("userId")));
-                            patch(ctx -> ctx.result("Update user " + ctx.param("userId")));
-                            delete(ctx -> ctx.result("Delete user " + ctx.param("userId")));
+            .port(0)
+            .routes(() -> {
+                before(ctx -> ctx.header("X-BEFORE", "Before"));
+                before(ctx -> ctx.status(200));
+                //Some CRUD API
+                path("user", () -> {
+                    post(ctx -> ctx.result("Created"));
+                    path(":userId", () -> {
+                        get(ctx -> ctx.result("Get user " + ctx.param("userId")));
+                        patch(ctx -> ctx.result("Update user " + ctx.param("userId")));
+                        delete(ctx -> ctx.result("Delete user " + ctx.param("userId")));
+                    });
+                });
+
+                path("message/:userId", () -> {
+                    get(ctx -> ctx.result("Messages for " + ctx.param("userId")));
+                    post(":recipientId", ctx -> ctx.result("Send from " + ctx.param("userId") + " to " + ctx.param("recipientId")));
+                    path("drafts", () -> {
+                        get(ctx -> ctx.result("Drafts for " + ctx.param("userId")));
+                        path(":draftId", () -> {
+                            get(ctx -> ctx.result("Get draft " + ctx.param("draftId")));
+                            patch(ctx -> ctx.result("Update draft " + ctx.param("draftId")));
+                            delete(ctx -> ctx.result("Delete draft " + ctx.param("draftId")));
                         });
                     });
+                });
 
-                    path("message/:userId", () -> {
-                        get(ctx -> ctx.result("Messages for " + ctx.param("userId")));
-                        post(":recipientId", ctx -> ctx.result("Send from " + ctx.param("userId") + " to " + ctx.param("recipientId")));
-                        path("drafts", () -> {
-                            get(ctx -> ctx.result("Drafts for " + ctx.param("userId")));
-                            path(":draftId", () -> {
-                                get(ctx -> ctx.result("Get draft " + ctx.param("draftId")));
-                                patch(ctx -> ctx.result("Update draft " + ctx.param("draftId")));
-                                delete(ctx -> ctx.result("Delete draft " + ctx.param("draftId")));
-                            });
-                        });
-                    });
+                get("health", ctx -> {
+                });
 
-                    get("redirect/*", ctx -> ctx.redirect(ctx.splat(0)));
-                    post("redirect/*", ctx -> ctx.redirect(ctx.splat(0)));
-
-                    get("health", ctx -> {});
-
-                    after(ctx -> ctx.header("X-AFTER", "After"));
-                }).start();
+                after(ctx -> ctx.header("X-AFTER", "After"));
+            }).start();
         origin = "http://localhost:" + app.port();
     }
 
@@ -99,10 +103,6 @@ public class StupidPerformanceTest {
         Unirest.patch(origin + "/message/1/drafts/2/").asString();
 
         Unirest.get(origin + "/health/draft/asd/creep/").asString();
-
-        Unirest.get(origin + "/redirect/new/payment/").asString();
-        Unirest.get(origin + "/redirect/old/payment/").asString();
-        Unirest.post(origin + "/redirect/old/accept/").asString();
 
         Unirest.get(origin + "/health").asString();
     }

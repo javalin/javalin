@@ -4,22 +4,23 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-@file:JvmName("RouteOverviewUtil")
-
 package io.javalin.core.util
 
-import io.javalin.Handler
 import io.javalin.Javalin
 import io.javalin.core.HandlerType
 import io.javalin.security.Role
 import sun.reflect.ConstantPool
 
-data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Handler, val roles: List<Role>?)
+data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: List<Role>?)
 
-fun enableRouteOverview(path: String, app: Javalin) = app.get(path) { ctx -> ctx.html(createHtmlOverview(app)) }
+object RouteOverviewUtil {
 
-internal fun createHtmlOverview(app: Javalin): String {
-    return """
+    @JvmStatic
+    fun enableRouteOverview(path: String, app: Javalin) = app.get(path) { ctx -> ctx.html(createHtmlOverview(app)) }
+
+    @JvmStatic
+    fun createHtmlOverview(app: Javalin): String {
+        return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
             * {
@@ -68,7 +69,7 @@ internal fun createHtmlOverview(app: Javalin): String {
             }
             .method td:first-of-type {
                 text-align: center;
-                max-width: 80px;
+                max-width: 90px;
             }
             tbody .method td:first-of-type {
                 font-weight: 700;
@@ -98,19 +99,24 @@ internal fun createHtmlOverview(app: Javalin): String {
             .BEFORE, .AFTER {
                 background: #777;
             }
+
+            .WEBSOCKET {
+                background: #546E7A;
+            }
+
         </style>
         <body>
             <table>
                 <thead>
                     <tr class="method">
-                        <td width="90px">Method</td>
+                        <td width="105px">Method</td>
                         <td>Path</td>
                         <td>Handler</td>
                         <td>Roles</td>
                     </tr>
                 </thead>
                 ${app.routeOverviewEntries.map { (httpMethod, path, handler, roles) ->
-        """
+            """
                     <tr class="method $httpMethod">
                         <td>$httpMethod</span></td>
                         <td>$path</td>
@@ -118,11 +124,11 @@ internal fun createHtmlOverview(app: Javalin): String {
                         <td>${roles?.toString() ?: "-"}</td>
                     </tr>
                     """
-    }.joinToString("")}
+        }.joinToString("")}
             </table>
             <script>
                 const cachedRows = Array.from(document.querySelectorAll("tbody tr"));
-                const verbOrder = ["BEFORE", "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "HEAD", "AFTER"];
+                const verbOrder = ["BEFORE", "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "HEAD", "AFTER", "WEBSOCKET"];
                 document.querySelector("thead").addEventListener("click", function (e) {
                     cachedRows.map(function (el) {
                         return {key: el.children[e.target.cellIndex].textContent, row: el};
@@ -138,55 +144,43 @@ internal fun createHtmlOverview(app: Javalin): String {
             </script>
         </body>
     """
-}
-
-private const val lambdaSign = "??? (anonymous lambda)"
-
-private val Handler.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
-private val Handler.implementingClassName: String? get() = this.javaClass.name
-
-private val Handler.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
-private val Handler.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
-private val Handler.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
-
-private val Handler.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
-private val Handler.isJavaMethodReference: Boolean get() = this.methodName != null
-private val Handler.isJavaField: Boolean get() = this.javaFieldName != null
-
-private fun Any.runMethod(name: String): Any = this.javaClass.getMethod(name).apply { isAccessible = true }.invoke(this)
-
-internal val Handler.metaInfo: String
-    get() {
-        // this is just guesswork...
-        return when {
-            isKotlinMethodReference -> {
-                val f = this.javaClass.getDeclaredField("function")
-                        .apply { isAccessible = true }
-                        .get(this)
-                f.runMethod("getOwner").runMethod("getJClass").runMethod("getName").toString() + "::" + f.runMethod("getName")
-            }
-            isKotlinAnonymousLambda -> parentClass.name + "::" + lambdaSign
-            isKotlinField -> parentClass.name + "." + kotlinFieldName
-
-            isJavaMethodReference -> parentClass.name + "::" + methodName
-            isJavaField -> parentClass.name + "." + javaFieldName
-            isJavaAnonymousLambda -> parentClass.name + "::" + lambdaSign
-
-            else -> implementingClassName + ".class"
-        }
     }
 
-private val Handler.kotlinFieldName // this is most likely a very stupid solution
+    @JvmStatic
+    val Any.metaInfo: String
+        get() {
+            // this is just guesswork...
+            return when {
+                isClass -> (this as Class<*>).name + ".class"
+                isKotlinMethodReference -> {
+                    val f = this.javaClass.getDeclaredField("function")
+                            .apply { isAccessible = true }
+                            .get(this)
+                    f.runMethod("getOwner").runMethod("getJClass").runMethod("getName").toString() + "::" + f.runMethod("getName")
+                }
+                isKotlinAnonymousLambda -> parentClass.name + "::" + lambdaSign
+                isKotlinField -> parentClass.name + "." + kotlinFieldName
+
+                isJavaMethodReference -> parentClass.name + "::" + methodName
+                isJavaField -> parentClass.name + "." + javaFieldName
+                isJavaAnonymousLambda -> parentClass.name + "::" + lambdaSign
+
+                else -> implementingClassName + ".class"
+            }
+        }
+}
+
+private val Any.kotlinFieldName // this is most likely a very stupid solution
     get() = this.javaClass.toString().removePrefix(this.parentClass.toString() + "$").takeWhile { it != '$' }
 
-private val Handler.javaFieldName: String?
+private val Any.javaFieldName: String?
     get() = try {
         parentClass.declaredFields.find { it.isAccessible = true; it.get(it) == this }?.name
     } catch (ignored: Exception) { // Nothing really matters.
         null
     }
 
-private val Handler.methodName: String?
+private val Any.methodName: String?
     get() {
         val constantPool = Class::class.java.getDeclaredMethod("getConstantPool").apply { isAccessible = true }.invoke(javaClass) as ConstantPool
         for (i in constantPool.size downTo 0) {
@@ -203,3 +197,20 @@ private val Handler.methodName: String?
         }
         return null
     }
+
+private const val lambdaSign = "??? (anonymous lambda)"
+
+private val Any.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
+private val Any.implementingClassName: String? get() = this.javaClass.name
+
+private val Any.isClass: Boolean get() = this is Class<*>
+
+private val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
+private val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
+private val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
+
+private val Any.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
+private val Any.isJavaMethodReference: Boolean get() = this.methodName != null
+private val Any.isJavaField: Boolean get() = this.javaFieldName != null
+
+private fun Any.runMethod(name: String): Any = this.javaClass.getMethod(name).apply { isAccessible = true }.invoke(this)

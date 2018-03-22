@@ -86,17 +86,29 @@ public class TestApiBuilder extends _UnirestBaseTest {
     @Test
     public void test_pathWorks_forFilters() throws Exception {
         app.routes(() -> {
-            path("/level-1", () -> {
-                before("/*", ctx -> ctx.result("1"));
-                path("/level-2", () -> {
-                    path("/level-3", () -> {
+            path("level-1", () -> {
+                before(ctx -> ctx.result("1"));
+                path("level-2", () -> {
+                    path("level-3", () -> {
                         get("/hello", updateAnswer("Hello"));
                     });
-                    after("/*", updateAnswer("2"));
+                    after(updateAnswer("2"));
                 });
             });
         });
         assertThat(GET_body("/level-1/level-2/level-3/hello"), is("1Hello2"));
+    }
+
+    @Test
+    public void test_pathWorks_forNonSlashVerb() throws Exception {
+        app.routes(() -> {
+            path("level-1", () -> {
+                get(ctx -> ctx.result("level-1"));
+                get("hello", ctx -> ctx.result("Hello"));
+            });
+        });
+        assertThat(GET_body("/level-1"), is("level-1"));
+        assertThat(GET_body("/level-1/hello"), is("Hello"));
     }
 
     private Handler updateAnswer(String body) {

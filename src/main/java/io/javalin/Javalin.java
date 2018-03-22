@@ -118,7 +118,8 @@ public class Javalin {
                     pathMatcher,
                     exceptionMapper,
                     errorMapper,
-                    pathWsHandlers,
+                    jettyWsHandlers,
+                    javalinWsHandlers,
                     logLevel,
                     dynamicGzipEnabled,
                     defaultContentType,
@@ -190,7 +191,7 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to serves static files from path in the given location.
+     * Configure instance to serves static files from path in the specified location.
      * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
@@ -416,7 +417,7 @@ public class Javalin {
     // HTTP verbs
 
     /**
-     * Adds a GET request handler for the given path to the instance.
+     * Adds a GET request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -425,7 +426,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a POST request handler for the given path to the instance.
+     * Adds a POST request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -434,7 +435,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a PUT request handler for the given path to the instance.
+     * Adds a PUT request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -443,7 +444,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a PATCH request handler for the given path to the instance.
+     * Adds a PATCH request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -452,7 +453,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a DELETE request handler for the given path to the instance.
+     * Adds a DELETE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -461,7 +462,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a HEAD request handler for the given path to the instance.
+     * Adds a HEAD request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -470,7 +471,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a TRACE request handler for the given path to the instance.
+     * Adds a TRACE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -479,7 +480,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a CONNECT request handler for the given path to the instance.
+     * Adds a CONNECT request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -488,7 +489,7 @@ public class Javalin {
     }
 
     /**
-     * Adds a OPTIONS request handler for the given path to the instance.
+     * Adds a OPTIONS request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
@@ -665,43 +666,49 @@ public class Javalin {
     // WebSockets
     // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
 
-    private Map<String, Object> pathWsHandlers = new HashMap<>();
+    private List<WebSocketHandler> javalinWsHandlers = new ArrayList<>();
+    private Map<String, Object> jettyWsHandlers = new HashMap<>();
 
     /**
-     * Adds a lambda handler for a WebSocket connection on the given path.
-     * The method must be called before {@link Javalin#start()}.
+     * Adds a lambda handler for a WebSocket connection on the specified path.
+     * Has some added functionality (path params, wrapped session) compared to
+     * the other ws methods.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
-        WebSocketHandler configuredHandler = new WebSocketHandler();
+        WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
         ws.configure(configuredHandler);
-        return addWebSocketHandler(path, configuredHandler);
+        javalinWsHandlers.add(configuredHandler);
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), ws, null));
+        return this;
     }
 
     /**
-     * Adds a Jetty annotated class as a handler for a WebSocket connection on the given path.
+     * Adds a Jetty annotated class as a handler for a WebSocket connection on the specified path.
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), webSocketClass, null));
         return addWebSocketHandler(path, webSocketClass);
     }
 
     /**
-     * Adds a Jetty WebSocket object as a handler for a WebSocket connection on the given path.
+     * Adds a Jetty WebSocket object as a handler for a WebSocket connection on the specified path.
      * The method must be called before {@link Javalin#start()}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), webSocketObject, null));
         return addWebSocketHandler(path, webSocketObject);
     }
 
     private Javalin addWebSocketHandler(@NotNull String path, @NotNull Object webSocketObject) {
         ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
-        pathWsHandlers.put(path, webSocketObject);
+        jettyWsHandlers.put(path, webSocketObject);
         return this;
     }
 

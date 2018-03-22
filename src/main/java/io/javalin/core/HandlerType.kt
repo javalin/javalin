@@ -9,7 +9,7 @@ package io.javalin.core
 import javax.servlet.http.HttpServletRequest
 
 enum class HandlerType {
-    GET, POST, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS, BEFORE, AFTER, INVALID;
+    GET, POST, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS, BEFORE, AFTER, INVALID, WEBSOCKET;
 
     companion object {
         private val methodMap = HandlerType.values().map { it.toString() to it }.toMap()

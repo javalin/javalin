@@ -11,7 +11,7 @@ import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
 import java.nio.file.PathMatcher
 
-data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
+class PathParser(val path: String) {
     private val paramNames = path.split("/")
             .filter { it.startsWith(":") }
             .map { it.replace(":", "") }
@@ -41,7 +41,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
     // Use splat wildcard as a capturing group
     private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex()
 
-    fun match(requestUri: String) = requestUri matches matchRegex
+    fun matches(requestUri: String) = requestUri matches matchRegex
 
     fun extractParams(requestUri: String): Map<String, String> {
         val values = paramRegex.matchEntire(requestUri)?.groupValues
@@ -64,6 +64,17 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
         }
         return result
     }
+
+}
+
+data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
+    private val parser: PathParser = PathParser(path)
+
+    fun matches(requestUri: String) = parser.matches(requestUri)
+
+    fun extractParams(requestUri: String): Map<String, String> = parser.extractParams(requestUri)
+
+    fun extractSplats(requestUri: String): List<String> = parser.extractSplats(requestUri)
 }
 
 class PathMatcher {
@@ -84,12 +95,10 @@ class PathMatcher {
         entry.path == "*" -> true
         entry.path == requestPath -> true
         !this.ignoreTrailingSlashes && slashMismatch(entry.path, requestPath) -> false
-        else -> matchParamAndWildcard(entry, requestPath)
+        else -> entry.matches(requestPath)
     }
 
     private fun slashMismatch(s1: String, s2: String): Boolean = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
-
-    private fun matchParamAndWildcard(entry: HandlerEntry, fullRequestPath: String) = entry.match(fullRequestPath)
 
     fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
         val entries = handlerEntries.filter(predicate)

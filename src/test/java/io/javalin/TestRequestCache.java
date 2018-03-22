@@ -2,6 +2,8 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import java.io.InputStream;
+import java.util.Arrays;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
@@ -11,10 +13,6 @@ import org.apache.http.util.EntityUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.InputStream;
-import java.util.Arrays;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestRequestCache {
@@ -74,8 +72,8 @@ public class TestRequestCache {
             }
         });
         HttpResponse<InputStream> response = Unirest.post(originCacheDisabled + "/disabled-cache")
-                .body("test")
-                .asBinary();
+            .body("test")
+            .asBinary();
 
         assertThat("Request cache should be disabled", response.getStatus() == 200);
     }

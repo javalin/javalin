@@ -9,8 +9,12 @@ package io.javalin.routeoverview;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.Javalin;
-import io.javalin.core.util.RouteOverviewUtil;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
+import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
 import io.javalin.util.HandlerImplementation;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import static io.javalin.ApiBuilder.delete;
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.ApiBuilder.patch;
@@ -27,8 +31,12 @@ public class VisualTest {
         Javalin app = Javalin.create()
             .contextPath("/context-path")
             .enableRouteOverview("/route-overview")
-            .enableCorsForAllOrigins()
-            .start();
+            .enableCorsForAllOrigins();
+        app.ws("/websocket/jetty-class", TestWebSocketHandler.class);
+        app.ws("/websocket/jetty-object", new TestWebSocketHandler());
+
+        app.start();
+
         app.get("/", ctx -> ctx.redirect("/route-overview"));
         app.get("/just-some-path", new HandlerImplementation());
         app.post("/test/:hmm/", VisualTest::methodReference);
@@ -39,23 +47,16 @@ public class VisualTest {
         app.after("*", VisualTest.lambdaField);
         app.head("/check/the/head", VisualTest::methodReference);
         app.get("/:path1/:path2", VisualTest.lambdaField);
-        app.post("/user/create",  VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
+        app.post("/user/create", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
         app.put("/user/:user-id", VisualTest.lambdaField);
         app.patch("/patchy-mcpatchface", new ImplementingClass(), roles(ROLE_ONE, ROLE_TWO));
         app.delete("/users/:user-id", new HandlerImplementation());
         app.options("/what/:are/*/my-options", new HandlerImplementation());
         app.trace("/tracer", new HandlerImplementation());
+        app.ws("/websocket", VisualTest::wsMethodRef);
+        app.ws("/websocket/:path", new ImplementingWsClass());
         app.routes(() -> {
             path("users", () -> {
-                get(new HandlerImplementation());
-                post(new HandlerImplementation());
-                path(":id", () -> {
-                    get(new HandlerImplementation());
-                    patch(new HandlerImplementation());
-                    delete(new HandlerImplementation());
-                });
-            });
-            path("admins", () -> {
                 get(new HandlerImplementation());
                 post(new HandlerImplementation());
                 path(":id", () -> {
@@ -67,6 +68,10 @@ public class VisualTest {
         });
     }
 
+    private static void wsMethodRef(WebSocketHandler webSocketHandler) {
+        webSocketHandler.onConnect(session -> session.getRemote().sendString("Connected!"));
+    }
+
     private static Handler lambdaField = ctx -> {
     };
 
@@ -76,7 +81,23 @@ public class VisualTest {
         }
     }
 
+    private static class ImplementingWsClass implements WebSocketConfig {
+        @Override
+        public void configure(WebSocketHandler webSocketHandler) {
+        }
+    }
+
     private static void methodReference(Context context) {
+    }
+
+    @WebSocket
+    public static class TestWebSocketHandler {
+
+        @OnWebSocketConnect
+        public void onConnect(Session session) throws Exception {
+            session.getRemote().sendString("Connected");
+        }
+
     }
 
 }

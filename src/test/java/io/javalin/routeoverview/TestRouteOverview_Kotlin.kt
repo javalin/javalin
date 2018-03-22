@@ -8,7 +8,6 @@ package io.javalin.routeoverview
 
 import io.javalin.Context
 import io.javalin.Handler
-import io.javalin.core.util.metaInfo
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -24,15 +23,15 @@ class TestRouteOverview_Kotlin {
 
     @Test
     fun test_field_works() {
-        assertThat(ObjectHandlers.lambdaField.metaInfo, `is`("io.javalin.routeoverview.ObjectHandlers.lambdaField"))
-        assertThat(ClassHandlers().lambdaField.metaInfo, `is`("io.javalin.routeoverview.ClassHandlers.lambdaField"))
-        assertThat(standAloneField.metaInfo, `is`("io.javalin.routeoverview.TestRouteOverview_KotlinKt.standAloneField"))
+        assertThat(Util.getMetaInfo(ObjectHandlers.lambdaField), `is`("io.javalin.routeoverview.ObjectHandlers.lambdaField"))
+        assertThat(Util.getMetaInfo(ClassHandlers().lambdaField), `is`("io.javalin.routeoverview.ClassHandlers.lambdaField"))
+        assertThat(Util.getMetaInfo(standAloneField), `is`("io.javalin.routeoverview.TestRouteOverview_KotlinKt.standAloneField"))
     }
 
     @Test
     fun test_class_works() {
-        assertThat(ObjectHandlers.ImplementingClass().metaInfo, `is`("io.javalin.routeoverview.ObjectHandlers\$ImplementingClass.class"))
-        assertThat(HandlerImplementation().metaInfo, `is`("io.javalin.routeoverview.HandlerImplementation.class"))
+        assertThat(Util.getMetaInfo(ObjectHandlers.ImplementingClass()), `is`("io.javalin.routeoverview.ObjectHandlers\$ImplementingClass.class"))
+        assertThat(Util.getMetaInfo(HandlerImplementation()), `is`("io.javalin.routeoverview.HandlerImplementation.class"))
     }
 
     @Test

@@ -11,7 +11,13 @@ import org.eclipse.jetty.websocket.api.*
 import org.eclipse.jetty.websocket.common.WebSocketSession
 import java.net.InetSocketAddress
 
-class WsSession(val id: String, session: Session) : Session {
+/**
+ * The [WsSession] class is a wrapper for Jetty's [Session].
+ * It adds functionality for extracting query params, identical to
+ * the API found in [io.javalin.Context].
+ * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
+ */
+class WsSession(val id: String, session: Session, private var paramMap: Map<String, String>) : Session {
 
     private val webSocketSession = session as WebSocketSession
 
@@ -23,8 +29,14 @@ class WsSession(val id: String, session: Session) : Session {
     fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
+    fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
+    fun paramMap(): Map<String, String> = paramMap
+    fun host(): String? = webSocketSession.upgradeRequest.host
+    fun header(header: String): String? = webSocketSession.upgradeRequest.getHeader(header)
+    fun headerMap(): Map<String, String> = webSocketSession.upgradeRequest.headers.keys.map { it to webSocketSession.upgradeRequest.getHeader(it) }.toMap()
 
     // interface overrides + equals/hash
+
     override fun close() = webSocketSession.close()
     override fun close(closeStatus: CloseStatus) = webSocketSession.close(closeStatus)
     override fun close(statusCode: Int, reason: String) = webSocketSession.close(statusCode, reason)

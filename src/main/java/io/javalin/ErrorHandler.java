@@ -6,7 +6,14 @@
 
 package io.javalin;
 
+/**
+ * A handler for use with {@link Javalin#error(int, ErrorHandler)}.
+ * Is triggered by [{@link Context#status()}] codes at the end of the request lifecycle.
+ *
+ * @see Context
+ * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
+ */
 @FunctionalInterface
 public interface ErrorHandler {
-    void handle(Context ctx);  // similar to handler, can't throw exception
+    void handle(Context ctx);
 }

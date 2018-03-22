@@ -13,6 +13,7 @@ import io.javalin.core.util.LogUtil
 import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
+import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
@@ -27,7 +28,8 @@ class JavalinServlet(
         val matcher: PathMatcher,
         val exceptionMapper: ExceptionMapper,
         val errorMapper: ErrorMapper,
-        val wsHandlers: Map<String, Any>,
+        val jettyWsHandlers: Map<String, Any>,
+        val javalinWsHandlers: List<WebSocketHandler>,
         val logLevel: LogLevel,
         val dynamicGzipEnabled: Boolean,
         val defaultContentType: String,
@@ -93,7 +95,6 @@ class JavalinServlet(
                     }
                 } else {
                     resultStream.copyTo(res.outputStream)
-                    res.outputStream.close()
                 }
             }
         }

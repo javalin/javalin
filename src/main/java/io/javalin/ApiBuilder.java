@@ -45,14 +45,14 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
-        path = (path + "/").replaceAll("/{2,}", "/");
+        path = path.startsWith("/") ? path : "/" + path;
         pathDeque.addLast(path);
         endpointGroup.addEndpoints();
         pathDeque.removeLast();
     }
 
     private static String prefixPath(@NotNull String path) {
-        return pathDeque.stream().collect(Collectors.joining("")) + path;
+        return pathDeque.stream().collect(Collectors.joining("")) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
     }
 
     private static Javalin staticInstance() {
@@ -259,7 +259,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void before(@NotNull Handler handler) {
-        staticInstance().before(prefixPath("*"), handler);
+        staticInstance().before(prefixPath("/*"), handler);
     }
 
     /**
@@ -269,7 +269,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void after(@NotNull Handler handler) {
-        staticInstance().after(prefixPath("*"), handler);
+        staticInstance().after(prefixPath("/*"), handler);
     }
 
     /**
@@ -339,7 +339,8 @@ public class ApiBuilder {
 
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
+     * Has some added functionality (path params, wrapped session) compared to
+     * the other ws methods.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */

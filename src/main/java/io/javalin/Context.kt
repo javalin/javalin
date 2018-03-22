@@ -131,8 +131,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Requires Apache commons-fileupload library in the classpath.
      */
     fun uploadedFiles(fileName: String): List<UploadedFile> {
-        Util.ensureDependencyPresent("FileUpload", "org.apache.commons.fileupload.servlet.ServletFileUpload", "commons-fileupload/commons-fileupload")
-        return UploadUtil.getUploadedFiles(servletRequest, fileName)
+        return if (isMultipartFormData()) UploadUtil.getUploadedFiles(servletRequest, fileName) else listOf()
     }
 
     fun multipartFormParam(formParam: String): String? = multipartFormParams(formParam)?.firstOrNull()
