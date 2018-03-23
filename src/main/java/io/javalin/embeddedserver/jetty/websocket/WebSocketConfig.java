@@ -19,6 +19,7 @@ package io.javalin.embeddedserver.jetty.websocket;
  *     ws.onError((session, throwable) -> ...);
  * });
  * }
+ * </pre>
  * @see WebSocketHandler
  * @see io.javalin.Javalin#ws(String, WebSocketConfig)
  */
