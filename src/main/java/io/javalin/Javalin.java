@@ -184,7 +184,7 @@ public class Javalin {
      * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
-     * @see <a href="https://javalin.io/documentation#static-files>Static files in docs</a>
+     * @see <a href="https://javalin.io/documentation#static-files">Static files in docs</a>
      */
     public Javalin enableStaticFiles(@NotNull String classpathPath) {
         return enableStaticFiles(classpathPath, Location.CLASSPATH);
@@ -195,7 +195,7 @@ public class Javalin {
      * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
-     * @see <a href="https://javalin.io/documentation#static-files>Static files in docs</a>
+     * @see <a href="https://javalin.io/documentation#static-files">Static files in docs</a>
      */
     public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
