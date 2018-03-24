@@ -11,7 +11,6 @@ import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,9 +27,8 @@ public class WebSocketHandler {
     }
 
     private final PathParser pathParser;
+    private final ConcurrentMap<Session, Map<String, String>> paramCache = new ConcurrentHashMap<>();
     private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
-
-    private Map<String, String> params = new HashMap<>();
 
     private ConnectHandler connectHandler = null;
     private MessageHandler messageHandler = null;
@@ -74,6 +72,7 @@ public class WebSocketHandler {
     }
 
     void onConnect(Session session) throws Exception {
+        paramCache.putIfAbsent(session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
         WsSession wsSession = registerAndWrapSession(session);
         if (connectHandler != null) {
             connectHandler.handle(wsSession);
@@ -106,12 +105,8 @@ public class WebSocketHandler {
         return pathParser.matches(requestUri);
     }
 
-    public void updateParams(String requestUri){
-        params = pathParser.extractParams(requestUri);
-    }
-
     private WsSession registerAndWrapSession(Session session) {
         sessions.putIfAbsent(session, UUID.randomUUID().toString());
-        return new WsSession(sessions.get(session), session, params);
+        return new WsSession(sessions.get(session), session, paramCache.get(session));
     }
 }
