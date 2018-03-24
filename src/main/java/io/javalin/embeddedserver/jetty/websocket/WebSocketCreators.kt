@@ -18,8 +18,12 @@ class JettyWebSocketCreator(internal val handler: Any) : WebSocketCreator {
 
 class RootWebSocketCreator(private val handlerRoot: WebSocketHandlerRoot, private val javalinWsHandlers: List<WebSocketHandler>) : WebSocketCreator {
     override fun createWebSocket(req: ServletUpgradeRequest, response: ServletUpgradeResponse): Any {
-        if (javalinWsHandlers.find { it.matches(req.requestURI.path) } == null) {
+        val handler: WebSocketHandler? = javalinWsHandlers.find { it.matches(req.requestURI.path) }
+
+        if (handler == null) {
             response.sendError(404, "WebSocket handler not found")
+        }else {
+            handler.updateParams(req.requestURI.path)
         }
         return handlerRoot
     }
