@@ -11,6 +11,7 @@ import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
 import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -26,8 +27,8 @@ public class WebSocketHandler {
     }
 
     private final PathParser pathParser;
-
-    private final ConcurrentMap<Session, String> sessions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Session, Map<String, String>> sessionParams = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Session, String> sessionIds = new ConcurrentHashMap<>();
 
     private ConnectHandler connectHandler = null;
     private MessageHandler messageHandler = null;
@@ -89,7 +90,7 @@ public class WebSocketHandler {
         if (closeHandler != null) {
             closeHandler.handle(wsSession, statusCode, reason);
         }
-        sessions.remove(session);
+        clearSessionCache(session);
     }
 
     void onError(Session session, Throwable throwable) throws Exception {
@@ -103,8 +104,14 @@ public class WebSocketHandler {
         return pathParser.matches(requestUri);
     }
 
+    private void clearSessionCache(Session session){
+        sessionIds.remove(session);
+        sessionParams.remove(session);
+    }
+
     private WsSession registerAndWrapSession(Session session) {
-        sessions.putIfAbsent(session, UUID.randomUUID().toString());
-        return new WsSession(sessions.get(session), session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
+        sessionIds.putIfAbsent(session, UUID.randomUUID().toString());
+        sessionParams.putIfAbsent(session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
+        return new WsSession(sessionIds.get(session), session, sessionParams.get(session));
     }
 }
