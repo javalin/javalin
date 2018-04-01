@@ -15,8 +15,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
 import org.slf4j.LoggerFactory
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -45,7 +44,7 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) : StaticRes
             }
             return classPathResource.toString()
         }
-        if (Files.notExists(Paths.get(staticFileConfig.path))) {
+        if (!File(staticFileConfig.path).exists()) {
             throw RuntimeException(nosuchdir)
         }
         return staticFileConfig.path
