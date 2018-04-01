@@ -9,7 +9,6 @@ package io.javalin.core
 import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
-import java.nio.file.PathMatcher
 
 class PathParser(val path: String) {
     private val paramNames = path.split("/")
