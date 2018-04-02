@@ -14,6 +14,6 @@ package io.javalin;
  * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
  */
 @FunctionalInterface
-public interface ExceptionHandler<T extends Exception> {
+public interface ExceptionHandler<T extends Throwable> {
     void handle(T exception, Context ctx);
 }

@@ -16,7 +16,9 @@ import io.javalin.translator.template.JavalinThymeleafPlugin
 import io.javalin.translator.template.JavalinVelocityPlugin
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
+import java.util.concurrent.Future
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -35,6 +37,8 @@ class Context(private val servletResponse: HttpServletResponse,
     private var passedToNextHandler: Boolean = false
 
     private var resultStream: InputStream? = null
+
+    private var future: CompletableFuture<*>? = null
 
     private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
 
@@ -417,10 +421,17 @@ class Context(private val servletResponse: HttpServletResponse,
         return this
     }
 
+    fun result(future: CompletableFuture<*>): Context {
+        this.future = future
+        return this
+    }
+
     /**
      * Gets the current context result as an InputStream (if set).
      */
     fun resultStream(): InputStream? = resultStream
+
+    fun resultFuture(): CompletableFuture<*>? = future
 
     /**
      * Sets response charset to specified value.

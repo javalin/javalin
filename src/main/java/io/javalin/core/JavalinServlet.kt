@@ -6,6 +6,7 @@
 
 package io.javalin.core
 
+import io.javalin.Context
 import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
@@ -16,6 +17,7 @@ import io.javalin.embeddedserver.StaticResourceHandler
 import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler
 import org.slf4j.LoggerFactory
 import java.io.InputStream
+import java.util.concurrent.CompletionStage
 import java.util.zip.GZIPOutputStream
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
@@ -84,6 +86,33 @@ class JavalinServlet(
             errorMapper.handle(ctx.status(), ctx)
         }
 
+        val future = ctx.resultFuture()
+        if (future != null) {
+            val async = req.startAsync()
+            future.exceptionally {
+                if (it is Exception) {
+                    exceptionMapper.handle(it, ctx)
+                }
+                null // JInterop
+            }
+            .thenApply {
+                tryWithExceptionMapper {
+                    errorMapper.handle(ctx.status(), ctx)
+                }
+            }
+            .thenAccept {
+                writeResult(ctx, async.request as HttpServletRequest, async.response as HttpServletResponse)
+            }
+            .whenComplete { _, _ ->
+                async.complete()
+            }
+        } else {
+            writeResult(ctx, req, res)
+        }
+
+    }
+
+    private fun writeResult(ctx: Context, req: HttpServletRequest, res: HttpServletResponse) {
         // write result to servlet-response (if not already committed)
         val doGzip = gzipShouldBeDone(ctx.resultStream(), req)
         if (!res.isCommitted) {
@@ -98,9 +127,7 @@ class JavalinServlet(
                 }
             }
         }
-
-        LogUtil.logRequestAndResponse(ctx, logLevel, matcher, type, requestUri, log, doGzip)
-
+        LogUtil.logRequestAndResponse(ctx, logLevel, matcher, log, doGzip)
     }
 
     private fun shouldCheckForStaticFiles(endpointEntries: List<HandlerEntry>, type: HandlerType, requestUri: String) = when {
@@ -109,8 +136,7 @@ class JavalinServlet(
         else -> false
     }
 
-    private fun gzipShouldBeDone(resultStream: InputStream?, req: CachedRequestWrapper) = dynamicGzipEnabled
+    private fun gzipShouldBeDone(resultStream: InputStream?, req: HttpServletRequest) = dynamicGzipEnabled
             && resultStream?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
             && (req.getHeader(Header.ACCEPT_ENCODING) ?: "").contains("gzip", ignoreCase = true)
-
 }
