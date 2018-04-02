@@ -17,7 +17,6 @@ import io.javalin.embeddedserver.StaticResourceHandler
 import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler
 import org.slf4j.LoggerFactory
 import java.io.InputStream
-import java.util.concurrent.CompletionStage
 import java.util.zip.GZIPOutputStream
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
@@ -76,14 +75,16 @@ class JavalinServlet(
             }
         }
 
-        tryWithExceptionMapper {
-            matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-                entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+        fun postHandle() {
+            tryWithExceptionMapper {
+                errorMapper.handle(ctx.status(), ctx)
             }
-        }
 
-        tryWithExceptionMapper {
-            errorMapper.handle(ctx.status(), ctx)
+            tryWithExceptionMapper {
+                matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+                    entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+                }
+            }
         }
 
         val future = ctx.resultFuture()
@@ -95,18 +96,22 @@ class JavalinServlet(
                 }
                 null // JInterop
             }
-            .thenApply {
-                tryWithExceptionMapper {
-                    errorMapper.handle(ctx.status(), ctx)
-                }
+            .thenApply { futureResult ->
+                postHandle()
+                futureResult
             }
             .thenAccept {
+                when (it) {
+                    is InputStream -> ctx.result(it)
+                    is String -> ctx.result(it)
+                }
                 writeResult(ctx, async.request as HttpServletRequest, async.response as HttpServletResponse)
             }
             .whenComplete { _, _ ->
                 async.complete()
             }
         } else {
+            postHandle()
             writeResult(ctx, req, res)
         }
 
