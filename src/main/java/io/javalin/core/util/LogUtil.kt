@@ -12,6 +12,7 @@ import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
 import io.javalin.embeddedserver.CachedResponseWrapper
 import org.slf4j.Logger
+import java.time.Duration
 import java.util.*
 
 object LogUtil {
@@ -21,7 +22,7 @@ object LogUtil {
             return
         }
         val startTime: Long = ctx.attribute("javalin-request-log-start-time")
-        val executionTime = Formatter(Locale.US).format("%.2f", (System.nanoTime() - startTime) / 1000000f)
+        val executionTime = Formatter(Locale.US).format("%.2f", Duration.ofNanos(System.nanoTime() - startTime).toMillis())
         with(ctx) {
             val resContentType = response().contentType ?: "content-type-not-set"
             when (logLevel) {
