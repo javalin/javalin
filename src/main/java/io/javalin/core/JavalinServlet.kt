@@ -66,7 +66,9 @@ class JavalinServlet(
             }
             val endpointEntries = matcher.findEntries(type, requestUri)
             endpointEntries.forEach { entry ->
+                ctx.futureCanBeSet = true
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+                ctx.futureCanBeSet = false
                 if (!ctx.nexted()) {
                     return@tryWithExceptionMapper
                 }

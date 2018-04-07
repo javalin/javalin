@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse
  */
 class Context(private val servletResponse: HttpServletResponse,
               private val servletRequest: HttpServletRequest,
+              internal var futureCanBeSet: Boolean,
               internal var matchedPath: String,
               internal var paramMap: Map<String, String>,
               internal var splatList: List<String>) {
@@ -37,7 +38,7 @@ class Context(private val servletResponse: HttpServletResponse,
 
     private var resultStream: InputStream? = null
 
-    private var future: CompletableFuture<*>? = null
+    private var resultFuture: CompletableFuture<*>? = null
 
     private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
 
@@ -397,10 +398,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets context result to the specified String.
      * Will overwrite the current result if there is one.
      */
-    fun result(resultString: String): Context {
-        resultStream = resultString.byteInputStream(stringCharset())
-        return this
-    }
+    fun result(resultString: String) = result(resultString.byteInputStream(stringCharset()))
 
     /**
      * Gets the current context result as a String (if set).
@@ -416,21 +414,9 @@ class Context(private val servletResponse: HttpServletResponse,
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
+        this.resultFuture = null;
         this.resultStream = resultStream
         return this
-    }
-
-    /**
-     * Sets context result to the specified CompletableFuture<String>
-     * or CompletableFuture<InputStream>.
-     */
-    fun result(future: CompletableFuture<*>): Context {
-        if (resultFuture() == null) {
-            this.future = future
-            return this
-        }
-        this.future = null;
-        throw HaltException(500, "You can only set a future result once.")
     }
 
     /**
@@ -438,7 +424,24 @@ class Context(private val servletResponse: HttpServletResponse,
      */
     fun resultStream(): InputStream? = resultStream
 
-    fun resultFuture(): CompletableFuture<*>? = future
+    /**
+     * Sets context result to the specified CompletableFuture<String>
+     * or CompletableFuture<InputStream>.
+     * Will overwrite the current result if there is one.
+     */
+    fun result(future: CompletableFuture<*>): Context {
+        resultStream = null
+        if (futureCanBeSet) {
+            this.resultFuture = future
+            return this
+        }
+        throw IllegalStateException("You can only set Future results in endpoint handlers.")
+    }
+
+    /**
+     * Gets the current context result as a CompletableFuture (if set).
+     */
+    fun resultFuture(): CompletableFuture<*>? = resultFuture
 
     /**
      * Sets response charset to specified value.

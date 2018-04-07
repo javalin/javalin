@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletResponse
 object ContextUtil {
 
     fun create(response: HttpServletResponse, request: HttpServletRequest): Context {
-        return Context(response, request, "", HashMap(), ArrayList())
+        return Context(response, request, false, "", HashMap(), ArrayList())
     }
 
     fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String): Context {

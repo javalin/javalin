@@ -4,7 +4,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -24,10 +23,10 @@ public class TestFuture extends _UnirestBaseTest {
     }
 
     @Test
-    public void testFutures_afterHandler_throwsExceptionForDoubleFuture() throws Exception {
+    public void testFutures_afterHandler_throwsExceptionForFuture() throws Exception {
         app.get("/test-future", ctx -> ctx.result(getFuture("Not result")));
-        app.after(ctx -> ctx.result(getFuture("Overwritten by after-handler")));
-        assertThat(GET_asString("/test-future").getBody(), is("You can only set a future result once."));
+        app.after("/test-future", ctx -> ctx.result(getFuture("Overwritten by after-handler")));
+        assertThat(GET_asString("/test-future").getBody(), is("Internal server error"));
     }
 
     @Test
@@ -44,10 +43,20 @@ public class TestFuture extends _UnirestBaseTest {
     }
 
     @Test
-    public void testFutures_twoFutures_throwsException() throws Exception {
-        app.before("/test-future", ctx -> ctx.result(getFuture("Not result")));
-        app.get("/test-future", ctx -> ctx.result(getFuture("Not result")));
-        assertThat(GET_asString("/test-future").getBody(), is("You can only set a future result once."));
+    public void testFutures_futureInExceptionHandler_throwsException() throws Exception {
+        app.get("/test-future", ctx -> {
+            throw new Exception();
+        });
+        app.exception(Exception.class, (exception, ctx) -> ctx.result(getFuture("Exception result")));
+        assertThat(GET_asString("/test-future").getBody(), is(""));
+        assertThat(GET_asString("/test-future").getStatus(), is(500));
+    }
+
+    @Test
+    public void testFutures_clearedOnNewResult() throws Exception {
+        app.get("/test-future", ctx -> ctx.result(getFuture("Result")).next());
+        app.get("/test-future", ctx -> ctx.result("Overridden"));
+        assertThat(GET_asString("/test-future").getBody(), is("Overridden"));
     }
 
     private static CompletableFuture<String> getFuture(String s) {
@@ -71,7 +80,7 @@ public class TestFuture extends _UnirestBaseTest {
                     future.cancel(false);
                 }
             },
-            100
+            10
         );
         return future;
     }

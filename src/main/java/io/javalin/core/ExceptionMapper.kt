@@ -20,6 +20,7 @@ class ExceptionMapper {
     val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
+        ctx.futureCanBeSet = false
         if (exception is HaltException) {
             ctx.status(exception.statusCode)
             ctx.result(exception.body)
