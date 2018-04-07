@@ -38,7 +38,7 @@ public class TestFuture extends _UnirestBaseTest {
 
     @Test
     public void testFutures_exceptionalFutures() throws Exception {
-        app.get("/test-future", ctx -> ctx.result(getExceptionalFuture()));
+        app.get("/test-future", ctx -> ctx.result(getFuture(null)));
         assertThat(GET_asString("/test-future").getBody(), is("Internal server error"));
     }
 
@@ -59,29 +59,21 @@ public class TestFuture extends _UnirestBaseTest {
         assertThat(GET_asString("/test-future").getBody(), is("Overridden"));
     }
 
-    private static CompletableFuture<String> getFuture(String s) {
+    private static CompletableFuture<String> getFuture(String result) {
         CompletableFuture<String> future = new CompletableFuture<>();
         new Timer().schedule(
             new TimerTask() {
                 public void run() {
-                    future.complete(s);
-                }
-            },
-            100
-        );
-        return future;
-    }
-
-    private static CompletableFuture<String> getExceptionalFuture() {
-        CompletableFuture<String> future = new CompletableFuture<>();
-        new Timer().schedule(
-            new TimerTask() {
-                public void run() {
-                    future.cancel(false);
+                    if (result != null) {
+                        future.complete(result);
+                    } else {
+                        future.cancel(false);
+                    }
                 }
             },
             10
         );
         return future;
     }
+
 }
