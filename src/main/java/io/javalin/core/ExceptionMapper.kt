@@ -36,8 +36,8 @@ class ExceptionMapper {
         }
     }
 
-    internal inline fun catchException(ctx: Context, f: () -> Unit) = try {
-        f()
+    internal inline fun catchException(ctx: Context, func: () -> Unit) = try {
+        func.invoke()
     } catch (e: Exception) {
         handle(e, ctx)
     }
