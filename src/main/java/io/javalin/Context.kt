@@ -420,9 +420,20 @@ class Context(private val servletResponse: HttpServletResponse,
         return this
     }
 
+    /**
+     * Sets context result to the specified CompletableFuture<String>
+     * or CompletableFuture<InputStream>.
+     */
     fun result(future: CompletableFuture<*>): Context {
         this.future = future
         return this
+    }
+
+    /**
+     * Clear the current future from the Context. Intended for internal use.
+     */
+    internal fun clearFuture() {
+        this.future = null
     }
 
     /**

@@ -7,6 +7,7 @@
 package io.javalin.core
 
 import io.javalin.Context
+import io.javalin.HaltException
 import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
@@ -59,10 +60,11 @@ class JavalinServlet(
 
         fun tryWithExceptionMapper(f: () -> Unit) = exceptionMapper.catchException(ctx, f)
 
-        tryWithExceptionMapper {
+        fun tryBeforeAndEndpointHandlers() = tryWithExceptionMapper {
             matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
+            throwExceptionIfFutureSet(ctx)
             val endpointEntries = matcher.findEntries(type, requestUri)
             endpointEntries.forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
@@ -75,50 +77,55 @@ class JavalinServlet(
             }
         }
 
-        fun postHandle() {
-            tryWithExceptionMapper {
-                errorMapper.handle(ctx.status(), ctx)
-            }
-
-            tryWithExceptionMapper {
-                matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-                    entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
-                }
-            }
+        fun tryErrorHandlers() = tryWithExceptionMapper {
+            errorMapper.handle(ctx.status(), ctx)
+            throwExceptionIfFutureSet(ctx)
         }
 
-        val future = ctx.resultFuture()
-        if (future != null) {
-            val async = req.startAsync()
-            future.exceptionally {
-                if (it is Exception) {
-                    exceptionMapper.handle(it, ctx)
-                }
-                null // JInterop
+        fun tryAfterHandlers() = tryWithExceptionMapper {
+            matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+                entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
-            .thenApply { futureResult ->
-                postHandle()
-                futureResult
-            }
-            .thenAccept {
-                when (it) {
-                    is InputStream -> ctx.result(it)
-                    is String -> ctx.result(it)
-                }
-                writeResult(ctx, async.request as HttpServletRequest, async.response as HttpServletResponse)
-            }
-            .whenComplete { _, _ ->
-                async.complete()
-            }
-        } else {
-            postHandle()
+            throwExceptionIfFutureSet(ctx)
+        }
+
+        // Request life-cycle
+        tryBeforeAndEndpointHandlers()
+
+        if (ctx.resultFuture() == null) {
+            tryErrorHandlers()
+            tryAfterHandlers()
             writeResult(ctx, req, res)
+        } else {
+            req.startAsync().let { async ->
+                ctx.resultFuture()!!.exceptionally { throwable ->
+                    if (throwable is Exception) {
+                        exceptionMapper.handle(throwable, ctx)
+                    }
+                    null
+                }.thenAccept {
+                    when (it) {
+                        is InputStream -> ctx.result(it)
+                        is String -> ctx.result(it)
+                    }
+                    ctx.clearFuture()
+                    tryErrorHandlers()
+                    tryAfterHandlers()
+                    writeResult(ctx, async.request as HttpServletRequest, async.response as HttpServletResponse)
+                    async.complete()
+                }
+            }
         }
+    }
 
+    private fun throwExceptionIfFutureSet(ctx: Context) {
+        if (ctx.resultFuture() != null) {
+            ctx.clearFuture()
+            throw HaltException(500, "You can only set a future result in an endpoint-handler (https://javalin.io/documentation)")
+        }
     }
 
     private fun writeResult(ctx: Context, req: HttpServletRequest, res: HttpServletResponse) {
-        // write result to servlet-response (if not already committed)
         val doGzip = gzipShouldBeDone(ctx.resultStream(), req)
         if (!res.isCommitted) {
             ctx.resultStream()?.let { resultStream ->
