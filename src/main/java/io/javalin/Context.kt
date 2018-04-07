@@ -425,15 +425,12 @@ class Context(private val servletResponse: HttpServletResponse,
      * or CompletableFuture<InputStream>.
      */
     fun result(future: CompletableFuture<*>): Context {
-        this.future = future
-        return this
-    }
-
-    /**
-     * Clear the current future from the Context. Intended for internal use.
-     */
-    internal fun clearFuture() {
-        this.future = null
+        if (resultFuture() == null) {
+            this.future = future
+            return this
+        }
+        this.future = null;
+        throw HaltException(500, "You can only set a future result once.")
     }
 
     /**

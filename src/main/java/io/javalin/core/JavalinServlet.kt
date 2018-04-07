@@ -64,7 +64,6 @@ class JavalinServlet(
             matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
-            throwExceptionIfFutureSet(ctx)
             val endpointEntries = matcher.findEntries(type, requestUri)
             endpointEntries.forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
@@ -79,14 +78,12 @@ class JavalinServlet(
 
         fun tryErrorHandlers() = tryWithExceptionMapper {
             errorMapper.handle(ctx.status(), ctx)
-            throwExceptionIfFutureSet(ctx)
         }
 
         fun tryAfterHandlers() = tryWithExceptionMapper {
             matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
-            throwExceptionIfFutureSet(ctx)
         }
 
         // Request life-cycle
@@ -108,20 +105,12 @@ class JavalinServlet(
                         is InputStream -> ctx.result(it)
                         is String -> ctx.result(it)
                     }
-                    ctx.clearFuture()
                     tryErrorHandlers()
                     tryAfterHandlers()
                     writeResult(ctx, async.request as HttpServletRequest, async.response as HttpServletResponse)
                     async.complete()
                 }
             }
-        }
-    }
-
-    private fun throwExceptionIfFutureSet(ctx: Context) {
-        if (ctx.resultFuture() != null) {
-            ctx.clearFuture()
-            throw HaltException(500, "You can only set a future result in an endpoint-handler (https://javalin.io/documentation)")
         }
     }
 
