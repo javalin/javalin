@@ -20,6 +20,7 @@ package io.javalin.embeddedserver.jetty.websocket;
  * });
  * }
  * </pre>
+ *
  * @see WebSocketHandler
  * @see io.javalin.Javalin#ws(String, WebSocketConfig)
  */

@@ -104,7 +104,7 @@ public class WebSocketHandler {
         return pathParser.matches(requestUri);
     }
 
-    private void clearSessionCache(Session session){
+    private void clearSessionCache(Session session) {
         sessionIds.remove(session);
         sessionParams.remove(session);
     }

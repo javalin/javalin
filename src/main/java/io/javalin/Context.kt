@@ -16,6 +16,7 @@ import io.javalin.translator.template.JavalinThymeleafPlugin
 import io.javalin.translator.template.JavalinVelocityPlugin
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
@@ -28,6 +29,7 @@ import javax.servlet.http.HttpServletResponse
  */
 class Context(private val servletResponse: HttpServletResponse,
               private val servletRequest: HttpServletRequest,
+              internal var futureCanBeSet: Boolean,
               internal var matchedPath: String,
               internal var paramMap: Map<String, String>,
               internal var splatList: List<String>) {
@@ -35,6 +37,8 @@ class Context(private val servletResponse: HttpServletResponse,
     private var passedToNextHandler: Boolean = false
 
     private var resultStream: InputStream? = null
+
+    private var resultFuture: CompletableFuture<*>? = null
 
     private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
 
@@ -394,10 +398,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets context result to the specified String.
      * Will overwrite the current result if there is one.
      */
-    fun result(resultString: String): Context {
-        resultStream = resultString.byteInputStream(stringCharset())
-        return this
-    }
+    fun result(resultString: String) = result(resultString.byteInputStream(stringCharset()))
 
     /**
      * Gets the current context result as a String (if set).
@@ -413,6 +414,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
+        this.resultFuture = null;
         this.resultStream = resultStream
         return this
     }
@@ -421,6 +423,27 @@ class Context(private val servletResponse: HttpServletResponse,
      * Gets the current context result as an InputStream (if set).
      */
     fun resultStream(): InputStream? = resultStream
+
+    /**
+     * Sets context result to the specified CompletableFuture<String>
+     * or CompletableFuture<InputStream>.
+     * Will overwrite the current result if there is one.
+     * Can only be called inside endpoint handlers (get/post/patch, etc)
+     */
+    @Deprecated("This is an experimental feature, it might be removed/reworked later")
+    fun result(future: CompletableFuture<*>): Context {
+        resultStream = null
+        if (futureCanBeSet) {
+            this.resultFuture = future
+            return this
+        }
+        throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
+    }
+
+    /**
+     * Gets the current context result as a CompletableFuture (if set).
+     */
+    fun resultFuture(): CompletableFuture<*>? = resultFuture
 
     /**
      * Sets response charset to specified value.

@@ -17,7 +17,10 @@ import java.util.*
 
 object LogUtil {
 
-    fun logRequestAndResponse(ctx: Context, logLevel: LogLevel, matcher: PathMatcher, type: HandlerType, requestUri: String, log: Logger, gzipped: Boolean) {
+    fun logRequestAndResponse(ctx: Context, logLevel: LogLevel, matcher: PathMatcher, log: Logger, gzipped: Boolean) {
+        val type = HandlerType.fromServletRequest(ctx.request())
+        val requestUri = ctx.request().requestURI
+
         if (logLevel == LogLevel.OFF) {
             return
         }

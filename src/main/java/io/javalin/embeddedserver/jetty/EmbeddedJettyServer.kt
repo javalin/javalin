@@ -43,6 +43,7 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
                     request.setAttribute("jetty-request", jettyRequest)
                     javalinServlet.service(request, response)
                 } catch (e: Exception) {
+                    response.status = 500
                     log.error("Exception occurred while servicing http-request", e)
                 }
                 jettyRequest.isHandled = true
