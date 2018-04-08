@@ -2,6 +2,7 @@ package io.javalin;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
@@ -37,9 +38,16 @@ public class TestFuture extends _UnirestBaseTest {
     }
 
     @Test
-    public void testFutures_exceptionalFutures() throws Exception {
+    public void testFutures_exceptionalFutures_unmapped() throws Exception {
         app.get("/test-future", ctx -> ctx.result(getFuture(null)));
         assertThat(GET_asString("/test-future").getBody(), is("Internal server error"));
+    }
+
+    @Test
+    public void testFutures_exceptionalFutures_mapped() throws Exception {
+        app.get("/test-future", ctx -> ctx.result(getFuture(null)));
+        app.exception(CancellationException.class, (e, ctx) -> ctx.result("Handled"));
+        assertThat(GET_asString("/test-future").getBody(), is("Handled"));
     }
 
     @Test

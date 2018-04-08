@@ -428,14 +428,16 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets context result to the specified CompletableFuture<String>
      * or CompletableFuture<InputStream>.
      * Will overwrite the current result if there is one.
+     * Can only be called inside endpoint handlers (get/post/patch, etc)
      */
+    @Deprecated("This is an experimental feature, it might be removed/reworked later")
     fun result(future: CompletableFuture<*>): Context {
         resultStream = null
         if (futureCanBeSet) {
             this.resultFuture = future
             return this
         }
-        throw IllegalStateException("You can only set Future results in endpoint handlers.")
+        throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
     }
 
     /**

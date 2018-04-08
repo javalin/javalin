@@ -87,9 +87,7 @@ class JavalinServlet(
             }
         }
 
-        // Request life-cycle
-        tryBeforeAndEndpointHandlers()
-
+        tryBeforeAndEndpointHandlers() // start request life-cycle
         if (ctx.resultFuture() == null) {
             tryErrorHandlers()
             tryAfterHandlers()
