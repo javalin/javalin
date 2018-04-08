@@ -414,7 +414,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
-        this.resultFuture = null;
+        this.resultFuture = null
         this.resultStream = resultStream
         return this
     }
@@ -428,7 +428,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets context result to the specified CompletableFuture<String>
      * or CompletableFuture<InputStream>.
      * Will overwrite the current result if there is one.
-     * Can only be called inside endpoint handlers (get/post/patch, etc)
+     * Can only be called inside endpoint handlers (ones representing HTTP verbs)
      */
     @Deprecated("This is an experimental feature, it might be removed/reworked later")
     fun result(future: CompletableFuture<*>): Context {

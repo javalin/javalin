@@ -87,14 +87,16 @@ class JavalinServlet(
             }
         }
 
-        tryBeforeAndEndpointHandlers() // start request life-cycle
-        if (ctx.resultFuture() == null) {
+        tryBeforeAndEndpointHandlers() // start request lifecycle
+
+        val future = ctx.resultFuture()
+        if (future == null) {
             tryErrorHandlers()
             tryAfterHandlers()
             writeResult(ctx, res)
         } else {
             req.startAsync().let { async ->
-                ctx.resultFuture()!!.exceptionally { throwable ->
+                future.exceptionally { throwable ->
                     if (throwable is Exception) {
                         exceptionMapper.handle(throwable, ctx)
                     }
