@@ -1,9 +1,9 @@
 package io.javalin;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -69,18 +69,13 @@ public class TestFuture extends _UnirestBaseTest {
 
     private static CompletableFuture<String> getFuture(String result) {
         CompletableFuture<String> future = new CompletableFuture<>();
-        new Timer().schedule(
-            new TimerTask() {
-                public void run() {
-                    if (result != null) {
-                        future.complete(result);
-                    } else {
-                        future.cancel(false);
-                    }
-                }
-            },
-            10
-        );
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+            if (result != null) {
+                future.complete(result);
+            } else {
+                future.cancel(false);
+            }
+        }, 10, TimeUnit.MILLISECONDS);
         return future;
     }
 

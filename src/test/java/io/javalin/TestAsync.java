@@ -9,11 +9,11 @@ package io.javalin;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import io.javalin.util.SimpleHttpClient;
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.Ignore;
@@ -70,14 +70,7 @@ public class TestAsync {
 
     private CompletableFuture<String> getFuture() {
         CompletableFuture<String> future = new CompletableFuture<>();
-        new Timer().schedule(
-            new TimerTask() {
-                public void run() {
-                    future.complete("success");
-                }
-            },
-            2000
-        );
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> future.complete("success"), 2000, TimeUnit.MILLISECONDS);
         return future;
     }
 

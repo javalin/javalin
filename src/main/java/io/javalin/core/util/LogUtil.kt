@@ -50,7 +50,8 @@ object LogUtil {
                         |${if (resBody.isNotEmpty()) (if (gzipped) "dynamically gzipped response ..." else resBody) else "No body was set"}
                         |----------------------------------------------------------------------------------""".trimMargin())
                 }
-                LogLevel.OFF -> {}
+                LogLevel.OFF -> {
+                }
             }
         }
     }
