@@ -91,20 +91,6 @@ class Context(private val servletResponse: HttpServletResponse,
     fun request(): HttpServletRequest = servletRequest
 
     /**
-     * Runs the request asynchronously.
-     * @see HttpServletRequest.startAsync
-     */
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
-    fun async(asyncHandler: () -> CompletionStage<Void>) {
-        val asyncContext = servletRequest.startAsync()
-        asyncHandler().thenAccept { _ -> asyncContext.complete() }
-                .exceptionally { e ->
-                    asyncContext.complete()
-                    throw RuntimeException(e)
-                }
-    }
-
-    /**
      * Gets the request body as a String.
      */
     fun body(): String = bodyAsBytes().toString(Charset.forName(servletRequest.characterEncoding ?: "UTF-8"))
