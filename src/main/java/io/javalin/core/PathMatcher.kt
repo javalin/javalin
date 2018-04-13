@@ -9,6 +9,8 @@ package io.javalin.core
 import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
+import java.util.EnumMap
+import kotlin.collections.ArrayList
 
 class PathParser(val path: String) {
     private val paramNames = path.split("/")
@@ -82,10 +84,16 @@ class PathMatcher {
 
     private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
-    val handlerEntries = ArrayList<HandlerEntry>()
+    val handlerEntries = EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)
+
+    init {
+        HandlerType.values().forEach {
+            handlerEntries[it] = ArrayList()
+        }
+    }
 
     fun findEntries(requestType: HandlerType, requestUri: String): List<HandlerEntry> {
-        return handlerEntries.filter { he -> match(he, requestType, requestUri) }
+        return handlerEntries[requestType]?.filter { he -> match(he, requestType, requestUri) } ?: emptyList()
     }
 
     // TODO: Consider optimizing this
@@ -100,7 +108,7 @@ class PathMatcher {
     private fun slashMismatch(s1: String, s2: String): Boolean = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
 
     fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
-        val entries = handlerEntries.filter(predicate)
+        val entries = handlerEntries.values.flatten().filter(predicate)
         if (entries.size > 1) {
             log.warn("More than one path found for handler, returning first match: '{} {}'", entries[0].type, entries[0].path)
         }
