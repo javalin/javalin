@@ -4,8 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin;
+package io.javalin.performance;
 
+import io.javalin.Javalin;
 import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import io.javalin.util.SimpleHttpClient;
 import java.io.IOException;
@@ -24,9 +25,9 @@ import static java.util.stream.IntStream.range;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TestAsync {
+public class StupidAsyncTest {
 
-    private static Logger log = LoggerFactory.getLogger(TestAsync.class);
+    private static Logger log = LoggerFactory.getLogger(StupidAsyncTest.class);
 
     @Test
     @Ignore("For running manually")
