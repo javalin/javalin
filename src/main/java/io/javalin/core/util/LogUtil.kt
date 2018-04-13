@@ -18,14 +18,13 @@ import java.util.*
 object LogUtil {
 
     fun logRequestAndResponse(ctx: Context, logLevel: LogLevel, matcher: PathMatcher, log: Logger, gzipped: Boolean) {
-        val type = HandlerType.fromServletRequest(ctx.request())
-        val requestUri = ctx.request().requestURI
-
         if (logLevel == LogLevel.OFF) {
             return
         }
+        val type = HandlerType.fromServletRequest(ctx.request())
+        val requestUri = ctx.request().requestURI
         val startTime: Long = ctx.attribute("javalin-request-log-start-time")
-        val executionTime = Formatter(Locale.US).format("%.2f", Duration.ofNanos(System.nanoTime() - startTime).toMillis())
+        val executionTime = Formatter(Locale.US).format("%.2f", (System.nanoTime() - startTime) / 1000000f)
         with(ctx) {
             val resContentType = response().contentType ?: "content-type-not-set"
             when (logLevel) {
