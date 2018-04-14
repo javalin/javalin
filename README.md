@@ -17,7 +17,7 @@ Documentation: [javalin.io/documentation](https://javalin.io/documentation)
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -38,7 +38,7 @@ public class HelloWorld {
 
 ### Add dependency (gradle)
 ```kotlin
-compile 'io.javalin:javalin:1.5.0'
+compile 'io.javalin:javalin:1.6.0'
 ```
 
 ### Start programming
