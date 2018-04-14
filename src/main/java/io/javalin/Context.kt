@@ -16,9 +16,7 @@ import io.javalin.translator.template.JavalinThymeleafPlugin
 import io.javalin.translator.template.JavalinVelocityPlugin
 import java.io.InputStream
 import java.nio.charset.Charset
-import java.util.Collections
 import java.util.concurrent.CompletableFuture
-import java.util.function.Supplier
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -174,7 +172,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map of all the [param] keys and values.
      */
-    fun paramMap(): Map<String, String> = Collections.unmodifiableMap(paramMap)
+    fun paramMap(): Map<String, String> = paramMap.toMap()
 
     //
     // Gets a splat by its index.
@@ -213,7 +211,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Gets a map with all the attribute keys and values on the request.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().associate { it to attribute<T>(it) }
+    fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().map { it to servletRequest.getAttribute(it) as T }.toMap()
 
     /**
      * Gets the request content length.
@@ -228,12 +226,12 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a request cookie by name.
      */
-    fun cookie(name: String): String? = servletRequest.cookies?.find { name == it.name }?.value
+    fun cookie(name: String): String? = (servletRequest.cookies ?: arrayOf<Cookie>()).find { it.name == name }?.value
 
     /**
      * Gets a map with all the cookie keys and values on the request.
      */
-    fun cookieMap(): Map<String, String> = servletRequest.cookies?.associate { it.name to it.value } ?: emptyMap()
+    fun cookieMap(): Map<String, String> = (servletRequest.cookies ?: arrayOf<Cookie>()).map { it.name to it.value }.toMap()
 
     /**
      * Gets a request header by name.
@@ -243,7 +241,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map with all the header keys and values on the request.
      */
-    fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().associate { it to servletRequest.getHeader(it) }
+    fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().map { it to servletRequest.getHeader(it) }.toMap()
 
     /**
      * Gets the request host.
@@ -258,12 +256,12 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Returns true if request is multipart.
      */
-    fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/") == true
+    fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/")
 
     /**
      * Returns true if request is multipart/form-data.
      */
-    fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/form-data") == true
+    fun isMultipartFormData(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
 
     /**
      * Gets the path that Javalin used to match the request.
@@ -314,8 +312,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map with all the query param keys and values.
      */
-    fun queryParamMap(): Map<String, Array<String>> = queryString()?.let { ContextUtil.splitKeyValueStringAndGroupByKey(it) }
-            ?: emptyMap()
+    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
 
     /**
      * Maps query params to values, or returns null if any of the params are null.
@@ -356,7 +353,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Gets a map of all the session attributes on the request.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().associate { it to servletRequest.session.getAttribute(it) as T }
+    fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().map { it to servletRequest.session.getAttribute(it) as T }.toMap()
 
     /**
      * Gets the request uri.
@@ -525,12 +522,6 @@ class Context(private val servletResponse: HttpServletResponse,
     fun html(html: String): Context = result(html).contentType("text/html")
 
     /**
-     * Asynchronously sets context result to specified html string and sets content-type to text/html.
-     */
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
-    fun htmlAsync(htmlSupplier: Supplier<String>): Context = result(CompletableFuture.supplyAsync(htmlSupplier)).contentType("text/html")
-
-    /**
      * Serializes object to a JSON-string using Jackson ObjectMapper
      * and sets it as the context result.
      * Sets content type to application/json.
@@ -539,18 +530,6 @@ class Context(private val servletResponse: HttpServletResponse,
     fun json(`object`: Any): Context {
         Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
         return result(JavalinJacksonPlugin.toJson(`object`)).contentType("application/json")
-    }
-
-    /**
-     * Asynchronously serializes object to a JSON-string using Jackson ObjectMapper
-     * and sets it as the context result.
-     * Sets content type to application/json.
-     * Requires Jackson library in the classpath.
-     */
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
-    fun jsonAsync(objectSupplier: Supplier<Any>): Context {
-        Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-        return result(CompletableFuture.supplyAsync { JavalinJacksonPlugin.toJson(objectSupplier.get()) }).contentType("application/json")
     }
 
     /**
@@ -565,18 +544,6 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Asynchronously renders a Velocity template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Apache Velocity library in the classpath.
-     */
-    @JvmOverloads
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
-    fun renderVelocityAsync(templatePath: Supplier<String>, model: Supplier<Map<String, Any?>> = Supplier { emptyMap<String, Any?>() }): Context {
-        Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
-        return htmlAsync(Supplier { JavalinVelocityPlugin.render(templatePath.get(), model.get()) })
-    }
-
-    /**
      * Renders a Freemarker template with specified values as html and
      * sets it as the context result. Sets content-type to text/html.
      * Requires Freemarker library in the classpath.
@@ -585,18 +552,6 @@ class Context(private val servletResponse: HttpServletResponse,
     fun renderFreemarker(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
         return html(JavalinFreemarkerPlugin.render(templatePath, model))
-    }
-
-    /**
-     * Asynchronously renders a Freemarker template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Freemarker library in the classpath.
-     */
-    @JvmOverloads
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
-    fun renderFreemarkerAsync(templatePath: Supplier<String>, model: Supplier<Map<String, Any?>> = Supplier { emptyMap<String, Any?>() }): Context {
-        Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
-        return htmlAsync(Supplier { JavalinFreemarkerPlugin.render(templatePath.get(), model.get()) })
     }
 
     /**
@@ -611,18 +566,6 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Asynchronously renders a Thymeleaf template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Thymeleaf library in the classpath.
-     */
-    @JvmOverloads
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
-    fun renderThymeleafAsync(templatePath: Supplier<String>, model: Supplier<Map<String, Any?>> = Supplier { emptyMap<String, Any?>() }): Context {
-        Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3")
-        return htmlAsync(Supplier { JavalinThymeleafPlugin.render(templatePath.get(), model.get()) })
-    }
-
-    /**
      * Renders a Mustache template with specified values as html and
      * sets it as the context result. Sets content-type to text/html.
      * Requires Mustache library in the classpath.
@@ -634,18 +577,6 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Asynchronously renders a Mustache template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Mustache library in the classpath.
-     */
-    @JvmOverloads
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
-    fun renderMustacheAsync(templatePath: Supplier<String>, model: Supplier<Map<String, Any?>> = Supplier { emptyMap<String, Any?>() }): Context {
-        Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
-        return htmlAsync(Supplier { JavalinMustachePlugin.render(templatePath.get(), model.get()) })
-    }
-
-    /**
      * Renders a markdown-file and sets it as the context result.
      * Sets content-type to text/html.
      * Requires Commonmark library in the classpath.
@@ -653,17 +584,6 @@ class Context(private val servletResponse: HttpServletResponse,
     fun renderMarkdown(markdownFilePath: String): Context {
         Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
         return html(JavalinCommonmarkPlugin.render(markdownFilePath))
-    }
-
-    /**
-     * Asynchronously renders a markdown-file and sets it as the context result.
-     * Sets content-type to text/html.
-     * Requires Commonmark library in the classpath.
-     */
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
-    fun renderMarkdownAsync(markdownFilePath: Supplier<String>): Context {
-        Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
-        return htmlAsync(Supplier { JavalinCommonmarkPlugin.render(markdownFilePath.get()) })
     }
 
 }
