@@ -84,13 +84,10 @@ class PathMatcher {
 
     private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
-    val handlerEntries = EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)
-
-    init {
-        HandlerType.values().forEach {
-            handlerEntries[it] = ArrayList()
+    val handlerEntries = HandlerType.values()
+        .associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
+            it to arrayListOf()
         }
-    }
 
     fun findEntries(requestType: HandlerType, requestUri: String): List<HandlerEntry> {
         return handlerEntries[requestType]?.filter { he -> match(he, requestType, requestUri) } ?: emptyList()
