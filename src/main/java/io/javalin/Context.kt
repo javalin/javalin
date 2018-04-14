@@ -200,7 +200,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets an attribute on the request, which will be made available to
      * other handlers in the request lifecycle
      */
-    fun attribute(attribute: String, value: Any) = servletRequest.setAttribute(attribute, value)
+    fun attribute(attribute: String, value: Any?) = servletRequest.setAttribute(attribute, value)
 
     /**
      * Gets the specified attribute from the request.
@@ -242,7 +242,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map with all the header keys and values on the request.
      */
-    fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().associate { it to servletRequest.getHeader(it) }
+    fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().associate { it to header(it)!! }
 
     /**
      * Gets the request host.
@@ -313,8 +313,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map with all the query param keys and values.
      */
-    fun queryParamMap(): Map<String, Array<String>> = queryString()?.let { ContextUtil.splitKeyValueStringAndGroupByKey(it) }
-            ?: emptyMap()
+    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
 
     /**
      * Maps query params to values, or returns null if any of the params are null.
@@ -343,7 +342,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets a session attribute on the request, which will be made available to
      * other handlers in the session lifecycle.
      */
-    fun sessionAttribute(attribute: String, value: Any) = servletRequest.session.setAttribute(attribute, value)
+    fun sessionAttribute(attribute: String, value: Any?) = servletRequest.session.setAttribute(attribute, value)
 
     /**
      * Gets a specific session attribute from the request.

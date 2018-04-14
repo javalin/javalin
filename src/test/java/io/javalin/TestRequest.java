@@ -52,6 +52,19 @@ public class TestRequest extends _UnirestBaseTest {
         assertThat(GET_body("/read-session"), is("{test=tast, hest=hast}"));
     }
 
+    @Test
+    public void test_attributesCanBeNull() throws Exception {
+        app.get("/store", ctx -> {
+            ctx.attribute("test", "not-null");
+            ctx.attribute("test", null);
+            ctx.sessionAttribute("tast", "not-null");
+            ctx.sessionAttribute("tast", null);
+        });
+        app.get("/read", ctx -> ctx.result(ctx.sessionAttribute("tast") + " and " + ctx.attribute("test")));
+        GET_body("/store");
+        assertThat(GET_body("/read"), is("null and null"));
+    }
+
     /*
      * Cookies
      */
