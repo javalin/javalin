@@ -16,6 +16,7 @@ import io.javalin.translator.template.JavalinThymeleafPlugin
 import io.javalin.translator.template.JavalinVelocityPlugin
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.util.Collections
 import java.util.concurrent.CompletableFuture
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
@@ -172,7 +173,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map of all the [param] keys and values.
      */
-    fun paramMap(): Map<String, String> = paramMap.toMap()
+    fun paramMap(): Map<String, String> = Collections.unmodifiableMap(paramMap)
 
     //
     // Gets a splat by its index.
@@ -211,7 +212,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Gets a map with all the attribute keys and values on the request.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().map { it to servletRequest.getAttribute(it) as T }.toMap()
+    fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().associate { it to attribute<T>(it) }
 
     /**
      * Gets the request content length.
@@ -226,12 +227,12 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a request cookie by name.
      */
-    fun cookie(name: String): String? = (servletRequest.cookies ?: arrayOf<Cookie>()).find { it.name == name }?.value
+    fun cookie(name: String): String? = servletRequest.cookies?.find { name == it.name }?.value
 
     /**
      * Gets a map with all the cookie keys and values on the request.
      */
-    fun cookieMap(): Map<String, String> = (servletRequest.cookies ?: arrayOf<Cookie>()).map { it.name to it.value }.toMap()
+    fun cookieMap(): Map<String, String> = servletRequest.cookies?.associate { it.name to it.value } ?: emptyMap()
 
     /**
      * Gets a request header by name.
@@ -241,7 +242,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map with all the header keys and values on the request.
      */
-    fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().map { it to servletRequest.getHeader(it) }.toMap()
+    fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().associate { it to servletRequest.getHeader(it) }
 
     /**
      * Gets the request host.
@@ -256,12 +257,12 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Returns true if request is multipart.
      */
-    fun isMultipart(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/")
+    fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/") == true
 
     /**
      * Returns true if request is multipart/form-data.
      */
-    fun isMultipartFormData(): Boolean = (header(Header.CONTENT_TYPE) ?: "").toLowerCase().contains("multipart/form-data")
+    fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/form-data") == true
 
     /**
      * Gets the path that Javalin used to match the request.
@@ -312,7 +313,8 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a map with all the query param keys and values.
      */
-    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
+    fun queryParamMap(): Map<String, Array<String>> = queryString()?.let { ContextUtil.splitKeyValueStringAndGroupByKey(it) }
+            ?: emptyMap()
 
     /**
      * Maps query params to values, or returns null if any of the params are null.
@@ -353,7 +355,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Gets a map of all the session attributes on the request.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().map { it to servletRequest.session.getAttribute(it) as T }.toMap()
+    fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().associate { it to servletRequest.session.getAttribute(it) as T }
 
     /**
      * Gets the request uri.
