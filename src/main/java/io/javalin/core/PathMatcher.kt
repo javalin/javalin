@@ -10,7 +10,7 @@ import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
 import java.util.EnumMap
-import kotlin.collections.ArrayList
+import kotlin.collections.arrayListOf
 
 class PathParser(val path: String) {
     private val paramNames = path.split("/")
@@ -84,18 +84,15 @@ class PathMatcher {
 
     private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
-    val handlerEntries = HandlerType.values()
-        .associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
-            it to arrayListOf()
-        }
-
-    fun findEntries(requestType: HandlerType, requestUri: String): List<HandlerEntry> {
-        return handlerEntries[requestType]?.filter { he -> match(he, requestType, requestUri) } ?: emptyList()
+    val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
+        it to arrayListOf()
     }
 
-    // TODO: Consider optimizing this
-    private fun match(entry: HandlerEntry, requestType: HandlerType, requestPath: String): Boolean = when {
-        entry.type != requestType -> false
+    fun findEntries(requestType: HandlerType, requestUri: String): List<HandlerEntry> {
+        return handlerEntries[requestType]!!.filter { he -> match(he, requestUri) }
+    }
+
+    private fun match(entry: HandlerEntry, requestPath: String): Boolean = when {
         entry.path == "*" -> true
         entry.path == requestPath -> true
         !this.ignoreTrailingSlashes && slashMismatch(entry.path, requestPath) -> false

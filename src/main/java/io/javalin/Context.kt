@@ -17,7 +17,6 @@ import io.javalin.translator.template.JavalinVelocityPlugin
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
