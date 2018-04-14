@@ -405,7 +405,7 @@ public class Javalin {
     private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, List<Role> roles) {
         String prefixedPath = Util.INSTANCE.prefixContextPath(path, contextPath);
         Handler handlerWrap = roles == null ? handler : ctx -> accessManager.manage(handler, ctx, roles);
-        pathMatcher.getHandlerEntries().add(new HandlerEntry(httpMethod, prefixedPath, handlerWrap));
+        pathMatcher.getHandlerEntries().get(httpMethod).add(new HandlerEntry(httpMethod, prefixedPath, handlerWrap));
         routeOverviewEntries.add(new RouteOverviewEntry(httpMethod, prefixedPath, handler, roles));
         return this;
     }
@@ -727,7 +727,7 @@ public class Javalin {
 
     // package private method used for testing
     void clearMatcherAndMappers() {
-        pathMatcher.getHandlerEntries().clear();
+        pathMatcher.getHandlerEntries().forEach((__, values) -> values.clear());
         errorMapper.getErrorHandlerMap().clear();
         exceptionMapper.getExceptionMap().clear();
     }
