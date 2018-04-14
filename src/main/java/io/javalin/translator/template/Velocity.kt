@@ -16,7 +16,7 @@ object JavalinVelocityPlugin {
     private var velocityEngine: VelocityEngine? = null
 
     @JvmStatic
-    fun configure(staticVelocityEngine: VelocityEngine) {
+    fun configure(staticVelocityEngine: VelocityEngine?) {
         velocityEngine = staticVelocityEngine
     }
 
