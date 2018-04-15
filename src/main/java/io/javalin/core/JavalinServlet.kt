@@ -95,7 +95,7 @@ class JavalinServlet(
             tryAfterHandlers()
             writeResult(ctx, res)
         } else {
-            req.startAsync().let { async ->
+            req.startAsync().let { asyncContext ->
                 future.exceptionally { throwable ->
                     if (throwable is Exception) {
                         exceptionMapper.handle(throwable, ctx)
@@ -108,8 +108,8 @@ class JavalinServlet(
                     }
                     tryErrorHandlers()
                     tryAfterHandlers()
-                    writeResult(ctx, async.response as HttpServletResponse)
-                    async.complete()
+                    writeResult(ctx, asyncContext.response as HttpServletResponse)
+                    asyncContext.complete()
                 }
             }
         }
