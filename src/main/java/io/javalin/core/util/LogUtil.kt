@@ -17,9 +17,6 @@ import java.util.*
 
 object LogUtil {
 
-    private val timeFormatter = Formatter(Locale.US)
-    private fun nanosToMillis(nanos: Long) = Duration.ofNanos(nanos).toMillis().toFloat()
-
     fun logRequestAndResponse(ctx: Context, logLevel: LogLevel, matcher: PathMatcher, log: Logger, gzipped: Boolean) {
         if (logLevel == LogLevel.OFF) {
             return
@@ -27,7 +24,7 @@ object LogUtil {
         val type = HandlerType.fromServletRequest(ctx.request())
         val requestUri = ctx.request().requestURI
         val startTime: Long = ctx.attribute("javalin-request-log-start-time")
-        val executionTime = timeFormatter.format("%.2f", nanosToMillis(System.nanoTime() - startTime))
+        val executionTime = Formatter(Locale.US).format("%.2f", (System.nanoTime() - startTime) / 1000000f)
         with(ctx) {
             val resContentType = response().contentType ?: "content-type-not-set"
             when (logLevel) {
