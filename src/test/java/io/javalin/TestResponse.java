@@ -70,6 +70,16 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_redirectInExceptionMapper() throws Exception {
+        app.get("/get", ctx -> {
+            throw new Exception();
+        });
+        app.exception(Exception.class, (exception, ctx) -> ctx.redirect("/redirected"));
+        app.get("/redirected", ctx -> ctx.result("Redirected"));
+        assertThat(GET_body("/get"), is("Redirected"));
+    }
+
+    @Test
     public void test_redirect() throws Exception {
         app.get("/hello", ctx -> ctx.redirect("/hello-2"));
         app.get("/hello-2", ctx -> ctx.result("Redirected"));

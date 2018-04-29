@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.builder.CookieBuilder
+import io.javalin.core.HandlerType
 import io.javalin.core.util.*
 import io.javalin.translator.json.JavalinJacksonPlugin
 import io.javalin.translator.markdown.JavalinCommonmarkPlugin
@@ -16,7 +17,7 @@ import io.javalin.translator.template.JavalinThymeleafPlugin
 import io.javalin.translator.template.JavalinVelocityPlugin
 import java.io.InputStream
 import java.nio.charset.Charset
-import java.util.Collections
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
@@ -32,7 +33,8 @@ class Context(private val servletResponse: HttpServletResponse,
               internal var futureCanBeSet: Boolean,
               internal var matchedPath: String,
               internal var paramMap: Map<String, String>,
-              internal var splatList: List<String>) {
+              internal var splatList: List<String>,
+              internal var handlerType: HandlerType) {
 
     private var passedToNextHandler: Boolean = false
 
@@ -470,7 +472,10 @@ class Context(private val servletResponse: HttpServletResponse,
     @JvmOverloads
     fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
         servletResponse.setHeader(Header.LOCATION, location)
-        throw HaltException(httpStatusCode, "")
+        status(httpStatusCode)
+        if (handlerType == HandlerType.BEFORE) {
+            throw HaltException(httpStatusCode)
+        }
     }
 
     /**

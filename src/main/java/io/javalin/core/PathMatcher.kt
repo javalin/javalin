@@ -10,7 +10,7 @@ import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
 import java.util.EnumMap
-import kotlin.collections.arrayListOf
+import kotlin.collections.*
 
 class PathParser(val path: String) {
     private val paramNames = path.split("/")

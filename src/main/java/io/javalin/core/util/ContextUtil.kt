@@ -9,6 +9,7 @@ package io.javalin.core.util
 import io.javalin.BasicAuthCredentials
 import io.javalin.Context
 import io.javalin.core.HandlerEntry
+import io.javalin.core.HandlerType
 import java.net.URLDecoder
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -17,13 +18,14 @@ import javax.servlet.http.HttpServletResponse
 object ContextUtil {
 
     fun create(response: HttpServletResponse, request: HttpServletRequest): Context {
-        return Context(response, request, false, "", HashMap(), ArrayList())
+        return Context(response, request, false, "", HashMap(), ArrayList(), HandlerType.BEFORE)
     }
 
     fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String): Context {
         ctx.matchedPath = handlerEntry.path
         ctx.paramMap = handlerEntry.extractParams(requestUri)
         ctx.splatList = handlerEntry.extractSplats(requestUri)
+        ctx.handlerType = handlerEntry.type
         return ctx
     }
 

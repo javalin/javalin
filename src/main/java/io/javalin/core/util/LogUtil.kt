@@ -12,7 +12,6 @@ import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
 import io.javalin.embeddedserver.CachedResponseWrapper
 import org.slf4j.Logger
-import java.time.Duration
 import java.util.*
 
 object LogUtil {
