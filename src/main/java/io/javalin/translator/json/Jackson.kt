@@ -6,11 +6,21 @@
 
 package io.javalin.translator.json
 
+import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 
 object JavalinJacksonPlugin {
 
     private var objectMapper: ObjectMapper? = null
+
+    private fun createObjectMapper(): ObjectMapper = try {
+        val className = "com.fasterxml.jackson.module.kotlin.KotlinModule";
+        ObjectMapper().registerModule(Class.forName(className)
+                .getConstructor()
+                .newInstance() as Module)
+    } catch (e: ClassNotFoundException) {
+        ObjectMapper()
+    }
 
     @JvmStatic
     fun configure(staticObjectMapper: ObjectMapper) {
@@ -18,12 +28,12 @@ object JavalinJacksonPlugin {
     }
 
     fun toJson(`object`: Any): String {
-        objectMapper = objectMapper ?: ObjectMapper()
+        objectMapper = objectMapper ?: createObjectMapper()
         return objectMapper!!.writeValueAsString(`object`)
     }
 
     fun <T> toObject(json: String, clazz: Class<T>): T {
-        objectMapper = objectMapper ?: ObjectMapper()
+        objectMapper = objectMapper ?: createObjectMapper()
         return objectMapper!!.readValue(json, clazz)
     }
 
