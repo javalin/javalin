@@ -13,15 +13,6 @@ object JavalinJacksonPlugin {
 
     private var objectMapper: ObjectMapper? = null
 
-    private fun createObjectMapper(): ObjectMapper = try {
-        val className = "com.fasterxml.jackson.module.kotlin.KotlinModule";
-        ObjectMapper().registerModule(Class.forName(className)
-                .getConstructor()
-                .newInstance() as Module)
-    } catch (e: ClassNotFoundException) {
-        ObjectMapper()
-    }
-
     @JvmStatic
     fun configure(staticObjectMapper: ObjectMapper) {
         objectMapper = staticObjectMapper
@@ -35,6 +26,13 @@ object JavalinJacksonPlugin {
     fun <T> toObject(json: String, clazz: Class<T>): T {
         objectMapper = objectMapper ?: createObjectMapper()
         return objectMapper!!.readValue(json, clazz)
+    }
+
+    private fun createObjectMapper(): ObjectMapper = try {
+        val className = "com.fasterxml.jackson.module.kotlin.KotlinModule";
+        ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
+    } catch (e: ClassNotFoundException) {
+        ObjectMapper()
     }
 
 }
