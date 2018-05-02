@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 
 object JavalinJacksonPlugin {
 
-    private var objectMapper: ObjectMapper? = null
+    internal var objectMapper: ObjectMapper? = null
 
     @JvmStatic
     fun configure(staticObjectMapper: ObjectMapper) {
@@ -28,7 +28,7 @@ object JavalinJacksonPlugin {
         return objectMapper!!.readValue(json, clazz)
     }
 
-    private fun createObjectMapper(): ObjectMapper = try {
+    internal fun createObjectMapper(): ObjectMapper = try {
         val className = "com.fasterxml.jackson.module.kotlin.KotlinModule";
         ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
     } catch (e: ClassNotFoundException) {
