@@ -7,16 +7,22 @@
 
 package io.javalin;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.translator.json.JavalinJacksonPlugin;
+import io.javalin.translator.json.JavalinJsonPlugin;
+import io.javalin.translator.json.JsonToObjectMapper;
+import io.javalin.translator.json.ObjectToJsonMapper;
 import io.javalin.translator.template.JavalinVelocityPlugin;
 import io.javalin.translator.template.TemplateUtil;
 import io.javalin.util.CustomMapper;
 import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;
 import org.apache.velocity.app.VelocityEngine;
+import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,26 +37,26 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_json_jacksonMapsObjectToJson() throws Exception {
-        app.get("/hello", ctx -> ctx.status(200).json(new TestObject_Serializable()));
+        app.get("/hello", ctx -> ctx.json(new TestObject_Serializable()));
         String expected = new CustomMapper().writeValueAsString(new TestObject_Serializable());
         assertThat(GET_body("/hello"), is(expected));
     }
 
     @Test
     public void test_json_jacksonMapsStringsToJson() throws Exception {
-        app.get("/hello", ctx -> ctx.status(200).json("\"ok\""));
+        app.get("/hello", ctx -> ctx.json("\"ok\""));
         assertThat(GET_body("/hello"), is("\"\\\"ok\\\"\""));
     }
 
     @Test
     public void test_json_customMapper_works() throws Exception {
-        app.get("/hello", ctx -> ctx.status(200).json(new TestObject_Serializable()));
+        app.get("/hello", ctx -> ctx.json(new TestObject_Serializable()));
         assertThat(GET_body("/hello").split("\r\n|\r|\n").length, is(4));
     }
 
     @Test
     public void test_json_jackson_throwsForBadObject() throws Exception {
-        app.get("/hello", ctx -> ctx.status(200).json(new TestObject_NonSerializable()));
+        app.get("/hello", ctx -> ctx.json(new TestObject_NonSerializable()));
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
         assertThat(response.getBody(), is("Internal server error"));
@@ -74,6 +80,59 @@ public class TestTranslators extends _UnirestBaseTest {
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
         assertThat(response.getStatus(), is(500));
         assertThat(response.getBody(), is("Internal server error"));
+    }
+
+    @Test
+    public void test_customObjectToJsonMapper_works() throws Exception {
+        ObjectToJsonMapper oldMapper = JavalinJsonPlugin.getObjectToJsonMapper(); // reset after test
+
+        JavalinJsonPlugin.setObjectToJsonMapper(obj -> "Silly mapper");
+        app.get("/t1", ctx -> ctx.json("Test"));
+        assertThat(call(HttpMethod.GET, "/t1").getBody(), is("Silly mapper"));
+
+        Gson gson = new GsonBuilder().create();
+        String expected = gson.toJson(new TestObject_Serializable());
+        JavalinJsonPlugin.setObjectToJsonMapper(gson::toJson);
+        app.get("/t2", ctx -> ctx.json(new TestObject_Serializable()));
+        assertThat(call(HttpMethod.GET, "/t2").getBody(), is(expected));
+
+        JavalinJsonPlugin.setObjectToJsonMapper(oldMapper);
+    }
+
+    @Test
+    public void test_customJsonToObjectMapper_works() throws Exception {
+        JsonToObjectMapper oldMapper = JavalinJsonPlugin.getJsonToObjectMapper(); // reset after test
+
+        // Map anything to "Silly string"
+        String sillyString = "Silly string";
+        JavalinJsonPlugin.setJsonToObjectMapper(new JsonToObjectMapper() {
+            public <T> T map(@NotNull String json, @NotNull Class<T> targetClass) {
+                return (T) sillyString;
+            }
+        });
+        app.post("/t1", ctx -> {
+            if (sillyString.equals(ctx.bodyAsClass(String.class))) {
+                ctx.result(sillyString);
+            }
+        });
+        assertThat(Unirest.post(origin + "/t1").body("{}").asString().getBody(), is(sillyString));
+
+        // Map normally using gson
+        Gson gson = new GsonBuilder().create();
+        JavalinJsonPlugin.setJsonToObjectMapper(new JsonToObjectMapper() {
+            public <T> T map(@NotNull String json, @NotNull Class<T> targetClass) {
+                return gson.fromJson(json, targetClass);
+            }
+        });
+        app.post("/t2", ctx -> {
+            Object o = ctx.bodyAsClass(TestObject_Serializable.class);
+            if (o instanceof TestObject_Serializable) {
+                ctx.result("success");
+            }
+        });
+        assertThat(Unirest.post(origin + "/t2").body(gson.toJson(new TestObject_Serializable())).asString().getBody(), is("success"));
+
+        JavalinJsonPlugin.setJsonToObjectMapper(oldMapper);
     }
 
     @Test
