@@ -532,8 +532,8 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets content type to application/json.
      * Requires Jackson library in the classpath.
      */
-    fun json(`object`: Any): Context {
-        return result(JavalinJsonPlugin.objectToJsonMapper.map(`object`)).contentType("application/json")
+    fun json(obj: Any): Context {
+        return result(JavalinJsonPlugin.objectToJsonMapper.map(obj)).contentType("application/json")
     }
 
     /**
