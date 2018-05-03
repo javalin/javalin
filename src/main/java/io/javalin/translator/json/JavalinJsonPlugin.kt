@@ -21,9 +21,6 @@ interface ObjectToJsonMapper {
 object JavalinJsonPlugin {
 
     @JvmStatic
-    var mapper: Any? = null
-
-    @JvmStatic
     var jsonToObjectMapper = object : JsonToObjectMapper {
         override fun <T> map(json: String, targetClass: Class<T>): T { // this awkward implementation is for backwards compatibility
             Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
