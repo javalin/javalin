@@ -132,11 +132,7 @@ public class TestTranslators extends _UnirestBaseTest {
         JsonToObjectMapper oldMapper = JavalinJsonPlugin.getJsonToObjectMapper(); // reset after test
 
         Gson gson = new GsonBuilder().create();
-        JavalinJsonPlugin.setJsonToObjectMapper(new JsonToObjectMapper() {
-            public <T> T map(@NotNull String json, @NotNull Class<T> targetClass) {
-                return gson.fromJson(json, targetClass);
-            }
-        });
+        JavalinJsonPlugin.setJsonToObjectMapper(gson::fromJson);
         app.post("/", ctx -> {
             Object o = ctx.bodyAsClass(TestObject_Serializable.class);
             if (o instanceof TestObject_Serializable) {
