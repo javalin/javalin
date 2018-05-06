@@ -732,4 +732,17 @@ public class Javalin {
         exceptionMapper.getExceptionMap().clear();
     }
 
+    // Extension
+
+    /**
+     * Registers a {@link Extension} to the Javalin application.
+     *
+     * @param extension You're free to implement the extension as a class or a lambda expression.
+     * @return Self instance for fluent, method-chaining API
+     */
+    public Javalin register(Extension extension) {
+        extension.register(this);
+
+        return this;
+    }
 }
