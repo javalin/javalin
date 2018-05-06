@@ -9,7 +9,7 @@ package io.javalin
 import io.javalin.builder.CookieBuilder
 import io.javalin.core.HandlerType
 import io.javalin.core.util.*
-import io.javalin.translator.json.JavalinJacksonPlugin
+import io.javalin.translator.json.JavalinJsonPlugin
 import io.javalin.translator.markdown.JavalinCommonmarkPlugin
 import io.javalin.translator.template.JavalinFreemarkerPlugin
 import io.javalin.translator.template.JavalinMustachePlugin
@@ -108,8 +108,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * Requires Jackson library in the classpath.
      */
     fun <T> bodyAsClass(clazz: Class<T>): T {
-        Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-        return JavalinJacksonPlugin.toObject(body(), clazz)
+        return JavalinJsonPlugin.jsonToObjectMapper.map(body(), clazz)
     }
 
     /**
@@ -533,9 +532,8 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets content type to application/json.
      * Requires Jackson library in the classpath.
      */
-    fun json(`object`: Any): Context {
-        Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-        return result(JavalinJacksonPlugin.toJson(`object`)).contentType("application/json")
+    fun json(obj: Any): Context {
+        return result(JavalinJsonPlugin.objectToJsonMapper.map(obj)).contentType("application/json")
     }
 
     /**
