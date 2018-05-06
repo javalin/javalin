@@ -29,6 +29,7 @@ import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,6 +134,13 @@ public class Javalin {
                 eventManager.fireEvent(EventType.SERVER_STARTED, this);
             } catch (Exception e) {
                 log.error("Failed to start Javalin", e);
+                if (e instanceof BindException && e.getMessage() != null) {
+                    if (e.getMessage().toLowerCase().contains("in use")) {
+                        log.error("Port already in use. Make sure no other process is using port " + port + " and try again.");
+                    } else if (e.getMessage().toLowerCase().contains("permission denied")) {
+                        log.error("Port 1-1023 require elevated privileges (process must be started by admin).");
+                    }
+                }
                 eventManager.fireEvent(EventType.SERVER_START_FAILED, this);
             }
         }
