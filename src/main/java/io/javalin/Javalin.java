@@ -66,6 +66,8 @@ public class Javalin {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
 
+    private final Map<String, Extension> extensions = new HashMap<>();
+
     private Javalin() {
     }
 
@@ -735,14 +737,31 @@ public class Javalin {
     // Extension
 
     /**
-     * Registers a {@link Extension} to the Javalin application.
+     * Registers an {@link Extension} with the Javalin application.
      *
      * @param extension You're free to implement the extension as a class or a lambda expression.
      * @return Self instance for fluent, method-chaining API
      */
-    public Javalin register(Extension extension) {
+    public Javalin extension(Extension extension) {
         extension.register(this);
 
+        String clazzName = extension.getClass().getCanonicalName();
+        if (clazzName != null) {
+            extensions.put(clazzName, extension);
+        }
+
         return this;
+    }
+
+    /**
+     * Returns a class-based {@link Extension} that was registered with the Javalin application.
+     *
+     * @param extClazz The class implementing the `Extension` interface
+     * @return An instance of `T` or null.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Extension> T extension(Class<T> extClazz) {
+
+        return (T) extensions.get(extClazz.getCanonicalName());
     }
 }

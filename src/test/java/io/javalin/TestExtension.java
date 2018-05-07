@@ -3,6 +3,10 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -35,7 +39,7 @@ public class TestExtension {
 
     @Test
     public void test_helloWorldExtension() throws Exception {
-        app.register((app) -> {
+        app.extension((app) -> {
             app.before("/protected", ctx -> {
                 throw new HaltException(401, "Protected");
             });
@@ -53,7 +57,7 @@ public class TestExtension {
 
     @Test
     public void test_javaClassExtension() throws Exception {
-        app.register(new JavaClassExtension("Foobar!"));
+        app.extension(new JavaClassExtension("Foobar!"));
 
         HttpResponse<String> response = Unirest.get(origin + "/").asString();
         assertThat(response.getStatus(), is(400));
@@ -67,12 +71,34 @@ public class TestExtension {
             this.magicValue = magicValue;
         }
 
+        public String getMagicValue() {
+            return magicValue;
+        }
+
         @Override
         public void register(Javalin app) {
             app.before(ctx -> {
                 throw new HaltException(400, magicValue);
             });
         }
+    }
+
+    @Test
+    public void test_javaClassExtensions() {
+        app.extension(new JavaClassExtension("Foobar!"))
+            .extension((app) -> {
+                assertThat(app.extension(JavaClassExtension.class).getMagicValue(), is("Foobar!"));
+            });
+    }
+
+    @Test
+    public void test_registerOrderIsFirstComeFirstServe() {
+        List<Integer> values = new ArrayList<>();
+        app.extension(app -> { values.add(1); })
+           .extension(app -> { values.add(2); });
+
+        assertThat(values.get(0), is(1));
+        assertThat(values.get(1), is(2));
     }
 
 }
