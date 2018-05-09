@@ -197,6 +197,11 @@ class Context(private val servletResponse: HttpServletResponse,
      */
     fun basicAuthCredentials(): BasicAuthCredentials? = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
+    fun extension(clazz: Class<*>, value: Any) = servletRequest.setAttribute("ctx-ext-${clazz.canonicalName}", value)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> extension(clazz: Class<T>): T = servletRequest.getAttribute("ctx-ext-${clazz.canonicalName}") as T
+
     /**
      * Sets an attribute on the request, which will be made available to
      * other handlers in the request lifecycle
