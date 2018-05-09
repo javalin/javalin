@@ -737,30 +737,43 @@ public class Javalin {
     // Extension
 
     /**
-     * Registers an {@link Extension} with the Javalin application.
+     * Registers an anonymous {@link Extension} with the Javalin application.
      *
-     * @param extension You're free to implement the extension as a class or a lambda expression.
+     * @param extension You're free to implement the extension as a class or a lambda expression
      * @return Self instance for fluent, method-chaining API
      */
     public Javalin extension(Extension extension) {
         extension.register(this);
 
-        String clazzName = extension.getClass().getCanonicalName();
-        if (clazzName != null) {
-            extensions.put(clazzName, extension);
+        return this;
+    }
+
+    /**
+     * Registers an {@link Extension} with the Javalin application.
+     *
+     * @param extClazz The extension key
+     * @param extension You're free to implement the extension as a class or a lambda expression
+     * @return Self instance for fluent, method-chaining API
+     */
+    public Javalin extension(Class<?> extClazz, Extension extension) {
+        extension.register(this);
+
+        String extKey = extClazz.getCanonicalName();
+        if (extKey != null) {
+            extensions.put(extKey, extension);
         }
 
         return this;
     }
 
     /**
-     * Returns a class-based {@link Extension} that was registered with the Javalin application.
+     * Returns an {@link Extension} that was registered with the Javalin application.
      *
      * @param extClazz The class implementing the `Extension` interface
-     * @return An instance of `T` or null.
+     * @return An instance of `T` or null
      */
     @SuppressWarnings("unchecked")
-    public <T extends Extension> T extension(Class<T> extClazz) {
+    public <T> T extension(Class<T> extClazz) {
 
         return (T) extensions.get(extClazz.getCanonicalName());
     }

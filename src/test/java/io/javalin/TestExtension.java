@@ -85,7 +85,7 @@ public class TestExtension {
 
     @Test
     public void test_javaClassExtensions() {
-        app.extension(new JavaClassExtension("Foobar!"))
+        app.extension(JavaClassExtension.class, new JavaClassExtension("Foobar!"))
             .extension((app) -> {
                 assertThat(app.extension(JavaClassExtension.class).getMagicValue(), is("Foobar!"));
             });
