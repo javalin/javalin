@@ -9,6 +9,10 @@ The project webpage is [javalin.io](https://javalin.io).
 
 Documentation: [javalin.io/documentation](https://javalin.io/documentation)
 
+Chatroom: https://gitter.im/javalin-io/general
+
+Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javalin/blob/master/CONTRIBUTING.md)
+
 ## Java quickstart
 
 ### Add dependency (maven)
