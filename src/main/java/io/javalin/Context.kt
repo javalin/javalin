@@ -103,7 +103,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
 
     /**
-     * Maps a JSON body to a Java object using Jackson ObjectMapper.
+     * Maps a JSON body to a Java/Kotlin class using Jackson ObjectMapper.
      * @return The mapped object
      * Requires Jackson library in the classpath.
      */
@@ -197,8 +197,22 @@ class Context(private val servletResponse: HttpServletResponse,
      */
     fun basicAuthCredentials(): BasicAuthCredentials? = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
+    /**
+     * Adds an extension to the Context, which can be used later in the request-lifecycle.
+     * This method is mainly useful when calling from Java,
+     * as Kotlin has native extension methods.
+     *
+     * Ex: ctx.extension(MyExt.class, myExtInstance())
+     */
     fun extension(clazz: Class<*>, value: Any) = servletRequest.setAttribute("ctx-ext-${clazz.canonicalName}", value)
 
+    /**
+     * Retrieves an extension from the context.
+     * This method is mainly useful when calling from Java,
+     * as Kotlin has native extension methods.
+     *
+     * Ex: ctx.extension(MyExt.class).myMethod()
+     */
     @Suppress("UNCHECKED_CAST")
     fun <T> extension(clazz: Class<T>): T = servletRequest.getAttribute("ctx-ext-${clazz.canonicalName}") as T
 
