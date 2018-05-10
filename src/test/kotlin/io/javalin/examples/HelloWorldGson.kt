@@ -11,25 +11,25 @@ import io.javalin.Javalin
 import io.javalin.translator.json.JavalinJsonPlugin
 import io.javalin.translator.json.JsonToObjectMapper
 import io.javalin.translator.json.ObjectToJsonMapper
-import java.util.Arrays
+import java.util.*
 
-    fun main(args: Array<String>) {
+fun main(args: Array<String>) {
 
-        val gson = GsonBuilder().create()
+    val gson = GsonBuilder().create()
 
-        JavalinJsonPlugin.jsonToObjectMapper = object : JsonToObjectMapper {
-            override fun <T> map(json: String, targetClass: Class<T>): T {
-                return gson.fromJson(json, targetClass)
-            }
+    JavalinJsonPlugin.jsonToObjectMapper = object : JsonToObjectMapper {
+        override fun <T> map(json: String, targetClass: Class<T>): T {
+            return gson.fromJson(json, targetClass)
         }
-
-        JavalinJsonPlugin.objectToJsonMapper = object : ObjectToJsonMapper {
-            override fun map(obj: Any): String {
-                return gson.toJson(obj)
-            }
-        }
-
-        val app = Javalin.create().port(7070).start()
-        app.get("/") { ctx -> ctx.json(Arrays.asList("a", "b", "c")) }
-
     }
+
+    JavalinJsonPlugin.objectToJsonMapper = object : ObjectToJsonMapper {
+        override fun map(obj: Any): String {
+            return gson.toJson(obj)
+        }
+    }
+
+    val app = Javalin.create().port(7070).start()
+    app.get("/") { ctx -> ctx.json(Arrays.asList("a", "b", "c")) }
+
+}

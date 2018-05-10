@@ -56,6 +56,7 @@ public class Javalin {
     private PathMatcher pathMatcher = new PathMatcher();
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
     private ErrorMapper errorMapper = new ErrorMapper();
+    private Map<Class<?>, Extension> extensions = new HashMap<>();
     private LogLevel logLevel = LogLevel.OFF;
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
@@ -66,8 +67,6 @@ public class Javalin {
     private AccessManager accessManager = (Handler handler, Context ctx, List<Role> permittedRoles) -> {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
-
-    private final Map<Class<?>, Extension> extensions = new HashMap<>();
 
     private Javalin() {
     }
@@ -759,7 +758,7 @@ public class Javalin {
     /**
      * Registers an {@link Extension} with the Javalin application.
      *
-     * @param extClazz The extension key
+     * @param extClazz  The extension key
      * @param extension You're free to implement the extension as a class or a lambda expression
      * @return Self instance for fluent, method-chaining API
      */

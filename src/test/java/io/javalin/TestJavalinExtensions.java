@@ -8,11 +8,8 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -20,16 +17,16 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TestExtension {
+public class TestJavalinExtensions {
 
     private static Javalin app;
     private static String origin = null;
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() {
         app = Javalin.create()
-                .port(0)
-                .start();
+            .port(0)
+            .start();
         origin = "http://localhost:" + app.port();
     }
 
@@ -45,7 +42,7 @@ public class TestExtension {
 
     @Test
     public void test_helloWorldExtension() throws Exception {
-        app.extension((app) -> {
+        app.extension(app -> {
             app.before("/protected", ctx -> {
                 throw new HaltException(401, "Protected");
             });
@@ -73,11 +70,11 @@ public class TestExtension {
     static class JavaClassExtension implements Extension {
         private final String magicValue;
 
-        public JavaClassExtension(String magicValue) {
+        JavaClassExtension(String magicValue) {
             this.magicValue = magicValue;
         }
 
-        public String getMagicValue() {
+        String getMagicValue() {
             return magicValue;
         }
 
@@ -100,8 +97,11 @@ public class TestExtension {
     @Test
     public void test_registerOrderIsFirstComeFirstServe() {
         List<Integer> values = new ArrayList<>();
-        app.extension(app -> { values.add(1); })
-           .extension(app -> { values.add(2); });
+        app.extension(app -> {
+            values.add(1);
+        }).extension(app -> {
+            values.add(2);
+        });
 
         assertThat(values.get(0), is(1));
         assertThat(values.get(1), is(2));

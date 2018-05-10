@@ -21,7 +21,7 @@ public class HelloWorldGson {
         JavalinJsonPlugin.setObjectToJsonMapper(gson::toJson);
 
         Javalin app = Javalin.create().port(7070).start();
-        app.get("/", ctx -> ctx.json(Arrays.asList("a","b","c")));
+        app.get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")));
 
     }
 
