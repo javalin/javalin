@@ -721,6 +721,44 @@ public class Javalin {
         return this;
     }
 
+    // Extension
+
+    /**
+     * Registers an anonymous {@link Extension} with the Javalin application.
+     *
+     * @param extension You're free to implement the extension as a class or a lambda expression
+     */
+    public Javalin extension(@NotNull Extension extension) {
+        extension.register(this);
+        return this;
+    }
+
+    /**
+     * Registers a retrievable {@link Extension} with the Javalin application.
+     *
+     * @param clazz     The extension's class as key
+     * @param extension The class implementing {@link Extension} (cannot be lambda)
+     */
+    public Javalin extension(@NotNull Class<?> clazz, @NotNull Extension extension) {
+        if (clazz != extension.getClass()) {
+            throw new IllegalArgumentException("Extension cannot be anonymous when added with Class key");
+        }
+        extension.register(this);
+        extensions.put(clazz, extension);
+        return this;
+    }
+
+    /**
+     * Returns an {@link Extension} that was registered with the Javalin application.
+     *
+     * @param extClazz The class implementing the `Extension` interface
+     * @return An instance of `T` or null
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T extension(@NotNull Class<T> extClazz) {
+        return (T) extensions.get(extClazz);
+    }
+
     /**
      * Gets the list of RouteOverviewEntry-objects used to build
      * the visual route-overview
@@ -741,46 +779,4 @@ public class Javalin {
         exceptionMapper.getExceptionMap().clear();
     }
 
-    // Extension
-
-    /**
-     * Registers an anonymous {@link Extension} with the Javalin application.
-     *
-     * @param extension You're free to implement the extension as a class or a lambda expression
-     * @return Self instance for fluent, method-chaining API
-     */
-    public Javalin extension(Extension extension) {
-        extension.register(this);
-
-        return this;
-    }
-
-    /**
-     * Registers an {@link Extension} with the Javalin application.
-     *
-     * @param extClazz  The extension key
-     * @param extension You're free to implement the extension as a class or a lambda expression
-     * @return Self instance for fluent, method-chaining API
-     */
-    public Javalin extension(Class<?> extClazz, Extension extension) {
-        if (extClazz == null) {
-            throw new IllegalArgumentException("Extension key extClazz must not be null");
-        }
-        extension.register(this);
-        extensions.put(extClazz, extension);
-
-        return this;
-    }
-
-    /**
-     * Returns an {@link Extension} that was registered with the Javalin application.
-     *
-     * @param extClazz The class implementing the `Extension` interface
-     * @return An instance of `T` or null
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T extension(Class<T> extClazz) {
-
-        return (T) extensions.get(extClazz);
-    }
 }

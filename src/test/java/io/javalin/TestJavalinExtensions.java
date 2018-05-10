@@ -88,10 +88,9 @@ public class TestJavalinExtensions {
 
     @Test
     public void test_javaClassExtensions() {
-        app.extension(JavaClassExtension.class, new JavaClassExtension("Foobar!"))
-            .extension((app) -> {
-                assertThat(app.extension(JavaClassExtension.class).getMagicValue(), is("Foobar!"));
-            });
+        app
+            .extension(JavaClassExtension.class, new JavaClassExtension("Foobar!"))
+            .extension(app -> assertThat(app.extension(JavaClassExtension.class).getMagicValue(), is("Foobar!")));
     }
 
     @Test
@@ -106,5 +105,12 @@ public class TestJavalinExtensions {
         assertThat(values.get(0), is(1));
         assertThat(values.get(1), is(2));
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void test_wrongKeyValueThrowsException() {
+        Extension extension = app -> { /*anonymous lambda*/ };
+        app.extension(JavaClassExtension.class, extension);
+    }
+
 
 }
