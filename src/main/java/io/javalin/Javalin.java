@@ -66,7 +66,7 @@ public class Javalin {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
 
-    private final Map<String, Extension> extensions = new HashMap<>();
+    private final Map<Class<?>, Extension> extensions = new HashMap<>();
 
     private Javalin() {
     }
@@ -756,12 +756,11 @@ public class Javalin {
      * @return Self instance for fluent, method-chaining API
      */
     public Javalin extension(Class<?> extClazz, Extension extension) {
-        extension.register(this);
-
-        String extKey = extClazz.getCanonicalName();
-        if (extKey != null) {
-            extensions.put(extKey, extension);
+        if (extClazz == null) {
+            throw new IllegalArgumentException("Extension key extClazz must not be null");
         }
+        extension.register(this);
+        extensions.put(extClazz, extension);
 
         return this;
     }
@@ -775,6 +774,6 @@ public class Javalin {
     @SuppressWarnings("unchecked")
     public <T> T extension(Class<T> extClazz) {
 
-        return (T) extensions.get(extClazz.getCanonicalName());
+        return (T) extensions.get(extClazz);
     }
 }
