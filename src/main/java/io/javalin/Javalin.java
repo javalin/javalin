@@ -56,7 +56,6 @@ public class Javalin {
     private PathMatcher pathMatcher = new PathMatcher();
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
     private ErrorMapper errorMapper = new ErrorMapper();
-    private Map<Class<?>, Extension> extensions = new HashMap<>();
     private LogLevel logLevel = LogLevel.OFF;
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
@@ -719,44 +718,6 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
         jettyWsHandlers.put(path, webSocketObject);
         return this;
-    }
-
-    // Extension
-
-    /**
-     * Registers an anonymous {@link Extension} with the Javalin application.
-     *
-     * @param extension You're free to implement the extension as a class or a lambda expression
-     */
-    public Javalin extension(@NotNull Extension extension) {
-        extension.register(this);
-        return this;
-    }
-
-    /**
-     * Registers a retrievable {@link Extension} with the Javalin application.
-     *
-     * @param clazz     The extension's class as key
-     * @param extension The class implementing {@link Extension} (cannot be lambda)
-     */
-    public Javalin extension(@NotNull Class<?> clazz, @NotNull Extension extension) {
-        if (clazz != extension.getClass()) {
-            throw new IllegalArgumentException("Extension cannot be anonymous when added with Class key");
-        }
-        extension.register(this);
-        extensions.put(clazz, extension);
-        return this;
-    }
-
-    /**
-     * Returns an {@link Extension} that was registered with the Javalin application.
-     *
-     * @param extClazz The class implementing the `Extension` interface
-     * @return An instance of `T` or null
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T extension(@NotNull Class<T> extClazz) {
-        return (T) extensions.get(extClazz);
     }
 
     /**
