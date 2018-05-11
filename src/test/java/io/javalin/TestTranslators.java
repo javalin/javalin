@@ -190,4 +190,10 @@ public class TestTranslators extends _UnirestBaseTest {
         assertThat(GET_body("/hello"), is("<h1>Hello Markdown!</h1>\n"));
     }
 
+    @Test
+    public void test_renderJtwig_works() throws Exception {
+        app.get("/hello", ctx -> ctx.renderJtwig("/templates/jtwig/test.jtwig", TemplateUtil.model("message", "Hello jTwig!")));
+        assertThat(GET_body("/hello"), is("<h1>Hello jTwig!</h1>"));
+    }
+
 }

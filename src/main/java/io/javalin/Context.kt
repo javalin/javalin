@@ -11,10 +11,7 @@ import io.javalin.core.HandlerType
 import io.javalin.core.util.*
 import io.javalin.translator.json.JavalinJsonPlugin
 import io.javalin.translator.markdown.JavalinCommonmarkPlugin
-import io.javalin.translator.template.JavalinFreemarkerPlugin
-import io.javalin.translator.template.JavalinMustachePlugin
-import io.javalin.translator.template.JavalinThymeleafPlugin
-import io.javalin.translator.template.JavalinVelocityPlugin
+import io.javalin.translator.template.*
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -597,6 +594,17 @@ class Context(private val servletResponse: HttpServletResponse,
     fun renderMustache(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
         Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
         return html(JavalinMustachePlugin.render(templatePath, model))
+    }
+
+    /**
+     * Renders a jTwig template with specified values as html and
+     * sets it as the context result. Sets content-type to text/html.
+     * Requires jTwig library in the classpath.
+     */
+    @JvmOverloads
+    fun renderJtwig(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
+        Util.ensureDependencyPresent("jTwig", "org.jtwig.JtwigTemplate", "org.jtwig/jtwig-core")
+        return html(JavalinJtwigPlugin.render(templatePath, model))
     }
 
     /**
