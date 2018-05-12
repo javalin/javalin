@@ -198,23 +198,21 @@ class Context(private val servletResponse: HttpServletResponse,
     fun basicAuthCredentials(): BasicAuthCredentials? = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
     /**
-     * Adds an extension to the Context, which can be used later in the request-lifecycle.
-     * This method is mainly useful when calling from Java,
-     * as Kotlin has native extension methods.
+     * Registers an extension to the Context, which can be used later in the request-lifecycle.
+     * This method is mainly useful when calling from Java, as Kotlin has native extension methods.
      *
-     * Ex: ctx.extension(MyExt.class, myExtInstance())
+     * Ex: ctx.register(MyExt.class, myExtInstance())
      */
-    fun extension(clazz: Class<*>, value: Any) = servletRequest.setAttribute("ctx-ext-${clazz.canonicalName}", value)
+    fun register(clazz: Class<*>, value: Any) = servletRequest.setAttribute("ctx-ext-${clazz.canonicalName}", value)
 
     /**
-     * Retrieves an extension from the context.
-     * This method is mainly useful when calling from Java,
-     * as Kotlin has native extension methods.
+     * Use an extension stored in the Context.
+     * This method is mainly useful when calling from Java as Kotlin has native extension methods.
      *
-     * Ex: ctx.extension(MyExt.class).myMethod()
+     * Ex: ctx.use(MyExt.class).myMethod()
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> extension(clazz: Class<T>): T = servletRequest.getAttribute("ctx-ext-${clazz.canonicalName}") as T
+    fun <T> use(clazz: Class<T>): T = servletRequest.getAttribute("ctx-ext-${clazz.canonicalName}") as T
 
     /**
      * Sets an attribute on the request, which will be made available to
