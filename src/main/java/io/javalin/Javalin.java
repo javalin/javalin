@@ -67,7 +67,7 @@ public class Javalin {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
     };
 
-    private Javalin() {
+    protected Javalin() {
     }
 
     /**
