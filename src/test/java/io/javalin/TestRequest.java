@@ -218,4 +218,13 @@ public class TestRequest extends _UnirestBaseTest {
         assertThat(GET_body("/matched/p1"), is("/matched/:param"));
         assertThat(GET_body("/matched/p1/p2"), is("/matched/:param/:param2"));
     }
+
+    /*
+     * Any params.
+     */
+    @Test
+    public void test_anyParam_works() throws Exception {
+        app.get("/:param/", ctx -> ctx.result(String.join(",", ctx.anyParam("param"))));
+        assertThat(GET_body("/path?param=query"), is("path,query"));
+    }
 }

@@ -176,6 +176,14 @@ class Context(private val servletResponse: HttpServletResponse,
      */
     fun paramMap(): Map<String, String> = Collections.unmodifiableMap(paramMap)
 
+    /**
+     * Get all param values from any of path, form, query and headers.
+     *
+     * Ex: If there is a form which submits comments to /comments as a form parameter or a query param
+     * like /comments?comment=comments, or both, this handler will return both comments.
+     */
+    fun anyParam(param: String): Collection<String> = listOfNotNull(param(param), formParam(param), queryParam(param), header(param))
+
     //
     // Gets a splat by its index.
     // Ex: If the handler path is /users/*
