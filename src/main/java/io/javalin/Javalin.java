@@ -60,7 +60,7 @@ public class Javalin {
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
     private long maxRequestCacheBodySize = Long.MAX_VALUE;
-
+    private boolean hideBanner = false;
     private EventManager eventManager = new EventManager();
 
     private AccessManager accessManager = (Handler handler, Context ctx, List<Role> permittedRoles) -> {
@@ -109,7 +109,9 @@ public class Javalin {
      */
     public Javalin start() {
         if (!started) {
-            log.info(Util.INSTANCE.javalinBanner());
+            if(!hideBanner) {
+                log.info(Util.INSTANCE.javalinBanner());
+            }
             Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
@@ -162,6 +164,16 @@ public class Javalin {
         }
         log.info("Javalin has stopped");
         eventManager.fireEvent(EventType.SERVER_STOPPED, this);
+        return this;
+    }
+
+    /**
+     * Configure instance to not show banner in logs.
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin dontShowBannerInLogs() {
+        ensureActionIsPerformedBeforeServerStart("Telling Javalin to not show banner in logs");
+        hideBanner = true;
         return this;
     }
 
