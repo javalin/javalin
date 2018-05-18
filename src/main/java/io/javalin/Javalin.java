@@ -171,7 +171,7 @@ public class Javalin {
      * Configure instance to not show banner in logs.
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin dontShowBannerInLogs() {
+    public Javalin disableStartupBanner() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to not show banner in logs");
         hideBanner = true;
         return this;
