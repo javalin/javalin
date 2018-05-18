@@ -109,7 +109,7 @@ public class Javalin {
      */
     public Javalin start() {
         if (!started) {
-            if(!hideBanner) {
+            if (!hideBanner) {
                 log.info(Util.INSTANCE.javalinBanner());
             }
             Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
