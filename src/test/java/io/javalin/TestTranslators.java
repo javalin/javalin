@@ -205,21 +205,21 @@ public class TestTranslators extends _UnirestBaseTest {
     @Test
     public void test_customJtwigConfiguration_works() throws Exception {
         EnvironmentConfiguration configuration = EnvironmentConfigurationBuilder
-                .configuration().functions()
-                .add(new SimpleJtwigFunction() {
-                    @Override
-                    public String name() {
-                        return "javalin";
-                    }
+            .configuration().functions()
+            .add(new SimpleJtwigFunction() {
+                @Override
+                public String name() {
+                    return "javalin";
+                }
 
-                    @Override
-                    public Object execute(FunctionRequest request) {
-                        request.maximumNumberOfArguments(1).minimumNumberOfArguments(1);
-                        return FunctionValueUtils.getString(request, 0);
-                    }
-                })
-                .and()
-                .build();
+                @Override
+                public Object execute(FunctionRequest request) {
+                    request.maximumNumberOfArguments(1).minimumNumberOfArguments(1);
+                    return FunctionValueUtils.getString(request, 0);
+                }
+            })
+            .and()
+            .build();
 
         JavalinJtwigPlugin.configure(configuration);
         app.get("/quiz", ctx -> ctx.renderJtwig("/templates/jtwig/custom.jtwig"));
