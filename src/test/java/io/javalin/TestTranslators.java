@@ -16,6 +16,7 @@ import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.translator.json.JavalinJsonPlugin;
 import io.javalin.translator.json.JsonToObjectMapper;
 import io.javalin.translator.json.ObjectToJsonMapper;
+import io.javalin.translator.template.JavalinJtwigPlugin;
 import io.javalin.translator.template.JavalinVelocityPlugin;
 import io.javalin.translator.template.TemplateUtil;
 import io.javalin.util.CustomMapper;
@@ -23,6 +24,11 @@ import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;
 import org.apache.velocity.app.VelocityEngine;
 import org.jetbrains.annotations.NotNull;
+import org.jtwig.environment.EnvironmentConfiguration;
+import org.jtwig.environment.EnvironmentConfigurationBuilder;
+import org.jtwig.functions.FunctionRequest;
+import org.jtwig.functions.SimpleJtwigFunction;
+import org.jtwig.util.FunctionValueUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -194,6 +200,30 @@ public class TestTranslators extends _UnirestBaseTest {
     public void test_renderJtwig_works() throws Exception {
         app.get("/hello", ctx -> ctx.renderJtwig("/templates/jtwig/test.jtwig", TemplateUtil.model("message", "Hello jTwig!")));
         assertThat(GET_body("/hello"), is("<h1>Hello jTwig!</h1>"));
+    }
+
+    @Test
+    public void test_customJtwigConfiguration_works() throws Exception {
+        EnvironmentConfiguration configuration = EnvironmentConfigurationBuilder
+                .configuration().functions()
+                .add(new SimpleJtwigFunction() {
+                    @Override
+                    public String name() {
+                        return "javalin";
+                    }
+
+                    @Override
+                    public Object execute(FunctionRequest request) {
+                        request.maximumNumberOfArguments(1).minimumNumberOfArguments(1);
+                        return FunctionValueUtils.getString(request, 0);
+                    }
+                })
+                .and()
+                .build();
+
+        JavalinJtwigPlugin.configure(configuration);
+        app.get("/quiz", ctx -> ctx.renderJtwig("/templates/jtwig/custom.jtwig"));
+        assertThat(GET_body("/quiz"), is("<h1>Javalin is the best framework you will ever get</h1>"));
     }
 
 }
