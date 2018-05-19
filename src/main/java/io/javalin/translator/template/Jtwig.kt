@@ -8,11 +8,21 @@ package io.javalin.translator.template
 
 import org.jtwig.JtwigModel
 import org.jtwig.JtwigTemplate
+import org.jtwig.environment.DefaultEnvironmentConfiguration
+import org.jtwig.environment.EnvironmentConfiguration
 
 object JavalinJtwigPlugin {
 
+    private var configuration: EnvironmentConfiguration? = null
+
+    @JvmStatic
+    fun configure(staticConfiguration: EnvironmentConfiguration) {
+        JavalinJtwigPlugin.configuration = staticConfiguration
+    }
+
     fun render(path: String, model: Map<String, Any?>): String {
-        val template = JtwigTemplate.classpathTemplate(path)
+        val configuration = configuration?: DefaultEnvironmentConfiguration()
+        val template = JtwigTemplate.classpathTemplate(path, configuration)
         return template.render(JtwigModel.newModel(model))
     }
 
