@@ -21,7 +21,7 @@ Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javal
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>1.6.1</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -42,7 +42,7 @@ public class HelloWorld {
 
 ### Add dependency (gradle)
 ```kotlin
-compile 'io.javalin:javalin:1.6.1'
+compile 'io.javalin:javalin:1.7.0'
 ```
 
 ### Start programming
