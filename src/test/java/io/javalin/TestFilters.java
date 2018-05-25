@@ -26,12 +26,23 @@ public class TestFilters extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_justFilters_is404() throws Exception {
+    public void test_justFiltersGet_is404() throws Exception {
         Handler emptyHandler = ctx -> {
         };
         app.before(emptyHandler);
         app.after(emptyHandler);
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
+        assertThat(response.getStatus(), is(404));
+        assertThat(response.getBody(), is("Not found"));
+    }
+
+    @Test
+    public void test_justFiltersPost_is404() throws Exception {
+        Handler emptyHandler = ctx -> {
+        };
+        app.before(emptyHandler);
+        app.after(emptyHandler);
+        HttpResponse<String> response = call(HttpMethod.POST, "/hello");
         assertThat(response.getStatus(), is(404));
         assertThat(response.getBody(), is("Not found"));
     }

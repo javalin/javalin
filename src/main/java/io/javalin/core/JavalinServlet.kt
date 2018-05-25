@@ -7,6 +7,7 @@
 package io.javalin.core
 
 import io.javalin.Context
+import io.javalin.HaltException
 import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
@@ -72,6 +73,9 @@ class JavalinServlet(
                     return@tryWithExceptionMapper
                 }
             }
+            if (endpointEntries.isEmpty() && type != HandlerType.HEAD && type != HandlerType.GET) {
+                throw HaltException(404, "Not found")
+            }
             if (shouldCheckForStaticFiles(endpointEntries, type, requestUri)) {
                 staticResourceHandler.handle(req, res)
             }
@@ -132,7 +136,7 @@ class JavalinServlet(
     }
 
     private fun shouldCheckForStaticFiles(endpointEntries: List<HandlerEntry>, type: HandlerType, requestUri: String) = when {
-        type != HandlerType.HEAD && endpointEntries.isEmpty() -> true
+        type == HandlerType.GET && endpointEntries.isEmpty() -> true
         type == HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty() -> true
         else -> false
     }
