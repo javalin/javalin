@@ -29,6 +29,7 @@ import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -61,6 +62,7 @@ public class Javalin {
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
     private long maxRequestCacheBodySize = Long.MAX_VALUE;
     private boolean hideBanner = false;
+    private boolean prefer405over404 = false;
     private EventManager eventManager = new EventManager();
 
     private AccessManager accessManager = (Handler handler, Context ctx, List<Role> permittedRoles) -> {
@@ -127,7 +129,8 @@ public class Javalin {
                     dynamicGzipEnabled,
                     defaultContentType,
                     defaultCharacterEncoding,
-                    maxRequestCacheBodySize
+                    maxRequestCacheBodySize,
+                    prefer405over404
                 ), staticFileConfig);
                 log.info("Starting Javalin ...");
                 port = embeddedServer.start(port);
@@ -164,6 +167,16 @@ public class Javalin {
         }
         log.info("Javalin has stopped");
         eventManager.fireEvent(EventType.SERVER_STOPPED, this);
+        return this;
+    }
+
+    /**
+     * Configure the instance to return 405 (Method Not Allowed) instead of 404 (Not Found) whenever a request method doesn't exists but there are handlers for other methods on the same requested path.
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin prefer405over404() {
+        ensureActionIsPerformedBeforeServerStart("Telling Javalin to return 405 instead of 404 when applicable");
+        prefer405over404 = true;
         return this;
     }
 

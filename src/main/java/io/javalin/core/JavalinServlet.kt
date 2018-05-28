@@ -36,7 +36,8 @@ class JavalinServlet(
         val dynamicGzipEnabled: Boolean,
         val defaultContentType: String,
         val defaultCharacterEncoding: String,
-        val maxRequestCacheBodySize: Long) {
+        val maxRequestCacheBodySize: Long,
+        val prefer405over404: Boolean) {
 
     private val log = LoggerFactory.getLogger(JavalinServlet::class.java)
 
@@ -74,7 +75,44 @@ class JavalinServlet(
                 }
             }
             if (endpointEntries.isEmpty() && type != HandlerType.HEAD && type != HandlerType.GET) {
-                throw HaltException(404, "Not found")
+
+                if (prefer405over404) {
+                    val availableHandlerTypes = ArrayList<HandlerType>()
+
+                    enumValues<HandlerType>().forEach {
+                        val entries = matcher.findEntries(it, requestUri)
+
+                        if (!entries.isEmpty()) {
+                            availableHandlerTypes.add(it)
+                        }
+                    }
+
+                    if (availableHandlerTypes.isEmpty()) {
+                        throw HaltException(404, "Not found")
+                    }
+
+                    val htmlTemplate =
+                        """
+                            <!DOCTYPE html>
+                            <html lang="en">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <title>Method Not Allowed</title>
+                                </head>
+                                <body>
+                                    <h1>405 - Method Not Allowed</h1>
+                                    <p>
+                                        Available Methods: <strong>${availableHandlerTypes.joinToString(", ")}</strong>
+                                    </p>
+                                </body>
+                            </html>
+                        """
+                    ctx.status(405)
+                    ctx.html(htmlTemplate)
+                    return@tryWithExceptionMapper
+                } else {
+                    throw HaltException(404, "Not found")
+                }
             }
             if (shouldCheckForStaticFiles(endpointEntries, type, requestUri)) {
                 staticResourceHandler.handle(req, res)
