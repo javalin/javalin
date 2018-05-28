@@ -17,6 +17,7 @@ import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
 import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler
+import io.javalin.translator.json.JavalinJsonPlugin
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
@@ -83,7 +84,15 @@ class JavalinServlet(
                     if (availableHandlerTypes.isEmpty()) {
                         throw HaltException(404, "Not found")
                     }
-                    throw HaltException(405, MethodNotAllowedUtil.createHtmlMethodNotAllowed(availableHandlerTypes))
+
+                    val acceptableReturnTypes = ctx.header("Accept")
+
+                    val body = if (acceptableReturnTypes != null && acceptableReturnTypes.contains("application/json")) {
+                        MethodNotAllowedUtil.createJsonMethodNotAllowed(availableHandlerTypes)
+                    } else {
+                        MethodNotAllowedUtil.createHtmlMethodNotAllowed(availableHandlerTypes)
+                    }
+                    throw HaltException(405, body)
                 } else {
                     throw HaltException(404, "Not found")
                 }

@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.is;
 
 public class TestMethodNotAllowed {
 
-    private static final String EXPECTED_BODY = "\n"
+    private static final String EXPECTED_HTML_BODY = "\n"
             + "                    <!DOCTYPE html>\n"
             + "                    <html lang=\"en\">\n"
             + "                        <head>\n"
@@ -29,6 +29,7 @@ public class TestMethodNotAllowed {
             + "                        </body>\n"
             + "                    </html>\n"
             + "                ";
+    private static final String EXPECTED_JSON_BODY = "{\"availableMethods\":[\"GET\"]}";
     private static Javalin app;
     private static String baseUrl;
 
@@ -44,11 +45,19 @@ public class TestMethodNotAllowed {
     }
 
     @Test
-    public void test_methodNotAllowed() throws UnirestException {
+    public void test_htmlMethodNotAllowed() throws UnirestException {
         HttpResponse<String> response = Unirest.post(baseUrl + "/test").asString();
 
         assertThat(response.getStatus(), is(HttpServletResponse.SC_METHOD_NOT_ALLOWED));
-        assertThat(response.getBody(), is(EXPECTED_BODY));
+        assertThat(response.getBody(), is(EXPECTED_HTML_BODY));
+    }
+
+    @Test
+    public void test_jsonMethodNotAllowed() throws UnirestException {
+        HttpResponse<String> response = Unirest.post(baseUrl + "/test").header("Accept", "application/json").asString();
+
+        assertThat(response.getStatus(), is(HttpServletResponse.SC_METHOD_NOT_ALLOWED));
+        assertThat(response.getBody(), is(EXPECTED_JSON_BODY));
     }
 
     @AfterClass
