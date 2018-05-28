@@ -12,6 +12,7 @@ import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
+import io.javalin.core.util.MethodNotAllowedUtil
 import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
@@ -77,39 +78,12 @@ class JavalinServlet(
             if (endpointEntries.isEmpty() && type != HandlerType.HEAD && type != HandlerType.GET) {
 
                 if (prefer405over404) {
-                    val availableHandlerTypes = ArrayList<HandlerType>()
-
-                    enumValues<HandlerType>().forEach {
-                        val entries = matcher.findEntries(it, requestUri)
-
-                        if (!entries.isEmpty()) {
-                            availableHandlerTypes.add(it)
-                        }
-                    }
+                    val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHandlerTypes(matcher, requestUri)
 
                     if (availableHandlerTypes.isEmpty()) {
                         throw HaltException(404, "Not found")
                     }
-
-                    val htmlTemplate =
-                        """
-                            <!DOCTYPE html>
-                            <html lang="en">
-                                <head>
-                                    <meta charset="UTF-8">
-                                    <title>Method Not Allowed</title>
-                                </head>
-                                <body>
-                                    <h1>405 - Method Not Allowed</h1>
-                                    <p>
-                                        Available Methods: <strong>${availableHandlerTypes.joinToString(", ")}</strong>
-                                    </p>
-                                </body>
-                            </html>
-                        """
-                    ctx.status(405)
-                    ctx.html(htmlTemplate)
-                    return@tryWithExceptionMapper
+                    throw HaltException(405, MethodNotAllowedUtil.createHtmlMethodNotAllowed(availableHandlerTypes))
                 } else {
                     throw HaltException(404, "Not found")
                 }

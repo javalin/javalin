@@ -15,20 +15,20 @@ import static org.hamcrest.Matchers.is;
 public class TestMethodNotAllowed {
 
     private static final String EXPECTED_BODY = "\n"
-            + "                            <!DOCTYPE html>\n"
-            + "                            <html lang=\"en\">\n"
-            + "                                <head>\n"
-            + "                                    <meta charset=\"UTF-8\">\n"
-            + "                                    <title>Method Not Allowed</title>\n"
-            + "                                </head>\n"
-            + "                                <body>\n"
-            + "                                    <h1>405 - Method Not Allowed</h1>\n"
-            + "                                    <p>\n"
-            + "                                        Available Methods: <strong>GET</strong>\n"
-            + "                                    </p>\n"
-            + "                                </body>\n"
-            + "                            </html>\n"
-            + "                        ";
+            + "                    <!DOCTYPE html>\n"
+            + "                    <html lang=\"en\">\n"
+            + "                        <head>\n"
+            + "                            <meta charset=\"UTF-8\">\n"
+            + "                            <title>Method Not Allowed</title>\n"
+            + "                        </head>\n"
+            + "                        <body>\n"
+            + "                            <h1>405 - Method Not Allowed</h1>\n"
+            + "                            <p>\n"
+            + "                                Available Methods: <strong>GET</strong>\n"
+            + "                            </p>\n"
+            + "                        </body>\n"
+            + "                    </html>\n"
+            + "                ";
     private static Javalin app;
     private static String baseUrl;
 
