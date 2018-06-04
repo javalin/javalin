@@ -23,7 +23,8 @@ object MethodNotAllowedUtil {
     }
 
     fun createJsonMethodNotAllowed(availableHandlerTypes: List<HandlerType>): String {
-        return objectToJsonMapper.map(JsonMethodNotAllowed(availableHandlerTypes))
+
+        return """{"availableMethods":${availableHandlerTypes.joinToString(separator = "\", \"", prefix = "[\"", postfix = "\"]")}}"""
     }
 
     @JvmStatic
