@@ -24,12 +24,12 @@ public class TestMethodNotAllowed {
             + "                        <body>\n"
             + "                            <h1>405 - Method Not Allowed</h1>\n"
             + "                            <p>\n"
-            + "                                Available Methods: <strong>GET</strong>\n"
+            + "                                Available Methods: <strong>GET, PUT, DELETE</strong>\n"
             + "                            </p>\n"
             + "                        </body>\n"
             + "                    </html>\n"
             + "                ";
-    private static final String EXPECTED_JSON_BODY = "{\"availableMethods\":[\"GET\"]}";
+    private static final String EXPECTED_JSON_BODY = "{\"availableMethods\":[\"GET\", \"PUT\", \"DELETE\"]}";
     private static Javalin app;
     private static String baseUrl;
 
@@ -42,6 +42,8 @@ public class TestMethodNotAllowed {
         baseUrl = "http://localhost:" + app.port();
 
         app.get("/test", ctx -> ctx.result("Hello world"));
+        app.put("/test", ctx -> ctx.result("Hello world"));
+        app.delete("/test", ctx -> ctx.result("Hello world"));
     }
 
     @Test
