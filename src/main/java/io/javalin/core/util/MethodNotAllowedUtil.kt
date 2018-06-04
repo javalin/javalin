@@ -2,7 +2,6 @@ package io.javalin.core.util
 
 import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
-import io.javalin.translator.json.JavalinJsonPlugin.objectToJsonMapper
 
 private data class JsonMethodNotAllowed(val availableMethods: List<HandlerType>)
 
