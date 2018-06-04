@@ -8,10 +8,14 @@ private data class JsonMethodNotAllowed(val availableMethods: List<HandlerType>)
 object MethodNotAllowedUtil {
 
     @JvmStatic
-    fun findAvailableHandlerTypes(matcher: PathMatcher, requestUri: String): List<HandlerType> {
+    fun findAvailableHttpHandlerTypes(matcher: PathMatcher, requestUri: String): List<HandlerType> {
         val availableHandlerTypes = ArrayList<HandlerType>()
 
         enumValues<HandlerType>().forEach {
+
+            if (!it.isHttpMethod())
+                return@forEach
+
             val entries = matcher.findEntries(it, requestUri)
 
             if (!entries.isEmpty()) {

@@ -17,7 +17,6 @@ import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
 import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler
-import io.javalin.translator.json.JavalinJsonPlugin
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
@@ -128,7 +127,7 @@ class JavalinServlet(
     }
 
     private fun handleMethodNotAllowed(ctx: Context, requestUri: String) {
-        val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHandlerTypes(matcher, requestUri)
+        val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
 
         if (availableHandlerTypes.isEmpty()) {
             throw HaltException(404, "Not found")

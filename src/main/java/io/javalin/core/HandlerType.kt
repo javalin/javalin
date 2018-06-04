@@ -11,6 +11,13 @@ import javax.servlet.http.HttpServletRequest
 enum class HandlerType {
     GET, POST, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS, BEFORE, AFTER, INVALID, WEBSOCKET;
 
+    fun isHttpMethod(): Boolean {
+        return when (this) {
+            GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH -> true
+            else -> false
+        }
+    }
+
     companion object {
         private val methodMap = HandlerType.values().map { it.toString() to it }.toMap()
         fun fromServletRequest(httpRequest: HttpServletRequest): HandlerType {
