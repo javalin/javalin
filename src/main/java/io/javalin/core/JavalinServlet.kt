@@ -76,9 +76,10 @@ class JavalinServlet(
                 }
             }
             if (endpointEntries.isEmpty() && type != HandlerType.HEAD && type != HandlerType.GET) {
+                val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
 
-                if (prefer405over404) {
-                    handleMethodNotAllowed(ctx, requestUri)
+                if (prefer405over404 && !availableHandlerTypes.isEmpty()) {
+                    throwMethodNotAllowed(ctx, availableHandlerTypes)
                 } else {
                     throw HaltException(404, "Not found")
                 }
@@ -126,13 +127,7 @@ class JavalinServlet(
         }
     }
 
-    private fun handleMethodNotAllowed(ctx: Context, requestUri: String) {
-        val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
-
-        if (availableHandlerTypes.isEmpty()) {
-            throw HaltException(404, "Not found")
-        }
-
+    private fun throwMethodNotAllowed(ctx: Context, availableHandlerTypes: List<HandlerType>) {
         val acceptableReturnTypes = ctx.header("Accept")
 
         val body = if (acceptableReturnTypes != null && acceptableReturnTypes.contains("application/json")) {
