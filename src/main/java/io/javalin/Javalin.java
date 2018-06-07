@@ -7,12 +7,12 @@
 
 package io.javalin;
 
-import io.javalin.core.JavalinJettyServer;
 import io.javalin.core.ErrorMapper;
 import io.javalin.core.ExceptionMapper;
 import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
+import io.javalin.core.JettyServerUtil;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.staticfiles.JettyResourceHandler;
 import io.javalin.core.staticfiles.Location;
@@ -31,9 +31,7 @@ import io.javalin.security.Role;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -118,13 +116,11 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                JavalinJettyServer javalinJettyServer = new JavalinJettyServer(jettyServer, new JavalinServlet(
-                    contextPath,
+                log.info("Starting Javalin ...");
+                JavalinServlet javalinServlet = new JavalinServlet(
                     pathMatcher,
                     exceptionMapper,
                     errorMapper,
-                    jettyWsHandlers,
-                    javalinWsHandlers,
                     logLevel,
                     dynamicGzipEnabled,
                     defaultContentType,
@@ -132,9 +128,8 @@ public class Javalin {
                     maxRequestCacheBodySize,
                     prefer405over404,
                     new JettyResourceHandler(staticFileConfig)
-                ));
-                log.info("Starting Javalin ...");
-                port = javalinJettyServer.start(port);
+                );
+                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, javalinWsHandlers, log);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(EventType.SERVER_STARTED, this);
@@ -701,7 +696,6 @@ public class Javalin {
     // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
 
     private List<WebSocketHandler> javalinWsHandlers = new ArrayList<>();
-    private Map<String, Object> jettyWsHandlers = new HashMap<>();
 
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
@@ -715,34 +709,6 @@ public class Javalin {
         ws.configure(configuredHandler);
         javalinWsHandlers.add(configuredHandler);
         routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), ws, null));
-        return this;
-    }
-
-    /**
-     * Adds a Jetty annotated class as a handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
-     */
-    public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
-        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), webSocketClass, null));
-        return addWebSocketHandler(path, webSocketClass);
-    }
-
-    /**
-     * Adds a Jetty WebSocket object as a handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
-     */
-    public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
-        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), webSocketObject, null));
-        return addWebSocketHandler(path, webSocketObject);
-    }
-
-    private Javalin addWebSocketHandler(@NotNull String path, @NotNull Object webSocketObject) {
-        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
-        jettyWsHandlers.put(path, webSocketObject);
         return this;
     }
 

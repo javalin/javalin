@@ -14,7 +14,6 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.MethodNotAllowedUtil
-import io.javalin.core.websocket.WebSocketHandler
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
@@ -24,12 +23,9 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JavalinServlet(
-        val contextPath: String,
         val matcher: PathMatcher,
         val exceptionMapper: ExceptionMapper,
         val errorMapper: ErrorMapper,
-        val jettyWsHandlers: Map<String, Any>,
-        val javalinWsHandlers: List<WebSocketHandler>,
         val logLevel: LogLevel,
         val dynamicGzipEnabled: Boolean,
         val defaultContentType: String,

@@ -32,9 +32,6 @@ public class VisualTest {
             .contextPath("/context-path")
             .enableRouteOverview("/route-overview")
             .enableCorsForAllOrigins();
-        app.ws("/websocket/jetty-class", TestWebSocketHandler.class);
-        app.ws("/websocket/jetty-object", new TestWebSocketHandler());
-
         app.start();
 
         app.get("/", ctx -> ctx.redirect("/route-overview"));

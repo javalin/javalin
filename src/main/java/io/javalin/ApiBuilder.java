@@ -348,24 +348,4 @@ public class ApiBuilder {
         staticJavalin.ws(prefixPath(path), ws);
     }
 
-    /**
-     * Adds a Jetty annotated class as a handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
-     */
-    public static void ws(@NotNull String path, @NotNull Class webSocketClass) {
-        staticJavalin.ws(prefixPath(path), webSocketClass);
-    }
-
-    /**
-     * Adds a Jetty WebSocket object as a handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
-     */
-    public static void ws(@NotNull String path, @NotNull Object webSocketObject) {
-        staticJavalin.ws(prefixPath(path), webSocketObject);
-    }
-
 }
