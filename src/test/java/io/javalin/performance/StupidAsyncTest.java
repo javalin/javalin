@@ -35,7 +35,7 @@ public class StupidAsyncTest {
         QueuedThreadPool threadPool = new QueuedThreadPool(10, 2, 60_000);
 
         Javalin app = Javalin.create()
-            .embeddedServer(() -> new Server(threadPool))
+            .server(() -> new Server(threadPool))
             .port(0)
             .start();
 

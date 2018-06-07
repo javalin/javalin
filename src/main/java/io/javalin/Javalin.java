@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import io.javalin.core.EmbeddedJettyServer;
+import io.javalin.core.JavalinJettyServer;
 import io.javalin.core.ErrorMapper;
 import io.javalin.core.ExceptionMapper;
 import io.javalin.core.HandlerEntry;
@@ -51,8 +51,7 @@ public class Javalin {
     private String contextPath = "/";
     private boolean dynamicGzipEnabled = false;
 
-    private EmbeddedJettyServer embeddedJettyServer;
-    private Server baseServer = new Server(new QueuedThreadPool(250, 8, 60_000));
+    private Server jettyServer = new Server(new QueuedThreadPool(250, 8, 60_000));
 
     private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
     private PathMatcher pathMatcher = new PathMatcher();
@@ -119,7 +118,7 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedJettyServer = new EmbeddedJettyServer(baseServer, new JavalinServlet(
+                JavalinJettyServer javalinJettyServer = new JavalinJettyServer(jettyServer, new JavalinServlet(
                     contextPath,
                     pathMatcher,
                     exceptionMapper,
@@ -135,7 +134,7 @@ public class Javalin {
                     new JettyResourceHandler(staticFileConfig)
                 ));
                 log.info("Starting Javalin ...");
-                port = embeddedJettyServer.start(port);
+                port = javalinJettyServer.start(port);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(EventType.SERVER_STARTED, this);
@@ -163,7 +162,7 @@ public class Javalin {
         eventManager.fireEvent(EventType.SERVER_STOPPING, this);
         log.info("Stopping Javalin ...");
         try {
-            baseServer.stop();
+            jettyServer.stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -203,14 +202,14 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to use a custom embedded server.
+     * Configure instance to use a custom jetty Server.
      *
      * @see <a href="https://javalin.io/documentation#custom-server">Documentation example</a>
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin embeddedServer(@NotNull Supplier<Server> embeddedServer) {
+    public Javalin server(@NotNull Supplier<Server> server) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
-        this.baseServer = embeddedServer.get();
+        this.jettyServer = server.get();
         return this;
     }
 

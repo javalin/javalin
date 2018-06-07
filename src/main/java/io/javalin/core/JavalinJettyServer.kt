@@ -25,9 +25,9 @@ import java.io.ByteArrayInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) {
+class JavalinJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) {
 
-    private val log = LoggerFactory.getLogger(EmbeddedJettyServer::class.java)
+    private val log = LoggerFactory.getLogger(JavalinJettyServer::class.java)
 
     val parent = null // javalin handlers are orphans
 

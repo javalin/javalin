@@ -25,7 +25,7 @@ public class TestCustomJetty {
 
         Javalin app = Javalin.create()
             .port(0)
-            .embeddedServer(() -> {
+            .server(() -> {
                 Server server = new Server();
                 server.setHandler(statisticsHandler);
                 return server;
@@ -58,7 +58,7 @@ public class TestCustomJetty {
 
         Javalin app = Javalin.create()
             .port(0)
-            .embeddedServer(() -> {
+            .server(() -> {
                 Server server = new Server();
                 server.setHandler(handlerChain);
                 return server;
