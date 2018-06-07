@@ -12,6 +12,7 @@ import io.javalin.LogLevel
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
+import io.javalin.core.util.MethodNotAllowedUtil
 import io.javalin.embeddedserver.CachedRequestWrapper
 import io.javalin.embeddedserver.CachedResponseWrapper
 import io.javalin.embeddedserver.StaticResourceHandler
@@ -36,7 +37,8 @@ class JavalinServlet(
         val dynamicGzipEnabled: Boolean,
         val defaultContentType: String,
         val defaultCharacterEncoding: String,
-        val maxRequestCacheBodySize: Long) {
+        val maxRequestCacheBodySize: Long,
+        val prefer405over404: Boolean) {
 
     private val log = LoggerFactory.getLogger(JavalinServlet::class.java)
 
@@ -74,7 +76,13 @@ class JavalinServlet(
                 }
             }
             if (endpointEntries.isEmpty() && type != HandlerType.HEAD && type != HandlerType.GET) {
-                throw HaltException(404, "Not found")
+                val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
+
+                if (prefer405over404 && !availableHandlerTypes.isEmpty()) {
+                    throwMethodNotAllowed(ctx, availableHandlerTypes)
+                } else {
+                    throw HaltException(404, "Not found")
+                }
             }
             if (shouldCheckForStaticFiles(endpointEntries, type, requestUri)) {
                 staticResourceHandler.handle(req, res)
@@ -117,6 +125,17 @@ class JavalinServlet(
                 }
             }
         }
+    }
+
+    private fun throwMethodNotAllowed(ctx: Context, availableHandlerTypes: List<HandlerType>) {
+        val acceptableReturnTypes = ctx.header("Accept")
+
+        val body = if (acceptableReturnTypes != null && acceptableReturnTypes.contains("application/json")) {
+            MethodNotAllowedUtil.createJsonMethodNotAllowed(availableHandlerTypes)
+        } else {
+            MethodNotAllowedUtil.createHtmlMethodNotAllowed(availableHandlerTypes)
+        }
+        throw HaltException(405, body)
     }
 
     private fun writeResult(ctx: Context, res: HttpServletResponse) {
