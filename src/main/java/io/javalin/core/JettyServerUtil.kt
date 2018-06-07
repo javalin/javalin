@@ -6,6 +6,7 @@
 
 package io.javalin.core
 
+import io.javalin.core.websocket.JettyWebSocketCreator
 import io.javalin.core.websocket.RootWebSocketCreator
 import io.javalin.core.websocket.WebSocketHandler
 import io.javalin.core.websocket.WebSocketHandlerRoot
