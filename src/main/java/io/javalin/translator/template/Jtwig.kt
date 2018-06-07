@@ -21,7 +21,7 @@ object JavalinJtwigPlugin {
     }
 
     fun render(path: String, model: Map<String, Any?>): String {
-        val configuration = configuration?: DefaultEnvironmentConfiguration()
+        val configuration = configuration ?: DefaultEnvironmentConfiguration()
         val template = JtwigTemplate.classpathTemplate(path, configuration)
         return template.render(JtwigModel.newModel(model))
     }
