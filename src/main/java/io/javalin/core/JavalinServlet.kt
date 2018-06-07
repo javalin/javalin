@@ -9,14 +9,12 @@ package io.javalin.core
 import io.javalin.Context
 import io.javalin.HaltException
 import io.javalin.LogLevel
+import io.javalin.core.staticfiles.JettyResourceHandler
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.MethodNotAllowedUtil
-import io.javalin.embeddedserver.CachedRequestWrapper
-import io.javalin.embeddedserver.CachedResponseWrapper
-import io.javalin.embeddedserver.StaticResourceHandler
-import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler
+import io.javalin.core.websocket.WebSocketHandler
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
@@ -24,7 +22,6 @@ import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import kotlin.properties.Delegates
 
 class JavalinServlet(
         val contextPath: String,
@@ -38,11 +35,10 @@ class JavalinServlet(
         val defaultContentType: String,
         val defaultCharacterEncoding: String,
         val maxRequestCacheBodySize: Long,
-        val prefer405over404: Boolean) {
+        val prefer405over404: Boolean,
+        val jettyResourceHandler: JettyResourceHandler) {
 
     private val log = LoggerFactory.getLogger(JavalinServlet::class.java)
-
-    var staticResourceHandler: StaticResourceHandler by Delegates.notNull()
 
     fun service(servletRequest: ServletRequest, servletResponse: ServletResponse) {
 
@@ -85,7 +81,7 @@ class JavalinServlet(
                 }
             }
             if (shouldCheckForStaticFiles(endpointEntries, type, requestUri)) {
-                staticResourceHandler.handle(req, res)
+                jettyResourceHandler.handle(req, res)
             }
         }
 

@@ -8,7 +8,7 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.embeddedserver.Location;
+import io.javalin.core.staticfiles.Location;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;

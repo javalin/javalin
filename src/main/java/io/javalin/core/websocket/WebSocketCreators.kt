@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.embeddedserver.jetty.websocket
+package io.javalin.core.websocket
 
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse

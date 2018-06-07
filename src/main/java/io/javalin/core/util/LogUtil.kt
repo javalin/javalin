@@ -8,9 +8,9 @@ package io.javalin.core.util
 
 import io.javalin.Context
 import io.javalin.LogLevel
+import io.javalin.core.CachedResponseWrapper
 import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
-import io.javalin.embeddedserver.CachedResponseWrapper
 import org.slf4j.Logger
 import java.util.*
 

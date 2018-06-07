@@ -6,7 +6,7 @@
 
 package io.javalin;
 
-import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
+import io.javalin.core.websocket.WebSocketConfig;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 import java.util.ArrayDeque;

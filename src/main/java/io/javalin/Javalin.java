@@ -7,35 +7,36 @@
 
 package io.javalin;
 
+import io.javalin.core.EmbeddedJettyServer;
 import io.javalin.core.ErrorMapper;
 import io.javalin.core.ExceptionMapper;
 import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
+import io.javalin.core.staticfiles.JettyResourceHandler;
+import io.javalin.core.staticfiles.Location;
+import io.javalin.core.staticfiles.StaticFileConfig;
 import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.RouteOverviewEntry;
 import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
-import io.javalin.embeddedserver.EmbeddedServer;
-import io.javalin.embeddedserver.EmbeddedServerFactory;
-import io.javalin.embeddedserver.Location;
-import io.javalin.embeddedserver.StaticFileConfig;
-import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
-import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
-import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
+import io.javalin.core.websocket.WebSocketConfig;
+import io.javalin.core.websocket.WebSocketHandler;
 import io.javalin.event.EventListener;
 import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
-
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +51,8 @@ public class Javalin {
     private String contextPath = "/";
     private boolean dynamicGzipEnabled = false;
 
-    private EmbeddedServer embeddedServer;
-    private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
+    private EmbeddedJettyServer embeddedJettyServer;
+    private Server baseServer = new Server(new QueuedThreadPool(250, 8, 60_000));
 
     private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
     private PathMatcher pathMatcher = new PathMatcher();
@@ -118,7 +119,7 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(
+                embeddedJettyServer = new EmbeddedJettyServer(baseServer, new JavalinServlet(
                     contextPath,
                     pathMatcher,
                     exceptionMapper,
@@ -130,10 +131,11 @@ public class Javalin {
                     defaultContentType,
                     defaultCharacterEncoding,
                     maxRequestCacheBodySize,
-                    prefer405over404
-                ), staticFileConfig);
+                    prefer405over404,
+                    new JettyResourceHandler(staticFileConfig)
+                ));
                 log.info("Starting Javalin ...");
-                port = embeddedServer.start(port);
+                port = embeddedJettyServer.start(port);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(EventType.SERVER_STARTED, this);
@@ -161,7 +163,7 @@ public class Javalin {
         eventManager.fireEvent(EventType.SERVER_STOPPING, this);
         log.info("Stopping Javalin ...");
         try {
-            embeddedServer.stop();
+            baseServer.stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -206,9 +208,9 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#custom-server">Documentation example</a>
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin embeddedServer(@NotNull EmbeddedServerFactory embeddedServerFactory) {
+    public Javalin embeddedServer(@NotNull Supplier<Server> embeddedServer) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
-        this.embeddedServerFactory = embeddedServerFactory;
+        this.baseServer = embeddedServer.get();
         return this;
     }
 
@@ -754,8 +756,8 @@ public class Javalin {
     }
 
     // package private method used for testing
-    EmbeddedServer embeddedServer() {
-        return embeddedServer;
+    Server embeddedServer() {
+        return baseServer;
     }
 
     // package private method used for testing

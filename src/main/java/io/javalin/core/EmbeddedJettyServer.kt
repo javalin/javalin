@@ -4,13 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.embeddedserver.jetty
+package io.javalin.core
 
-import io.javalin.core.JavalinServlet
-import io.javalin.embeddedserver.EmbeddedServer
-import io.javalin.embeddedserver.jetty.websocket.JettyWebSocketCreator
-import io.javalin.embeddedserver.jetty.websocket.RootWebSocketCreator
-import io.javalin.embeddedserver.jetty.websocket.WebSocketHandlerRoot
+import io.javalin.core.websocket.JettyWebSocketCreator
+import io.javalin.core.websocket.RootWebSocketCreator
+import io.javalin.core.websocket.WebSocketHandlerRoot
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -27,13 +25,13 @@ import java.io.ByteArrayInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
+class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) {
 
-    private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
+    private val log = LoggerFactory.getLogger(EmbeddedJettyServer::class.java)
 
     val parent = null // javalin handlers are orphans
 
-    override fun start(port: Int): Int {
+    fun start(port: Int): Int {
 
         val httpHandler = object : ServletContextHandler(parent, javalinServlet.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
@@ -93,13 +91,10 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         return (server.connectors[0] as ServerConnector).localPort
     }
 
-    override fun stop() {
+    fun stop() {
         server.stop()
         server.join()
     }
-
-    override fun activeThreadCount(): Int = server.threadPool.threads - server.threadPool.idleThreads
-    override fun attribute(key: String): Any = server.getAttribute(key)
 
 }
 

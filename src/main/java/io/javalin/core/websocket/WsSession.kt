@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.embeddedserver.jetty.websocket
+package io.javalin.core.websocket
 
 import io.javalin.core.util.ContextUtil
 import org.eclipse.jetty.websocket.api.*
@@ -22,7 +22,6 @@ class WsSession(val id: String, session: Session, private var paramMap: Map<Stri
     private val webSocketSession = session as WebSocketSession
 
     fun send(message: String) = webSocketSession.remote.sendString(message)
-
     fun queryString() = webSocketSession.upgradeRequest!!.queryString
     fun queryParam(queryParam: String): String? = queryParams(queryParam)?.get(0)
     fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
