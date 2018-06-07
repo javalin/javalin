@@ -756,11 +756,6 @@ public class Javalin {
     }
 
     // package private method used for testing
-    Server embeddedServer() {
-        return baseServer;
-    }
-
-    // package private method used for testing
     void clearMatcherAndMappers() {
         pathMatcher.getHandlerEntries().forEach((__, values) -> values.clear());
         errorMapper.getErrorHandlerMap().clear();
