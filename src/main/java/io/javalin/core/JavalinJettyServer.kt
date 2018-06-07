@@ -91,11 +91,6 @@ class JavalinJettyServer(private val server: Server, private val javalinServlet:
         return (server.connectors[0] as ServerConnector).localPort
     }
 
-    fun stop() {
-        server.stop()
-        server.join()
-    }
-
 }
 
 private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList): HandlerWrapper {
