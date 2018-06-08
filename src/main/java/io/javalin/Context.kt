@@ -139,7 +139,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun formParams(formParam: String): List<String>? = formParamMap()[formParam]
 
     /**
-     * Gets a list of form params for the specified key if they exist, else provided default list.
+     * Gets a list of form params for the specified key and return defaults list if they key is missing.
      */
     fun formParams(formParam: String, defaults: List<String>): List<String> = formParamMap()[formParam] ?: defaults
 
@@ -330,7 +330,7 @@ class Context(private val servletResponse: HttpServletResponse,
     fun queryParams(queryParam: String): List<String>? = queryParamMap()[queryParam]
 
     /**
-     * Gets a list of query params for the specified key if they exist, else provided default list.
+     * Gets a list of query params for the specified key and return defaults list if they key is missing.
      */
     fun queryParams(queryParam: String, defaults: List<String>): List<String> = queryParamMap()[queryParam] ?: defaults
 
