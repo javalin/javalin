@@ -131,17 +131,22 @@ class Context(private val servletResponse: HttpServletResponse,
      * This method is mainly useful when calling from Java,
      * use elvis (formParam(key) ?: default) instead in Kotlin.
      */
-    fun formParamOrDefault(formParam: String, defaultValue: String): String = formParam(formParam) ?: defaultValue
+    fun formParam(formParam: String, default: String): String = formParam(formParam) ?: default
 
     /**
      * Gets a list of form params for the specified key.
      */
-    fun formParams(formParam: String): Array<String>? = formParamMap()[formParam]
+    fun formParams(formParam: String): List<String>? = formParamMap()[formParam]
+
+    /**
+     * Gets a list of form params for the specified key if they exist, else provided default list.
+     */
+    fun formParams(formParam: String, defaults: List<String>): List<String> = formParamMap()[formParam] ?: defaults
 
     /**
      * Gets a map with all the form param keys and values.
      */
-    fun formParamMap(): Map<String, Array<String>> =
+    fun formParamMap(): Map<String, List<String>> =
             if (isMultipartFormData()) MultipartUtil.getFieldMap(servletRequest)
             else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
@@ -183,7 +188,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets an array of all the [splat] values.
      */
-    fun splats(): Array<String> = splatList.toTypedArray()
+    fun splats(): List<String> = splatList
 
     /**
      * Gets basic-auth credentials from the request.
@@ -317,17 +322,22 @@ class Context(private val servletResponse: HttpServletResponse,
      * This method is mainly useful when calling from Java,
      * use elvis (queryParam(key) ?: default) instead in Kotlin.
      */
-    fun queryParamOrDefault(queryParam: String, defaultValue: String): String = queryParam(queryParam) ?: defaultValue
+    fun queryParam(queryParam: String, default: String): String = queryParam(queryParam) ?: default
 
     /**
      * Gets a list of query params for the specified key.
      */
-    fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
+    fun queryParams(queryParam: String): List<String>? = queryParamMap()[queryParam]
+
+    /**
+     * Gets a list of query params for the specified key if they exist, else provided default list.
+     */
+    fun queryParams(queryParam: String, defaults: List<String>): List<String> = queryParamMap()[queryParam] ?: defaults
 
     /**
      * Gets a map with all the query param keys and values.
      */
-    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
+    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
 
     /**
      * Maps query params to values, or returns null if any of the params are null.
