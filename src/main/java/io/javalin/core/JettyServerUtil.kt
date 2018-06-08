@@ -84,12 +84,12 @@ object JettyServerUtil {
 
         return (server.connectors[0] as ServerConnector).localPort
     }
-}
 
-private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList): HandlerWrapper {
-    val handlerWrapper = (userHandler ?: HandlerWrapper()) as HandlerWrapper
-    HandlerWrapper().apply { handler = handlerList }.insertHandler(handlerWrapper)
-    return handlerWrapper
-}
+    private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList): HandlerWrapper {
+        val handlerWrapper = (userHandler ?: HandlerWrapper()) as HandlerWrapper
+        HandlerWrapper().apply { handler = handlerList }.insertHandler(handlerWrapper)
+        return handlerWrapper
+    }
 
-fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null
+    private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null
+}
