@@ -430,7 +430,6 @@ class Context(private val servletResponse: HttpServletResponse,
      * Will overwrite the current result if there is one.
      * Can only be called inside endpoint handlers (ones representing HTTP verbs)
      */
-    @Deprecated("This is an experimental feature, it might be removed/reworked later")
     fun result(future: CompletableFuture<*>): Context {
         resultStream = null
         if (futureCanBeSet) {
