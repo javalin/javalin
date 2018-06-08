@@ -510,8 +510,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Sets a cookie with name, value, and (overloaded) max-age.
      */
-    @JvmOverloads
-    fun cookie(name: String, value: String, maxAge: Int = -1): Context = cookie(Cookie(name, value).apply { setMaxAge(maxAge) })
+    fun cookie(name: String, value: String): Context = cookie(Cookie(name, value))
 
     /**
      * Sets a Cookie.
