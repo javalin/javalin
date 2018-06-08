@@ -18,7 +18,7 @@ import java.util.Set;
  * Ex: get("/secured", SecuredController::get, roles(LOGGED_IN));
  *
  * @see Role
- * @see io.javalin.Javalin#addHandler(HandlerType, String, Handler, List)
+ * @see io.javalin.Javalin#addHandler(HandlerType, String, Handler, Set)
  * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
  */
 @FunctionalInterface
