@@ -49,12 +49,6 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_json_jacksonMapsStringsToJson() throws Exception {
-        app.get("/hello", ctx -> ctx.json("\"ok\""));
-        assertThat(GET_body("/hello"), is("\"\\\"ok\\\"\""));
-    }
-
-    @Test
     public void test_json_customMapper_works() throws Exception {
         app.get("/hello", ctx -> ctx.json(new TestObject_Serializable()));
         assertThat(GET_body("/hello").split("\r\n|\r|\n").length, is(4));
@@ -93,7 +87,7 @@ public class TestTranslators extends _UnirestBaseTest {
         ObjectToJsonMapper oldMapper = JavalinJsonPlugin.getObjectToJsonMapper(); // reset after test
 
         JavalinJsonPlugin.setObjectToJsonMapper(obj -> "Silly mapper");
-        app.get("/", ctx -> ctx.json("Test"));
+        app.get("/", ctx -> ctx.json(new Object()));
         assertThat(call(HttpMethod.GET, "/").getBody(), is("Silly mapper"));
 
         JavalinJsonPlugin.setObjectToJsonMapper(oldMapper);

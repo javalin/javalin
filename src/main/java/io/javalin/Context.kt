@@ -381,11 +381,6 @@ class Context(private val servletResponse: HttpServletResponse,
     fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().associate { it to servletRequest.session.getAttribute(it) as T }
 
     /**
-     * Gets the request uri.
-     */
-    fun uri(): String = servletRequest.requestURI
-
-    /**
      * Gets the request url.
      */
     fun url(): String = servletRequest.requestURL.toString()
@@ -555,6 +550,13 @@ class Context(private val servletResponse: HttpServletResponse,
      */
     fun json(obj: Any): Context {
         return result(JavalinJsonPlugin.objectToJsonMapper.map(obj)).contentType("application/json")
+    }
+
+    /**
+     * Sets content type to application/json and sets the resultString as the context result.
+     */
+    fun json(resultString: String): Context {
+        return result(resultString).contentType("application/json")
     }
 
     /**
