@@ -10,6 +10,7 @@ import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.core.HandlerType;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The access manager is a way of implementing per-endpoint security management.
@@ -22,5 +23,5 @@ import java.util.List;
  */
 @FunctionalInterface
 public interface AccessManager {
-    void manage(Handler handler, Context ctx, List<Role> permittedRoles) throws Exception;
+    void manage(Handler handler, Context ctx, Set<Role> permittedRoles) throws Exception;
 }

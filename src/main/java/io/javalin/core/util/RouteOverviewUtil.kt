@@ -11,7 +11,7 @@ import io.javalin.core.HandlerType
 import io.javalin.security.Role
 import sun.reflect.ConstantPool
 
-data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: List<Role>?)
+data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: Set<Role>?)
 
 object RouteOverviewUtil {
 

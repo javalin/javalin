@@ -11,7 +11,7 @@ import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -146,7 +146,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void get(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void get(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().get(prefixPath(path), handler, permittedRoles);
     }
 
@@ -158,7 +158,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void post(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().post(prefixPath(path), handler, permittedRoles);
     }
 
@@ -170,7 +170,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void put(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().put(prefixPath(path), handler, permittedRoles);
     }
 
@@ -182,7 +182,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().patch(prefixPath(path), handler, permittedRoles);
     }
 
@@ -194,7 +194,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().delete(prefixPath(path), handler, permittedRoles);
     }
 
@@ -281,7 +281,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void get(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void get(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().get(prefixPath(""), handler, permittedRoles);
     }
 
@@ -294,7 +294,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void post(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void post(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().post(prefixPath(""), handler, permittedRoles);
     }
 
@@ -307,7 +307,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void put(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void put(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().put(prefixPath(""), handler, permittedRoles);
     }
 
@@ -320,7 +320,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void patch(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void patch(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().patch(prefixPath(""), handler, permittedRoles);
     }
 
@@ -333,7 +333,7 @@ public class ApiBuilder {
      * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void delete(@NotNull Handler handler, @NotNull List<Role> permittedRoles) {
+    public static void delete(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().delete(prefixPath(""), handler, permittedRoles);
     }
 
