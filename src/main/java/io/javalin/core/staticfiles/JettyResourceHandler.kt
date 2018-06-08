@@ -4,12 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.embeddedserver.jetty
+package io.javalin.core.staticfiles
 
 import io.javalin.HaltException
-import io.javalin.embeddedserver.Location
-import io.javalin.embeddedserver.StaticFileConfig
-import io.javalin.embeddedserver.StaticResourceHandler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
@@ -19,7 +16,10 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) : StaticResourceHandler {
+data class StaticFileConfig(val path: String, val location: Location)
+enum class Location { CLASSPATH, EXTERNAL; }
+
+class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) {
 
     private val log = LoggerFactory.getLogger(JettyResourceHandler::class.java)
 
@@ -50,7 +50,7 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) : StaticRes
         return staticFileConfig.path
     }
 
-    override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
+    fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
         for (gzipHandler in handlers) {

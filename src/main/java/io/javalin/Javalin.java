@@ -12,30 +12,29 @@ import io.javalin.core.ExceptionMapper;
 import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
+import io.javalin.core.JettyServerUtil;
 import io.javalin.core.PathMatcher;
+import io.javalin.core.staticfiles.JettyResourceHandler;
+import io.javalin.core.staticfiles.Location;
+import io.javalin.core.staticfiles.StaticFileConfig;
 import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.RouteOverviewEntry;
 import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
-import io.javalin.embeddedserver.EmbeddedServer;
-import io.javalin.embeddedserver.EmbeddedServerFactory;
-import io.javalin.embeddedserver.Location;
-import io.javalin.embeddedserver.StaticFileConfig;
-import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
-import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
-import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
+import io.javalin.core.websocket.WebSocketConfig;
+import io.javalin.core.websocket.WebSocketHandler;
 import io.javalin.event.EventListener;
 import io.javalin.event.EventManager;
 import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
-
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Supplier;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +49,7 @@ public class Javalin {
     private String contextPath = "/";
     private boolean dynamicGzipEnabled = false;
 
-    private EmbeddedServer embeddedServer;
-    private EmbeddedServerFactory embeddedServerFactory = new EmbeddedJettyFactory();
+    private Server jettyServer = new Server(new QueuedThreadPool(250, 8, 60_000));
 
     private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
     private PathMatcher pathMatcher = new PathMatcher();
@@ -118,22 +116,20 @@ public class Javalin {
             Util.INSTANCE.setNoServerHasBeenStarted(false);
             eventManager.fireEvent(EventType.SERVER_STARTING, this);
             try {
-                embeddedServer = embeddedServerFactory.create(new JavalinServlet(
-                    contextPath,
+                log.info("Starting Javalin ...");
+                JavalinServlet javalinServlet = new JavalinServlet(
                     pathMatcher,
                     exceptionMapper,
                     errorMapper,
-                    jettyWsHandlers,
-                    javalinWsHandlers,
                     logLevel,
                     dynamicGzipEnabled,
                     defaultContentType,
                     defaultCharacterEncoding,
                     maxRequestCacheBodySize,
-                    prefer405over404
-                ), staticFileConfig);
-                log.info("Starting Javalin ...");
-                port = embeddedServer.start(port);
+                    prefer405over404,
+                    new JettyResourceHandler(staticFileConfig)
+                );
+                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, javalinWsHandlers, log);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(EventType.SERVER_STARTED, this);
@@ -161,7 +157,7 @@ public class Javalin {
         eventManager.fireEvent(EventType.SERVER_STOPPING, this);
         log.info("Stopping Javalin ...");
         try {
-            embeddedServer.stop();
+            jettyServer.stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -201,14 +197,14 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to use a custom embedded server.
+     * Configure instance to use a custom jetty Server.
      *
      * @see <a href="https://javalin.io/documentation#custom-server">Documentation example</a>
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin embeddedServer(@NotNull EmbeddedServerFactory embeddedServerFactory) {
+    public Javalin server(@NotNull Supplier<Server> server) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
-        this.embeddedServerFactory = embeddedServerFactory;
+        this.jettyServer = server.get();
         return this;
     }
 
@@ -700,7 +696,6 @@ public class Javalin {
     // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
 
     private List<WebSocketHandler> javalinWsHandlers = new ArrayList<>();
-    private Map<String, Object> jettyWsHandlers = new HashMap<>();
 
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
@@ -718,44 +713,11 @@ public class Javalin {
     }
 
     /**
-     * Adds a Jetty annotated class as a handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
-     */
-    public Javalin ws(@NotNull String path, @NotNull Class webSocketClass) {
-        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), webSocketClass, null));
-        return addWebSocketHandler(path, webSocketClass);
-    }
-
-    /**
-     * Adds a Jetty WebSocket object as a handler for a WebSocket connection on the specified path.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
-     */
-    public Javalin ws(@NotNull String path, @NotNull Object webSocketObject) {
-        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), webSocketObject, null));
-        return addWebSocketHandler(path, webSocketObject);
-    }
-
-    private Javalin addWebSocketHandler(@NotNull String path, @NotNull Object webSocketObject) {
-        ensureActionIsPerformedBeforeServerStart("Configuring WebSockets");
-        jettyWsHandlers.put(path, webSocketObject);
-        return this;
-    }
-
-    /**
      * Gets the list of RouteOverviewEntry-objects used to build
      * the visual route-overview
      */
     public List<RouteOverviewEntry> getRouteOverviewEntries() {
         return this.routeOverviewEntries;
-    }
-
-    // package private method used for testing
-    EmbeddedServer embeddedServer() {
-        return embeddedServer;
     }
 
     // package private method used for testing

@@ -4,13 +4,13 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.embeddedserver.jetty.websocket;
+package io.javalin.core.websocket;
 
 import io.javalin.core.PathParser;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.CloseHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.ConnectHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.ErrorHandler;
-import io.javalin.embeddedserver.jetty.websocket.interfaces.MessageHandler;
+import io.javalin.core.websocket.interfaces.CloseHandler;
+import io.javalin.core.websocket.interfaces.ConnectHandler;
+import io.javalin.core.websocket.interfaces.ErrorHandler;
+import io.javalin.core.websocket.interfaces.MessageHandler;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

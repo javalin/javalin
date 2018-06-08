@@ -7,8 +7,6 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.embeddedserver.EmbeddedServer
-import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -18,7 +16,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 // https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/examples/embedded/src/main/java/org/eclipse/jetty/embedded/LikeJettyXml.java#L139-L163
 fun main(args: Array<String>) {
     Javalin.create()
-            .embeddedServer(EmbeddedJettyFactory {
+            .server({
                 val server = Server()
                 val sslConnector = ServerConnector(server, sslContextFactory())
                 sslConnector.port = 443
@@ -33,7 +31,7 @@ fun main(args: Array<String>) {
 
 private fun sslContextFactory(): SslContextFactory {
     val sslContextFactory = SslContextFactory()
-    sslContextFactory.keyStorePath = EmbeddedServer::class.java.getResource("/keystore.jks").toExternalForm()
+    sslContextFactory.keyStorePath = HelloWorldSecure::class.java.getResource("/keystore.jks").toExternalForm()
     sslContextFactory.setKeyStorePassword("password")
     return sslContextFactory
 }

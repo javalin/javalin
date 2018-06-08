@@ -8,7 +8,7 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.embeddedserver.jetty.websocket.WsSession;
+import io.javalin.core.websocket.WsSession;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;

@@ -4,13 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.embeddedserver.jetty
+package io.javalin.core
 
-import io.javalin.core.JavalinServlet
-import io.javalin.embeddedserver.EmbeddedServer
-import io.javalin.embeddedserver.jetty.websocket.JettyWebSocketCreator
-import io.javalin.embeddedserver.jetty.websocket.RootWebSocketCreator
-import io.javalin.embeddedserver.jetty.websocket.WebSocketHandlerRoot
+import io.javalin.core.websocket.RootWebSocketCreator
+import io.javalin.core.websocket.WebSocketHandler
+import io.javalin.core.websocket.WebSocketHandlerRoot
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -22,20 +20,26 @@ import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import java.io.ByteArrayInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class EmbeddedJettyServer(private val server: Server, private val javalinServlet: JavalinServlet) : EmbeddedServer {
+object JettyServerUtil {
 
-    private val log = LoggerFactory.getLogger(EmbeddedServer::class.java)
+    @JvmStatic
+    fun initialize(
+            server: Server,
+            port: Int,
+            contextPath: String,
+            javalinServlet: JavalinServlet,
+            javalinWsHandlers: List<WebSocketHandler>,
+            log: Logger
+    ): Int {
 
-    val parent = null // javalin handlers are orphans
+        val parent = null // javalin handlers are orphans
 
-    override fun start(port: Int): Int {
-
-        val httpHandler = object : ServletContextHandler(parent, javalinServlet.contextPath, SESSIONS) {
+        val httpHandler = object : ServletContextHandler(parent, contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 if (request.isWebSocket()) return // don't touch websocket requests
                 try {
@@ -50,34 +54,22 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
             }
         }
 
-        val webSocketHandler = ServletContextHandler(parent, javalinServlet.contextPath).apply {
-
-            // add native jetty websocket handlers (annotated class/class implementing WebSocketListener, etc)
-            javalinServlet.jettyWsHandlers.forEach { path, handler ->
-                addServlet(ServletHolder(object : WebSocketServlet() {
-                    override fun configure(factory: WebSocketServletFactory) {
-                        val h = if (handler is Class<*>) handler.newInstance() else handler
-                        factory.creator = JettyWebSocketCreator(h)
-                    }
-                }), path)
-            }
-
+        val webSocketHandler = ServletContextHandler(parent, contextPath).apply {
             // add custom javalin websocket handler (root websocket handler which does routing)
             addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
-                    factory.creator = RootWebSocketCreator(WebSocketHandlerRoot(javalinServlet.javalinWsHandlers), javalinServlet.javalinWsHandlers)
+                    factory.creator = RootWebSocketCreator(WebSocketHandlerRoot(javalinWsHandlers), javalinWsHandlers)
                 }
             }), "/*")
-
         }
 
         val notFoundHandler = object : SessionHandler() {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                val msg = "Not found. Request is below context-path (context-path: '${javalinServlet.contextPath}')"
+                val msg = "Not found. Request is below context-path (context-path: '${contextPath}')"
                 response.status = 404
                 ByteArrayInputStream(msg.toByteArray()).copyTo(response.outputStream)
                 response.outputStream.close()
-                log.warn("Received a request below context-path (context-path: '${javalinServlet.contextPath}'). Returned 404.")
+                log.warn("Received a request below context-path (context-path: '${contextPath}'). Returned 404.")
             }
         }
 
@@ -93,20 +85,11 @@ class EmbeddedJettyServer(private val server: Server, private val javalinServlet
         return (server.connectors[0] as ServerConnector).localPort
     }
 
-    override fun stop() {
-        server.stop()
-        server.join()
+    private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList): HandlerWrapper {
+        val handlerWrapper = (userHandler ?: HandlerWrapper()) as HandlerWrapper
+        HandlerWrapper().apply { handler = handlerList }.insertHandler(handlerWrapper)
+        return handlerWrapper
     }
 
-    override fun activeThreadCount(): Int = server.threadPool.threads - server.threadPool.idleThreads
-    override fun attribute(key: String): Any = server.getAttribute(key)
-
+    private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null
 }
-
-private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList): HandlerWrapper {
-    val handlerWrapper = (userHandler ?: HandlerWrapper()) as HandlerWrapper
-    HandlerWrapper().apply { handler = handlerList }.insertHandler(handlerWrapper)
-    return handlerWrapper
-}
-
-fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null

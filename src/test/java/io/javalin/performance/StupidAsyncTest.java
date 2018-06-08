@@ -7,7 +7,6 @@
 package io.javalin.performance;
 
 import io.javalin.Javalin;
-import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import io.javalin.util.SimpleHttpClient;
 import java.io.IOException;
 import java.util.concurrent.Callable;
@@ -36,7 +35,7 @@ public class StupidAsyncTest {
         QueuedThreadPool threadPool = new QueuedThreadPool(10, 2, 60_000);
 
         Javalin app = Javalin.create()
-            .embeddedServer(new EmbeddedJettyFactory(() -> new Server(threadPool)))
+            .server(() -> new Server(threadPool))
             .port(0)
             .start();
 

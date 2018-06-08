@@ -9,8 +9,8 @@ package io.javalin.routeoverview;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.Javalin;
-import io.javalin.embeddedserver.jetty.websocket.WebSocketConfig;
-import io.javalin.embeddedserver.jetty.websocket.WebSocketHandler;
+import io.javalin.core.websocket.WebSocketConfig;
+import io.javalin.core.websocket.WebSocketHandler;
 import io.javalin.util.HandlerImplementation;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -32,9 +32,6 @@ public class VisualTest {
             .contextPath("/context-path")
             .enableRouteOverview("/route-overview")
             .enableCorsForAllOrigins();
-        app.ws("/websocket/jetty-class", TestWebSocketHandler.class);
-        app.ws("/websocket/jetty-object", new TestWebSocketHandler());
-
         app.start();
 
         app.get("/", ctx -> ctx.redirect("/route-overview"));

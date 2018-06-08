@@ -4,9 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.embeddedserver.jetty.websocket.interfaces;
+package io.javalin.core.websocket.interfaces;
 
-import io.javalin.embeddedserver.jetty.websocket.WsSession;
+import io.javalin.core.websocket.WsSession;
 
 @FunctionalInterface
 public interface ConnectHandler {

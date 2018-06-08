@@ -8,7 +8,6 @@
 package io.javalin;
 
 import com.mashape.unirest.http.Unirest;
-import io.javalin.embeddedserver.jetty.EmbeddedJettyFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
@@ -21,30 +20,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestCustomJetty {
 
     @Test
-    public void test_embeddedServer_withCustomServer() throws Exception {
-        Javalin app = Javalin.create()
-            .port(0)
-            .embeddedServer(new EmbeddedJettyFactory(() -> {
-                Server server = new Server();
-                server.setAttribute("is-custom-server", true);
-                return server;
-            }))
-            .start();
-        assertThat(app.embeddedServer().attribute("is-custom-server"), is(true));
-        app.stop();
-    }
-
-    @Test
     public void test_embeddedServer_withStatisticsHandler() throws Exception {
         StatisticsHandler statisticsHandler = new StatisticsHandler();
 
         Javalin app = Javalin.create()
             .port(0)
-            .embeddedServer(new EmbeddedJettyFactory(() -> {
+            .server(() -> {
                 Server server = new Server();
                 server.setHandler(statisticsHandler);
                 return server;
-            }))
+            })
             .get("/", ctx -> ctx.result("Hello World"))
             .start();
 
@@ -73,11 +58,11 @@ public class TestCustomJetty {
 
         Javalin app = Javalin.create()
             .port(0)
-            .embeddedServer(new EmbeddedJettyFactory(() -> {
+            .server(() -> {
                 Server server = new Server();
                 server.setHandler(handlerChain);
                 return server;
-            }))
+            })
             .get("/", ctx -> ctx.result("Hello World"))
             .start();
 
