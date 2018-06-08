@@ -59,7 +59,7 @@ public class Javalin {
     private LogLevel logLevel = LogLevel.OFF;
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
-    private long maxRequestCacheBodySize = Long.MAX_VALUE;
+    private long maxRequestCacheBodySize = 4096;
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
     private EventManager eventManager = new EventManager();
@@ -347,7 +347,7 @@ public class Javalin {
 
     /**
      * Configure instance to stop caching requests larger than the specified body size.
-     * The default value is Long.MAX_VALUE
+     * The default value is 4096 bytes.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin maxBodySizeForRequestCache(long bodySizeInBytes) {
