@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import io.javalin.builder.CookieBuilder
 import io.javalin.core.HandlerType
 import io.javalin.core.util.*
 import io.javalin.translator.json.JavalinJsonPlugin
@@ -508,13 +507,12 @@ class Context(private val servletResponse: HttpServletResponse,
      * Sets a cookie with name, value, and (overloaded) max-age.
      */
     @JvmOverloads
-    fun cookie(name: String, value: String, maxAge: Int = -1): Context = cookie(CookieBuilder(name, value, maxAge = maxAge))
+    fun cookie(name: String, value: String, maxAge: Int = -1): Context = cookie(Cookie(name, value).apply { setMaxAge(maxAge) })
 
     /**
-     * Sets a cookie using the CookieBuilder.
+     * Sets a Cookie.
      */
-    fun cookie(cookieBuilder: CookieBuilder): Context {
-        val cookie = cookieBuilder.build()
+    fun cookie(cookie: Cookie): Context {
         servletResponse.addCookie(cookie)
         return this
     }

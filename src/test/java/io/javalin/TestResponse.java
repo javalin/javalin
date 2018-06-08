@@ -10,7 +10,6 @@ package io.javalin;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.builder.CookieBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -129,9 +128,9 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_cookieBuilder() throws Exception {
+    public void test_cookie() throws Exception {
         app.post("/create-cookie", ctx -> {
-            ctx.cookie(CookieBuilder.cookieBuilder("Test", "Tast"));
+            ctx.cookie("Test", "Tast");
         });
         HttpResponse<String> response = call(HttpMethod.POST, "/create-cookie");
         List<String> cookies = response.getHeaders().get("Set-Cookie");
