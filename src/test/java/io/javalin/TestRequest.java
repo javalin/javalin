@@ -101,19 +101,19 @@ public class TestRequest extends _UnirestBaseTest {
      */
     @Test
     public void test_paramWorks_noParam() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.param("param")));
+        app.get("/my/path", ctx -> ctx.result("" + ctx.pathParam("param")));
         assertThat(GET_body("/my/path"), is("null")); // notice {"" + req} on previous line
     }
 
     @Test
     public void test_paramWorks_nullKey() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.param(null)));
+        app.get("/my/path", ctx -> ctx.result("" + ctx.pathParam(null)));
         assertThat(GET_body("/my/path"), is("Internal server error")); // notice {"" + req} on previous line
     }
 
     @Test
     public void test_paramWorks_multipleSingleParams() throws Exception {
-        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.param("1") + ctx.param("2") + ctx.param("3")));
+        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")));
         assertThat(GET_body("/my/path/params"), is("mypathparams"));
     }
 

@@ -28,7 +28,7 @@ class Context(private val servletResponse: HttpServletResponse,
               private val servletRequest: HttpServletRequest,
               internal var futureCanBeSet: Boolean,
               internal var matchedPath: String,
-              internal var paramMap: Map<String, String>,
+              internal var pathParamMap: Map<String, String>,
               internal var splatList: List<String>,
               internal var handlerType: HandlerType) {
 
@@ -164,18 +164,18 @@ class Context(private val servletResponse: HttpServletResponse,
     fun anyFormParamNull(vararg keys: String): Boolean = keys.any { formParam(it) == null }
 
     /**
-     * Gets a param by name (ex: param("param").
+     * Gets a path param by name (ex: param("param").
      *
      * Ex: If the handler path is /users/:user-id,
      * and a browser GETs /users/123,
      * param("user-id") will return "123"
      */
-    fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
+    fun pathParam(pathParam: String): String? = pathParamMap[":" + pathParam.toLowerCase().replaceFirst(":", "")]
 
     /**
-     * Gets a map of all the [param] keys and values.
+     * Gets a map of all the [pathParam] keys and values.
      */
-    fun paramMap(): Map<String, String> = Collections.unmodifiableMap(paramMap)
+    fun paramMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
 
     //
     // Gets a splat by its index.

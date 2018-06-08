@@ -132,7 +132,7 @@ public class TestResponse extends _UnirestBaseTest {
 
     @Test
     public void test_deleteCookie() throws Exception {
-        app.post("/create-cookie", ctx -> ctx.cookie("name1", "value1"));
+        app.post("/create-cookie", ctx -> ctx.queryParam("name1", "value1"));
         app.post("/delete-cookie", ctx -> ctx.removeCookie("name1"));
         HttpResponse<String> response = call(HttpMethod.POST, "/create-cookies");
         List<String> cookies = response.getHeaders().get("Set-Cookie");
