@@ -152,13 +152,13 @@ public class TestWebSocket {
 
         app.ws("/params/:1", ws -> {
             ws.onConnect(session -> {
-                log.add(session.param("1"));
+                log.add(session.pathParam("1"));
             });
         });
 
         app.ws("/params/:1/test/:2/:3", ws -> {
             ws.onConnect(session -> {
-                log.add(session.param("1") + " " + session.param("2") + " " + session.param("3"));
+                log.add(session.pathParam("1") + " " + session.pathParam("2") + " " + session.pathParam("3"));
             });
         });
 
