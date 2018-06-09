@@ -24,8 +24,10 @@ class WsSession(val id: String, session: Session, private var paramMap: Map<Stri
     fun send(message: String) = webSocketSession.remote.sendString(message)
     fun queryString() = webSocketSession.upgradeRequest!!.queryString
     fun queryParam(queryParam: String): String? = queryParams(queryParam)?.get(0)
-    fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
-    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
+    fun queryParam(queryParam: String, default: String): String = queryParams(queryParam)?.get(0) ?: default
+    fun queryParams(queryParam: String): List<String>? = queryParamMap()[queryParam]
+    fun queryParams(queryParam: String, defaults: List<String>): List<String> = queryParamMap()[queryParam] ?: defaults
+    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
     fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]

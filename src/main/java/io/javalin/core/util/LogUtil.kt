@@ -40,8 +40,8 @@ object LogUtil {
                         |    Cookies: ${cookieMap()}
                         |    Body: ${if (ctx.isMultipart()) "Multipart data ..." else body()}
                         |    QueryString: ${queryString()}
-                        |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.contentToString() }}
-                        |    FormParams: ${formParamMap().mapValues { (_, v) -> v.contentToString() }}
+                        |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.toString() }}
+                        |    FormParams: ${formParamMap().mapValues { (_, v) -> v.toString() }}
                         |Response: [${status()}], execution took $executionTime ms
                         |    Headers: $resHeaders
                         |    Body: ${resBody.length} bytes (starts on next line)

@@ -52,21 +52,21 @@ public class StupidPerformanceTest {
                 path("user", () -> {
                     post(ctx -> ctx.result("Created"));
                     path(":userId", () -> {
-                        get(ctx -> ctx.result("Get user " + ctx.param("userId")));
-                        patch(ctx -> ctx.result("Update user " + ctx.param("userId")));
-                        delete(ctx -> ctx.result("Delete user " + ctx.param("userId")));
+                        get(ctx -> ctx.result("Get user " + ctx.pathParam("userId")));
+                        patch(ctx -> ctx.result("Update user " + ctx.pathParam("userId")));
+                        delete(ctx -> ctx.result("Delete user " + ctx.pathParam("userId")));
                     });
                 });
 
                 path("message/:userId", () -> {
-                    get(ctx -> ctx.result("Messages for " + ctx.param("userId")));
-                    post(":recipientId", ctx -> ctx.result("Send from " + ctx.param("userId") + " to " + ctx.param("recipientId")));
+                    get(ctx -> ctx.result("Messages for " + ctx.pathParam("userId")));
+                    post(":recipientId", ctx -> ctx.result("Send from " + ctx.pathParam("userId") + " to " + ctx.pathParam("recipientId")));
                     path("drafts", () -> {
-                        get(ctx -> ctx.result("Drafts for " + ctx.param("userId")));
+                        get(ctx -> ctx.result("Drafts for " + ctx.pathParam("userId")));
                         path(":draftId", () -> {
-                            get(ctx -> ctx.result("Get draft " + ctx.param("draftId")));
-                            patch(ctx -> ctx.result("Update draft " + ctx.param("draftId")));
-                            delete(ctx -> ctx.result("Delete draft " + ctx.param("draftId")));
+                            get(ctx -> ctx.result("Get draft " + ctx.pathParam("draftId")));
+                            patch(ctx -> ctx.result("Update draft " + ctx.pathParam("draftId")));
+                            delete(ctx -> ctx.result("Delete draft " + ctx.pathParam("draftId")));
                         });
                     });
                 });

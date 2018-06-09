@@ -23,17 +23,17 @@ object ContextUtil {
 
     fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String): Context {
         ctx.matchedPath = handlerEntry.path
-        ctx.paramMap = handlerEntry.extractParams(requestUri)
+        ctx.pathParamMap = handlerEntry.extractParams(requestUri)
         ctx.splatList = handlerEntry.extractSplats(requestUri)
         ctx.handlerType = handlerEntry.type
         return ctx
     }
 
-    fun splitKeyValueStringAndGroupByKey(string: String): Map<String, Array<String>> {
+    fun splitKeyValueStringAndGroupByKey(string: String): Map<String, List<String>> {
         return string.split("&").map { it.split("=") }.groupBy(
                 { it[0] },
                 { if (it.size > 1) URLDecoder.decode(it[1], "UTF-8") else "" }
-        ).mapValues { it.value.toTypedArray() }
+        ).mapValues { it.value.toList() }
     }
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")

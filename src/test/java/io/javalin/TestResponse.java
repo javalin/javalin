@@ -50,6 +50,18 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_json_asString() throws Exception {
+        final String expectedBody = "{ \"a\": 1 }";
+        app.get("/hello", ctx ->
+            ctx.status(200)
+                .json(expectedBody));
+        HttpResponse<String> response = call(HttpMethod.GET, "/hello");
+        assertThat(response.getStatus(), is(200));
+        assertThat(response.getBody(), is(expectedBody));
+        assertThat(response.getHeaders().getFirst("Content-Type"), is("application/json;charset=utf-8"));
+    }
+
+    @Test
     public void test_resultStream() throws Exception {
         byte[] buf = new byte[65537]; // big and not on a page boundary
         new Random().nextBytes(buf);
@@ -120,7 +132,7 @@ public class TestResponse extends _UnirestBaseTest {
 
     @Test
     public void test_deleteCookie() throws Exception {
-        app.post("/create-cookie", ctx -> ctx.cookie("name1", "value1"));
+        app.post("/create-cookie", ctx -> ctx.queryParam("name1", "value1"));
         app.post("/delete-cookie", ctx -> ctx.removeCookie("name1"));
         HttpResponse<String> response = call(HttpMethod.POST, "/create-cookies");
         List<String> cookies = response.getHeaders().get("Set-Cookie");

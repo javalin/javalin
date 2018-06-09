@@ -28,7 +28,7 @@ class Context(private val servletResponse: HttpServletResponse,
               private val servletRequest: HttpServletRequest,
               internal var futureCanBeSet: Boolean,
               internal var matchedPath: String,
-              internal var paramMap: Map<String, String>,
+              internal var pathParamMap: Map<String, String>,
               internal var splatList: List<String>,
               internal var handlerType: HandlerType) {
 
@@ -131,17 +131,22 @@ class Context(private val servletResponse: HttpServletResponse,
      * This method is mainly useful when calling from Java,
      * use elvis (formParam(key) ?: default) instead in Kotlin.
      */
-    fun formParamOrDefault(formParam: String, defaultValue: String): String = formParam(formParam) ?: defaultValue
+    fun formParam(formParam: String, default: String): String = formParam(formParam) ?: default
 
     /**
      * Gets a list of form params for the specified key.
      */
-    fun formParams(formParam: String): Array<String>? = formParamMap()[formParam]
+    fun formParams(formParam: String): List<String>? = formParamMap()[formParam]
+
+    /**
+     * Gets a list of form params for the specified key and return defaults list if they key is missing.
+     */
+    fun formParams(formParam: String, defaults: List<String>): List<String> = formParamMap()[formParam] ?: defaults
 
     /**
      * Gets a map with all the form param keys and values.
      */
-    fun formParamMap(): Map<String, Array<String>> =
+    fun formParamMap(): Map<String, List<String>> =
             if (isMultipartFormData()) MultipartUtil.getFieldMap(servletRequest)
             else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
@@ -159,18 +164,18 @@ class Context(private val servletResponse: HttpServletResponse,
     fun anyFormParamNull(vararg keys: String): Boolean = keys.any { formParam(it) == null }
 
     /**
-     * Gets a param by name (ex: param("param").
+     * Gets a path param by name (ex: param("param").
      *
      * Ex: If the handler path is /users/:user-id,
      * and a browser GETs /users/123,
      * param("user-id") will return "123"
      */
-    fun param(param: String): String? = paramMap[":" + param.toLowerCase().replaceFirst(":", "")]
+    fun pathParam(pathParam: String): String? = pathParamMap[":" + pathParam.toLowerCase().replaceFirst(":", "")]
 
     /**
-     * Gets a map of all the [param] keys and values.
+     * Gets a map of all the [pathParam] keys and values.
      */
-    fun paramMap(): Map<String, String> = Collections.unmodifiableMap(paramMap)
+    fun paramMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
 
     //
     // Gets a splat by its index.
@@ -183,7 +188,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets an array of all the [splat] values.
      */
-    fun splats(): Array<String> = splatList.toTypedArray()
+    fun splats(): List<String> = splatList
 
     /**
      * Gets basic-auth credentials from the request.
@@ -317,17 +322,22 @@ class Context(private val servletResponse: HttpServletResponse,
      * This method is mainly useful when calling from Java,
      * use elvis (queryParam(key) ?: default) instead in Kotlin.
      */
-    fun queryParamOrDefault(queryParam: String, defaultValue: String): String = queryParam(queryParam) ?: defaultValue
+    fun queryParam(queryParam: String, default: String): String = queryParam(queryParam) ?: default
 
     /**
      * Gets a list of query params for the specified key.
      */
-    fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
+    fun queryParams(queryParam: String): List<String>? = queryParamMap()[queryParam]
+
+    /**
+     * Gets a list of query params for the specified key and return defaults list if they key is missing.
+     */
+    fun queryParams(queryParam: String, defaults: List<String>): List<String> = queryParamMap()[queryParam] ?: defaults
 
     /**
      * Gets a map with all the query param keys and values.
      */
-    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
+    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
 
     /**
      * Maps query params to values, or returns null if any of the params are null.
@@ -500,8 +510,7 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Sets a cookie with name, value, and (overloaded) max-age.
      */
-    @JvmOverloads
-    fun cookie(name: String, value: String, maxAge: Int = -1): Context = cookie(Cookie(name, value).apply { setMaxAge(maxAge) })
+    fun cookie(name: String, value: String): Context = cookie(Cookie(name, value))
 
     /**
      * Sets a Cookie.
@@ -540,6 +549,13 @@ class Context(private val servletResponse: HttpServletResponse,
      */
     fun json(obj: Any): Context {
         return result(JavalinJsonPlugin.objectToJsonMapper.map(obj)).contentType("application/json")
+    }
+
+    /**
+     * Sets content type to application/json and sets the resultString as the context result.
+     */
+    fun json(resultString: String): Context {
+        return result(resultString).contentType("application/json")
     }
 
     /**

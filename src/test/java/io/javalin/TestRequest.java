@@ -10,6 +10,8 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
 import java.util.Arrays;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -99,19 +101,19 @@ public class TestRequest extends _UnirestBaseTest {
      */
     @Test
     public void test_paramWorks_noParam() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.param("param")));
+        app.get("/my/path", ctx -> ctx.result("" + ctx.pathParam("param")));
         assertThat(GET_body("/my/path"), is("null")); // notice {"" + req} on previous line
     }
 
     @Test
     public void test_paramWorks_nullKey() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.param(null)));
+        app.get("/my/path", ctx -> ctx.result("" + ctx.pathParam(null)));
         assertThat(GET_body("/my/path"), is("Internal server error")); // notice {"" + req} on previous line
     }
 
     @Test
     public void test_paramWorks_multipleSingleParams() throws Exception {
-        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.param("1") + ctx.param("2") + ctx.param("3")));
+        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")));
         assertThat(GET_body("/my/path/params"), is("mypathparams"));
     }
 
@@ -137,6 +139,18 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_queryParamWorks_noParamButDefault() throws Exception {
+        app.get("/", ctx -> ctx.result("" + ctx.queryParam("qp", "default")));
+        assertThat(GET_body("/"), is("default"));
+    }
+
+    @Test
+    public void test_queryParamsWorks_noParamsButDefaults() throws Exception {
+        app.get("/", ctx -> ctx.result("" + String.join("|", ctx.queryParams("qp", Arrays.asList("1", "2", "3" )))));
+        assertThat(GET_body("/"), is("1|2|3"));
+    }
+
+    @Test
     public void test_queryParamWorks_multipleSingleParams() throws Exception {
         app.get("/", ctx -> ctx.result(ctx.queryParam("qp1") + ctx.queryParam("qp2") + ctx.queryParam("qp3")));
         assertThat(GET_body("/?qp1=1&qp2=2&qp3=3"), is("123"));
@@ -144,13 +158,19 @@ public class TestRequest extends _UnirestBaseTest {
 
     @Test
     public void test_queryParamsWorks_noParamsPresent() throws Exception {
-        app.get("/", ctx -> ctx.result(Arrays.toString(ctx.queryParams("qp1"))));
+        app.get("/", ctx -> {
+            final List<String> list = ctx.queryParams("qp1");
+            ctx.result(list == null ? "null" : list.toString());
+        });
         assertThat(GET_body("/"), is("null"));
     }
 
     @Test
     public void test_queryParamsWorks_paramsPresent() throws Exception {
-        app.get("/", ctx -> ctx.result(Arrays.toString(ctx.queryParams("qp1"))));
+        app.get("/", ctx -> {
+            final List<String> list = ctx.queryParams("qp1");
+            ctx.result(list == null ? "null" : list.toString());
+        });
         assertThat(GET_body("/?qp1=1&qp1=2&qp1=3"), is("[1, 2, 3]"));
     }
 
@@ -170,6 +190,50 @@ public class TestRequest extends _UnirestBaseTest {
     public void test_anyQueryParamNullFalse_allParamsNonNull() throws Exception {
         app.get("/", ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "qp3")));
         assertThat(GET_body("/?qp1=1&qp2=2&qp3=3"), is("false"));
+    }
+
+    /*
+     * Form params
+     */
+    @Test
+    public void test_formParamWorks() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParam("fp1")));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2").asString();
+        assertThat(response.getBody(), is("1"));
+    }
+    @Test
+    public void test_formParamWorks_noParam() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParam("fp3")));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2").asString();
+        assertThat(response.getBody(), is("null"));
+    }
+
+    @Test
+    public void test_formParamWorks_noParamButDefault() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParam("fp4", "4")));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2").asString();
+        assertThat(response.getBody(), is("4"));
+    }
+
+    @Test
+    public void test_formParamsWorks() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParams("fp2")));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp2=1&fp2=2").asString();
+        assertThat(response.getBody(), is("[1, 2]"));
+    }
+
+    @Test
+    public void test_formParamsWorks_noParams() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParams("fp4")));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp2=1&fp2=2").asString();
+        assertThat(response.getBody(), is("null"));
+    }
+
+    @Test
+    public void test_formParamsWorks_noParamsButDefaults() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParams("fp4", Arrays.asList("1", "2"))));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp2=1&fp2=2").asString();
+        assertThat(response.getBody(), is("[1, 2]"));
     }
 
     @Test
