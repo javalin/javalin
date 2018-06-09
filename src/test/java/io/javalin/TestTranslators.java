@@ -13,6 +13,7 @@ import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mitchellbosecke.pebble.PebbleEngine;
+import com.mitchellbosecke.pebble.loader.ClasspathLoader;
 import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.translator.json.JavalinJsonPlugin;
 import io.javalin.translator.json.JsonToObjectMapper;
@@ -35,7 +36,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import com.mitchellbosecke.pebble.loader.ClasspathLoader;
+
 public class TestTranslators extends _UnirestBaseTest {
 
     @BeforeClass
@@ -215,9 +216,9 @@ public class TestTranslators extends _UnirestBaseTest {
     private static PebbleEngine strictPebbleEngine() {
 
         return new PebbleEngine.Builder()
-                .loader(new ClasspathLoader())
-                .strictVariables(true)
-                .build();
+            .loader(new ClasspathLoader())
+            .strictVariables(true)
+            .build();
     }
 
     @Test

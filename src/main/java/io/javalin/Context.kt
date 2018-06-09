@@ -598,6 +598,7 @@ class Context(private val servletResponse: HttpServletResponse,
         Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
         return html(JavalinCommonmarkPlugin.render(markdownFilePath))
     }
+
     /**
      * Renders a Pebble template with specified values as html and
      * sets it as the context result. Sets content-type to text/html.
