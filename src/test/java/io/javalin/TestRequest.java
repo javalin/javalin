@@ -10,6 +10,8 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
 import java.util.Arrays;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -144,13 +146,19 @@ public class TestRequest extends _UnirestBaseTest {
 
     @Test
     public void test_queryParamsWorks_noParamsPresent() throws Exception {
-        app.get("/", ctx -> ctx.result(Arrays.toString(ctx.queryParams("qp1"))));
+        app.get("/", ctx -> {
+            final List<String> params = ctx.queryParams("qp1");
+            ctx.result(params == null ? "null" : params.toString());
+        });
         assertThat(GET_body("/"), is("null"));
     }
 
     @Test
     public void test_queryParamsWorks_paramsPresent() throws Exception {
-        app.get("/", ctx -> ctx.result(Arrays.toString(ctx.queryParams("qp1"))));
+        app.get("/", ctx -> {
+            final List<String> params = ctx.queryParams("qp1");
+            ctx.result(params == null ? "null" : params.toString());
+        });
         assertThat(GET_body("/?qp1=1&qp1=2&qp1=3"), is("[1, 2, 3]"));
     }
 

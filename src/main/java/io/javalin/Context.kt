@@ -136,12 +136,12 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a list of form params for the specified key.
      */
-    fun formParams(formParam: String): Array<String>? = formParamMap()[formParam]
+    fun formParams(formParam: String): List<String>? = formParamMap()[formParam]
 
     /**
      * Gets a map with all the form param keys and values.
      */
-    fun formParamMap(): Map<String, Array<String>> =
+    fun formParamMap(): Map<String, List<String>> =
             if (isMultipartFormData()) MultipartUtil.getFieldMap(servletRequest)
             else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
@@ -181,9 +181,9 @@ class Context(private val servletResponse: HttpServletResponse,
     fun splat(splatNr: Int): String? = splatList[splatNr]
 
     /**
-     * Gets an array of all the [splat] values.
+     * Gets a list of all the [splat] values.
      */
-    fun splats(): Array<String> = splatList.toTypedArray()
+    fun splats(): List<String> = Collections.unmodifiableList(splatList)
 
     /**
      * Gets basic-auth credentials from the request.
@@ -322,12 +322,12 @@ class Context(private val servletResponse: HttpServletResponse,
     /**
      * Gets a list of query params for the specified key.
      */
-    fun queryParams(queryParam: String): Array<String>? = queryParamMap()[queryParam]
+    fun queryParams(queryParam: String): List<String>? = queryParamMap()[queryParam]
 
     /**
      * Gets a map with all the query param keys and values.
      */
-    fun queryParamMap(): Map<String, Array<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
+    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
 
     /**
      * Maps query params to values, or returns null if any of the params are null.
