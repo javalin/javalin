@@ -37,7 +37,7 @@ class PathParser(val path: String) {
             .toRegex()
 
     // Use param wildcard as a capturing group
-    private val paramRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
+    private val pathParamRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
 
     // Use splat wildcard as a capturing group
     private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex()
@@ -45,7 +45,7 @@ class PathParser(val path: String) {
     fun matches(requestUri: String) = requestUri matches matchRegex
 
     fun extractParams(requestUri: String): Map<String, String> {
-        val values = paramRegex.matchEntire(requestUri)?.groupValues
+        val values = pathParamRegex.matchEntire(requestUri)?.groupValues
         val map = HashMap<String, String>()
         values?.let {
             (1 until values.size).forEach { index ->
