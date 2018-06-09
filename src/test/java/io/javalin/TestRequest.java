@@ -9,9 +9,7 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
-import java.util.Arrays;
 import java.util.List;
-
 import org.junit.After;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;

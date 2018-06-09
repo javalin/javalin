@@ -12,10 +12,8 @@ import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.util.UploadInfo;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;

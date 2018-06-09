@@ -12,7 +12,6 @@ import com.mashape.unirest.http.Unirest;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.junit.Test;
-
 import static java.util.Objects.requireNonNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

@@ -27,7 +27,7 @@ public class WebSocketHandler {
     }
 
     private final PathParser pathParser;
-    private final ConcurrentMap<Session, Map<String, String>> sessionParams = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Session, Map<String, String>> sessionPathParams = new ConcurrentHashMap<>();
     private final ConcurrentMap<Session, String> sessionIds = new ConcurrentHashMap<>();
 
     private ConnectHandler connectHandler = null;
@@ -106,12 +106,12 @@ public class WebSocketHandler {
 
     private void clearSessionCache(Session session) {
         sessionIds.remove(session);
-        sessionParams.remove(session);
+        sessionPathParams.remove(session);
     }
 
     private WsSession registerAndWrapSession(Session session) {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString());
-        sessionParams.putIfAbsent(session, pathParser.extractParams(session.getUpgradeRequest().getRequestURI().getPath()));
-        return new WsSession(sessionIds.get(session), session, sessionParams.get(session));
+        sessionPathParams.putIfAbsent(session, pathParser.extractPathParams(session.getUpgradeRequest().getRequestURI().getPath()));
+        return new WsSession(sessionIds.get(session), session, sessionPathParams.get(session));
     }
 }

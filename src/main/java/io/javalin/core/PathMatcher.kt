@@ -44,7 +44,7 @@ class PathParser(val path: String) {
 
     fun matches(requestUri: String) = requestUri matches matchRegex
 
-    fun extractParams(requestUri: String): Map<String, String> {
+    fun extractPathParams(requestUri: String): Map<String, String> {
         val values = pathParamRegex.matchEntire(requestUri)?.groupValues
         val map = HashMap<String, String>()
         values?.let {
@@ -73,7 +73,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
     fun matches(requestUri: String) = parser.matches(requestUri)
 
-    fun extractPathParams(requestUri: String): Map<String, String> = parser.extractParams(requestUri)
+    fun extractPathParams(requestUri: String): Map<String, String> = parser.extractPathParams(requestUri)
 
     fun extractSplats(requestUri: String): List<String> = parser.extractSplats(requestUri)
 }

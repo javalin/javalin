@@ -9,7 +9,6 @@ package io.javalin.security;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.core.HandlerType;
-import java.util.List;
 import java.util.Set;
 
 /**
