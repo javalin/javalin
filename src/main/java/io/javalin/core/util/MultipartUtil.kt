@@ -27,15 +27,15 @@ object MultipartUtil {
         }
     }
 
-    fun getFieldMap(req: HttpServletRequest): Map<String, Array<String>> {
+    fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> {
         req.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")))
         return req.parts.associate { part -> part.name to getPartValue(req, part.name) }
     }
 
-    private fun getPartValue(req: HttpServletRequest, partName: String): Array<String> {
+    private fun getPartValue(req: HttpServletRequest, partName: String): List<String> {
         return req.parts.filter { isField(it) && it.name == partName }.map { filePart ->
             filePart.inputStream.readBytes().toString(Charset.forName("UTF-8"))
-        }.toTypedArray()
+        }.toList()
     }
 
     private fun isField(filePart: Part) = filePart.submittedFileName == null // this is what Apache FileUpload does ...

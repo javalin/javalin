@@ -13,6 +13,9 @@ import io.javalin.util.UploadInfo;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -150,13 +153,13 @@ public class TestMultipartForms {
         Javalin app = Javalin.start(0);
         app.post("/test-multipart-text-fields", ctx -> {
 
-            String[] foos = ctx.formParams("foo");
-            String[] foosExtractedManually = ctx.formParamMap().get("foo");
+            List<String> foos = ctx.formParams("foo");
+            List<String> foosExtractedManually = ctx.formParamMap().get("foo");
 
             String bar = ctx.formParam("bar");
             String baz = ctx.formParamOrDefault("baz", "default");
 
-            ctx.result("foos match: " + Arrays.equals(foos, foosExtractedManually) + "\n"
+            ctx.result("foos match: " + Objects.equals(foos, foosExtractedManually) + "\n"
                 + "foo: " + String.join(", ", foos) + "\n"
                 + "bar: " + bar + "\n"
                 + "baz: " + baz
