@@ -13,12 +13,12 @@ import java.util.EnumMap
 import kotlin.collections.*
 
 class PathParser(val path: String) {
-    private val paramNames = path.split("/")
+    private val pathParamNames = path.split("/")
             .filter { it.startsWith(":") }
             .map { it.replace(":", "") }
 
-    private val matchRegex = paramNames
-            // Replace param names with wildcards (accepting everything except slash)
+    private val matchRegex = pathParamNames
+            // Replace path param names with wildcards (accepting everything except slash)
             .fold(path) { path, name -> path.replace(":$name", "[^/]+?") }
             // Replace double slash occurrences
             .replace("//", "/")
@@ -49,7 +49,7 @@ class PathParser(val path: String) {
         val map = HashMap<String, String>()
         values?.let {
             (1 until values.size).forEach { index ->
-                map[":" + paramNames[index - 1].toLowerCase()] = urlDecode(values[index])
+                map[":" + pathParamNames[index - 1].toLowerCase()] = urlDecode(values[index])
             }
         }
         return map
