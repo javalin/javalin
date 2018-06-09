@@ -193,6 +193,7 @@ public class TestRequest extends _UnirestBaseTest {
         HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2").asString();
         assertThat(response.getBody(), is("1"));
     }
+
     @Test
     public void test_formParamWorks_noParam() throws Exception {
         app.post("/", ctx -> ctx.result("" + ctx.formParam("fp3")));
