@@ -23,7 +23,8 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
 
     fun send(message: String) = webSocketSession.remote.sendString(message)
     fun queryString() = webSocketSession.upgradeRequest!!.queryString
-    fun queryParam(queryParam: String): String? = queryParams(queryParam)?.get(0)
+    @JvmOverloads
+    fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam)?.get(0) ?: default
     fun queryParams(queryParam: String): List<String>? = queryParamMap()[queryParam]
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
