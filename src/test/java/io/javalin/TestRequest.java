@@ -99,7 +99,7 @@ public class TestRequest extends _UnirestBaseTest {
      */
     @Test
     public void test_paramWorks_noParam() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.pathParam("pathParam")));
+        app.get("/my/path", ctx -> ctx.result("" + ctx.pathParam("path-param")));
         assertThat(GET_body("/my/path"), is("null")); // notice {"" + req} on previous line
     }
 
@@ -212,10 +212,10 @@ public class TestRequest extends _UnirestBaseTest {
     @Test
     public void test_matchingPaths_works() throws Exception {
         app.get("/matched", ctx -> ctx.result(ctx.matchedPath()));
-        app.get("/matched/:pathParam", ctx -> ctx.result(ctx.matchedPath()));
-        app.after("/matched/:pathParam/:param2", ctx -> ctx.result(ctx.matchedPath()));
+        app.get("/matched/:path-param", ctx -> ctx.result(ctx.matchedPath()));
+        app.after("/matched/:path-param/:param2", ctx -> ctx.result(ctx.matchedPath()));
         assertThat(GET_body("/matched"), is("/matched"));
-        assertThat(GET_body("/matched/p1"), is("/matched/:pathParam"));
-        assertThat(GET_body("/matched/p1/p2"), is("/matched/:pathParam/:param2"));
+        assertThat(GET_body("/matched/p1"), is("/matched/:path-param"));
+        assertThat(GET_body("/matched/p1/p2"), is("/matched/:path-param/:param2"));
     }
 }
