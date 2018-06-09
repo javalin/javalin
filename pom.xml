@@ -123,6 +123,12 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>com.mitchellbosecke</groupId>
+            <artifactId>pebble</artifactId>
+            <version>2.4.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.atlassian.commonmark</groupId>
             <artifactId>commonmark</artifactId>
             <version>0.10.0</version>

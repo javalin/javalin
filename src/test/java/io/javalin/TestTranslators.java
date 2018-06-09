@@ -12,11 +12,13 @@ import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import com.mitchellbosecke.pebble.PebbleEngine;
 import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.translator.json.JavalinJsonPlugin;
 import io.javalin.translator.json.JsonToObjectMapper;
 import io.javalin.translator.json.ObjectToJsonMapper;
 import io.javalin.translator.template.JavalinJtwigPlugin;
+import io.javalin.translator.template.JavalinPebblePlugin;
 import io.javalin.translator.template.JavalinVelocityPlugin;
 import io.javalin.translator.template.TemplateUtil;
 import io.javalin.util.CustomMapper;
@@ -33,7 +35,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-
+import com.mitchellbosecke.pebble.loader.ClasspathLoader;
 public class TestTranslators extends _UnirestBaseTest {
 
     @BeforeClass
@@ -194,6 +196,28 @@ public class TestTranslators extends _UnirestBaseTest {
     public void test_renderMarkdown_works() throws Exception {
         app.get("/hello", ctx -> ctx.renderMarkdown("/markdown/test.md"));
         assertThat(GET_body("/hello"), is("<h1>Hello Markdown!</h1>\n"));
+    }
+
+    @Test
+    public void test_renderPebble_works() throws Exception {
+        app.get("/hello1", ctx -> ctx.renderPebble("templates/pebble/test.peb", TemplateUtil.model("message", "Hello Pebble!")));
+        assertThat(GET_body("/hello1"), is("<h1>Hello Pebble!</h1>"));
+    }
+
+    @Test
+    public void test_customPebbleEngine_works() throws Exception {
+        app.get("/hello", ctx -> ctx.renderPebble("templates/pebble/test.peb"));
+        assertThat(GET_body("/hello"), is("<h1></h1>"));
+        JavalinPebblePlugin.configure(strictPebbleEngine());
+        assertThat(GET_body("/hello"), is("Internal server error"));
+    }
+
+    private static PebbleEngine strictPebbleEngine() {
+
+        return new PebbleEngine.Builder()
+                .loader(new ClasspathLoader())
+                .strictVariables(true)
+                .build();
     }
 
     @Test
