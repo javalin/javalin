@@ -63,7 +63,7 @@ class JavalinServlet(
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
                 return@tryWithExceptionMapper // return after first match
             }
-            if (type == HandlerType.HEAD && getIsMapped(requestUri)) {
+            if (type == HandlerType.HEAD && hasGetHandlerMapped(requestUri)) {
                 return@tryWithExceptionMapper // return 200, there is a get handler
             }
             if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
@@ -130,7 +130,7 @@ class JavalinServlet(
         LogUtil.logRequestAndResponse(ctx, logLevel, matcher, log, gzipShouldBeDone(ctx))
     }
 
-    private fun getIsMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
+    private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
 
     private fun gzipShouldBeDone(ctx: Context) = dynamicGzipEnabled
             && ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
