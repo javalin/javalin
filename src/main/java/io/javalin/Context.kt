@@ -131,7 +131,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * This method is mainly useful when calling from Java,
      * use elvis (formParam(key) ?: default) instead in Kotlin.
      */
-    fun formParamOrDefault(formParam: String, defaultValue: String): String = formParam(formParam) ?: defaultValue
+    fun formParam(formParam: String, default: String): String = formParam(formParam) ?: default
 
     /**
      * Gets a list of form params for the specified key.
@@ -317,7 +317,7 @@ class Context(private val servletResponse: HttpServletResponse,
      * This method is mainly useful when calling from Java,
      * use elvis (queryParam(key) ?: default) instead in Kotlin.
      */
-    fun queryParamOrDefault(queryParam: String, defaultValue: String): String = queryParam(queryParam) ?: defaultValue
+    fun queryParam(queryParam: String, default: String): String = queryParam(queryParam) ?: default
 
     /**
      * Gets a list of query params for the specified key.
