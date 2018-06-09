@@ -124,12 +124,14 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * use elvis (formParam(key) ?: default) instead in Kotlin.
      */
     @JvmOverloads
-    fun formParam(formParam: String, default: String? = null): String? = formParams(formParam)?.get(0) ?: default
+    fun formParam(formParam: String, default: String? = null): String? =
+            if (formParams(formParam).isNotEmpty()) formParams(formParam)[0] else default
 
     /**
      * Gets a list of form params for the specified key.
+     * If the key does not exist, returns empty list.
      */
-    fun formParams(formParam: String): List<String>? = formParamMap()[formParam]
+    fun formParams(formParam: String): List<String> = formParamMap()[formParam] ?: emptyList()
 
     /**
      * Gets a map with all the form param keys and values.
@@ -306,12 +308,14 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * use elvis (queryParam(key) ?: default) instead in Kotlin.
      */
     @JvmOverloads
-    fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam)?.get(0) ?: default
+    fun queryParam(queryParam: String, default: String? = null): String? =
+            if (queryParams(queryParam).isNotEmpty()) queryParams(queryParam)[0] else default
 
     /**
      * Gets a list of query params for the specified key.
+     * If the key does not exist, returns empty list.
      */
-    fun queryParams(queryParam: String): List<String>? = queryParamMap()[queryParam]
+    fun queryParams(queryParam: String): List<String> = queryParamMap()[queryParam] ?: emptyList()
 
     /**
      * Gets a map with all the query param keys and values.
