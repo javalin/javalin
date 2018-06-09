@@ -371,11 +371,6 @@ class Context(private val servletResponse: HttpServletResponse,
     fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().associate { it to servletRequest.session.getAttribute(it) as T }
 
     /**
-     * Gets the request uri.
-     */
-    fun uri(): String = servletRequest.requestURI
-
-    /**
      * Gets the request url.
      */
     fun url(): String = servletRequest.requestURL.toString()
