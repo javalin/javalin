@@ -101,31 +101,31 @@ public class TestRequest extends _UnirestBaseTest {
      */
     @Test
     public void test_paramWorks_noParam() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.param("param")));
+        app.get("/my/path", ctx -> ctx.result("" + ctx.pathParam("path-param")));
         assertThat(GET_body("/my/path"), is("null")); // notice {"" + req} on previous line
     }
 
     @Test
     public void test_paramWorks_nullKey() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.param(null)));
+        app.get("/my/path", ctx -> ctx.result("" + ctx.pathParam(null)));
         assertThat(GET_body("/my/path"), is("Internal server error")); // notice {"" + req} on previous line
     }
 
     @Test
     public void test_paramWorks_multipleSingleParams() throws Exception {
-        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.param("1") + ctx.param("2") + ctx.param("3")));
+        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")));
         assertThat(GET_body("/my/path/params"), is("mypathparams"));
     }
 
     @Test
     public void test_paramMapWorks_noParamsPresent() throws Exception {
-        app.get("/my/path/params", ctx -> ctx.result(ctx.paramMap().toString()));
+        app.get("/my/path/params", ctx -> ctx.result(ctx.pathParamMap().toString()));
         assertThat(GET_body("/my/path/params"), is("{}"));
     }
 
     @Test
     public void test_paramMapWorks_paramsPresent() throws Exception {
-        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.paramMap().toString()));
+        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParamMap().toString()));
         assertThat(GET_body("/my/path/params"), is("{:1=my, :2=path, :3=params}"));
     }
 
@@ -220,10 +220,10 @@ public class TestRequest extends _UnirestBaseTest {
     @Test
     public void test_matchingPaths_works() throws Exception {
         app.get("/matched", ctx -> ctx.result(ctx.matchedPath()));
-        app.get("/matched/:param", ctx -> ctx.result(ctx.matchedPath()));
-        app.after("/matched/:param/:param2", ctx -> ctx.result(ctx.matchedPath()));
+        app.get("/matched/:path-param", ctx -> ctx.result(ctx.matchedPath()));
+        app.after("/matched/:path-param/:param2", ctx -> ctx.result(ctx.matchedPath()));
         assertThat(GET_body("/matched"), is("/matched"));
-        assertThat(GET_body("/matched/p1"), is("/matched/:param"));
-        assertThat(GET_body("/matched/p1/p2"), is("/matched/:param/:param2"));
+        assertThat(GET_body("/matched/p1"), is("/matched/:path-param"));
+        assertThat(GET_body("/matched/p1/p2"), is("/matched/:path-param/:param2"));
     }
 }

@@ -13,12 +13,12 @@ import java.util.EnumMap
 import kotlin.collections.*
 
 class PathParser(val path: String) {
-    private val paramNames = path.split("/")
+    private val pathParamNames = path.split("/")
             .filter { it.startsWith(":") }
             .map { it.replace(":", "") }
 
-    private val matchRegex = paramNames
-            // Replace param names with wildcards (accepting everything except slash)
+    private val matchRegex = pathParamNames
+            // Replace path param names with wildcards (accepting everything except slash)
             .fold(path) { path, name -> path.replace(":$name", "[^/]+?") }
             // Replace double slash occurrences
             .replace("//", "/")
@@ -37,7 +37,7 @@ class PathParser(val path: String) {
             .toRegex()
 
     // Use param wildcard as a capturing group
-    private val paramRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
+    private val pathParamRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
 
     // Use splat wildcard as a capturing group
     private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex()
@@ -45,11 +45,11 @@ class PathParser(val path: String) {
     fun matches(requestUri: String) = requestUri matches matchRegex
 
     fun extractParams(requestUri: String): Map<String, String> {
-        val values = paramRegex.matchEntire(requestUri)?.groupValues
+        val values = pathParamRegex.matchEntire(requestUri)?.groupValues
         val map = HashMap<String, String>()
         values?.let {
             (1 until values.size).forEach { index ->
-                map[":" + paramNames[index - 1].toLowerCase()] = urlDecode(values[index])
+                map[":" + pathParamNames[index - 1].toLowerCase()] = urlDecode(values[index])
             }
         }
         return map
@@ -73,7 +73,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
     fun matches(requestUri: String) = parser.matches(requestUri)
 
-    fun extractParams(requestUri: String): Map<String, String> = parser.extractParams(requestUri)
+    fun extractPathParams(requestUri: String): Map<String, String> = parser.extractParams(requestUri)
 
     fun extractSplats(requestUri: String): List<String> = parser.extractSplats(requestUri)
 }
