@@ -73,7 +73,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
     fun matches(requestUri: String) = parser.matches(requestUri)
 
-    fun extractParams(requestUri: String): Map<String, String> = parser.extractParams(requestUri)
+    fun extractPathParams(requestUri: String): Map<String, String> = parser.extractParams(requestUri)
 
     fun extractSplats(requestUri: String): List<String> = parser.extractSplats(requestUri)
 }

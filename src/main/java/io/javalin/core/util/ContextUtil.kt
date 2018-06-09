@@ -23,7 +23,7 @@ object ContextUtil {
 
     fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String): Context {
         ctx.matchedPath = handlerEntry.path
-        ctx.pathParamMap = handlerEntry.extractParams(requestUri)
+        ctx.pathParamMap = handlerEntry.extractPathParams(requestUri)
         ctx.splatList = handlerEntry.extractSplats(requestUri)
         ctx.handlerType = handlerEntry.type
         return ctx

@@ -88,7 +88,7 @@ class RouteMatcherPerformanceTest {
     fun newMatch(entry: NewHandlerEntry, path: String) = entry.matches(path)
 
     fun newSplat(entry: NewHandlerEntry, path: String) = entry.extractSplats(path)
-    fun newParams(entry: NewHandlerEntry, path: String) = entry.extractParams(path)
+    fun newParams(entry: NewHandlerEntry, path: String) = entry.extractPathParams(path)
 
     companion object {
         val routes = listOf(
