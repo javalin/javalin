@@ -122,16 +122,12 @@ class Context(private val servletResponse: HttpServletResponse,
     }
 
     /**
-     * Gets a form param for the specified key from the request
-     */
-    fun formParam(formParam: String): String? = formParams(formParam)?.get(0)
-
-    /**
-     * Gets a form param if it exists, else a default value.
-     * This method is mainly useful when calling from Java,
+     * Gets a form param if it exists, else a default value (null if not specified explicitly).
+     * Variant using default is mainly useful when calling from Java,
      * use elvis (formParam(key) ?: default) instead in Kotlin.
      */
-    fun formParamOrDefault(formParam: String, defaultValue: String): String = formParam(formParam) ?: defaultValue
+    @JvmOverloads
+    fun formParam(formParam: String, default: String? = null): String? = formParams(formParam)?.get(0) ?: default
 
     /**
      * Gets a list of form params for the specified key.
@@ -308,16 +304,12 @@ class Context(private val servletResponse: HttpServletResponse,
     fun protocol(): String = servletRequest.protocol
 
     /**
-     * Gets a query param for the specified key.
-     */
-    fun queryParam(queryParam: String): String? = queryParams(queryParam)?.get(0)
-
-    /**
-     * Gets a query param if it exists, else a default value.
-     * This method is mainly useful when calling from Java,
+     * Gets a query param if it exists, else a default value (null if not specified explicitly).
+     * Variant using default is mainly useful when calling from Java,
      * use elvis (queryParam(key) ?: default) instead in Kotlin.
      */
-    fun queryParamOrDefault(queryParam: String, defaultValue: String): String = queryParam(queryParam) ?: defaultValue
+    @JvmOverloads
+    fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam)?.get(0) ?: default
 
     /**
      * Gets a list of query params for the specified key.

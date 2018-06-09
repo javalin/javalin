@@ -155,7 +155,7 @@ public class TestMultipartForms {
             List<String> foosExtractedManually = ctx.formParamMap().get("foo");
 
             String bar = ctx.formParam("bar");
-            String baz = ctx.formParamOrDefault("baz", "default");
+            String baz = ctx.formParam("baz", "default");
 
             ctx.result("foos match: " + Objects.equals(foos, foosExtractedManually) + "\n"
                 + "foo: " + String.join(", ", foos) + "\n"
