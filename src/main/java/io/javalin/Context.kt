@@ -26,13 +26,11 @@ import javax.servlet.http.HttpServletResponse
  */
 class Context(private val servletResponse: HttpServletResponse,
               private val servletRequest: HttpServletRequest,
-              internal var futureCanBeSet: Boolean,
+              internal var inExceptionHandler: Boolean,
               internal var matchedPath: String,
               internal var pathParamMap: Map<String, String>,
               internal var splatList: List<String>,
               internal var handlerType: HandlerType) {
-
-    private var passedToNextHandler: Boolean = false
 
     private var resultStream: InputStream? = null
 
@@ -65,19 +63,6 @@ class Context(private val servletResponse: HttpServletResponse,
         cookieStore.clear()
         removeCookie(CookieStoreUtil.name)
     }
-
-    /**
-     * Instructs Javalin to try and match the request again to
-     * the next matching endpoint-handler.
-     */
-    fun next() {
-        passedToNextHandler = true
-    }
-
-    /**
-     * Checks if [next] has been called on the context.
-     */
-    fun nexted(): Boolean = passedToNextHandler
 
     ///////////////////////////////////////////////////////////////
     // Request-ish methods
@@ -419,7 +404,7 @@ class Context(private val servletResponse: HttpServletResponse,
      */
     fun result(future: CompletableFuture<*>): Context {
         resultStream = null
-        if (futureCanBeSet) {
+        if (handlerType.isHttpMethod() && !inExceptionHandler) {
             this.resultFuture = future
             return this
         }

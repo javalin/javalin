@@ -1,5 +1,6 @@
 package io.javalin.core.util
 
+import io.javalin.Context
 import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
 
@@ -25,13 +26,21 @@ object MethodNotAllowedUtil {
         return availableHandlerTypes
     }
 
-    fun createJsonMethodNotAllowed(availableHandlerTypes: List<HandlerType>): String {
+    fun getAvailableHandlerTypes(ctx: Context, availableHandlerTypes: List<HandlerType>): String {
+        val acceptableReturnTypes = ctx.header("Accept")
+        return if (acceptableReturnTypes != null && acceptableReturnTypes.contains("application/json")) {
+            MethodNotAllowedUtil.createJsonMethodNotAllowed(availableHandlerTypes)
+        } else {
+            MethodNotAllowedUtil.createHtmlMethodNotAllowed(availableHandlerTypes)
+        }
+    }
+
+    private fun createJsonMethodNotAllowed(availableHandlerTypes: List<HandlerType>): String {
 
         return """{"availableMethods":${availableHandlerTypes.joinToString(separator = "\", \"", prefix = "[\"", postfix = "\"]")}}"""
     }
 
-    @JvmStatic
-    fun createHtmlMethodNotAllowed(availableHandlerTypes: List<HandlerType>): String {
+    private fun createHtmlMethodNotAllowed(availableHandlerTypes: List<HandlerType>): String {
         return """
                     <!DOCTYPE html>
                     <html lang="en">

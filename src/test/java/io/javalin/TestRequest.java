@@ -223,19 +223,6 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_nextWorks_whenMultipleHandlers() throws Exception {
-        app.get("/test", ctx -> ctx.next());
-        app.get("/*", ctx -> ctx.result("Skipped first handler"));
-        assertThat(GET_body("/test"), is("Skipped first handler"));
-    }
-
-    @Test
-    public void test_nextGivesBlankResponse_whenNoHandlers() throws Exception {
-        app.get("/test", ctx -> ctx.next());
-        assertThat(GET_body("/test"), is(""));
-    }
-
-    @Test
     public void test_basicAuth_works() throws Exception {
         app.get("/", ctx -> {
             BasicAuthCredentials basicAuthCredentials = ctx.basicAuthCredentials();

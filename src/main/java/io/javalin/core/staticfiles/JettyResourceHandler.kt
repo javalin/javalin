@@ -50,7 +50,7 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) {
         return staticFileConfig.path
     }
 
-    fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
+    fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse) {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
         for (gzipHandler in handlers) {
@@ -61,13 +61,11 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) {
                     val maxAge = if (target.startsWith("/immutable")) 31622400 else 0
                     httpResponse.setHeader("Cache-Control", "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
-                    return true
                 }
             } catch (e: Exception) { // it's fine
                 log.error("Exception occurred while handling static resource", e)
             }
         }
-        throw HaltException(404, "Not found")
     }
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
