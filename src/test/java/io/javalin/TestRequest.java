@@ -152,16 +152,16 @@ public class TestRequest extends _UnirestBaseTest {
     public void test_queryParamsWorks_noParamsPresent() throws Exception {
         app.get("/", ctx -> {
             final List<String> params = ctx.queryParams("qp1");
-            ctx.result(params == null ? "null" : params.toString());
+            ctx.result(params.toString());
         });
-        assertThat(GET_body("/"), is("null"));
+        assertThat(GET_body("/"), is("[]"));
     }
 
     @Test
     public void test_queryParamsWorks_paramsPresent() throws Exception {
         app.get("/", ctx -> {
             final List<String> params = ctx.queryParams("qp1");
-            ctx.result(params == null ? "null" : params.toString());
+            ctx.result(params.toString());
         });
         assertThat(GET_body("/?qp1=1&qp1=2&qp1=3"), is("[1, 2, 3]"));
     }
