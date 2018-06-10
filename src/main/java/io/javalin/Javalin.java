@@ -44,25 +44,24 @@ public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    private List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>();
-
+    private Server jettyServer = new Server(new QueuedThreadPool(250, 8, 60_000));
+    private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
     private int port = 7000;
     private String contextPath = "/";
-    private boolean dynamicGzipEnabled = false;
-
-    private Server jettyServer = new Server(new QueuedThreadPool(250, 8, 60_000));
-
-    private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
-    private PathMatcher pathMatcher = new PathMatcher();
-    private ExceptionMapper exceptionMapper = new ExceptionMapper();
-    private ErrorMapper errorMapper = new ErrorMapper();
-    private LogLevel logLevel = LogLevel.OFF;
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
     private long maxRequestCacheBodySize = 4096;
+    private LogLevel logLevel = LogLevel.OFF;
+    private boolean dynamicGzipEnabled = false;
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
+
+    private PathMatcher pathMatcher = new PathMatcher();
+    private ExceptionMapper exceptionMapper = new ExceptionMapper();
+    private ErrorMapper errorMapper = new ErrorMapper();
     private EventManager eventManager = new EventManager();
+    private List<WebSocketHandler> javalinWsHandlers = new ArrayList<>(); // TODO: move into PathMatcher
+    private List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>(); // TODO: move into PathMatcher
 
     private AccessManager accessManager = (Handler handler, Context ctx, Set<Role> permittedRoles) -> {
         throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
@@ -692,11 +691,6 @@ public class Javalin {
     public String pathFinder(@NotNull Handler handler, @NotNull HandlerType handlerType) {
         return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
     }
-
-    // WebSockets
-    // Only available via Jetty, as there is no WebSocket interface in Java to build on top of
-
-    private List<WebSocketHandler> javalinWsHandlers = new ArrayList<>();
 
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
