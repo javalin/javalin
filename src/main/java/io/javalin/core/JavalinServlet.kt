@@ -14,7 +14,6 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.MethodNotAllowedUtil
-import io.javalin.core.util.MethodNotAllowedUtil.getAvailableHandlerTypes
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
@@ -71,7 +70,7 @@ class JavalinServlet(
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
             if (prefer405over404 && availableHandlerTypes.isNotEmpty()) {
-                throw HaltException(405, getAvailableHandlerTypes(ctx, availableHandlerTypes))
+                throw HaltException(405, MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
             }
             throw HaltException(404, "Not found")
         }
