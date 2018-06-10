@@ -24,7 +24,7 @@ object JavalinVelocityPlugin {
         velocityEngine = velocityEngine ?: defaultVelocityEngine()
         val stringWriter = StringWriter()
         velocityEngine!!.getTemplate(templatePath, StandardCharsets.UTF_8.name()).merge(
-                VelocityContext(model), stringWriter
+                VelocityContext(model.toMutableMap()), stringWriter
         )
         return stringWriter.toString()
     }

@@ -160,6 +160,12 @@ public class TestTranslators extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_renderVelocity_works_withSet() throws Exception {
+        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test-set.vm"));
+        assertThat(GET_body("/hello"), is("<h1>Set works</h1>"));
+    }
+
+    @Test
     public void test_customVelocityEngine_works() throws Exception {
         app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm"));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));

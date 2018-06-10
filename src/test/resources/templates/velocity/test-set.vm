@@ -1,0 +1,2 @@
+#set($message = "Set works")
+<h1>$message</h1>
