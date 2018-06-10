@@ -52,7 +52,7 @@ public class Javalin {
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
     private long maxRequestCacheBodySize = 4096;
     private LogLevel logLevel = LogLevel.OFF;
-    private boolean dynamicGzipEnabled = false;
+    private boolean dynamicGzipEnabled = true;
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
 
@@ -305,9 +305,9 @@ public class Javalin {
      * This will compress all responses larger than 1500 bytes.
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin enableDynamicGzip() {
-        ensureActionIsPerformedBeforeServerStart("Enabling dynamic GZIP");
-        this.dynamicGzipEnabled = true;
+    public Javalin disableDynamicGzip() {
+        ensureActionIsPerformedBeforeServerStart("Disabling dynamic GZIP");
+        this.dynamicGzipEnabled = false;
         return this;
     }
 

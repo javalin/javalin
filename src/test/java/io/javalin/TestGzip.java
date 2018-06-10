@@ -35,7 +35,6 @@ public class TestGzip {
     public static void setup() throws IOException {
         app = Javalin.create()
             .port(0)
-            .enableDynamicGzip()
             .start();
         app.get("/huge", ctx -> ctx.result(SillyObject.getSomeObjects(1000).toString()));
         app.get("/tiny", ctx -> ctx.result(SillyObject.getSomeObjects(10).toString()));
@@ -74,6 +73,21 @@ public class TestGzip {
         assertThat(zipped.getBody().length(), is(hugeLength));
         assertThat(getResponse("/huge", "gzip").headers().get(Header.CONTENT_ENCODING), is("gzip"));
         assertThat(getResponse("/huge", "gzip").body().contentLength(), is(7717L)); // hardcoded because lazy
+    }
+
+    @Test
+    public void test_doesNotZip_whenGzipDisabled() throws Exception {
+        Javalin noGzipApp = Javalin.create()
+            .port(0)
+            .disableDynamicGzip()
+            .get("/huge", ctx -> ctx.result(SillyObject.getSomeObjects(1000).toString()))
+            .start();
+        Response response = okHttp.newCall(new Request.Builder()
+            .url("http://localhost:" + noGzipApp.port() + "/huge")
+            .header(Header.ACCEPT_ENCODING, "gzip")
+            .build()).execute();
+        assertThat(response.headers().get(Header.CONTENT_ENCODING), is(nullValue()));
+        noGzipApp.stop();
     }
 
     // we need to use okhttp, because unirest omits the content-encoding header
