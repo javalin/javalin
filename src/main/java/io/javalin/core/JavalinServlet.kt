@@ -14,6 +14,7 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.MethodNotAllowedUtil
+import io.javalin.core.util.MethodNotAllowedUtil.getAvailableHandlerTypes
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
@@ -58,27 +59,21 @@ class JavalinServlet(
             matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
-            val endpointEntries = matcher.findEntries(type, requestUri)
-            endpointEntries.forEach { entry ->
-                ctx.futureCanBeSet = true
+            matcher.findEntries(type, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
-                ctx.futureCanBeSet = false
-                if (!ctx.nexted()) {
-                    return@tryWithExceptionMapper
-                }
+                return@tryWithExceptionMapper // return after first match
             }
-            if (endpointEntries.isEmpty() && type != HandlerType.HEAD && type != HandlerType.GET) {
-                val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
-
-                if (prefer405over404 && !availableHandlerTypes.isEmpty()) {
-                    throwMethodNotAllowed(ctx, availableHandlerTypes)
-                } else {
-                    throw HaltException(404, "Not found")
-                }
+            if (type == HandlerType.HEAD && hasGetHandlerMapped(requestUri)) {
+                return@tryWithExceptionMapper // return 200, there is a get handler
             }
-            if (shouldCheckForStaticFiles(endpointEntries, type, requestUri)) {
+            if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
                 jettyResourceHandler.handle(req, res)
             }
+            val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
+            if (prefer405over404 && availableHandlerTypes.isNotEmpty()) {
+                throw HaltException(405, getAvailableHandlerTypes(ctx, availableHandlerTypes))
+            }
+            throw HaltException(404, "Not found")
         }
 
         fun tryErrorHandlers() = tryWithExceptionMapper {
@@ -119,17 +114,6 @@ class JavalinServlet(
         }
     }
 
-    private fun throwMethodNotAllowed(ctx: Context, availableHandlerTypes: List<HandlerType>) {
-        val acceptableReturnTypes = ctx.header("Accept")
-
-        val body = if (acceptableReturnTypes != null && acceptableReturnTypes.contains("application/json")) {
-            MethodNotAllowedUtil.createJsonMethodNotAllowed(availableHandlerTypes)
-        } else {
-            MethodNotAllowedUtil.createHtmlMethodNotAllowed(availableHandlerTypes)
-        }
-        throw HaltException(405, body)
-    }
-
     private fun writeResult(ctx: Context, res: HttpServletResponse) {
         if (!res.isCommitted) {
             ctx.resultStream()?.let { resultStream ->
@@ -146,11 +130,7 @@ class JavalinServlet(
         LogUtil.logRequestAndResponse(ctx, logLevel, matcher, log, gzipShouldBeDone(ctx))
     }
 
-    private fun shouldCheckForStaticFiles(endpointEntries: List<HandlerEntry>, type: HandlerType, requestUri: String) = when {
-        type == HandlerType.GET && endpointEntries.isEmpty() -> true
-        type == HandlerType.HEAD && matcher.findEntries(HandlerType.GET, requestUri).isEmpty() -> true
-        else -> false
-    }
+    private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
 
     private fun gzipShouldBeDone(ctx: Context) = dynamicGzipEnabled
             && ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes

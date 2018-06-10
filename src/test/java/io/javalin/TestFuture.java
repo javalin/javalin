@@ -62,8 +62,10 @@ public class TestFuture extends _UnirestBaseTest {
 
     @Test
     public void testFutures_clearedOnNewResult() throws Exception {
-        app.get("/test-future", ctx -> ctx.result(getFuture("Result")).next());
-        app.get("/test-future", ctx -> ctx.result("Overridden"));
+        app.get("/test-future", ctx -> {
+            ctx.result(getFuture("Result"));
+            ctx.result("Overridden");
+        });
         assertThat(GET_asString("/test-future").getBody(), is("Overridden"));
     }
 
