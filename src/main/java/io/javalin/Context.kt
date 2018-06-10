@@ -124,8 +124,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * use elvis (formParam(key) ?: default) instead in Kotlin.
      */
     @JvmOverloads
-    fun formParam(formParam: String, default: String? = null): String? =
-            if (formParams(formParam).isNotEmpty()) formParams(formParam)[0] else default
+    fun formParam(formParam: String, default: String? = null): String? = formParams(formParam).firstOrNull() ?: default
 
     /**
      * Gets a list of form params for the specified key.
@@ -308,8 +307,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * use elvis (queryParam(key) ?: default) instead in Kotlin.
      */
     @JvmOverloads
-    fun queryParam(queryParam: String, default: String? = null): String? =
-            if (queryParams(queryParam).isNotEmpty()) queryParams(queryParam)[0] else default
+    fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull() ?: default
 
     /**
      * Gets a list of query params for the specified key.
