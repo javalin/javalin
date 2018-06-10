@@ -26,11 +26,26 @@ import javax.servlet.http.HttpServletResponse
  */
 class Context(private val servletResponse: HttpServletResponse, private val servletRequest: HttpServletRequest) {
 
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var inExceptionHandler = false
+
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var matchedPath = ""
+
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var pathParamMap = mapOf<String, String>()
+
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var splatList = listOf<String>()
+
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var handlerType = HandlerType.BEFORE
+
     private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null

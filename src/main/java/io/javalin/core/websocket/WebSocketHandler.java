@@ -100,7 +100,7 @@ public class WebSocketHandler {
         }
     }
 
-    public boolean matches(String requestUri) {
+    boolean matches(String requestUri) {
         return pathParser.matches(requestUri);
     }
 
