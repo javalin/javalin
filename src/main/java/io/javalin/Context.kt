@@ -24,19 +24,16 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-class Context(private val servletResponse: HttpServletResponse,
-              private val servletRequest: HttpServletRequest,
-              internal var inExceptionHandler: Boolean,
-              internal var matchedPath: String,
-              internal var pathParamMap: Map<String, String>,
-              internal var splatList: List<String>,
-              internal var handlerType: HandlerType) {
+class Context(private val servletResponse: HttpServletResponse, private val servletRequest: HttpServletRequest) {
 
-    private var resultStream: InputStream? = null
-
-    private var resultFuture: CompletableFuture<*>? = null
-
+    internal var inExceptionHandler = false
+    internal var matchedPath = ""
+    internal var pathParamMap = mapOf<String, String>()
+    internal var splatList = listOf<String>()
+    internal var handlerType = HandlerType.BEFORE
     private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
+    private var resultStream: InputStream? = null
+    private var resultFuture: CompletableFuture<*>? = null
 
     /**
      * Gets cookie store value for specified key.

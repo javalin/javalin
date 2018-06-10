@@ -44,7 +44,7 @@ class JavalinServlet(
                 else servletResponse as HttpServletResponse
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI
-        val ctx = ContextUtil.create(res, req)
+        val ctx = Context(res, req)
 
         ctx.header("Server", "Javalin")
         ctx.attribute("javalin-request-log-start-time", System.nanoTime())
