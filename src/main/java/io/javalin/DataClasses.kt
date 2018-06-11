@@ -32,3 +32,15 @@ enum class LogLevel { EXTENSIVE, STANDARD, MINIMAL, OFF; }
  * @see Context.basicAuthCredentials
  */
 data class BasicAuthCredentials(val username: String, val password: String)
+
+/**
+ * Server lifecycle events
+ * @see Javalin.event
+ */
+enum class JavalinEvent {
+    SERVER_STARTING,
+    SERVER_STARTED,
+    SERVER_START_FAILED,
+    SERVER_STOPPING,
+    SERVER_STOPPED
+}

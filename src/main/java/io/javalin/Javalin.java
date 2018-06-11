@@ -8,6 +8,7 @@
 package io.javalin;
 
 import io.javalin.core.ErrorMapper;
+import io.javalin.core.EventManager;
 import io.javalin.core.ExceptionMapper;
 import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;

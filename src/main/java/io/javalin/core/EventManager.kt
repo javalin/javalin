@@ -4,8 +4,10 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin
+package io.javalin.core
 
+import io.javalin.EventListener
+import io.javalin.JavalinEvent
 import java.util.*
 
 class EventManager {
@@ -13,10 +15,4 @@ class EventManager {
     fun fireEvent(javalinEvent: JavalinEvent) = listenerMap[javalinEvent]!!.forEach { listener -> listener.handleEvent() }
 }
 
-enum class JavalinEvent {
-    SERVER_STARTING,
-    SERVER_STARTED,
-    SERVER_START_FAILED,
-    SERVER_STOPPING,
-    SERVER_STOPPED
-}
+
