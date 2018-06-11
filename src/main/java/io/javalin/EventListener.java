@@ -6,6 +6,10 @@
 
 package io.javalin;
 
+/**
+ * A listener for use with {@link Javalin#event}.
+ * Is triggered by different events in the app lifecycle.
+ */
 @FunctionalInterface
 public interface EventListener {
     void handleEvent();
