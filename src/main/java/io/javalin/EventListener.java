@@ -4,9 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.event;
+package io.javalin;
 
 @FunctionalInterface
 public interface EventListener {
-    void handleEvent(Event e);
+    void handleEvent();
 }

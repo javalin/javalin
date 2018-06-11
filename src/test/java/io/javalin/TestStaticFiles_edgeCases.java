@@ -9,7 +9,6 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.staticfiles.Location;
-import io.javalin.event.EventType;
 import java.io.File;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,7 +38,7 @@ public class TestStaticFiles_edgeCases {
         Javalin.create()
             .port(0)
             .enableStaticFiles("some-fake-folder")
-            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
+            .event(JavalinEvent.SERVER_START_FAILED, () -> message[0] = "failed")
             .start()
             .stop();
         assertThat(message[0], is("failed"));
@@ -51,7 +50,7 @@ public class TestStaticFiles_edgeCases {
         Javalin.create()
             .port(0)
             .enableStaticFiles("some-fake-folder", Location.EXTERNAL)
-            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
+            .event(JavalinEvent.SERVER_START_FAILED, () -> message[0] = "failed")
             .start()
             .stop();
         assertThat(message[0], is("failed"));
@@ -64,7 +63,7 @@ public class TestStaticFiles_edgeCases {
         Javalin.create()
             .port(0)
             .enableStaticFiles("src/test/external/empty", Location.CLASSPATH)
-            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
+            .event(JavalinEvent.SERVER_START_FAILED, () -> message[0] = "failed")
             .start()
             .stop();
         assertThat(message[0], is("failed"));
@@ -77,7 +76,7 @@ public class TestStaticFiles_edgeCases {
         Javalin.create()
             .port(0)
             .enableStaticFiles("src/test/external/empty", Location.EXTERNAL)
-            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
+            .event(JavalinEvent.SERVER_START_FAILED, () -> message[0] = "failed")
             .start()
             .stop();
         assertThat(message[0], not("failed"));

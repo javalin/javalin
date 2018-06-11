@@ -23,9 +23,6 @@ import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
 import io.javalin.core.websocket.WebSocketConfig;
 import io.javalin.core.websocket.WebSocketHandler;
-import io.javalin.event.EventListener;
-import io.javalin.event.EventManager;
-import io.javalin.event.EventType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 import java.net.BindException;
@@ -114,7 +111,7 @@ public class Javalin {
             }
             Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
             Util.INSTANCE.setNoServerHasBeenStarted(false);
-            eventManager.fireEvent(EventType.SERVER_STARTING, this);
+            eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
             try {
                 log.info("Starting Javalin ...");
                 JavalinServlet javalinServlet = new JavalinServlet(
@@ -132,7 +129,7 @@ public class Javalin {
                 port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, javalinWsHandlers, log);
                 log.info("Javalin has started \\o/");
                 started = true;
-                eventManager.fireEvent(EventType.SERVER_STARTED, this);
+                eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
             } catch (Exception e) {
                 log.error("Failed to start Javalin", e);
                 if (e instanceof BindException && e.getMessage() != null) {
@@ -142,7 +139,7 @@ public class Javalin {
                         log.error("Port 1-1023 require elevated privileges (process must be started by admin).");
                     }
                 }
-                eventManager.fireEvent(EventType.SERVER_START_FAILED, this);
+                eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             }
         }
         return this;
@@ -154,7 +151,7 @@ public class Javalin {
      * @return stopped application instance.
      */
     public Javalin stop() {
-        eventManager.fireEvent(EventType.SERVER_STOPPING, this);
+        eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
             jettyServer.stop();
@@ -162,7 +159,7 @@ public class Javalin {
             log.error("Javalin failed to stop gracefully", e);
         }
         log.info("Javalin has stopped");
-        eventManager.fireEvent(EventType.SERVER_STOPPED, this);
+        eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
         return this;
     }
 
@@ -400,9 +397,9 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#lifecycle-events">Events in docs</a>
      */
-    public Javalin event(@NotNull EventType eventType, @NotNull EventListener eventListener) {
+    public Javalin event(@NotNull JavalinEvent javalinEvent, @NotNull EventListener eventListener) {
         ensureActionIsPerformedBeforeServerStart("Event-mapping");
-        eventManager.getListenerMap().get(eventType).add(eventListener);
+        eventManager.getListenerMap().get(javalinEvent).add(eventListener);
         return this;
     }
 
