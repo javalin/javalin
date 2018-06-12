@@ -533,6 +533,6 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     }
 
     @JvmField
-    val renderer = Renderer(this)
+    val render = Renderer(this)
 
 }
