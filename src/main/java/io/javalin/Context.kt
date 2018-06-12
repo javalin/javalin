@@ -532,6 +532,9 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
         return result(JavalinJsonPlugin.objectToJsonMapper.map(obj)).contentType("application/json")
     }
 
+    /**
+     * Object which holds all rendering functions for template engines and markdown.
+     */
     @JvmField
     val render = Renderer(this)
 
