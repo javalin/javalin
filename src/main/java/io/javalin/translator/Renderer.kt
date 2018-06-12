@@ -14,29 +14,29 @@ import io.javalin.translator.template.*
 class Renderer(val ctx: Context) {
 
     /**
-     * Renders a Velocity renderer with specified values as ctx.html and
+     * Renders a Velocity template with specified values as ctx.html and
      * sets it as the context result. Sets content-type to text/ctx.html.
      * Requires Apache Velocity library in the classpath.
      */
     @JvmOverloads
     fun velocity(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Renderer", "org.apache.velocity/velocity")
+        Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
         return ctx.html(JavalinVelocityPlugin.render(templatePath, model))
     }
 
     /**
-     * Renders a Freemarker renderer with specified values as ctx.html and
+     * Renders a Freemarker template with specified values as ctx.html and
      * sets it as the context result. Sets content-type to text/ctx.html.
      * Requires Freemarker library in the classpath.
      */
     @JvmOverloads
     fun freemarker(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        Util.ensureDependencyPresent("Apache Freemarker", "freemarker.renderer.Configuration", "org.freemarker/freemarker")
+        Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
         return ctx.html(JavalinFreemarkerPlugin.render(templatePath, model))
     }
 
     /**
-     * Renders a Thymeleaf renderer with specified values as ctx.html and
+     * Renders a Thymeleaf template with specified values as ctx.html and
      * sets it as the context result. Sets content-type to text/ctx.html.
      * Requires Thymeleaf library in the classpath.
      */
@@ -47,7 +47,7 @@ class Renderer(val ctx: Context) {
     }
 
     /**
-     * Renders a Mustache renderer with specified values as ctx.html and
+     * Renders a Mustache template with specified values as ctx.html and
      * sets it as the context result. Sets content-type to text/ctx.html.
      * Requires Mustache library in the classpath.
      */
@@ -58,7 +58,7 @@ class Renderer(val ctx: Context) {
     }
 
     /**
-     * Renders a jTwig renderer with specified values as ctx.html and
+     * Renders a jTwig template with specified values as ctx.html and
      * sets it as the context result. Sets content-type to text/ctx.html.
      * Requires jTwig library in the classpath.
      */
@@ -69,7 +69,7 @@ class Renderer(val ctx: Context) {
     }
 
     /**
-     * Renders a Pebble renderer with specified values as ctx.html and
+     * Renders a Pebble template with specified values as ctx.html and
      * sets it as the context result. Sets content-type to text/ctx.html.
      * Requires Pebble library in the classpath.
      */
@@ -85,7 +85,7 @@ class Renderer(val ctx: Context) {
      * Requires Commonmark library in the classpath.
      */
     fun markdown(markdownFilePath: String): Context {
-        Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.ctx.html.ctx.htmlRenderer", "com.atlassian.commonmark/commonmark")
+        Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
         return ctx.html(JavalinCommonmarkPlugin.render(markdownFilePath))
     }
 
