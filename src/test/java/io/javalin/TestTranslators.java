@@ -21,7 +21,6 @@ import io.javalin.translator.json.ObjectToJsonMapper;
 import io.javalin.translator.template.JavalinJtwigPlugin;
 import io.javalin.translator.template.JavalinPebblePlugin;
 import io.javalin.translator.template.JavalinVelocityPlugin;
-import io.javalin.translator.template.TemplateUtil;
 import io.javalin.util.CustomMapper;
 import io.javalin.util.TestObject_NonSerializable;
 import io.javalin.util.TestObject_Serializable;
@@ -34,6 +33,7 @@ import org.jtwig.functions.SimpleJtwigFunction;
 import org.jtwig.util.FunctionValueUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static io.javalin.translator.template.TemplateUtil.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -155,19 +155,19 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_renderVelocity_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm", TemplateUtil.model("message", "Hello Velocity!")));
+        app.get("/hello", ctx -> ctx.renderer.velocity("/renderer.s/velocity/test.vm", model("message", "Hello Velocity!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Velocity!</h1>"));
     }
 
     @Test
     public void test_renderVelocity_works_withSet() throws Exception {
-        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test-set.vm"));
+        app.get("/hello", ctx -> ctx.renderer.velocity("/renderer.s/velocity/test-set.vm"));
         assertThat(GET_body("/hello"), is("<h1>Set works</h1>"));
     }
 
     @Test
     public void test_customVelocityEngine_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderVelocity("/templates/velocity/test.vm"));
+        app.get("/hello", ctx -> ctx.renderer.velocity("/renderer.s/velocity/test.vm"));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
         JavalinVelocityPlugin.configure(strictVelocityEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
@@ -183,37 +183,37 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_renderFreemarker_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderFreemarker("/templates/freemarker/test.ftl", TemplateUtil.model("message", "Hello Freemarker!")));
+        app.get("/hello", ctx -> ctx.renderer.freemarker("/renderer.s/freemarker/test.ftl", model("message", "Hello Freemarker!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Freemarker!</h1>"));
     }
 
     @Test
     public void test_renderThymeleaf_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderThymeleaf("/templates/thymeleaf/test.html", TemplateUtil.model("message", "Hello Thymeleaf!")));
+        app.get("/hello", ctx -> ctx.renderer.thymeleaf("/renderer.s/thymeleaf/test.html", model("message", "Hello Thymeleaf!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Thymeleaf!</h1>"));
     }
 
     @Test
     public void test_renderMustache_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderMustache("/templates/mustache/test.mustache", TemplateUtil.model("message", "Hello Mustache!")));
+        app.get("/hello", ctx -> ctx.renderer.mustache("/renderer.s/mustache/test.mustache", model("message", "Hello Mustache!")));
         assertThat(GET_body("/hello"), is("<h1>Hello Mustache!</h1>"));
     }
 
     @Test
     public void test_renderMarkdown_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderMarkdown("/markdown/test.md"));
+        app.get("/hello", ctx -> ctx.renderer.markdown("/markdown/test.md"));
         assertThat(GET_body("/hello"), is("<h1>Hello Markdown!</h1>\n"));
     }
 
     @Test
     public void test_renderPebble_works() throws Exception {
-        app.get("/hello1", ctx -> ctx.renderPebble("templates/pebble/test.peb", TemplateUtil.model("message", "Hello Pebble!")));
+        app.get("/hello1", ctx -> ctx.renderer.pebble("renderer.s/pebble/test.peb", model("message", "Hello Pebble!")));
         assertThat(GET_body("/hello1"), is("<h1>Hello Pebble!</h1>"));
     }
 
     @Test
     public void test_customPebbleEngine_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderPebble("templates/pebble/test.peb"));
+        app.get("/hello", ctx -> ctx.renderer.pebble("renderer.s/pebble/test.peb"));
         assertThat(GET_body("/hello"), is("<h1></h1>"));
         JavalinPebblePlugin.configure(strictPebbleEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
@@ -229,7 +229,7 @@ public class TestTranslators extends _UnirestBaseTest {
 
     @Test
     public void test_renderJtwig_works() throws Exception {
-        app.get("/hello", ctx -> ctx.renderJtwig("/templates/jtwig/test.jtwig", TemplateUtil.model("message", "Hello jTwig!")));
+        app.get("/hello", ctx -> ctx.renderer.jtwig("/renderer.s/jtwig/test.jtwig", model("message", "Hello jTwig!")));
         assertThat(GET_body("/hello"), is("<h1>Hello jTwig!</h1>"));
     }
 
@@ -253,7 +253,7 @@ public class TestTranslators extends _UnirestBaseTest {
             .build();
 
         JavalinJtwigPlugin.configure(configuration);
-        app.get("/quiz", ctx -> ctx.renderJtwig("/templates/jtwig/custom.jtwig"));
+        app.get("/quiz", ctx -> ctx.renderer.jtwig("/renderer.s/jtwig/custom.jtwig"));
         assertThat(GET_body("/quiz"), is("<h1>Javalin is the best framework you will ever get</h1>"));
     }
 

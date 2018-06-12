@@ -8,9 +8,8 @@ package io.javalin
 
 import io.javalin.core.HandlerType
 import io.javalin.core.util.*
+import io.javalin.translator.Renderer
 import io.javalin.translator.json.JavalinJsonPlugin
-import io.javalin.translator.markdown.JavalinCommonmarkPlugin
-import io.javalin.translator.template.*
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -533,80 +532,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
         return result(JavalinJsonPlugin.objectToJsonMapper.map(obj)).contentType("application/json")
     }
 
-    /**
-     * Renders a Velocity template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Apache Velocity library in the classpath.
-     */
-    @JvmOverloads
-    fun renderVelocity(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
-        return html(JavalinVelocityPlugin.render(templatePath, model))
-    }
-
-    /**
-     * Renders a Freemarker template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Freemarker library in the classpath.
-     */
-    @JvmOverloads
-    fun renderFreemarker(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
-        return html(JavalinFreemarkerPlugin.render(templatePath, model))
-    }
-
-    /**
-     * Renders a Thymeleaf template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Thymeleaf library in the classpath.
-     */
-    @JvmOverloads
-    fun renderThymeleaf(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3")
-        return html(JavalinThymeleafPlugin.render(templatePath, model))
-    }
-
-    /**
-     * Renders a Mustache template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Mustache library in the classpath.
-     */
-    @JvmOverloads
-    fun renderMustache(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
-        return html(JavalinMustachePlugin.render(templatePath, model))
-    }
-
-    /**
-     * Renders a jTwig template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires jTwig library in the classpath.
-     */
-    @JvmOverloads
-    fun renderJtwig(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        Util.ensureDependencyPresent("jTwig", "org.jtwig.JtwigTemplate", "org.jtwig/jtwig-core")
-        return html(JavalinJtwigPlugin.render(templatePath, model))
-    }
-
-    /**
-     * Renders a markdown-file and sets it as the context result.
-     * Sets content-type to text/html.
-     * Requires Commonmark library in the classpath.
-     */
-    fun renderMarkdown(markdownFilePath: String): Context {
-        Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
-        return html(JavalinCommonmarkPlugin.render(markdownFilePath))
-    }
-
-    /**
-     * Renders a Pebble template with specified values as html and
-     * sets it as the context result. Sets content-type to text/html.
-     * Requires Pebble library in the classpath.
-     */
-    @JvmOverloads
-    fun renderPebble(templatePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        Util.ensureDependencyPresent("pebble", "com.mitchellbosecke.pebble.PebbleEngine", "com.mitchellbosecke/pebble")
-        return html(JavalinPebblePlugin.render(templatePath, model))
-    }
+    @JvmField
+    val renderer = Renderer(this)
 
 }
