@@ -7,8 +7,11 @@
 package io.javalin
 
 import io.javalin.core.HandlerType
-import io.javalin.core.util.*
-import io.javalin.translator.Renderer
+import io.javalin.core.util.ContextUtil
+import io.javalin.core.util.CookieStoreUtil
+import io.javalin.core.util.Header
+import io.javalin.core.util.MultipartUtil
+import io.javalin.translator.JavalinRenderingPlugin
 import io.javalin.translator.json.JavalinJsonPlugin
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -532,10 +535,14 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
         return result(JavalinJsonPlugin.objectToJsonMapper.map(obj)).contentType("application/json")
     }
 
+
     /**
-     * Object which holds all rendering functions for template engines and markdown.
+     * Renders a file with specified values and sets it as the context result.
+     * Also sets content-type to text/ctx.html.
      */
-    @JvmField
-    val render = Renderer(this)
+    @JvmOverloads
+    fun render(filePath: String, model: Map<String, Any?> = emptyMap()): Context {
+        return html(JavalinRenderingPlugin.renderBasedOnExtension(filePath, model))
+    }
 
 }

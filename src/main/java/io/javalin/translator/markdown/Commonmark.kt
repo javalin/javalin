@@ -6,10 +6,12 @@
 
 package io.javalin.translator.markdown
 
+import io.javalin.core.util.Util
+import io.javalin.translator.FileRenderer
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 
-object JavalinCommonmarkPlugin {
+object JavalinCommonmarkPlugin : FileRenderer {
 
     private var renderer: HtmlRenderer? = null
     private var parser: Parser? = null
@@ -20,10 +22,11 @@ object JavalinCommonmarkPlugin {
         parser = staticMarkdownParser
     }
 
-    fun render(markdownFilePath: String): String {
+    override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
         renderer = renderer ?: HtmlRenderer.builder().build()
         parser = parser ?: Parser.builder().build()
-        val fileContent = JavalinCommonmarkPlugin::class.java.getResource(markdownFilePath).readText()
+        val fileContent = JavalinCommonmarkPlugin::class.java.getResource(filePath).readText()
         return renderer!!.render(parser!!.parse(fileContent))
     }
 

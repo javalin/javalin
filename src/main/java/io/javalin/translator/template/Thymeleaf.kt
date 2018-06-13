@@ -6,12 +6,14 @@
 
 package io.javalin.translator.template
 
+import io.javalin.core.util.Util
+import io.javalin.translator.FileRenderer
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import org.thymeleaf.templatemode.TemplateMode
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
-object JavalinThymeleafPlugin {
+object JavalinThymeleafPlugin : FileRenderer {
 
     private var templateEngine: TemplateEngine? = null
 
@@ -20,11 +22,12 @@ object JavalinThymeleafPlugin {
         templateEngine = staticTemplateEngine
     }
 
-    fun render(templatePath: String, model: Map<String, Any?>): String {
+    override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf/thymeleaf-spring3")
         templateEngine = templateEngine ?: defaultThymeLeafEngine()
         val context = Context()
         context.setVariables(model)
-        return templateEngine!!.process(templatePath, context)
+        return templateEngine!!.process(filePath, context)
     }
 
     private fun defaultThymeLeafEngine(): TemplateEngine {
