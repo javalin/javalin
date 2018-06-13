@@ -257,4 +257,10 @@ public class TestTranslators extends _UnirestBaseTest {
         assertThat(GET_body("/hello"), is("<h1>Hello Markdown!</h1>\n"));
     }
 
+    @Test
+    public void test_unregisteredExtension_throws() throws Exception {
+        app.get("/hello", ctx -> ctx.render("/markdown/test.unknown"));
+        assertThat(GET_body("/hello"), is("Internal server error"));
+    }
+
 }
