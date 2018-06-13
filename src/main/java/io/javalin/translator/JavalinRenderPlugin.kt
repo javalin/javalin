@@ -10,10 +10,6 @@ import io.javalin.translator.markdown.JavalinCommonmarkPlugin
 import io.javalin.translator.template.*
 import org.slf4j.LoggerFactory
 
-interface FileRenderer {
-    fun render(filePath: String, model: Map<String, Any?>): String
-}
-
 object JavalinRenderingPlugin {
 
     private val log = LoggerFactory.getLogger(JavalinRenderingPlugin.javaClass)
@@ -48,8 +44,3 @@ object JavalinRenderingPlugin {
 
     private val String.extension: String get() = this.replaceBeforeLast(".", "")
 }
-
-
-
-
-

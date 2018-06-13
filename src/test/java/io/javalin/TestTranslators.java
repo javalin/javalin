@@ -14,6 +14,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.loader.ClasspathLoader;
+import io.javalin.translator.JavalinRenderingPlugin;
 import io.javalin.translator.json.JavalinJacksonPlugin;
 import io.javalin.translator.json.JavalinJsonPlugin;
 import io.javalin.translator.json.JsonToObjectMapper;
@@ -261,6 +262,13 @@ public class TestTranslators extends _UnirestBaseTest {
     public void test_unregisteredExtension_throws() throws Exception {
         app.get("/hello", ctx -> ctx.render("/markdown/test.unknown"));
         assertThat(GET_body("/hello"), is("Internal server error"));
+    }
+
+    @Test
+    public void test_registerCustomRenderer() throws Exception {
+        JavalinRenderingPlugin.register((filePath, model) -> "Hah.", ".lol");
+        app.get("/hello", ctx -> ctx.render("/markdown/test.lol"));
+        assertThat(GET_body("/hello"), is("Hah."));
     }
 
 }
