@@ -6,12 +6,14 @@
 
 package io.javalin.translator.template
 
+import io.javalin.core.util.Util
+import io.javalin.translator.FileRenderer
 import org.apache.velocity.VelocityContext
 import org.apache.velocity.app.VelocityEngine
 import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 
-object JavalinVelocityPlugin {
+object JavalinVelocityPlugin : FileRenderer {
 
     private var velocityEngine: VelocityEngine? = null
 
@@ -20,10 +22,11 @@ object JavalinVelocityPlugin {
         velocityEngine = staticVelocityEngine
     }
 
-    fun render(templatePath: String, model: Map<String, Any?>): String {
+    override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
         velocityEngine = velocityEngine ?: defaultVelocityEngine()
         val stringWriter = StringWriter()
-        velocityEngine!!.getTemplate(templatePath, StandardCharsets.UTF_8.name()).merge(
+        velocityEngine!!.getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(
                 VelocityContext(model.toMutableMap()), stringWriter
         )
         return stringWriter.toString()

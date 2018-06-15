@@ -8,9 +8,11 @@ package io.javalin.translator.template
 
 import freemarker.template.Configuration
 import freemarker.template.Version
+import io.javalin.core.util.Util
+import io.javalin.translator.FileRenderer
 import java.io.StringWriter
 
-object JavalinFreemarkerPlugin {
+object JavalinFreemarkerPlugin : FileRenderer {
 
     private var configuration: Configuration? = null
 
@@ -19,10 +21,11 @@ object JavalinFreemarkerPlugin {
         configuration = staticConfiguration
     }
 
-    fun render(templatePath: String, model: Map<String, Any?>): String {
+    override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
         configuration = configuration ?: defaultFreemarkerEngine()
         val stringWriter = StringWriter()
-        configuration!!.getTemplate(templatePath).process(model, stringWriter)
+        configuration!!.getTemplate(filePath).process(model, stringWriter)
         return stringWriter.toString()
     }
 

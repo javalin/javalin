@@ -8,9 +8,11 @@ package io.javalin.translator.template
 
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.ClasspathLoader
+import io.javalin.core.util.Util
+import io.javalin.translator.FileRenderer
 import java.io.StringWriter
 
-object JavalinPebblePlugin {
+object JavalinPebblePlugin : FileRenderer {
 
     private var pebbleEngine: PebbleEngine? = null
 
@@ -19,9 +21,10 @@ object JavalinPebblePlugin {
         pebbleEngine = staticPebbleEngine
     }
 
-    fun render(templatePath: String, model: Map<String, Any?>): String {
+    override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent("pebble", "com.mitchellbosecke.pebble.PebbleEngine", "com.mitchellbosecke/pebble")
         pebbleEngine = pebbleEngine ?: defaultPebbleEngine()
-        val compiledTemplate = pebbleEngine!!.getTemplate(templatePath)
+        val compiledTemplate = pebbleEngine!!.getTemplate(filePath)
         val stringWriter = StringWriter()
         compiledTemplate.evaluate(stringWriter, model);
         return stringWriter.toString()
