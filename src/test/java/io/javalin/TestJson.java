@@ -12,7 +12,7 @@ import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.json.JavalinJacksonPlugin;
-import io.javalin.json.JavalinJsonPlugin;
+import io.javalin.json.JavalinJson;
 import io.javalin.json.JsonToObjectMapper;
 import io.javalin.json.ObjectToJsonMapper;
 import io.javalin.util.CustomMapper;
@@ -80,35 +80,35 @@ public class TestJson extends _UnirestBaseTest {
 
     @Test
     public void test_customObjectToJsonMapper_sillyImplementation_works() throws Exception {
-        ObjectToJsonMapper oldMapper = JavalinJsonPlugin.getObjectToJsonMapper(); // reset after test
+        ObjectToJsonMapper oldMapper = JavalinJson.getObjectToJsonMapper(); // reset after test
 
-        JavalinJsonPlugin.setObjectToJsonMapper(obj -> "Silly mapper");
+        JavalinJson.setObjectToJsonMapper(obj -> "Silly mapper");
         app.get("/", ctx -> ctx.json("Test"));
         assertThat(call(HttpMethod.GET, "/").getBody(), is("Silly mapper"));
 
-        JavalinJsonPlugin.setObjectToJsonMapper(oldMapper);
+        JavalinJson.setObjectToJsonMapper(oldMapper);
     }
 
     @Test
     public void test_customObjectToJsonMapper_normalImplementation_works() throws Exception {
-        ObjectToJsonMapper oldMapper = JavalinJsonPlugin.getObjectToJsonMapper(); // reset after test
+        ObjectToJsonMapper oldMapper = JavalinJson.getObjectToJsonMapper(); // reset after test
 
         Gson gson = new GsonBuilder().create();
         String expected = gson.toJson(new TestObject_Serializable());
-        JavalinJsonPlugin.setObjectToJsonMapper(gson::toJson);
+        JavalinJson.setObjectToJsonMapper(gson::toJson);
         app.get("/", ctx -> ctx.json(new TestObject_Serializable()));
         assertThat(call(HttpMethod.GET, "/").getBody(), is(expected));
 
-        JavalinJsonPlugin.setObjectToJsonMapper(oldMapper);
+        JavalinJson.setObjectToJsonMapper(oldMapper);
     }
 
     @Test
     public void test_customJsonToObjectMapper_sillyImplementation_works() throws Exception {
-        JsonToObjectMapper oldMapper = JavalinJsonPlugin.getJsonToObjectMapper(); // reset after test
+        JsonToObjectMapper oldMapper = JavalinJson.getJsonToObjectMapper(); // reset after test
 
         // Map anything to "Silly string"
         String sillyString = "Silly string";
-        JavalinJsonPlugin.setJsonToObjectMapper(new JsonToObjectMapper() {
+        JavalinJson.setJsonToObjectMapper(new JsonToObjectMapper() {
             public <T> T map(@NotNull String json, @NotNull Class<T> targetClass) {
                 return (T) sillyString;
             }
@@ -120,15 +120,15 @@ public class TestJson extends _UnirestBaseTest {
         });
         assertThat(Unirest.post(origin + "/").body("{}").asString().getBody(), is(sillyString));
 
-        JavalinJsonPlugin.setJsonToObjectMapper(oldMapper);
+        JavalinJson.setJsonToObjectMapper(oldMapper);
     }
 
     @Test
     public void test_customJsonToObjectMapper_normalImplementation_works() throws Exception {
-        JsonToObjectMapper oldMapper = JavalinJsonPlugin.getJsonToObjectMapper(); // reset after test
+        JsonToObjectMapper oldMapper = JavalinJson.getJsonToObjectMapper(); // reset after test
 
         Gson gson = new GsonBuilder().create();
-        JavalinJsonPlugin.setJsonToObjectMapper(gson::fromJson);
+        JavalinJson.setJsonToObjectMapper(gson::fromJson);
         app.post("/", ctx -> {
             Object o = ctx.bodyAsClass(TestObject_Serializable.class);
             if (o instanceof TestObject_Serializable) {
@@ -137,7 +137,7 @@ public class TestJson extends _UnirestBaseTest {
         });
         assertThat(Unirest.post(origin + "/").body(gson.toJson(new TestObject_Serializable())).asString().getBody(), is("success"));
 
-        JavalinJsonPlugin.setJsonToObjectMapper(oldMapper);
+        JavalinJson.setJsonToObjectMapper(oldMapper);
     }
 
 }

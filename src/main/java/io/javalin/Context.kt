@@ -11,7 +11,7 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.CookieStoreUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
-import io.javalin.json.JavalinJsonPlugin
+import io.javalin.json.JavalinJson
 import io.javalin.rendering.JavalinRenderer
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -103,7 +103,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * Requires Jackson library in the classpath.
      */
     fun <T> bodyAsClass(clazz: Class<T>): T {
-        return JavalinJsonPlugin.jsonToObjectMapper.map(body(), clazz)
+        return JavalinJson.jsonToObjectMapper.map(body(), clazz)
     }
 
     /**
@@ -532,7 +532,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * Requires Jackson library in the classpath.
      */
     fun json(obj: Any): Context {
-        return result(JavalinJsonPlugin.objectToJsonMapper.map(obj)).contentType("application/json")
+        return result(JavalinJson.objectToJsonMapper.map(obj)).contentType("application/json")
     }
 
 

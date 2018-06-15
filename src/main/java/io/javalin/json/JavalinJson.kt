@@ -18,7 +18,7 @@ interface ObjectToJsonMapper {
     fun map(obj: Any): String
 }
 
-object JavalinJsonPlugin {
+object JavalinJson {
 
     @JvmStatic
     var jsonToObjectMapper = object : JsonToObjectMapper {
