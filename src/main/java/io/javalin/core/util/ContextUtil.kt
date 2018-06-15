@@ -22,7 +22,7 @@ object ContextUtil {
     }
 
     fun splitKeyValueStringAndGroupByKey(string: String): Map<String, List<String>> {
-        return string.split("&").map { it.split("=") }.groupBy(
+        return if (string.isEmpty()) HashMap() else string.split("&").map { it.split("=") }.groupBy(
                 { it[0] },
                 { if (it.size > 1) URLDecoder.decode(it[1], "UTF-8") else "" }
         ).mapValues { it.value.toList() }
