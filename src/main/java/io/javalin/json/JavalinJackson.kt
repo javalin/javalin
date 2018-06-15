@@ -13,7 +13,7 @@ import io.javalin.core.util.Util
 
 object JavalinJackson {
 
-    internal var objectMapper: ObjectMapper? = null
+    private var objectMapper: ObjectMapper? = null
 
     @JvmStatic
     fun configure(staticObjectMapper: ObjectMapper) {
@@ -32,7 +32,7 @@ object JavalinJackson {
         return objectMapper!!.readValue(json, clazz)
     }
 
-    internal fun createObjectMapper(): ObjectMapper = try {
+    private fun createObjectMapper(): ObjectMapper = try {
         val className = "com.fasterxml.jackson.module.kotlin.KotlinModule";
         ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
     } catch (e: ClassNotFoundException) {
