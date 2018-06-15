@@ -538,7 +538,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
 
     /**
      * Renders a file with specified values and sets it as the context result.
-     * Also sets content-type to text/ctx.html.
+     * Also sets content-type to text/html.
      * Determines the correct rendering-function based on the file extension.
      */
     @JvmOverloads
