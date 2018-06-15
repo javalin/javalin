@@ -10,7 +10,7 @@ import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.*
 
 @WebSocket
-class WebSocketRouter(private val handlers: List<WebSocketHandler>) {
+class WebSocketRouter(private val wsEntries: List<WebSocketEntry>) {
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
@@ -32,8 +32,8 @@ class WebSocketRouter(private val handlers: List<WebSocketHandler>) {
         findHandler(session)?.onError(session, throwable)
     }
 
-    private fun findHandler(session: Session): WebSocketHandler? {
-        return handlers.find { it.matches(session.upgradeRequest.requestURI.path) }
+    private fun findHandler(session: Session): WebSocketEntry? {
+        return wsEntries.find { it.matches(session.upgradeRequest.requestURI.path) }
     }
 
 }

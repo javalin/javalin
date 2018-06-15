@@ -25,6 +25,7 @@ import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WebSocketConfig;
+import io.javalin.websocket.WebSocketEntry;
 import io.javalin.websocket.WebSocketHandler;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
@@ -60,7 +61,7 @@ public class Javalin {
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
     private ErrorMapper errorMapper = new ErrorMapper();
     private EventManager eventManager = new EventManager();
-    private List<WebSocketHandler> javalinWsHandlers = new ArrayList<>(); // TODO: move into PathMatcher
+    private List<WebSocketEntry> wsEntries = new ArrayList<>(); // TODO: move into PathMatcher
     private List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>(); // TODO: move into PathMatcher
 
     private AccessManager accessManager = (Handler handler, Context ctx, Set<Role> permittedRoles) -> {
@@ -123,7 +124,7 @@ public class Javalin {
                     prefer405over404,
                     new JettyResourceHandler(staticFileConfig)
                 );
-                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, javalinWsHandlers, log);
+                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, wsEntries, log);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
@@ -692,9 +693,9 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
-        WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
-        ws.configure(configuredHandler);
-        javalinWsHandlers.add(configuredHandler);
+        WebSocketHandler configuredWebSocket = new WebSocketHandler();
+        ws.configure(configuredWebSocket);
+        wsEntries.add(new WebSocketEntry(contextPath, path, configuredWebSocket));
         routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(contextPath, path), ws, null));
         return this;
     }

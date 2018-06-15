@@ -7,7 +7,7 @@
 package io.javalin.core.util
 
 import io.javalin.core.JavalinServlet
-import io.javalin.websocket.WebSocketHandler
+import io.javalin.websocket.WebSocketEntry
 import io.javalin.websocket.WebSocketRouter
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
@@ -34,7 +34,7 @@ object JettyServerUtil {
             port: Int,
             contextPath: String,
             javalinServlet: JavalinServlet,
-            wsHandlers: List<WebSocketHandler>,
+            wsEntries: List<WebSocketEntry>,
             log: Logger
     ): Int {
 
@@ -59,8 +59,8 @@ object JettyServerUtil {
             addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
                     factory.creator = WebSocketCreator { req, res ->
-                        wsHandlers.find { it.matches(req.requestURI.path) } ?: res.sendError(404, "WebSocket handler not found")
-                        WebSocketRouter(wsHandlers)
+                        wsEntries.find { it.matches(req.requestURI.path) } ?: res.sendError(404, "WebSocket handler not found")
+                        WebSocketRouter(wsEntries)
                     }
                 }
             }), "/*")

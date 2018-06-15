@@ -1,39 +1,17 @@
-/*
- * Javalin - https://javalin.io
- * Copyright 2017 David Åse
- * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
- */
-
 package io.javalin.websocket;
 
-import io.javalin.core.PathParser;
-import io.javalin.core.util.Util;
 import io.javalin.websocket.handler.CloseHandler;
 import io.javalin.websocket.handler.ConnectHandler;
 import io.javalin.websocket.handler.ErrorHandler;
 import io.javalin.websocket.handler.MessageHandler;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.jetbrains.annotations.NotNull;
 
 public class WebSocketHandler {
 
-    public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
-        pathParser = new PathParser(Util.INSTANCE.prefixContextPath(contextPath, path));
-    }
-
-    private final PathParser pathParser;
-    private final ConcurrentMap<Session, Map<String, String>> sessionPathParams = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Session, String> sessionIds = new ConcurrentHashMap<>();
-
-    private ConnectHandler connectHandler = null;
-    private MessageHandler messageHandler = null;
-    private CloseHandler closeHandler = null;
-    private ErrorHandler errorHandler = null;
+    ConnectHandler connectHandler = null;
+    MessageHandler messageHandler = null;
+    CloseHandler closeHandler = null;
+    ErrorHandler errorHandler = null;
 
     /**
      * Add a ConnectHandler to the WebSocketHandler.
@@ -71,47 +49,4 @@ public class WebSocketHandler {
         this.errorHandler = errorHandler;
     }
 
-    void onConnect(Session session) throws Exception {
-        WsSession wsSession = registerAndWrapSession(session);
-        if (connectHandler != null) {
-            connectHandler.handle(wsSession);
-        }
-    }
-
-    void onMessage(Session session, String message) throws Exception {
-        WsSession wsSession = registerAndWrapSession(session);
-        if (messageHandler != null) {
-            messageHandler.handle(wsSession, message);
-        }
-    }
-
-    void onClose(Session session, int statusCode, String reason) throws Exception {
-        WsSession wsSession = registerAndWrapSession(session);
-        if (closeHandler != null) {
-            closeHandler.handle(wsSession, statusCode, reason);
-        }
-        clearSessionCache(session);
-    }
-
-    void onError(Session session, Throwable throwable) throws Exception {
-        WsSession wsSession = registerAndWrapSession(session);
-        if (errorHandler != null) {
-            errorHandler.handle(wsSession, throwable);
-        }
-    }
-
-    public boolean matches(String requestUri) {
-        return pathParser.matches(requestUri);
-    }
-
-    private void clearSessionCache(Session session) {
-        sessionIds.remove(session);
-        sessionPathParams.remove(session);
-    }
-
-    private WsSession registerAndWrapSession(Session session) {
-        sessionIds.putIfAbsent(session, UUID.randomUUID().toString());
-        sessionPathParams.putIfAbsent(session, pathParser.extractPathParams(session.getUpgradeRequest().getRequestURI().getPath()));
-        return new WsSession(sessionIds.get(session), session, sessionPathParams.get(session));
-    }
 }
