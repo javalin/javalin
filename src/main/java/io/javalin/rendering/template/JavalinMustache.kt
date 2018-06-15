@@ -15,10 +15,6 @@ import java.io.StringWriter
 
 object JavalinMustache : FileRenderer {
 
-    init {
-        Util.ensureDependencyPresent(OptionalDependency.MUSTACHE)
-    }
-
     private var mustacheFactory: MustacheFactory? = null
 
     @JvmStatic
@@ -27,6 +23,7 @@ object JavalinMustache : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent(OptionalDependency.MUSTACHE)
         mustacheFactory = mustacheFactory ?: DefaultMustacheFactory("./")
         val stringWriter = StringWriter()
         mustacheFactory!!.compile(filePath).execute(stringWriter, model).close()

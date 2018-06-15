@@ -16,10 +16,6 @@ import java.nio.charset.StandardCharsets
 
 object JavalinVelocity : FileRenderer {
 
-    init {
-        Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
-    }
-
     private var velocityEngine: VelocityEngine? = null
 
     @JvmStatic
@@ -28,6 +24,7 @@ object JavalinVelocity : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
         velocityEngine = velocityEngine ?: defaultVelocityEngine()
         val stringWriter = StringWriter()
         velocityEngine!!.getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(

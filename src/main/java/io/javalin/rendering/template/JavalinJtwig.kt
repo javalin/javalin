@@ -16,10 +16,6 @@ import org.jtwig.environment.EnvironmentConfiguration
 
 object JavalinJtwig : FileRenderer {
 
-    init {
-        Util.ensureDependencyPresent(OptionalDependency.JTWIG)
-    }
-
     private var configuration: EnvironmentConfiguration? = null
 
     @JvmStatic
@@ -28,6 +24,7 @@ object JavalinJtwig : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent(OptionalDependency.JTWIG)
         val configuration = configuration ?: DefaultEnvironmentConfiguration()
         val template = JtwigTemplate.classpathTemplate(filePath, configuration)
         return template.render(JtwigModel.newModel(model))

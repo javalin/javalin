@@ -14,10 +14,6 @@ import org.commonmark.renderer.html.HtmlRenderer
 
 object JavalinCommonmark : FileRenderer {
 
-    init {
-        Util.ensureDependencyPresent(OptionalDependency.COMMONMARK)
-    }
-
     private var renderer: HtmlRenderer? = null
     private var parser: Parser? = null
 
@@ -28,6 +24,7 @@ object JavalinCommonmark : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent(OptionalDependency.COMMONMARK)
         renderer = renderer ?: HtmlRenderer.builder().build()
         parser = parser ?: Parser.builder().build()
         val fileContent = JavalinCommonmark::class.java.getResource(filePath).readText()

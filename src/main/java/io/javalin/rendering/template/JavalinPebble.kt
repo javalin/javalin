@@ -15,10 +15,6 @@ import java.io.StringWriter
 
 object JavalinPebble : FileRenderer {
 
-    init {
-        Util.ensureDependencyPresent(OptionalDependency.PEBBLE)
-    }
-
     private var pebbleEngine: PebbleEngine? = null
 
     @JvmStatic
@@ -27,6 +23,7 @@ object JavalinPebble : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent(OptionalDependency.PEBBLE)
         pebbleEngine = pebbleEngine ?: defaultPebbleEngine()
         val compiledTemplate = pebbleEngine!!.getTemplate(filePath)
         val stringWriter = StringWriter()

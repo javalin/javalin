@@ -13,10 +13,6 @@ import io.javalin.core.util.Util
 
 object JavalinJackson {
 
-    init {
-        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-    }
-
     internal var objectMapper: ObjectMapper? = null
 
     @JvmStatic
@@ -25,11 +21,13 @@ object JavalinJackson {
     }
 
     fun toJson(`object`: Any): String {
+        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
         objectMapper = objectMapper ?: createObjectMapper()
         return objectMapper!!.writeValueAsString(`object`)
     }
 
     fun <T> toObject(json: String, clazz: Class<T>): T {
+        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
         objectMapper = objectMapper ?: createObjectMapper()
         return objectMapper!!.readValue(json, clazz)
     }

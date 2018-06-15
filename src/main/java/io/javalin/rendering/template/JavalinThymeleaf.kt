@@ -16,10 +16,6 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 object JavalinThymeleaf : FileRenderer {
 
-    init {
-        Util.ensureDependencyPresent(OptionalDependency.THYMELEAF)
-    }
-
     private var templateEngine: TemplateEngine? = null
 
     @JvmStatic
@@ -28,6 +24,7 @@ object JavalinThymeleaf : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent(OptionalDependency.THYMELEAF)
         templateEngine = templateEngine ?: defaultThymeLeafEngine()
         val context = Context()
         context.setVariables(model)

@@ -15,10 +15,6 @@ import java.io.StringWriter
 
 object JavalinFreemarker : FileRenderer {
 
-    init {
-        Util.ensureDependencyPresent(OptionalDependency.FREEMARKER)
-    }
-
     private var configuration: Configuration? = null
 
     @JvmStatic
@@ -27,6 +23,7 @@ object JavalinFreemarker : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
+        Util.ensureDependencyPresent(OptionalDependency.FREEMARKER)
         configuration = configuration ?: defaultFreemarkerEngine()
         val stringWriter = StringWriter()
         configuration!!.getTemplate(filePath).process(model, stringWriter)
