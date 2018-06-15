@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class WebSocketHandler {
 
     public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
-        pathParser = new PathParser(Util.INSTANCE.prefixContextPath(path, contextPath));
+        pathParser = new PathParser(Util.INSTANCE.prefixContextPath(contextPath, path));
     }
 
     private final PathParser pathParser;

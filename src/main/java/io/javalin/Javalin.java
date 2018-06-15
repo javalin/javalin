@@ -424,7 +424,7 @@ public class Javalin {
     }
 
     private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
-        String prefixedPath = Util.INSTANCE.prefixContextPath(path, contextPath);
+        String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
         Handler handlerWrap = roles.isEmpty() ? handler : ctx -> accessManager.manage(handler, ctx, roles);
         pathMatcher.getHandlerEntries().get(httpMethod).add(new HandlerEntry(httpMethod, prefixedPath, handlerWrap));
         routeOverviewEntries.add(new RouteOverviewEntry(httpMethod, prefixedPath, handler, roles));
@@ -695,7 +695,7 @@ public class Javalin {
         WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
         ws.configure(configuredHandler);
         javalinWsHandlers.add(configuredHandler);
-        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(path, contextPath), ws, null));
+        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(contextPath, path), ws, null));
         return this;
     }
 

@@ -34,13 +34,13 @@ public class TestContextPath {
     @Test
     public void test_prefixPath_works() {
         BiFunction<String, String, String> prefix = Util.INSTANCE::prefixContextPath;
-        assertThat(prefix.apply("*", "/c-p"), is("*"));
-        assertThat(prefix.apply("/*", "/c-p"), is("/c-p/*"));
-        assertThat(prefix.apply("path", "/c-p"), is("/c-p/path"));
-        assertThat(prefix.apply("/path", "/c-p"), is("/c-p/path"));
-        assertThat(prefix.apply("//path", "/c-p"), is("/c-p/path"));
-        assertThat(prefix.apply("/path/", "/c-p"), is("/c-p/path/"));
-        assertThat(prefix.apply("//path//", "/c-p"), is("/c-p/path/"));
+        assertThat(prefix.apply("/c-p", "*"), is("*"));
+        assertThat(prefix.apply("/c-p", "/*"), is("/c-p/*"));
+        assertThat(prefix.apply("/c-p", "path"), is("/c-p/path"));
+        assertThat(prefix.apply("/c-p", "/path"), is("/c-p/path"));
+        assertThat(prefix.apply("/c-p", "//path"), is("/c-p/path"));
+        assertThat(prefix.apply("/c-p", "/path/"), is("/c-p/path/"));
+        assertThat(prefix.apply("/c-p", "//path//"), is("/c-p/path/"));
     }
 
     @Test
