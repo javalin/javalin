@@ -33,7 +33,7 @@ object JavalinJackson {
     }
 
     private fun createObjectMapper(): ObjectMapper = try {
-        val className = "com.fasterxml.jackson.module.kotlin.KotlinModule";
+        val className = "com.fasterxml.jackson.module.kotlin.KotlinModule"
         ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
     } catch (e: ClassNotFoundException) {
         ObjectMapper()

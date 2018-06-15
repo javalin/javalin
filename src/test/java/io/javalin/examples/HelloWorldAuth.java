@@ -19,7 +19,7 @@ import static io.javalin.security.Role.roles;
 public class HelloWorldAuth {
 
     enum MyRoles implements Role {
-        ROLE_ONE, ROLE_TWO, ROLE_THREE;
+        ROLE_ONE, ROLE_TWO, ROLE_THREE
     }
 
     public static void main(String[] args) {

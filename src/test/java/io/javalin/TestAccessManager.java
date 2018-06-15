@@ -31,7 +31,7 @@ public class TestAccessManager {
     };
 
     public enum MyRoles implements Role {
-        ROLE_ONE, ROLE_TWO, ROLE_THREE;
+        ROLE_ONE, ROLE_TWO, ROLE_THREE
     }
 
     @Test

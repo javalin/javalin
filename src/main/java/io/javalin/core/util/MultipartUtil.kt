@@ -16,7 +16,7 @@ import javax.servlet.http.Part
 object MultipartUtil {
 
     fun getUploadedFiles(servletRequest: HttpServletRequest, partName: String): List<UploadedFile> {
-        servletRequest.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")));
+        servletRequest.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")))
         return servletRequest.parts.filter { isFile(it) && it.name == partName }.map { filePart ->
             UploadedFile(
                     contentType = filePart.contentType,

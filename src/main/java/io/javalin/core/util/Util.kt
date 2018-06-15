@@ -44,7 +44,7 @@ object Util {
                 |</dependency>
                 |
                 |build.gradle:
-                |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin();
+                |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
             log.warn(message)
             throw HaltException(500, message)
         }

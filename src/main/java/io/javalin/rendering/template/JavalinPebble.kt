@@ -27,7 +27,7 @@ object JavalinPebble : FileRenderer {
         pebbleEngine = pebbleEngine ?: defaultPebbleEngine()
         val compiledTemplate = pebbleEngine!!.getTemplate(filePath)
         val stringWriter = StringWriter()
-        compiledTemplate.evaluate(stringWriter, model);
+        compiledTemplate.evaluate(stringWriter, model)
         return stringWriter.toString()
     }
 
