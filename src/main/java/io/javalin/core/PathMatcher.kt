@@ -13,6 +13,7 @@ import java.util.EnumMap
 import kotlin.collections.*
 
 class PathParser(val path: String) {
+
     private val pathParamNames = path.split("/")
             .filter { it.startsWith(":") }
             .map { it.replace(":", "") }
@@ -69,6 +70,7 @@ class PathParser(val path: String) {
 }
 
 data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
+
     private val parser: PathParser = PathParser(path)
 
     fun matches(requestUri: String) = parser.matches(requestUri)

@@ -7,6 +7,7 @@
 package io.javalin.websocket;
 
 import io.javalin.core.PathParser;
+import io.javalin.core.util.Util;
 import io.javalin.websocket.handler.CloseHandler;
 import io.javalin.websocket.handler.ConnectHandler;
 import io.javalin.websocket.handler.ErrorHandler;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class WebSocketHandler {
 
     public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
-        pathParser = new PathParser(contextPath + path);
+        pathParser = new PathParser(Util.INSTANCE.prefixContextPath(path, contextPath));
     }
 
     private final PathParser pathParser;
@@ -100,7 +101,7 @@ public class WebSocketHandler {
         }
     }
 
-    boolean matches(String requestUri) {
+    public boolean matches(String requestUri) {
         return pathParser.matches(requestUri);
     }
 

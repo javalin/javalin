@@ -7,9 +7,8 @@
 package io.javalin.core.util
 
 import io.javalin.core.JavalinServlet
-import io.javalin.websocket.RootWebSocketCreator
 import io.javalin.websocket.WebSocketHandler
-import io.javalin.websocket.WebSocketHandlerRoot
+import io.javalin.websocket.WebSocketRouter
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -19,6 +18,7 @@ import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
+import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.Logger
@@ -34,7 +34,7 @@ object JettyServerUtil {
             port: Int,
             contextPath: String,
             javalinServlet: JavalinServlet,
-            javalinWsHandlers: List<WebSocketHandler>,
+            wsHandlers: List<WebSocketHandler>,
             log: Logger
     ): Int {
 
@@ -56,10 +56,12 @@ object JettyServerUtil {
         }
 
         val webSocketHandler = ServletContextHandler(parent, contextPath).apply {
-            // add custom javalin websocket handler (root websocket handler which does routing)
             addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
-                    factory.creator = RootWebSocketCreator(WebSocketHandlerRoot(javalinWsHandlers), javalinWsHandlers)
+                    factory.creator = WebSocketCreator { req, res ->
+                        wsHandlers.find { it.matches(req.requestURI.path) } ?: res.sendError(404, "WebSocket handler not found")
+                        WebSocketRouter(wsHandlers)
+                    }
                 }
             }), "/*")
         }

@@ -10,7 +10,7 @@ import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.*
 
 @WebSocket
-class WebSocketHandlerRoot(private val handlers: List<WebSocketHandler>) {
+class WebSocketRouter(private val handlers: List<WebSocketHandler>) {
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
