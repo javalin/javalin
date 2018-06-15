@@ -35,7 +35,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_upload_text() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-upload", ctx -> {
             ctx.result(IOUtils.toString(ctx.uploadedFile("upload").getContent(), StandardCharsets.UTF_8));
         });
@@ -48,7 +48,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_upload_mp3() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-upload", ctx -> {
             UploadedFile uf = ctx.uploadedFile("upload");
             ctx.json(new UploadInfo(uf.getName(), uf.getContent().available(), uf.getContentType(), uf.getExtension()));
@@ -67,7 +67,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_upload_png() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-upload", ctx -> {
             UploadedFile uf = ctx.uploadedFile("upload");
             ctx.json(new UploadInfo(uf.getName(), uf.getContent().available(), uf.getContentType(), uf.getExtension()));
@@ -86,7 +86,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_multipleFiles() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-upload", ctx -> ctx.result(String.valueOf(ctx.uploadedFiles("upload").size())));
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
             .field("upload", new File("src/test/resources/upload-test/image.png"))
@@ -99,7 +99,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_doesntCrash_whenNotMultipart() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-upload", ctx -> {
             ctx.uploadedFile("non-existing-file");
             ctx.result("OK");
@@ -111,7 +111,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_files_and_fields() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-upload", ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload").getName()));
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
             .field("upload", new File("src/test/resources/upload-test/image.png"))
@@ -123,7 +123,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_files_and_multiple_fields() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-upload", ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.formParam("field2")));
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
             .field("upload", new File("src/test/resources/upload-test/image.png"))
@@ -136,7 +136,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_unicodeTextFields() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-upload", ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload").getName()));
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
             .field("upload", new File("src/test/resources/upload-test/text.txt"))
@@ -148,7 +148,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_textFields() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-multipart-text-fields", ctx -> {
 
             List<String> foos = ctx.formParams("foo");
@@ -187,7 +187,7 @@ public class TestMultipartForms {
 
     @Test
     public void test_fileAndTextFields() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.post("/test-multipart-file-and-text", ctx -> {
             String prefix = ctx.formParam("prefix");
             String fileContent = IOUtils.toString(ctx.uploadedFile("upload").getContent(), StandardCharsets.UTF_8);

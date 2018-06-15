@@ -53,6 +53,7 @@ public class Javalin {
     private boolean dynamicGzipEnabled = true;
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
+    private boolean started = false;
 
     private PathMatcher pathMatcher = new PathMatcher();
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
@@ -82,22 +83,16 @@ public class Javalin {
     }
 
     /**
-     * Creates and starts the application with default parameters on the specified port.
+     * Synchronously starts the application instance on the specified port.
      *
      * @param port to run on
      * @return running application instance.
      * @see Javalin#create()
      * @see Javalin#start()
      */
-    public static Javalin start(int port) {
-        return new Javalin()
-            .port(port)
-            .start();
+    public Javalin start(int port) {
+        return port(port).start();
     }
-
-    // Begin embedded server methods
-
-    private boolean started = false;
 
     /**
      * Synchronously starts the application instance.
@@ -367,8 +362,6 @@ public class Javalin {
             throw new IllegalStateException(action + " must be done before starting the server");
         }
     }
-
-    // End embedded server methods
 
     /**
      * Sets the access manager for the instance. Secured endpoints require one to be set.

@@ -24,7 +24,7 @@ public class TestRequestCache {
 
     @BeforeClass
     public static void setUp() {
-        appCacheEnabled = Javalin.start(0);
+        appCacheEnabled = Javalin.create().start(0);
         originCacheEnabled = "http://localhost:" + appCacheEnabled.port();
 
         appCacheDisabled = Javalin.create()

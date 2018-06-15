@@ -191,7 +191,7 @@ public class TestWebSocket {
 
     @Test
     public void test_ws_404() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
             .header("Connection", "Upgrade")
             .header("Upgrade", "websocket")
@@ -205,7 +205,7 @@ public class TestWebSocket {
 
     @Test
     public void test_headers_and_host() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.ws("websocket", ws -> {
             ws.onConnect(session -> {
                 log.add("Header: " + session.header("Test"));

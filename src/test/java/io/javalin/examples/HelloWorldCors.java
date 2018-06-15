@@ -26,9 +26,9 @@ public class HelloWorldCors {
             patch(ctx -> ctx.json("Hello Patch"));
         });
 
-        Javalin.start(7001).get("/", ctx -> ctx.html("Try some CORS"));
-        Javalin.start(7002).get("/", ctx -> ctx.html("Try some CORS"));
-        Javalin.start(7003).get("/", ctx -> ctx.html("No CORS here"));
+        Javalin.create().start(7001).get("/", ctx -> ctx.html("Try some CORS"));
+        Javalin.create().start(7002).get("/", ctx -> ctx.html("Try some CORS"));
+        Javalin.create().start(7003).get("/", ctx -> ctx.html("No CORS here"));
 
     }
 

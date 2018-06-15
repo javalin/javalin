@@ -18,7 +18,7 @@ public class TestContextExtensions {
 
     @Test
     public void test_jsonMapper_extension() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.before(ctx -> {
             ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx));
         });
