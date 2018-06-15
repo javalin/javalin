@@ -20,7 +20,6 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.jetbrains.annotations.NotNull;
 
-@WebSocket
 public class WebSocketHandler {
 
     public WebSocketHandler(@NotNull String contextPath, @NotNull String path) {
