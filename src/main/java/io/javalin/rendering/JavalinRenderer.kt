@@ -6,7 +6,7 @@
 
 package io.javalin.rendering
 
-import io.javalin.rendering.markdown.JavalinCommonmarkPlugin
+import io.javalin.rendering.markdown.JavalinCommonmark
 import io.javalin.rendering.template.*
 import org.slf4j.LoggerFactory
 
@@ -17,13 +17,13 @@ object JavalinRenderer {
     private val extensions = mutableMapOf<String, FileRenderer>()
 
     init {
-        register(JavalinVelocityPlugin, ".vm", ".vtl")
-        register(JavalinFreemarkerPlugin, ".ftl")
-        register(JavalinMustachePlugin, ".mustache")
-        register(JavalinJtwigPlugin, ".jtwig")
-        register(JavalinPebblePlugin, ".peb", ".pebble")
-        register(JavalinThymeleafPlugin, ".html", ".tl", ".thyme", ".thymeleaf")
-        register(JavalinCommonmarkPlugin, ".md", ".markdown")
+        register(JavalinVelocity, ".vm", ".vtl")
+        register(JavalinFreemarker, ".ftl")
+        register(JavalinMustache, ".mustache")
+        register(JavalinJtwig, ".jtwig")
+        register(JavalinPebble, ".peb", ".pebble")
+        register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
+        register(JavalinCommonmark, ".md", ".markdown")
     }
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>): String {

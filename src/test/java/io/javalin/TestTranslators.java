@@ -10,9 +10,9 @@ package io.javalin;
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.loader.ClasspathLoader;
 import io.javalin.rendering.JavalinRenderer;
-import io.javalin.rendering.template.JavalinJtwigPlugin;
-import io.javalin.rendering.template.JavalinPebblePlugin;
-import io.javalin.rendering.template.JavalinVelocityPlugin;
+import io.javalin.rendering.template.JavalinJtwig;
+import io.javalin.rendering.template.JavalinPebble;
+import io.javalin.rendering.template.JavalinVelocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.jtwig.environment.EnvironmentConfiguration;
 import org.jtwig.environment.EnvironmentConfigurationBuilder;
@@ -42,7 +42,7 @@ public class TestTranslators extends _UnirestBaseTest {
     public void test_customVelocityEngine_works() throws Exception {
         app.get("/hello", ctx -> ctx.render("/templates/velocity/test.vm"));
         assertThat(GET_body("/hello"), is("<h1>$message</h1>"));
-        JavalinVelocityPlugin.configure(strictVelocityEngine());
+        JavalinVelocity.configure(strictVelocityEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
     }
 
@@ -82,7 +82,7 @@ public class TestTranslators extends _UnirestBaseTest {
     public void test_customPebbleEngine_works() throws Exception {
         app.get("/hello", ctx -> ctx.render("templates/pebble/test.peb"));
         assertThat(GET_body("/hello"), is("<h1></h1>"));
-        JavalinPebblePlugin.configure(strictPebbleEngine());
+        JavalinPebble.configure(strictPebbleEngine());
         assertThat(GET_body("/hello"), is("Internal server error"));
     }
 
@@ -119,7 +119,7 @@ public class TestTranslators extends _UnirestBaseTest {
             .and()
             .build();
 
-        JavalinJtwigPlugin.configure(configuration);
+        JavalinJtwig.configure(configuration);
         app.get("/quiz", ctx -> ctx.render("/templates/jtwig/custom.jtwig"));
         assertThat(GET_body("/quiz"), is("<h1>Javalin is the best framework you will ever get</h1>"));
     }

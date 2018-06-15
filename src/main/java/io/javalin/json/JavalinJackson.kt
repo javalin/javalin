@@ -8,8 +8,9 @@ package io.javalin.json
 
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.javalin.core.util.Util
 
-object JavalinJacksonPlugin {
+object JavalinJackson {
 
     internal var objectMapper: ObjectMapper? = null
 
@@ -19,11 +20,13 @@ object JavalinJacksonPlugin {
     }
 
     fun toJson(`object`: Any): String {
+        Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
         objectMapper = objectMapper ?: createObjectMapper()
         return objectMapper!!.writeValueAsString(`object`)
     }
 
     fun <T> toObject(json: String, clazz: Class<T>): T {
+        Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
         objectMapper = objectMapper ?: createObjectMapper()
         return objectMapper!!.readValue(json, clazz)
     }

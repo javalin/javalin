@@ -11,7 +11,7 @@ import io.javalin.rendering.FileRenderer
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 
-object JavalinCommonmarkPlugin : FileRenderer {
+object JavalinCommonmark : FileRenderer {
 
     private var renderer: HtmlRenderer? = null
     private var parser: Parser? = null
@@ -26,7 +26,7 @@ object JavalinCommonmarkPlugin : FileRenderer {
         Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
         renderer = renderer ?: HtmlRenderer.builder().build()
         parser = parser ?: Parser.builder().build()
-        val fileContent = JavalinCommonmarkPlugin::class.java.getResource(filePath).readText()
+        val fileContent = JavalinCommonmark::class.java.getResource(filePath).readText()
         return renderer!!.render(parser!!.parse(fileContent))
     }
 

@@ -11,7 +11,7 @@ import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.json.JavalinJacksonPlugin;
+import io.javalin.json.JavalinJackson;
 import io.javalin.json.JavalinJson;
 import io.javalin.json.JsonToObjectMapper;
 import io.javalin.json.ObjectToJsonMapper;
@@ -28,7 +28,7 @@ public class TestJson extends _UnirestBaseTest {
 
     @BeforeClass
     public static void setObjectMapper() {
-        JavalinJacksonPlugin.configure(new CustomMapper());
+        JavalinJackson.configure(new CustomMapper());
     }
 
     @Test

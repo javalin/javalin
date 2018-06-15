@@ -13,7 +13,7 @@ import org.thymeleaf.context.Context
 import org.thymeleaf.templatemode.TemplateMode
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
-object JavalinThymeleafPlugin : FileRenderer {
+object JavalinThymeleaf : FileRenderer {
 
     private var templateEngine: TemplateEngine? = null
 

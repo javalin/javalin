@@ -13,7 +13,7 @@ import org.apache.velocity.app.VelocityEngine
 import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 
-object JavalinVelocityPlugin : FileRenderer {
+object JavalinVelocity : FileRenderer {
 
     private var velocityEngine: VelocityEngine? = null
 

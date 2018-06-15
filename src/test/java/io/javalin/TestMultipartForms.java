@@ -8,7 +8,7 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.json.JavalinJacksonPlugin;
+import io.javalin.json.JavalinJackson;
 import io.javalin.util.UploadInfo;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -57,7 +57,7 @@ public class TestMultipartForms {
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
             .field("upload", uploadFile)
             .asString();
-        UploadInfo uploadInfo = JavalinJacksonPlugin.INSTANCE.toObject(response.getBody(), UploadInfo.class);
+        UploadInfo uploadInfo = JavalinJackson.INSTANCE.toObject(response.getBody(), UploadInfo.class);
         assertThat(uploadInfo.getContentLength(), is(uploadFile.length()));
         assertThat(uploadInfo.getFilename(), is(uploadFile.getName()));
         assertThat(uploadInfo.getContentType(), is("application/octet-stream"));
@@ -76,7 +76,7 @@ public class TestMultipartForms {
         HttpResponse<String> response = Unirest.post("http://localhost:" + app.port() + "/test-upload")
             .field("upload", uploadFile, "image/png")
             .asString();
-        UploadInfo uploadInfo = JavalinJacksonPlugin.INSTANCE.toObject(response.getBody(), UploadInfo.class);
+        UploadInfo uploadInfo = JavalinJackson.INSTANCE.toObject(response.getBody(), UploadInfo.class);
         assertThat(uploadInfo.getContentLength(), is(uploadFile.length()));
         assertThat(uploadInfo.getFilename(), is(uploadFile.getName()));
         assertThat(uploadInfo.getContentType(), is("image/png"));

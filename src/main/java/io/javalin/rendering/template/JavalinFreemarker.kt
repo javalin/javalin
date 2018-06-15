@@ -12,7 +12,7 @@ import io.javalin.core.util.Util
 import io.javalin.rendering.FileRenderer
 import java.io.StringWriter
 
-object JavalinFreemarkerPlugin : FileRenderer {
+object JavalinFreemarker : FileRenderer {
 
     private var configuration: Configuration? = null
 
@@ -31,7 +31,7 @@ object JavalinFreemarkerPlugin : FileRenderer {
 
     private fun defaultFreemarkerEngine(): Configuration {
         val configuration = Configuration(Version(2, 3, 26))
-        configuration.setClassForTemplateLoading(JavalinFreemarkerPlugin::class.java, "/")
+        configuration.setClassForTemplateLoading(JavalinFreemarker::class.java, "/")
         return configuration
     }
 

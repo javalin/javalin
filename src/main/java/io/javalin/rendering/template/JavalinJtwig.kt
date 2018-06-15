@@ -13,13 +13,13 @@ import org.jtwig.JtwigTemplate
 import org.jtwig.environment.DefaultEnvironmentConfiguration
 import org.jtwig.environment.EnvironmentConfiguration
 
-object JavalinJtwigPlugin : FileRenderer {
+object JavalinJtwig : FileRenderer {
 
     private var configuration: EnvironmentConfiguration? = null
 
     @JvmStatic
     fun configure(staticConfiguration: EnvironmentConfiguration) {
-        JavalinJtwigPlugin.configuration = staticConfiguration
+        JavalinJtwig.configuration = staticConfiguration
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {

@@ -12,7 +12,7 @@ import io.javalin.core.util.Util
 import io.javalin.rendering.FileRenderer
 import java.io.StringWriter
 
-object JavalinMustachePlugin : FileRenderer {
+object JavalinMustache : FileRenderer {
 
     private var mustacheFactory: MustacheFactory? = null
 

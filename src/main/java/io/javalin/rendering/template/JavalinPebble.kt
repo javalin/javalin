@@ -12,7 +12,7 @@ import io.javalin.core.util.Util
 import io.javalin.rendering.FileRenderer
 import java.io.StringWriter
 
-object JavalinPebblePlugin : FileRenderer {
+object JavalinPebble : FileRenderer {
 
     private var pebbleEngine: PebbleEngine? = null
 

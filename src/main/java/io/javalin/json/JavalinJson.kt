@@ -6,8 +6,6 @@
 
 package io.javalin.json
 
-import io.javalin.core.util.Util
-
 @FunctionalInterface
 interface JsonToObjectMapper {
     fun <T> map(json: String, targetClass: Class<T>): T
@@ -22,20 +20,12 @@ object JavalinJson {
 
     @JvmStatic
     var jsonToObjectMapper = object : JsonToObjectMapper {
-        override fun <T> map(json: String, targetClass: Class<T>): T { // this awkward implementation is for backwards compatibility
-            Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-            JavalinJacksonPlugin.objectMapper = JavalinJacksonPlugin.objectMapper ?: JavalinJacksonPlugin.createObjectMapper()
-            return JavalinJacksonPlugin.objectMapper!!.readValue(json, targetClass)
-        }
+        override fun <T> map(json: String, targetClass: Class<T>): T = JavalinJackson.toObject(json, targetClass)
     }
 
     @JvmStatic
     var objectToJsonMapper = object : ObjectToJsonMapper {
-        override fun map(obj: Any): String { // this awkward implementation is for backwards compatibility
-            Util.ensureDependencyPresent("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core/jackson-databind")
-            JavalinJacksonPlugin.objectMapper = JavalinJacksonPlugin.objectMapper ?: JavalinJacksonPlugin.createObjectMapper()
-            return JavalinJacksonPlugin.objectMapper!!.writeValueAsString(obj)
-        }
+        override fun map(obj: Any): String = JavalinJackson.toJson(obj)
     }
 
 }
