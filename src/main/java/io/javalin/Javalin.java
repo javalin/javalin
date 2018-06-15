@@ -29,6 +29,7 @@ import io.javalin.websocket.WebSocketHandler;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -422,16 +423,16 @@ public class Javalin {
         return this;
     }
 
-    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, Set<Role> roles) {
+    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         String prefixedPath = Util.INSTANCE.prefixContextPath(path, contextPath);
-        Handler handlerWrap = roles == null ? handler : ctx -> accessManager.manage(handler, ctx, roles);
+        Handler handlerWrap = roles.isEmpty() ? handler : ctx -> accessManager.manage(handler, ctx, roles);
         pathMatcher.getHandlerEntries().get(httpMethod).add(new HandlerEntry(httpMethod, prefixedPath, handlerWrap));
         routeOverviewEntries.add(new RouteOverviewEntry(httpMethod, prefixedPath, handler, roles));
         return this;
     }
 
     private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
-        return addHandler(httpMethod, path, handler, null); // no roles set for this route (open to everyone)
+        return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone)
     }
 
     // HTTP verbs
