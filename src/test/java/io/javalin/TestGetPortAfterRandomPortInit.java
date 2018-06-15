@@ -8,7 +8,6 @@
 package io.javalin;
 
 import com.mashape.unirest.http.Unirest;
-import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

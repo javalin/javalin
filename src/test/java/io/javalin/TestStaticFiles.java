@@ -10,7 +10,6 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
-import java.io.IOException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
