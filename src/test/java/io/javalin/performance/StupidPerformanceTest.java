@@ -41,7 +41,7 @@ public class StupidPerformanceTest {
     }
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setup() {
         // Thread.sleep(7500) // uncomment if running with VisualVM
         app = Javalin.create()
             .port(0)

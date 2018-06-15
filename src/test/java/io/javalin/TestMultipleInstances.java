@@ -23,7 +23,7 @@ public class TestMultipleInstances {
     private static Javalin app3;
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() {
         app1 = Javalin.create().start(0);
         app2 = Javalin.create().start(0);
         app3 = Javalin.create().start(0);

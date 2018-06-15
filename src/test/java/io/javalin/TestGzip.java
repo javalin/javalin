@@ -32,7 +32,7 @@ public class TestGzip {
     private static int hugeLength = SillyObject.getSomeObjects(1000).toString().length();
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() {
         app = Javalin.create()
             .port(0)
             .start();

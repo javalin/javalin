@@ -35,7 +35,7 @@ public class _UnirestBaseTest {
     }
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() {
         app = Javalin.create()
             .port(0)
             .enableStaticFiles("/public")

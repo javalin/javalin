@@ -33,7 +33,7 @@ public class TestStaticFiles_edgeCases {
     }
 
     @Test
-    public void test_nonExistent_classpathFolder() throws Exception {
+    public void test_nonExistent_classpathFolder() {
         String[] message = {""};
         Javalin.create()
             .port(0)
@@ -45,7 +45,7 @@ public class TestStaticFiles_edgeCases {
     }
 
     @Test
-    public void test_nonExistent_externalFolder() throws Exception {
+    public void test_nonExistent_externalFolder() {
         String[] message = {""};
         Javalin.create()
             .port(0)
@@ -57,7 +57,7 @@ public class TestStaticFiles_edgeCases {
     }
 
     @Test
-    public void test_classpathEmptyFolder() throws Exception {
+    public void test_classpathEmptyFolder() {
         new File("src/test/external/empty").mkdir();
         String[] message = {""};
         Javalin.create()
@@ -70,7 +70,7 @@ public class TestStaticFiles_edgeCases {
     }
 
     @Test
-    public void test_externalEmptyFolder() throws Exception {
+    public void test_externalEmptyFolder() {
         new File("src/test/external/empty").mkdir();
         String[] message = {""};
         Javalin.create()

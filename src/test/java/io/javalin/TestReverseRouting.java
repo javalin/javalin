@@ -17,18 +17,18 @@ public class TestReverseRouting extends _UnirestBaseTest {
     private Handler helloHandler = ctx -> ctx.result("Hello World");
 
     @Test
-    public void test_pathFinder_works_basic() throws Exception {
+    public void test_pathFinder_works_basic() {
         app.get("/hello-get", helloHandler);
         assertThat(app.pathFinder(helloHandler), is("/hello-get"));
     }
 
     @Test
-    public void test_pathFinder_returnsNullForUnmappedHandler() throws Exception {
+    public void test_pathFinder_returnsNullForUnmappedHandler() {
         assertThat(app.pathFinder(helloHandler), is(nullValue()));
     }
 
     @Test
-    public void test_pathFinder_works_typed() throws Exception {
+    public void test_pathFinder_works_typed() {
         app.get("/hello-get", helloHandler);
         app.post("/hello-post", helloHandler);
         app.before("/hello-post", helloHandler);
@@ -38,7 +38,7 @@ public class TestReverseRouting extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_pathFinder_findsFirstForMultipleUsages() throws Exception {
+    public void test_pathFinder_findsFirstForMultipleUsages() {
         app.get("/hello-1", helloHandler);
         app.get("/hello-2", helloHandler);
         app.get("/hello-3", helloHandler);

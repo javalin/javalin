@@ -21,7 +21,7 @@ public class TestContextPath {
     static Javalin app;
 
     @Test
-    public void test_normalizeContextPath_works() throws Exception {
+    public void test_normalizeContextPath_works() {
         Function<String, String> normalize = Util.INSTANCE::normalizeContextPath;
         assertThat(normalize.apply("path"), is("/path"));
         assertThat(normalize.apply("/path"), is("/path"));
@@ -32,7 +32,7 @@ public class TestContextPath {
     }
 
     @Test
-    public void test_prefixPath_works() throws Exception {
+    public void test_prefixPath_works() {
         BiFunction<String, String, String> prefix = Util.INSTANCE::prefixContextPath;
         assertThat(prefix.apply("*", "/c-p"), is("*"));
         assertThat(prefix.apply("/*", "/c-p"), is("/c-p/*"));
