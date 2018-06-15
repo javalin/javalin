@@ -6,6 +6,7 @@
 
 package io.javalin.rendering.template
 
+import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.rendering.FileRenderer
 import org.apache.velocity.VelocityContext
@@ -15,6 +16,10 @@ import java.nio.charset.StandardCharsets
 
 object JavalinVelocity : FileRenderer {
 
+    init {
+        Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
+    }
+
     private var velocityEngine: VelocityEngine? = null
 
     @JvmStatic
@@ -23,7 +28,6 @@ object JavalinVelocity : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
-        Util.ensureDependencyPresent("Apache Velocity", "org.apache.velocity.Template", "org.apache.velocity/velocity")
         velocityEngine = velocityEngine ?: defaultVelocityEngine()
         val stringWriter = StringWriter()
         velocityEngine!!.getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(

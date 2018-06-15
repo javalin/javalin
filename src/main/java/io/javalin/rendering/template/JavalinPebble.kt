@@ -8,11 +8,16 @@ package io.javalin.rendering.template
 
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.ClasspathLoader
+import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.rendering.FileRenderer
 import java.io.StringWriter
 
 object JavalinPebble : FileRenderer {
+
+    init {
+        Util.ensureDependencyPresent(OptionalDependency.PEBBLE)
+    }
 
     private var pebbleEngine: PebbleEngine? = null
 
@@ -22,7 +27,6 @@ object JavalinPebble : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
-        Util.ensureDependencyPresent("pebble", "com.mitchellbosecke.pebble.PebbleEngine", "com.mitchellbosecke/pebble")
         pebbleEngine = pebbleEngine ?: defaultPebbleEngine()
         val compiledTemplate = pebbleEngine!!.getTemplate(filePath)
         val stringWriter = StringWriter()

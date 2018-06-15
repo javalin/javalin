@@ -8,11 +8,16 @@ package io.javalin.rendering.template
 
 import com.github.mustachejava.DefaultMustacheFactory
 import com.github.mustachejava.MustacheFactory
+import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.rendering.FileRenderer
 import java.io.StringWriter
 
 object JavalinMustache : FileRenderer {
+
+    init {
+        Util.ensureDependencyPresent(OptionalDependency.MUSTACHE)
+    }
 
     private var mustacheFactory: MustacheFactory? = null
 
@@ -22,7 +27,6 @@ object JavalinMustache : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
-        Util.ensureDependencyPresent("Mustache", "com.github.mustachejava.Mustache", "com.github.spullara.mustache.java/compiler")
         mustacheFactory = mustacheFactory ?: DefaultMustacheFactory("./")
         val stringWriter = StringWriter()
         mustacheFactory!!.compile(filePath).execute(stringWriter, model).close()

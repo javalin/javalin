@@ -6,12 +6,17 @@
 
 package io.javalin.rendering.markdown
 
+import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.rendering.FileRenderer
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 
 object JavalinCommonmark : FileRenderer {
+
+    init {
+        Util.ensureDependencyPresent(OptionalDependency.COMMONMARK)
+    }
 
     private var renderer: HtmlRenderer? = null
     private var parser: Parser? = null
@@ -23,7 +28,6 @@ object JavalinCommonmark : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
-        Util.ensureDependencyPresent("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark/commonmark")
         renderer = renderer ?: HtmlRenderer.builder().build()
         parser = parser ?: Parser.builder().build()
         val fileContent = JavalinCommonmark::class.java.getResource(filePath).readText()

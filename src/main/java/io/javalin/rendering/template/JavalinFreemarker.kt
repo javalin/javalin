@@ -8,11 +8,16 @@ package io.javalin.rendering.template
 
 import freemarker.template.Configuration
 import freemarker.template.Version
+import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.rendering.FileRenderer
 import java.io.StringWriter
 
 object JavalinFreemarker : FileRenderer {
+
+    init {
+        Util.ensureDependencyPresent(OptionalDependency.FREEMARKER)
+    }
 
     private var configuration: Configuration? = null
 
@@ -22,7 +27,6 @@ object JavalinFreemarker : FileRenderer {
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
-        Util.ensureDependencyPresent("Apache Freemarker", "freemarker.template.Configuration", "org.freemarker/freemarker")
         configuration = configuration ?: defaultFreemarkerEngine()
         val stringWriter = StringWriter()
         configuration!!.getTemplate(filePath).process(model, stringWriter)
