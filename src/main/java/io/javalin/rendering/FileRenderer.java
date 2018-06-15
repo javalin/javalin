@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.translator;
+package io.javalin.rendering;
 
 import io.javalin.Context;
 import java.util.Map;

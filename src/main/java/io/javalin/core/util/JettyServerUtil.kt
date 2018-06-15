@@ -4,11 +4,12 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core
+package io.javalin.core.util
 
-import io.javalin.core.websocket.RootWebSocketCreator
-import io.javalin.core.websocket.WebSocketHandler
-import io.javalin.core.websocket.WebSocketHandlerRoot
+import io.javalin.core.JavalinServlet
+import io.javalin.websocket.RootWebSocketCreator
+import io.javalin.websocket.WebSocketHandler
+import io.javalin.websocket.WebSocketHandlerRoot
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server

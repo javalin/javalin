@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.translator.json
+package io.javalin.json
 
 import io.javalin.core.util.Util
 

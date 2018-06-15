@@ -8,7 +8,7 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.translator.json.JavalinJacksonPlugin;
+import io.javalin.json.JavalinJacksonPlugin;
 import io.javalin.util.UploadInfo;
 import java.io.File;
 import java.nio.charset.StandardCharsets;

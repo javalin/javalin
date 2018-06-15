@@ -7,7 +7,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.core.staticfiles.Location;
+import io.javalin.staticfiles.Location;
 
 public class HelloWorldStaticFiles_external {
 

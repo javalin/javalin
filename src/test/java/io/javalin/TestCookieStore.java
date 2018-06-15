@@ -6,7 +6,7 @@
 
 package io.javalin;
 
-import io.javalin.translator.template.TemplateUtil;
+import io.javalin.rendering.template.TemplateUtil;
 import io.javalin.util.TestObject_Serializable;
 import java.util.Arrays;
 import java.util.List;

@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core.websocket;
+package io.javalin.websocket;
 
 /**
  * WebSocketConfig is a functional interface which is used

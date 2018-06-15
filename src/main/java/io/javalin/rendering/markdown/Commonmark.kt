@@ -4,10 +4,10 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.translator.markdown
+package io.javalin.rendering.markdown
 
 import io.javalin.core.util.Util
-import io.javalin.translator.FileRenderer
+import io.javalin.rendering.FileRenderer
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 

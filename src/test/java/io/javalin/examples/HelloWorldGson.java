@@ -9,7 +9,7 @@ package io.javalin.examples;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.javalin.Javalin;
-import io.javalin.translator.json.JavalinJsonPlugin;
+import io.javalin.json.JavalinJsonPlugin;
 import java.util.Arrays;
 
 public class HelloWorldGson {

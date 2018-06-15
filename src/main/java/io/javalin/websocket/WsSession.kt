@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core.websocket
+package io.javalin.websocket
 
 import io.javalin.core.util.ContextUtil
 import org.eclipse.jetty.websocket.api.*
@@ -25,6 +25,7 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
     fun queryString() = webSocketSession.upgradeRequest!!.queryString
     @JvmOverloads
     fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull() ?: default
+
     fun queryParams(queryParam: String): List<String> = queryParamMap()[queryParam] ?: emptyList()
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }

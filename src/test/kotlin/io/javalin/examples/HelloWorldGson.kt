@@ -8,9 +8,9 @@ package io.javalin.examples
 
 import com.google.gson.GsonBuilder
 import io.javalin.Javalin
-import io.javalin.translator.json.JavalinJsonPlugin
-import io.javalin.translator.json.JsonToObjectMapper
-import io.javalin.translator.json.ObjectToJsonMapper
+import io.javalin.json.JavalinJsonPlugin
+import io.javalin.json.JsonToObjectMapper
+import io.javalin.json.ObjectToJsonMapper
 import java.util.*
 
 fun main(args: Array<String>) {

@@ -6,9 +6,9 @@
 
 package io.javalin;
 
-import io.javalin.core.websocket.WebSocketConfig;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import io.javalin.websocket.WebSocketConfig;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Set;

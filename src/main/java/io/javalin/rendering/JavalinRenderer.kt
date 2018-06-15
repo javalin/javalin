@@ -4,15 +4,15 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.translator
+package io.javalin.rendering
 
-import io.javalin.translator.markdown.JavalinCommonmarkPlugin
-import io.javalin.translator.template.*
+import io.javalin.rendering.markdown.JavalinCommonmarkPlugin
+import io.javalin.rendering.template.*
 import org.slf4j.LoggerFactory
 
-object JavalinRenderingPlugin {
+object JavalinRenderer {
 
-    private val log = LoggerFactory.getLogger(JavalinRenderingPlugin.javaClass)
+    private val log = LoggerFactory.getLogger(JavalinRenderer.javaClass)
 
     private val extensions = mutableMapOf<String, FileRenderer>()
 

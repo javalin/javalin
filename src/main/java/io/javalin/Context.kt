@@ -11,8 +11,8 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.CookieStoreUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
-import io.javalin.translator.JavalinRenderingPlugin
-import io.javalin.translator.json.JavalinJsonPlugin
+import io.javalin.json.JavalinJsonPlugin
+import io.javalin.rendering.JavalinRenderer
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -543,7 +543,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     @JvmOverloads
     fun render(filePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        return html(JavalinRenderingPlugin.renderBasedOnExtension(filePath, model))
+        return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
     }
 
 }

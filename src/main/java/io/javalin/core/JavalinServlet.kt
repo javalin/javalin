@@ -9,11 +9,11 @@ package io.javalin.core
 import io.javalin.Context
 import io.javalin.HaltException
 import io.javalin.LogLevel
-import io.javalin.core.staticfiles.JettyResourceHandler
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.MethodNotAllowedUtil
+import io.javalin.staticfiles.JettyResourceHandler
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
