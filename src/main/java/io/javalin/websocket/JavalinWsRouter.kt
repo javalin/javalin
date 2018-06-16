@@ -13,12 +13,16 @@ import org.eclipse.jetty.websocket.api.annotations.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-data class WebSocketEntry(val path: String, val wsHandler: WebSocketHandler) {
+data class WebSocketEntry(val path: String, val handler: WebSocketHandler) {
     private val parser: PathParser = PathParser(path)
     fun matches(requestUri: String) = parser.matches(requestUri)
-    fun extractPathParams(requestUri: String): Map<String, String> = parser.extractPathParams(requestUri)
+    fun extractPathParams(requestUri: String) = parser.extractPathParams(requestUri)
 }
 
+/**
+ * Every WebSocket request passes through a single instance of this class.
+ * Session IDs are generated and tracked here, and path-parameters are cached for performance.
+ */
 @WebSocket
 class JavalinWsRouter(private val wsEntries: List<WebSocketEntry>) {
 
@@ -27,22 +31,22 @@ class JavalinWsRouter(private val wsEntries: List<WebSocketEntry>) {
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
-        findEntry(session)?.let { it.wsHandler.connectHandler?.handle(wrap(session, it)) }
+        findEntry(session)?.let { it.handler.connectHandler?.handle(wrap(session, it)) }
     }
 
     @OnWebSocketMessage
     fun webSocketMessage(session: Session, message: String) {
-        findEntry(session)?.let { it.wsHandler.messageHandler?.handle(wrap(session, it), message) }
+        findEntry(session)?.let { it.handler.messageHandler?.handle(wrap(session, it), message) }
     }
 
     @OnWebSocketError
     fun webSocketError(session: Session, throwable: Throwable?) {
-        findEntry(session)?.let { it.wsHandler.errorHandler?.handle(wrap(session, it), throwable) }
+        findEntry(session)?.let { it.handler.errorHandler?.handle(wrap(session, it), throwable) }
     }
 
     @OnWebSocketClose
     fun webSocketClose(session: Session, statusCode: Int, reason: String?) {
-        findEntry(session)?.let { it.wsHandler.closeHandler?.handle(wrap(session, it), statusCode, reason) }
+        findEntry(session)?.let { it.handler.closeHandler?.handle(wrap(session, it), statusCode, reason) }
         destroy(session)
     }
 
