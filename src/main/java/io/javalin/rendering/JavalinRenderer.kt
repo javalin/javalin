@@ -20,7 +20,7 @@ object JavalinRenderer {
         register(JavalinVelocity, ".vm", ".vtl")
         register(JavalinFreemarker, ".ftl")
         register(JavalinMustache, ".mustache")
-        register(JavalinJtwig, ".jtwig")
+        register(JavalinJtwig, ".jtwig", ".twig")
         register(JavalinPebble, ".peb", ".pebble")
         register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
         register(JavalinCommonmark, ".md", ".markdown")
