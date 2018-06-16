@@ -13,13 +13,17 @@ import org.eclipse.jetty.websocket.api.annotations.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-data class WebSocketEntry(val path: String, val wsHandler: WebSocketHandler)
+data class WebSocketEntry(val path: String, val wsHandler: WebSocketHandler) {
+    private val parser: PathParser = PathParser(path)
+    fun matches(requestUri: String) = parser.matches(requestUri)
+    fun extractPathParams(requestUri: String): Map<String, String> = parser.extractPathParams(requestUri)
+}
 
 @WebSocket
 class JavalinWsRouter(private val wsEntries: List<WebSocketEntry>) {
 
-    private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
     private val sessionIds = ConcurrentHashMap<Session, String>()
+    private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
@@ -44,16 +48,11 @@ class JavalinWsRouter(private val wsEntries: List<WebSocketEntry>) {
 
     private fun findEntry(session: Session) = findEntry(session.upgradeRequest)
 
-    fun findEntry(req: UpgradeRequest) = wsEntries.find {
-        PathParser(it.path).matches(req.requestURI.path)
-    }
-
-    private fun pathParams(session: Session, wsEntry: WebSocketEntry) =
-        PathParser(wsEntry.path).extractPathParams(session.upgradeRequest.requestURI.path)
+    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.requestURI.path) }
 
     private fun wrap(session: Session, wsEntry: WebSocketEntry): WsSession {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
-        sessionPathParams.putIfAbsent(session, pathParams(session, wsEntry))
+        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.requestURI.path))
         return WsSession(sessionIds[session]!!, session, sessionPathParams[session]!!)
     }
 
