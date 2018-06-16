@@ -13,7 +13,7 @@ import org.eclipse.jetty.websocket.api.annotations.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-data class WebSocketEntry(val path: String, val handler: WebSocketHandler) {
+data class WebSocketEntry(val path: String, val handler: WsHandler) {
     private val parser: PathParser = PathParser(path)
     fun matches(requestUri: String) = parser.matches(requestUri)
     fun extractPathParams(requestUri: String) = parser.extractPathParams(requestUri)

@@ -6,13 +6,9 @@
 
 package io.javalin.websocket;
 
-import io.javalin.websocket.handler.CloseHandler;
-import io.javalin.websocket.handler.ConnectHandler;
-import io.javalin.websocket.handler.ErrorHandler;
-import io.javalin.websocket.handler.MessageHandler;
 import org.jetbrains.annotations.NotNull;
 
-public class WebSocketHandler {
+public class WsHandler {
 
     ConnectHandler connectHandler = null;
     MessageHandler messageHandler = null;
@@ -20,7 +16,7 @@ public class WebSocketHandler {
     ErrorHandler errorHandler = null;
 
     /**
-     * Add a ConnectHandler to the WebSocketHandler.
+     * Add a ConnectHandler to the WsHandler.
      * The handler is called when a WebSocket client connects.
      */
     public void onConnect(@NotNull ConnectHandler connectHandler) {
@@ -28,7 +24,7 @@ public class WebSocketHandler {
     }
 
     /**
-     * Add a MessageHandler to the WebSocketHandler.
+     * Add a MessageHandler to the WsHandler.
      * The handler is called when a WebSocket client sends
      * a String message.
      */
@@ -37,7 +33,7 @@ public class WebSocketHandler {
     }
 
     /**
-     * Add a CloseHandler to the WebSocketHandler.
+     * Add a CloseHandler to the WsHandler.
      * The handler is called when a WebSocket client closes
      * the connection. The handler is not called in case of
      * network issues, only when the client actively closes the
@@ -48,7 +44,7 @@ public class WebSocketHandler {
     }
 
     /**
-     * Add a errorHandler to the WebSocketHandler.
+     * Add a errorHandler to the WsHandler.
      * The handler is called when an error is detected.
      */
     public void onError(@NotNull ErrorHandler errorHandler) {

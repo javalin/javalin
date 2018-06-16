@@ -10,11 +10,7 @@ import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.Javalin;
 import io.javalin.util.HandlerImplementation;
-import io.javalin.websocket.WebSocketConfig;
-import io.javalin.websocket.WebSocketHandler;
-import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import io.javalin.websocket.WsHandler;
 import static io.javalin.ApiBuilder.delete;
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.ApiBuilder.patch;
@@ -51,7 +47,6 @@ public class VisualTest {
         app.options("/what/:are/*/my-options", new HandlerImplementation());
         app.trace("/tracer", new HandlerImplementation());
         app.ws("/websocket", VisualTest::wsMethodRef);
-        app.ws("/websocket/:path", new ImplementingWsClass());
         app.routes(() -> {
             path("users", () -> {
                 get(new HandlerImplementation());
@@ -65,8 +60,8 @@ public class VisualTest {
         });
     }
 
-    private static void wsMethodRef(WebSocketHandler webSocketHandler) {
-        webSocketHandler.onConnect(session -> session.getRemote().sendString("Connected!"));
+    private static void wsMethodRef(WsHandler wsHandler) {
+        wsHandler.onConnect(session -> session.getRemote().sendString("Connected!"));
     }
 
     private static Handler lambdaField = ctx -> {
@@ -78,23 +73,7 @@ public class VisualTest {
         }
     }
 
-    private static class ImplementingWsClass implements WebSocketConfig {
-        @Override
-        public void configure(WebSocketHandler webSocketHandler) {
-        }
-    }
-
     private static void methodReference(Context context) {
-    }
-
-    @WebSocket
-    public static class TestWebSocketHandler {
-
-        @OnWebSocketConnect
-        public void onConnect(Session session) throws Exception {
-            session.getRemote().sendString("Connected");
-        }
-
     }
 
 }

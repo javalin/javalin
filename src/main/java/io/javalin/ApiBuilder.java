@@ -8,10 +8,11 @@ package io.javalin;
 
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
-import io.javalin.websocket.WebSocketConfig;
+import io.javalin.websocket.WsHandler;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -344,7 +345,7 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull String path, @NotNull WebSocketConfig ws) {
+    public static void ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
         staticJavalin.ws(prefixPath(path), ws);
     }
 

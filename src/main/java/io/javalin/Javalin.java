@@ -25,15 +25,15 @@ import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
 import io.javalin.websocket.JavalinWsRouter;
-import io.javalin.websocket.WebSocketConfig;
 import io.javalin.websocket.WebSocketEntry;
-import io.javalin.websocket.WebSocketHandler;
+import io.javalin.websocket.WsHandler;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -694,10 +694,10 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
+    public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
         String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
-        WebSocketHandler configuredWebSocket = new WebSocketHandler();
-        ws.configure(configuredWebSocket);
+        WsHandler configuredWebSocket = new WsHandler();
+        ws.accept(configuredWebSocket);
         wsEntries.add(new WebSocketEntry(prefixedPath, configuredWebSocket));
         routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(contextPath, path), ws, null));
         return this;
