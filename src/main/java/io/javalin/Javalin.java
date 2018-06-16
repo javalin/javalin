@@ -25,7 +25,7 @@ import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
 import io.javalin.websocket.JavalinWsRouter;
-import io.javalin.websocket.WebSocketEntry;
+import io.javalin.websocket.WsEntry;
 import io.javalin.websocket.WsHandler;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
@@ -62,7 +62,7 @@ public class Javalin {
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
     private ErrorMapper errorMapper = new ErrorMapper();
     private EventManager eventManager = new EventManager();
-    private List<WebSocketEntry> wsEntries = new ArrayList<>(); // TODO: move into PathMatcher
+    private List<WsEntry> wsEntries = new ArrayList<>(); // TODO: move into PathMatcher
     private List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>(); // TODO: move into PathMatcher
 
     private AccessManager accessManager = (Handler handler, Context ctx, Set<Role> permittedRoles) -> {
@@ -698,7 +698,7 @@ public class Javalin {
         String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
-        wsEntries.add(new WebSocketEntry(prefixedPath, configuredWebSocket));
+        wsEntries.add(new WsEntry(prefixedPath, configuredWebSocket));
         routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(contextPath, path), ws, null));
         return this;
     }
