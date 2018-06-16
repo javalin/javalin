@@ -24,6 +24,7 @@ import io.javalin.security.Role;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
+import io.javalin.websocket.JavalinWsRouter;
 import io.javalin.websocket.WebSocketConfig;
 import io.javalin.websocket.WebSocketEntry;
 import io.javalin.websocket.WebSocketHandler;
@@ -124,7 +125,8 @@ public class Javalin {
                     prefer405over404,
                     new JettyResourceHandler(staticFileConfig)
                 );
-                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, wsEntries, log);
+                JavalinWsRouter javalinWsRouter = new JavalinWsRouter(wsEntries);
+                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, javalinWsRouter, log);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
@@ -693,9 +695,10 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
+        String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
         WebSocketHandler configuredWebSocket = new WebSocketHandler();
         ws.configure(configuredWebSocket);
-        wsEntries.add(new WebSocketEntry(contextPath, path, configuredWebSocket));
+        wsEntries.add(new WebSocketEntry(prefixedPath, configuredWebSocket));
         routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(contextPath, path), ws, null));
         return this;
     }

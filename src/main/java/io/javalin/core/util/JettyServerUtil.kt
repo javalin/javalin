@@ -7,8 +7,7 @@
 package io.javalin.core.util
 
 import io.javalin.core.JavalinServlet
-import io.javalin.websocket.WebSocketEntry
-import io.javalin.websocket.WebSocketRouter
+import io.javalin.websocket.JavalinWsRouter
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -23,18 +22,20 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.Logger
 import java.io.ByteArrayInputStream
+import java.net.BindException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 object JettyServerUtil {
 
     @JvmStatic
+    @Throws(BindException::class)
     fun initialize(
             server: Server,
             port: Int,
             contextPath: String,
             javalinServlet: JavalinServlet,
-            wsEntries: List<WebSocketEntry>,
+            javalinWsRouter: JavalinWsRouter,
             log: Logger
     ): Int {
 
@@ -59,8 +60,8 @@ object JettyServerUtil {
             addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
                     factory.creator = WebSocketCreator { req, res ->
-                        wsEntries.find { it.matches(req.requestURI.path) } ?: res.sendError(404, "WebSocket handler not found")
-                        WebSocketRouter(wsEntries)
+                        javalinWsRouter.findEntry(req) ?: res.sendError(404, "WebSocket handler not found")
+                        javalinWsRouter // this is a long-lived object handling multiple connections
                     }
                 }
             }), "/*")
