@@ -54,7 +54,7 @@ class JavalinWsRouter(private val wsEntries: List<WebSocketEntry>) {
     private fun wrap(session: Session, wsEntry: WebSocketEntry): WsSession {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
         sessionPathParams.putIfAbsent(session, pathParams(session, wsEntry))
-        return WsSession(sessionIds[session], session, sessionPathParams[session])
+        return WsSession(sessionIds[session]!!, session, sessionPathParams[session]!!)
     }
 
     private fun destroy(session: Session) {
