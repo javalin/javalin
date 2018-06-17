@@ -39,7 +39,7 @@ class PathParser(
     fun matches(url: String) = url matches matchRegex
 
     fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
-        ":${name.toLowerCase()}" to urlDecode(value)
+        name.toLowerCase() to urlDecode(value)
     }.toMap()
 
     fun extractSplats(url: String) = values(splatRegex, url).map { urlDecode(it) }

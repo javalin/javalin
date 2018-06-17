@@ -124,7 +124,7 @@ public class TestRequest extends _UnirestBaseTest {
     @Test
     public void test_paramMapWorks_paramsPresent() throws Exception {
         app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParamMap().toString()));
-        assertThat(GET_body("/my/path/params"), is("{:1=my, :2=path, :3=params}"));
+        assertThat(GET_body("/my/path/params"), is("{1=my, 2=path, 3=params}"));
     }
 
     /*

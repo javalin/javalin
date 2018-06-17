@@ -30,7 +30,7 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
-    fun pathParam(param: String): String? = pathParamMap[":" + param.toLowerCase().replaceFirst(":", "")]
+    fun pathParam(param: String): String? = pathParamMap[param.toLowerCase().replaceFirst(":", "")]
     fun pathParamMap(): Map<String, String> = pathParamMap
     fun host(): String? = webSocketSession.upgradeRequest.host
     fun header(header: String): String? = webSocketSession.upgradeRequest.getHeader(header)
