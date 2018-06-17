@@ -69,17 +69,24 @@ public class TestRouting extends _SimpleClientBaseTest {
     }
 
     @Test
-    public void test_caseSensitive_paramName() throws Exception {
+    public void test_caseSensitive_path() throws Exception {
+        app.get("/HELLO", ctx -> ctx.result("Hello"));
+        TestResponse response = simpleHttpClient.http_GET(origin + "/hello");
+        assertThat(response.getBody(), is("Hello"));
+    }
+
+    @Test
+    public void test_caseSensitive_paramName_isLowercased() throws Exception {
         app.get("/:ParaM", ctx -> ctx.result(ctx.pathParam("pArAm")));
         TestResponse response = simpleHttpClient.http_GET(origin + "/path-param");
         assertThat(response.getBody(), is("path-param"));
     }
 
     @Test
-    public void test_caseSensitive_paramValue() throws Exception {
+    public void test_caseSensitive_paramValue_isLowerCased() throws Exception {
         app.get("/:path-param", ctx -> ctx.result(ctx.pathParam("path-param")));
         TestResponse response = simpleHttpClient.http_GET(origin + "/SomeCamelCasedValue");
-        assertThat(response.getBody(), is("SomeCamelCasedValue"));
+        assertThat(response.getBody(), is("somecamelcasedvalue"));
     }
 
     @Test

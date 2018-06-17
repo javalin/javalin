@@ -422,7 +422,7 @@ public class Javalin {
     }
 
     private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
-        String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
+        String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path).toLowerCase();
         Handler protectedHandler = handlerType.isHttpMethod() ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
         pathMatcher.getHandlerEntries().get(handlerType).add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler));
         handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
@@ -690,7 +690,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
-        String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
+        String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path).toLowerCase();
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
         wsPathMatcher.getWsEntries().add(new WsEntry(prefixedPath, configuredWebSocket));

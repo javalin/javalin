@@ -43,7 +43,7 @@ class JavalinServlet(
                 if (logLevel == LogLevel.EXTENSIVE) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
                 else servletResponse as HttpServletResponse
         val type = HandlerType.fromServletRequest(req)
-        val requestUri = req.requestURI
+        val requestUri = req.requestURI.toLowerCase()
         val ctx = Context(res, req)
 
         ctx.header("Server", "Javalin")
