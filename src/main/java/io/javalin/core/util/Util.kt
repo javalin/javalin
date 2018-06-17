@@ -16,8 +16,8 @@ object Util {
 
     var noServerHasBeenStarted = true
 
-    fun normalizeContextPath(contextPath: String) = ("/" + contextPath).replace("/{2,}".toRegex(), "/").removeSuffix("/")
-    fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else (contextPath + "/" + path).replace("/{2,}".toRegex(), "/")
+    fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
+    fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
 
     private fun classExists(className: String) = try {
         Class.forName(className)
