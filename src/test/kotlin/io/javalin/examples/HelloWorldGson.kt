@@ -8,8 +8,8 @@ package io.javalin.examples
 
 import com.google.gson.GsonBuilder
 import io.javalin.Javalin
-import io.javalin.json.JavalinJson
 import io.javalin.json.FromJsonMapper
+import io.javalin.json.JavalinJson
 import io.javalin.json.ToJsonMapper
 import java.util.*
 

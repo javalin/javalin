@@ -6,6 +6,8 @@
 
 package io.javalin
 
+import io.javalin.core.HandlerType
+import io.javalin.security.Role
 import java.io.InputStream
 
 /**
@@ -44,3 +46,5 @@ enum class JavalinEvent {
     SERVER_STOPPING,
     SERVER_STOPPED
 }
+
+data class HandlerMetaInfo(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: Set<Role>)

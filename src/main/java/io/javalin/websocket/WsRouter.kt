@@ -24,8 +24,9 @@ data class WsEntry(val path: String, val handler: WsHandler) {
  * Session IDs are generated and tracked here, and path-parameters are cached for performance.
  */
 @WebSocket
-class JavalinWsRouter(private val wsEntries: List<WsEntry>) {
+class WsPathMatcher() {
 
+    val wsEntries = mutableListOf<WsEntry>()
     private val sessionIds = ConcurrentHashMap<Session, String>()
     private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 

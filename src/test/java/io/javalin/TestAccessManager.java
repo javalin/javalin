@@ -35,7 +35,7 @@ public class TestAccessManager {
     }
 
     @Test
-    public void test_noAccessManager_throwsException() throws Exception {
+    public void test_noopAccessManager_throwsException_whenRoles() throws Exception {
         Javalin app = Javalin.create().start(0);
         app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE));
         assertThat(callWithRole(app.port(), "/secured", "ROLE_ONE"), is("Internal server error"));

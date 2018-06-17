@@ -7,11 +7,7 @@
 package io.javalin.core.util
 
 import io.javalin.Javalin
-import io.javalin.core.HandlerType
-import io.javalin.security.Role
 import sun.reflect.ConstantPool
-
-data class RouteOverviewEntry(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: Set<Role>?)
 
 object RouteOverviewUtil {
 
@@ -115,13 +111,13 @@ object RouteOverviewUtil {
                         <td>Roles</td>
                     </tr>
                 </thead>
-                ${app.routeOverviewEntries.map { (httpMethod, path, handler, roles) ->
+                ${app.handlerMetaInfo.map { (httpMethod, path, handler, roles) ->
             """
                     <tr class="method $httpMethod">
                         <td>$httpMethod</span></td>
                         <td>$path</td>
                         <td><b>${handler.metaInfo}</b></td>
-                        <td>${roles?.toString() ?: "-"}</td>
+                        <td>$roles</td>
                     </tr>
                     """
         }.joinToString("")}

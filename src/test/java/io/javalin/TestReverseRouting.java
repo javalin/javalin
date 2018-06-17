@@ -8,6 +8,7 @@ package io.javalin;
 
 import io.javalin.core.HandlerType;
 import org.junit.Test;
+import static io.javalin.security.Role.roles;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -19,6 +20,12 @@ public class TestReverseRouting extends _UnirestBaseTest {
     @Test
     public void test_pathFinder_works_basic() {
         app.get("/hello-get", helloHandler);
+        assertThat(app.pathFinder(helloHandler), is("/hello-get"));
+    }
+
+    @Test
+    public void test_pathFinder_works_accessManager() {
+        app.get("/hello-get", helloHandler, roles(TestAccessManager.MyRoles.ROLE_ONE));
         assertThat(app.pathFinder(helloHandler), is("/hello-get"));
     }
 

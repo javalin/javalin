@@ -16,7 +16,6 @@ import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.JettyServerUtil;
-import io.javalin.core.util.RouteOverviewEntry;
 import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
@@ -24,9 +23,9 @@ import io.javalin.security.Role;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
-import io.javalin.websocket.JavalinWsRouter;
 import io.javalin.websocket.WsEntry;
 import io.javalin.websocket.WsHandler;
+import io.javalin.websocket.WsPathMatcher;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -57,17 +56,14 @@ public class Javalin {
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
     private boolean started = false;
+    private AccessManager accessManager = AccessManager::noop;
 
     private PathMatcher pathMatcher = new PathMatcher();
+    private WsPathMatcher wsPathMatcher = new WsPathMatcher();
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
     private ErrorMapper errorMapper = new ErrorMapper();
     private EventManager eventManager = new EventManager();
-    private List<WsEntry> wsEntries = new ArrayList<>(); // TODO: move into PathMatcher
-    private List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>(); // TODO: move into PathMatcher
-
-    private AccessManager accessManager = (Handler handler, Context ctx, Set<Role> permittedRoles) -> {
-        throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
-    };
+    private List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
 
     protected Javalin() {
     }
@@ -125,8 +121,7 @@ public class Javalin {
                     prefer405over404,
                     new JettyResourceHandler(staticFileConfig)
                 );
-                JavalinWsRouter javalinWsRouter = new JavalinWsRouter(wsEntries);
-                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, javalinWsRouter, log);
+                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, wsPathMatcher, log);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
@@ -428,9 +423,9 @@ public class Javalin {
 
     private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
-        Handler handlerWrap = roles.isEmpty() ? handler : ctx -> accessManager.manage(handler, ctx, roles);
-        pathMatcher.getHandlerEntries().get(httpMethod).add(new HandlerEntry(httpMethod, prefixedPath, handlerWrap));
-        routeOverviewEntries.add(new RouteOverviewEntry(httpMethod, prefixedPath, handler, roles));
+        Handler protectedHandler = ctx -> accessManager.manage(handler, ctx, roles);
+        pathMatcher.getHandlerEntries().get(httpMethod).add(new HandlerEntry(httpMethod, prefixedPath, protectedHandler, handler));
+        handlerMetaInfo.add(new HandlerMetaInfo(httpMethod, prefixedPath, handler, roles));
         return this;
     }
 
@@ -675,7 +670,7 @@ public class Javalin {
      * Finds the mapped path for the specified handler
      */
     public String pathFinder(@NotNull Handler handler) {
-        return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler));
+        return pathMatcher.findHandlerPath(he -> he.getRawHandler().equals(handler));
     }
 
     /**
@@ -684,7 +679,7 @@ public class Javalin {
      * @see HandlerType
      */
     public String pathFinder(@NotNull Handler handler, @NotNull HandlerType handlerType) {
-        return pathMatcher.findHandlerPath(he -> he.getHandler().equals(handler) && he.getType() == handlerType);
+        return pathMatcher.findHandlerPath(he -> he.getRawHandler().equals(handler) && he.getType() == handlerType);
     }
 
     /**
@@ -698,17 +693,16 @@ public class Javalin {
         String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
-        wsEntries.add(new WsEntry(prefixedPath, configuredWebSocket));
-        routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(contextPath, path), ws, null));
+        wsPathMatcher.getWsEntries().add(new WsEntry(prefixedPath, configuredWebSocket));
+        handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, prefixedPath, ws, new HashSet<>()));
         return this;
     }
 
     /**
-     * Gets the list of RouteOverviewEntry-objects used to build
-     * the visual route-overview
+     * Gets the list of HandlerMetaInfo-objects
      */
-    public List<RouteOverviewEntry> getRouteOverviewEntries() {
-        return this.routeOverviewEntries;
+    public List<HandlerMetaInfo> getHandlerMetaInfo() {
+        return new ArrayList<>(handlerMetaInfo);
     }
 
     // package private method used for testing

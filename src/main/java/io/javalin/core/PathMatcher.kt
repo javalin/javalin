@@ -11,7 +11,7 @@ import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
 import java.util.*
 
-data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
+data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler, val rawHandler: Handler) {
     private val pathParser = PathParser(path)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
@@ -49,9 +49,7 @@ class PathParser(
 
 }
 
-class PathMatcher {
-
-    var ignoreTrailingSlashes = true
+class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
 
     private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
