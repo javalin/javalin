@@ -17,8 +17,8 @@ public class HelloWorldGson {
     public static void main(String[] args) {
 
         Gson gson = new GsonBuilder().create();
-        JavalinJson.setJsonToObjectMapper(gson::fromJson);
-        JavalinJson.setObjectToJsonMapper(gson::toJson);
+        JavalinJson.setFromJsonMapper(gson::fromJson);
+        JavalinJson.setToJsonMapper(gson::toJson);
 
         Javalin app = Javalin.create().port(7070).start();
         app.get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")));

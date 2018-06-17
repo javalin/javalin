@@ -9,24 +9,20 @@ package io.javalin.examples
 import com.google.gson.GsonBuilder
 import io.javalin.Javalin
 import io.javalin.json.JavalinJson
-import io.javalin.json.JsonToObjectMapper
-import io.javalin.json.ObjectToJsonMapper
+import io.javalin.json.FromJsonMapper
+import io.javalin.json.ToJsonMapper
 import java.util.*
 
 fun main(args: Array<String>) {
 
     val gson = GsonBuilder().create()
 
-    JavalinJson.jsonToObjectMapper = object : JsonToObjectMapper {
-        override fun <T> map(json: String, targetClass: Class<T>): T {
-            return gson.fromJson(json, targetClass)
-        }
+    JavalinJson.fromJsonMapper = object : FromJsonMapper {
+        override fun <T> map(json: String, targetClass: Class<T>) = gson.fromJson(json, targetClass)
     }
 
-    JavalinJson.objectToJsonMapper = object : ObjectToJsonMapper {
-        override fun map(obj: Any): String {
-            return gson.toJson(obj)
-        }
+    JavalinJson.toJsonMapper = object : ToJsonMapper {
+        override fun map(obj: Any): String = gson.toJson(obj)
     }
 
     val app = Javalin.create().port(7070).start()

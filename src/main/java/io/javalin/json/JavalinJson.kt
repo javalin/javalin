@@ -7,24 +7,24 @@
 package io.javalin.json
 
 @FunctionalInterface
-interface JsonToObjectMapper {
+interface FromJsonMapper {
     fun <T> map(json: String, targetClass: Class<T>): T
 }
 
 @FunctionalInterface
-interface ObjectToJsonMapper {
+interface ToJsonMapper {
     fun map(obj: Any): String
 }
 
 object JavalinJson {
 
     @JvmStatic
-    var jsonToObjectMapper = object : JsonToObjectMapper {
-        override fun <T> map(json: String, targetClass: Class<T>): T = JavalinJackson.toObject(json, targetClass)
+    var fromJsonMapper = object : FromJsonMapper {
+        override fun <T> map(json: String, targetClass: Class<T>): T = JavalinJackson.fromJson(json, targetClass)
     }
 
     @JvmStatic
-    var objectToJsonMapper = object : ObjectToJsonMapper {
+    var toJsonMapper = object : ToJsonMapper {
         override fun map(obj: Any): String = JavalinJackson.toJson(obj)
     }
 

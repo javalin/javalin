@@ -91,7 +91,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * Requires Jackson library in the classpath.
      */
     fun <T> bodyAsClass(clazz: Class<T>): T {
-        return JavalinJson.jsonToObjectMapper.map(body(), clazz)
+        return JavalinJson.fromJsonMapper.map(body(), clazz)
     }
 
     /**
@@ -520,7 +520,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * Requires Jackson library in the classpath.
      */
     fun json(obj: Any): Context {
-        return result(JavalinJson.objectToJsonMapper.map(obj)).contentType("application/json")
+        return result(JavalinJson.toJsonMapper.map(obj)).contentType("application/json")
     }
 
 

@@ -26,7 +26,7 @@ object JavalinJackson {
         return objectMapper!!.writeValueAsString(`object`)
     }
 
-    fun <T> toObject(json: String, clazz: Class<T>): T {
+    fun <T> fromJson(json: String, clazz: Class<T>): T {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
         objectMapper = objectMapper ?: createObjectMapper()
         return objectMapper!!.readValue(json, clazz)
