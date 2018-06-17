@@ -24,14 +24,16 @@ import io.javalin.security.Role;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
-import io.javalin.websocket.WebSocketConfig;
-import io.javalin.websocket.WebSocketHandler;
+import io.javalin.websocket.JavalinWsRouter;
+import io.javalin.websocket.WsEntry;
+import io.javalin.websocket.WsHandler;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -60,7 +62,7 @@ public class Javalin {
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
     private ErrorMapper errorMapper = new ErrorMapper();
     private EventManager eventManager = new EventManager();
-    private List<WebSocketHandler> javalinWsHandlers = new ArrayList<>(); // TODO: move into PathMatcher
+    private List<WsEntry> wsEntries = new ArrayList<>(); // TODO: move into PathMatcher
     private List<RouteOverviewEntry> routeOverviewEntries = new ArrayList<>(); // TODO: move into PathMatcher
 
     private AccessManager accessManager = (Handler handler, Context ctx, Set<Role> permittedRoles) -> {
@@ -123,7 +125,8 @@ public class Javalin {
                     prefer405over404,
                     new JettyResourceHandler(staticFileConfig)
                 );
-                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, javalinWsHandlers, log);
+                JavalinWsRouter javalinWsRouter = new JavalinWsRouter(wsEntries);
+                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, javalinWsRouter, log);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
@@ -691,10 +694,11 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public Javalin ws(@NotNull String path, @NotNull WebSocketConfig ws) {
-        WebSocketHandler configuredHandler = new WebSocketHandler(contextPath, path);
-        ws.configure(configuredHandler);
-        javalinWsHandlers.add(configuredHandler);
+    public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
+        String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
+        WsHandler configuredWebSocket = new WsHandler();
+        ws.accept(configuredWebSocket);
+        wsEntries.add(new WsEntry(prefixedPath, configuredWebSocket));
         routeOverviewEntries.add(new RouteOverviewEntry(HandlerType.WEBSOCKET, Util.INSTANCE.prefixContextPath(contextPath, path), ws, null));
         return this;
     }

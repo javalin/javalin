@@ -4,9 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.websocket.handler;
-
-import io.javalin.websocket.WsSession;
+package io.javalin.websocket;
 
 @FunctionalInterface
 public interface CloseHandler {
