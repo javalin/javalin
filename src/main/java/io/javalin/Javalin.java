@@ -421,11 +421,11 @@ public class Javalin {
         return this;
     }
 
-    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
+    private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         String prefixedPath = Util.INSTANCE.prefixContextPath(contextPath, path);
-        Handler protectedHandler = ctx -> accessManager.manage(handler, ctx, roles);
-        pathMatcher.getHandlerEntries().get(httpMethod).add(new HandlerEntry(httpMethod, prefixedPath, protectedHandler, handler));
-        handlerMetaInfo.add(new HandlerMetaInfo(httpMethod, prefixedPath, handler, roles));
+        Handler protectedHandler = handlerType.isHttpMethod() ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
+        pathMatcher.getHandlerEntries().get(handlerType).add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler));
+        handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
         return this;
     }
 
