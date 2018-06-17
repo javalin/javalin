@@ -14,9 +14,9 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 data class WsEntry(val path: String, val handler: WsHandler) {
-    private val parser: PathParser = PathParser(path)
-    fun matches(requestUri: String) = parser.matches(requestUri)
-    fun extractPathParams(requestUri: String) = parser.extractPathParams(requestUri)
+    private val pathParser = PathParser(path)
+    fun matches(requestUri: String) = pathParser.matches(requestUri)
+    fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
 }
 
 /**

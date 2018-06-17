@@ -9,75 +9,44 @@ package io.javalin.core
 import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
-import java.util.EnumMap
-import kotlin.collections.*
-
-class PathParser(val path: String) {
-
-    private val pathParamNames = path.split("/")
-            .filter { it.startsWith(":") }
-            .map { it.replace(":", "") }
-
-    private val matchRegex = pathParamNames
-            // Replace path param names with wildcards (accepting everything except slash)
-            .fold(path) { path, name -> path.replace(":$name", "[^/]+?") }
-            // Replace double slash occurrences
-            .replace("//", "/")
-            // Replace splat between slashes to a wildcard
-            .replace("/*/", "/.*?/")
-            // Replace splat in the beginning of path to a wildcard (allow paths like (*/path/)
-            .replace("^\\*".toRegex(), ".*?")
-            // Replace splat in the end of string to a wildcard
-            .replace("/*", "/.*?")
-            // Replace trailing slash to optional one
-            .replace("/$".toRegex(), "/?")
-            // Add slash if doesn't have one
-            .run { if (!endsWith("/?")) this + "/?" else this }
-            // Let the matcher know that it is the whole path
-            .run { "^" + this + "$" }
-            .toRegex()
-
-    // Use param wildcard as a capturing group
-    private val pathParamRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
-
-    // Use splat wildcard as a capturing group
-    private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex()
-
-    fun matches(requestUri: String) = requestUri matches matchRegex
-
-    fun extractPathParams(requestUri: String): Map<String, String> {
-        val values = pathParamRegex.matchEntire(requestUri)?.groupValues
-        val map = HashMap<String, String>()
-        values?.let {
-            (1 until values.size).forEach { index ->
-                map[":" + pathParamNames[index - 1].toLowerCase()] = urlDecode(values[index])
-            }
-        }
-        return map
-    }
-
-    fun extractSplats(requestUri: String): List<String> {
-        val values = splatRegex.matchEntire(requestUri)?.groupValues
-        val result = ArrayList<String>()
-        values?.let {
-            (1 until values.size).forEach { index ->
-                result.add(urlDecode(values[index]))
-            }
-        }
-        return result
-    }
-
-}
+import java.util.*
 
 data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler) {
+    private val pathParser = PathParser(path)
+    fun matches(requestUri: String) = pathParser.matches(requestUri)
+    fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
+    fun extractSplats(requestUri: String) = pathParser.extractSplats(requestUri)
+}
 
-    private val parser: PathParser = PathParser(path)
+class PathParser(
+        path: String,
+        private val pathParamNames: List<String> = path.split("/")
+                .filter { it.startsWith(":") }
+                .map { it.replace(":", "") },
+        private val matchRegex: Regex = pathParamNames
+                .fold(path) { p, name -> p.replace(":$name", "[^/]+?") } // Replace path param names with wildcards (accepting everything except slash)
+                .replace("//", "/") // Replace double slash occurrences
+                .replace("/*/", "/.*?/") // Replace splat between slashes to a wildcard
+                .replace("^\\*".toRegex(), ".*?") // Replace splat in the beginning of path to a wildcard (allow paths like (*/path/)
+                .replace("/*", "/.*?") // Replace splat in the end of string to a wildcard
+                .replace("/$".toRegex(), "/?") // Replace trailing slash to optional one
+                .run { if (!endsWith("/?")) this + "/?" else this } // Add slash if doesn't have one
+                .run { "^" + this + "$" } // Let the matcher know that it is the whole path
+                .toRegex(),
+        private val splatRegex: Regex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex(),
+        private val pathParamRegex: Regex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()) {
 
-    fun matches(requestUri: String) = parser.matches(requestUri)
+    fun matches(url: String) = url matches matchRegex
 
-    fun extractPathParams(requestUri: String): Map<String, String> = parser.extractPathParams(requestUri)
+    fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
+        ":${name.toLowerCase()}" to urlDecode(value)
+    }.toMap()
 
-    fun extractSplats(requestUri: String): List<String> = parser.extractSplats(requestUri)
+    fun extractSplats(url: String) = values(splatRegex, url).map { urlDecode(it) }
+
+    // Match and group values, then drop first element (the input string)
+    private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
+
 }
 
 class PathMatcher {
@@ -90,9 +59,8 @@ class PathMatcher {
         it to arrayListOf()
     }
 
-    fun findEntries(requestType: HandlerType, requestUri: String): List<HandlerEntry> {
-        return handlerEntries[requestType]!!.filter { he -> match(he, requestUri) }
-    }
+    fun findEntries(requestType: HandlerType, requestUri: String) =
+            handlerEntries[requestType]!!.filter { he -> match(he, requestUri) }
 
     private fun match(entry: HandlerEntry, requestPath: String): Boolean = when {
         entry.path == "*" -> true
@@ -101,7 +69,7 @@ class PathMatcher {
         else -> entry.matches(requestPath)
     }
 
-    private fun slashMismatch(s1: String, s2: String): Boolean = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
+    private fun slashMismatch(s1: String, s2: String) = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
 
     fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
         val entries = handlerEntries.values.flatten().filter(predicate)
