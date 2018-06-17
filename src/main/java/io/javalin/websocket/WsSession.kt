@@ -13,11 +13,10 @@ import java.net.InetSocketAddress
 
 /**
  * The [WsSession] class is a wrapper for Jetty's [Session].
- * It adds functionality for extracting query params, identical to
- * the API found in [io.javalin.Context].
+ * It adds functionality similar to the API found in [io.javalin.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-class WsSession(val id: String, session: Session, private var pathParamMap: Map<String, String>) : Session {
+class WsSession(val id: String, session: Session, private var pathParamMap: Map<String, String>, private val matchedPath: String) : Session {
 
     private val webSocketSession = session as WebSocketSession
 
@@ -30,11 +29,12 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
-    fun pathParam(param: String): String? = pathParamMap[param.toLowerCase().replaceFirst(":", "")]
+    fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath)
     fun pathParamMap(): Map<String, String> = pathParamMap
     fun host(): String? = webSocketSession.upgradeRequest.host
     fun header(header: String): String? = webSocketSession.upgradeRequest.getHeader(header)
     fun headerMap(): Map<String, String> = webSocketSession.upgradeRequest.headers.keys.map { it to webSocketSession.upgradeRequest.getHeader(it) }.toMap()
+    fun matchedPath() = matchedPath
 
     // interface overrides + equals/hash
 

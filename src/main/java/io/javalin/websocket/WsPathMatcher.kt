@@ -58,7 +58,7 @@ class WsPathMatcher() {
     private fun wrap(session: Session, wsEntry: WsEntry): WsSession {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
         sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.requestURI.path))
-        return WsSession(sessionIds[session]!!, session, sessionPathParams[session]!!)
+        return WsSession(sessionIds[session]!!, session, sessionPathParams[session]!!, wsEntry.path)
     }
 
     private fun destroy(session: Session) {

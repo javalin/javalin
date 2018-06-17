@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
 /**
  * This test could be better
@@ -215,13 +216,38 @@ public class TestWebSocket {
             });
         });
 
-        TestClient testClient1_1 = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), Collections.singletonMap("Test", "HeaderParameter"));
-        doAndSleepWhile(testClient1_1::connect, () -> !testClient1_1.isOpen());
-        doAndSleepWhile(testClient1_1::close, testClient1_1::isClosing);
+        TestClient testClient = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), Collections.singletonMap("Test", "HeaderParameter"));
+        doAndSleepWhile(testClient::connect, () -> !testClient.isOpen());
+        doAndSleepWhile(testClient::close, testClient::isClosing);
 
         assertThat(log, containsInAnyOrder(
             "Header: HeaderParameter"
             , "Closed connection from: localhost"));
+        app.stop();
+    }
+
+    @Test
+    public void test_miscPathExtractions() throws Exception {
+        String[] matchedPath = {null};
+        String[] pathParam = {null};
+        String[] queryParam = {null};
+        Javalin app = Javalin.create().start(0);
+        app.ws("/websocket/:channel", ws -> {
+            ws.onConnect(session -> {
+                matchedPath[0] = session.matchedPath();
+                pathParam[0] = session.pathParam("channel");
+                queryParam[0] = session.queryParam("qp");
+            });
+        });
+
+        TestClient testClient = new TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/channel-one?qp=just-a-qp"));
+        doAndSleepWhile(testClient::connect, () -> !testClient.isOpen());
+        doAndSleepWhile(testClient::close, testClient::isClosing);
+
+        assertThat(matchedPath[0], is("/websocket/:channel"));
+        assertThat(pathParam[0], is("channel-one"));
+        assertThat(queryParam[0], is("just-a-qp"));
+
         app.stop();
     }
 
