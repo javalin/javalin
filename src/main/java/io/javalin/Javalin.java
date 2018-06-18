@@ -264,8 +264,8 @@ public class Javalin {
      * Configure instance to log debug information for each request.
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin enableDebugRequestLogs() {
-        ensureActionIsPerformedBeforeServerStart("Enabling debug-request-logs");
+    public Javalin enableDebugLogging() {
+        ensureActionIsPerformedBeforeServerStart("Enabling debug-logging");
         this.debugLogs = true;
         return this;
     }

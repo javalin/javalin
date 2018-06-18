@@ -6,6 +6,12 @@
 
 package io.javalin;
 
+/**
+ * Interface for logging requests.
+ *
+ * @see Context
+ * @see <a href="https://javalin.io/documentation#request-loggers">RequestLogger in documentation</a>
+ */
 @FunctionalInterface
 public interface RequestLogger {
     void handle(Context ctx, Float executionTimeMs) throws Exception;

@@ -27,7 +27,7 @@ public class TestLogging {
 
     @Test
     public void test_debugLogging() throws Exception {
-        Javalin app = Javalin.create().port(0).enableDebugRequestLogs().start();
+        Javalin app = Javalin.create().port(0).enableDebugLogging().start();
         addAndTestEndpoints(app);
         app.stop();
     }
