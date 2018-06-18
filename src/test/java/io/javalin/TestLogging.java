@@ -26,15 +26,17 @@ public class TestLogging {
     }
 
     @Test
-    public void test_minimalLogging() throws Exception {
-        Javalin app = Javalin.create().port(0).requestLogLevel(LogLevel.MINIMAL).start();
+    public void test_debugLogging() throws Exception {
+        Javalin app = Javalin.create().port(0).enableDebugRequestLogs().start();
         addAndTestEndpoints(app);
         app.stop();
     }
 
     @Test
-    public void test_ExtensiveLogging() throws Exception {
-        Javalin app = Javalin.create().port(0).requestLogLevel(LogLevel.EXTENSIVE).start();
+    public void test_customLogger() throws Exception {
+        Javalin app = Javalin.create().port(0).requestLogger((ctx, executionTimeMs) -> {
+            System.out.println("That took " + executionTimeMs + " milliseconds");
+        }).start();
         addAndTestEndpoints(app);
         app.stop();
     }
