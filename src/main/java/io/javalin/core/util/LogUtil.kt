@@ -18,7 +18,7 @@ object LogUtil {
     fun logRequestAndResponse(ctx: Context, matcher: PathMatcher, log: Logger, gzipped: Boolean) {
         val type = HandlerType.fromServletRequest(ctx.request())
         val requestUri = ctx.request().requestURI
-        val executionTime = Formatter(Locale.US).format("%.2f", executionTime(ctx))
+        val executionTimeMs = Formatter(Locale.US).format("%.2f", executionTimeMs(ctx))
         with(ctx) {
             val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) + matcher.findEntries(type, requestUri) + matcher.findEntries(HandlerType.AFTER, requestUri)).map { it.type.name + "=" + it.path }
             val resBody = (response() as CachedResponseWrapper).getCopy()
@@ -32,7 +32,7 @@ object LogUtil {
                         |    QueryString: ${queryString()}
                         |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.toString() }}
                         |    FormParams: ${formParamMap().mapValues { (_, v) -> v.toString() }}
-                        |Response: [${status()}], execution took $executionTime ms
+                        |Response: [${status()}], execution took $executionTimeMs ms
                         |    Headers: $resHeaders
                         |    Body: ${resBody.length} bytes (starts on next line)
                         |${if (resBody.isNotEmpty()) (if (gzipped) "dynamically gzipped response ..." else resBody) else "No body was set"}
@@ -40,6 +40,6 @@ object LogUtil {
         }
     }
 
-    fun executionTime(ctx: Context) = (System.nanoTime() - ctx.attribute("javalin-request-log-start-time") as Long) / 1000000f
+    fun executionTimeMs(ctx: Context) = (System.nanoTime() - ctx.attribute("javalin-request-log-start-time") as Long) / 1000000f
 }
 

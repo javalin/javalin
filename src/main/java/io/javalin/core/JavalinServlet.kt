@@ -128,7 +128,7 @@ class JavalinServlet(
             }
         }
         if (requestLogger != null) {
-            requestLogger.handle(ctx, LogUtil.executionTime(ctx))
+            requestLogger.handle(ctx, LogUtil.executionTimeMs(ctx))
         } else if (debugLogging == true) {
             LogUtil.logRequestAndResponse(ctx, matcher, log, gzipShouldBeDone(ctx))
         }
