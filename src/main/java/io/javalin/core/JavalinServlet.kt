@@ -26,7 +26,7 @@ class JavalinServlet(
         val matcher: PathMatcher,
         val exceptionMapper: ExceptionMapper,
         val errorMapper: ErrorMapper,
-        val debugLogs: Boolean,
+        val debugLogging: Boolean,
         val requestLogger: RequestLogger?,
         val dynamicGzipEnabled: Boolean,
         val defaultContentType: String,
@@ -41,7 +41,7 @@ class JavalinServlet(
 
         val req = CachedRequestWrapper(servletRequest as HttpServletRequest, maxRequestCacheBodySize) // cached for reading multiple times
         val res =
-                if (debugLogs) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
+                if (debugLogging) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
                 else servletResponse as HttpServletResponse
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.toLowerCase()
@@ -129,7 +129,7 @@ class JavalinServlet(
         }
         if (requestLogger != null) {
             requestLogger.handle(ctx, LogUtil.executionTime(ctx))
-        } else if (debugLogs == true) {
+        } else if (debugLogging == true) {
             LogUtil.logRequestAndResponse(ctx, matcher, log, gzipShouldBeDone(ctx))
         }
     }

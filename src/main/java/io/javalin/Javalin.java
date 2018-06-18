@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
@@ -52,7 +51,7 @@ public class Javalin {
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
     private long maxRequestCacheBodySize = 4096;
-    private boolean debugLogs = false;
+    private boolean debugLogging = false;
     private boolean dynamicGzipEnabled = true;
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
@@ -115,7 +114,7 @@ public class Javalin {
                     pathMatcher,
                     exceptionMapper,
                     errorMapper,
-                    debugLogs,
+                    debugLogging,
                     requestLogger,
                     dynamicGzipEnabled,
                     defaultContentType,
@@ -266,7 +265,7 @@ public class Javalin {
      */
     public Javalin enableDebugLogging() {
         ensureActionIsPerformedBeforeServerStart("Enabling debug-logging");
-        this.debugLogs = true;
+        this.debugLogging = true;
         return this;
     }
 
