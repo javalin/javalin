@@ -40,6 +40,11 @@ object JavalinVelocity : FileRenderer {
         velocityEngine.setProperty("velocimacro.library.autoreload", "true")
         velocityEngine.setProperty("file.resource.loader.cache", "false")
         velocityEngine.setProperty("velocimacro.permissions.allow.inline.to.replace.global", "true")
+        // To maximize backward compatibility with Velocity 1.x
+        velocityEngine.setProperty("runtime.conversion.handler", "none")
+        velocityEngine.setProperty("space.gobbling", "bc")
+        velocityEngine.setProperty("directive.if.emptycheck", "false")
+
         return velocityEngine
     }
 
