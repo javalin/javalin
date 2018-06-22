@@ -272,6 +272,7 @@ public class Javalin {
     /**
      * Configure instance use specified request-logger
      * The method must be called before {@link Javalin#start()}.
+     * Will override the default logger of {@link Javalin#enableDebugLogging()}.
      */
     public Javalin requestLogger(@NotNull RequestLogger requestLogger) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom request logger");
