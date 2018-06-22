@@ -32,7 +32,7 @@ import io.javalin.Javalin;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().start(7000);
+        Javalin app = Javalin.start(7000);
         app.get("/", ctx -> ctx.result("Hello World"));
     }
 }
@@ -50,7 +50,7 @@ compile 'io.javalin:javalin:1.7.0'
 import io.javalin.Javalin
 
 fun main(args: Array<String>) {
-    val app = Javalin.create().start(7000)
+    val app = Javalin.start(7000)
     app.get("/") { ctx -> ctx.result("Hello World") }
 }
 ```
