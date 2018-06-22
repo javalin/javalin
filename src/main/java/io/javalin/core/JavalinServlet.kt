@@ -8,7 +8,7 @@ package io.javalin.core
 
 import io.javalin.Context
 import io.javalin.HaltException
-import io.javalin.LogLevel
+import io.javalin.RequestLogger
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
@@ -26,7 +26,8 @@ class JavalinServlet(
         val matcher: PathMatcher,
         val exceptionMapper: ExceptionMapper,
         val errorMapper: ErrorMapper,
-        val logLevel: LogLevel,
+        val debugLogging: Boolean,
+        val requestLogger: RequestLogger?,
         val dynamicGzipEnabled: Boolean,
         val defaultContentType: String,
         val defaultCharacterEncoding: String,
@@ -40,7 +41,7 @@ class JavalinServlet(
 
         val req = CachedRequestWrapper(servletRequest as HttpServletRequest, maxRequestCacheBodySize) // cached for reading multiple times
         val res =
-                if (logLevel == LogLevel.EXTENSIVE) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
+                if (debugLogging) CachedResponseWrapper(servletResponse as HttpServletResponse) // body needs to be copied for logging
                 else servletResponse as HttpServletResponse
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.toLowerCase()
@@ -126,7 +127,11 @@ class JavalinServlet(
                 }
             }
         }
-        LogUtil.logRequestAndResponse(ctx, logLevel, matcher, log, gzipShouldBeDone(ctx))
+        if (requestLogger != null) {
+            requestLogger.handle(ctx, LogUtil.executionTimeMs(ctx))
+        } else if (debugLogging == true) {
+            LogUtil.logRequestAndResponse(ctx, matcher, log, gzipShouldBeDone(ctx))
+        }
     }
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()

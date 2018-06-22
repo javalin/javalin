@@ -22,13 +22,6 @@ import java.io.InputStream
 data class UploadedFile(val contentType: String, val content: InputStream, val name: String, val extension: String)
 
 /**
- * Internal request logging level. Default is [LogLevel.OFF]
- * @see Javalin.enableStandardRequestLogging
- * @see Javalin.requestLogLevel
- */
-enum class LogLevel { EXTENSIVE, STANDARD, MINIMAL, OFF; }
-
-/**
  * Auth credentials for basic HTTP authorization.
  * Contains the Base64 decoded [username] and [password] from the Authorization header.
  * @see Context.basicAuthCredentials

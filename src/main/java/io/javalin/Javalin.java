@@ -51,12 +51,13 @@ public class Javalin {
     private String defaultContentType = "text/plain";
     private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
     private long maxRequestCacheBodySize = 4096;
-    private LogLevel logLevel = LogLevel.OFF;
+    private boolean debugLogging = false;
     private boolean dynamicGzipEnabled = true;
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
     private boolean started = false;
     private AccessManager accessManager = AccessManager::noop;
+    private RequestLogger requestLogger = null;
 
     private PathMatcher pathMatcher = new PathMatcher();
     private WsPathMatcher wsPathMatcher = new WsPathMatcher();
@@ -113,7 +114,8 @@ public class Javalin {
                     pathMatcher,
                     exceptionMapper,
                     errorMapper,
-                    logLevel,
+                    debugLogging,
+                    requestLogger,
                     dynamicGzipEnabled,
                     defaultContentType,
                     defaultCharacterEncoding,
@@ -258,20 +260,23 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to use {@link LogLevel#STANDARD} for request logs.
+     * Configure instance to log debug information for each request.
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin enableStandardRequestLogging() {
-        return requestLogLevel(LogLevel.STANDARD);
+    public Javalin enableDebugLogging() {
+        ensureActionIsPerformedBeforeServerStart("Enabling debug-logging");
+        this.debugLogging = true;
+        return this;
     }
 
     /**
-     * Configure instance use specified log level for request logs.
+     * Configure instance use specified request-logger
      * The method must be called before {@link Javalin#start()}.
+     * Will override the default logger of {@link Javalin#enableDebugLogging()}.
      */
-    public Javalin requestLogLevel(@NotNull LogLevel logLevel) {
-        ensureActionIsPerformedBeforeServerStart("Enabling request-logging");
-        this.logLevel = logLevel;
+    public Javalin requestLogger(@NotNull RequestLogger requestLogger) {
+        ensureActionIsPerformedBeforeServerStart("Setting a custom request logger");
+        this.requestLogger = requestLogger;
         return this;
     }
 
