@@ -24,7 +24,7 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TestTranslators extends _UnirestBaseTest {
+public class TestTemplates extends _UnirestBaseTest {
 
     @Test
     public void test_renderVelocity_works() throws Exception {
