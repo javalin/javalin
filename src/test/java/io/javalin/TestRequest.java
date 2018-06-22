@@ -34,6 +34,13 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_session_isHttpOnly() throws Exception {
+        app.get("/store-session", ctx -> ctx.sessionAttribute("test", "tast"));
+        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/store-session").asString();
+        assertThat(response.getHeaders().getFirst("Set-Cookie").contains("HttpOnly"), is(true));
+    }
+
+    @Test
     public void test_sessionShorthand_works() throws Exception {
         app.get("/store-session", ctx -> ctx.sessionAttribute("test", "tast"));
         app.get("/read-session", ctx -> ctx.result((String) ctx.sessionAttribute("test")));

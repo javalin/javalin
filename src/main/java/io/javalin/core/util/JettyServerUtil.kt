@@ -54,6 +54,8 @@ object JettyServerUtil {
                 }
                 jettyRequest.isHandled = true
             }
+        }.apply {
+            this.sessionHandler.httpOnly = true
         }
 
         val webSocketHandler = ServletContextHandler(parent, contextPath).apply {
