@@ -8,15 +8,13 @@ package io.javalin.core.util
 
 import io.javalin.core.JavalinServlet
 import io.javalin.websocket.WsPathMatcher
-import org.eclipse.jetty.server.Handler
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerList
 import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
@@ -27,6 +25,11 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 object JettyServerUtil {
+
+    @JvmStatic
+    fun defaultServer() = Server(QueuedThreadPool(250, 8, 60_000)).apply {
+        server.addBean(LowResourceMonitor(this))
+    }
 
     @JvmStatic
     @Throws(BindException::class)

@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    private Server jettyServer = new Server(new QueuedThreadPool(250, 8, 60_000));
+    private Server jettyServer = JettyServerUtil.defaultServer();
     private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
     private int port = 7000;
     private String contextPath = "/";
