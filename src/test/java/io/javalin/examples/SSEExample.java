@@ -7,14 +7,21 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+import io.javalin.serversentevent.EventSourceEmitter;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class SSEExample {
     static int i = 0;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
+
+        List<EventSourceEmitter> emitters = new ArrayList<EventSourceEmitter>();
 
         Javalin app = Javalin.create().start( 7000 );
-
         app.get( "/", ctx ->
                 ctx.html(
                         ""
@@ -24,10 +31,22 @@ public class SSEExample {
                                 + "</script>"
                 )
         );
-        app.get( "/sse", ctx -> {
-                    i++;
-                    ctx.sse( String.valueOf( i ), "hi", "Hello World!" );
-                } );
+
+        app.sse( "/sse", emitters );
+
+        while (true) {
+            List<EventSourceEmitter> toRemove = new ArrayList<EventSourceEmitter>();
+            for (EventSourceEmitter emitter: emitters) {
+                try {
+                    emitter.emmit( "hi", "hello world" );
+                } catch (IOException e) {
+                    toRemove.add( emitter );
+                }
+            }
+            emitters.removeAll( toRemove );
+
+            TimeUnit.SECONDS.sleep( 5 );
+        }
 
     }
 

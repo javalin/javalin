@@ -513,13 +513,6 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun html(html: String): Context = result(html).contentType("text/html")
 
-
-    /**
-     * Send event to front with specified data string and sets content-type to text/event-stream.
-     */
-    fun sse(id: String, event: String, data: String): Context = result("id: "+id+"\nevent: "+event+"\n" +
-            "data: "+data+"\n\n").contentType("text/event-stream")
-
     /**
      * Serializes object to a JSON-string using Jackson ObjectMapper
      * and sets it as the context result.
