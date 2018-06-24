@@ -668,6 +668,16 @@ public class Javalin {
         return after("*", handler);
     }
 
+    public PathBuilder pathBuilder(@NotNull Handler handler) {
+        String path = pathMatcher.findHandlerPath(he -> he.getRawHandler().equals(handler));
+        return new PathBuilder(path);
+    }
+
+    public PathBuilder pathBuilder(@NotNull Handler handler, @NotNull HandlerType handlerType) {
+        String path = pathMatcher.findHandlerPath(he -> he.getRawHandler().equals(handler) && he.getType() == handlerType);
+        return new PathBuilder(path);
+    }
+
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
      * Has some added functionality (path params, wrapped session) compared to
