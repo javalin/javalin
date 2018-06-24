@@ -6,6 +6,7 @@
 
 package io.javalin.staticfiles
 
+import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
@@ -58,7 +59,7 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) {
                 val resource = resourceHandler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target)) {
                     val maxAge = if (target.startsWith("/immutable")) 31622400 else 0
-                    httpResponse.setHeader("Cache-Control", "max-age=$maxAge")
+                    httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
                 }
             } catch (e: Exception) { // it's fine

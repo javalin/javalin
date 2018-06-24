@@ -47,7 +47,7 @@ class JavalinServlet(
         val requestUri = req.requestURI.toLowerCase()
         val ctx = Context(res, req)
 
-        ctx.header("Server", "Javalin")
+        ctx.header(Header.SERVER, "Javalin")
         ctx.attribute("javalin-request-log-start-time", System.nanoTime())
 
         res.characterEncoding = defaultCharacterEncoding

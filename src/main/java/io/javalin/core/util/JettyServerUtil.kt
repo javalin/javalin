@@ -100,5 +100,5 @@ object JettyServerUtil {
         return handlerWrapper
     }
 
-    private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader("Sec-WebSocket-Key") != null
+    private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
 }
