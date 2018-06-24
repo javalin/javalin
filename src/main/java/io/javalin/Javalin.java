@@ -668,24 +668,6 @@ public class Javalin {
         return after("*", handler);
     }
 
-    // Reverse routing
-
-    /**
-     * Finds the mapped path for the specified handler
-     */
-    public String pathFinder(@NotNull Handler handler) {
-        return pathMatcher.findHandlerPath(he -> he.getRawHandler().equals(handler));
-    }
-
-    /**
-     * Finds the path for the specified handler and handler type (GET, POST, etc)
-     *
-     * @see HandlerType
-     */
-    public String pathFinder(@NotNull Handler handler, @NotNull HandlerType handlerType) {
-        return pathMatcher.findHandlerPath(he -> he.getRawHandler().equals(handler) && he.getType() == handlerType);
-    }
-
     /**
      * Adds a lambda handler for a WebSocket connection on the specified path.
      * Has some added functionality (path params, wrapped session) compared to
