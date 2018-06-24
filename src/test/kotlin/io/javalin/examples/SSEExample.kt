@@ -7,17 +7,16 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.serversentevent.EventSourceEmitter
+import io.javalin.serversentevent.EventSource
 import java.io.IOException
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
-    val emitters = ArrayList<EventSourceEmitter>()
+    val eventSources = ArrayList<EventSource>()
 
     val app = Javalin.create().start(7000)
-    app.get("/"
-    ) { ctx ->
+    app.get("/") { ctx ->
         ctx.html(
                 ""
                         + "<script>" +
@@ -27,21 +26,17 @@ fun main(args: Array<String>) {
         )
     }
 
-    app.sse("/sse", emitters)
-
-    while (true) {
-        val toRemove = ArrayList<EventSourceEmitter>()
-        for (emitter in emitters) {
-            try {
-                emitter.emmit("hi", "hello world")
-            } catch (e: IOException) {
-                toRemove.add(emitter)
-            }
-
+    app.sse("/sse") { sse ->
+        sse.onOpen { eventSource ->
+            eventSource.sendEvent("connect", "Connected!")
+            eventSources.add(eventSource)
         }
-        emitters.removeAll(toRemove)
-
-        TimeUnit.SECONDS.sleep(5)
+        sse.onClose { eventSource -> eventSources.remove(eventSource) }
     }
 
+    while (true) {
+        for (sse in eventSources)
+            sse.sendEvent("hi", "hello world")
+        TimeUnit.SECONDS.sleep(1)
+    }
 }

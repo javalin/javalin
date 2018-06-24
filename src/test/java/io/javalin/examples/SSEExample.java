@@ -7,19 +7,17 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.serversentevent.EventSourceEmitter;
+import io.javalin.serversentevent.Emitter;
+import io.javalin.serversentevent.EventSource;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SSEExample {
-    static int i = 0;
 
     public static void main(String[] args) throws InterruptedException {
-
-        List<EventSourceEmitter> emitters = new ArrayList<EventSourceEmitter>();
+        List<EventSource> eventSources = new ArrayList<EventSource>();
 
         Javalin app = Javalin.create().start( 7000 );
         app.get( "/", ctx ->
@@ -32,20 +30,21 @@ public class SSEExample {
                 )
         );
 
-        app.sse( "/sse", emitters );
+        app.sse( "/sse", sse -> {
+            sse.onOpen( eventSource -> {
+                eventSource.sendEvent( "connect", "Connected!" );
+                eventSources.add( eventSource );
+            } );
+            sse.onClose( eventSource -> {
+                eventSources.remove( eventSource );
+            });
+        } );
 
         while (true) {
-            List<EventSourceEmitter> toRemove = new ArrayList<EventSourceEmitter>();
-            for (EventSourceEmitter emitter: emitters) {
-                try {
-                    emitter.emmit( "hi", "hello world" );
-                } catch (IOException e) {
-                    toRemove.add( emitter );
-                }
+            for (EventSource sse: eventSources) {
+                sse.sendEvent( "hi", "hello world" );
             }
-            emitters.removeAll( toRemove );
-
-            TimeUnit.SECONDS.sleep( 5 );
+            TimeUnit.SECONDS.sleep( 1 );
         }
 
     }

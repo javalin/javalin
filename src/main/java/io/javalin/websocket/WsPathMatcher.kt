@@ -32,7 +32,7 @@ class WsPathMatcher() {
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
-        findEntry(session)?.let { it.handler.connectHandler?.handle(wrap(session, it)) }
+        findEntry(session)?.let {it.handler.connectHandler?.handle(wrap(session, it)) }
     }
 
     @OnWebSocketMessage

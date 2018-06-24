@@ -7,12 +7,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
-import java.util.List;
+import java.util.function.Consumer;
 
 public class SSEHandler {
     private static final Charset UTF_8 = Charset.forName( "UTF-8" );
 
-    public static Handler start(List<EventSourceEmitter> emitters) {
+    public static Handler start(Consumer<EventSource> emitter) {
         return ctx -> {
             HttpServletRequest request = ctx.request();
             HttpServletResponse response = ctx.response();
@@ -22,8 +22,9 @@ public class SSEHandler {
                 if (accept.equals( "text/event-stream" )) {
                     respond( request, response );
                     request.startAsync( request, response );
-                    EventSourceEmitter emitter = new EventSourceEmitterImpl( request.getAsyncContext() );
-                    emitters.add( emitter );
+                    Emitter emitterEvent = new EmitterImpl( request.getAsyncContext() );
+                    EventSource configureSSE = new EventSourceImpl(emitterEvent);
+                    emitter.accept( configureSSE );
                     return;
                 }
             }

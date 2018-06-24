@@ -20,9 +20,7 @@ import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
-import io.javalin.serversentevent.EventSourceEmitter;
-import io.javalin.serversentevent.SSEEntry;
-import io.javalin.serversentevent.SSEHandler;
+import io.javalin.serversentevent.*;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
@@ -721,7 +719,12 @@ public class Javalin {
     }
 
 
-    public Javalin sse(String path, List<EventSourceEmitter> emitters) {
-        return get( path, SSEHandler.start(emitters));
+    /**
+     * Adds a lambda handler for a Server Sent Event connection on the specified path.
+     *
+     */
+    public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse) {
+        return get( path, SSEHandler.start(sse));
     }
+
 }
