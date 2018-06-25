@@ -26,13 +26,13 @@ fun main(args: Array<String>) {
         )
     }
 
-    app.sse("/sse") { sse ->
-        sse.onOpen { eventSource ->
-            eventSource.sendEvent("connect", "Connected!")
-            eventSources.add(eventSource)
-        }
-        sse.onClose { eventSource -> eventSources.remove(eventSource) }
-    }
+//    app.sse("/sse") { sse ->
+//        sse.onOpen { eventSource ->
+//            eventSource.sendEvent("connect", "Connected!")
+//            eventSources.add(eventSource)
+//        }
+//        sse.onClose { eventSource -> eventSources.remove(eventSource) }
+//    }
 
     while (true) {
         for (sse in eventSources)

@@ -7,7 +7,6 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.serversentevent.Emitter;
 import io.javalin.serversentevent.EventSource;
 
 import java.util.ArrayList;
@@ -35,9 +34,7 @@ public class SSEExample {
                 eventSource.sendEvent( "connect", "Connected!" );
                 eventSources.add( eventSource );
             } );
-            sse.onClose( eventSource -> {
-                eventSources.remove( eventSource );
-            });
+            sse.onClose( eventSource -> eventSources.remove( eventSource ));
         } );
 
         while (true) {

@@ -724,7 +724,7 @@ public class Javalin {
      *
      */
     public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse) {
-        return get( path, SSEHandler.start(sse));
+        return get( path, SSEHandler.Companion.start( sse ) );
     }
 
 }
