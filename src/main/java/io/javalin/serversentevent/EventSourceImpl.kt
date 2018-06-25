@@ -1,6 +1,7 @@
 package io.javalin.serversentevent
 
-class EventSourceImpl(private val emitter: Emitter) : EventSource {
+class EventSourceImpl(private val emitter: Emitter, private val pathParam: Map<String, String>) : EventSource {
+
     private var close: SSEClose? = null
 
     override fun onOpen(open: SSEConnect) {
@@ -16,5 +17,9 @@ class EventSourceImpl(private val emitter: Emitter) : EventSource {
         if (emitter.isClose()) {
             close!!.handler(this)
         }
+    }
+
+    override fun pathParamMap(): Map<String, String> {
+        return pathParam
     }
 }

@@ -30,6 +30,7 @@ class SSEHandlerTest {
         every { context.request() } returns request
         every { context.response() } returns response
         every { request.getHeader("Accept")} returns "text/event-stream"
+        every {  context.pathParamMap } returns HashMap<String, String>()
         every { request.asyncContext } returns asyncContext
         every { asyncContext.response } returns response
 

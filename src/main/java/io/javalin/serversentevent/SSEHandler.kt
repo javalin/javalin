@@ -21,7 +21,7 @@ class SSEHandler private constructor(private val consumerSSE: Consumer<EventSour
         if (isEventStream) {
             startSSE(request, response)
             val emitterEvent = EmitterImpl(request.asyncContext)
-            val configureSSE = EventSourceImpl(emitterEvent)
+            val configureSSE = EventSourceImpl(emitterEvent, context.pathParamMap)
             consumerSSE.accept(configureSSE)
         }
     }
