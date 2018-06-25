@@ -6,6 +6,8 @@
 
 package io.javalin
 
+import io.javalin.reverserouting.ImplementingClass
+import io.javalin.reverserouting.SomeController
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test

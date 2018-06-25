@@ -7,6 +7,8 @@
 package io.javalin;
 
 import io.javalin.core.HandlerType;
+import io.javalin.reverserouting.ImplementingClass;
+import io.javalin.reverserouting.SomeController;
 import org.junit.Test;
 import static io.javalin.security.Role.roles;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -71,17 +73,4 @@ public class TestReverseRouting extends _UnirestBaseTest {
         assertThat(app.pathBuilder(helloHandler).build(), is("/hello-1"));
     }
 
-}
-
-class SomeController {
-    public static void methodRef(Context context) {
-    }
-    public static void methodRef2(Context context) {
-    }
-}
-
-class ImplementingClass implements Handler {
-    @Override
-    public void handle(Context ctx) {
-    }
 }
