@@ -25,9 +25,14 @@ public class TestReverseRouting extends _UnirestBaseTest {
 
     @Test
     public void test_pathFinder_works_methodRef() {
-        Handler handler = SomeController::methodRef;
-        app.get("/hello-get", handler);
-        assertThat(app.pathBuilder(handler).build(), is("/hello-get"));
+        app.get("/hello-get", SomeController::methodRef);
+        assertThat(app.pathBuilder(SomeController::methodRef).build(), is("/hello-get"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void test_pathFinder_throws_methodRef_sameBody() {
+        app.get("/hello-get", SomeController::methodRef);
+        assertThat(app.pathBuilder(SomeController::methodRef2).build(), is("/hello-get"));
     }
 
     @Test
@@ -70,6 +75,8 @@ public class TestReverseRouting extends _UnirestBaseTest {
 
 class SomeController {
     public static void methodRef(Context context) {
+    }
+    public static void methodRef2(Context context) {
     }
 }
 

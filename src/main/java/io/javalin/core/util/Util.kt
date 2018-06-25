@@ -7,7 +7,10 @@
 package io.javalin.core.util
 
 import io.javalin.HaltException
+import io.javalin.Handler
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
 import java.util.*
 
 object Util {
@@ -92,6 +95,33 @@ object Util {
             |                                         |
             |    https://javalin.io/documentation     |
             |_________________________________________|""".trimIndent()
+    }
+
+    fun handlerEquals(h1: Handler, h2: Handler) = h1 == h2 || probablyEqual(h1, h2)
+
+    private fun probablyEqual(h1: Handler, h2: Handler): Boolean { // lol
+        val h1Bytes = serialize(h1)
+        val h2Bytes = serialize(h2)
+        if (h1Bytes.size != h2Bytes.size) {
+            return false;
+        }
+        if (h1Bytes.contentEquals(h2Bytes)) {
+            return true;
+        }
+        var count = 0
+        for (i in 0 until h1Bytes.size) {
+            if (h1Bytes[i] == h2Bytes[i]) {
+                count++
+            }
+        }
+        val match = count.toDouble() / h1Bytes.size
+        return match > 0.95
+    }
+
+    private fun serialize(obj: Any): Array<Byte> {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        ObjectOutputStream(byteArrayOutputStream).writeObject(obj)
+        return byteArrayOutputStream.toByteArray().toTypedArray()
     }
 
 }

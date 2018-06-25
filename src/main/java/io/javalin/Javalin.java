@@ -29,6 +29,7 @@ import io.javalin.websocket.WsPathMatcher;
 import java.net.BindException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -669,12 +670,12 @@ public class Javalin {
     }
 
     public PathBuilder pathBuilder(@NotNull Handler handler) {
-        String path = pathMatcher.findHandlerPath(he -> he.getRawHandler().equals(handler));
+        String path = pathMatcher.findHandlerPath(he -> Util.INSTANCE.handlerEquals(he.getRawHandler(), handler));
         return new PathBuilder(path);
     }
 
     public PathBuilder pathBuilder(@NotNull Handler handler, @NotNull HandlerType handlerType) {
-        String path = pathMatcher.findHandlerPath(he -> he.getRawHandler().equals(handler) && he.getType() == handlerType);
+        String path = pathMatcher.findHandlerPath(he -> Util.INSTANCE.handlerEquals(he.getRawHandler(), handler) && he.getType() == handlerType);
         return new PathBuilder(path);
     }
 

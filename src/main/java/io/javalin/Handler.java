@@ -6,6 +6,8 @@
 
 package io.javalin;
 
+import java.io.Serializable;
+
 /**
  * Main interface for endpoint actions. A handler has a void return type,
  * so you have to use {@link Context#result} to return data to the client.
@@ -14,6 +16,6 @@ package io.javalin;
  * @see <a href="https://javalin.io/documentation#handlers">Handler in documentation</a>
  */
 @FunctionalInterface
-public interface Handler {
+public interface Handler extends Serializable {
     void handle(Context ctx) throws Exception;
 }
