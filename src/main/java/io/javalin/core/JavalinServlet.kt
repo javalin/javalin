@@ -118,9 +118,10 @@ class JavalinServlet(
     private fun writeResult(ctx: Context, res: HttpServletResponse) {
         if (!res.isCommitted) {
             if (dynamicEtagsEnabled) {
-                res.setHeader(Header.ETAG, "33a64df551425fcc55e4d42a148795d9f25f89d4")
-                ctx.header(Header.IF_NONE_MATCH)?.let { etag ->
-                    if (etag == "33a64df551425fcc55e4d42a148795d9f25f89d4") {
+                val serverEtag = "33a64df551425fcc55e4d42a148795d9f25f89d4"
+                res.setHeader(Header.ETAG, serverEtag)
+                ctx.header(Header.IF_NONE_MATCH)?.let { clientEtag ->
+                    if (clientEtag == serverEtag) {
                         res.status = 304
                         return
                     }
