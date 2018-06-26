@@ -9,10 +9,10 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.junit.Test;
+import static java.util.Objects.requireNonNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -75,17 +75,31 @@ public class TestBodyReading {
     }
 
     @Test
+    public void test_unicodeFormParams_work() throws Exception {
+        Javalin app = Javalin.create().port(0).start();
+        app.post("/unicode", ctx -> ctx.result(ctx.formParam("unicode")));
+
+        HttpResponse<String> response = Unirest
+            .post("http://localhost:" + app.port() + "/unicode")
+            .body("unicode=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
+            .asString();
+
+        assertThat(response.getBody(), is("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"));
+        app.stop();
+    }
+
+    @Test
     public void test_formParamsWork_multipleValues() throws Exception {
         Javalin app = Javalin.create().port(0).start();
         app.post("/body-reader", ctx -> {
-            String formParamString = ctx.formParamMap().keySet().stream().map(key -> {
-                return key + ": " + ctx.formParam(key) + ", " + key + "s: " + Arrays.toString(ctx.formParams(key));
-            }).collect(Collectors.joining(". "));
-            String queryParamString = ctx.queryParamMap().keySet().stream().map(key -> {
-                return key + ": " + ctx.queryParam(key) + ", " + key + "s: " + Arrays.toString(ctx.queryParams(key));
-            }).collect(Collectors.joining(". "));
+            String formParamString = ctx.formParamMap().keySet().stream()
+                .map(key -> key + ": " + ctx.formParam(key) + ", " + key + "s: " + requireNonNull(ctx.formParams(key)).toString())
+                .collect(Collectors.joining(". "));
+            String queryParamString = ctx.queryParamMap().keySet().stream()
+                .map(key -> key + ": " + ctx.queryParam(key) + ", " + key + "s: " + requireNonNull(ctx.queryParams(key)).toString())
+                .collect(Collectors.joining(". "));
             boolean singleMissingSame = Objects.equals(ctx.formParam("missing"), ctx.queryParam("missing"));
-            boolean pluralMissingSame = Arrays.equals(ctx.formParams("missing"), ctx.queryParams("missing"));
+            boolean pluralMissingSame = Objects.equals(ctx.formParams("missing"), ctx.queryParams("missing"));
             boolean nonMissingSame = Objects.equals(formParamString, queryParamString);
             if (singleMissingSame && pluralMissingSame && nonMissingSame) {
                 ctx.result(formParamString);

@@ -18,7 +18,7 @@ public class TestEncoding extends _UnirestBaseTest {
 
     @Test
     public void test_param_unicode() throws Exception {
-        app.get("/:param", ctx -> ctx.result(ctx.param("param")));
+        app.get("/:path-param", ctx -> ctx.result(ctx.pathParam("path-param")));
         assertThat(GET_body("/æøå"), is("æøå"));
         assertThat(GET_body("/♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"), is("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"));
         assertThat(GET_body("/こんにちは"), is("こんにちは"));

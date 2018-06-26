@@ -8,7 +8,6 @@
 package io.javalin;
 
 import com.mashape.unirest.http.Unirest;
-import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,7 +20,7 @@ public class TestGetPortAfterRandomPortInit {
     private static int port;
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() {
         app = Javalin.create()
             .port(0)
             .start();

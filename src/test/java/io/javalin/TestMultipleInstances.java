@@ -9,7 +9,6 @@ package io.javalin;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,10 +22,10 @@ public class TestMultipleInstances {
     private static Javalin app3;
 
     @BeforeClass
-    public static void setup() throws IOException {
-        app1 = Javalin.start(0);
-        app2 = Javalin.start(0);
-        app3 = Javalin.start(0);
+    public static void setup() {
+        app1 = Javalin.create().start(0);
+        app2 = Javalin.create().start(0);
+        app3 = Javalin.create().start(0);
     }
 
     @AfterClass

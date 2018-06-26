@@ -11,65 +11,25 @@ import io.javalin.Context
 import io.javalin.core.HandlerEntry
 import java.net.URLDecoder
 import java.util.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 object ContextUtil {
 
-    fun create(response: HttpServletResponse, request: HttpServletRequest): Context {
-        return Context(response, request, "", HashMap(), ArrayList())
+    fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
+        matchedPath = handlerEntry.path
+        pathParamMap = handlerEntry.extractPathParams(requestUri)
+        splatList = handlerEntry.extractSplats(requestUri)
+        handlerType = handlerEntry.type
     }
 
-    fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String): Context {
-        val requestList = Util.pathToList(requestUri)
-        val matchedList = Util.pathToList(handlerEntry.path)
-        ctx.matchedPath = handlerEntry.path
-        ctx.paramMap = getParams(requestList, matchedList)
-        ctx.splatList = getSplat(requestList, matchedList)
-        return ctx
-    }
-
-    fun getSplat(request: List<String>, matched: List<String>): List<String> {
-        val numRequestParts = request.size
-        val numHandlerParts = matched.size
-        val splat = ArrayList<String>()
-        var i = 0
-        while (i < numRequestParts && i < numHandlerParts) {
-            val matchedPart = matched[i]
-            if (matchedPart == "*") {
-                val splatParam = StringBuilder(request[i])
-                if (numRequestParts != numHandlerParts && i == numHandlerParts - 1) {
-                    for (j in i + 1..numRequestParts - 1) {
-                        splatParam.append("/")
-                        splatParam.append(request[j])
-                    }
-                }
-                splat.add(urlDecode(splatParam.toString()))
-            }
-            i++
-        }
-        return splat
-    }
-
-    fun getParams(requestPaths: List<String>, handlerPaths: List<String>): Map<String, String> {
-        val params = HashMap<String, String>()
-        var i = 0
-        while (i < requestPaths.size && i < handlerPaths.size) {
-            val matchedPart = handlerPaths[i]
-            if (matchedPart.startsWith(":")) {
-                params[matchedPart.toLowerCase()] = urlDecode(requestPaths[i])
-            }
-            i++
-        }
-        return params
-    }
-
-    fun splitKeyValueStringAndGroupByKey(string: String): Map<String, Array<String>> {
-        return string.split("&").map { it.split("=") }.groupBy(
+    fun splitKeyValueStringAndGroupByKey(string: String): Map<String, List<String>> {
+        return if (string.isEmpty()) mapOf() else string.split("&").map { it.split("=") }.groupBy(
                 { it[0] },
                 { if (it.size > 1) URLDecoder.decode(it[1], "UTF-8") else "" }
-        ).mapValues { it.value.toTypedArray() }
+        ).mapValues { it.value.toList() }
     }
+
+    fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
+            pathParams[key.toLowerCase().replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'")
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 

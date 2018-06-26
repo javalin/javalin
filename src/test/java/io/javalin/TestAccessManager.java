@@ -30,13 +30,13 @@ public class TestAccessManager {
         }
     };
 
-    enum MyRoles implements Role {
-        ROLE_ONE, ROLE_TWO, ROLE_THREE;
+    public enum MyRoles implements Role {
+        ROLE_ONE, ROLE_TWO, ROLE_THREE
     }
 
     @Test
-    public void test_noAccessManager_throwsException() throws Exception {
-        Javalin app = Javalin.start(0);
+    public void test_noopAccessManager_throwsException_whenRoles() throws Exception {
+        Javalin app = Javalin.create().start(0);
         app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE));
         assertThat(callWithRole(app.port(), "/secured", "ROLE_ONE"), is("Internal server error"));
         app.stop();
@@ -44,7 +44,7 @@ public class TestAccessManager {
 
     @Test
     public void test_accessManager_restrictsAccess() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.accessManager(accessManager);
         app.get("/secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE, ROLE_TWO));
         assertThat(callWithRole(app.port(), "/secured", "ROLE_ONE"), is("Hello"));
@@ -55,7 +55,7 @@ public class TestAccessManager {
 
     @Test
     public void test_accessManager_restrictsAccess_forStaticApi() throws Exception {
-        Javalin app = Javalin.start(0);
+        Javalin app = Javalin.create().start(0);
         app.accessManager(accessManager);
         app.routes(() -> {
             get("/static-secured", ctx -> ctx.result("Hello"), roles(ROLE_ONE, ROLE_TWO));

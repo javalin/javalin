@@ -7,7 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.embeddedserver.Location
+import io.javalin.staticfiles.Location
 
 fun main(args: Array<String>) {
     Javalin.create()

@@ -8,8 +8,7 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.embeddedserver.Location;
-import io.javalin.event.EventType;
+import io.javalin.staticfiles.Location;
 import java.io.File;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,44 +33,52 @@ public class TestStaticFiles_edgeCases {
     }
 
     @Test
-    public void test_nonExistent_classpathFolder() throws Exception {
+    public void test_nonExistent_classpathFolder() {
         String[] message = {""};
         Javalin.create()
+            .port(0)
             .enableStaticFiles("some-fake-folder")
-            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start().stop();
+            .event(JavalinEvent.SERVER_START_FAILED, () -> message[0] = "failed")
+            .start()
+            .stop();
         assertThat(message[0], is("failed"));
     }
 
     @Test
-    public void test_nonExistent_externalFolder() throws Exception {
+    public void test_nonExistent_externalFolder() {
         String[] message = {""};
         Javalin.create()
+            .port(0)
             .enableStaticFiles("some-fake-folder", Location.EXTERNAL)
-            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start().stop();
+            .event(JavalinEvent.SERVER_START_FAILED, () -> message[0] = "failed")
+            .start()
+            .stop();
         assertThat(message[0], is("failed"));
     }
 
     @Test
-    public void test_classpathEmptyFolder() throws Exception {
+    public void test_classpathEmptyFolder() {
         new File("src/test/external/empty").mkdir();
         String[] message = {""};
         Javalin.create()
+            .port(0)
             .enableStaticFiles("src/test/external/empty", Location.CLASSPATH)
-            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start().stop();
+            .event(JavalinEvent.SERVER_START_FAILED, () -> message[0] = "failed")
+            .start()
+            .stop();
         assertThat(message[0], is("failed"));
     }
 
     @Test
-    public void test_externalEmptyFolder() throws Exception {
+    public void test_externalEmptyFolder() {
         new File("src/test/external/empty").mkdir();
         String[] message = {""};
         Javalin.create()
+            .port(0)
             .enableStaticFiles("src/test/external/empty", Location.EXTERNAL)
-            .event(EventType.SERVER_START_FAILED, event -> message[0] = "failed")
-            .start().stop();
+            .event(JavalinEvent.SERVER_START_FAILED, () -> message[0] = "failed")
+            .start()
+            .stop();
         assertThat(message[0], not("failed"));
     }
 

@@ -28,7 +28,7 @@ public class TestHaltException extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_constructorsWork() throws Exception {
+    public void test_constructorsWork() {
         HaltException haltException1 = new HaltException();
         HaltException haltException2 = new HaltException(401);
         HaltException haltException3 = new HaltException("Body");

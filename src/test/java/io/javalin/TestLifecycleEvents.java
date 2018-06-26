@@ -7,7 +7,6 @@
 
 package io.javalin;
 
-import io.javalin.event.EventType;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,12 +21,13 @@ public class TestLifecycleEvents {
     @Test
     public void testLifecycleEvents() {
         Javalin.create()
-            .event(EventType.SERVER_STARTING, e -> startingMsg = "Starting")
-            .event(EventType.SERVER_STARTED, e -> startedMsg = "Started")
-            .event(EventType.SERVER_STOPPING, e -> stoppingMsg = "Stopping")
-            .event(EventType.SERVER_STOPPING, e -> stoppingMsg += "Stopping")
-            .event(EventType.SERVER_STOPPING, e -> stoppingMsg += "Stopping")
-            .event(EventType.SERVER_STOPPED, e -> stoppedMsg = "Stopped")
+            .port(0)
+            .event(JavalinEvent.SERVER_STARTING, () -> startingMsg = "Starting")
+            .event(JavalinEvent.SERVER_STARTED, () -> startedMsg = "Started")
+            .event(JavalinEvent.SERVER_STOPPING, () -> stoppingMsg = "Stopping")
+            .event(JavalinEvent.SERVER_STOPPING, () -> stoppingMsg += "Stopping")
+            .event(JavalinEvent.SERVER_STOPPING, () -> stoppingMsg += "Stopping")
+            .event(JavalinEvent.SERVER_STOPPED, () -> stoppedMsg = "Stopped")
             .start()
             .stop();
         assertThat(startingMsg, is("Starting"));

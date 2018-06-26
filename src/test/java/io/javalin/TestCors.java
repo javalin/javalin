@@ -29,7 +29,7 @@ public class TestCors {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void test_throwsException_forEmptyOrigin() throws Exception {
+    public void test_throwsException_forEmptyOrigin() {
         Javalin.create().enableCorsForOrigin();
     }
 

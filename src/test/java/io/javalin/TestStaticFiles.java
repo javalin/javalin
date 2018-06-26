@@ -10,7 +10,6 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
-import java.io.IOException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -26,7 +25,7 @@ public class TestStaticFiles {
     private static String origin = null;
 
     @BeforeClass
-    public static void setup() throws IOException {
+    public static void setup() {
         app = Javalin.create()
             .port(0)
             .enableStaticFiles("/public")
@@ -48,6 +47,7 @@ public class TestStaticFiles {
     public void test_Html() throws Exception {
         HttpResponse<String> response = Unirest.get(origin + "/html.html").asString();
         assertThat(response.getStatus(), is(200));
+        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("text/html"));
         assertThat(response.getBody(), containsString("HTML works"));
 
     }
@@ -56,6 +56,7 @@ public class TestStaticFiles {
     public void test_getJs() throws Exception {
         HttpResponse<String> response = Unirest.get(origin + "/script.js").asString();
         assertThat(response.getStatus(), is(200));
+        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("application/javascript"));
         assertThat(response.getBody(), containsString("JavaScript works"));
     }
 
@@ -63,6 +64,7 @@ public class TestStaticFiles {
     public void test_getCss() throws Exception {
         HttpResponse<String> response = Unirest.get(origin + "/styles.css").asString();
         assertThat(response.getStatus(), is(200));
+        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("text/css"));
         assertThat(response.getBody(), containsString("CSS works"));
     }
 

@@ -9,7 +9,7 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
-import java.util.Arrays;
+import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,6 +34,13 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_session_isHttpOnly() throws Exception {
+        app.get("/store-session", ctx -> ctx.sessionAttribute("test", "tast"));
+        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/store-session").asString();
+        assertThat(response.getHeaders().getFirst("Set-Cookie").contains("HttpOnly"), is(true));
+    }
+
+    @Test
     public void test_sessionShorthand_works() throws Exception {
         app.get("/store-session", ctx -> ctx.sessionAttribute("test", "tast"));
         app.get("/read-session", ctx -> ctx.result((String) ctx.sessionAttribute("test")));
@@ -50,6 +57,19 @@ public class TestRequest extends _UnirestBaseTest {
         app.get("/read-session", ctx -> ctx.result(ctx.sessionAttributeMap().toString()));
         GET_body("/store-session");
         assertThat(GET_body("/read-session"), is("{test=tast, hest=hast}"));
+    }
+
+    @Test
+    public void test_attributesCanBeNull() throws Exception {
+        app.get("/store", ctx -> {
+            ctx.attribute("test", "not-null");
+            ctx.attribute("test", null);
+            ctx.sessionAttribute("tast", "not-null");
+            ctx.sessionAttribute("tast", null);
+        });
+        app.get("/read", ctx -> ctx.result(ctx.sessionAttribute("tast") + " and " + ctx.attribute("test")));
+        GET_body("/store");
+        assertThat(GET_body("/read"), is("null and null"));
     }
 
     /*
@@ -85,33 +105,27 @@ public class TestRequest extends _UnirestBaseTest {
      * Path params
      */
     @Test
-    public void test_paramWorks_noParam() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.param("param")));
-        assertThat(GET_body("/my/path"), is("null")); // notice {"" + req} on previous line
+    public void test_pathParamWorks_invalidParam() throws Exception {
+        app.get("/:my/:path", ctx -> ctx.result(ctx.pathParam("path-param")));
+        assertThat(GET_body("/my/path"), is("Internal server error"));
     }
 
     @Test
-    public void test_paramWorks_nullKey() throws Exception {
-        app.get("/my/path", ctx -> ctx.result("" + ctx.param(null)));
-        assertThat(GET_body("/my/path"), is("Internal server error")); // notice {"" + req} on previous line
-    }
-
-    @Test
-    public void test_paramWorks_multipleSingleParams() throws Exception {
-        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.param("1") + ctx.param("2") + ctx.param("3")));
+    public void test_pathParamWorks_multipleSingleParams() throws Exception {
+        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")));
         assertThat(GET_body("/my/path/params"), is("mypathparams"));
     }
 
     @Test
-    public void test_paramMapWorks_noParamsPresent() throws Exception {
-        app.get("/my/path/params", ctx -> ctx.result(ctx.paramMap().toString()));
+    public void test_pathParamMapWorks_noParamsPresent() throws Exception {
+        app.get("/my/path/params", ctx -> ctx.result(ctx.pathParamMap().toString()));
         assertThat(GET_body("/my/path/params"), is("{}"));
     }
 
     @Test
-    public void test_paramMapWorks_paramsPresent() throws Exception {
-        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.paramMap().toString()));
-        assertThat(GET_body("/my/path/params"), is("{:1=my, :2=path, :3=params}"));
+    public void test_pathParamMapWorks_paramsPresent() throws Exception {
+        app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParamMap().toString()));
+        assertThat(GET_body("/my/path/params"), is("{1=my, 2=path, 3=params}"));
     }
 
     /*
@@ -124,6 +138,12 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_queryParamWorks_noParamButDefault() throws Exception {
+        app.get("/", ctx -> ctx.result("" + ctx.queryParam("qp", "default")));
+        assertThat(GET_body("/"), is("default"));
+    }
+
+    @Test
     public void test_queryParamWorks_multipleSingleParams() throws Exception {
         app.get("/", ctx -> ctx.result(ctx.queryParam("qp1") + ctx.queryParam("qp2") + ctx.queryParam("qp3")));
         assertThat(GET_body("/?qp1=1&qp2=2&qp3=3"), is("123"));
@@ -131,13 +151,19 @@ public class TestRequest extends _UnirestBaseTest {
 
     @Test
     public void test_queryParamsWorks_noParamsPresent() throws Exception {
-        app.get("/", ctx -> ctx.result(Arrays.toString(ctx.queryParams("qp1"))));
-        assertThat(GET_body("/"), is("null"));
+        app.get("/", ctx -> {
+            final List<String> params = ctx.queryParams("qp1");
+            ctx.result(params.toString());
+        });
+        assertThat(GET_body("/"), is("[]"));
     }
 
     @Test
     public void test_queryParamsWorks_paramsPresent() throws Exception {
-        app.get("/", ctx -> ctx.result(Arrays.toString(ctx.queryParams("qp1"))));
+        app.get("/", ctx -> {
+            final List<String> params = ctx.queryParams("qp1");
+            ctx.result(params.toString());
+        });
         assertThat(GET_body("/?qp1=1&qp1=2&qp1=3"), is("[1, 2, 3]"));
     }
 
@@ -159,6 +185,30 @@ public class TestRequest extends _UnirestBaseTest {
         assertThat(GET_body("/?qp1=1&qp2=2&qp3=3"), is("false"));
     }
 
+    /*
+     * Form params
+     */
+    @Test
+    public void test_formParamWorks() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParam("fp1")));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2").asString();
+        assertThat(response.getBody(), is("1"));
+    }
+
+    @Test
+    public void test_formParamWorks_noParam() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParam("fp3")));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2").asString();
+        assertThat(response.getBody(), is("null"));
+    }
+
+    @Test
+    public void test_formParamWorks_noParamButDefault() throws Exception {
+        app.post("/", ctx -> ctx.result("" + ctx.formParam("fp4", "4")));
+        HttpResponse<String> response = Unirest.post(_UnirestBaseTest.origin).body("fp1=1&fp2=2").asString();
+        assertThat(response.getBody(), is("4"));
+    }
+
     @Test
     public void test_anyFormParamNullTrue_someParamsNull() throws Exception {
         app.post("/", ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "nullkey")));
@@ -174,19 +224,6 @@ public class TestRequest extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_nextWorks_whenMultipleHandlers() throws Exception {
-        app.get("/test", ctx -> ctx.next());
-        app.get("/*", ctx -> ctx.result("Skipped first handler"));
-        assertThat(GET_body("/test"), is("Skipped first handler"));
-    }
-
-    @Test
-    public void test_nextGivesBlankResponse_whenNoHandlers() throws Exception {
-        app.get("/test", ctx -> ctx.next());
-        assertThat(GET_body("/test"), is(""));
-    }
-
-    @Test
     public void test_basicAuth_works() throws Exception {
         app.get("/", ctx -> {
             BasicAuthCredentials basicAuthCredentials = ctx.basicAuthCredentials();
@@ -199,10 +236,17 @@ public class TestRequest extends _UnirestBaseTest {
     @Test
     public void test_matchingPaths_works() throws Exception {
         app.get("/matched", ctx -> ctx.result(ctx.matchedPath()));
-        app.get("/matched/:param", ctx -> ctx.result(ctx.matchedPath()));
-        app.after("/matched/:param/:param2", ctx -> ctx.result(ctx.matchedPath()));
+        app.get("/matched/:path-param", ctx -> ctx.result(ctx.matchedPath()));
+        app.after("/matched/:path-param/:param2", ctx -> ctx.result(ctx.matchedPath()));
         assertThat(GET_body("/matched"), is("/matched"));
-        assertThat(GET_body("/matched/p1"), is("/matched/:param"));
-        assertThat(GET_body("/matched/p1/p2"), is("/matched/:param/:param2"));
+        assertThat(GET_body("/matched/p1"), is("/matched/:path-param"));
+        assertThat(GET_body("/matched/p1/p2"), is("/matched/:path-param/:param2"));
     }
+
+    @Test
+    public void test_servletContext_isNotNull() throws Exception {
+        app.get("/", ctx -> ctx.result(ctx.request().getServletContext() != null ? "not-null" : "null"));
+        assertThat(GET_body("/"), is("not-null"));
+    }
+
 }

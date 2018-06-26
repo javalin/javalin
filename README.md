@@ -3,9 +3,15 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Maven](https://img.shields.io/maven-central/v/io.javalin/javalin.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22io.javalin%22%20AND%20a%3A%22javalin%22)
 
-# Javalin - A Simple REST API Library for Java/Kotlin
+# Javalin - A simple web framework for Java and Kotlin
 
 The project webpage is [javalin.io](https://javalin.io).
+
+Documentation: [javalin.io/documentation](https://javalin.io/documentation)
+
+Chatroom: https://gitter.im/javalin-io/general
+
+Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javalin/blob/master/CONTRIBUTING.md)
 
 ## Java quickstart
 
@@ -15,7 +21,7 @@ The project webpage is [javalin.io](https://javalin.io).
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>1.3.0</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -36,7 +42,7 @@ public class HelloWorld {
 
 ### Add dependency (gradle)
 ```kotlin
-compile 'io.javalin:javalin:1.3.0'
+compile 'io.javalin:javalin:1.7.0'
 ```
 
 ### Start programming
@@ -46,6 +52,74 @@ import io.javalin.Javalin
 fun main(args: Array<String>) {
     val app = Javalin.start(7000)
     app.get("/") { ctx -> ctx.result("Hello World") }
+}
+```
+
+## Examples
+This section contains a few examples, mostly just extracted from the [docs](https://javalin.io/documentation).
+All examples are in Kotlin, but you can find them in Java in the documentation (it's just syntax changes).
+
+### Api structure and server config
+```kotlin
+val app = Javalin.create().apply {
+    enableStandardRequestLogging()
+    enableDynamicGzip()
+    port(port)
+}.start()
+
+app.routes {
+    path("users") {
+        get(UserController::getAllUserIds)
+        post(UserController::createUser)
+        path(":user-id") {
+            get(UserController::getUser)
+            patch(UserController::updateUser)
+            delete(UserController::deleteUser)
+        }
+    }
+}
+```
+
+### Filters and Mappers
+```kotlin
+app.before("/some-path/*") { ctx ->  ... } // runs before requests to /some-path/*
+app.before { ctx -> ... } // runs before all requests
+app.after { ctx -> ... } // runs after all requests
+app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
+app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
+```
+
+### WebSockets
+```kotlin
+app.ws("/websocket") { ws ->
+    ws.onConnect { session -> println("Connected") }
+    ws.onMessage { session, message ->
+        println("Received: " + message)
+        session.remote.sendString("Echo: " + message)
+    }
+    ws.onClose { session, statusCode, reason -> println("Closed") }
+    ws.onError { session, throwable -> println("Errored") }
+}
+```
+
+### JSON-mapping
+```kotlin
+var todos = arrayOf(...)
+app.get("/todos") { ctx -> // map array of Todos to json-string
+    ctx.json(todos)
+}
+app.put("/todos") { ctx -> // map request-body (json) to array of Todos
+    todos = ctx.bodyAsClass(Array<Todo>::class.java)
+    ctx.status(204)
+}
+```
+
+### File uploads
+```kotlin
+app.post("/upload") { ctx ->
+    ctx.uploadedFiles("files").forEach { (contentType, content, name, extension) ->
+        content.copyTo(File("upload/" + name))
+    }
 }
 ```
 

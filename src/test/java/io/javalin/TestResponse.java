@@ -10,7 +10,6 @@ package io.javalin;
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.builder.CookieBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -63,6 +62,23 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
+    public void test_redirectInBefore() throws Exception {
+        app.before("/before", ctx -> ctx.redirect("/redirected"));
+        app.get("/redirected", ctx -> ctx.result("Redirected"));
+        assertThat(GET_body("/before"), is("Redirected"));
+    }
+
+    @Test
+    public void test_redirectInExceptionMapper() throws Exception {
+        app.get("/get", ctx -> {
+            throw new Exception();
+        });
+        app.exception(Exception.class, (exception, ctx) -> ctx.redirect("/redirected"));
+        app.get("/redirected", ctx -> ctx.result("Redirected"));
+        assertThat(GET_body("/get"), is("Redirected"));
+    }
+
+    @Test
     public void test_redirect() throws Exception {
         app.get("/hello", ctx -> ctx.redirect("/hello-2"));
         app.get("/hello-2", ctx -> ctx.result("Redirected"));
@@ -71,13 +87,25 @@ public class TestResponse extends _UnirestBaseTest {
 
     @Test
     public void test_redirectWithStatus() throws Exception {
-        app.get("/hello", ctx -> ctx.redirect("/hello-2", 302));
+        app.get("/hello", ctx -> ctx.redirect("/hello-2", 301));
         app.get("/hello-2", ctx -> ctx.result("Redirected"));
         Unirest.setHttpClient(noRedirectClient); // disable redirects
         HttpResponse<String> response = call(HttpMethod.GET, "/hello");
-        assertThat(response.getStatus(), is(302));
+        assertThat(response.getStatus(), is(301));
         Unirest.setHttpClient(defaultHttpClient); // re-enable redirects
         response = call(HttpMethod.GET, "/hello");
+        assertThat(response.getBody(), is("Redirected"));
+    }
+
+    @Test
+    public void test_redirectWithStatus_absolutePath() throws Exception {
+        app.get("/hello-abs", ctx -> ctx.redirect(origin + "/hello-abs-2", 303));
+        app.get("/hello-abs-2", ctx -> ctx.result("Redirected"));
+        Unirest.setHttpClient(noRedirectClient); // disable redirects
+        HttpResponse<String> response = call(HttpMethod.GET, "/hello-abs");
+        assertThat(response.getStatus(), is(303));
+        Unirest.setHttpClient(defaultHttpClient); // re-enable redirects
+        response = call(HttpMethod.GET, "/hello-abs");
         assertThat(response.getBody(), is("Redirected"));
     }
 
@@ -100,9 +128,9 @@ public class TestResponse extends _UnirestBaseTest {
     }
 
     @Test
-    public void test_cookieBuilder() throws Exception {
+    public void test_cookie() throws Exception {
         app.post("/create-cookie", ctx -> {
-            ctx.cookie(CookieBuilder.cookieBuilder("Test", "Tast"));
+            ctx.cookie("Test", "Tast");
         });
         HttpResponse<String> response = call(HttpMethod.POST, "/create-cookie");
         List<String> cookies = response.getHeaders().get("Set-Cookie");

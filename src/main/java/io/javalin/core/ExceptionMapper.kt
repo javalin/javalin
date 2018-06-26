@@ -20,19 +20,27 @@ class ExceptionMapper {
     val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
+        ctx.inExceptionHandler = true
         if (exception is HaltException) {
             ctx.status(exception.statusCode)
             ctx.result(exception.body)
-            return
-        }
-        val exceptionHandler = this.getHandler(exception.javaClass)
-        if (exceptionHandler != null) {
-            exceptionHandler.handle(exception, ctx)
         } else {
-            log.warn("Uncaught exception", exception)
-            ctx.result("Internal server error")
-            ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            val exceptionHandler = this.getHandler(exception.javaClass)
+            if (exceptionHandler != null) {
+                exceptionHandler.handle(exception, ctx)
+            } else {
+                log.warn("Uncaught exception", exception)
+                ctx.result("Internal server error")
+                ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            }
         }
+        ctx.inExceptionHandler = false
+    }
+
+    internal inline fun catchException(ctx: Context, func: () -> Unit) = try {
+        func.invoke()
+    } catch (e: Exception) {
+        handle(e, ctx)
     }
 
     private fun getHandler(exceptionClass: Class<out Exception>): ExceptionHandler<Exception>? {

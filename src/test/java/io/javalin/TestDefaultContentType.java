@@ -2,11 +2,12 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
@@ -18,6 +19,7 @@ public class TestDefaultContentType {
     @BeforeClass
     public static void setUp() {
         app = Javalin.create()
+            .port(0)
             .defaultCharacterEncoding("windows-1251")
             .defaultContentType("application/json")
             .start();
@@ -30,20 +32,23 @@ public class TestDefaultContentType {
             ctx.response().setCharacterEncoding("iso-8859-1");
             ctx.result("");
         });
-
-        HttpResponse<String> response = new HttpRequestWithBody(HttpMethod.GET, origin + "/test-iso-encoding").asString();
-        String charset = response.getHeaders().getFirst("Content-Type");
-        assertThat(charset, containsString("iso-8859-1"));
+        String contentType = Unirest.get(origin + "/test-iso-encoding").asString().getHeaders().getFirst("Content-Type");
+        assertThat(contentType, containsString("iso-8859-1"));
     }
 
     @Test
     public void test_sets_defaults() throws Exception {
         app.get("/test-default-encoding", ctx -> ctx.result(""));
+        String contentType = Unirest.get(origin + "/test-default-encoding").asString().getHeaders().getFirst("Content-Type");
+        assertThat(contentType, containsString("windows-1251"));
+        assertThat(contentType, containsString("application/json"));
+    }
 
-        HttpResponse<String> response = new HttpRequestWithBody(HttpMethod.GET, origin + "/test-default-encoding").asString();
-        String charset = response.getHeaders().getFirst("Content-Type");
-        assertThat(charset, containsString("windows-1251"));
-        assertThat(charset, containsString("application/json"));
+    @Test
+    public void test_can_be_removed() throws Exception {
+        app.get("/test-remove-charset", ctx -> ctx.json("").removeCharset());
+        String contentType = Unirest.get(origin + "/test-remove-charset").asString().getHeaders().getFirst("Content-Type");
+        assertThat(contentType, is("application/json"));
     }
 
     @Test
@@ -53,11 +58,9 @@ public class TestDefaultContentType {
             ctx.response().setContentType("text/html");
             ctx.result("");
         });
-
-        HttpResponse<String> response = new HttpRequestWithBody(HttpMethod.GET, origin + "/test-override-encoding").asString();
-        String charset = response.getHeaders().getFirst("Content-Type");
-        assertThat(charset, containsString("utf-8"));
-        assertThat(charset, containsString("text/html"));
+        String contentType = Unirest.get(origin + "/test-override-encoding").asString().getHeaders().getFirst("Content-Type");
+        assertThat(contentType, containsString("utf-8"));
+        assertThat(contentType, containsString("text/html"));
     }
 
     @AfterClass

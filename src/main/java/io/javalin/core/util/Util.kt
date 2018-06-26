@@ -16,8 +16,8 @@ object Util {
 
     var noServerHasBeenStarted = true
 
-    fun normalizeContextPath(contextPath: String) = ("/" + contextPath).replace("/{2,}".toRegex(), "/").removeSuffix("/")
-    fun prefixContextPath(path: String, contextPath: String) = if (path == "*") path else (contextPath + "/" + path).replace("/{2,}".toRegex(), "/")
+    fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
+    fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
 
     private fun classExists(className: String) = try {
         Class.forName(className)
@@ -28,16 +28,27 @@ object Util {
 
     private val dependencyCheckCache = HashMap<String, Boolean>()
 
-    fun ensureDependencyPresent(dependencyName: String, className: String, url: String) {
-        if (dependencyCheckCache[className] == true) {
+    fun ensureDependencyPresent(dependency: OptionalDependency) {
+        if (dependencyCheckCache[dependency.testClass] == true) {
             return
         }
-        if (!classExists(className)) {
-            val message = "Missing dependency '$dependencyName'. Please add dependency: https://mvnrepository.com/artifact/$url"
+        if (!classExists(dependency.testClass)) {
+            val message = """
+                |Missing dependency '${dependency.displayName}'. Add the dependency.
+                |
+                |pom.xml:
+                |<dependency>
+                |    <groupId>${dependency.groupId}</groupId>
+                |    <artifactId>${dependency.artifactId}</artifactId>
+                |    <version>${dependency.version}</version>
+                |</dependency>
+                |
+                |build.gradle:
+                |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
             log.warn(message)
             throw HaltException(500, message)
         }
-        dependencyCheckCache[className] = true
+        dependencyCheckCache[dependency.testClass] = true
     }
 
     fun printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond() {

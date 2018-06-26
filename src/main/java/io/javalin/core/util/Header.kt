@@ -57,7 +57,7 @@ object Header {
     const val RETRY_AFTER = "Retry-After"
     const val SERVER = "Server"
     const val SET_COOKIE = "Set-Cookie"
-    const val SET_COOKIE2 = "Set-Cookie2"
+    const val SEC_WEBSOCKET_KEY = "Sec-WebSocket-Key"
     const val TE = "TE"
     const val TRAILER = "Trailer"
     const val TRANSFER_ENCODING = "Transfer-Encoding"
@@ -67,4 +67,5 @@ object Header {
     const val VIA = "Via"
     const val WARNING = "Warning"
     const val WWW_AUTHENTICATE = "WWW-Authenticate"
+    const val X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override"
 }
