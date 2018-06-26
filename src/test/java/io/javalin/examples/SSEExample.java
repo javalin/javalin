@@ -33,7 +33,8 @@ public class SSEExample {
             sse.onOpen( eventSource -> {
                 eventSource.sendEvent( "connect", "Connected!" );
                 eventSources.add( eventSource );
-            } );
+                return null;
+            });
             sse.onClose( eventSource -> eventSources.remove( eventSource ));
         } );
 

@@ -8,8 +8,7 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 import io.javalin.serversentevent.EventSource
-import java.io.IOException
-import java.util.ArrayList
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
@@ -26,13 +25,13 @@ fun main(args: Array<String>) {
         )
     }
 
-//    app.sse("/sse") { sse ->
-//        sse.onOpen { eventSource ->
-//            eventSource.sendEvent("connect", "Connected!")
-//            eventSources.add(eventSource)
-//        }
-//        sse.onClose { eventSource -> eventSources.remove(eventSource) }
-//    }
+    app.sse("/sse") { sse ->
+        sse.onOpen { eventSource ->
+            eventSource.sendEvent("connect", "Connected!")
+            eventSources.add(eventSource)
+        }
+        sse.onClose { eventSource -> eventSources.remove(eventSource) }
+    }
 
     while (true) {
         for (sse in eventSources)

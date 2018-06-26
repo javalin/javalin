@@ -1,6 +1,7 @@
 package io.javalin.serversentevent
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.*
 
@@ -11,14 +12,14 @@ class EventSourceImplTest {
 
     @Test
     fun onOpen() {
-
+        var called = false;
         val emitter = mock(Emitter::class.java)
-        val onOpen = mock(SSEConnect::class.java)
+        val onOpen = { eventsource: EventSource -> called = true}
 
         val eventSource = EventSourceImpl(emitter, pathParam)
         eventSource.onOpen(onOpen)
 
-        verify(onOpen).handler(eventSource)
+        assertTrue(called)
     }
 
 
@@ -34,16 +35,15 @@ class EventSourceImplTest {
 
     @Test
     fun onClose() {
-
+        var sseOnClose: EventSource = mock(EventSource::class.java)
         val emitter = mock(Emitter::class.java)
-        val onClose = mock(SSEClose::class.java)
+        val onClose = { eventsource: EventSource -> sseOnClose = eventsource}
        `when`(emitter.isClose()).thenReturn(true)
         val eventSource = EventSourceImpl(emitter, pathParam)
         eventSource.onClose(onClose)
 
         eventSource.sendEvent(event, data)
-        verify(onClose).handler(eventSource)
-        verify(onClose).handler(eventSource)
+        assertEquals(eventSource, sseOnClose)
     }
 
     @Test

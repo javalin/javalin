@@ -1,6 +1,3 @@
 package io.javalin.serversentevent
 
-@FunctionalInterface
-interface SSEClose {
-    fun handler(eventSource: EventSource)
-}
+typealias SSEClose = (EventSource) -> Any
