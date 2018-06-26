@@ -119,7 +119,7 @@ class JavalinServlet(
         if (!res.isCommitted) {
             if (dynamicEtagsEnabled) {
                 val serverEtag = "33a64df551425fcc55e4d42a148795d9f25f89d4"
-                res.setHeader(Header.ETAG, serverEtag)
+                ctx.header(Header.ETAG, serverEtag)
                 ctx.header(Header.IF_NONE_MATCH)?.let { clientEtag ->
                     if (clientEtag == serverEtag) {
                         res.status = 304
@@ -130,7 +130,7 @@ class JavalinServlet(
             ctx.resultStream()?.let { resultStream ->
                 if (gzipShouldBeDone(ctx)) {
                     GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
-                        res.setHeader(Header.CONTENT_ENCODING, "gzip")
+                        ctx.header(Header.CONTENT_ENCODING, "gzip")
                         resultStream.copyTo(gzippedStream)
                     }
                 } else {
