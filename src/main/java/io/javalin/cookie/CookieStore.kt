@@ -1,11 +1,11 @@
 package io.javalin.cookie
 
-import io.javalin.builder.CookieBuilder
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.util.*
+import javax.servlet.http.Cookie
 
 
 class CookieStore(cookieValue: String?) {
@@ -16,7 +16,7 @@ class CookieStore(cookieValue: String?) {
 
     private val map = stringToMap(cookieValue)
 
-    fun cookie() = CookieBuilder(NAME, mapToString(map))
+    fun cookie() = Cookie(NAME, mapToString(map))
 
     @Suppress("UNCHECKED_CAST")
     operator fun <T> get(key: String) = map[key] as T
