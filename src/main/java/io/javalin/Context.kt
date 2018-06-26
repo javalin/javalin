@@ -429,6 +429,14 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     }
 
     /**
+     * Removes the charset from the response.
+     */
+    fun removeCharset(): Context {
+        servletResponse.characterEncoding = null
+        return this
+    }
+
+    /**
      * Gets the current response charset.
      */
     private fun stringCharset() = try {
