@@ -29,6 +29,7 @@ class JavalinServlet(
         val debugLogging: Boolean,
         val requestLogger: RequestLogger?,
         val dynamicGzipEnabled: Boolean,
+        val dynamicEtagsEnabled: Boolean,
         val defaultContentType: String,
         val defaultCharacterEncoding: String,
         val maxRequestCacheBodySize: Long,
@@ -116,6 +117,15 @@ class JavalinServlet(
 
     private fun writeResult(ctx: Context, res: HttpServletResponse) {
         if (!res.isCommitted) {
+            if (dynamicEtagsEnabled) {
+                res.setHeader(Header.ETAG, "33a64df551425fcc55e4d42a148795d9f25f89d4")
+                ctx.header(Header.IF_NONE_MATCH)?.let { etag ->
+                    if (etag == "33a64df551425fcc55e4d42a148795d9f25f89d4") {
+                        res.status = 304
+                        return
+                    }
+                }
+            }
             ctx.resultStream()?.let { resultStream ->
                 if (gzipShouldBeDone(ctx)) {
                     GZIPOutputStream(res.outputStream, true).use { gzippedStream ->

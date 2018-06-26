@@ -52,6 +52,7 @@ public class Javalin {
     private long maxRequestCacheBodySize = 4096;
     private boolean debugLogging = false;
     private boolean dynamicGzipEnabled = true;
+    private boolean dynamicEtagsEnabled = false;
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
     private boolean started = false;
@@ -116,6 +117,7 @@ public class Javalin {
                     debugLogging,
                     requestLogger,
                     dynamicGzipEnabled,
+                    dynamicEtagsEnabled,
                     defaultContentType,
                     defaultCharacterEncoding,
                     maxRequestCacheBodySize,
@@ -304,6 +306,12 @@ public class Javalin {
     public Javalin disableDynamicGzip() {
         ensureActionIsPerformedBeforeServerStart("Disabling dynamic GZIP");
         this.dynamicGzipEnabled = false;
+        return this;
+    }
+
+    public Javalin enableDynamicEtags() {
+        ensureActionIsPerformedBeforeServerStart("Enabling dynamic etags");
+        this.dynamicEtagsEnabled = true;
         return this;
     }
 
