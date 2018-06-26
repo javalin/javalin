@@ -9,7 +9,6 @@ package io.javalin
 import io.javalin.core.HandlerType
 import io.javalin.cookie.CookieStore
 import io.javalin.core.util.ContextUtil
-import io.javalin.core.util.CookieStoreUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
 import io.javalin.json.JavalinJson
