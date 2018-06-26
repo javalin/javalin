@@ -371,16 +371,25 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun response(): HttpServletResponse = servletResponse
 
     /**
+     * Gets the current response charset.
+     */
+    private fun responseCharset() = try {
+        Charset.forName(servletResponse.characterEncoding)
+    } catch (e: Exception) {
+        Charset.defaultCharset()
+    }
+
+    /**
      * Sets context result to the specified String.
      * Will overwrite the current result if there is one.
      */
-    fun result(resultString: String) = result(resultString.byteInputStream(stringCharset()))
+    fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
 
     /**
      * Gets the current context result as a String (if set).
      */
     fun resultString(): String? {
-        val string = resultStream?.readBytes()?.toString(stringCharset())
+        val string = resultStream?.readBytes()?.toString(responseCharset())
         resultStream?.reset()
         return string
     }
@@ -434,15 +443,6 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun removeCharset(): Context {
         servletResponse.characterEncoding = null
         return this
-    }
-
-    /**
-     * Gets the current response charset.
-     */
-    private fun stringCharset() = try {
-        Charset.forName(servletResponse.characterEncoding)
-    } catch (e: Exception) {
-        Charset.defaultCharset()
     }
 
     /**
