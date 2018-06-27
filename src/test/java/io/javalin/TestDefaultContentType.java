@@ -48,7 +48,7 @@ public class TestDefaultContentType {
         Javalin app = Javalin.create().start(0)
             .get("/json", ctx -> ctx.json("白菜湯"))
             .get("/html", ctx -> ctx.html("kålsuppe"))
-            .get("/text", ctx -> ctx.result("щи"));
+            .get("/text", ctx -> ctx.result("суп из капусты"));
         HttpResponse<String> jsonResponse = Unirest.get("http://localhost:" + app.port() + "/json").asString();
         HttpResponse<String> htmlResponse = Unirest.get("http://localhost:" + app.port() + "/html").asString();
         HttpResponse<String> textResponse = Unirest.get("http://localhost:" + app.port() + "/text").asString();
@@ -57,7 +57,7 @@ public class TestDefaultContentType {
         assertThat(textResponse.getHeaders().getFirst(Header.CONTENT_TYPE), is("text/plain"));
         assertThat(jsonResponse.getBody(), is("\"白菜湯\""));
         assertThat(htmlResponse.getBody(), is("kålsuppe"));
-        assertThat(textResponse.getBody(), is("щи"));
+        assertThat(textResponse.getBody(), is("суп из капусты"));
     }
 
     @Test
