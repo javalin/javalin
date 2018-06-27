@@ -30,7 +30,6 @@ class JavalinServlet(
         val requestLogger: RequestLogger?,
         val dynamicGzipEnabled: Boolean,
         val defaultContentType: String,
-        val defaultCharacterEncoding: String,
         val maxRequestCacheBodySize: Long,
         val prefer405over404: Boolean,
         val jettyResourceHandler: JettyResourceHandler) {
@@ -50,7 +49,6 @@ class JavalinServlet(
         ctx.header(Header.SERVER, "Javalin")
         ctx.attribute("javalin-request-log-start-time", System.nanoTime())
 
-        res.characterEncoding = defaultCharacterEncoding
         res.contentType = defaultContentType
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)

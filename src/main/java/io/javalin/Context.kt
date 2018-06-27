@@ -430,22 +430,6 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun resultFuture(): CompletableFuture<*>? = resultFuture
 
     /**
-     * Sets response charset to specified value.
-     */
-    fun charset(charset: String): Context {
-        servletResponse.characterEncoding = charset
-        return this
-    }
-
-    /**
-     * Removes the charset from the response.
-     */
-    fun removeCharset(): Context {
-        servletResponse.characterEncoding = null
-        return this
-    }
-
-    /**
      * Sets response content type to specified value.
      */
     fun contentType(contentType: String): Context {

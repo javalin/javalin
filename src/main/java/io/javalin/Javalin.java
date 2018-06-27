@@ -27,7 +27,6 @@ import io.javalin.websocket.WsEntry;
 import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsPathMatcher;
 import java.net.BindException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +47,6 @@ public class Javalin {
     private int port = 7000;
     private String contextPath = "/";
     private String defaultContentType = "text/plain";
-    private String defaultCharacterEncoding = StandardCharsets.UTF_8.name();
     private long maxRequestCacheBodySize = 4096;
     private boolean debugLogging = false;
     private boolean dynamicGzipEnabled = true;
@@ -117,7 +115,6 @@ public class Javalin {
                     requestLogger,
                     dynamicGzipEnabled,
                     defaultContentType,
-                    defaultCharacterEncoding,
                     maxRequestCacheBodySize,
                     prefer405over404,
                     new JettyResourceHandler(staticFileConfig)
@@ -326,17 +323,6 @@ public class Javalin {
     public Javalin defaultContentType(@NotNull String contentType) {
         ensureActionIsPerformedBeforeServerStart("Changing default content type");
         this.defaultContentType = contentType;
-        return this;
-    }
-
-    /**
-     * Configure instance to use the specified character-encoding as a default
-     * value for all responses. This can be overridden in any Handler.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin defaultCharacterEncoding(@NotNull String characterEncoding) {
-        ensureActionIsPerformedBeforeServerStart("Changing default character encoding");
-        this.defaultCharacterEncoding = characterEncoding;
         return this;
     }
 
