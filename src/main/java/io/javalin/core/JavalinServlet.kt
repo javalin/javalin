@@ -9,10 +9,7 @@ package io.javalin.core
 import io.javalin.Context
 import io.javalin.HaltException
 import io.javalin.RequestLogger
-import io.javalin.core.util.ContextUtil
-import io.javalin.core.util.Header
-import io.javalin.core.util.LogUtil
-import io.javalin.core.util.MethodNotAllowedUtil
+import io.javalin.core.util.*
 import io.javalin.staticfiles.JettyResourceHandler
 import org.slf4j.LoggerFactory
 import java.io.InputStream
@@ -94,6 +91,7 @@ class JavalinServlet(
             tryErrorHandlers()
             tryAfterHandlers()
             writeResult(ctx, res)
+            logRequest(ctx)
         } else {
             req.startAsync().let { asyncContext ->
                 future.exceptionally { throwable ->
@@ -109,6 +107,7 @@ class JavalinServlet(
                     tryErrorHandlers()
                     tryAfterHandlers()
                     writeResult(ctx, asyncContext.response as HttpServletResponse)
+                    logRequest(ctx)
                     asyncContext.complete()
                 }
             }
@@ -116,28 +115,27 @@ class JavalinServlet(
     }
 
     private fun writeResult(ctx: Context, res: HttpServletResponse) {
-        if (!res.isCommitted) {
-            if (dynamicEtagsEnabled) {
-                val serverEtag = "33a64df551425fcc55e4d42a148795d9f25f89d4"
-                ctx.header(Header.ETAG, serverEtag)
-                ctx.header(Header.IF_NONE_MATCH)?.let { clientEtag ->
-                    if (clientEtag == serverEtag) {
-                        res.status = 304
-                        return
-                    }
-                }
-            }
-            ctx.resultStream()?.let { resultStream ->
-                if (gzipShouldBeDone(ctx)) {
-                    GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
-                        ctx.header(Header.CONTENT_ENCODING, "gzip")
-                        resultStream.copyTo(gzippedStream)
-                    }
-                } else {
-                    resultStream.copyTo(res.outputStream)
-                }
+        if (res.isCommitted || ctx.resultStream() == null) return // nothing to write
+        val resultStream = ctx.resultStream()!!
+        if (dynamicEtagsEnabled) {
+            val serverEtag = Util.getChecksumAndReset(resultStream)
+            ctx.header(Header.ETAG, serverEtag)
+            if (serverEtag == ctx.header(Header.IF_NONE_MATCH)) {
+                ctx.status(304)
+                return // don't write body
             }
         }
+        if (gzipShouldBeDone(ctx)) {
+            return GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
+                ctx.header(Header.CONTENT_ENCODING, "gzip")
+                resultStream.copyTo(gzippedStream)
+            }
+        } else {
+            resultStream.copyTo(res.outputStream)
+        }
+    }
+
+    private fun logRequest(ctx: Context) {
         if (requestLogger != null) {
             requestLogger.handle(ctx, LogUtil.executionTimeMs(ctx))
         } else if (debugLogging == true) {
