@@ -19,9 +19,7 @@ public class TestEtags {
     @Test
     public void test_etags_work() throws Exception {
         Javalin app = Javalin.create().enableDynamicEtags().start(0);
-        app.get("/", ctx -> {
-            ctx.result("Hello!");
-        });
+        app.get("/", ctx -> ctx.result("Hello!"));
         HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/").asString();
         assertThat(response.getStatus(), is(200));
         assertThat(response.getBody(), is("Hello!"));
@@ -29,17 +27,13 @@ public class TestEtags {
         HttpResponse<String> response2 = Unirest.get("http://localhost:" + app.port() + "/").header(Header.IF_NONE_MATCH, etag).asString();
         assertThat(response2.getStatus(), is(304));
         assertThat(response2.getBody(), isEmptyOrNullString());
-        System.out.println(response.getHeaders().getFirst(Header.ETAG));
-        System.out.println(response2.getHeaders().getFirst(Header.ETAG));
         app.stop();
     }
 
     @Test
     public void test_no_etags_work() throws Exception {
         Javalin app = Javalin.create().start(0);
-        app.get("/", ctx -> {
-            ctx.result("Hello!");
-        });
+        app.get("/", ctx -> ctx.result("Hello!"));
         HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/").asString();
         assertThat(response.getStatus(), is(200));
         assertThat(response.getBody(), is("Hello!"));
