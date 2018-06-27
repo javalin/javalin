@@ -309,6 +309,12 @@ public class Javalin {
         return this;
     }
 
+    /**
+     * Configure instance to add dynamic ETags.
+     * This will calculate a checksum for dynamic GET responses and
+     * return 304 if the content has not changed.
+     * The method must be called before {@link Javalin#start()}.
+     */
     public Javalin enableDynamicEtags() {
         ensureActionIsPerformedBeforeServerStart("Enabling dynamic etags");
         this.dynamicEtagsEnabled = true;

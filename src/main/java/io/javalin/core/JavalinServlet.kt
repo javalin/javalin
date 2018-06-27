@@ -90,7 +90,7 @@ class JavalinServlet(
         if (future == null) {
             tryErrorHandlers()
             tryAfterHandlers()
-            writeResult(ctx, res)
+            writeResult(ctx, res, type)
             logRequest(ctx)
         } else {
             req.startAsync().let { asyncContext ->
@@ -106,7 +106,7 @@ class JavalinServlet(
                     }
                     tryErrorHandlers()
                     tryAfterHandlers()
-                    writeResult(ctx, asyncContext.response as HttpServletResponse)
+                    writeResult(ctx, asyncContext.response as HttpServletResponse, type)
                     logRequest(ctx)
                     asyncContext.complete()
                 }
@@ -114,10 +114,10 @@ class JavalinServlet(
         }
     }
 
-    private fun writeResult(ctx: Context, res: HttpServletResponse) {
+    private fun writeResult(ctx: Context, res: HttpServletResponse, type: HandlerType) {
         if (res.isCommitted || ctx.resultStream() == null) return // nothing to write
         val resultStream = ctx.resultStream()!!
-        if (dynamicEtagsEnabled) {
+        if (dynamicEtagsEnabled && type == HandlerType.GET) {
             val serverEtag = Util.getChecksumAndReset(resultStream)
             ctx.header(Header.ETAG, serverEtag)
             if (serverEtag == ctx.header(Header.IF_NONE_MATCH)) {
