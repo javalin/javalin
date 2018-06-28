@@ -126,7 +126,7 @@ class JavalinServlet(
             }
         }
         if (gzipShouldBeDone(ctx)) {
-            return GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
+            GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
                 res.setHeader(Header.CONTENT_ENCODING, "gzip")
                 resultStream.copyTo(gzippedStream)
             }
