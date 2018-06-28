@@ -296,8 +296,8 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to use dynamic gzip compression.
-     * This will compress all responses larger than 1500 bytes.
+     * Configure instance to not gzip dynamic responses.
+     * By default Javalin gzips all responses larger than 1500 bytes.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin disableDynamicGzip() {
