@@ -67,11 +67,9 @@ public class TestEtags {
     public void test_no_etags_work() throws Exception {
         Javalin app = Javalin.create().start(0);
         app.get("/", ctx -> ctx.result("Hello!"));
-        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/").asString();
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.getBody(), is("Hello!"));
-        String etag = response.getHeaders().getFirst(Header.ETAG);
-        assertThat(etag, isEmptyOrNullString());
+        assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().getBody(), is("Hello!"));
+        assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().getStatus(), is(200));
+        assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().getHeaders().getFirst(Header.ETAG), isEmptyOrNullString());
         app.stop();
     }
 
