@@ -118,16 +118,16 @@ class JavalinServlet(
         if (res.isCommitted || ctx.resultStream() == null) return // nothing to write
         val resultStream = ctx.resultStream()!!
         if (dynamicEtagsEnabled && type == HandlerType.GET) {
-            val serverEtag = Util.getChecksumAndReset(resultStream)
-            ctx.header(Header.ETAG, serverEtag)
+            val serverEtag = res.getHeader(Header.ETAG) ?: Util.getChecksumAndReset(resultStream) // calculate if not set
+            res.setHeader(Header.ETAG, serverEtag)
             if (serverEtag == ctx.header(Header.IF_NONE_MATCH)) {
-                ctx.status(304)
+                res.status = 304
                 return // don't write body
             }
         }
         if (gzipShouldBeDone(ctx)) {
             return GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
-                ctx.header(Header.CONTENT_ENCODING, "gzip")
+                res.setHeader(Header.CONTENT_ENCODING, "gzip")
                 resultStream.copyTo(gzippedStream)
             }
         } else {

@@ -17,16 +17,31 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 public class TestEtags {
 
     @Test
-    public void test_etags_work() throws Exception {
+    public void test_automatic_etags_work() throws Exception {
         Javalin app = Javalin.create().enableDynamicEtags().start(0);
-        app.get("/", ctx -> ctx.result("Hello!"));
-        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/").asString();
+        app.get("/automatic", ctx -> ctx.result("Hello!"));
+        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/automatic").asString();
         assertThat(response.getStatus(), is(200));
         assertThat(response.getBody(), is("Hello!"));
         String etag = response.getHeaders().getFirst(Header.ETAG);
-        HttpResponse<String> response2 = Unirest.get("http://localhost:" + app.port() + "/").header(Header.IF_NONE_MATCH, etag).asString();
+        HttpResponse<String> response2 = Unirest.get("http://localhost:" + app.port() + "/automatic").header(Header.IF_NONE_MATCH, etag).asString();
         assertThat(response2.getStatus(), is(304));
         assertThat(response2.getBody(), isEmptyOrNullString());
+        app.stop();
+    }
+
+    @Test
+    public void test_manual_etags_work() throws Exception {
+        Javalin app = Javalin.create().enableDynamicEtags().start(0);
+        app.get("/manual", ctx -> ctx.result("Hello!").header(Header.ETAG, "1234"));
+        HttpResponse<String> response = Unirest.get("http://localhost:" + app.port() + "/manual").asString();
+        assertThat(response.getStatus(), is(200));
+        assertThat(response.getBody(), is("Hello!"));
+        String etag = response.getHeaders().getFirst(Header.ETAG);
+        HttpResponse<String> response2 = Unirest.get("http://localhost:" + app.port() + "/manual").header(Header.IF_NONE_MATCH, etag).asString();
+        assertThat(response2.getStatus(), is(304));
+        assertThat(response2.getBody(), isEmptyOrNullString());
+        assertThat(etag, is("1234"));
         app.stop();
     }
 
