@@ -25,8 +25,10 @@ public class TestEtags {
         assertThat(response.getBody(), is("Hello!"));
         String etag = response.getHeaders().getFirst(Header.ETAG);
         HttpResponse<String> response2 = Unirest.get("http://localhost:" + app.port() + "/automatic").header(Header.IF_NONE_MATCH, etag).asString();
+        String etag2 = response2.getHeaders().getFirst(Header.ETAG);
         assertThat(response2.getStatus(), is(304));
         assertThat(response2.getBody(), isEmptyOrNullString());
+        assertThat(etag, is(etag2));
         app.stop();
     }
 
