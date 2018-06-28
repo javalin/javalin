@@ -10,12 +10,14 @@ import io.javalin.Context
 import io.javalin.core.CachedResponseWrapper
 import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
-import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.*
 
 object LogUtil {
 
-    fun logRequestAndResponse(ctx: Context, matcher: PathMatcher, log: Logger, gzipped: Boolean) {
+    private val log = LoggerFactory.getLogger(LogUtil::class.java)
+
+    fun logRequestAndResponse(ctx: Context, matcher: PathMatcher, gzipped: Boolean) {
         val type = HandlerType.fromServletRequest(ctx.request())
         val requestUri = ctx.request().requestURI
         val executionTimeMs = Formatter(Locale.US).format("%.2f", executionTimeMs(ctx))
@@ -39,6 +41,8 @@ object LogUtil {
                         |----------------------------------------------------------------------------------""".trimMargin())
         }
     }
+
+    fun startTimer(ctx: Context) = ctx.attribute("javalin-request-log-start-time", System.nanoTime())
 
     fun executionTimeMs(ctx: Context) = (System.nanoTime() - ctx.attribute("javalin-request-log-start-time") as Long) / 1000000f
 }
