@@ -38,7 +38,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     @JvmField val req = servletRequest
     // @formatter:on
 
-    private val cookieStore by lazy { CookieStore(cookie(CookieStore.NAME)) }
+    private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
 
@@ -55,7 +55,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun cookieStore(key: String, value: Any) {
         cookieStore[key] = value
-        cookie(cookieStore.cookie())
+        cookie(cookieStore.serializeToCookie())
     }
 
     /**
@@ -64,7 +64,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun clearCookieStore() {
         cookieStore.clear()
-        removeCookie(CookieStore.NAME)
+        removeCookie(CookieStore.COOKIE_NAME)
     }
 
     ///////////////////////////////////////////////////////////////
