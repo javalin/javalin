@@ -485,18 +485,14 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     }
 
     /**
-     * Removes cookie specified by name.
+     * Removes cookie specified by name and path (optional).
      */
-    fun removeCookie(name: String): Context = removeCookie(null, name)
-
-    /**
-     * Removes cookie specified by path and name.
-     */
-    fun removeCookie(path: String?, name: String): Context {
-        val cookie = Cookie(name, "")
-        cookie.path = path
-        cookie.maxAge = 0
-        servletResponse.addCookie(cookie)
+    @JvmOverloads
+    fun removeCookie(name: String, path: String? = null): Context {
+        servletResponse.addCookie(Cookie(name, "").apply {
+            this.path = path
+            this.maxAge = 0
+        })
         return this
     }
 
