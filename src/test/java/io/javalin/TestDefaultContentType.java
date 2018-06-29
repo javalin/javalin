@@ -42,8 +42,8 @@ public class TestDefaultContentType {
     public void test_allows_overrides() throws Exception {
         Javalin app = Javalin.create().defaultContentType("application/json").start(0);
         app.get("/override", ctx -> {
-            ctx.response().setCharacterEncoding("utf-8");
-            ctx.response().setContentType("text/html");
+            ctx.res.setCharacterEncoding("utf-8");
+            ctx.res.setContentType("text/html");
             ctx.result("mmm");
         });
         String contentType = get(app, "/override").getHeaders().getFirst(Header.CONTENT_TYPE);

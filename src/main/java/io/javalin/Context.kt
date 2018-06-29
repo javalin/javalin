@@ -6,8 +6,8 @@
 
 package io.javalin
 
-import io.javalin.core.HandlerType
 import io.javalin.cookie.CookieStore
+import io.javalin.core.HandlerType
 import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
@@ -34,6 +34,8 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
+    @JvmField val res = servletResponse
+    @JvmField val req = servletRequest
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.NAME)) }
@@ -68,11 +70,6 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     ///////////////////////////////////////////////////////////////
     // Request-ish methods
     ///////////////////////////////////////////////////////////////
-
-    /**
-     * Gets the underlying HttpServletRequest
-     */
-    fun request(): HttpServletRequest = servletRequest
 
     /**
      * Gets the request body as a String.
@@ -363,11 +360,6 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     ///////////////////////////////////////////////////////////////
     // Response-ish methods
     ///////////////////////////////////////////////////////////////
-
-    /**
-     * Gets the underlying HttpServletResponse.
-     */
-    fun response(): HttpServletResponse = servletResponse
 
     /**
      * Gets the current response charset.

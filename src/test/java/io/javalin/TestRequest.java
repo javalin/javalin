@@ -27,8 +27,8 @@ public class TestRequest extends _UnirestBaseTest {
      */
     @Test
     public void test_session_works() throws Exception {
-        app.get("/store-session", ctx -> ctx.request().getSession().setAttribute("test", "tast"));
-        app.get("/read-session", ctx -> ctx.result((String) ctx.request().getSession().getAttribute("test")));
+        app.get("/store-session", ctx -> ctx.req.getSession().setAttribute("test", "tast"));
+        app.get("/read-session", ctx -> ctx.result((String) ctx.req.getSession().getAttribute("test")));
         GET_body("/store-session");
         assertThat(GET_body("/read-session"), is("tast"));
     }
@@ -245,7 +245,7 @@ public class TestRequest extends _UnirestBaseTest {
 
     @Test
     public void test_servletContext_isNotNull() throws Exception {
-        app.get("/", ctx -> ctx.result(ctx.request().getServletContext() != null ? "not-null" : "null"));
+        app.get("/", ctx -> ctx.result(ctx.req.getServletContext() != null ? "not-null" : "null"));
         assertThat(GET_body("/"), is("not-null"));
     }
 
