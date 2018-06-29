@@ -20,10 +20,15 @@ class SSEHandler private constructor(private val consumerSSE: Consumer<EventSour
         val isEventStream = isEventStream(request)
         if (isEventStream) {
             startSSE(request, response)
-            val emitterEvent = EmitterImpl(request.asyncContext)
-            val configureSSE = EventSourceImpl(emitterEvent, context.pathParamMap)
+            val configureSSE = createEventEmitter(request, context)
             consumerSSE.accept(configureSSE)
         }
+    }
+
+    private fun createEventEmitter(request: HttpServletRequest, context: Context): EventSourceImpl {
+        val emitterEvent = EmitterImpl(request.asyncContext)
+        val configureSSE = EventSourceImpl(emitterEvent, context.pathParamMap)
+        return configureSSE
     }
 
     @Throws(IOException::class)
@@ -34,7 +39,6 @@ class SSEHandler private constructor(private val consumerSSE: Consumer<EventSour
         response.addHeader("Connection", "close")
         response.flushBuffer()
         request.startAsync(request, response)
-
     }
 
     protected fun isEventStream(request: HttpServletRequest): Boolean {
@@ -42,7 +46,6 @@ class SSEHandler private constructor(private val consumerSSE: Consumer<EventSour
     }
 
     companion object {
-
         fun start(emitter: Consumer<EventSource>): Handler {
             return SSEHandler(emitter)
         }

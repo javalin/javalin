@@ -23,13 +23,13 @@ public class SSEExample {
                 ctx.html(
                         ""
                                 + "<script>" +
-                                "var sse = new EventSource(\"http://localhost:7000/sse\");" +
+                                "var sse = new EventSource(\"http://localhost:7000/sse/1\");" +
                                 "sse.addEventListener(\"hi\", data => console.log(data));"
                                 + "</script>"
                 )
         );
 
-        app.sse( "/sse", sse -> {
+        app.sse( "/sse/:id", sse -> {
             sse.onOpen( eventSource -> {
                 eventSource.sendEvent( "connect", "Connected!" );
                 eventSources.add( eventSource );
