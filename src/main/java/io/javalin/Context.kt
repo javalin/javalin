@@ -7,8 +7,8 @@
 package io.javalin
 
 import io.javalin.core.HandlerType
+import io.javalin.cookie.CookieStore
 import io.javalin.core.util.ContextUtil
-import io.javalin.core.util.CookieStoreUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
 import io.javalin.json.JavalinJson
@@ -36,7 +36,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
     // @formatter:on
 
-    private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
+    private val cookieStore by lazy { CookieStore(cookie(CookieStore.NAME)) }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
 
@@ -44,8 +44,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * Gets cookie store value for specified key.
      * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
      */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> cookieStore(key: String): T = cookieStore[key] as T
+    fun <T> cookieStore(key: String): T = cookieStore[key]
 
     /**
      * Sets cookie store value for specified key.
@@ -54,7 +53,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun cookieStore(key: String, value: Any) {
         cookieStore[key] = value
-        cookie(CookieStoreUtil.name, CookieStoreUtil.mapToString(cookieStore))
+        cookie(cookieStore.cookie())
     }
 
     /**
@@ -63,7 +62,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun clearCookieStore() {
         cookieStore.clear()
-        removeCookie(CookieStoreUtil.name)
+        removeCookie(CookieStore.NAME)
     }
 
     ///////////////////////////////////////////////////////////////
