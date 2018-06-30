@@ -14,5 +14,3 @@ class EventManager {
     val listenerMap = JavalinEvent.values().associate { it to ArrayList<EventListener>() }
     fun fireEvent(javalinEvent: JavalinEvent) = listenerMap[javalinEvent]!!.forEach { listener -> listener.handleEvent() }
 }
-
-
