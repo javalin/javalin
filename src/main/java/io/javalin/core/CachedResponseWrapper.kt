@@ -27,4 +27,3 @@ class CachedResponseWrapper(response: HttpServletResponse) : HttpServletResponse
     }
 }
 
-

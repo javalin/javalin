@@ -508,7 +508,6 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
         return result(JavalinJson.toJsonMapper.map(obj)).contentType("application/json")
     }
 
-
     /**
      * Renders a file with specified values and sets it as the context result.
      * Also sets content-type to text/html.

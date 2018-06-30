@@ -7,7 +7,6 @@ import java.io.ObjectOutputStream
 import java.util.*
 import javax.servlet.http.Cookie
 
-
 class CookieStore(cookie: String?) {
 
     companion object {
