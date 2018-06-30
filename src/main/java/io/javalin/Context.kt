@@ -82,9 +82,9 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
 
     /**
-     * Maps a JSON body to a Java/Kotlin class using Jackson ObjectMapper.
+     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
+     * JavalinJson can be configured to use any mapping library.
      * @return The mapped object
-     * Requires Jackson library in the classpath.
      */
     fun <T> bodyAsClass(clazz: Class<T>): T {
         return JavalinJson.fromJsonMapper.map(body(), clazz)
@@ -493,10 +493,9 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun html(html: String): Context = result(html).contentType("text/html")
 
     /**
-     * Serializes object to a JSON-string using Jackson ObjectMapper
-     * and sets it as the context result.
+     * Serializes object to a JSON-string using JavalinJson and sets it as the context result.
+     * JavalinJson can be configured to use any mapping library.
      * Sets content type to application/json.
-     * Requires Jackson library in the classpath.
      */
     fun json(obj: Any): Context {
         return result(JavalinJson.toJsonMapper.map(obj)).contentType("application/json")
