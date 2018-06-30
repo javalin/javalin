@@ -14,7 +14,7 @@ import static io.javalin.ApiBuilder.path;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO;
-import static io.javalin.security.Role.roles;
+import static io.javalin.security.SecurityUtil.roles;
 
 public class HelloWorldAuth {
 

@@ -20,6 +20,7 @@ import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import io.javalin.security.SecurityUtil;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
@@ -54,7 +55,7 @@ public class Javalin {
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
     private boolean started = false;
-    private AccessManager accessManager = AccessManager::noop;
+    private AccessManager accessManager = SecurityUtil::noopAccessManager;
     private RequestLogger requestLogger = null;
 
     private PathMatcher pathMatcher = new PathMatcher();

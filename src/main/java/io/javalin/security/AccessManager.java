@@ -24,10 +24,4 @@ import java.util.Set;
 public interface AccessManager {
     void manage(Handler handler, Context ctx, Set<Role> permittedRoles) throws Exception;
 
-    static void noop(Handler handler, Context ctx, Set<Role> permittedRoles) throws Exception {
-        if (!permittedRoles.isEmpty()) {
-            throw new IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'");
-        }
-        handler.handle(ctx);
-    }
 }
