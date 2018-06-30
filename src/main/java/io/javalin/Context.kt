@@ -77,6 +77,13 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun body(): String = bodyAsBytes().toString(Charset.forName(servletRequest.characterEncoding ?: "UTF-8"))
 
     /**
+     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
+     * JavalinJson can be configured to use any mapping library.
+     * @return The mapped object
+     */
+    inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
+
+    /**
      * Gets the request body as a ByteArray.
      */
     fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
