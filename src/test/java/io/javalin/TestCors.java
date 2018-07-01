@@ -7,7 +7,7 @@
 package io.javalin;
 
 import com.mashape.unirest.http.Unirest;
-import io.javalin.newutil.TestUtil;
+import io.javalin.util.TestUtil;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;

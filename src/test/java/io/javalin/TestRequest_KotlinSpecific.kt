@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.newutil.BaseTest
+import io.javalin.util.BaseTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test

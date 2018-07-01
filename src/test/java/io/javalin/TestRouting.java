@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import io.javalin.newutil.TestUtil;
+import io.javalin.util.TestUtil;
 import java.net.URLEncoder;
 import org.junit.Test;
 import static io.javalin.ApiBuilder.get;

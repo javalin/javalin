@@ -1,6 +1,6 @@
 package io.javalin;
 
-import io.javalin.newutil.BaseTest;
+import io.javalin.util.BaseTest;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;

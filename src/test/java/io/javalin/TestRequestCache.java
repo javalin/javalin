@@ -1,7 +1,7 @@
 package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
-import io.javalin.newutil.TestUtil;
+import io.javalin.util.TestUtil;
 import java.io.InputStream;
 import java.util.Arrays;
 import org.apache.http.client.methods.CloseableHttpResponse;

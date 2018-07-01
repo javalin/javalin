@@ -6,9 +6,9 @@
 
 package io.javalin;
 
-import io.javalin.newutil.BaseTest;
+import io.javalin.util.BaseTest;
 import io.javalin.rendering.template.TemplateUtil;
-import io.javalin.util.TestObject_Serializable;
+import io.javalin.misc.TestObject_Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;

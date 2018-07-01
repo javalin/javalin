@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import io.javalin.newutil.TestUtil;
+import io.javalin.util.TestUtil;
 import java.util.concurrent.atomic.AtomicLong;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;

@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.newutil;
+package io.javalin.util;
 
 import io.javalin.Handler;
 import io.javalin.Javalin;

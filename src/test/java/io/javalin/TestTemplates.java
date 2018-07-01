@@ -9,7 +9,7 @@ package io.javalin;
 
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.loader.ClasspathLoader;
-import io.javalin.newutil.BaseTest;
+import io.javalin.util.BaseTest;
 import io.javalin.rendering.JavalinRenderer;
 import io.javalin.rendering.template.JavalinJtwig;
 import io.javalin.rendering.template.JavalinPebble;

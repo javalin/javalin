@@ -5,7 +5,7 @@
  *
  */
 
-package io.javalin.util;
+package io.javalin.misc;
 
 public class TypedException extends Exception {
     public String proofOfType() {

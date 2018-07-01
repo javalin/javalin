@@ -7,8 +7,8 @@
 
 package io.javalin;
 
-import io.javalin.newutil.BaseTest;
-import io.javalin.util.TypedException;
+import io.javalin.util.BaseTest;
+import io.javalin.misc.TypedException;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

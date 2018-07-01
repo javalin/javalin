@@ -9,10 +9,11 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
-import io.javalin.newutil.BaseTest;
+import io.javalin.util.BaseTest;
 import java.util.List;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
 public class TestRequest extends BaseTest {
@@ -92,7 +93,7 @@ public class TestRequest extends BaseTest {
     public void test_getMultipleCookies_worksForMultipleCookies() throws Exception {
         app.get("/read-cookie", ctx -> ctx.result(ctx.cookieMap().toString()));
         HttpResponse<String> response = Unirest.get(origin + "/read-cookie").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString();
-        assertThat(response.getBody(), is("{k1=v1, k2=v2, k3=v3}"));
+        assertThat(response.getBody(), containsString("k1=v1, k2=v2, k3=v3"));
     }
 
     /*

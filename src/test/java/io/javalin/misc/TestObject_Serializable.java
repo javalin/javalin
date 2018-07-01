@@ -1,4 +1,4 @@
-package io.javalin.util;
+package io.javalin.misc;
 
 import java.io.Serializable;
 

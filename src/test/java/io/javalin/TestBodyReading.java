@@ -8,7 +8,7 @@
 package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
-import io.javalin.newutil.TestUtil;
+import io.javalin.util.TestUtil;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.junit.Test;

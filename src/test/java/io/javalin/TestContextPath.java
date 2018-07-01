@@ -7,7 +7,7 @@
 package io.javalin;
 
 import io.javalin.core.util.Util;
-import io.javalin.newutil.TestUtil;
+import io.javalin.util.TestUtil;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.junit.Test;

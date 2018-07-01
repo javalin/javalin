@@ -7,14 +7,9 @@
 
 package io.javalin;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
-import io.javalin.newutil.TestUtil;
+import io.javalin.util.TestUtil;
 import io.javalin.staticfiles.Location;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;

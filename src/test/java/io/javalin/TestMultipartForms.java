@@ -8,8 +8,8 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpResponse;
 import io.javalin.json.JavalinJackson;
-import io.javalin.newutil.TestUtil;
-import io.javalin.util.UploadInfo;
+import io.javalin.util.TestUtil;
+import io.javalin.misc.UploadInfo;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;

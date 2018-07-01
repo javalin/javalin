@@ -9,7 +9,7 @@ package io.javalin;
 
 import com.mashape.unirest.http.HttpMethod;
 import com.mashape.unirest.http.HttpResponse;
-import io.javalin.newutil.BaseTest;
+import io.javalin.util.BaseTest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Random;

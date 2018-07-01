@@ -1,4 +1,4 @@
-package io.javalin.util;
+package io.javalin.misc;
 
 public class TestObject_NonSerializable {
     private String value1 = "First value";

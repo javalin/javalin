@@ -9,7 +9,7 @@ package io.javalin;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import io.javalin.newutil.BaseTest;
+import io.javalin.util.BaseTest;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 import org.junit.Test;

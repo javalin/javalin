@@ -8,7 +8,7 @@
 package io.javalin;
 
 import com.mashape.unirest.http.HttpMethod;
-import io.javalin.newutil.BaseTest;
+import io.javalin.util.BaseTest;
 import org.junit.Test;
 import static io.javalin.ApiBuilder.after;
 import static io.javalin.ApiBuilder.before;
