@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import com.mashape.unirest.http.Unirest;
+import io.javalin.newutil.TestUtil;
 import org.junit.Test;
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.ApiBuilder.path;
@@ -17,63 +17,49 @@ import static org.hamcrest.Matchers.is;
 public class TestTrailingSlashes {
 
     @Test
-    public void test_dontIgnore_works() throws Exception {
-        Javalin app = Javalin.create()
-            .port(0)
-            .dontIgnoreTrailingSlashes()
-            .get("/hello", ctx -> ctx.result("Hello, slash!"))
-            .start();
-        assertThat(getBody(app, "/hello"), is("Hello, slash!"));
-        assertThat(getBody(app, "/hello/"), is("Not found"));
-        app.stop();
+    public void test_dontIgnore_works() {
+        new TestUtil(Javalin.create().dontIgnoreTrailingSlashes()).test((app, http) -> {
+            app.get("/hello", ctx -> ctx.result("Hello, slash!"));
+            assertThat(http.getBody("/hello"), is("Hello, slash!"));
+            assertThat(http.getBody("/hello/"), is("Not found"));
+        });
     }
 
     @Test
-    public void test_ignore_works() throws Exception {
-        Javalin app = Javalin.create()
-            .port(0)
-            .get("/hello", ctx -> ctx.result("Hello, slash!"))
-            .start();
-        assertThat(getBody(app, "/hello"), is("Hello, slash!"));
-        assertThat(getBody(app, "/hello/"), is("Hello, slash!"));
-        app.stop();
+    public void test_ignore_works() {
+        new TestUtil().test((app, http) -> {
+            app.get("/hello", ctx -> ctx.result("Hello, slash!"));
+            assertThat(http.getBody("/hello"), is("Hello, slash!"));
+            assertThat(http.getBody("/hello/"), is("Hello, slash!"));
+        });
     }
 
     @Test
-    public void test_dontIgnore_works_apiBuilder() throws Exception {
-        Javalin app = Javalin.create()
-            .port(0)
-            .dontIgnoreTrailingSlashes()
-            .routes(() -> {
+    public void test_dontIgnore_works_apiBuilder() {
+        new TestUtil(Javalin.create().dontIgnoreTrailingSlashes()).test((app, http) -> {
+            app.routes(() -> {
                 path("a", () -> {
                     get(ctx -> ctx.result("a"));
                     get("/", ctx -> ctx.result("a-slash"));
                 });
-            })
-            .start();
-        assertThat(getBody(app, "/a"), is("a"));
-        assertThat(getBody(app, "/a/"), is("a-slash"));
-        app.stop();
+            });
+            assertThat(http.getBody("/a"), is("a"));
+            assertThat(http.getBody("/a/"), is("a-slash"));
+        });
     }
 
     @Test
-    public void test_ignore_works_apiBuilder() throws Exception {
-        Javalin app = Javalin.create()
-            .port(0)
-            .routes(() -> {
+    public void test_ignore_works_apiBuilder() {
+        new TestUtil().test((app, http) -> {
+            app.routes(() -> {
                 path("a", () -> {
                     get(ctx -> ctx.result("a"));
                     get("/", ctx -> ctx.result("a-slash"));
                 });
-            })
-            .start();
-        assertThat(getBody(app, "/a"), is("a"));
-        assertThat(getBody(app, "/a/"), is("a"));
-        app.stop();
-    }
-
-    private String getBody(Javalin app, String path) throws Exception {
-        return Unirest.get("http://localhost:" + app.port() + path).asString().getBody();
+            });
+            assertThat(http.getBody("/a"), is("a"));
+            assertThat(http.getBody("/a/"), is("a"));
+        });
     }
 
 }

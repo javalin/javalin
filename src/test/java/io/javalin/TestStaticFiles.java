@@ -10,6 +10,8 @@ package io.javalin;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Header;
+import io.javalin.newutil.TestUtil;
+import io.javalin.staticfiles.Location;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -20,83 +22,93 @@ import static org.hamcrest.Matchers.is;
 
 public class TestStaticFiles {
 
-    private static Javalin app;
-    private static String origin = null;
-
-    @BeforeClass
-    public static void setup() {
-        app = Javalin.create()
-            .port(0)
-            .enableStaticFiles("/public")
-            .start();
-        origin = "http://localhost:" + app.port();
-    }
-
-    @After
-    public void clear() {
-        app.clearMatcherAndMappers();
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        app.stop();
-    }
-
     @Test
-    public void test_Html() throws Exception {
-        HttpResponse<String> response = Unirest.get(origin + "/html.html").asString();
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("text/html"));
-        assertThat(response.getBody(), containsString("HTML works"));
-
-    }
-
-    @Test
-    public void test_getJs() throws Exception {
-        HttpResponse<String> response = Unirest.get(origin + "/script.js").asString();
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("application/javascript"));
-        assertThat(response.getBody(), containsString("JavaScript works"));
-    }
-
-    @Test
-    public void test_getCss() throws Exception {
-        HttpResponse<String> response = Unirest.get(origin + "/styles.css").asString();
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.getHeaders().getFirst("Content-Type"), containsString("text/css"));
-        assertThat(response.getBody(), containsString("CSS works"));
-    }
-
-    @Test
-    public void test_beforeFilter() throws Exception {
-        app.before("/protected/*", ctx -> {
-            throw new HaltException(401, "Protected");
+    public void test_Html() {
+        new TestUtil(Javalin.create().enableStaticFiles("/public")).test((app, http) -> {
+            assertThat(http.get("/html.html").code(), is(200));
+            assertThat(http.get("/html.html").header(Header.CONTENT_TYPE), containsString("text/html"));
+            assertThat(http.getBody("/html.html"), containsString("HTML works"));
         });
-        HttpResponse<String> response = Unirest.get(origin + "/protected/secret.html").asString();
-        assertThat(response.getStatus(), is(401));
-        assertThat(response.getBody(), is("Protected"));
     }
 
     @Test
-    public void test_rootReturns404_ifNoWelcomeFile() throws Exception {
-        HttpResponse<String> response = Unirest.get(origin + "/").asString();
-        assertThat(response.getStatus(), is(404));
-        assertThat(response.getBody(), is("Not found"));
+    public void test_getJs() {
+        new TestUtil(Javalin.create().enableStaticFiles("/public")).test((app, http) -> {
+            assertThat(http.get("/script.js").code(), is(200));
+            assertThat(http.get("/script.js").header(Header.CONTENT_TYPE), containsString("application/javascript"));
+            assertThat(http.getBody("/script.js"), containsString("JavaScript works"));
+        });
+    }
+
+    @Test
+    public void test_getCss() {
+        new TestUtil(Javalin.create().enableStaticFiles("/public")).test((app, http) -> {
+            assertThat(http.get("/styles.css").code(), is(200));
+            assertThat(http.get("/styles.css").header(Header.CONTENT_TYPE), containsString("text/css"));
+            assertThat(http.getBody("/styles.css"), containsString("CSS works"));
+        });
+    }
+
+    @Test
+    public void test_beforeFilter() {
+        new TestUtil(Javalin.create().enableStaticFiles("/public")).test((app, http) -> {
+            app.before("/protected/*", ctx -> {
+                throw new HaltException(401, "Protected");
+            });
+            assertThat(http.get("/protected/secret.html").code(), is(401));
+            assertThat(http.getBody("/protected/secret.html"), is("Protected"));
+        });
+    }
+
+    @Test
+    public void test_rootReturns404_ifNoWelcomeFile() {
+        new TestUtil(Javalin.create().enableStaticFiles("/public")).test((app, http) -> {
+            assertThat(http.get("/").code(), is(404));
+            assertThat(http.getBody("/"), is("Not found"));
+        });
     }
 
     @Test
     public void test_rootReturnsWelcomeFile_ifWelcomeFileExists() throws Exception {
-        HttpResponse<String> response = Unirest.get(origin + "/subdir/").asString();
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.getBody(), is("<h1>Welcome file</h1>"));
+        new TestUtil(Javalin.create().enableStaticFiles("/public")).test((app, http) -> {
+            assertThat(http.get("/subdir/").code(), is(200));
+            assertThat(http.getBody("/subdir/"), is("<h1>Welcome file</h1>"));
+        });
     }
 
     @Test
-    public void test_expiresWorksAsExpected() throws Exception {
-        HttpResponse<String> response1 = Unirest.get(origin + "/script.js").asString();
-        assertThat(response1.getHeaders().get(Header.CACHE_CONTROL).get(0), is("max-age=0"));
-        HttpResponse<String> response2 = Unirest.get(origin + "/immutable/library-1.0.0.min.js").asString();
-        assertThat(response2.getHeaders().get(Header.CACHE_CONTROL).get(0), is("max-age=31622400"));
+    public void test_expiresWorksAsExpected() {
+        new TestUtil(Javalin.create().enableStaticFiles("/public")).test((app, http) -> {
+            assertThat(http.get("/script.js").header(Header.CACHE_CONTROL), is("max-age=0"));
+            assertThat(http.get("/immutable/library-1.0.0.min.js").header(Header.CACHE_CONTROL), is("max-age=31622400"));
+        });
+    }
+
+    @Test
+    public void test_externalFolder() {
+        Javalin configuredJavalin = Javalin.create().enableStaticFiles("src/test/external/", Location.EXTERNAL);
+        new TestUtil(configuredJavalin).test((app, http) -> {
+            assertThat(http.get("/html.html").code(), is(200));
+            assertThat(http.getBody("/html.html"), containsString("HTML works"));
+        });
+    }
+
+    @Test
+    public void test_multipleCallsToEnableStaticFiles() {
+        Javalin configuredJavalin = Javalin.create()
+            .enableStaticFiles("src/test/external/", Location.EXTERNAL)
+            .enableStaticFiles("/public/immutable")
+            .enableStaticFiles("/public/protected")
+            .enableStaticFiles("/public/subdir");
+        new TestUtil(configuredJavalin).test((app, http) -> {
+            assertThat(http.get("/html.html").code(), is(200)); // src/test/external/html.html
+            assertThat(http.getBody("/html.html"), containsString("HTML works"));
+            assertThat(http.get("/").code(), is(200));
+            assertThat(http.getBody("/"), is("<h1>Welcome file</h1>"));
+            assertThat(http.get("/secret.html").code(), is(200));
+            assertThat(http.getBody("/secret.html"), is("<h1>Secret file</h1>"));
+            assertThat(http.get("/styles.css").code(), is(404));
+        });
     }
 
 }
