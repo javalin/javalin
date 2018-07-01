@@ -8,7 +8,11 @@ package io.javalin.core.util
 
 import io.javalin.HaltException
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.util.*
+import java.util.zip.Adler32
+import java.util.zip.CheckedInputStream
 
 object Util {
 
@@ -94,4 +98,11 @@ object Util {
             |_________________________________________|""".trimIndent()
     }
 
+    fun getChecksumAndReset(inputStream: InputStream): String {
+        val cis = CheckedInputStream(inputStream, Adler32())
+        val out = ByteArrayOutputStream()
+        cis.copyTo(out)
+        inputStream.reset()
+        return cis.checksum.value.toString()
+    }
 }

@@ -6,9 +6,9 @@
 
 package io.javalin
 
+import io.javalin.cookie.CookieStore
 import io.javalin.core.HandlerType
 import io.javalin.core.util.ContextUtil
-import io.javalin.core.util.CookieStoreUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
 import io.javalin.json.JavalinJson
@@ -34,9 +34,11 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
+    @JvmField val res = servletResponse
+    @JvmField val req = servletRequest
     // @formatter:on
 
-    private val cookieStore = CookieStoreUtil.stringToMap(cookie(CookieStoreUtil.name))
+    private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
 
@@ -44,8 +46,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * Gets cookie store value for specified key.
      * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
      */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> cookieStore(key: String): T = cookieStore[key] as T
+    fun <T> cookieStore(key: String): T = cookieStore[key]
 
     /**
      * Sets cookie store value for specified key.
@@ -54,7 +55,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun cookieStore(key: String, value: Any) {
         cookieStore[key] = value
-        cookie(CookieStoreUtil.name, CookieStoreUtil.mapToString(cookieStore))
+        cookie(cookieStore.serializeToCookie())
     }
 
     /**
@@ -63,7 +64,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun clearCookieStore() {
         cookieStore.clear()
-        removeCookie(CookieStoreUtil.name)
+        removeCookie(CookieStore.COOKIE_NAME)
     }
 
     ///////////////////////////////////////////////////////////////
@@ -71,14 +72,16 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     ///////////////////////////////////////////////////////////////
 
     /**
-     * Gets the underlying HttpServletRequest
-     */
-    fun request(): HttpServletRequest = servletRequest
-
-    /**
      * Gets the request body as a String.
      */
     fun body(): String = bodyAsBytes().toString(Charset.forName(servletRequest.characterEncoding ?: "UTF-8"))
+
+    /**
+     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
+     * JavalinJson can be configured to use any mapping library.
+     * @return The mapped object
+     */
+    inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
 
     /**
      * Gets the request body as a ByteArray.
@@ -86,9 +89,9 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
 
     /**
-     * Maps a JSON body to a Java/Kotlin class using Jackson ObjectMapper.
+     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
+     * JavalinJson can be configured to use any mapping library.
      * @return The mapped object
-     * Requires Jackson library in the classpath.
      */
     fun <T> bodyAsClass(clazz: Class<T>): T {
         return JavalinJson.fromJsonMapper.map(body(), clazz)
@@ -366,21 +369,25 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     ///////////////////////////////////////////////////////////////
 
     /**
-     * Gets the underlying HttpServletResponse.
+     * Gets the current response charset.
      */
-    fun response(): HttpServletResponse = servletResponse
+    private fun responseCharset() = try {
+        Charset.forName(servletResponse.characterEncoding)
+    } catch (e: Exception) {
+        Charset.defaultCharset()
+    }
 
     /**
      * Sets context result to the specified String.
      * Will overwrite the current result if there is one.
      */
-    fun result(resultString: String) = result(resultString.byteInputStream(stringCharset()))
+    fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
 
     /**
      * Gets the current context result as a String (if set).
      */
     fun resultString(): String? {
-        val string = resultStream?.readBytes()?.toString(stringCharset())
+        val string = resultStream?.readBytes()?.toString(responseCharset())
         resultStream?.reset()
         return string
     }
@@ -419,23 +426,6 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * Gets the current context result as a CompletableFuture (if set).
      */
     fun resultFuture(): CompletableFuture<*>? = resultFuture
-
-    /**
-     * Sets response charset to specified value.
-     */
-    fun charset(charset: String): Context {
-        servletResponse.characterEncoding = charset
-        return this
-    }
-
-    /**
-     * Gets the current response charset.
-     */
-    private fun stringCharset() = try {
-        Charset.forName(servletResponse.characterEncoding)
-    } catch (e: Exception) {
-        Charset.defaultCharset()
-    }
 
     /**
      * Sets response content type to specified value.
@@ -493,18 +483,14 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     }
 
     /**
-     * Removes cookie specified by name.
+     * Removes cookie specified by name and path (optional).
      */
-    fun removeCookie(name: String): Context = removeCookie(null, name)
-
-    /**
-     * Removes cookie specified by path and name.
-     */
-    fun removeCookie(path: String?, name: String): Context {
-        val cookie = Cookie(name, "")
-        cookie.path = path
-        cookie.maxAge = 0
-        servletResponse.addCookie(cookie)
+    @JvmOverloads
+    fun removeCookie(name: String, path: String? = null): Context {
+        servletResponse.addCookie(Cookie(name, "").apply {
+            this.path = path
+            this.maxAge = 0
+        })
         return this
     }
 
@@ -514,15 +500,13 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun html(html: String): Context = result(html).contentType("text/html")
 
     /**
-     * Serializes object to a JSON-string using Jackson ObjectMapper
-     * and sets it as the context result.
+     * Serializes object to a JSON-string using JavalinJson and sets it as the context result.
+     * JavalinJson can be configured to use any mapping library.
      * Sets content type to application/json.
-     * Requires Jackson library in the classpath.
      */
     fun json(obj: Any): Context {
         return result(JavalinJson.toJsonMapper.map(obj)).contentType("application/json")
     }
-
 
     /**
      * Renders a file with specified values and sets it as the context result.

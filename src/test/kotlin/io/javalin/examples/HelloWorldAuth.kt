@@ -11,7 +11,7 @@ import io.javalin.ApiBuilder.path
 import io.javalin.Javalin
 import io.javalin.examples.HelloWorldAuth.MyRoles.*
 import io.javalin.security.Role
-import io.javalin.security.Role.roles
+import io.javalin.security.SecurityUtil.roles
 
 enum class MyRoles : Role {
     ROLE_ONE, ROLE_TWO, ROLE_THREE

@@ -15,7 +15,7 @@ import org.junit.Test;
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
-import static io.javalin.security.Role.roles;
+import static io.javalin.security.SecurityUtil.roles;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 

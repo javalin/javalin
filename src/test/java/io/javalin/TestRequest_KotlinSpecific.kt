@@ -11,7 +11,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
 
-
 class TestRequest_KotlinSpecific : _UnirestBaseTest() {
 
     @Test

@@ -46,5 +46,4 @@ public class TestCors {
         app1.stop();
     }
 
-
 }

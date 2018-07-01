@@ -9,7 +9,6 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.util.TypedException
 
-
 fun main(args: Array<String>) {
 
     val app = Javalin.create().port(7070).start()
