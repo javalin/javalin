@@ -6,7 +6,10 @@
 
 package io.javalin.newutil;
 
+import com.mashape.unirest.http.HttpMethod;
+import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.HttpRequestWithBody;
 import io.javalin.Javalin;
 import okhttp3.OkHttpClient;
@@ -28,6 +31,10 @@ public class HttpUtil {
 
     public String getBody(String path) throws Exception {
         return get(path).body().string();
+    }
+
+    public HttpResponse<String> call(HttpMethod method, String pathname) throws UnirestException {
+        return new HttpRequestWithBody(method, origin + pathname).asString();
     }
 
     public HttpRequestWithBody post(String path) {
