@@ -7,22 +7,21 @@
 
 package io.javalin;
 
-import com.mashape.unirest.http.HttpResponse;
+import io.javalin.newutil.BaseTest;
 import io.javalin.util.TypedException;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TestExceptionMapper extends _UnirestBaseTest {
+public class TestExceptionMapper extends BaseTest {
 
     @Test
     public void test_unmappedException_caughtByGeneralHandler() throws Exception {
         app.get("/unmapped-exception", ctx -> {
             throw new Exception();
         });
-        HttpResponse<String> response = GET_asString("/unmapped-exception");
-        assertThat(response.getBody(), is("Internal server error"));
-        assertThat(response.getStatus(), is(500));
+        assertThat(http.get("/unmapped-exception").code(), is(500));
+        assertThat(http.getBody("/unmapped-exception"), is("Internal server error"));
     }
 
     @Test
@@ -30,9 +29,8 @@ public class TestExceptionMapper extends _UnirestBaseTest {
         app.get("/mapped-exception", ctx -> {
             throw new Exception();
         }).exception(Exception.class, (e, ctx) -> ctx.result("It's been handled."));
-        HttpResponse<String> response = GET_asString("/mapped-exception");
-        assertThat(response.getBody(), is("It's been handled."));
-        assertThat(response.getStatus(), is(200));
+        assertThat(http.get("/mapped-exception").code(), is(200));
+        assertThat(http.getBody("/mapped-exception"), is("It's been handled."));
     }
 
     @Test
@@ -42,9 +40,8 @@ public class TestExceptionMapper extends _UnirestBaseTest {
         }).exception(TypedException.class, (e, ctx) -> {
             ctx.result(e.proofOfType());
         });
-        HttpResponse<String> response = GET_asString("/typed-exception");
-        assertThat(response.getBody(), is("I'm so typed"));
-        assertThat(response.getStatus(), is(200));
+        assertThat(http.get("/typed-exception").code(), is(200));
+        assertThat(http.getBody("/typed-exception"), is("I'm so typed"));
     }
 
     @Test
@@ -56,9 +53,8 @@ public class TestExceptionMapper extends _UnirestBaseTest {
         }).exception(TypedException.class, (e, ctx) -> {
             ctx.result("Typed!");
         });
-        HttpResponse<String> response = GET_asString("/exception-priority");
-        assertThat(response.getBody(), is("Typed!"));
-        assertThat(response.getStatus(), is(200));
+        assertThat(http.get("/exception-priority").code(), is(200));
+        assertThat(http.getBody("/exception-priority"), is("Typed!"));
     }
 
 }

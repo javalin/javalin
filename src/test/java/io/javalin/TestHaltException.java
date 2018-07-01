@@ -7,14 +7,13 @@
 
 package io.javalin;
 
-import com.mashape.unirest.http.HttpMethod;
-import com.mashape.unirest.http.HttpResponse;
+import io.javalin.newutil.BaseTest;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
-public class TestHaltException extends _UnirestBaseTest {
+public class TestHaltException extends BaseTest {
 
     @Test
     public void test_haltBeforeWildcard_works() throws Exception {
@@ -22,17 +21,8 @@ public class TestHaltException extends _UnirestBaseTest {
             throw new HaltException(401);
         });
         app.get("/admin/protected", ctx -> ctx.result("Protected resource"));
-        HttpResponse<String> response = call(HttpMethod.GET, "/admin/protected");
-        assertThat(response.getStatus(), is(401));
-        assertThat(response.getBody(), not("Protected resource"));
-    }
-
-    @Test
-    public void test_constructorsWork() {
-        HaltException haltException1 = new HaltException();
-        HaltException haltException2 = new HaltException(401);
-        HaltException haltException3 = new HaltException("Body");
-        HaltException haltException4 = new HaltException(401, "Body");
+        assertThat(http.get("/admin/protected").code(), is(401));
+        assertThat(http.getBody("/admin/protected"), not("Protected resource"));
     }
 
     @Test
@@ -40,9 +30,8 @@ public class TestHaltException extends _UnirestBaseTest {
         app.get("/some-route", ctx -> {
             throw new HaltException(401, "Stop!");
         });
-        HttpResponse<String> response = call(HttpMethod.GET, "/some-route");
-        assertThat(response.getBody(), is("Stop!"));
-        assertThat(response.getStatus(), is(401));
+        assertThat(http.get("/some-route").code(), is(401));
+        assertThat(http.getBody("/some-route"), is("Stop!"));
     }
 
     @Test
@@ -52,9 +41,16 @@ public class TestHaltException extends _UnirestBaseTest {
         }).after(ctx -> {
             ctx.status(418);
         });
-        HttpResponse<String> response = call(HttpMethod.GET, "/some-route");
-        assertThat(response.getBody(), is("Stop!"));
-        assertThat(response.getStatus(), is(418));
+        assertThat(http.get("/some-route").code(), is(418));
+        assertThat(http.getBody("/some-route"), is("Stop!"));
+    }
+
+    @Test
+    public void test_constructorsWork() {
+        HaltException haltException1 = new HaltException();
+        HaltException haltException2 = new HaltException(401);
+        HaltException haltException3 = new HaltException("Body");
+        HaltException haltException4 = new HaltException(401, "Body");
     }
 
 }

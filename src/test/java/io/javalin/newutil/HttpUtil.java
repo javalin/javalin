@@ -25,6 +25,8 @@ public class HttpUtil {
         this.origin = "http://localhost:" + javalin.port();
     }
 
+    // OkHTTP
+
     public Response get(String path) throws Exception {
         return okHttp.newCall(new Request.Builder().url(origin + path).get().build()).execute();
     }
@@ -33,12 +35,18 @@ public class HttpUtil {
         return get(path).body().string();
     }
 
+    // Unirest
+
     public HttpResponse<String> call(HttpMethod method, String pathname) throws UnirestException {
         return new HttpRequestWithBody(method, origin + pathname).asString();
     }
 
     public HttpRequestWithBody post(String path) {
         return Unirest.post(origin + path);
+    }
+
+    public String getBody_cookies(String path) throws Exception { // OkHttp makes using cookies very hard
+        return Unirest.get(origin + path).asString().getBody();
     }
 
 }

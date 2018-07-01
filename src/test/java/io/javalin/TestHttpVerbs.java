@@ -8,49 +8,50 @@
 package io.javalin;
 
 import com.mashape.unirest.http.HttpMethod;
+import io.javalin.newutil.BaseTest;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TestHttpVerbs extends _UnirestBaseTest {
+public class TestHttpVerbs extends BaseTest {
 
     @Test
     public void test_get_helloWorld() throws Exception {
         app.get("/hello", ctx -> ctx.result("Hello World"));
-        assertThat(GET_body("/hello"), is("Hello World"));
+        assertThat(http.getBody("/hello"), is("Hello World"));
     }
 
     @Test
     public void test_get_helloOtherWorld() throws Exception {
         app.get("/hello", ctx -> ctx.result("Hello New World"));
-        assertThat(GET_body("/hello"), is("Hello New World"));
+        assertThat(http.getBody("/hello"), is("Hello New World"));
     }
 
     @Test
     public void test_all_mapped_verbs_ok() throws Exception {
-        app.get("/mapped", OK_HANDLER);
-        app.post("/mapped", OK_HANDLER);
-        app.put("/mapped", OK_HANDLER);
-        app.delete("/mapped", OK_HANDLER);
-        app.patch("/mapped", OK_HANDLER);
-        app.head("/mapped", OK_HANDLER);
-        app.options("/mapped", OK_HANDLER);
+        app.get("/mapped", okHandler);
+        app.post("/mapped", okHandler);
+        app.put("/mapped", okHandler);
+        app.delete("/mapped", okHandler);
+        app.patch("/mapped", okHandler);
+        app.head("/mapped", okHandler);
+        app.options("/mapped", okHandler);
         for (HttpMethod httpMethod : HttpMethod.values()) {
-            assertThat(call(httpMethod, "/mapped").getStatus(), is(200));
+            assertThat(http.call(httpMethod, "/mapped").getStatus(), is(200));
         }
     }
 
     @Test
     public void test_all_unmapped_verbs_ok() throws Exception {
         for (HttpMethod httpMethod : HttpMethod.values()) {
-            assertThat(call(httpMethod, "/unmapped").getStatus(), is(404));
+            assertThat(http.call(httpMethod, "/unmapped").getStatus(), is(404));
         }
     }
 
     @Test
     public void test_headOk_ifGetMapped() throws Exception {
-        app.get("/mapped", OK_HANDLER);
-        assertThat(call(HttpMethod.HEAD, "/mapped").getStatus(), is(200));
+        app.get("/mapped", okHandler);
+        assertThat(http.call(HttpMethod.HEAD, "/mapped").getStatus(), is(200));
     }
 
     @Test
@@ -60,7 +61,7 @@ public class TestHttpVerbs extends _UnirestBaseTest {
         app.before(ctx -> ctx.result(ctx.resultString() + "3"));
         app.before(ctx -> ctx.result(ctx.resultString() + "4"));
         app.get("/hello", ctx -> ctx.result(ctx.resultString() + "Hello"));
-        assertThat(GET_body("/hello"), is("1234Hello"));
+        assertThat(http.getBody("/hello"), is("1234Hello"));
     }
 
 }

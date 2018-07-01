@@ -1,5 +1,6 @@
 package io.javalin;
 
+import io.javalin.newutil.BaseTest;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -8,46 +9,46 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TestFuture extends _UnirestBaseTest {
+public class TestFuture extends BaseTest {
 
     @Test
     public void testFutures() throws Exception {
         app.get("/test-future", ctx -> ctx.result(getFuture("Result")));
-        assertThat(GET_asString("/test-future").getBody(), is("Result"));
+        assertThat(http.getBody("/test-future"), is("Result"));
     }
 
     @Test
     public void testFutures_afterHandler() throws Exception {
         app.get("/test-future", ctx -> ctx.result(getFuture("Not result")));
         app.after(ctx -> ctx.result("Overwritten by after-handler"));
-        assertThat(GET_asString("/test-future").getBody(), is("Overwritten by after-handler"));
+        assertThat(http.getBody("/test-future"), is("Overwritten by after-handler"));
     }
 
     @Test
     public void testFutures_afterHandler_throwsExceptionForFuture() throws Exception {
         app.get("/test-future", ctx -> ctx.result(getFuture("Not result")));
         app.after("/test-future", ctx -> ctx.result(getFuture("Overwritten by after-handler")));
-        assertThat(GET_asString("/test-future").getBody(), is("Internal server error"));
+        assertThat(http.getBody("/test-future"), is("Internal server error"));
     }
 
     @Test
     public void testFutures_errorHandler() throws Exception {
         app.get("/test-future", ctx -> ctx.result(getFuture("Not result")).status(555));
         app.error(555, ctx -> ctx.result("Overwritten by error-handler"));
-        assertThat(GET_asString("/test-future").getBody(), is("Overwritten by error-handler"));
+        assertThat(http.getBody("/test-future"), is("Overwritten by error-handler"));
     }
 
     @Test
     public void testFutures_exceptionalFutures_unmapped() throws Exception {
         app.get("/test-future", ctx -> ctx.result(getFuture(null)));
-        assertThat(GET_asString("/test-future").getBody(), is("Internal server error"));
+        assertThat(http.getBody("/test-future"), is("Internal server error"));
     }
 
     @Test
     public void testFutures_exceptionalFutures_mapped() throws Exception {
         app.get("/test-future", ctx -> ctx.result(getFuture(null)));
         app.exception(CancellationException.class, (e, ctx) -> ctx.result("Handled"));
-        assertThat(GET_asString("/test-future").getBody(), is("Handled"));
+        assertThat(http.getBody("/test-future"), is("Handled"));
     }
 
     @Test
@@ -56,8 +57,8 @@ public class TestFuture extends _UnirestBaseTest {
             throw new Exception();
         });
         app.exception(Exception.class, (exception, ctx) -> ctx.result(getFuture("Exception result")));
-        assertThat(GET_asString("/test-future").getBody(), is(""));
-        assertThat(GET_asString("/test-future").getStatus(), is(500));
+        assertThat(http.getBody("/test-future"), is(""));
+        assertThat(http.get("/test-future").code(), is(500));
     }
 
     @Test
@@ -66,7 +67,7 @@ public class TestFuture extends _UnirestBaseTest {
             ctx.result(getFuture("Result"));
             ctx.result("Overridden");
         });
-        assertThat(GET_asString("/test-future").getBody(), is("Overridden"));
+        assertThat(http.getBody("/test-future"), is("Overridden"));
     }
 
     private static CompletableFuture<String> getFuture(String result) {

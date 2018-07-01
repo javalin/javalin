@@ -27,7 +27,9 @@ public class BaseTest {
     }
 
     @After
-    public void clear() {
+    public void clear() throws Exception {
+        app.get("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
+        http.get("/x-test-cookie-cleaner");
         app.stop();
     }
 
