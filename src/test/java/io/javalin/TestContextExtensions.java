@@ -8,7 +8,7 @@ package io.javalin;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mashape.unirest.http.Unirest;
+import io.javalin.newutil.TestUtil;
 import io.javalin.util.TestObject_Serializable;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -17,29 +17,28 @@ import static org.hamcrest.Matchers.is;
 public class TestContextExtensions {
 
     @Test
-    public void test_jsonMapper_extension() throws Exception {
-        Javalin app = Javalin.create().start(0);
-        app.before(ctx -> {
-            ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx));
+    public void test_jsonMapper_extension() {
+        new TestUtil().test((app, http) -> {
+            app.before(ctx -> {
+                ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx));
+            });
+            app.get("/extended", ctx -> {
+                ctx.use(MyJsonMapper.class).toJson(new TestObject_Serializable());
+            });
+            String expected = new GsonBuilder().create().toJson(new TestObject_Serializable());
+            assertThat(http.getBody("/extended"), is(expected));
         });
-        app.get("/extended", ctx -> {
-            ctx.use(MyJsonMapper.class).toJson(new TestObject_Serializable());
-        });
-        String response = Unirest.get("http://localhost:" + app.port() + "/extended").asString().getBody();
-        String expected = new GsonBuilder().create().toJson(new TestObject_Serializable());
-        assertThat(response, is(expected));
-        app.stop();
     }
 
     class MyJsonMapper {
         private Context ctx;
         private Gson gson = new GsonBuilder().create();
 
-        public MyJsonMapper(Context ctx) {
+        MyJsonMapper(Context ctx) {
             this.ctx = ctx;
         }
 
-        public void toJson(Object obj) {
+        void toJson(Object obj) {
             ctx.result(gson.toJson(obj)).contentType("application/json");
         }
     }

@@ -6,9 +6,8 @@
 
 package io.javalin;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
 import io.javalin.core.util.Util;
+import io.javalin.newutil.TestUtil;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.junit.Test;
@@ -44,46 +43,36 @@ public class TestContextPath {
     }
 
     @Test
-    public void test_router_works() throws Exception {
-        app = createAppWithContextPath("/context-path")
-            .get("/hello", ctx -> ctx.result("Hello World"))
-            .start();
-        assertThat(GET_asString("/hello").getBody(), is("Not found. Request is below context-path (context-path: '/context-path')"));
-        assertThat(GET_asString("/context-path/hello").getBody(), is("Hello World"));
-        app.stop();
+    public void test_router_works() {
+        new TestUtil(Javalin.create().contextPath("/context-path")).test((app, http) -> {
+            app.get("/hello", ctx -> ctx.result("Hello World"));
+            assertThat(http.getBody("/hello"), is("Not found. Request is below context-path (context-path: '/context-path')"));
+            assertThat(http.getBody("/context-path/hello"), is("Hello World"));
+        });
     }
 
     @Test
-    public void test_twoLevelContextPath_works() throws Exception {
-        app = createAppWithContextPath("/context-path/path-context")
-            .get("/hello", ctx -> ctx.result("Hello World"))
-            .start();
-        assertThat(GET_asString("/context-path/").getStatus(), is(404));
-        assertThat(GET_asString("/context-path/path-context/hello").getBody(), is("Hello World"));
-        app.stop();
+    public void test_twoLevelContextPath_works() {
+        new TestUtil(Javalin.create().contextPath("/context-path/path-context")).test((app, http) -> {
+            app.get("/hello", ctx -> ctx.result("Hello World"));
+            assertThat(http.get("/context-path/").code(), is(404));
+            assertThat(http.getBody("/context-path/path-context/hello"), is("Hello World"));
+        });
     }
 
     @Test
-    public void test_staticFiles_work() throws Exception {
-        app = createAppWithContextPath("/context-path").enableStaticFiles("/public").start();
-        assertThat(GET_asString("/script.js").getStatus(), is(404));
-        assertThat(GET_asString("/context-path/script.js").getBody(), containsString("JavaScript works"));
-        app.stop();
+    public void test_staticFiles_work() {
+        new TestUtil(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")).test((app, http) -> {
+            assertThat(http.get("/script.js").code(), is(404));
+            assertThat(http.getBody("/context-path/script.js"), containsString("JavaScript works"));
+        });
     }
 
     @Test
-    public void test_welcomeFile_works() throws Exception {
-        app = createAppWithContextPath("/context-path").enableStaticFiles("/public").start();
-        assertThat(GET_asString("/context-path/subdir/").getBody(), is("<h1>Welcome file</h1>"));
-        app.stop();
-    }
-
-    private Javalin createAppWithContextPath(String contextPath) {
-        return Javalin.create().port(0).contextPath(contextPath);
-    }
-
-    private static HttpResponse<String> GET_asString(String pathname) throws Exception {
-        return Unirest.get("http://localhost:" + app.port() + "/" + pathname).asString();
+    public void test_welcomeFile_works() {
+        new TestUtil(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")).test((app, http) -> {
+            assertThat(http.getBody("/context-path/subdir/"), is("<h1>Welcome file</h1>"));
+        });
     }
 
 }

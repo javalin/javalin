@@ -8,7 +8,6 @@ package io.javalin.performance;
 
 import io.javalin.Javalin;
 import io.javalin.util.SimpleHttpClient;
-import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -75,12 +74,7 @@ public class StupidAsyncTest {
     }
 
     private String getBody(String url) {
-        try {
-            return new SimpleHttpClient().http_GET(url).getBody();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "";
-        }
+        return new SimpleHttpClient().http_GET(url).getBody();
     }
 
 }

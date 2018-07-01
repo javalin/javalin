@@ -27,7 +27,6 @@ class SimpleHttpClient {
             )
     ).build()
 
-    @Throws(IOException::class)
     fun http_GET(path: String): TestResponse {
         val httpResponse = httpClient.execute(HttpGet(path))
         return TestResponse(EntityUtils.toString(httpResponse.entity), httpResponse.statusLine.statusCode)

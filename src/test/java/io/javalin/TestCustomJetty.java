@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import com.mashape.unirest.http.Unirest;
+import io.javalin.newutil.TestUtil;
 import java.util.concurrent.atomic.AtomicLong;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Server;
@@ -20,66 +20,44 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestCustomJetty {
 
     @Test
-    public void test_embeddedServer_withStatisticsHandler() throws Exception {
+    public void test_embeddedServer_withStatisticsHandler() {
         StatisticsHandler statisticsHandler = new StatisticsHandler();
-
-        Javalin app = Javalin.create()
-            .port(0)
-            .server(() -> {
-                Server server = new Server();
-                server.setHandler(statisticsHandler);
-                return server;
-            })
-            .get("/", ctx -> ctx.result("Hello World"))
-            .start();
-
-        String origin = "http://localhost:" + app.port();
-
-        int requests = 5;
-        for (int i = 0; i < requests; i++) {
-            assertThat(Unirest.get(origin + "/").asString().getBody(), is("Hello World"));
-            assertThat(Unirest.get(origin + "/not_there").asString().getStatus(), is(404));
-        }
-
-        assertThat(statisticsHandler.getDispatched(), is(requests * 2));
-        assertThat(statisticsHandler.getResponses2xx(), is(requests));
-        assertThat(statisticsHandler.getResponses4xx(), is(requests));
-        app.stop();
+        Server server = new Server();
+        server.setHandler(statisticsHandler);
+        new TestUtil(Javalin.create().server(() -> server)).test((app, http) -> {
+            app.get("/", ctx -> ctx.result("Hello World"));
+            int requests = 5;
+            for (int i = 0; i < requests; i++) {
+                assertThat(http.getBody("/"), is("Hello World"));
+                assertThat(http.get("/not_there").code(), is(404));
+            }
+            assertThat(statisticsHandler.getDispatched(), is(requests * 2));
+            assertThat(statisticsHandler.getResponses2xx(), is(requests));
+            assertThat(statisticsHandler.getResponses4xx(), is(requests));
+        });
     }
 
     @Test
-    public void test_embeddedServer_withHandlerChain() throws Exception {
+    public void test_embeddedServer_withHandlerChain() {
         AtomicLong logCount = new AtomicLong(0);
         RequestLog requestLog = (request, response) -> logCount.incrementAndGet();
         RequestLogHandler requestLogHandler = new RequestLogHandler();
         requestLogHandler.setRequestLog(requestLog);
         StatisticsHandler handlerChain = new StatisticsHandler();
         handlerChain.setHandler(requestLogHandler);
-
-        Javalin app = Javalin.create()
-            .port(0)
-            .server(() -> {
-                Server server = new Server();
-                server.setHandler(handlerChain);
-                return server;
-            })
-            .get("/", ctx -> ctx.result("Hello World"))
-            .start();
-
-        String origin = "http://localhost:" + app.port();
-
-        int requests = 10;
-        for (int i = 0; i < requests; i++) {
-            assertThat(Unirest.get(origin + "/").asString().getBody(), is("Hello World"));
-            assertThat(Unirest.get(origin + "/not_there").asString().getStatus(), is(404));
-        }
-
-        assertThat(handlerChain.getDispatched(), is(requests * 2));
-        assertThat(handlerChain.getResponses2xx(), is(requests));
-        assertThat(handlerChain.getResponses4xx(), is(requests));
-
-        assertThat(logCount.get(), is((long) (requests * 2)));
-
-        app.stop();
+        Server server = new Server();
+        server.setHandler(handlerChain);
+        new TestUtil(Javalin.create().server(() -> server)).test((app, http) -> {
+            app.get("/", ctx -> ctx.result("Hello World"));
+            int requests = 10;
+            for (int i = 0; i < requests; i++) {
+                assertThat(http.getBody("/"), is("Hello World"));
+                assertThat(http.get("/not_there").code(), is(404));
+            }
+            assertThat(handlerChain.getDispatched(), is(requests * 2));
+            assertThat(handlerChain.getResponses2xx(), is(requests));
+            assertThat(handlerChain.getResponses4xx(), is(requests));
+            assertThat(logCount.get(), is((long) (requests * 2)));
+        });
     }
 }
