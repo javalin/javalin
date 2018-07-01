@@ -7,18 +7,19 @@
 
 package io.javalin;
 
+import io.javalin.newutil.BaseTest;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TestErrorMapper extends _UnirestBaseTest {
+public class TestErrorMapper extends BaseTest {
 
     @Test
     public void test_404mapper_works() throws Exception {
         app.error(404, ctx -> {
             ctx.result("Custom 404 page");
         });
-        assertThat(GET_body("/unmapped"), is("Custom 404 page"));
+        assertThat(http.getBody("/unmapped"), is("Custom 404 page"));
     }
 
     @Test
@@ -28,7 +29,7 @@ public class TestErrorMapper extends _UnirestBaseTest {
         }).error(500, ctx -> {
             ctx.result("Custom 500 page");
         });
-        assertThat(GET_body("/exception"), is("Custom 500 page"));
+        assertThat(http.getBody("/exception"), is("Custom 500 page"));
     }
 
     @Test
@@ -40,7 +41,7 @@ public class TestErrorMapper extends _UnirestBaseTest {
         }).error(500, ctx -> {
             ctx.result("Custom 500 page");
         });
-        assertThat(GET_body("/exception"), is("Custom 500 page"));
+        assertThat(http.getBody("/exception"), is("Custom 500 page"));
     }
 
     @Test
@@ -53,7 +54,7 @@ public class TestErrorMapper extends _UnirestBaseTest {
             ctx.result("Custom 500 page");
             throw new RuntimeException();
         });
-        assertThat(GET_body("/exception"), is("Exception handled!"));
+        assertThat(http.getBody("/exception"), is("Exception handled!"));
     }
 
 }

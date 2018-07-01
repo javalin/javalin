@@ -15,6 +15,7 @@ import io.javalin.Javalin;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.http.impl.client.HttpClients;
 
 public class HttpUtil {
 
@@ -23,6 +24,14 @@ public class HttpUtil {
 
     public HttpUtil(Javalin javalin) {
         this.origin = "http://localhost:" + javalin.port();
+    }
+
+    public void enableUnirestRedirects() {
+        Unirest.setHttpClient(HttpClients.custom().build());
+    }
+
+    public void disableUnirestRedirects() {
+        Unirest.setHttpClient(HttpClients.custom().disableRedirectHandling().build());
     }
 
     // OkHTTP
@@ -45,8 +54,12 @@ public class HttpUtil {
         return Unirest.post(origin + path);
     }
 
-    public String getBody_cookies(String path) throws Exception { // OkHttp makes using cookies very hard
+    public String getBody_withCookies(String path) throws Exception { // OkHttp makes using cookies very hard
         return Unirest.get(origin + path).asString().getBody();
+    }
+
+    public HttpResponse<String> get_withCookies(String path) throws Exception { // OkHttp makes using cookies very hard
+        return Unirest.get(origin + path).asString();
     }
 
 }

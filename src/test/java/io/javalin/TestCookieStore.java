@@ -26,7 +26,7 @@ public class TestCookieStore extends BaseTest {
                 ctx.result("Got stored value from different handler");
             }
         });
-        assertThat(http.getBody_cookies("/cookie-store"), is("Got stored value from different handler"));
+        assertThat(http.getBody_withCookies("/cookie-store"), is("Got stored value from different handler"));
     }
 
     @Test
@@ -34,9 +34,9 @@ public class TestCookieStore extends BaseTest {
         app.get("/cookie-storer", ctx -> ctx.cookieStore("test-object", new TestObject_Serializable()));
         app.get("/cookie-clearer", Context::clearCookieStore);
         app.get("/cookie-checker", ctx -> ctx.result("stored: " + ctx.cookie("javalin-cookie-store")));
-        http.getBody_cookies("/cookie-storer");
-        http.getBody_cookies("/cookie-clearer");
-        assertThat(http.getBody_cookies("/cookie-checker"), is("stored: null"));
+        http.getBody_withCookies("/cookie-storer");
+        http.getBody_withCookies("/cookie-clearer");
+        assertThat(http.getBody_withCookies("/cookie-checker"), is("stored: null"));
     }
 
     @Test
@@ -47,8 +47,8 @@ public class TestCookieStore extends BaseTest {
                 ctx.result("Got stored value from different request");
             }
         });
-        http.getBody_cookies("/cookie-storer");
-        assertThat(http.getBody_cookies("/cookie-reader"), is("Got stored value from different request"));
+        http.getBody_withCookies("/cookie-storer");
+        assertThat(http.getBody_withCookies("/cookie-reader"), is("Got stored value from different request"));
     }
 
     @Test
@@ -60,8 +60,8 @@ public class TestCookieStore extends BaseTest {
                 ctx.result("Got stored value from two different handlers on different request");
             }
         });
-        http.getBody_cookies("/cookie-storer");
-        assertThat(http.getBody_cookies("/cookie-reader"), is("Got stored value from two different handlers on different request"));
+        http.getBody_withCookies("/cookie-storer");
+        assertThat(http.getBody_withCookies("/cookie-reader"), is("Got stored value from two different handlers on different request"));
     }
 
     @Test
@@ -73,9 +73,9 @@ public class TestCookieStore extends BaseTest {
                 ctx.result("Overwrote cookie from previous request");
             }
         });
-        http.getBody_cookies("/cookie-storer");
-        http.getBody_cookies("/cookie-overwriter");
-        assertThat(http.getBody_cookies("/cookie-reader"), is("Overwrote cookie from previous request"));
+        http.getBody_withCookies("/cookie-storer");
+        http.getBody_withCookies("/cookie-overwriter");
+        assertThat(http.getBody_withCookies("/cookie-reader"), is("Overwrote cookie from previous request"));
     }
 
     @Test
@@ -95,8 +95,8 @@ public class TestCookieStore extends BaseTest {
             Map m = ctx.cookieStore("m");
             ctx.result(s + " " + i + " " + d + " " + l + " " + m);
         });
-        http.getBody_cookies("/cookie-storer");
-        assertThat(http.getBody_cookies("/cookie-reader"), is("Hello world! 42 42.0 [One, Two, Three] {K1=V, K2=1000.0, K3=[One, Two, Three]}"));
+        http.getBody_withCookies("/cookie-storer");
+        assertThat(http.getBody_withCookies("/cookie-reader"), is("Hello world! 42 42.0 [One, Two, Three] {K1=V, K2=1000.0, K3=[One, Two, Three]}"));
     }
 
 }
