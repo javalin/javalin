@@ -21,14 +21,13 @@ class SSEHandlerTest {
     fun happyPath() {
         val consumerSSE: Consumer<*>? = mock(Consumer::class.java)
         val sseHandler = SSEHandler.start(consumerSSE as Consumer<EventSource>)
-        val context = mockk<Context>()
-        val asyncContext = mockk<AsyncContext>()
-
         val request = spyk<HttpServletRequest>()
         val response = spyk<HttpServletResponse>()
+        val context = spyk(Context(response, request))
+        val asyncContext = mockk<AsyncContext>()
 
-        every { context.request() } returns request
-        every { context.response() } returns response
+
+
         every { request.getHeader("Accept")} returns "text/event-stream"
         every {  context.pathParamMap } returns HashMap<String, String>()
         every { request.asyncContext } returns asyncContext

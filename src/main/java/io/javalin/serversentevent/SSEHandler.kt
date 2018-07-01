@@ -14,8 +14,8 @@ class SSEHandler private constructor(private val consumerSSE: Consumer<EventSour
 
     @Throws(Exception::class)
     override fun handle(context: Context) {
-        val request = context.request()
-        val response = context.response()
+        val request = context.req
+        val response = context.res
 
         val isEventStream = isEventStream(request)
         if (isEventStream) {
