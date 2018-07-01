@@ -42,7 +42,7 @@ public class TestRequestCache {
 
     @Test
     public void test_cache_not_draining_InputStream() throws Exception {
-        appCacheEnabled.post("/cache-chunked-encoding", ctx -> ctx.result(ctx.request().getInputStream()));
+        appCacheEnabled.post("/cache-chunked-encoding", ctx -> ctx.result(ctx.req.getInputStream()));
 
         byte[] body = new byte[10000];
         for (int i = 0; i < body.length; i++) {
@@ -65,7 +65,7 @@ public class TestRequestCache {
     @Test
     public void test_allows_disabling_cache() throws Exception {
         appCacheDisabled.post("/disabled-cache", ctx -> {
-            if (ctx.request().getInputStream().getClass().getSimpleName().equals("CachedServletInputStream")) {
+            if (ctx.req.getInputStream().getClass().getSimpleName().equals("CachedServletInputStream")) {
                 throw new IllegalStateException("Cache should be disabled");
             } else {
                 ctx.result("");

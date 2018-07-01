@@ -46,7 +46,6 @@ public class TestWebSocket {
         log = new ArrayList<>();
     }
 
-
     @Test
     public void test_id_generation() throws Exception {
         Javalin app = Javalin.create().contextPath("/websocket").port(0);

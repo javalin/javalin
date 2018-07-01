@@ -40,7 +40,6 @@ public class TestRouting extends _SimpleClientBaseTest {
         assertThat(simpleHttpClient.http_GET(origin + "/s/s/s/s").getBody(), is("/s/s/s/s"));
     }
 
-
     @Test
     public void test_paramAndSplat() throws Exception {
         app.get("/:path-param/path/*", ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)));

@@ -27,8 +27,8 @@ public class TestRequest extends _UnirestBaseTest {
      */
     @Test
     public void test_session_works() throws Exception {
-        app.get("/store-session", ctx -> ctx.request().getSession().setAttribute("test", "tast"));
-        app.get("/read-session", ctx -> ctx.result((String) ctx.request().getSession().getAttribute("test")));
+        app.get("/store-session", ctx -> ctx.req.getSession().setAttribute("test", "tast"));
+        app.get("/read-session", ctx -> ctx.result((String) ctx.req.getSession().getAttribute("test")));
         GET_body("/store-session");
         assertThat(GET_body("/read-session"), is("tast"));
     }
@@ -105,25 +105,25 @@ public class TestRequest extends _UnirestBaseTest {
      * Path params
      */
     @Test
-    public void test_paramWorks_invalidParam() throws Exception {
+    public void test_pathParamWorks_invalidParam() throws Exception {
         app.get("/:my/:path", ctx -> ctx.result(ctx.pathParam("path-param")));
         assertThat(GET_body("/my/path"), is("Internal server error"));
     }
 
     @Test
-    public void test_paramWorks_multipleSingleParams() throws Exception {
+    public void test_pathParamWorks_multipleSingleParams() throws Exception {
         app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")));
         assertThat(GET_body("/my/path/params"), is("mypathparams"));
     }
 
     @Test
-    public void test_paramMapWorks_noParamsPresent() throws Exception {
+    public void test_pathParamMapWorks_noParamsPresent() throws Exception {
         app.get("/my/path/params", ctx -> ctx.result(ctx.pathParamMap().toString()));
         assertThat(GET_body("/my/path/params"), is("{}"));
     }
 
     @Test
-    public void test_paramMapWorks_paramsPresent() throws Exception {
+    public void test_pathParamMapWorks_paramsPresent() throws Exception {
         app.get("/:1/:2/:3", ctx -> ctx.result(ctx.pathParamMap().toString()));
         assertThat(GET_body("/my/path/params"), is("{1=my, 2=path, 3=params}"));
     }
@@ -242,4 +242,11 @@ public class TestRequest extends _UnirestBaseTest {
         assertThat(GET_body("/matched/p1"), is("/matched/:path-param"));
         assertThat(GET_body("/matched/p1/p2"), is("/matched/:path-param/:param2"));
     }
+
+    @Test
+    public void test_servletContext_isNotNull() throws Exception {
+        app.get("/", ctx -> ctx.result(ctx.req.getServletContext() != null ? "not-null" : "null"));
+        assertThat(GET_body("/"), is("not-null"));
+    }
+
 }

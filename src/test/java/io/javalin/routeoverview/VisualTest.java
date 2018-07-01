@@ -19,7 +19,7 @@ import static io.javalin.ApiBuilder.post;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
-import static io.javalin.security.Role.roles;
+import static io.javalin.security.SecurityUtil.roles;
 
 public class VisualTest {
 
