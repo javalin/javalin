@@ -21,7 +21,7 @@ class TestStaticFiles {
     fun test_Html() {
         TestUtil(Javalin.create().enableStaticFiles("/public")).test { app, http ->
             assertThat(http.get("/html.html").code(), `is`(200))
-            assertThat<String>(http.get("/html.html").header(Header.CONTENT_TYPE), containsString("text/html"))
+            assertThat(http.get("/html.html").header(Header.CONTENT_TYPE), containsString("text/html"))
             assertThat(http.getBody("/html.html"), containsString("HTML works"))
         }
     }
@@ -30,7 +30,7 @@ class TestStaticFiles {
     fun test_getJs() {
         TestUtil(Javalin.create().enableStaticFiles("/public")).test { app, http ->
             assertThat(http.get("/script.js").code(), `is`(200))
-            assertThat<String>(http.get("/script.js").header(Header.CONTENT_TYPE), containsString("application/javascript"))
+            assertThat(http.get("/script.js").header(Header.CONTENT_TYPE), containsString("application/javascript"))
             assertThat(http.getBody("/script.js"), containsString("JavaScript works"))
         }
     }
@@ -39,7 +39,7 @@ class TestStaticFiles {
     fun test_getCss() {
         TestUtil(Javalin.create().enableStaticFiles("/public")).test { app, http ->
             assertThat(http.get("/styles.css").code(), `is`(200))
-            assertThat<String>(http.get("/styles.css").header(Header.CONTENT_TYPE), containsString("text/css"))
+            assertThat(http.get("/styles.css").header(Header.CONTENT_TYPE), containsString("text/css"))
             assertThat(http.getBody("/styles.css"), containsString("CSS works"))
         }
     }
@@ -73,8 +73,8 @@ class TestStaticFiles {
     @Test
     fun test_expiresWorksAsExpected() {
         TestUtil(Javalin.create().enableStaticFiles("/public")).test { app, http ->
-            assertThat<String>(http.get("/script.js").header(Header.CACHE_CONTROL), `is`("max-age=0"))
-            assertThat<String>(http.get("/immutable/library-1.0.0.min.js").header(Header.CACHE_CONTROL), `is`("max-age=31622400"))
+            assertThat(http.get("/script.js").header(Header.CACHE_CONTROL), `is`("max-age=0"))
+            assertThat(http.get("/immutable/library-1.0.0.min.js").header(Header.CACHE_CONTROL), `is`("max-age=31622400"))
         }
     }
 

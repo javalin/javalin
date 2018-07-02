@@ -16,10 +16,12 @@ import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.nullValue
 import org.junit.Test
 
-private data class SillyObject(var fieldOne: String, var fieldTwo: String, var fieldThree: String)
-private fun getSomeObjects(numberOfObjects: Int) = (1..numberOfObjects).map { i -> SillyObject("f$i", "f$i", "f$i") }.toList()
 
 class TestGzip {
+
+    private data class SillyObject(var fieldOne: String, var fieldTwo: String, var fieldThree: String)
+
+    private fun getSomeObjects(numberOfObjects: Int) = (1..numberOfObjects).map { i -> SillyObject("f$i", "f$i", "f$i") }.toList()
 
     val app = Javalin.create()
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
@@ -65,7 +67,7 @@ class TestGzip {
     // we need to use okhttp, because unirest omits the content-encoding header
     private fun getResponse(origin: String, url: String, encoding: String) = OkHttpClient()
             .newCall(Request.Builder()
-            .url(origin + url)
-            .header(Header.ACCEPT_ENCODING, encoding)
-            .build()).execute()
+                    .url(origin + url)
+                    .header(Header.ACCEPT_ENCODING, encoding)
+                    .build()).execute()
 }
