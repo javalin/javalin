@@ -17,19 +17,13 @@ import java.util.concurrent.TimeUnit
 class TestLogging {
 
     @Test
-    fun test_noLogging() {
-        runTest(Javalin.create())
-    }
+    fun test_noLogging() = runTest(Javalin.create())
 
     @Test
-    fun test_debugLogging() {
-        runTest(Javalin.create().enableDebugLogging())
-    }
+    fun test_debugLogging() = runTest(Javalin.create().enableDebugLogging())
 
     @Test
-    fun test_customLogger() {
-        runTest(Javalin.create().requestLogger { ctx, executionTimeMs -> println("That took $executionTimeMs milliseconds") })
-    }
+    fun test_customLogger() = runTest(Javalin.create().requestLogger { ctx, executionTimeMs -> println("That took $executionTimeMs milliseconds") })
 
     private fun runTest(app: Javalin) {
         app.get("/blocking") { ctx -> ctx.result("Hello Blocking World!") }
