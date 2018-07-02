@@ -19,21 +19,21 @@ class TestTrailingSlashes {
     val nonIgnoringJavalin = Javalin.create().dontIgnoreTrailingSlashes()
 
     @Test
-    fun test_dontIgnore_works() = TestUtil(nonIgnoringJavalin).test { app, http ->
+    fun test_dontIgnore_works() = TestUtil.test(nonIgnoringJavalin) { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
         assertThat(http.getBody("/hello"), `is`("Hello, slash!"))
         assertThat(http.getBody("/hello/"), `is`("Not found"))
     }
 
     @Test
-    fun test_ignore_works() = TestUtil().test { app, http ->
+    fun test_ignore_works() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
         assertThat(http.getBody("/hello"), `is`("Hello, slash!"))
         assertThat(http.getBody("/hello/"), `is`("Hello, slash!"))
     }
 
     @Test
-    fun test_dontIgnore_works_apiBuilder() = TestUtil(nonIgnoringJavalin).test { app, http ->
+    fun test_dontIgnore_works_apiBuilder() = TestUtil.test(nonIgnoringJavalin) { app, http ->
         app.routes {
             path("a") {
                 get { ctx -> ctx.result("a") }
@@ -45,7 +45,7 @@ class TestTrailingSlashes {
     }
 
     @Test
-    fun test_ignore_works_apiBuilder() = TestUtil().test { app, http ->
+    fun test_ignore_works_apiBuilder() = TestUtil.test { app, http ->
         app.routes {
             path("a") {
                 get { ctx -> ctx.result("a") }

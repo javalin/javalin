@@ -23,7 +23,7 @@ class TestCustomJetty {
     fun test_embeddedServer_withStatisticsHandler() {
         val statisticsHandler = StatisticsHandler()
         val server = Server().apply { handler = statisticsHandler }
-        TestUtil(Javalin.create().server { server }).test { app, http ->
+        TestUtil.test(Javalin.create().server { server }) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 5
             for (i in 0 until requests) {
@@ -42,7 +42,7 @@ class TestCustomJetty {
         val requestLogHandler = RequestLogHandler().apply { requestLog = RequestLog { _, _ -> logCount.incrementAndGet() } }
         val handlerChain = StatisticsHandler().apply { handler = requestLogHandler }
         val server = Server().apply { handler = handlerChain }
-        TestUtil(Javalin.create().server { server }).test { app, http ->
+        TestUtil.test(Javalin.create().server { server }) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 10
             for (i in 0 until requests) {

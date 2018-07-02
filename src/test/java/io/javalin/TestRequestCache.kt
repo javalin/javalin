@@ -12,7 +12,7 @@ import java.util.*
 class TestRequestCache {
 
     @Test
-    fun test_cache_not_draining_InputStream() = TestUtil().test { app, http ->
+    fun test_cache_not_draining_InputStream() = TestUtil.test { app, http ->
         app.post("/cache-chunked-encoding") { ctx -> ctx.result(ctx.req.inputStream) }
         val body = ByteArray(10000).mapIndexed { i, _ -> (i % 256).toByte() }.toByteArray()
         val post = HttpPost(http.origin + "/cache-chunked-encoding").apply {
@@ -25,7 +25,7 @@ class TestRequestCache {
     }
 
     @Test
-    fun test_allows_disabling_cache() = TestUtil(Javalin.create().disableRequestCache()).test { app, http ->
+    fun test_allows_disabling_cache() = TestUtil.test(Javalin.create().disableRequestCache()) { app, http ->
         app.post("/disabled-cache") { ctx ->
             if (ctx.req.inputStream.javaClass.simpleName == "CachedServletInputStream") {
                 throw IllegalStateException("Cache should be disabled")

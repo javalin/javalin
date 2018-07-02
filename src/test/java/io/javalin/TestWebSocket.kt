@@ -37,7 +37,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_id_generation() = TestUtil(contextPathJavalin).test { app, _ ->
+    fun test_id_generation() = TestUtil.test(contextPathJavalin) { app, _ ->
         app.ws("/test-websocket-1") { ws ->
             ws.onConnect { session -> log.add(session.id) }
             ws.onMessage { session, _ -> log.add(session.id) }
@@ -50,6 +50,7 @@ class TestWebSocket {
                 ws.onClose { session, _, _ -> log.add(session.id) }
             }
         }
+        app.start()
 
         val testClient1_1 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
         val testClient1_2 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
@@ -73,7 +74,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_everything() = TestUtil(contextPathJavalin).test { app, _ ->
+    fun test_everything() = TestUtil.test(contextPathJavalin) { app, _ ->
         val userUsernameMap = LinkedHashMap<WsSession, Int>()
         val atomicInteger = AtomicInteger()
         app.ws("/test-websocket-1") { ws ->
@@ -93,6 +94,7 @@ class TestWebSocket {
                 ws.onClose { _, _, _ -> log.add("Disconnected from other endpoint") }
             }
         }
+        app.start()
 
         val testClient1_1 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
         val testClient1_2 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
@@ -123,7 +125,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_path_params() = TestUtil(contextPathJavalin).test { app, _ ->
+    fun test_path_params() = TestUtil.test(contextPathJavalin) { app, _ ->
         app.ws("/params/:1") { ws -> ws.onConnect { session -> log.add(session.pathParam("1")) } }
         app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { session -> log.add(session.pathParam("1") + " " + session.pathParam("2") + " " + session.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { session -> log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
@@ -144,7 +146,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_ws_404() = TestUtil().test { app, _ ->
+    fun test_ws_404() = TestUtil.test { app, _ ->
         val response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
                 .header("Connection", "Upgrade")
                 .header("Upgrade", "websocket")
@@ -156,7 +158,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_headers_and_host() = TestUtil().test { app, _ ->
+    fun test_headers_and_host() = TestUtil.test { app, _ ->
         app.ws("websocket") { ws ->
             ws.onConnect { session -> log.add("Header: " + session.header("Test")!!) }
             ws.onClose { session, statusCode, reason -> log.add("Closed connection from: " + session.host()!!) }
@@ -169,7 +171,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_miscPathExtractions() = TestUtil().test { app, _ ->
+    fun test_miscPathExtractions() = TestUtil.test { app, _ ->
         var matchedPath = ""
         var pathParam = ""
         var queryParam = ""

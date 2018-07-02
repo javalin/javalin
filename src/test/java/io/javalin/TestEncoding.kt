@@ -60,7 +60,7 @@ class TestEncoding : BaseTest() {
     }
 
     @Test
-    fun test_sane_defaults() = TestUtil().test { app, http ->
+    fun test_sane_defaults() = TestUtil.test { app, http ->
         app.get("/text") { ctx -> ctx.result("суп из капусты") }
         app.get("/json") { ctx -> ctx.json("白菜湯") }
         app.get("/html") { ctx -> ctx.html("kålsuppe") }
@@ -73,13 +73,13 @@ class TestEncoding : BaseTest() {
     }
 
     @Test
-    fun test_sets_default() = TestUtil(Javalin.create().defaultContentType("application/json")).test { app, http ->
+    fun test_sets_default() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
         app.get("/default") { ctx -> ctx.result("not json") }
         assertThat(http.get("/default").header(Header.CONTENT_TYPE), containsString("application/json"))
     }
 
     @Test
-    fun test_allows_overrides() = TestUtil(Javalin.create().defaultContentType("application/json")).test { app, http ->
+    fun test_allows_overrides() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
         app.get("/override") { ctx ->
             ctx.res.characterEncoding = "utf-8"
             ctx.res.contentType = "text/html"

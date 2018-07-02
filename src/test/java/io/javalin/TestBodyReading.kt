@@ -15,7 +15,7 @@ import org.junit.Test
 class TestBodyReading {
 
     @Test
-    fun test_bodyReader() = TestUtil().test { app, http ->
+    fun test_bodyReader() = TestUtil.test { app, http ->
         app.before("/body-reader") { ctx -> ctx.header("X-BEFORE", ctx.body() + ctx.queryParam("qp")!!) }
         app.post("/body-reader") { ctx -> ctx.result(ctx.body() + ctx.queryParam("qp")!!) }
         app.after("/body-reader") { ctx -> ctx.header("X-AFTER", ctx.body() + ctx.queryParam("qp")!!) }
@@ -29,7 +29,7 @@ class TestBodyReading {
     }
 
     @Test
-    fun test_bodyReader_reverse() = TestUtil().test { app, http ->
+    fun test_bodyReader_reverse() = TestUtil.test { app, http ->
         app.before("/body-reader") { ctx -> ctx.header("X-BEFORE", ctx.queryParam("qp")!! + ctx.body()) }
         app.post("/body-reader") { ctx -> ctx.result(ctx.queryParam("qp")!! + ctx.body()) }
         app.after("/body-reader") { ctx -> ctx.header("X-AFTER", ctx.queryParam("qp")!! + ctx.body()) }
@@ -43,7 +43,7 @@ class TestBodyReading {
     }
 
     @Test
-    fun test_formParams_work() = TestUtil().test { app, http ->
+    fun test_formParams_work() = TestUtil.test { app, http ->
         app.before("/body-reader") { ctx -> ctx.header("X-BEFORE", ctx.formParam("username")!!) }
         app.post("/body-reader") { ctx -> ctx.result(ctx.formParam("password")!!) }
         app.after("/body-reader") { ctx -> ctx.header("X-AFTER", ctx.formParam("repeat-password")!!) }
@@ -56,7 +56,7 @@ class TestBodyReading {
     }
 
     @Test
-    fun test_unicodeFormParams_work() = TestUtil().test { app, http ->
+    fun test_unicodeFormParams_work() = TestUtil.test { app, http ->
         app.post("/unicode") { ctx -> ctx.result(ctx.formParam("unicode")!!) }
         val responseBody = http.post("/unicode")
                 .body("unicode=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
@@ -65,7 +65,7 @@ class TestBodyReading {
     }
 
     @Test // not sure why this does so much...
-    fun test_formParamsWork_multipleValues() = TestUtil().test { app, http ->
+    fun test_formParamsWork_multipleValues() = TestUtil.test { app, http ->
         app.post("/body-reader") { ctx ->
             val formParamString = ctx.formParamMap().map { it.key + ": " + ctx.formParam(it.key) + ", " + it.key + "s: " + ctx.formParams(it.key).toString() }.joinToString(". ")
             val queryParamString = ctx.queryParamMap().map { it.key + ": " + ctx.queryParam(it.key) + ", " + it.key + "s: " + ctx.queryParams(it.key).toString() }.joinToString(". ")

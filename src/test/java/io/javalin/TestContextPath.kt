@@ -41,27 +41,27 @@ class TestContextPath {
     }
 
     @Test
-    fun test_router_works() = TestUtil(Javalin.create().contextPath("/context-path")).test { app, http ->
+    fun test_router_works() = TestUtil.test(Javalin.create().contextPath("/context-path")) { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello World") }
         assertThat(http.getBody("/hello"), `is`("Not found. Request is below context-path (context-path: '/context-path')"))
         assertThat(http.getBody("/context-path/hello"), `is`("Hello World"))
     }
 
     @Test
-    fun test_twoLevelContextPath_works() = TestUtil(Javalin.create().contextPath("/context-path/path-context")).test { app, http ->
+    fun test_twoLevelContextPath_works() = TestUtil.test(Javalin.create().contextPath("/context-path/path-context")) { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello World") }
         assertThat(http.get("/context-path/").code(), `is`(404))
         assertThat(http.getBody("/context-path/path-context/hello"), `is`("Hello World"))
     }
 
     @Test
-    fun test_staticFiles_work() = TestUtil(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")).test { app, http ->
+    fun test_staticFiles_work() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
         assertThat(http.get("/script.js").code(), `is`(404))
         assertThat(http.getBody("/context-path/script.js"), containsString("JavaScript works"))
     }
 
     @Test
-    fun test_welcomeFile_works() = TestUtil(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")).test { app, http ->
+    fun test_welcomeFile_works() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
         assertThat(http.getBody("/context-path/subdir/"), `is`("<h1>Welcome file</h1>"))
     }
 

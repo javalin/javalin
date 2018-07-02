@@ -10,22 +10,15 @@ import io.javalin.Javalin;
 
 public class TestUtil {
 
-    private final HttpUtil httpUtil;
-    private final Javalin javalin;
-
-    public TestUtil() { // could add BiConsumer directly to constructor...
-        this.javalin = Javalin.create().disableStartupBanner().start(0);
-        this.httpUtil = new HttpUtil(javalin);
-    }
-
-    public TestUtil(Javalin javalin) {
-        this.javalin = javalin.disableStartupBanner().start(0);
-        this.httpUtil = new HttpUtil(javalin);
-    }
-
-    public void test(ThrowingBiConsumer<Javalin, HttpUtil> app) {
-        app.accept(javalin, httpUtil);
+    public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
+        javalin.disableStartupBanner().start(0);
+        HttpUtil httpUtil = new HttpUtil(javalin);
+        test.accept(javalin, httpUtil);
         javalin.stop();
+    }
+
+    public static void test(ThrowingBiConsumer<Javalin, HttpUtil> test) {
+        test(Javalin.create(), test);
     }
 
 }

@@ -18,13 +18,9 @@ public class TestContextExtensions {
 
     @Test
     public void test_jsonMapper_extension() {
-        new TestUtil().test((app, http) -> {
-            app.before(ctx -> {
-                ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx));
-            });
-            app.get("/extended", ctx -> {
-                ctx.use(MyJsonMapper.class).toJson(new SerializeableObject());
-            });
+        TestUtil.test((app, http) -> {
+            app.before(ctx -> ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx)));
+            app.get("/extended", ctx -> ctx.use(MyJsonMapper.class).toJson(new SerializeableObject()));
             String expected = new GsonBuilder().create().toJson(new SerializeableObject());
             assertThat(http.getBody("/extended"), is(expected));
         });
