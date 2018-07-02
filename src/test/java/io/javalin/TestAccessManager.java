@@ -9,9 +9,9 @@ package io.javalin;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import io.javalin.util.BaseTest;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import io.javalin.util.BaseTest;
 import org.junit.Test;
 import static io.javalin.ApiBuilder.get;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;

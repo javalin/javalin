@@ -8,10 +8,10 @@
 package io.javalin
 
 import io.javalin.util.BaseTest
-import org.junit.Test
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.not
+import org.junit.Test
 
 class TestHaltException : BaseTest() {
 

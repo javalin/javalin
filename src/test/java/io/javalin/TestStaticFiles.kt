@@ -8,12 +8,12 @@
 package io.javalin
 
 import io.javalin.core.util.Header
-import io.javalin.util.TestUtil
 import io.javalin.staticfiles.Location
-import org.junit.Test
+import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.containsString
+import org.junit.Test
 
 class TestStaticFiles {
 

@@ -8,8 +8,8 @@ package io.javalin;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.javalin.util.TestUtil;
 import io.javalin.misc.SerializeableObject;
+import io.javalin.util.TestUtil;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

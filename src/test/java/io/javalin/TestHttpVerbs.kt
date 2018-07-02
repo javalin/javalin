@@ -9,9 +9,9 @@ package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
 import io.javalin.util.BaseTest
-import org.junit.Test
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
+import org.junit.Test
 
 class TestHttpVerbs : BaseTest() {
 
