@@ -8,10 +8,10 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
-import org.junit.Test
 import io.javalin.ApiBuilder.get
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Test
 
 class TestApiBuilderTwoServices {
 

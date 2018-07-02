@@ -28,10 +28,12 @@ class HttpUtil(javalin: Javalin) {
     fun disableUnirestRedirects() = Unirest.setHttpClient(HttpClients.custom().disableRedirectHandling().build())
 
     // OkHTTP
+
     fun get(path: String) = okHttp.newCall(Request.Builder().url(origin + path).get().build()).execute()
     fun getBody(path: String) = get(path).body()!!.string()
 
     // Unirest
+
     fun call(method: HttpMethod, pathname: String) = HttpRequestWithBody(method, origin + pathname).asString()
     fun post(path: String) = Unirest.post(origin + path)
     fun getBody_withCookies(path: String) = Unirest.get(origin + path).asString().body
