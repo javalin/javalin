@@ -9,7 +9,7 @@ package io.javalin.routeoverview;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.core.util.RouteOverviewUtil;
-import io.javalin.util.HandlerImplementation;
+import io.javalin.misc.HandlerImplementation;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,7 +36,7 @@ public class TestRouteOverview_Java {
     @Test
     public void class_works() {
         assertThat(RouteOverviewUtil.getMetaInfo(new ImplementingClass()), is("io.javalin.routeoverview.TestRouteOverview_Java$ImplementingClass.class"));
-        assertThat(RouteOverviewUtil.getMetaInfo(new HandlerImplementation()), is("io.javalin.util.HandlerImplementation.class"));
+        assertThat(RouteOverviewUtil.getMetaInfo(new HandlerImplementation()), is("io.javalin.misc.HandlerImplementation.class"));
     }
 
     @Test

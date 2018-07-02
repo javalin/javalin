@@ -9,7 +9,7 @@ package io.javalin.routeoverview;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.Javalin;
-import io.javalin.util.HandlerImplementation;
+import io.javalin.misc.HandlerImplementation;
 import io.javalin.websocket.WsHandler;
 import static io.javalin.ApiBuilder.delete;
 import static io.javalin.ApiBuilder.get;
