@@ -9,7 +9,7 @@ package io.javalin;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.javalin.util.TestUtil;
-import io.javalin.misc.TestObject_Serializable;
+import io.javalin.misc.SerializeableObject;
 import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -23,9 +23,9 @@ public class TestContextExtensions {
                 ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx));
             });
             app.get("/extended", ctx -> {
-                ctx.use(MyJsonMapper.class).toJson(new TestObject_Serializable());
+                ctx.use(MyJsonMapper.class).toJson(new SerializeableObject());
             });
-            String expected = new GsonBuilder().create().toJson(new TestObject_Serializable());
+            String expected = new GsonBuilder().create().toJson(new SerializeableObject());
             assertThat(http.getBody("/extended"), is(expected));
         });
     }
