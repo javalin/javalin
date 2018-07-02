@@ -62,7 +62,6 @@ class TestStaticFiles {
     }
 
     @Test
-    @Throws(Exception::class)
     fun test_rootReturnsWelcomeFile_ifWelcomeFileExists() {
         TestUtil(Javalin.create().enableStaticFiles("/public")).test { app, http ->
             assertThat(http.get("/subdir/").code(), `is`(200))

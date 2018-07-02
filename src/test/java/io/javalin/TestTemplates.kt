@@ -47,12 +47,10 @@ class TestTemplates : BaseTest() {
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
-    private fun strictVelocityEngine(): VelocityEngine {
-        val strictEngine = VelocityEngine()
-        strictEngine.setProperty("runtime.references.strict", true)
-        strictEngine.setProperty("resource.loader", "class")
-        strictEngine.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
-        return strictEngine
+    private fun strictVelocityEngine() = VelocityEngine().apply {
+        setProperty("runtime.references.strict", true)
+        setProperty("resource.loader", "class")
+        setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
     }
 
     @Test
@@ -87,12 +85,10 @@ class TestTemplates : BaseTest() {
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
-    private fun strictPebbleEngine(): PebbleEngine {
-        return PebbleEngine.Builder()
-                .loader(ClasspathLoader())
-                .strictVariables(true)
-                .build()
-    }
+    private fun strictPebbleEngine() = PebbleEngine.Builder()
+            .loader(ClasspathLoader())
+            .strictVariables(true)
+            .build()
 
     @Test
     fun test_renderJtwig_works() {
@@ -102,13 +98,9 @@ class TestTemplates : BaseTest() {
 
     @Test
     fun test_customJtwigConfiguration_works() {
-        val configuration = EnvironmentConfigurationBuilder
-                .configuration().functions()
+        JavalinJtwig.configure(EnvironmentConfigurationBuilder.configuration().functions()
                 .add(object : SimpleJtwigFunction() {
-                    override fun name(): String {
-                        return "javalin"
-                    }
-
+                    override fun name() = "javalin"
                     override fun execute(request: FunctionRequest): Any {
                         request.maximumNumberOfArguments(1).minimumNumberOfArguments(1)
                         return FunctionValueUtils.getString(request, 0)
@@ -116,8 +108,7 @@ class TestTemplates : BaseTest() {
                 })
                 .and()
                 .build()
-
-        JavalinJtwig.configure(configuration)
+        )
         app.get("/quiz") { ctx -> ctx.render("/templates/jtwig/custom.jtwig") }
         assertThat(http.getBody("/quiz"), `is`("<h1>Javalin is the best framework you will ever get</h1>"))
     }
