@@ -38,7 +38,7 @@ class TestStaticFilesEdgeCases {
 
     private fun doTest(failureExpected: Boolean, app: Javalin) {
         var failed = false
-        app.event(JavalinEvent.SERVER_START_FAILED) { failed = true }.start().stop()
+        app.event(JavalinEvent.SERVER_START_FAILED) { failed = true }.start(0).stop()
         assertThat(failed, `is`(failureExpected))
     }
 
