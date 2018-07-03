@@ -15,23 +15,23 @@ import java.io.File
 class TestStaticFilesEdgeCases {
 
     @Test
-    fun test_nonExistent_classpathFolder_fails() {
+    fun `server doesn't start for non-existent classpath folder`() {
         doTest(failureExpected = true, app = Javalin.create().enableStaticFiles("some-fake-folder"))
     }
 
     @Test
-    fun test_nonExistent_externalFolder_fails() {
+    fun `server doesn't start for non-existent external folder`() {
         doTest(failureExpected = true, app = Javalin.create().enableStaticFiles("some-fake-folder", Location.EXTERNAL))
     }
 
     @Test
-    fun test_empty_classpathFolder_fails() {
+    fun `server doesn't start for empty classpath folder`() {
         File("src/test/external/empty").mkdir()
         doTest(failureExpected = true, app = Javalin.create().enableStaticFiles("src/test/external/empty", Location.CLASSPATH))
     }
 
     @Test
-    fun test_empty_externalFolder_works() {
+    fun `server starts for empty external folder`() {
         File("src/test/external/empty").mkdir()
         doTest(failureExpected = false, app = Javalin.create().enableStaticFiles("src/test/external/empty", Location.EXTERNAL))
     }

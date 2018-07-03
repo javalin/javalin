@@ -14,12 +14,12 @@ import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.security.AccessManager
 import io.javalin.security.Role
 import io.javalin.security.SecurityUtil.roles
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
 
-class TestAccessManager : BaseTest() {
+class TestAccessManager {
 
     enum class MyRoles : Role { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
@@ -33,29 +33,30 @@ class TestAccessManager : BaseTest() {
     }
 
     @Test
-    fun test_noopAccessManager_throwsException_whenRoles() {
+    fun test_noopAccessManager_throwsException_whenRoles() = TestUtil.test { app, http ->
         app.get("/secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE))
-        assertThat(callWithRole("/secured", "ROLE_ONE"), `is`("Internal server error"))
+        assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE"), `is`("Internal server error"))
     }
 
     @Test
-    fun test_accessManager_restrictsAccess() {
+    fun test_accessManager_restrictsAccess() = TestUtil.test { app, http ->
         app.accessManager(accessManager)
         app.get("/secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO))
-        assertThat(callWithRole("/secured", "ROLE_ONE"), `is`("Hello"))
-        assertThat(callWithRole("/secured", "ROLE_TWO"), `is`("Hello"))
-        assertThat(callWithRole("/secured", "ROLE_THREE"), `is`("Unauthorized"))
+        assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE"), `is`("Hello"))
+        assertThat(callWithRole(http.origin, "/secured", "ROLE_TWO"), `is`("Hello"))
+        assertThat(callWithRole(http.origin, "/secured", "ROLE_THREE"), `is`("Unauthorized"))
     }
 
     @Test
-    fun test_accessManager_restrictsAccess_forStaticApi() {
+    fun test_accessManager_restrictsAccess_forStaticApi() = TestUtil.test { app, http ->
         app.accessManager(accessManager)
         app.routes { get("/static-secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO)) }
-        assertThat(callWithRole("/static-secured", "ROLE_ONE"), `is`("Hello"))
-        assertThat(callWithRole("/static-secured", "ROLE_TWO"), `is`("Hello"))
-        assertThat(callWithRole("/static-secured", "ROLE_THREE"), `is`("Unauthorized"))
+        assertThat(callWithRole(http.origin, "/static-secured", "ROLE_ONE"), `is`("Hello"))
+        assertThat(callWithRole(http.origin, "/static-secured", "ROLE_TWO"), `is`("Hello"))
+        assertThat(callWithRole(http.origin, "/static-secured", "ROLE_THREE"), `is`("Unauthorized"))
     }
 
-    private fun callWithRole(path: String, role: String) = Unirest.get(origin + path).queryString("role", role).asString().body
+    private fun callWithRole(origin: String, path: String, role: String) =
+            Unirest.get(origin + path).queryString("role", role).asString().body
 
 }

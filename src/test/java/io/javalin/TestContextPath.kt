@@ -18,7 +18,7 @@ import java.util.function.Function
 class TestContextPath {
 
     @Test
-    fun test_normalizeContextPath_works() {
+    fun `context-path is normalized`() {
         val normalize = Function<String, String> { Util.normalizeContextPath(it) }
         assertThat(normalize.apply("path"), `is`("/path"))
         assertThat(normalize.apply("/path"), `is`("/path"))
@@ -29,7 +29,7 @@ class TestContextPath {
     }
 
     @Test
-    fun test_prefixPath_works() {
+    fun `context-path is prefixed`() {
         val prefix = BiFunction<String, String, String> { contextPath, path -> Util.prefixContextPath(contextPath, path) }
         assertThat(prefix.apply("/c-p", "*"), `is`("*"))
         assertThat(prefix.apply("/c-p", "/*"), `is`("/c-p/*"))
@@ -41,27 +41,27 @@ class TestContextPath {
     }
 
     @Test
-    fun test_router_works() = TestUtil.test(Javalin.create().contextPath("/context-path")) { app, http ->
+    fun `router works with context -path`() = TestUtil.test(Javalin.create().contextPath("/context-path")) { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello World") }
         assertThat(http.getBody("/hello"), `is`("Not found. Request is below context-path (context-path: '/context-path')"))
         assertThat(http.getBody("/context-path/hello"), `is`("Hello World"))
     }
 
     @Test
-    fun test_twoLevelContextPath_works() = TestUtil.test(Javalin.create().contextPath("/context-path/path-context")) { app, http ->
+    fun `router works with multi-level context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path/path-context")) { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello World") }
         assertThat(http.get("/context-path/").code(), `is`(404))
         assertThat(http.getBody("/context-path/path-context/hello"), `is`("Hello World"))
     }
 
     @Test
-    fun test_staticFiles_work() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
+    fun `static-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
         assertThat(http.get("/script.js").code(), `is`(404))
         assertThat(http.getBody("/context-path/script.js"), containsString("JavaScript works"))
     }
 
     @Test
-    fun test_welcomeFile_works() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
+    fun `welcome-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
         assertThat(http.getBody("/context-path/subdir/"), `is`("<h1>Welcome file</h1>"))
     }
 

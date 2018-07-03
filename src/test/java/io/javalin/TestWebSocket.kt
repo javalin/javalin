@@ -11,6 +11,7 @@ import io.javalin.ApiBuilder.ws
 import io.javalin.util.TestUtil
 import io.javalin.websocket.WsSession
 import org.hamcrest.CoreMatchers.not
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.*
@@ -37,7 +38,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_id_generation() = TestUtil.test(contextPathJavalin) { app, _ ->
+    fun `each connection receives a unique id`() = TestUtil.test(contextPathJavalin) { app, _ ->
         app.ws("/test-websocket-1") { ws ->
             ws.onConnect { session -> log.add(session.id) }
             ws.onMessage { session, _ -> log.add(session.id) }
@@ -50,7 +51,6 @@ class TestWebSocket {
                 ws.onClose { session, _, _ -> log.add(session.id) }
             }
         }
-        app.start()
 
         val testClient1_1 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
         val testClient1_2 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
@@ -58,8 +58,8 @@ class TestWebSocket {
 
         doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
         doAndSleepWhile({ testClient1_2.connect() }, { !testClient1_2.isOpen })
-        doAndSleep({ testClient1_1.send("A") })
-        doAndSleep({ testClient1_2.send("B") })
+        doAndSleep { testClient1_1.send("A") }
+        doAndSleep { testClient1_2.send("B") }
         doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
         doAndSleepWhile({ testClient1_2.close() }, { testClient1_2.isClosing })
         doAndSleepWhile({ testClient2_1.connect() }, { !testClient2_1.isOpen })
@@ -69,12 +69,12 @@ class TestWebSocket {
         val uniqueLog = HashSet(log)
         assertThat(uniqueLog, hasSize(3))
         for (id in uniqueLog) {
-            assertThat(1, Matchers.equalTo(Collections.frequency(uniqueLog, id)))
+            assertThat(uniqueLog.count {it == id}, `is`(1))
         }
     }
 
     @Test
-    fun test_everything() = TestUtil.test(contextPathJavalin) { app, _ ->
+    fun `general integration test`() = TestUtil.test(contextPathJavalin) { app, _ ->
         val userUsernameMap = LinkedHashMap<WsSession, Int>()
         val atomicInteger = AtomicInteger()
         app.ws("/test-websocket-1") { ws ->
@@ -84,9 +84,9 @@ class TestWebSocket {
             }
             ws.onMessage { session, message ->
                 log.add(userUsernameMap[session].toString() + " sent '" + message + "' to server")
-                userUsernameMap.forEach { client, i -> doAndSleep({ client.send("Server sent '" + message + "' to " + userUsernameMap[client]) }) }
+                userUsernameMap.forEach { client, _ -> doAndSleep { client.send("Server sent '" + message + "' to " + userUsernameMap[client]) } }
             }
-            ws.onClose { session, statusCode, reason -> log.add(userUsernameMap[session].toString() + " disconnected") }
+            ws.onClose { session, _, _ -> log.add(userUsernameMap[session].toString() + " disconnected") }
         }
         app.routes {
             ws("/test-websocket-2") { ws ->
@@ -94,7 +94,6 @@ class TestWebSocket {
                 ws.onClose { _, _, _ -> log.add("Disconnected from other endpoint") }
             }
         }
-        app.start()
 
         val testClient1_1 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
         val testClient1_2 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
@@ -102,8 +101,8 @@ class TestWebSocket {
 
         doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
         doAndSleepWhile({ testClient1_2.connect() }, { !testClient1_2.isOpen })
-        doAndSleep({ testClient1_1.send("A") })
-        doAndSleep({ testClient1_2.send("B") })
+        doAndSleep { testClient1_1.send("A") }
+        doAndSleep { testClient1_2.send("B") }
         doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
         doAndSleepWhile({ testClient1_2.close() }, { testClient1_2.isClosing })
         doAndSleepWhile({ testClient2_1.connect() }, { !testClient2_1.isOpen })
@@ -125,7 +124,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_path_params() = TestUtil.test(contextPathJavalin) { app, _ ->
+    fun `routing and pathParams() work`() = TestUtil.test(contextPathJavalin) { app, _ ->
         app.ws("/params/:1") { ws -> ws.onConnect { session -> log.add(session.pathParam("1")) } }
         app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { session -> log.add(session.pathParam("1") + " " + session.pathParam("2") + " " + session.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { session -> log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
@@ -146,7 +145,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_ws_404() = TestUtil.test { app, _ ->
+    fun `websocket 404 works`() = TestUtil.test { app, _ ->
         val response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
                 .header("Connection", "Upgrade")
                 .header("Upgrade", "websocket")
@@ -158,12 +157,12 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_headers_and_host() = TestUtil.test { app, _ ->
+    fun `headers and host are available in session`() = TestUtil.test { app, _ ->
         app.ws("websocket") { ws ->
             ws.onConnect { session -> log.add("Header: " + session.header("Test")!!) }
-            ws.onClose { session, statusCode, reason -> log.add("Closed connection from: " + session.host()!!) }
+            ws.onClose { session, _, _ -> log.add("Closed connection from: " + session.host()!!) }
         }
-        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), Collections.singletonMap("Test", "HeaderParameter")).let {
+        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), mapOf("Test" to "HeaderParameter")).let {
             doAndSleepWhile({ it.connect() }, { !it.isOpen })
             doAndSleepWhile({ it.close() }, { it.isClosing })
         }
@@ -171,24 +170,27 @@ class TestWebSocket {
     }
 
     @Test
-    fun test_miscPathExtractions() = TestUtil.test { app, _ ->
+    fun `extracting path information works`() = TestUtil.test { app, _ ->
         var matchedPath = ""
         var pathParam = ""
         var queryParam = ""
+        var queryParams = listOf<String>()
         app.ws("/websocket/:channel") { ws ->
             ws.onConnect { session ->
                 matchedPath = session.matchedPath()
                 pathParam = session.pathParam("channel")
                 queryParam = session.queryParam("qp")!!
+                queryParams = session.queryParams("qps")
             }
         }
-        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/channel-one?qp=just-a-qp")).let {
+        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/channel-one?qp=just-a-qp&qps=1&qps=2")).let {
             doAndSleepWhile({ it.connect() }, { !it.isOpen })
             doAndSleepWhile({ it.close() }, { it.isClosing })
         }
         assertThat(matchedPath, `is`("/websocket/:channel"))
         assertThat(pathParam, `is`("channel-one"))
         assertThat(queryParam, `is`("just-a-qp"))
+        assertThat(queryParams, contains("1", "2"))
     }
 
     internal inner class TestClient : WebSocketClient {

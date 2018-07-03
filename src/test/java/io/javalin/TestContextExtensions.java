@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.is;
 public class TestContextExtensions {
 
     @Test
-    public void test_jsonMapper_extension() {
+    public void context_extensions_work() {
         TestUtil.test((app, http) -> {
             app.before(ctx -> ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx)));
             app.get("/extended", ctx -> ctx.use(MyJsonMapper.class).toJson(new SerializeableObject()));

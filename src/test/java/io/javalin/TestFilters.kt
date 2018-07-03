@@ -8,83 +8,81 @@
 package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
 
-class TestFilters : BaseTest() {
+class TestFilters {
 
     @Test
-    fun test_filtersRunForRoot() {
+    fun `filters run before root handler`() = TestUtil.test { app, http ->
         app.before { ctx -> ctx.header("X-BEFOREFILTER", "Before-filter ran") }
         app.after { ctx -> ctx.header("X-AFTERFILTER", "After-filter ran") }
-        app.get("/", okHandler)
+        app.get("/", TestUtil.okHandler)
         assertThat(http.get("/").header("X-BEFOREFILTER"), `is`("Before-filter ran"))
         assertThat(http.get("/").header("X-AFTERFILTER"), `is`("After-filter ran"))
     }
 
     @Test
-    fun test_justFiltersGet_is404() {
-        app.before(okHandler)
+    fun `app returns 404 for GET if only before-handler present`() = TestUtil.test { app, http ->
+        app.before(TestUtil.okHandler)
         val response = http.call(HttpMethod.GET, "/hello")
         assertThat(response.status, `is`(404))
         assertThat(response.body, `is`("Not found"))
     }
 
     @Test
-    fun test_justFiltersPost_is404() {
-        app.before(okHandler)
+    fun `app returns 404 for POST if only before-handler present`() = TestUtil.test { app, http ->
+        app.before(TestUtil.okHandler)
         val response = http.call(HttpMethod.POST, "/hello")
         assertThat(response.status, `is`(404))
         assertThat(response.body, `is`("Not found"))
     }
 
     @Test
-    fun test_beforeFilter_setsHeader() {
+    fun `before-handler can set header`() = TestUtil.test { app, http ->
         app.before { ctx -> ctx.header("X-FILTER", "Before-filter ran") }
-        app.get("/mapped", okHandler)
+        app.get("/mapped", TestUtil.okHandler)
         assertThat(http.get("/maped").header("X-FILTER"), `is`("Before-filter ran"))
     }
 
     @Test
-    fun test_multipleFilters_setHeaders() {
-        app.before { ctx -> ctx.header("X-FILTER-1", "Before-filter 1 ran") }
-        app.before { ctx -> ctx.header("X-FILTER-2", "Before-filter 2 ran") }
-        app.before { ctx -> ctx.header("X-FILTER-3", "Before-filter 3 ran") }
-        app.after { ctx -> ctx.header("X-FILTER-4", "After-filter 1 ran") }
-        app.after { ctx -> ctx.header("X-FILTER-5", "After-filter 2 ran") }
-        app.get("/mapped", okHandler)
-        assertThat(http.get("/maped").header("X-FILTER-1"), `is`("Before-filter 1 ran"))
-        assertThat(http.get("/maped").header("X-FILTER-2"), `is`("Before-filter 2 ran"))
-        assertThat(http.get("/maped").header("X-FILTER-3"), `is`("Before-filter 3 ran"))
-        assertThat(http.get("/maped").header("X-FILTER-4"), `is`("After-filter 1 ran"))
-        assertThat(http.get("/maped").header("X-FILTER-5"), `is`("After-filter 2 ran"))
+    fun `before- and after-handlers can set a bunch of headers`() = TestUtil.test { app, http ->
+        app.before { ctx -> ctx.header("X-BEFORE-1", "Before-filter 1 ran") }
+        app.before { ctx -> ctx.header("X-BEFORE-2", "Before-filter 2 ran") }
+        app.after { ctx -> ctx.header("X-AFTER-1", "After-filter 1 ran") }
+        app.after { ctx -> ctx.header("X-AFTER-2", "After-filter 2 ran") }
+        app.get("/mapped", TestUtil.okHandler)
+        assertThat(http.get("/maped").header("X-BEFORE-1"), `is`("Before-filter 1 ran"))
+        assertThat(http.get("/maped").header("X-BEFORE-2"), `is`("Before-filter 2 ran"))
+        assertThat(http.get("/maped").header("X-AFTER-1"), `is`("After-filter 1 ran"))
+        assertThat(http.get("/maped").header("X-AFTER-2"), `is`("After-filter 2 ran"))
     }
 
     @Test
-    fun test_afterFilter_setsHeader() {
-        app.after { ctx -> ctx.header("X-FILTER", "After-filter ran") }
-        app.get("/mapped", okHandler)
-        assertThat(http.get("/maped").header("X-FILTER"), `is`("After-filter ran"))
+    fun `after-handler sets header after endpoint-handler`() = TestUtil.test { app, http ->
+        app.get("/mapped", TestUtil.okHandler)
+        app.after { ctx -> ctx.header("X-AFTER", "After-filter ran") }
+        assertThat(http.get("/mapped").header("X-AFTER"), `is`("After-filter ran"))
     }
 
     @Test
-    fun test_afterFilter_overrides_beforeFilter() {
+    fun `after is after before`() = TestUtil.test { app, http ->
         app.before { ctx -> ctx.header("X-FILTER", "This header is mine!") }
         app.after { ctx -> ctx.header("X-FILTER", "After-filter beats before-filter") }
-        app.get("/mapped", okHandler)
+        app.get("/mapped", TestUtil.okHandler)
         assertThat(http.get("/maped").header("X-FILTER"), `is`("After-filter beats before-filter"))
     }
 
     @Test
-    fun test_beforeFilter_canAddTrailingSlashes() {
+    fun `before-handler can add trailing slashes`() = TestUtil.test(Javalin.create().dontIgnoreTrailingSlashes()) { app, http ->
         app.before { ctx ->
             if (!ctx.path().endsWith("/")) {
                 ctx.redirect(ctx.path() + "/")
             }
         }
-        app.get("/ok/", okHandler)
+        app.get("/ok/", TestUtil.okHandler)
         assertThat(http.getBody("/ok"), `is`("OK"))
     }
 

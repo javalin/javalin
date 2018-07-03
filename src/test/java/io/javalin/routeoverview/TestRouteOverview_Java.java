@@ -40,7 +40,7 @@ public class TestRouteOverview_Java {
     }
 
     @Test
-    public void methodRef_works() {
+    public void method_reference_works() {
         assertThat(RouteOverviewUtil.getMetaInfo((Handler) new TestRouteOverview_Java()::methodReference), is("io.javalin.routeoverview.TestRouteOverview_Java::methodReference"));
     }
 

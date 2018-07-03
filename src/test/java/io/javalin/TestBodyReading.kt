@@ -15,48 +15,41 @@ import org.junit.Test
 class TestBodyReading {
 
     @Test
-    fun test_bodyReader() = TestUtil.test { app, http ->
-        app.before("/body-reader") { ctx -> ctx.header("X-BEFORE", ctx.body() + ctx.queryParam("qp")!!) }
-        app.post("/body-reader") { ctx -> ctx.result(ctx.body() + ctx.queryParam("qp")!!) }
-        app.after("/body-reader") { ctx -> ctx.header("X-AFTER", ctx.body() + ctx.queryParam("qp")!!) }
+    fun `reading query-params then body works`() = TestUtil.test { app, http ->
+        app.post("/body-reader") { ctx -> ctx.result(ctx.body() + "|" + ctx.queryParam("qp")!!) }
         val response = http.post("/body-reader")
                 .queryString("qp", "queryparam")
                 .body("body")
                 .asString()
-        assertThat(response.headers.getFirst("X-BEFORE"), `is`("bodyqueryparam"))
-        assertThat(response.body, `is`("bodyqueryparam"))
-        assertThat(response.headers.getFirst("X-AFTER"), `is`("bodyqueryparam"))
+        assertThat(response.body, `is`("body|queryparam"))
     }
 
     @Test
-    fun test_bodyReader_reverse() = TestUtil.test { app, http ->
-        app.before("/body-reader") { ctx -> ctx.header("X-BEFORE", ctx.queryParam("qp")!! + ctx.body()) }
-        app.post("/body-reader") { ctx -> ctx.result(ctx.queryParam("qp")!! + ctx.body()) }
-        app.after("/body-reader") { ctx -> ctx.header("X-AFTER", ctx.queryParam("qp")!! + ctx.body()) }
+    fun `reading body then query-params works`() = TestUtil.test { app, http ->
+        app.post("/body-reader") { ctx -> ctx.result(ctx.queryParam("qp")!! + "|" + ctx.body()) }
         val response = http.post("/body-reader")
                 .queryString("qp", "queryparam")
                 .body("body")
                 .asString()
-        assertThat(response.headers.getFirst("X-BEFORE"), `is`("queryparambody"))
-        assertThat(response.body, `is`("queryparambody"))
-        assertThat(response.headers.getFirst("X-AFTER"), `is`("queryparambody"))
+        assertThat(response.body, `is`("queryparam|body"))
     }
 
     @Test
-    fun test_formParams_work() = TestUtil.test { app, http ->
-        app.before("/body-reader") { ctx -> ctx.header("X-BEFORE", ctx.formParam("username")!!) }
-        app.post("/body-reader") { ctx -> ctx.result(ctx.formParam("password")!!) }
-        app.after("/body-reader") { ctx -> ctx.header("X-AFTER", ctx.formParam("repeat-password")!!) }
-        val response = http.post("/body-reader")
-                .body("username=some-user-name&password=password&repeat-password=password")
-                .asString()
-        assertThat(response.headers.getFirst("X-BEFORE"), `is`("some-user-name"))
-        assertThat(response.body, `is`("password"))
-        assertThat(response.headers.getFirst("X-AFTER"), `is`("password"))
+    fun `reading form-params then body works`() = TestUtil.test { app, http ->
+        app.post("/body-reader") { ctx -> ctx.result(ctx.formParam("username")!! + "|" + ctx.body()) }
+        val response = http.post("/body-reader").body("username=some-user").asString()
+        assertThat(response.body, `is`("some-user|username=some-user"))
     }
 
     @Test
-    fun test_unicodeFormParams_work() = TestUtil.test { app, http ->
+    fun `reading body then form-params works`() = TestUtil.test { app, http ->
+        app.post("/body-reader") { ctx -> ctx.result(ctx.body() + "|" +ctx.formParam("username")!!) }
+        val response = http.post("/body-reader").body("username=some-user").asString()
+        assertThat(response.body, `is`("username=some-user|some-user"))
+    }
+
+    @Test
+    fun `reading unicode form-params works`() = TestUtil.test { app, http ->
         app.post("/unicode") { ctx -> ctx.result(ctx.formParam("unicode")!!) }
         val responseBody = http.post("/unicode")
                 .body("unicode=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
@@ -65,7 +58,7 @@ class TestBodyReading {
     }
 
     @Test // not sure why this does so much...
-    fun test_formParamsWork_multipleValues() = TestUtil.test { app, http ->
+    fun `query-params and form-params behave the same`() = TestUtil.test { app, http ->
         app.post("/body-reader") { ctx ->
             val formParamString = ctx.formParamMap().map { it.key + ": " + ctx.formParam(it.key) + ", " + it.key + "s: " + ctx.formParams(it.key).toString() }.joinToString(". ")
             val queryParamString = ctx.queryParamMap().map { it.key + ": " + ctx.queryParam(it.key) + ", " + it.key + "s: " + ctx.queryParams(it.key).toString() }.joinToString(". ")

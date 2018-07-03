@@ -19,7 +19,7 @@ import java.net.URLEncoder
 class TestRouting {
 
     @Test
-    fun test_aBunchOfRoutes() = TestUtil.test { app, http ->
+    fun `general integration test`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("/") }
         app.get("/path") { ctx -> ctx.result("/path") }
         app.get("/path/:path-param") { ctx -> ctx.result("/path/" + ctx.pathParam("path-param")) }
@@ -40,20 +40,20 @@ class TestRouting {
     }
 
     @Test
-    fun test_paramAndSplat() = TestUtil.test { app, http ->
+    fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
         app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
         assertThat(http.getBody("/path-param/path/splat"), `is`("path-paramsplat"))
     }
 
     @Test
-    fun test_encodedParam() = TestUtil.test { app, http ->
+    fun `utf-8 encoded path-params work`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         val paramValue = "te/st"
         assertThat(http.getBody("/" + URLEncoder.encode(paramValue, "UTF-8")), `is`(paramValue))
     }
 
     @Test
-    fun test_encdedParamAndEncodedSplat() = TestUtil.test { app, http ->
+    fun `utf-8 encoded splat works`() = TestUtil.test { app, http ->
         app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
         val responseBody = http.getBody("/"
                 + URLEncoder.encode("java/kotlin", "UTF-8")
@@ -64,32 +64,32 @@ class TestRouting {
     }
 
     @Test
-    fun test_caseSensitive_path() = TestUtil.test { app, http ->
+    fun `paths are not case sensitive`() = TestUtil.test { app, http ->
         app.get("/HELLO") { ctx -> ctx.result("Hello") }
         assertThat(http.getBody("/hello"), `is`("Hello"))
     }
 
     @Test
-    fun test_caseSensitive_paramName_isLowercased() = TestUtil.test { app, http ->
+    fun `path-param keys are transformed to lowercase`() = TestUtil.test { app, http ->
         app.get("/:ParaM") { ctx -> ctx.result(ctx.pathParam("pArAm")) }
         assertThat(http.getBody("/path-param"), `is`("path-param"))
     }
 
     @Test
-    fun test_caseSensitive_paramValue_isLowerCased() = TestUtil.test { app, http ->
+    fun `path-param values are transformed to lowercase`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/SomeCamelCasedValue"), `is`("somecamelcasedvalue"))
     }
 
     @Test
-    fun test_regex_path() = TestUtil.test { app, http ->
+    fun `path regex works`() = TestUtil.test { app, http ->
         app.get("/:path-param/[0-9]+/") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/test/pathParam"), `is`("Not found"))
         assertThat(http.getBody("/test/21"), `is`("test"))
     }
 
     @Test
-    fun test_trailing_slashes_and_params() = TestUtil.test { app, http ->
+    fun `automatic slash prefixing works`() = TestUtil.test { app, http ->
         app.routes {
             path("test") {
                 path(":id") { get { ctx -> ctx.result(ctx.pathParam("id")) } }

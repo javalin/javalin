@@ -7,28 +7,28 @@
 
 package io.javalin
 
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
 
-class TestErrorMapper : BaseTest() {
+class TestErrorMapper {
 
     @Test
-    fun test_404mapper_works() {
+    fun `error-mapper works for 404`() = TestUtil.test { app, http ->
         app.error(404) { ctx -> ctx.result("Custom 404 page") }
         assertThat(http.getBody("/unmapped"), `is`("Custom 404 page"))
     }
 
     @Test
-    fun test_500mapper_works() {
+    fun `error-mapper works for 500`() = TestUtil.test { app, http ->
         app.get("/exception") { ctx -> throw RuntimeException() }
                 .error(500) { ctx -> ctx.result("Custom 500 page") }
         assertThat(http.getBody("/exception"), `is`("Custom 500 page"))
     }
 
     @Test
-    fun testError_higherPriority_thanException() {
+    fun `error-mapper runs after exception-mapper`() = TestUtil.test { app, http ->
         app.get("/exception") { ctx -> throw RuntimeException() }
                 .exception(Exception::class.java) { e, ctx -> ctx.status(500).result("Exception handled!") }
                 .error(500) { ctx -> ctx.result("Custom 500 page") }
@@ -36,7 +36,7 @@ class TestErrorMapper : BaseTest() {
     }
 
     @Test
-    fun testError_throwingException_isCaughtByExceptionMapper() {
+    fun `error-mapper can throw exceptions`() = TestUtil.test { app, http ->
         app.get("/exception") { ctx -> throw RuntimeException() }
                 .exception(Exception::class.java) { e, ctx -> ctx.status(500).result("Exception handled!") }
                 .error(500) { ctx ->

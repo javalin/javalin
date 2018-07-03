@@ -9,7 +9,6 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
-import io.javalin.util.BaseTest
 import io.javalin.util.TestUtil
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
@@ -18,10 +17,10 @@ import org.hamcrest.Matchers.containsString
 import org.junit.Test
 import java.net.URLEncoder
 
-class TestEncoding : BaseTest() {
+class TestEncoding {
 
     @Test
-    fun test_param_unicode() {
+    fun `unicode path-params work`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/æøå"), `is`("æøå"))
         assertThat(http.getBody("/♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"), `is`("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"))
@@ -29,7 +28,7 @@ class TestEncoding : BaseTest() {
     }
 
     @Test
-    fun test_queryParam_unicode() {
+    fun `unicode query-params work`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
         assertThat(http.getBody("/?qp=æøå"), `is`("æøå"))
         assertThat(http.getBody("/?qp=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"), `is`("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"))
@@ -37,49 +36,44 @@ class TestEncoding : BaseTest() {
     }
 
     @Test
-    fun test_queryParam_encoded() {
+    fun `URLEncoded query-params work`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
+        assertThat(http.getBody("/?qp=" + "8%3A00+PM"), `is`("8:00 PM"))
         val encoded = URLEncoder.encode("!#$&'()*+,/:;=?@[]", "UTF-8")
         assertThat(http.getBody("/?qp=$encoded"), `is`("!#$&'()*+,/:;=?@[]"))
     }
 
     @Test
-    fun test_queryParam_manuallyEncoded() {
-        app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
-        assertThat(http.getBody("/?qp=" + "8%3A00+PM"), `is`("8:00 PM"))
-    }
-
-    @Test
-    fun test_formParam_encoded() {
+    fun `URLEncoded form-params work`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result(ctx.formParam("qp")!!) }
         val response = Unirest
-                .post(origin)
+                .post(http.origin)
                 .body("qp=8%3A00+PM")
                 .asString()
         assertThat(response.body, `is`("8:00 PM"))
     }
 
     @Test
-    fun test_sane_defaults() = TestUtil.test { app, http ->
+    fun `default charsets work`() = TestUtil.test { app, http ->
         app.get("/text") { ctx -> ctx.result("суп из капусты") }
         app.get("/json") { ctx -> ctx.json("白菜湯") }
         app.get("/html") { ctx -> ctx.html("kålsuppe") }
-        assertThat(http.get("/text").header(Header.CONTENT_TYPE), CoreMatchers.`is`("text/plain"))
-        assertThat(http.get("/json").header(Header.CONTENT_TYPE), CoreMatchers.`is`("application/json"))
-        assertThat(http.get("/html").header(Header.CONTENT_TYPE), CoreMatchers.`is`("text/html"))
-        assertThat(http.getBody("/text"), CoreMatchers.`is`("суп из капусты"))
-        assertThat(http.getBody("/json"), CoreMatchers.`is`("\"白菜湯\""))
-        assertThat(http.getBody("/html"), CoreMatchers.`is`("kålsuppe"))
+        assertThat(http.get("/text").header(Header.CONTENT_TYPE), `is`("text/plain"))
+        assertThat(http.get("/json").header(Header.CONTENT_TYPE), `is`("application/json"))
+        assertThat(http.get("/html").header(Header.CONTENT_TYPE), `is`("text/html"))
+        assertThat(http.getBody("/text"), `is`("суп из капусты"))
+        assertThat(http.getBody("/json"), `is`("\"白菜湯\""))
+        assertThat(http.getBody("/html"), `is`("kålsuppe"))
     }
 
     @Test
-    fun test_sets_default() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
+    fun `setting a default content-type works`() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
         app.get("/default") { ctx -> ctx.result("not json") }
         assertThat(http.get("/default").header(Header.CONTENT_TYPE), containsString("application/json"))
     }
 
     @Test
-    fun test_allows_overrides() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
+    fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
         app.get("/override") { ctx ->
             ctx.res.characterEncoding = "utf-8"
             ctx.res.contentType = "text/html"

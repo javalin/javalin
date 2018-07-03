@@ -26,7 +26,7 @@ class TestMultipartForms {
     private val okHttp = OkHttpClient()
 
     @Test
-    fun test_upload_text() = TestUtil.test { app, http ->
+    fun `text is uploaded correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx -> ctx.result(IOUtils.toString(ctx.uploadedFile("upload")!!.content, StandardCharsets.UTF_8)) }
         val response = http.post("/test-upload")
                 .field("upload", File("src/test/resources/upload-test/text.txt"))
@@ -35,7 +35,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_upload_mp3() = TestUtil.test { app, http ->
+    fun `mp3s are uploaded correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")!!
             ctx.json(UploadInfo(uf.name, uf.content.available().toLong(), uf.contentType, uf.extension))
@@ -52,7 +52,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_upload_png() = TestUtil.test { app, http ->
+    fun `pngs are uploaded correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")
             ctx.json(UploadInfo(uf!!.name, uf.content.available().toLong(), uf.contentType, uf.extension))
@@ -69,7 +69,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_multipleFiles() = TestUtil.test { app, http ->
+    fun `multiple files are handled correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx -> ctx.result(ctx.uploadedFiles("upload").size.toString()) }
         val response = http.post("/test-upload")
                 .field("upload", File("src/test/resources/upload-test/image.png"))
@@ -80,7 +80,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_doesntCrash_whenNotMultipart() = TestUtil.test { app, http ->
+    fun `uploadedFile() doesn't throw for missing file`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             ctx.uploadedFile("non-existing-file")
             ctx.result("OK")
@@ -89,7 +89,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_files_and_fields() = TestUtil.test { app, http ->
+    fun `mixing files and text fields works`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload")!!.name) }
         val response = http.post("/test-upload")
                 .field("upload", File("src/test/resources/upload-test/image.png"))
@@ -99,7 +99,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_files_and_multiple_fields() = TestUtil.test { app, http ->
+    fun `mixing files and text fields works with multiple fields`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.formParam("field2")) }
         val response = http.post("/test-upload")
                 .field("upload", File("src/test/resources/upload-test/image.png"))
@@ -110,7 +110,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_unicodeTextFields() = TestUtil.test { app, http ->
+    fun `unicode text-fields work`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload")!!.name) }
         val response = http.post("/test-upload")
                 .field("upload", File("src/test/resources/upload-test/text.txt"))
@@ -120,10 +120,10 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_textFields() = TestUtil.test { app, http ->
+    fun `text-fields work`() = TestUtil.test { app, http ->
         app.post("/test-multipart-text-fields") { ctx ->
-            val foos = ctx.formParams("foo")
             val foosExtractedManually = ctx.formParamMap()["foo"]
+            val foos = ctx.formParams("foo")
             val bar = ctx.formParam("bar")
             val baz = ctx.formParam("baz", "default")
             ctx.result("foos match: " + (foos == foosExtractedManually) + "\n"
@@ -150,7 +150,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun test_fileAndTextFields() = TestUtil.test { app, http ->
+    fun `fields and files work in other client`() = TestUtil.test { app, http ->
         val prefix = "PREFIX: "
         val tempFile = File("src/test/resources/upload-test/text.txt")
         app.post("/test-multipart-file-and-text") { ctx ->

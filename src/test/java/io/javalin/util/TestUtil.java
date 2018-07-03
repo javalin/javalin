@@ -6,14 +6,19 @@
 
 package io.javalin.util;
 
+import io.javalin.Handler;
 import io.javalin.Javalin;
 
 public class TestUtil {
 
+    public static Handler okHandler = ctx -> ctx.result("OK");
+
     public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
         javalin.disableStartupBanner().start(0);
-        HttpUtil httpUtil = new HttpUtil(javalin);
-        test.accept(javalin, httpUtil);
+        HttpUtil http = new HttpUtil(javalin);
+        test.accept(javalin, http);
+        javalin.get("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
+        http.get_withCookies("/x-test-cookie-cleaner");
         javalin.stop();
     }
 

@@ -8,22 +8,22 @@
 package io.javalin
 
 import io.javalin.misc.TypedException
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
 
-class TestExceptionMapper : BaseTest() {
+class TestExceptionMapper {
 
     @Test
-    fun test_unmappedException_caughtByGeneralHandler() {
+    fun `unmapped exceptionsa are caught by default handler`() = TestUtil.test { app, http ->
         app.get("/unmapped-exception") { ctx -> throw Exception() }
         assertThat(http.get("/unmapped-exception").code(), `is`(500))
         assertThat(http.getBody("/unmapped-exception"), `is`("Internal server error"))
     }
 
     @Test
-    fun test_mappedException_isHandled() {
+    fun `mapped exceptionsa are handled`() = TestUtil.test { app, http ->
         app.get("/mapped-exception") { ctx -> throw Exception() }
                 .exception(Exception::class.java) { e, ctx -> ctx.result("It's been handled.") }
         assertThat(http.get("/mapped-exception").code(), `is`(200))
@@ -31,7 +31,7 @@ class TestExceptionMapper : BaseTest() {
     }
 
     @Test
-    fun test_typedMappedException_isHandled() {
+    fun `type information of exception is not lost`() = TestUtil.test { app, http ->
         app.get("/typed-exception") { ctx -> throw TypedException() }
                 .exception(TypedException::class.java) { e, ctx -> ctx.result(e.proofOfType()) }
         assertThat(http.get("/typed-exception").code(), `is`(200))
@@ -39,7 +39,7 @@ class TestExceptionMapper : BaseTest() {
     }
 
     @Test
-    fun test_moreSpecificException_isHandledFirst() {
+    fun `most specific exception handler handles exception`() = TestUtil.test { app, http ->
         app.get("/exception-priority") { ctx -> throw TypedException() }
                 .exception(Exception::class.java) { e, ctx -> ctx.result("This shouldn't run") }
                 .exception(TypedException::class.java) { e, ctx -> ctx.result("Typed!") }

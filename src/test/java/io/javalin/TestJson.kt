@@ -15,49 +15,42 @@ import io.javalin.json.ToJsonMapper
 import io.javalin.misc.CustomMapper
 import io.javalin.misc.NonSerializableObject
 import io.javalin.misc.SerializeableObject
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Before
 import org.junit.Test
 
-class TestJson : BaseTest() {
+class TestJson {
 
     @Before
-    fun setObjectMapper() {
+    fun resetObjectMapper() = TestUtil.test { app, http ->
         JavalinJackson.configure(CustomMapper()) // reset for every test
     }
 
     @Test
-    fun test_json_jacksonMapsObjectToJson() {
-        app.get("/hello") { ctx -> ctx.json(SerializeableObject()) }
-        val expected = CustomMapper().writeValueAsString(SerializeableObject())
-        assertThat(http.getBody("/hello"), `is`(expected))
-    }
-
-    @Test
-    fun test_json_jacksonMapsStringsToJson() {
-        app.get("/hello") { ctx -> ctx.json("\"ok\"") }
-        assertThat(http.getBody("/hello"), `is`("\"\\\"ok\\\"\""))
-    }
-
-    @Test
-    fun test_json_customMapper_works() {
+    fun `json-mapper maps object to json`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(SerializeableObject()) }
         assertThat(http.getBody("/hello"), `is`(CustomMapper().writeValueAsString(SerializeableObject())))
     }
 
     @Test
-    fun test_json_jackson_throwsForBadObject() {
+    fun `json-mapper maps String to json`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.json("\"ok\"") }
+        assertThat(http.getBody("/hello"), `is`("\"\\\"ok\\\"\""))
+    }
+
+    @Test
+    fun `json-mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(NonSerializableObject()) }
         assertThat(http.get("/hello").code(), `is`(500))
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
     @Test
-    fun test_json_jacksonMapsJsonToObject() {
+    fun `json-mapper maps json to object`() = TestUtil.test { app, http ->
         app.post("/hello") { ctx ->
-            ctx.bodyAsClass(SerializeableObject::class.java)
+            ctx.body<SerializeableObject>()
             ctx.result("success")
         }
         val jsonString = JavalinJackson.toJson(SerializeableObject())
@@ -65,14 +58,14 @@ class TestJson : BaseTest() {
     }
 
     @Test
-    fun test_json_jacksonMapsJsonToObject_throwsForBadObject() {
-        app.get("/hello") { ctx -> ctx.json(ctx.bodyAsClass(NonSerializableObject::class.java).javaClass.simpleName) }
+    fun `json-mapper throws when mapping json to unmappable object`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.json(ctx.body<NonSerializableObject>().javaClass.simpleName) }
         assertThat(http.get("/hello").code(), `is`(500))
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
     @Test
-    fun test_customToJsonMapper_sillyImplementation_works() {
+    fun `custom silly toJsonMapper works`() = TestUtil.test { app, http ->
         JavalinJson.toJsonMapper = object : ToJsonMapper {
             override fun map(obj: Any) = "Silly mapper"
         }
@@ -81,7 +74,7 @@ class TestJson : BaseTest() {
     }
 
     @Test
-    fun test_customToJsonMapper_normalImplementation_works() {
+    fun `custom gson toJsonMapper mapper works`() = TestUtil.test { app, http ->
         val gson = GsonBuilder().create()
         JavalinJson.toJsonMapper = object : ToJsonMapper {
             override fun map(obj: Any) = gson.toJson(obj)
@@ -91,7 +84,7 @@ class TestJson : BaseTest() {
     }
 
     @Test
-    fun test_customFromJsonMapper_sillyImplementation_works() {
+    fun `custom silly fromJsonMapper works`() = TestUtil.test { app, http ->
         val sillyString = "Silly string"
         JavalinJson.fromJsonMapper = object : FromJsonMapper {
             override fun <T> map(json: String, targetClass: Class<T>) = sillyString as T
@@ -101,11 +94,11 @@ class TestJson : BaseTest() {
                 ctx.result(sillyString)
             }
         }
-        assertThat(Unirest.post("$origin/").body("{}").asString().body, `is`(sillyString))
+        assertThat(Unirest.post("${http.origin}/").body("{}").asString().body, `is`(sillyString))
     }
 
     @Test
-    fun test_customFromJsonMapper_normalImplementation_works() {
+    fun `custom gson fromJsonMapper works`() = TestUtil.test { app, http ->
         val gson = GsonBuilder().create()
         JavalinJson.fromJsonMapper = object : FromJsonMapper {
             override fun <T> map(json: String, targetClass: Class<T>) = gson.fromJson(json, targetClass)

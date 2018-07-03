@@ -8,7 +8,7 @@
 package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.apache.commons.io.IOUtils
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
@@ -18,7 +18,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
 
-class TestResponse : BaseTest() {
+class TestResponse {
 
     private val MY_BODY = (""
             + "This is my body, and I live in it. It's 31 and 6 months old. "
@@ -26,7 +26,7 @@ class TestResponse : BaseTest() {
             + "I often try to fill if up with wine. - Tim Minchin")
 
     @Test
-    fun test_resultString() {
+    fun `setting a String result works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx ->
             ctx.status(418).result(MY_BODY).header("X-HEADER-1", "my-header-1").header("X-HEADER-2", "my-header-2")
         }
@@ -38,7 +38,7 @@ class TestResponse : BaseTest() {
     }
 
     @Test
-    fun test_resultStream() {
+    fun `setting an InputStream result works`() = TestUtil.test { app, http ->
         val buf = ByteArray(65537) // big and not on a page boundary
         Random().nextBytes(buf)
         app.get("/stream") { ctx -> ctx.result(ByteArrayInputStream(buf)) }
@@ -49,14 +49,14 @@ class TestResponse : BaseTest() {
     }
 
     @Test
-    fun test_redirectInBefore() {
+    fun `redirect in before-handler works`() = TestUtil.test { app, http ->
         app.before("/before") { ctx -> ctx.redirect("/redirected") }
         app.get("/redirected") { ctx -> ctx.result("Redirected") }
         assertThat(http.getBody("/before"), `is`("Redirected"))
     }
 
     @Test
-    fun test_redirectInExceptionMapper() {
+    fun `redirect in exception-mapper works`() = TestUtil.test { app, http ->
         app.get("/get") { ctx -> throw Exception() }
         app.exception(Exception::class.java) { exception, ctx -> ctx.redirect("/redirected") }
         app.get("/redirected") { ctx -> ctx.result("Redirected") }
@@ -64,14 +64,14 @@ class TestResponse : BaseTest() {
     }
 
     @Test
-    fun test_redirect() {
+    fun `redirect in normal handler works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.redirect("/hello-2") }
         app.get("/hello-2") { ctx -> ctx.result("Redirected") }
         assertThat(http.getBody("/hello"), `is`("Redirected"))
     }
 
     @Test
-    fun test_redirectWithStatus() {
+    fun `redirect with status works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.redirect("/hello-2", 301) }
         app.get("/hello-2") { ctx -> ctx.result("Redirected") }
         http.disableUnirestRedirects()
@@ -81,8 +81,8 @@ class TestResponse : BaseTest() {
     }
 
     @Test
-    fun test_redirectWithStatus_absolutePath() {
-        app.get("/hello-abs") { ctx -> ctx.redirect("$origin/hello-abs-2", 303) }
+    fun `redirect to absolute path works`() = TestUtil.test { app, http ->
+        app.get("/hello-abs") { ctx -> ctx.redirect("${http.origin}/hello-abs-2", 303) }
         app.get("/hello-abs-2") { ctx -> ctx.result("Redirected") }
         http.disableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello-abs").status, `is`(303))
@@ -91,15 +91,9 @@ class TestResponse : BaseTest() {
     }
 
     @Test
-    fun test_createCookie() {
-        app.post("/create-cookies") { ctx -> ctx.cookie("name1", "value1").cookie("name2", "value2") }
-        assertThat<List<String>>(http.post("/create-cookies").asString().headers["Set-Cookie"], hasItems("name1=value1", "name2=value2"))
-    }
-
-    @Test
-    fun test_cookie() {
+    fun `setting a cookie works`() = TestUtil.test { app, http ->
         app.post("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
-        assertThat<List<String>>(http.post("/create-cookie").asString().headers["Set-Cookie"], hasItem("Test=Tast"))
+        assertThat(http.post("/create-cookie").asString().headers["Set-Cookie"], hasItem("Test=Tast"))
     }
 
 }

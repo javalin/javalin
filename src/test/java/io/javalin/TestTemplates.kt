@@ -15,7 +15,7 @@ import io.javalin.rendering.template.JavalinJtwig
 import io.javalin.rendering.template.JavalinPebble
 import io.javalin.rendering.template.JavalinVelocity
 import io.javalin.rendering.template.TemplateUtil.model
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.apache.velocity.app.VelocityEngine
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -25,79 +25,75 @@ import org.jtwig.functions.SimpleJtwigFunction
 import org.jtwig.util.FunctionValueUtils
 import org.junit.Test
 
-class TestTemplates : BaseTest() {
+class TestTemplates {
 
     @Test
-    fun test_renderVelocity_works() {
+    fun `velocity templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/velocity/test.vm", model("message", "Hello Velocity!")) }
         assertThat(http.getBody("/hello"), `is`("<h1>Hello Velocity!</h1>"))
     }
 
     @Test
-    fun test_renderVelocity_works_withSet() {
+    fun `velocity template variables work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/velocity/test-set.vm") }
         assertThat(http.getBody("/hello"), `is`("<h1>Set works</h1>"))
     }
 
     @Test
-    fun test_customVelocityEngine_works() {
+    fun `velocity custom engines work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/velocity/test.vm") }
         assertThat(http.getBody("/hello"), `is`("<h1>\$message</h1>"))
-        JavalinVelocity.configure(strictVelocityEngine())
+        JavalinVelocity.configure(VelocityEngine().apply {
+            setProperty("runtime.references.strict", true)
+            setProperty("resource.loader", "class")
+            setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
+        })
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
-    private fun strictVelocityEngine() = VelocityEngine().apply {
-        setProperty("runtime.references.strict", true)
-        setProperty("resource.loader", "class")
-        setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
-    }
-
     @Test
-    fun test_renderFreemarker_works() {
+    fun `freemarker templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/freemarker/test.ftl", model("message", "Hello Freemarker!")) }
         assertThat(http.getBody("/hello"), `is`("<h1>Hello Freemarker!</h1>"))
     }
 
     @Test
-    fun test_renderThymeleaf_works() {
+    fun `thymeleaf templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/thymeleaf/test.html", model("message", "Hello Thymeleaf!")) }
         assertThat(http.getBody("/hello"), `is`("<h1>Hello Thymeleaf!</h1>"))
     }
 
     @Test
-    fun test_renderMustache_works() {
+    fun `mustache templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/mustache/test.mustache", model("message", "Hello Mustache!")) }
         assertThat(http.getBody("/hello"), `is`("<h1>Hello Mustache!</h1>"))
     }
 
     @Test
-    fun test_renderPebble_works() {
+    fun `pebble templates work`() = TestUtil.test { app, http ->
         app.get("/hello1") { ctx -> ctx.render("templates/pebble/test.peb", model("message", "Hello Pebble!")) }
         assertThat(http.getBody("/hello1"), `is`("<h1>Hello Pebble!</h1>"))
     }
 
     @Test
-    fun test_customPebbleEngine_works() {
+    fun `pebble custom engines work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("templates/pebble/test.peb") }
         assertThat(http.getBody("/hello"), `is`("<h1></h1>"))
-        JavalinPebble.configure(strictPebbleEngine())
+        JavalinPebble.configure(PebbleEngine.Builder()
+                .loader(ClasspathLoader())
+                .strictVariables(true)
+                .build())
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
-    private fun strictPebbleEngine() = PebbleEngine.Builder()
-            .loader(ClasspathLoader())
-            .strictVariables(true)
-            .build()
-
     @Test
-    fun test_renderJtwig_works() {
+    fun `jTwig templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/jtwig/test.jtwig", model("message", "Hello jTwig!")) }
         assertThat(http.getBody("/hello"), `is`("<h1>Hello jTwig!</h1>"))
     }
 
     @Test
-    fun test_customJtwigConfiguration_works() {
+    fun `jTwig custom engine works`() = TestUtil.test { app, http ->
         JavalinJtwig.configure(EnvironmentConfigurationBuilder.configuration().functions()
                 .add(object : SimpleJtwigFunction() {
                     override fun name() = "javalin"
@@ -114,19 +110,19 @@ class TestTemplates : BaseTest() {
     }
 
     @Test
-    fun test_renderMarkdown_works() {
+    fun `markdown works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/markdown/test.md") }
         assertThat(http.getBody("/hello"), `is`("<h1>Hello Markdown!</h1>\n"))
     }
 
     @Test
-    fun test_unregisteredExtension_throws() {
+    fun `unregistered extension throws exception`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/markdown/test.unknown") }
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
     @Test
-    fun test_registerCustomRenderer() {
+    fun `registering custom renderer works`() = TestUtil.test { app, http ->
         JavalinRenderer.register(FileRenderer { filePath, model -> "Hah." }, ".lol")
         app.get("/hello") { ctx -> ctx.render("/markdown/test.lol") }
         assertThat(http.getBody("/hello"), `is`("Hah."))

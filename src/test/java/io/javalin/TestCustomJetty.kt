@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong
 class TestCustomJetty {
 
     @Test
-    fun test_embeddedServer_withStatisticsHandler() {
+    fun `embedded server can have custom jetty Handler`() {
         val statisticsHandler = StatisticsHandler()
         val server = Server().apply { handler = statisticsHandler }
         TestUtil.test(Javalin.create().server { server }) { app, http ->
@@ -37,7 +37,7 @@ class TestCustomJetty {
     }
 
     @Test
-    fun test_embeddedServer_withHandlerChain() {
+    fun `embedded server can have custom jetty Handler chain`() {
         val logCount = AtomicLong(0)
         val requestLogHandler = RequestLogHandler().apply { requestLog = RequestLog { _, _ -> logCount.incrementAndGet() } }
         val handlerChain = StatisticsHandler().apply { handler = requestLogHandler }

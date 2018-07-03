@@ -8,19 +8,18 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.containsString
 import org.junit.Test
 
-class TestRequest : BaseTest() {
+class TestRequest {
 
     /*
      * Session
      */
     @Test
-    fun test_session_works() {
+    fun `session-attributes work`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx -> ctx.req.session.setAttribute("test", "tast") }
         app.get("/read-session") { ctx -> ctx.result(ctx.req.session.getAttribute("test") as String) }
         http.getBody_withCookies("/store-session")
@@ -28,21 +27,21 @@ class TestRequest : BaseTest() {
     }
 
     @Test
-    fun test_session_isHttpOnly() {
+    fun `session-cookie is http-only`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx -> ctx.sessionAttribute("test", "tast") }
         assertThat(http.get_withCookies("/store-session").headers.getFirst("Set-Cookie").contains("HttpOnly"), `is`(true))
     }
 
     @Test
-    fun test_sessionShorthand_works() {
+    fun `session-attribute shorthand work`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx -> ctx.sessionAttribute("test", "tast") }
-        app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttribute<Any>("test") as String) }
+        app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttribute<String>("test")) }
         http.getBody_withCookies("/store-session")
         assertThat(http.getBody_withCookies("/read-session"), `is`("tast"))
     }
 
     @Test
-    fun test_sessionAttributeMap_works() {
+    fun `session-attribute-map works`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx ->
             ctx.sessionAttribute("test", "tast")
             ctx.sessionAttribute("hest", "hast")
@@ -53,7 +52,7 @@ class TestRequest : BaseTest() {
     }
 
     @Test
-    fun test_attributesCanBeNull() {
+    fun `attributes can be removed`() = TestUtil.test { app, http ->
         app.get("/store") { ctx ->
             ctx.attribute("test", "not-null")
             ctx.attribute("test", null)
@@ -69,54 +68,54 @@ class TestRequest : BaseTest() {
      * Cookies
      */
     @Test
-    fun test_getSingleCookie_worksForMissingCookie() {
-        app.get("/read-cookie") { ctx -> ctx.result("" + ctx.cookie("my-cookie")) }
-        assertThat(http.getBody_withCookies("/read-cookie"), `is`("null"))
+    fun `single cookie returns null when missing`() = TestUtil.test { app, http ->
+        app.get("/read-cookie-1") { ctx -> ctx.result("" + ctx.cookie("my-cookie")) }
+        assertThat(http.getBody_withCookies("/read-cookie-1"), `is`("null"))
     }
 
     @Test
-    fun test_getSingleCookie_worksForCookie() {
-        app.get("/read-cookie") { ctx -> ctx.result(ctx.cookie("my-cookie")!!) }
-        val response = Unirest.get("$origin/read-cookie").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
+    fun `single cookie works`() = TestUtil.test { app, http ->
+        app.get("/read-cookie-2") { ctx -> ctx.result(ctx.cookie("my-cookie")!!) }
+        val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
         assertThat(response.body, `is`("my-cookie-value"))
     }
 
     @Test
-    fun test_getMultipleCookies_worksForNoCookies() {
-        app.get("/read-cookie") { ctx -> ctx.result(ctx.cookieMap().toString()) }
-        assertThat(http.getBody("/read-cookie"), `is`("{}"))
+    fun `cookie-map returns empty when no cookies are set`() = TestUtil.test { app, http ->
+        app.get("/read-cookie-3") { ctx -> ctx.result(ctx.cookieMap().toString()) }
+        assertThat(http.getBody_withCookies("/read-cookie-3"), `is`("{}"))
     }
 
     @Test
-    fun test_getMultipleCookies_worksForMultipleCookies() {
-        app.get("/read-cookie") { ctx -> ctx.result(ctx.cookieMap().toString()) }
-        val response = Unirest.get("$origin/read-cookie").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
-        assertThat(response.body, containsString("k1=v1, k2=v2, k3=v3"))
+    fun `cookie-map returns all cookies if cookies are set`() = TestUtil.test { app, http ->
+        app.get("/read-cookie-4") { ctx -> ctx.result(ctx.cookieMap().toString()) }
+        val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
+        assertThat(response.body, `is`("{k1=v1, k2=v2, k3=v3}"))
     }
 
     /*
      * Path params
      */
     @Test
-    fun test_pathParamWorks_invalidParam() {
+    fun `pathParam() throws for invalid param`() = TestUtil.test { app, http ->
         app.get("/:my/:path") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/my/path"), `is`("Internal server error"))
     }
 
     @Test
-    fun test_pathParamWorks_multipleSingleParams() {
+    fun `pathParam() works for multiple params`() = TestUtil.test { app, http ->
         app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")) }
         assertThat(http.getBody("/my/path/params"), `is`("mypathparams"))
     }
 
     @Test
-    fun test_pathParamMapWorks_noParamsPresent() {
+    fun `pathParamMap() returns empty map if no path params present`() = TestUtil.test { app, http ->
         app.get("/my/path/params") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
         assertThat(http.getBody("/my/path/params"), `is`("{}"))
     }
 
     @Test
-    fun test_pathParamMapWorks_paramsPresent() {
+    fun `pathParamMap() returns all present path-params`() = TestUtil.test { app, http ->
         app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
         assertThat(http.getBody("/my/path/params"), `is`("{1=my, 2=path, 3=params}"))
     }
@@ -125,55 +124,49 @@ class TestRequest : BaseTest() {
      * Query params
      */
     @Test
-    fun test_queryParamWorks_noParam() {
+    fun `queryParam() returns null for unknown param`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp")) }
-        assertThat(http.getBody("/"), `is`("null")) // notice {"" + req} on previous line
+        assertThat(http.getBody("/"), `is`("null"))
     }
 
     @Test
-    fun test_queryParamWorks_noParamButDefault() {
+    fun `queryParam() defaults to default value`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp", "default")!!) }
         assertThat(http.getBody("/"), `is`("default"))
     }
 
     @Test
-    fun test_queryParamWorks_multipleSingleParams() {
+    fun `queryParam() returns supplied values`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp1") + ctx.queryParam("qp2") + ctx.queryParam("qp3")) }
         assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3"), `is`("123"))
     }
 
     @Test
-    fun test_queryParamsWorks_noParamsPresent() {
-        app.get("/") { ctx ->
-            val params = ctx.queryParams("qp1")
-            ctx.result(params.toString())
-        }
+    fun `queryParams() returns empty list for unknown param`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.queryParams("qp1").toString()) }
         assertThat(http.getBody("/"), `is`("[]"))
     }
 
     @Test
-    fun test_queryParamsWorks_paramsPresent() {
-        app.get("/") { ctx ->
-            val params = ctx.queryParams("qp1")
-            ctx.result(params.toString())
-        }
+    fun `queryParams() returns list of supplied params`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.queryParams("qp1").toString()) }
         assertThat(http.getBody("/?qp1=1&qp1=2&qp1=3"), `is`("[1, 2, 3]"))
     }
 
     @Test
-    fun test_anyQueryParamNullTrue_allParamsNull() {
+    fun `anyQueryParamNull() works when all params are null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("nullkey", "othernullkey")) }
         assertThat(http.getBody("/"), `is`("true"))
     }
 
     @Test
-    fun test_anyQueryParamNullTrue_someParamsNull() {
+    fun `anyQueryParamNull() works when some params are null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "nullkey")) }
         assertThat(http.getBody("/?qp1=1&qp2=2"), `is`("true"))
     }
 
     @Test
-    fun test_anyQueryParamNullFalse_allParamsNonNull() {
+    fun `anyQueryParamNull() works when all params are present`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "qp3")) }
         assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3"), `is`("false"))
     }
@@ -182,47 +175,47 @@ class TestRequest : BaseTest() {
      * Form params
      */
     @Test
-    fun test_formParamWorks() {
+    fun `formParam() returns supplied form-param`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp1")!!) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body, `is`("1"))
     }
 
     @Test
-    fun test_formParamWorks_noParam() {
+    fun `formParam() returns null for unknown param`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp3")) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body, `is`("null"))
     }
 
     @Test
-    fun test_formParamWorks_noParamButDefault() {
+    fun `formParam() returns defaults to default value`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp4", "4")!!) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body, `is`("4"))
     }
 
     @Test
-    fun test_anyFormParamNullTrue_someParamsNull() {
+    fun `anyFormParamNull() works when some params are null`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "nullkey")) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body, `is`("true"))
     }
 
     @Test
-    fun test_anyFormParamNullFalse_allParamsNonNull() {
+    fun `anyFormParamNull() works when all params are present`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "fp3")) }
         assertThat(http.post("/").body("fp1=1&fp2=2&fp3=3").asString().body, `is`("false"))
     }
 
     @Test
-    fun test_basicAuth_works() {
+    fun `basicAuthCredentials() extracts username and password`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
             ctx.result(basicAuthCredentials!!.username + "|" + basicAuthCredentials.password)
         }
-        val response = Unirest.get("$origin/").basicAuth("some-username", "some-password").asString()
+        val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-password").asString()
         assertThat(response.body, `is`("some-username|some-password"))
     }
 
     @Test
-    fun test_matchingPaths_works() {
+    fun `matchedPath() returns the path used to match the request`() = TestUtil.test { app, http ->
         app.get("/matched") { ctx -> ctx.result(ctx.matchedPath()) }
         app.get("/matched/:path-param") { ctx -> ctx.result(ctx.matchedPath()) }
         app.after("/matched/:path-param/:param2") { ctx -> ctx.result(ctx.matchedPath()) }
@@ -232,7 +225,7 @@ class TestRequest : BaseTest() {
     }
 
     @Test
-    fun test_servletContext_isNotNull() {
+    fun `servlet-context is not null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(if (ctx.req.servletContext != null) "not-null" else "null") }
         assertThat(http.getBody("/"), `is`("not-null"))
     }
@@ -240,9 +233,8 @@ class TestRequest : BaseTest() {
     /**
      * Param mapping
      */
-
     @Test
-    fun test_mapQueryParams_worksForGoodInput() {
+    fun `mapQueryParams() maps when all params are present`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val (name, email, phone) = ctx.mapQueryParams("name", "email", "phone") ?: throw IllegalArgumentException()
             ctx.result("$name|$email|$phone")
@@ -251,7 +243,7 @@ class TestRequest : BaseTest() {
     }
 
     @Test
-    fun test_mapQueryParams_isNullForBadInput() {
+    fun `mapQueryParams() throws when any param is missing`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val (name, missing) = ctx.mapQueryParams("name", "missing") ?: throw IllegalArgumentException()
             ctx.result("$name|$missing")
@@ -260,7 +252,7 @@ class TestRequest : BaseTest() {
     }
 
     @Test
-    fun test_mapFormParams_worksForGoodInput() {
+    fun `mapFormParams() maps when all params are present`() = TestUtil.test { app, http ->
         app.post("/") { ctx ->
             val (name, email, phone) = ctx.mapFormParams("name", "email", "phone") ?: throw IllegalArgumentException()
             ctx.result("$name|$email|$phone")
@@ -269,7 +261,7 @@ class TestRequest : BaseTest() {
     }
 
     @Test
-    fun test_mapFormParams_isNullForBadInput() {
+    fun `mapFormParams() throws when any param is missing`() = TestUtil.test { app, http ->
         app.post("/") { ctx ->
             val (name, missing) = ctx.mapFormParams("missing") ?: throw IllegalArgumentException()
             ctx.result("$name|$missing")

@@ -16,24 +16,17 @@ import org.junit.Test
 
 class TestTrailingSlashes {
 
-    val nonIgnoringJavalin = Javalin.create().dontIgnoreTrailingSlashes()
+    private val nonIgnoringJavalin = Javalin.create().dontIgnoreTrailingSlashes()
 
     @Test
-    fun test_dontIgnore_works() = TestUtil.test(nonIgnoringJavalin) { app, http ->
+    fun `doesn't ignore when configured (instance)`() = TestUtil.test(nonIgnoringJavalin) { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
         assertThat(http.getBody("/hello"), `is`("Hello, slash!"))
         assertThat(http.getBody("/hello/"), `is`("Not found"))
     }
 
     @Test
-    fun test_ignore_works() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
-        assertThat(http.getBody("/hello"), `is`("Hello, slash!"))
-        assertThat(http.getBody("/hello/"), `is`("Hello, slash!"))
-    }
-
-    @Test
-    fun test_dontIgnore_works_apiBuilder() = TestUtil.test(nonIgnoringJavalin) { app, http ->
+    fun `doesn't ignore when configured (ApiBuilder)`() = TestUtil.test(nonIgnoringJavalin) { app, http ->
         app.routes {
             path("a") {
                 get { ctx -> ctx.result("a") }
@@ -45,7 +38,14 @@ class TestTrailingSlashes {
     }
 
     @Test
-    fun test_ignore_works_apiBuilder() = TestUtil.test { app, http ->
+    fun `ignores by default (instance)`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
+        assertThat(http.getBody("/hello"), `is`("Hello, slash!"))
+        assertThat(http.getBody("/hello/"), `is`("Hello, slash!"))
+    }
+
+    @Test
+    fun `ignores by default (ApiBuilder)`() = TestUtil.test { app, http ->
         app.routes {
             path("a") {
                 get { ctx -> ctx.result("a") }

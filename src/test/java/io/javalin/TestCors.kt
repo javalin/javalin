@@ -16,26 +16,26 @@ import org.junit.Test
 class TestCors {
 
     @Test(expected = IllegalArgumentException::class)
-    fun test_throwsException_forEmptyOrigin() {
+    fun `enableCorsForOrigin() throws for empty varargs`() {
         Javalin.create().enableCorsForOrigin()
     }
 
     @Test
-    fun test_enableCorsForAllOrigins() = TestUtil.test(Javalin.create().enableCorsForAllOrigins()) { app, http ->
-        app.get("/") { ctx -> ctx.result("Hello") }
-        val path = "http://localhost:" + app.port() + "/"
-        assertThat(Unirest.get(path).header("Origin", "some-origin").asString().headers["Access-Control-Allow-Origin"]!![0], `is`("some-origin"))
-        assertThat(Unirest.get(path).header("Referer", "some-referer").asString().headers["Access-Control-Allow-Origin"]!![0], `is`("some-referer"))
-        assertThat<List<String>>(Unirest.get(path).asString().headers["Access-Control-Allow-Origin"], `is`(nullValue()))
-    }
-
-    @Test
-    fun test_enableCorsForSpecificOrigins() = TestUtil.test(Javalin.create().enableCorsForOrigin("origin-1", "referer-1")) { app, http ->
+    fun `enableCorsForOrigin() enables cors for specific origins`() = TestUtil.test(Javalin.create().enableCorsForOrigin("origin-1", "referer-1")) { app, http ->
         app.get("/") { ctx -> ctx.result("Hello") }
         val path = "http://localhost:" + app.port() + "/"
         assertThat<List<String>>(Unirest.get(path).asString().headers["Access-Control-Allow-Origin"], `is`(nullValue()))
         assertThat(Unirest.get(path).header("Origin", "origin-1").asString().headers["Access-Control-Allow-Origin"]!![0], `is`("origin-1"))
         assertThat(Unirest.get(path).header("Referer", "referer-1").asString().headers["Access-Control-Allow-Origin"]!![0], `is`("referer-1"))
+    }
+
+    @Test
+    fun `enableCorsForAllOrigins() enables cors for all origins`() = TestUtil.test(Javalin.create().enableCorsForAllOrigins()) { app, http ->
+        app.get("/") { ctx -> ctx.result("Hello") }
+        val path = "http://localhost:" + app.port() + "/"
+        assertThat(Unirest.get(path).header("Origin", "some-origin").asString().headers["Access-Control-Allow-Origin"]!![0], `is`("some-origin"))
+        assertThat(Unirest.get(path).header("Referer", "some-referer").asString().headers["Access-Control-Allow-Origin"]!![0], `is`("some-referer"))
+        assertThat<List<String>>(Unirest.get(path).asString().headers["Access-Control-Allow-Origin"], `is`(nullValue()))
     }
 
 }

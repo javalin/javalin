@@ -8,22 +8,29 @@
 package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
+import com.mashape.unirest.http.Unirest
 import io.javalin.ApiBuilder.*
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
+import io.javalin.util.TestUtil.okHandler
+import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
 
-class TestApiBuilder : BaseTest() {
+class TestApiBuilder {
 
     @Test
-    fun autoPrefix_path_works() {
-        app.routes { path("level-1") { get("/hello", simpleAnswer("Hello from level 1")) } }
+    fun `ApiBuilder prefixes paths with slash`() = TestUtil.test { app, http ->
+        app.routes {
+            path("level-1") {
+                get("hello", simpleAnswer("Hello from level 1"))
+            }
+        }
         assertThat(http.getBody("/level-1/hello"), `is`("Hello from level 1"))
     }
 
     @Test
-    fun routesWithoutPathArg_works() {
+    fun `pathless routes are handled properly`() = TestUtil.test { app, http ->
         app.routes {
             path("api") {
                 get(okHandler)
@@ -48,7 +55,7 @@ class TestApiBuilder : BaseTest() {
     }
 
     @Test
-    fun test_pathWorks_forGet() {
+    fun `multiple nested path() calls works`() = TestUtil.test { app, http ->
         app.routes {
             get("/hello", simpleAnswer("Hello from level 0"))
             path("/level-1") {
@@ -68,7 +75,7 @@ class TestApiBuilder : BaseTest() {
     }
 
     @Test
-    fun test_pathWorks_forFilters() {
+    fun `filters work as expected`() = TestUtil.test { app, http ->
         app.routes {
             path("level-1") {
                 before { ctx -> ctx.result("1") }
@@ -82,7 +89,7 @@ class TestApiBuilder : BaseTest() {
     }
 
     @Test
-    fun test_pathWorks_forNonSlashVerb() {
+    fun `slashes can be omitted for both path() and verbs`() = TestUtil.test { app, http ->
         app.routes {
             path("level-1") {
                 get { ctx -> ctx.result("level-1") }
@@ -97,8 +104,24 @@ class TestApiBuilder : BaseTest() {
     private fun updateAnswer(body: String) = Handler { ctx -> ctx.result(ctx.resultString()!! + body) }
 
     @Test(expected = IllegalStateException::class)
-    fun test_throwsException_ifUsedOutsideRoutes() {
+    fun `ApiBuilder throws if used outside of routes{} call`() = TestUtil.test { app, http ->
         ApiBuilder.get("/") { ctx -> ctx.result("") }
+    }
+
+    @Test
+    fun `ApiBuilder works with two services at once`() {
+        val app1 = Javalin.create().port(0).start()
+        val app2 = Javalin.create().port(0).start()
+        app1.routes { get("/hello-1") { ctx -> ctx.result("Hello-1") } }
+        app1.routes { get("/hello-2") { ctx -> ctx.result("Hello-2") } }
+        app2.routes { get("/hello-1") { ctx -> ctx.result("Hello-1") } }
+        app2.routes { get("/hello-2") { ctx -> ctx.result("Hello-2") } }
+        assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-1").asString().body, CoreMatchers.`is`("Hello-1"))
+        assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-2").asString().body, CoreMatchers.`is`("Hello-2"))
+        assertThat(Unirest.get("http://localhost:" + app2.port() + "/hello-1").asString().body, CoreMatchers.`is`("Hello-1"))
+        assertThat(Unirest.get("http://localhost:" + app2.port() + "/hello-2").asString().body, CoreMatchers.`is`("Hello-2"))
+        app1.stop()
+        app2.stop()
     }
 
 }

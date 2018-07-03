@@ -8,60 +8,55 @@
 package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
-import io.javalin.util.BaseTest
+import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
 
-class TestHttpVerbs : BaseTest() {
+class TestHttpVerbs {
 
     @Test
-    fun test_get_helloWorld() {
+    fun `basic hello world works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello World") }
         assertThat(http.getBody("/hello"), `is`("Hello World"))
     }
 
     @Test
-    fun test_get_helloOtherWorld() {
-        app.get("/hello") { ctx -> ctx.result("Hello New World") }
-        assertThat(http.getBody("/hello"), `is`("Hello New World"))
-    }
-
-    @Test
-    fun test_all_mapped_verbs_ok() {
-        app.get("/mapped", okHandler)
-        app.post("/mapped", okHandler)
-        app.put("/mapped", okHandler)
-        app.delete("/mapped", okHandler)
-        app.patch("/mapped", okHandler)
-        app.head("/mapped", okHandler)
-        app.options("/mapped", okHandler)
+    fun `all mapped verbs return 200`() = TestUtil.test { app, http ->
+        app.get("/mapped",TestUtil.okHandler)
+        app.post("/mapped",TestUtil.okHandler)
+        app.put("/mapped",TestUtil.okHandler)
+        app.delete("/mapped",TestUtil.okHandler)
+        app.patch("/mapped",TestUtil.okHandler)
+        app.head("/mapped",TestUtil.okHandler)
+        app.options("/mapped",TestUtil.okHandler)
         for (httpMethod in HttpMethod.values()) {
             assertThat(http.call(httpMethod, "/mapped").status, `is`(200))
         }
     }
 
     @Test
-    fun test_all_unmapped_verbs_ok() {
+    fun `all unmapped verbs return 404`() = TestUtil.test { app, http ->
         for (httpMethod in HttpMethod.values()) {
             assertThat(http.call(httpMethod, "/unmapped").status, `is`(404))
         }
     }
 
     @Test
-    fun test_headOk_ifGetMapped() {
-        app.get("/mapped", okHandler)
+    fun `HEAD returns 200 if GET is mapped`() = TestUtil.test { app, http ->
+        app.get("/mapped",TestUtil.okHandler)
         assertThat(http.call(HttpMethod.HEAD, "/mapped").status, `is`(200))
     }
 
     @Test
-    fun test_filterOrder_preserved() {
+    fun `filers are executed in order`() = TestUtil.test { app, http ->
         app.before { ctx -> ctx.result("1") }
         app.before { ctx -> ctx.result(ctx.resultString()!! + "2") }
         app.before { ctx -> ctx.result(ctx.resultString()!! + "3") }
         app.before { ctx -> ctx.result(ctx.resultString()!! + "4") }
         app.get("/hello") { ctx -> ctx.result(ctx.resultString()!! + "Hello") }
-        assertThat(http.getBody("/hello"), `is`("1234Hello"))
+        app.after { ctx -> ctx.result(ctx.resultString()!! + "5") }
+        assertThat(http.getBody("/hello"), `is`("1234Hello5"))
     }
 
 }
