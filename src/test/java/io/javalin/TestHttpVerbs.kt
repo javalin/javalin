@@ -9,6 +9,7 @@ package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
 import io.javalin.util.TestUtil
+import io.javalin.util.TestUtil.okHandler
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
@@ -23,13 +24,13 @@ class TestHttpVerbs {
 
     @Test
     fun `all mapped verbs return 200`() = TestUtil.test { app, http ->
-        app.get("/mapped",TestUtil.okHandler)
-        app.post("/mapped",TestUtil.okHandler)
-        app.put("/mapped",TestUtil.okHandler)
-        app.delete("/mapped",TestUtil.okHandler)
-        app.patch("/mapped",TestUtil.okHandler)
-        app.head("/mapped",TestUtil.okHandler)
-        app.options("/mapped",TestUtil.okHandler)
+        app.get("/mapped", okHandler)
+        app.post("/mapped", okHandler)
+        app.put("/mapped", okHandler)
+        app.delete("/mapped", okHandler)
+        app.patch("/mapped", okHandler)
+        app.head("/mapped", okHandler)
+        app.options("/mapped", okHandler)
         for (httpMethod in HttpMethod.values()) {
             assertThat(http.call(httpMethod, "/mapped").status, `is`(200))
         }
@@ -44,7 +45,7 @@ class TestHttpVerbs {
 
     @Test
     fun `HEAD returns 200 if GET is mapped`() = TestUtil.test { app, http ->
-        app.get("/mapped",TestUtil.okHandler)
+        app.get("/mapped", okHandler)
         assertThat(http.call(HttpMethod.HEAD, "/mapped").status, `is`(200))
     }
 

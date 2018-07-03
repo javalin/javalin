@@ -16,14 +16,14 @@ import org.junit.Test
 class TestExceptionMapper {
 
     @Test
-    fun `unmapped exceptionsa are caught by default handler`() = TestUtil.test { app, http ->
+    fun `unmapped exceptions are caught by default handler`() = TestUtil.test { app, http ->
         app.get("/unmapped-exception") { ctx -> throw Exception() }
         assertThat(http.get("/unmapped-exception").code(), `is`(500))
         assertThat(http.getBody("/unmapped-exception"), `is`("Internal server error"))
     }
 
     @Test
-    fun `mapped exceptionsa are handled`() = TestUtil.test { app, http ->
+    fun `mapped exceptions are handled`() = TestUtil.test { app, http ->
         app.get("/mapped-exception") { ctx -> throw Exception() }
                 .exception(Exception::class.java) { e, ctx -> ctx.result("It's been handled.") }
         assertThat(http.get("/mapped-exception").code(), `is`(200))

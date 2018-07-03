@@ -33,14 +33,14 @@ class TestMethodNotAllowed {
     private val expectedJson = """{"availableMethods":["GET", "PUT", "DELETE"]}"""
 
     @Test
-    fun test_htmlMethodNotAllowed() = TestUtil.test(preferring405Javalin) { app, http ->
+    fun `405 response for HTML works`() = TestUtil.test(preferring405Javalin) { app, http ->
         val response = http.post("/test").header(Header.ACCEPT, "text/html").asString()
         assertThat(response.status, `is`(HttpServletResponse.SC_METHOD_NOT_ALLOWED))
         assertThat(response.body, `is`(expectedHtml))
     }
 
     @Test
-    fun test_jsonMethodNotAllowed() = TestUtil.test(preferring405Javalin) { app, http ->
+    fun `405 response for JSON works`() = TestUtil.test(preferring405Javalin) { app, http ->
         val response = http.post("/test").header(Header.ACCEPT, "application/json").asString()
         assertThat(response.status, `is`(HttpServletResponse.SC_METHOD_NOT_ALLOWED))
         assertThat(response.body, `is`(expectedJson))

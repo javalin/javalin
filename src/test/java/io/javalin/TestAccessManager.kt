@@ -33,13 +33,13 @@ class TestAccessManager {
     }
 
     @Test
-    fun test_noopAccessManager_throwsException_whenRoles() = TestUtil.test { app, http ->
+    fun `default AccessManager throws if roles are present`() = TestUtil.test { app, http ->
         app.get("/secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE))
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE"), `is`("Internal server error"))
     }
 
     @Test
-    fun test_accessManager_restrictsAccess() = TestUtil.test { app, http ->
+    fun `AccessManager can restrict access for instance`() = TestUtil.test { app, http ->
         app.accessManager(accessManager)
         app.get("/secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO))
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE"), `is`("Hello"))
@@ -48,9 +48,11 @@ class TestAccessManager {
     }
 
     @Test
-    fun test_accessManager_restrictsAccess_forStaticApi() = TestUtil.test { app, http ->
+    fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test { app, http ->
         app.accessManager(accessManager)
-        app.routes { get("/static-secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO)) }
+        app.routes {
+            get("/static-secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO))
+        }
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_ONE"), `is`("Hello"))
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_TWO"), `is`("Hello"))
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_THREE"), `is`("Unauthorized"))

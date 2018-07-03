@@ -14,7 +14,7 @@ import org.junit.Test
 class TestLifecycleEvents {
 
     @Test
-    fun testLifecycleEvents() {
+    fun `life cycle events work`() {
         var log = ""
         Javalin.create().apply {
             event(JavalinEvent.SERVER_STARTING) { log += "Starting" }
@@ -23,7 +23,7 @@ class TestLifecycleEvents {
             event(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
             event(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
             event(JavalinEvent.SERVER_STOPPED) { log += "Stopped" }
-        }.start().stop()
+        }.start(0).stop()
         assertThat(log, `is`("StartingStartedStoppingStoppingStoppingStopped"))
     }
 
