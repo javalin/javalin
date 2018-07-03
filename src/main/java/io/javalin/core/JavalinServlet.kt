@@ -86,9 +86,11 @@ class JavalinServlet(
                     res.setHeader(Header.CONTENT_ENCODING, "gzip")
                     resultStream.copyTo(gzippedStream)
                 }
+                resultStream.close()
                 return
             }
             resultStream.copyTo(res.outputStream) // no gzip
+            resultStream.close()
         }
 
         fun logRequest() {

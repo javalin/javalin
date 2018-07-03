@@ -9,6 +9,7 @@ package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
 import io.javalin.util.TestUtil
+import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
@@ -16,6 +17,7 @@ import org.hamcrest.core.IsCollectionContaining.hasItems
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.util.*
 
 class TestResponse {
@@ -46,6 +48,19 @@ class TestResponse {
         val bout = ByteArrayOutputStream()
         assertThat(IOUtils.copy(response.rawBody, bout), `is`(buf.size))
         assertThat(buf, equalTo(bout.toByteArray()))
+    }
+
+    @Test
+    fun `setting an InputStream result works and InputStream is closed`() = TestUtil.test { app, http ->
+        val path = "src/test/my-file.txt";
+        File(path).printWriter().use { out ->
+            out.print("Hello, World!")
+        }
+        app.get("/file") { ctx ->
+            ctx.result(FileUtils.openInputStream(File(path)));
+        }
+        assertThat(http.getBody("/file"), `is`("Hello, World!"))
+        assertThat(File(path).delete(), `is`(true))
     }
 
     @Test
