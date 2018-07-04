@@ -8,6 +8,8 @@ package io.javalin.util;
 
 import io.javalin.Handler;
 import io.javalin.Javalin;
+import io.javalin.json.JavalinJackson;
+import io.javalin.json.JavalinJson;
 
 public class TestUtil {
 
@@ -20,6 +22,8 @@ public class TestUtil {
         javalin.get("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
         http.get_withCookies("/x-test-cookie-cleaner");
         javalin.stop();
+        JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE::toJson);
+        JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE::fromJson);
     }
 
     public static void test(ThrowingBiConsumer<Javalin, HttpUtil> test) {
