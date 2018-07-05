@@ -43,7 +43,7 @@ class TestBodyReading {
 
     @Test
     fun `reading body then form-params works`() = TestUtil.test { app, http ->
-        app.post("/body-reader") { ctx -> ctx.result(ctx.body() + "|" +ctx.formParam("username")!!) }
+        app.post("/body-reader") { ctx -> ctx.result(ctx.body() + "|" + ctx.formParam("username")!!) }
         val response = http.post("/body-reader").body("username=some-user").asString()
         assertThat(response.body, `is`("username=some-user|some-user"))
     }

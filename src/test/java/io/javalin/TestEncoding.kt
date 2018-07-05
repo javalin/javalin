@@ -10,7 +10,6 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.util.TestUtil
-import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.containsString

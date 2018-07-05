@@ -10,10 +10,9 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.ApiBuilder.ws
 import io.javalin.util.TestUtil
 import io.javalin.websocket.WsSession
-import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.*
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
@@ -69,7 +68,7 @@ class TestWebSocket {
         val uniqueLog = HashSet(log)
         assertThat(uniqueLog, hasSize(3))
         for (id in uniqueLog) {
-            assertThat(uniqueLog.count {it == id}, `is`(1))
+            assertThat(uniqueLog.count { it == id }, `is`(1))
         }
     }
 
