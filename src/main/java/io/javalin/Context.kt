@@ -478,6 +478,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * Sets a Cookie.
      */
     fun cookie(cookie: Cookie): Context {
+        cookie.path = cookie.path ?: "/"
         servletResponse.addCookie(cookie)
         return this
     }

@@ -108,7 +108,7 @@ class TestResponse {
     @Test
     fun `setting a cookie works`() = TestUtil.test { app, http ->
         app.post("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
-        assertThat(http.post("/create-cookie").asString().headers["Set-Cookie"], hasItem("Test=Tast"))
+        assertThat(http.post("/create-cookie").asString().headers["Set-Cookie"], hasItem("Test=Tast;Path=/"))
     }
 
 }
