@@ -23,5 +23,4 @@ import java.util.Set;
 @FunctionalInterface
 public interface AccessManager {
     void manage(Handler handler, Context ctx, Set<Role> permittedRoles) throws Exception;
-
 }
