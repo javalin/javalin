@@ -13,7 +13,8 @@ import io.javalin.util.TestUtil
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.*
+import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.equalTo
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -108,7 +109,7 @@ class TestResponse {
     @Test
     fun `setting a cookie works`() = TestUtil.test { app, http ->
         app.get("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
-        app.get("/get-cookie") { ctx -> ctx.result(ctx.cookie("Test")!!)}
+        app.get("/get-cookie") { ctx -> ctx.result(ctx.cookie("Test")!!) }
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE), `is`("Test=Tast;Path=/"))
         assertThat(http.getBody("/get-cookie"), `is`("Tast"))
     }
