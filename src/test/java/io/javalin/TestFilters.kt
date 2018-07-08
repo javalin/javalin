@@ -20,8 +20,8 @@ class TestFilters {
         app.before { ctx -> ctx.header("X-BEFOREFILTER", "Before-filter ran") }
         app.after { ctx -> ctx.header("X-AFTERFILTER", "After-filter ran") }
         app.get("/", TestUtil.okHandler)
-        assertThat(http.get("/").header("X-BEFOREFILTER"), `is`("Before-filter ran"))
-        assertThat(http.get("/").header("X-AFTERFILTER"), `is`("After-filter ran"))
+        assertThat(http.get("/").headers.getFirst("X-BEFOREFILTER"), `is`("Before-filter ran"))
+        assertThat(http.get("/").headers.getFirst("X-AFTERFILTER"), `is`("After-filter ran"))
     }
 
     @Test
@@ -44,7 +44,7 @@ class TestFilters {
     fun `before-handler can set header`() = TestUtil.test { app, http ->
         app.before { ctx -> ctx.header("X-FILTER", "Before-filter ran") }
         app.get("/mapped", TestUtil.okHandler)
-        assertThat(http.get("/maped").header("X-FILTER"), `is`("Before-filter ran"))
+        assertThat(http.get("/maped").headers.getFirst("X-FILTER"), `is`("Before-filter ran"))
     }
 
     @Test
@@ -54,17 +54,17 @@ class TestFilters {
         app.after { ctx -> ctx.header("X-AFTER-1", "After-filter 1 ran") }
         app.after { ctx -> ctx.header("X-AFTER-2", "After-filter 2 ran") }
         app.get("/mapped", TestUtil.okHandler)
-        assertThat(http.get("/maped").header("X-BEFORE-1"), `is`("Before-filter 1 ran"))
-        assertThat(http.get("/maped").header("X-BEFORE-2"), `is`("Before-filter 2 ran"))
-        assertThat(http.get("/maped").header("X-AFTER-1"), `is`("After-filter 1 ran"))
-        assertThat(http.get("/maped").header("X-AFTER-2"), `is`("After-filter 2 ran"))
+        assertThat(http.get("/maped").headers.getFirst("X-BEFORE-1"), `is`("Before-filter 1 ran"))
+        assertThat(http.get("/maped").headers.getFirst("X-BEFORE-2"), `is`("Before-filter 2 ran"))
+        assertThat(http.get("/maped").headers.getFirst("X-AFTER-1"), `is`("After-filter 1 ran"))
+        assertThat(http.get("/maped").headers.getFirst("X-AFTER-2"), `is`("After-filter 2 ran"))
     }
 
     @Test
     fun `after-handler sets header after endpoint-handler`() = TestUtil.test { app, http ->
         app.get("/mapped", TestUtil.okHandler)
         app.after { ctx -> ctx.header("X-AFTER", "After-filter ran") }
-        assertThat(http.get("/mapped").header("X-AFTER"), `is`("After-filter ran"))
+        assertThat(http.get("/mapped").headers.getFirst("X-AFTER"), `is`("After-filter ran"))
     }
 
     @Test
@@ -72,7 +72,7 @@ class TestFilters {
         app.before { ctx -> ctx.header("X-FILTER", "This header is mine!") }
         app.after { ctx -> ctx.header("X-FILTER", "After-filter beats before-filter") }
         app.get("/mapped", TestUtil.okHandler)
-        assertThat(http.get("/maped").header("X-FILTER"), `is`("After-filter beats before-filter"))
+        assertThat(http.get("/maped").headers.getFirst("X-FILTER"), `is`("After-filter beats before-filter"))
     }
 
     @Test

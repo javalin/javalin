@@ -24,7 +24,7 @@ class TestCookieStore {
                 ctx.result("Got stored value from different handler")
             }
         }
-        assertThat(http.getBody_withCookies("/cookie-store"), `is`("Got stored value from different handler"))
+        assertThat(http.getBody("/cookie-store"), `is`("Got stored value from different handler"))
     }
 
     @Test
@@ -32,9 +32,9 @@ class TestCookieStore {
         app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", SerializeableObject()) }
         app.get("/cookie-clearer") { it.clearCookieStore() }
         app.get("/cookie-checker") { ctx -> ctx.result("stored: " + ctx.cookie("javalin-cookie-store")) }
-        http.getBody_withCookies("/cookie-storer")
-        http.getBody_withCookies("/cookie-clearer")
-        assertThat(http.getBody_withCookies("/cookie-checker"), `is`("stored: null"))
+        http.getBody("/cookie-storer")
+        http.getBody("/cookie-clearer")
+        assertThat(http.getBody("/cookie-checker"), `is`("stored: null"))
     }
 
     @Test
@@ -45,8 +45,8 @@ class TestCookieStore {
                 ctx.result("Got stored value from different request")
             }
         }
-        http.getBody_withCookies("/cookie-storer")
-        assertThat(http.getBody_withCookies("/cookie-reader"), `is`("Got stored value from different request"))
+        http.getBody("/cookie-storer")
+        assertThat(http.getBody("/cookie-reader"), `is`("Got stored value from different request"))
     }
 
     @Test // TODO: Find out what this tests
@@ -58,8 +58,8 @@ class TestCookieStore {
                 ctx.result("Got stored value from two different handlers on different request")
             }
         }
-        http.getBody_withCookies("/cookie-storer")
-        assertThat(http.getBody_withCookies("/cookie-reader"), `is`("Got stored value from two different handlers on different request"))
+        http.getBody("/cookie-storer")
+        assertThat(http.getBody("/cookie-reader"), `is`("Got stored value from two different handlers on different request"))
     }
 
     @Test // TODO: Find out what this tests
@@ -71,9 +71,9 @@ class TestCookieStore {
                 ctx.result("Overwrote cookie from previous request")
             }
         }
-        http.getBody_withCookies("/cookie-storer")
-        http.getBody_withCookies("/cookie-overwriter")
-        assertThat(http.getBody_withCookies("/cookie-reader"), `is`("Overwrote cookie from previous request"))
+        http.getBody("/cookie-storer")
+        http.getBody("/cookie-overwriter")
+        assertThat(http.getBody("/cookie-reader"), `is`("Overwrote cookie from previous request"))
     }
 
     @Test
@@ -93,8 +93,8 @@ class TestCookieStore {
             val m = ctx.cookieStore<Map<*, *>>("m")
             ctx.result("$s $i $d $l $m")
         }
-        http.getBody_withCookies("/cookie-storer")
-        assertThat(http.getBody_withCookies("/cookie-reader"), `is`("Hello world! 42 42.0 [One, Two, Three] {K1=V, K2=1000.0, K3=[One, Two, Three]}"))
+        http.getBody("/cookie-storer")
+        assertThat(http.getBody("/cookie-reader"), `is`("Hello world! 42 42.0 [One, Two, Three] {K1=V, K2=1000.0, K3=[One, Two, Three]}"))
     }
 
 }

@@ -28,7 +28,7 @@ class TestCustomJetty {
             val requests = 5
             for (i in 0 until requests) {
                 assertThat(http.getBody("/"), `is`("Hello World"))
-                assertThat(http.get("/not_there").code(), `is`(404))
+                assertThat(http.get("/not_there").status, `is`(404))
             }
             assertThat(statisticsHandler.dispatched, `is`(requests * 2))
             assertThat(statisticsHandler.responses2xx, `is`(requests))
@@ -47,7 +47,7 @@ class TestCustomJetty {
             val requests = 10
             for (i in 0 until requests) {
                 assertThat(http.getBody("/"), `is`("Hello World"))
-                assertThat(http.get("/not_there").code(), `is`(404))
+                assertThat(http.get("/not_there").status, `is`(404))
             }
             assertThat(handlerChain.dispatched, `is`(requests * 2))
             assertThat(handlerChain.responses2xx, `is`(requests))

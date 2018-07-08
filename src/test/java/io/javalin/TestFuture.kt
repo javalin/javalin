@@ -56,7 +56,7 @@ class TestFuture {
         app.get("/test-future") { ctx -> throw Exception() }
         app.exception(Exception::class.java) { exception, ctx -> ctx.result(getFuture("Exception result")) }
         assertThat(http.getBody("/test-future"), `is`(""))
-        assertThat(http.get("/test-future").code(), `is`(500))
+        assertThat(http.get("/test-future").status, `is`(500))
     }
 
     @Test

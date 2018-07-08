@@ -10,6 +10,8 @@ package io.javalin
 import io.javalin.ApiBuilder.get
 import io.javalin.ApiBuilder.path
 import io.javalin.util.TestUtil
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.not
@@ -17,6 +19,9 @@ import org.junit.Test
 import java.net.URLEncoder
 
 class TestRouting {
+
+    private val okHttp = OkHttpClient().newBuilder().build()
+    fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body()!!.string()
 
     @Test
     fun `general integration test`() = TestUtil.test { app, http ->
@@ -49,13 +54,13 @@ class TestRouting {
     fun `utf-8 encoded path-params work`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         val paramValue = "te/st"
-        assertThat(http.getBody("/" + URLEncoder.encode(paramValue, "UTF-8")), `is`(paramValue))
+        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode(paramValue, "UTF-8")), `is`(paramValue))
     }
 
     @Test
     fun `utf-8 encoded splat works`() = TestUtil.test { app, http ->
         app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
-        val responseBody = http.getBody("/"
+        val responseBody = okHttp.getBody(http.origin + "/"
                 + URLEncoder.encode("java/kotlin", "UTF-8")
                 + "/path/"
                 + URLEncoder.encode("/java/kotlin", "UTF-8")

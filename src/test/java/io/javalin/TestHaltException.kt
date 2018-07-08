@@ -19,21 +19,21 @@ class TestHaltException {
     fun `throwing HaltException in before-handler works`() = TestUtil.test { app, http ->
         app.before("/admin/*") { ctx -> throw HaltException(401) }
         app.get("/admin/protected") { ctx -> ctx.result("Protected resource") }
-        assertThat(http.get("/admin/protected").code(), `is`(401))
+        assertThat(http.get("/admin/protected").status, `is`(401))
         assertThat(http.getBody("/admin/protected"), not("Protected resource"))
     }
 
     @Test
     fun `throwing HaltException in endpoint-handler works`() = TestUtil.test { app, http ->
         app.get("/some-route") { ctx -> throw HaltException(401, "Stop!") }
-        assertThat(http.get("/some-route").code(), `is`(401))
+        assertThat(http.get("/some-route").status, `is`(401))
         assertThat(http.getBody("/some-route"), `is`("Stop!"))
     }
 
     @Test
     fun `after-handlers execute after HaltException`() = TestUtil.test { app, http ->
         app.get("/some-route") { ctx -> throw HaltException(401, "Stop!") }.after { ctx -> ctx.status(418) }
-        assertThat(http.get("/some-route").code(), `is`(418))
+        assertThat(http.get("/some-route").status, `is`(418))
         assertThat(http.getBody("/some-route"), `is`("Stop!"))
     }
 

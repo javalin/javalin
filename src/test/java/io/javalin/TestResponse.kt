@@ -8,6 +8,7 @@
 package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
+import io.javalin.core.util.Header
 import io.javalin.util.TestUtil
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
@@ -106,8 +107,10 @@ class TestResponse {
 
     @Test
     fun `setting a cookie works`() = TestUtil.test { app, http ->
-        app.post("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
-        assertThat(http.post("/create-cookie").asString().headers["Set-Cookie"], hasItem("Test=Tast;Path=/"))
+        app.get("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
+        app.get("/get-cookie") { ctx -> ctx.result(ctx.cookie("Test")!!)}
+        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE), `is`("Test=Tast;Path=/"))
+        assertThat(http.getBody("/get-cookie"), `is`("Tast"))
     }
 
 }

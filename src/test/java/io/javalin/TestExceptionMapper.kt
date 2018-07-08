@@ -18,7 +18,7 @@ class TestExceptionMapper {
     @Test
     fun `unmapped exceptions are caught by default handler`() = TestUtil.test { app, http ->
         app.get("/unmapped-exception") { ctx -> throw Exception() }
-        assertThat(http.get("/unmapped-exception").code(), `is`(500))
+        assertThat(http.get("/unmapped-exception").status, `is`(500))
         assertThat(http.getBody("/unmapped-exception"), `is`("Internal server error"))
     }
 
@@ -26,7 +26,7 @@ class TestExceptionMapper {
     fun `mapped exceptions are handled`() = TestUtil.test { app, http ->
         app.get("/mapped-exception") { ctx -> throw Exception() }
                 .exception(Exception::class.java) { e, ctx -> ctx.result("It's been handled.") }
-        assertThat(http.get("/mapped-exception").code(), `is`(200))
+        assertThat(http.get("/mapped-exception").status, `is`(200))
         assertThat(http.getBody("/mapped-exception"), `is`("It's been handled."))
     }
 
@@ -34,7 +34,7 @@ class TestExceptionMapper {
     fun `type information of exception is not lost`() = TestUtil.test { app, http ->
         app.get("/typed-exception") { ctx -> throw TypedException() }
                 .exception(TypedException::class.java) { e, ctx -> ctx.result(e.proofOfType()) }
-        assertThat(http.get("/typed-exception").code(), `is`(200))
+        assertThat(http.get("/typed-exception").status, `is`(200))
         assertThat(http.getBody("/typed-exception"), `is`("I'm so typed"))
     }
 
@@ -43,7 +43,7 @@ class TestExceptionMapper {
         app.get("/exception-priority") { ctx -> throw TypedException() }
                 .exception(Exception::class.java) { e, ctx -> ctx.result("This shouldn't run") }
                 .exception(TypedException::class.java) { e, ctx -> ctx.result("Typed!") }
-        assertThat(http.get("/exception-priority").code(), `is`(200))
+        assertThat(http.get("/exception-priority").status, `is`(200))
         assertThat(http.getBody("/exception-priority"), `is`("Typed!"))
     }
 

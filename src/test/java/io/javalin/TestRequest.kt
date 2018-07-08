@@ -22,22 +22,22 @@ class TestRequest {
     fun `session-attributes work`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx -> ctx.req.session.setAttribute("test", "tast") }
         app.get("/read-session") { ctx -> ctx.result(ctx.req.session.getAttribute("test") as String) }
-        http.getBody_withCookies("/store-session")
-        assertThat(http.getBody_withCookies("/read-session"), `is`("tast"))
+        http.getBody("/store-session")
+        assertThat(http.getBody("/read-session"), `is`("tast"))
     }
 
     @Test
     fun `session-cookie is http-only`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx -> ctx.sessionAttribute("test", "tast") }
-        assertThat(http.get_withCookies("/store-session").headers.getFirst("Set-Cookie").contains("HttpOnly"), `is`(true))
+        assertThat(http.get("/store-session").headers.getFirst("Set-Cookie").contains("HttpOnly"), `is`(true))
     }
 
     @Test
     fun `session-attribute shorthand work`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx -> ctx.sessionAttribute("test", "tast") }
         app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttribute<String>("test")) }
-        http.getBody_withCookies("/store-session")
-        assertThat(http.getBody_withCookies("/read-session"), `is`("tast"))
+        http.getBody("/store-session")
+        assertThat(http.getBody("/read-session"), `is`("tast"))
     }
 
     @Test
@@ -47,8 +47,8 @@ class TestRequest {
             ctx.sessionAttribute("hest", "hast")
         }
         app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttributeMap<Any>().toString()) }
-        http.getBody_withCookies("/store-session")
-        assertThat(http.getBody_withCookies("/read-session"), `is`("{test=tast, hest=hast}"))
+        http.getBody("/store-session")
+        assertThat(http.getBody("/read-session"), `is`("{test=tast, hest=hast}"))
     }
 
     @Test
@@ -60,7 +60,7 @@ class TestRequest {
             ctx.sessionAttribute("tast", null)
         }
         app.get("/read") { ctx -> ctx.result("${ctx.sessionAttribute<Any?>("tast")} and ${ctx.attribute<Any?>("test")}") }
-        http.getBody_withCookies("/store")
+        http.getBody("/store")
         assertThat(http.getBody("/read"), `is`("null and null"))
     }
 
@@ -70,7 +70,7 @@ class TestRequest {
     @Test
     fun `single cookie returns null when missing`() = TestUtil.test { app, http ->
         app.get("/read-cookie-1") { ctx -> ctx.result("" + ctx.cookie("my-cookie")) }
-        assertThat(http.getBody_withCookies("/read-cookie-1"), `is`("null"))
+        assertThat(http.getBody("/read-cookie-1"), `is`("null"))
     }
 
     @Test
@@ -83,7 +83,7 @@ class TestRequest {
     @Test
     fun `cookie-map returns empty when no cookies are set`() = TestUtil.test { app, http ->
         app.get("/read-cookie-3") { ctx -> ctx.result(ctx.cookieMap().toString()) }
-        assertThat(http.getBody_withCookies("/read-cookie-3"), `is`("{}"))
+        assertThat(http.getBody("/read-cookie-3"), `is`("{}"))
     }
 
     @Test

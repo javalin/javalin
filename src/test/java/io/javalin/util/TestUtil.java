@@ -20,7 +20,7 @@ public class TestUtil {
         HttpUtil http = new HttpUtil(javalin);
         test.accept(javalin, http);
         javalin.get("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
-        http.get_withCookies("/x-test-cookie-cleaner");
+        http.get("/x-test-cookie-cleaner");
         javalin.stop();
         JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE::toJson);
         JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE::fromJson);

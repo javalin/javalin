@@ -57,9 +57,9 @@ class TestEncoding {
         app.get("/text") { ctx -> ctx.result("суп из капусты") }
         app.get("/json") { ctx -> ctx.json("白菜湯") }
         app.get("/html") { ctx -> ctx.html("kålsuppe") }
-        assertThat(http.get("/text").header(Header.CONTENT_TYPE), `is`("text/plain"))
-        assertThat(http.get("/json").header(Header.CONTENT_TYPE), `is`("application/json"))
-        assertThat(http.get("/html").header(Header.CONTENT_TYPE), `is`("text/html"))
+        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE), `is`("text/plain"))
+        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE), `is`("application/json"))
+        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE), `is`("text/html"))
         assertThat(http.getBody("/text"), `is`("суп из капусты"))
         assertThat(http.getBody("/json"), `is`("\"白菜湯\""))
         assertThat(http.getBody("/html"), `is`("kålsuppe"))
@@ -68,7 +68,7 @@ class TestEncoding {
     @Test
     fun `setting a default content-type works`() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
         app.get("/default") { ctx -> ctx.result("not json") }
-        assertThat(http.get("/default").header(Header.CONTENT_TYPE), containsString("application/json"))
+        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE), containsString("application/json"))
     }
 
     @Test
@@ -77,8 +77,8 @@ class TestEncoding {
             ctx.res.characterEncoding = "utf-8"
             ctx.res.contentType = "text/html"
         }
-        assertThat(http.get("/override").header(Header.CONTENT_TYPE), containsString("utf-8"))
-        assertThat(http.get("/override").header(Header.CONTENT_TYPE), containsString("text/html"))
+        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE), containsString("utf-8"))
+        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE), containsString("text/html"))
     }
 
 }

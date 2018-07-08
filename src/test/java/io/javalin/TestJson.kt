@@ -43,7 +43,7 @@ class TestJson {
     @Test
     fun `json-mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(NonSerializableObject()) }
-        assertThat(http.get("/hello").code(), `is`(500))
+        assertThat(http.get("/hello").status, `is`(500))
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
@@ -60,7 +60,7 @@ class TestJson {
     @Test
     fun `json-mapper throws when mapping json to unmappable object`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(ctx.body<NonSerializableObject>().javaClass.simpleName) }
-        assertThat(http.get("/hello").code(), `is`(500))
+        assertThat(http.get("/hello").status, `is`(500))
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
     }
 
@@ -80,7 +80,7 @@ class TestJson {
             override fun map(obj: Any) = gson.toJson(obj)
         }
         app.get("/") { ctx -> ctx.json(SerializeableObject()) }
-        assertThat(http.getBody_withCookies("/"), `is`(gson.toJson(SerializeableObject())))
+        assertThat(http.getBody("/"), `is`(gson.toJson(SerializeableObject())))
     }
 
     @Test

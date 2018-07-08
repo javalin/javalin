@@ -50,13 +50,13 @@ class TestContextPath {
     @Test
     fun `router works with multi-level context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path/path-context")) { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello World") }
-        assertThat(http.get("/context-path/").code(), `is`(404))
+        assertThat(http.get("/context-path/").status, `is`(404))
         assertThat(http.getBody("/context-path/path-context/hello"), `is`("Hello World"))
     }
 
     @Test
     fun `static-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
-        assertThat(http.get("/script.js").code(), `is`(404))
+        assertThat(http.get("/script.js").status, `is`(404))
         assertThat(http.getBody("/context-path/script.js"), containsString("JavaScript works"))
     }
 
