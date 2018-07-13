@@ -8,6 +8,7 @@ package io.javalin.staticfiles
 
 import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
@@ -19,21 +20,21 @@ import javax.servlet.http.HttpServletResponse
 data class StaticFileConfig(val path: String, val location: Location)
 enum class Location { CLASSPATH, EXTERNAL; }
 
-class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>) {
+class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>, jettyServer: Server) {
 
-    private val log = LoggerFactory.getLogger(JettyResourceHandler::class.java)
+    private val log = LoggerFactory.getLogger("io.javalin.Javalin")
 
     private val handlers = staticFileConfig.map { config ->
         GzipHandler().apply {
+            server = jettyServer // the handler is standalone, this assignment just prevents a log.warn
             handler = ResourceHandler().apply {
                 resourceBase = getResourcePath(config)
                 isDirAllowed = false
                 isEtags = true
-                start()
             }
-            log.info("Static files enabled: {$config}. Absolute path: '${getResourcePath(config)}'")
+            log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
         }
-    }
+    }.onEach { it.start() }
 
     fun getResourcePath(staticFileConfig: StaticFileConfig): String {
         val nosuchdir = "Static resource directory with path: '${staticFileConfig.path}' does not exist."

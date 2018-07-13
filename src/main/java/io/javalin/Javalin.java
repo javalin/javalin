@@ -120,7 +120,7 @@ public class Javalin {
                     defaultContentType,
                     maxRequestCacheBodySize,
                     prefer405over404,
-                    new JettyResourceHandler(staticFileConfig)
+                    new JettyResourceHandler(staticFileConfig, jettyServer)
                 );
                 port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, wsPathMatcher, log);
                 log.info("Javalin has started \\o/");
