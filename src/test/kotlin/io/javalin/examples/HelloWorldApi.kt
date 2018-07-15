@@ -11,17 +11,18 @@ import io.javalin.ApiBuilder.path
 import io.javalin.Javalin
 
 fun main(args: Array<String>) {
-    Javalin.create()
-            .port(7070)
-            .start()
-            .routes {
-                get("/hello") { ctx -> ctx.result("Hello World") }
-                path("/api") {
-                    get("/test") { ctx -> ctx.result("Hello World") }
-                    get("/tast") { ctx -> ctx.status(200).result("Hello world") }
-                    get("/hest") { ctx -> ctx.status(200).result("Hello World") }
-                    get("/hast") { ctx -> ctx.status(200).result("Hello World").header("test", "tast") }
-                }
-            }
+
+    val app = Javalin.create().start(7070)
+
+    app.routes {
+        get("/hello") { ctx -> ctx.result("Hello World") }
+        path("/api") {
+            get("/test") { ctx -> ctx.result("Hello World") }
+            get("/tast") { ctx -> ctx.status(200).result("Hello world") }
+            get("/hest") { ctx -> ctx.status(200).result("Hello World") }
+            get("/hast") { ctx -> ctx.status(200).result("Hello World").header("test", "tast") }
+        }
+    }
+
 }
 

@@ -12,7 +12,6 @@ import io.javalin.Javalin
 // see HelloWorldSecure for how to set that up
 fun main(args: Array<String>) {
     Javalin.create().apply {
-        port(7070)
         ws("/websocket") { ws ->
             ws.onConnect { session -> println("Connected") }
             ws.onMessage { session, message ->
@@ -22,5 +21,5 @@ fun main(args: Array<String>) {
             ws.onClose { session, statusCode, reason -> println("Closed") }
             ws.onError { session, throwable -> println("Errored") }
         }
-    }.start()
+    }.start(7070)
 }

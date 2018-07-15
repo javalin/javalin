@@ -9,6 +9,6 @@ package io.javalin.examples
 import io.javalin.Javalin
 
 fun main(args: Array<String>) {
-    val app = Javalin.create().port(7070).start()
+    val app = Javalin.create().start(7070)
     app.get("/") { ctx -> ctx.result("Hello World") }
 }

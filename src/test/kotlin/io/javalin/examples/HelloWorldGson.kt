@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
         override fun map(obj: Any): String = gson.toJson(obj)
     }
 
-    val app = Javalin.create().port(7070).start()
+    val app = Javalin.create().start(7070)
     app.get("/") { ctx -> ctx.json(Arrays.asList("a", "b", "c")) }
 
 }

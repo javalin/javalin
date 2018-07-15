@@ -9,9 +9,8 @@ package io.javalin.examples
 import io.javalin.Javalin
 
 fun main(args: Array<String>) {
-    Javalin.create()
-            .port(7070)
-            .enableStaticFiles("/public")
-            .start()
+    Javalin.create().apply {
+        enableStaticFiles("/public")
+    }.start(7070)
 }
 
