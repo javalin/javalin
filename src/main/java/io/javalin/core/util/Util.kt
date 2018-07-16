@@ -37,23 +37,25 @@ object Util {
             return
         }
         if (!classExists(dependency.testClass)) {
-            val message = """
-                |Missing dependency '${dependency.displayName}'. Add the dependency.
-                |
-                |pom.xml:
-                |<dependency>
-                |    <groupId>${dependency.groupId}</groupId>
-                |    <artifactId>${dependency.artifactId}</artifactId>
-                |    <version>${dependency.version}</version>
-                |</dependency>
-                |
-                |build.gradle:
-                |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
+            val message = missingDependencyMessage(dependency)
             log.warn(message)
             throw HaltException(500, message)
         }
         dependencyCheckCache[dependency.testClass] = true
     }
+
+    private fun missingDependencyMessage(dependency: OptionalDependency) = """
+            |Missing dependency '${dependency.displayName}'. Add the dependency.
+            |
+            |pom.xml:
+            |<dependency>
+            |    <groupId>${dependency.groupId}</groupId>
+            |    <artifactId>${dependency.artifactId}</artifactId>
+            |    <version>${dependency.version}</version>
+            |</dependency>
+            |
+            |build.gradle:
+            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
 
     fun printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond() {
         // per instance checks are not considered necessary
@@ -71,16 +73,12 @@ object Util {
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
     fun printHelpfulMessageIfLoggerIsMissing() {
-        if (!classExists("org.slf4j.impl.StaticLoggerBinder")) {
-            val message = """
-            -------------------------------------------------------------------
-            Javalin: In the Java world, it's common to add your own logger.
-            Javalin: To easily fix the warning above, get the latest version of slf4j-simple:
-            Javalin: https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-            Javalin: then add it to your dependencies (pom.xml or build.gradle)
-            Javalin: Visit https://javalin.io/documentation#logging if you need more help
-            """.trimIndent()
-            System.err.println(message)
+        if (!classExists(OptionalDependency.SLF4JSIMPLE.testClass)) {
+            System.err.println("""
+            |-------------------------------------------------------------------
+            |${missingDependencyMessage(OptionalDependency.SLF4JSIMPLE)}
+            |-------------------------------------------------------------------
+            |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin())
         }
     }
 
