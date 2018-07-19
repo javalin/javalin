@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse
 data class StaticFileConfig(val path: String, val location: Location)
 enum class Location { CLASSPATH, EXTERNAL; }
 
-class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>, jettyServer: Server, private val ignoreTrailingDirectorySlash: Boolean) {
+class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>, jettyServer: Server, private val ignoreTrailingSlashes: Boolean) {
 
     private val log = LoggerFactory.getLogger("io.javalin.Javalin")
 
@@ -70,11 +70,10 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>, jettyServer
     }
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
-    
-    // append slash to target if it is a directory and doesn't have it already and ignoreTrailingDirectorySlash = true
+
     private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
-            this != null && this.isDirectory && handler.getResource(
-                    (if (!target.endsWith("/") && ignoreTrailingDirectorySlash) "$target/" else target) + "index.html"
-            ).exists()
+            this != null && this.isDirectory && handler.getResource(welcomeFilePath(target)).exists()
+
+    private fun welcomeFilePath(target: String) = if (!target.endsWith("/") && ignoreTrailingSlashes) "$target/index.html" else "${target}index.html"
 
 }
