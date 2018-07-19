@@ -45,6 +45,8 @@ public class Javalin {
 
     private Server jettyServer = JettyServerUtil.defaultServer();
     private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
+    private boolean jettyResourceHandlerIgnoreTrailingDirectorySlash = true;
+    
     private int port = 7000;
     private String contextPath = "/";
     private String defaultContentType = "text/plain";
@@ -120,7 +122,7 @@ public class Javalin {
                     defaultContentType,
                     maxRequestCacheBodySize,
                     prefer405over404,
-                    new JettyResourceHandler(staticFileConfig, jettyServer)
+                    new JettyResourceHandler(staticFileConfig, jettyServer, jettyResourceHandlerIgnoreTrailingDirectorySlash)
                 );
                 port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, wsPathMatcher, log);
                 log.info("Javalin has started \\o/");
@@ -186,6 +188,16 @@ public class Javalin {
     public Javalin dontIgnoreTrailingSlashes() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore slashes");
         pathMatcher.setIgnoreTrailingSlashes(false);
+        return this;
+    }
+    
+    /**
+     * Configure static file handler to treat '/page/' and '/page' as different URLs if they are a directory
+     * The method must be called before {@link Javalin#start()}
+     */
+    public Javalin dontIgnoreTrailingStaticDirectorySlashes() {
+        ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore static file trailing slashes");
+        jettyResourceHandlerIgnoreTrailingDirectorySlash = false;
         return this;
     }
 
