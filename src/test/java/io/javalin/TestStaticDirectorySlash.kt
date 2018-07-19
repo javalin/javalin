@@ -18,7 +18,7 @@ class TestStaticDirectorySlash {
 	
 	private val nonIgnoringJavalin = Javalin.create()
 			.enableStaticFiles("public")
-			.dontIgnoreTrailingStaticDirectorySlashes()
+			.dontIgnoreTrailingSlashes()
 	
 	@Test
 	fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { app, http ->

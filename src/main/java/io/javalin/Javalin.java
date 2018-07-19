@@ -188,16 +188,7 @@ public class Javalin {
     public Javalin dontIgnoreTrailingSlashes() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore slashes");
         pathMatcher.setIgnoreTrailingSlashes(false);
-        return this;
-    }
-    
-    /**
-     * Configure static file handler to treat '/page/' and '/page' as different URLs if they are a directory
-     * The method must be called before {@link Javalin#start()}
-     */
-    public Javalin dontIgnoreTrailingStaticDirectorySlashes() {
-        ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore static file trailing slashes");
-        jettyResourceHandlerIgnoreTrailingDirectorySlash = false;
+        jettyResourceHandlerIgnoreTrailingDirectorySlash = false; // also for static directories
         return this;
     }
 
