@@ -11,7 +11,7 @@ import org.hamcrest.Matchers.`is`
 import org.junit.Assert.assertThat
 import org.junit.Test
 
-class TestStaticFileSlash {
+class TestStaticDirectorySlash {
 	
 	private val normalJavalin = Javalin.create()
 			.enableStaticFiles("public")
