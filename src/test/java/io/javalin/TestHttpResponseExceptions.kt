@@ -45,7 +45,7 @@ class TestHttpResponseExceptions {
         val response = http.post("/").header(Header.ACCEPT, "application/json").asString()
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE), `is`("application/json"))
         assertThat(response.status, `is`(HttpStatus.FORBIDDEN_403))
-        assertThat(response.body, startsWith("{\"status\": 403, \"message\": Off limits!, \"timestamp\": "))
+        assertThat(response.body, startsWith("{\"status\": 403, \"message\": \"Off limits!\", \"timestamp\": "))
     }
 
 }

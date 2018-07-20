@@ -14,7 +14,7 @@ open class HttpResponseException(val status: Int, val msg: String) : RuntimeExce
 object HttpResponseExceptionMapper {
     fun map(e: HttpResponseException, ctx: Context) {
         if (ctx.header(Header.ACCEPT)?.contains("application/json") == true) {
-            ctx.status(e.status).result("""{"status": ${e.status}, "message": ${e.msg}, "timestamp": ${System.currentTimeMillis()}}""").contentType("application/json")
+            ctx.status(e.status).result("""{"status": ${e.status}, "message": "${e.msg}", "timestamp": ${System.currentTimeMillis()}}""").contentType("application/json")
         } else {
             ctx.status(e.status).result(e.msg)
         }
