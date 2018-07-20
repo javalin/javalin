@@ -111,6 +111,7 @@ public class Javalin {
             eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
             try {
                 log.info("Starting Javalin ...");
+                exception(HttpResponseException.class, HttpResponseExceptionMapper.INSTANCE::map); // could be moved to Javalin.create() ?
                 JavalinServlet javalinServlet = new JavalinServlet(
                     pathMatcher,
                     exceptionMapper,
