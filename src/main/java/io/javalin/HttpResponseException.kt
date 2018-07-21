@@ -56,6 +56,7 @@ object HttpResponseExceptionMapper {
         is UnauthorizedResponse -> classUrl(e)
         is ForbiddenResponse -> classUrl(e)
         is NotFoundResponse -> classUrl(e)
+        is MethodNotAllowedResponse -> classUrl(e)
         is InternalServerErrorResponse -> classUrl(e)
         is ServiceUnavailableResponse -> classUrl(e)
         else -> docsUrl + "error-responses"
