@@ -451,7 +451,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
         servletResponse.setHeader(Header.LOCATION, location)
         status(httpStatusCode)
         if (handlerType == HandlerType.BEFORE) {
-            throw HaltException(httpStatusCode)
+            throw RedirectResponse(httpStatusCode)
         }
     }
 

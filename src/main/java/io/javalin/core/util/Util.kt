@@ -6,7 +6,7 @@
 
 package io.javalin.core.util
 
-import io.javalin.HaltException
+import io.javalin.InternalServerErrorResponse
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -39,7 +39,7 @@ object Util {
         if (!classExists(dependency.testClass)) {
             val message = missingDependencyMessage(dependency)
             log.warn(message)
-            throw HaltException(500, message)
+            throw InternalServerErrorResponse(message)
         }
         dependencyCheckCache[dependency.testClass] = true
     }

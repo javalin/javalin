@@ -7,7 +7,8 @@
 package io.javalin.core
 
 import io.javalin.Context
-import io.javalin.HaltException
+import io.javalin.MethodNotAllowedResponse
+import io.javalin.NotFoundResponse
 import io.javalin.RequestLogger
 import io.javalin.core.util.*
 import io.javalin.staticfiles.JettyResourceHandler
@@ -55,9 +56,9 @@ class JavalinServlet(
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
             if (prefer405over404 && availableHandlerTypes.isNotEmpty()) {
-                throw HaltException(405, MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
+                throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
             }
-            throw HaltException(404, "Not found")
+            throw NotFoundResponse()
         }
 
         fun tryErrorHandlers() = tryWithExceptionMapper {

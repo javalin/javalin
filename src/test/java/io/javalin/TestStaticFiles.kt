@@ -48,7 +48,7 @@ class TestStaticFiles {
 
     @Test
     fun `before-handler runs before static resources`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
-        app.before("/protected/*") { ctx -> throw HaltException(401, "Protected") }
+        app.before("/protected/*") { throw UnauthorizedResponse("Protected") }
         assertThat(http.get("/protected/secret.html").status, `is`(401))
         assertThat(http.getBody("/protected/secret.html"), `is`("Protected"))
     }

@@ -47,7 +47,8 @@ class TestHttpResponseExceptions {
         assertThat(response.body, `is`("""{
                 |    "title": "Off limits!",
                 |    "status": 403,
-                |    "type": "https//javalin.io/documentation#ForbiddenResponse"
+                |    "type": "https//javalin.io/documentation#ForbiddenResponse",
+                |    "details": {}
                 |}""".trimMargin()
         ))
     }
@@ -62,7 +63,8 @@ class TestHttpResponseExceptions {
         assertThat(response.body, `is`("""{
                 |    "title": "",
                 |    "status": 418,
-                |    "type": "https//javalin.io/documentation#error-responses"
+                |    "type": "https//javalin.io/documentation#error-responses",
+                |    "details": {}
                 |}""".trimMargin()
         ))
     }
