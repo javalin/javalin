@@ -29,7 +29,7 @@ object HttpResponseExceptionMapper {
                 |    "title": "${e.msg}",
                 |    "status": ${e.status},
                 |    "type": "${getTypeUrl(e)}",
-                |    "details": ${e.details}
+                |    "details": ${e.details.map { """{"${it.key}": "${it.value}"}""" }}
                 |}""".trimMargin()
             ).contentType("application/json")
         } else {

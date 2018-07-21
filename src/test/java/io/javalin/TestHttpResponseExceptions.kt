@@ -49,7 +49,7 @@ class TestHttpResponseExceptions {
                 |    "title": "Off limits!",
                 |    "status": 403,
                 |    "type": "https//javalin.io/documentation#ForbiddenResponse",
-                |    "details": {}
+                |    "details": []
                 |}""".trimMargin()
         ))
     }
@@ -65,7 +65,7 @@ class TestHttpResponseExceptions {
                 |    "title": "",
                 |    "status": 418,
                 |    "type": "https//javalin.io/documentation#error-responses",
-                |    "details": {}
+                |    "details": []
                 |}""".trimMargin()
         ))
     }

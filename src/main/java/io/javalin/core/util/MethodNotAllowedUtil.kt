@@ -11,16 +11,8 @@ object MethodNotAllowedUtil {
 
     fun getAvailableHandlerTypes(ctx: Context, availableHandlerTypes: List<HandlerType>): Map<String, String> {
         if (ctx.header(Header.ACCEPT)?.contains("text/html") == true) {
-            return createHtmlMethodNotAllowed(availableHandlerTypes)
+            return mapOf("Available methods" to availableHandlerTypes.joinToString(", "))
         }
-        return createJsonMethodNotAllowed(availableHandlerTypes)
+        return mapOf("availableMethods" to availableHandlerTypes.joinToString(", "))
     }
-
-    private fun createJsonMethodNotAllowed(availableHandlerTypes: List<HandlerType>) = mapOf(
-            "availableMethods" to """${availableHandlerTypes.joinToString(separator = "\", \"", prefix = "[\"", postfix = "\"]")}}"""
-    )
-
-    private fun createHtmlMethodNotAllowed(availableHandlerTypes: List<HandlerType>) = mapOf(
-            "Available methods" to availableHandlerTypes.joinToString(", ")
-    )
 }

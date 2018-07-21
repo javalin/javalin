@@ -26,7 +26,7 @@ class TestMethodNotAllowed {
     |    "title": "Method not allowed",
     |    "status": 405,
     |    "type": "https//javalin.io/documentation#MethodNotAllowedResponse",
-    |    "details": {availableMethods=["GET", "PUT", "DELETE"]}}
+    |    "details": [{"availableMethods": "GET, PUT, DELETE"}]
     |}""".trimMargin()
 
     @Test
