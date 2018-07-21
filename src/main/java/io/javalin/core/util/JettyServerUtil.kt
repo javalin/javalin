@@ -11,6 +11,7 @@ import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerList
 import org.eclipse.jetty.server.handler.HandlerWrapper
+import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
@@ -29,6 +30,7 @@ object JettyServerUtil {
     @JvmStatic
     fun defaultServer() = Server(QueuedThreadPool(250, 8, 60_000)).apply {
         server.addBean(LowResourceMonitor(this))
+        server.insertHandler(StatisticsHandler())
     }
 
     @JvmStatic
