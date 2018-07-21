@@ -11,7 +11,6 @@ import io.javalin.util.TestUtil
 import org.eclipse.jetty.http.HttpStatus
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.startsWith
 import org.junit.Test
 
 class TestHttpResponseExceptions {
@@ -45,7 +44,27 @@ class TestHttpResponseExceptions {
         val response = http.post("/").header(Header.ACCEPT, "application/json").asString()
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE), `is`("application/json"))
         assertThat(response.status, `is`(HttpStatus.FORBIDDEN_403))
-        assertThat(response.body, startsWith("{\"status\": 403, \"message\": \"Off limits!\", \"timestamp\": "))
+        assertThat(response.body, `is`("""{
+                |    "title": "Off limits!",
+                |    "status": 403,
+                |    "type": "https//javalin.io/documentation#ForbiddenResponse"
+                |}""".trimMargin()
+        ))
+    }
+
+    class CustomResponse : HttpResponseException(418, "")
+
+    @Test
+    fun `custom response has default type`() = TestUtil.test { app, http ->
+        app.post("/") { throw CustomResponse() }
+        val response = http.post("/").header(Header.ACCEPT, "application/json").asString()
+        assertThat(response.status, `is`(418))
+        assertThat(response.body, `is`("""{
+                |    "title": "",
+                |    "status": 418,
+                |    "type": "https//javalin.io/documentation#error-responses"
+                |}""".trimMargin()
+        ))
     }
 
 }
