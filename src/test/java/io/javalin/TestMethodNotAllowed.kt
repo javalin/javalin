@@ -25,7 +25,7 @@ class TestMethodNotAllowed {
     private val expectedJson = """{
     |    "title": "Method not allowed",
     |    "status": 405,
-    |    "type": "https//javalin.io/documentation#MethodNotAllowedResponse",
+    |    "type": "https://javalin.io/documentation#MethodNotAllowedResponse",
     |    "details": [{"availableMethods": "GET, PUT, DELETE"}]
     |}""".trimMargin()
 

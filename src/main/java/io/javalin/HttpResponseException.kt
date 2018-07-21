@@ -45,7 +45,7 @@ object HttpResponseExceptionMapper {
         }
     }
 
-    private val docsUrl = "https//javalin.io/documentation#"
+    private val docsUrl = "https://javalin.io/documentation#"
     private fun classUrl(e: HttpResponseException) = docsUrl + e.javaClass.simpleName
 
     // this could be removed by introducing a "DefaultResponse", but I would
