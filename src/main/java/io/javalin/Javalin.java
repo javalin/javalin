@@ -15,6 +15,7 @@ import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsUtil;
+import io.javalin.core.util.HttpResponseExceptionMapper;
 import io.javalin.core.util.JettyServerUtil;
 import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.core.util.Util;
