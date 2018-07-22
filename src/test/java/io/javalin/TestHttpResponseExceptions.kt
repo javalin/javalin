@@ -10,6 +10,7 @@ import io.javalin.core.util.Header
 import io.javalin.util.TestUtil
 import org.eclipse.jetty.http.HttpStatus
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
 
@@ -47,7 +48,8 @@ class TestHttpResponseExceptions {
         assertThat(response.body, `is`("""{
                 |    "title": "Off limits!",
                 |    "status": 403,
-                |    "type": "https//javalin.io/documentation#ForbiddenResponse"
+                |    "type": "https://javalin.io/documentation#ForbiddenResponse",
+                |    "details": []
                 |}""".trimMargin()
         ))
     }
@@ -62,9 +64,33 @@ class TestHttpResponseExceptions {
         assertThat(response.body, `is`("""{
                 |    "title": "",
                 |    "status": 418,
-                |    "type": "https//javalin.io/documentation#error-responses"
+                |    "type": "https://javalin.io/documentation#error-responses",
+                |    "details": []
                 |}""".trimMargin()
         ))
+    }
+
+    @Test
+    fun `throwing HttpResponseExceptions in before-handler works`() = TestUtil.test { app, http ->
+        app.before("/admin/*") { throw UnauthorizedResponse() }
+        app.get("/admin/protected") { ctx -> ctx.result("Protected resource") }
+        assertThat(http.get("/admin/protected").status, `is`(401))
+        assertThat(http.getBody("/admin/protected"), Matchers.not("Protected resource"))
+    }
+
+    @Test
+    fun `throwing HttpResponseExceptions in endpoint-handler works`() = TestUtil.test { app, http ->
+        app.get("/some-route") { throw UnauthorizedResponse("Stop!") }
+        assertThat(http.get("/some-route").status, `is`(401))
+        assertThat(http.getBody("/some-route"), `is`("Stop!"))
+    }
+
+    @Test
+    fun `after-handlers execute after HttpResponseExceptions`() = TestUtil.test { app, http ->
+        app.get("/some-route") { throw UnauthorizedResponse("Stop!") }
+        app.after { ctx -> ctx.status(418) }
+        assertThat(http.get("/some-route").status, `is`(418))
+        assertThat(http.getBody("/some-route"), `is`("Stop!"))
     }
 
 }

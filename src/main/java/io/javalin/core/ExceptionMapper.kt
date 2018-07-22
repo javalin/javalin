@@ -8,7 +8,6 @@ package io.javalin.core
 
 import io.javalin.Context
 import io.javalin.ExceptionHandler
-import io.javalin.HaltException
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.servlet.http.HttpServletResponse
@@ -21,18 +20,13 @@ class ExceptionMapper {
 
     internal fun handle(exception: Exception, ctx: Context) {
         ctx.inExceptionHandler = true
-        if (exception is HaltException) {
-            ctx.status(exception.statusCode)
-            ctx.result(exception.body)
+        val exceptionHandler = this.getHandler(exception.javaClass)
+        if (exceptionHandler != null) {
+            exceptionHandler.handle(exception, ctx)
         } else {
-            val exceptionHandler = this.getHandler(exception.javaClass)
-            if (exceptionHandler != null) {
-                exceptionHandler.handle(exception, ctx)
-            } else {
-                log.warn("Uncaught exception", exception)
-                ctx.result("Internal server error")
-                ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
-            }
+            log.warn("Uncaught exception", exception)
+            ctx.result("Internal server error")
+            ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
         }
         ctx.inExceptionHandler = false
     }

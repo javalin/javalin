@@ -16,21 +16,18 @@ class TestMethodNotAllowed {
             .delete("/test") { ctx -> ctx.result("Hello world") }
 
     private val expectedHtml = """
-            |<!DOCTYPE html>
-            |<html lang="en">
-            |    <head>
-            |        <meta charset="UTF-8">
-            |        <title>Method Not Allowed</title>
-            |    </head>
-            |    <body>
-            |        <h1>405 - Method Not Allowed</h1>
-            |        <p>
-            |            Available Methods: <strong>GET, PUT, DELETE</strong>
-            |        </p>
-            |    </body>
-            |</html>""".trimMargin()
+            |Method not allowed
+            |
+            |Available methods:
+            |GET, PUT, DELETE
+            |""".trimMargin()
 
-    private val expectedJson = """{"availableMethods":["GET", "PUT", "DELETE"]}"""
+    private val expectedJson = """{
+    |    "title": "Method not allowed",
+    |    "status": 405,
+    |    "type": "https://javalin.io/documentation#MethodNotAllowedResponse",
+    |    "details": [{"availableMethods": "GET, PUT, DELETE"}]
+    |}""".trimMargin()
 
     @Test
     fun `405 response for HTML works`() = TestUtil.test(preferring405Javalin) { app, http ->
