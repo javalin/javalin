@@ -52,7 +52,7 @@ class JavalinServlet(
                 return@tryWithExceptionMapper // return 200, there is a get handler
             }
             if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
-                jettyResourceHandler.handle(req, res)
+                jettyResourceHandler.handle(servletRequest, servletResponse)
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
             if (prefer405over404 && availableHandlerTypes.isNotEmpty()) {
@@ -98,7 +98,7 @@ class JavalinServlet(
             if (requestLogger != null) {
                 requestLogger.handle(ctx, LogUtil.executionTimeMs(ctx))
             } else if (debugLogging == true) {
-                LogUtil.logRequestAndResponse(ctx, matcher, gzipShouldBeDone(ctx))
+                LogUtil.logRequestAndResponse(ctx, matcher)
             }
         }
 

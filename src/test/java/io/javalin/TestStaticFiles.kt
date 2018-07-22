@@ -24,6 +24,7 @@ class TestStaticFiles {
             .enableStaticFiles("/public/immutable")
             .enableStaticFiles("/public/protected")
             .enableStaticFiles("/public/subdir")
+    private val debugLoggingApp = Javalin.create().enableStaticFiles("/public").enableDebugLogging()
 
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
@@ -90,6 +91,15 @@ class TestStaticFiles {
         assertThat(http.get("/secret.html").status, `is`(200))
         assertThat(http.getBody("/secret.html"), `is`("<h1>Secret file</h1>"))
         assertThat(http.get("/styles.css").status, `is`(404))
+    }
+
+    @Test
+    fun `content type works in debugmmode`() = TestUtil.test(debugLoggingApp) { app, http ->
+        assertThat(http.get("/html.html").status, `is`(200))
+        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE), containsString("text/html"))
+        assertThat(http.getBody("/html.html"), containsString("HTML works"))
+        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE), containsString("application/javascript"))
+        assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
     }
 
 }

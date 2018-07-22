@@ -17,10 +17,12 @@ object LogUtil {
 
     private val log = LoggerFactory.getLogger(LogUtil::class.java)
 
-    fun logRequestAndResponse(ctx: Context, matcher: PathMatcher, gzipped: Boolean) {
+    fun logRequestAndResponse(ctx: Context, matcher: PathMatcher) {
         val type = HandlerType.fromServletRequest(ctx.req)
         val requestUri = ctx.req.requestURI
         val executionTimeMs = Formatter(Locale.US).format("%.2f", executionTimeMs(ctx))
+        val gzipped = ctx.res.getHeader(Header.CONTENT_ENCODING) == "gzip"
+        val staticFile = ctx.req.getAttribute("handled-as-static-file") == true
         with(ctx) {
             val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) + matcher.findEntries(type, requestUri) + matcher.findEntries(HandlerType.AFTER, requestUri)).map { it.type.name + "=" + it.path }
             val resBody = (res as CachedResponseWrapper).getCopy()
@@ -34,12 +36,18 @@ object LogUtil {
                         |    QueryString: ${queryString()}
                         |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.toString() }}
                         |    FormParams: ${formParamMap().mapValues { (_, v) -> v.toString() }}
-                        |Response: [${status()}], execution took $executionTimeMs ms
+                        |Response: [${if (staticFile) 200 else status()}], execution took $executionTimeMs ms
                         |    Headers: $resHeaders
-                        |    Body: ${resBody.length} bytes (starts on next line)
-                        |${if (resBody.isNotEmpty()) (if (gzipped) "dynamically gzipped response ..." else resBody) else "No body was set"}
+                        |    ${resBody(resBody, gzipped, staticFile)}
                         |----------------------------------------------------------------------------------""".trimMargin())
         }
+    }
+
+    private fun resBody(resBody: String, gzipped: Boolean, staticFile: Boolean) = when {
+        staticFile -> "Body is a static file (not logged)"
+        resBody.isNotEmpty() && gzipped -> "Body is gzipped (${resBody.length} bytes, not logged)"
+        resBody.isNotEmpty() && !gzipped -> "Body is ${resBody.length} bytes (starts on next line):\n    $resBody"
+        else -> "No body was set"
     }
 
     fun startTimer(ctx: Context) = ctx.attribute("javalin-request-log-start-time", System.nanoTime())

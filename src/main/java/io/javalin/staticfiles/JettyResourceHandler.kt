@@ -62,6 +62,7 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>, jettyServer
                     val maxAge = if (target.startsWith("/immutable")) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
+                    httpRequest.setAttribute("handled-as-static-file", true)
                 }
             } catch (e: Exception) { // it's fine
                 log.error("Exception occurred while handling static resource", e)
