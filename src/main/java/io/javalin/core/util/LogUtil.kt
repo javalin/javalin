@@ -16,7 +16,7 @@ object LogUtil {
 
     private val log = LoggerFactory.getLogger(LogUtil::class.java)
 
-    fun logRequestAndResponse(ctx: Context, matcher: PathMatcher) {
+    fun logRequestAndResponse(ctx: Context, matcher: PathMatcher) = try {
         val type = HandlerType.fromServletRequest(ctx.req)
         val requestUri = ctx.req.requestURI
         val executionTimeMs = Formatter(Locale.US).format("%.2f", executionTimeMs(ctx))
@@ -40,6 +40,8 @@ object LogUtil {
                         |    ${resBody(resBody, gzipped, staticFile)}
                         |----------------------------------------------------------------------------------""".trimMargin())
         }
+    } catch (e: Exception) {
+        log.info("An exception occurred while logging debug-info", e)
     }
 
     private fun resBody(resBody: String, gzipped: Boolean, staticFile: Boolean) = when {
