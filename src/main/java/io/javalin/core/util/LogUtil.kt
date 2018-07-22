@@ -7,7 +7,6 @@
 package io.javalin.core.util
 
 import io.javalin.Context
-import io.javalin.core.CachedResponseWrapper
 import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
 import org.slf4j.LoggerFactory
@@ -25,18 +24,18 @@ object LogUtil {
         val staticFile = ctx.req.getAttribute("handled-as-static-file") == true
         with(ctx) {
             val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) + matcher.findEntries(type, requestUri) + matcher.findEntries(HandlerType.AFTER, requestUri)).map { it.type.name + "=" + it.path }
-            val resBody = (res as CachedResponseWrapper).getCopy()
+            val resBody = resultStream()?.apply { reset() }?.bufferedReader()?.use { it.readText() } ?: ""
             val resHeaders = res.headerNames.asSequence().map { it to res.getHeader(it) }.toMap()
-            log.info("""JAVALIN DEBUG REQUEST LOG (this clones the response, which is an expensive operation):
+            log.info("""JAVALIN DEBUG REQUEST LOG:
                         |Request: ${method()} [${path()}]
                         |    Matching endpoint-handlers: $allMatching
                         |    Headers: ${headerMap()}
                         |    Cookies: ${cookieMap()}
-                        |    Body: ${if (ctx.isMultipart()) "Multipart data ..." else body()}
+                        |    Body: ${if (isMultipart()) "Multipart data ..." else body()}
                         |    QueryString: ${queryString()}
                         |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.toString() }}
                         |    FormParams: ${formParamMap().mapValues { (_, v) -> v.toString() }}
-                        |Response: [${if (staticFile) 200 else status()}], execution took $executionTimeMs ms
+                        |Response: [${status()}], execution took $executionTimeMs ms
                         |    Headers: $resHeaders
                         |    ${resBody(resBody, gzipped, staticFile)}
                         |----------------------------------------------------------------------------------""".trimMargin())

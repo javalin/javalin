@@ -51,7 +51,7 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>, jettyServer
         return staticFileConfig.path
     }
 
-    fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse) {
+    fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
         for (gzipHandler in handlers) {
@@ -63,11 +63,13 @@ class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>, jettyServer
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
+                    return true
                 }
             } catch (e: Exception) { // it's fine
                 log.error("Exception occurred while handling static resource", e)
             }
         }
+        return false
     }
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory

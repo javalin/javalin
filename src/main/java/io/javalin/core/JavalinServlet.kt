@@ -30,10 +30,9 @@ class JavalinServlet(
         val prefer405over404: Boolean,
         val jettyResourceHandler: JettyResourceHandler) {
 
-    fun service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
+    fun service(servletRequest: HttpServletRequest, res: HttpServletResponse) {
 
         val req = CachedRequestWrapper(servletRequest, maxRequestCacheBodySize) // cached for reading multiple times
-        val res = if (debugLogging) CachedResponseWrapper(servletResponse) else servletResponse// body needs to be copied for logging
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.toLowerCase()
         val ctx = Context(res, req)
@@ -52,7 +51,7 @@ class JavalinServlet(
                 return@tryWithExceptionMapper // return 200, there is a get handler
             }
             if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
-                jettyResourceHandler.handle(servletRequest, servletResponse)
+                if (jettyResourceHandler.handle(req, res)) return@tryWithExceptionMapper
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
             if (prefer405over404 && availableHandlerTypes.isNotEmpty()) {
