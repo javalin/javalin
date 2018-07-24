@@ -27,7 +27,7 @@ class JettyResourceHandler(staticFileConfig: Set<StaticFileConfig>, jettyServer:
     private val handlers = staticFileConfig.map { config ->
         GzipHandler().apply {
             server = jettyServer // the handler is standalone, this assignment just prevents a log.warn
-            handler = if (config.path === "/webjars") WebjarHandler() else ResourceHandler().apply {
+            handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
                 resourceBase = getResourcePath(config)
                 isDirAllowed = false
                 isEtags = true
