@@ -20,21 +20,25 @@ import javax.servlet.http.HttpServletResponse
 data class StaticFileConfig(val path: String, val location: Location)
 enum class Location { CLASSPATH, EXTERNAL; }
 
-class JettyResourceHandler(staticFileConfig: List<StaticFileConfig>, jettyServer: Server, private val ignoreTrailingSlashes: Boolean) {
+class JettyResourceHandler(staticFileConfig: Set<StaticFileConfig>, jettyServer: Server, private val ignoreTrailingSlashes: Boolean) {
 
     private val log = LoggerFactory.getLogger("io.javalin.Javalin")
 
     private val handlers = staticFileConfig.map { config ->
         GzipHandler().apply {
             server = jettyServer // the handler is standalone, this assignment just prevents a log.warn
-            handler = ResourceHandler().apply {
+            handler = if (config.path === "/webjars") WebjarHandler() else ResourceHandler().apply {
                 resourceBase = getResourcePath(config)
                 isDirAllowed = false
                 isEtags = true
+                log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
-            log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
         }
     }.onEach { it.start() }
+
+    inner class WebjarHandler : ResourceHandler() {
+        override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
+    }
 
     fun getResourcePath(staticFileConfig: StaticFileConfig): String {
         val nosuchdir = "Static resource directory with path: '${staticFileConfig.path}' does not exist."

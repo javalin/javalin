@@ -45,7 +45,7 @@ public class Javalin {
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     private Server jettyServer = JettyServerUtil.defaultServer();
-    private List<StaticFileConfig> staticFileConfig = new ArrayList<>();
+    private Set<StaticFileConfig> staticFileConfig = new HashSet<>();
     private boolean ignoreTrailingSlashes = true;
 
     private int port = 7000;
@@ -207,7 +207,7 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to serves static files from path in classpath.
+     * Configure instance to serve static files from path in classpath.
      * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
@@ -218,7 +218,7 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to serves static files from path in the specified location.
+     * Configure instance to serve static files from path in the specified location.
      * The method can be called multiple times for different locations.
      * The method must be called before {@link Javalin#start()}.
      *
@@ -227,6 +227,16 @@ public class Javalin {
     public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         staticFileConfig.add(new StaticFileConfig(path, location));
+        return this;
+    }
+
+    /**
+     * Configure instance to serve WebJars (https://www.webjars.org)
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin enableWebJars() {
+        ensureActionIsPerformedBeforeServerStart("Enabling WebJars");
+        staticFileConfig.add(new StaticFileConfig("/webjars", Location.CLASSPATH));
         return this;
     }
 

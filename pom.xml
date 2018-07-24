@@ -134,6 +134,12 @@
             <version>0.11.0</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>swagger-ui</artifactId>
+            <version>3.17.1</version>
+            <optional>true</optional>
+        </dependency>
         <!-- END Optional dependencies -->
 
         <!-- BEGIN Test dependencies -->
