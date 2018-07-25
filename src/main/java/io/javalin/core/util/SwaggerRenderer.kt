@@ -28,21 +28,20 @@ class SwaggerRenderer(val filePath: String) : Handler {
             <head>
                 <meta charset="UTF-8">
                 <title>Swagger UI</title>
+                <link rel="icon" type="image/png" href="/webjars/swagger-ui/$swaggerVersion/favicon-16x16.png" sizes="16x16" />
                 <link rel="stylesheet" href="/webjars/swagger-ui/$swaggerVersion/swagger-ui.css" >
+                <script src="/webjars/swagger-ui/$swaggerVersion/swagger-ui-bundle.js"></script>
                 <style>body{background:#fafafa;}</style>
-                </head>
+            </head>
             <body>
                 <div id="swagger-ui"></div>
-                <script src="/webjars/swagger-ui/$swaggerVersion/swagger-ui-bundle.js"> </script>
                 <script>
-                window.onload = function() {
-                  window.ui = SwaggerUIBundle({
-                    url: "${ctx.matchedPath}?spec=${filePath}",
-                    dom_id: "#swagger-ui",
-                    deepLinking: true,
-                    presets: [SwaggerUIBundle.presets.apis],
-                  });
-                }
+                    window.ui = SwaggerUIBundle({
+                        url: "${ctx.matchedPath}?spec=${filePath}",
+                        dom_id: "#swagger-ui",
+                        deepLinking: true,
+                        presets: [SwaggerUIBundle.presets.apis],
+                    });
                 </script>
             </body>""".trimIndent()
         )
