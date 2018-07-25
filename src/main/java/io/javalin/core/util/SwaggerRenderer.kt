@@ -29,40 +29,19 @@ class SwaggerRenderer(val filePath: String) : Handler {
                 <meta charset="UTF-8">
                 <title>Swagger UI</title>
                 <link rel="stylesheet" href="/webjars/swagger-ui/$swaggerVersion/swagger-ui.css" >
-                <style>
-                  html {
-                    box-sizing: border-box;
-                    overflow-y: scroll;
-                  }
-                  *, *:before, *:after {
-                    box-sizing: inherit;
-                  }
-                  body {
-                    margin: 0;
-                    background: #fafafa;
-                  }
-                </style>
+                <style>body{background:#fafafa;}</style>
                 </head>
             <body>
                 <div id="swagger-ui"></div>
                 <script src="/webjars/swagger-ui/$swaggerVersion/swagger-ui-bundle.js"> </script>
-                <script src="/webjars/swagger-ui/$swaggerVersion/swagger-ui-standalone-preset.js"></script>
                 <script>
                 window.onload = function() {
-                  const ui = SwaggerUIBundle({
+                  window.ui = SwaggerUIBundle({
                     url: "${ctx.matchedPath}?spec=${filePath}",
-                    dom_id: '#swagger-ui',
+                    dom_id: "#swagger-ui",
                     deepLinking: true,
-                    presets: [
-                      SwaggerUIBundle.presets.apis,
-                      SwaggerUIStandalonePreset
-                    ],
-                    plugins: [
-                      SwaggerUIBundle.plugins.DownloadUrl
-                    ],
-                    layout: "StandaloneLayout"
-                  })
-                  window.ui = ui
+                    presets: [SwaggerUIBundle.presets.apis],
+                  });
                 }
                 </script>
             </body>""".trimIndent()
