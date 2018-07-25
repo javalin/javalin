@@ -47,7 +47,7 @@ object Util {
         dependencyCheckCache[dependency.testClass] = true
     }
 
-    private fun missingDependencyMessage(dependency: OptionalDependency) = """
+    internal fun missingDependencyMessage(dependency: OptionalDependency) = """
             |Missing dependency '${dependency.displayName}'. Add the dependency.
             |
             |pom.xml:
