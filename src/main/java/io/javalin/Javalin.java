@@ -112,6 +112,7 @@ public class Javalin {
             eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
             try {
                 log.info("Starting Javalin ...");
+                Util.INSTANCE.enableWebJarsIfAnyWebJarsIncluded(this, log);
                 exception(HttpResponseException.class, HttpResponseExceptionMapper.INSTANCE::map); // could be moved to Javalin.create() ?
                 JavalinServlet javalinServlet = new JavalinServlet(
                     pathMatcher,
@@ -227,16 +228,6 @@ public class Javalin {
     public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         staticFileConfig.add(new StaticFileConfig(path, location));
-        return this;
-    }
-
-    /**
-     * Configure instance to serve WebJars (https://www.webjars.org)
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableWebJars() {
-        ensureActionIsPerformedBeforeServerStart("Enabling WebJars");
-        staticFileConfig.add(new StaticFileConfig("/webjars", Location.CLASSPATH));
         return this;
     }
 

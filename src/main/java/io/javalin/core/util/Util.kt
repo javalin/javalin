@@ -7,6 +7,9 @@
 package io.javalin.core.util
 
 import io.javalin.InternalServerErrorResponse
+import io.javalin.Javalin
+import io.javalin.staticfiles.Location
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -103,4 +106,12 @@ object Util {
         inputStream.reset()
         return cis.checksum.value.toString()
     }
+
+    fun enableWebJarsIfAnyWebJarsIncluded(app: Javalin, log: Logger) {
+        if (this.javaClass.classLoader.getResource("META-INF/resources/webjars") != null) {
+            log.info("WebJars detected, enabling static file handling for WebJars.")
+            app.enableStaticFiles("/webjars", Location.CLASSPATH)
+        }
+    }
+
 }

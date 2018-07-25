@@ -25,7 +25,6 @@ class TestStaticFiles {
             .enableStaticFiles("/public/protected")
             .enableStaticFiles("/public/subdir")
     private val debugLoggingApp = Javalin.create().enableStaticFiles("/public").enableDebugLogging()
-    private val webjarApp = Javalin.create().enableWebJars()
 
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
@@ -104,12 +103,7 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `WebJars not available if not enabled`() = TestUtil.test { app, http ->
-        assertThat(http.get("/webjars/swagger-ui/3.17.1/swagger-ui.css").status, `is`(404))
-    }
-
-    @Test
-    fun `WebJars available if enabled`() = TestUtil.test(webjarApp) { app, http ->
+    fun `WebJars available if enabled`() = TestUtil.test { app, http ->
         assertThat(http.get("/webjars/swagger-ui/3.17.1/swagger-ui.css").status, `is`(200))
         assertThat(http.get("/webjars/swagger-ui/3.17.1/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
     }
