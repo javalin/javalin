@@ -25,7 +25,6 @@ class TestStaticFiles {
             .enableStaticFiles("/public/protected")
             .enableStaticFiles("/public/subdir")
     private val debugLoggingApp = Javalin.create().enableStaticFiles("/public").enableDebugLogging()
-    private val singlePageApp = Javalin.create().enableStaticFiles("/public").enableSinglePageMode("/", "/public/html.html")
 
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
@@ -107,16 +106,6 @@ class TestStaticFiles {
     fun `WebJars available if enabled`() = TestUtil.test { app, http ->
         assertThat(http.get("/webjars/swagger-ui/3.17.1/swagger-ui.css").status, `is`(200))
         assertThat(http.get("/webjars/swagger-ui/3.17.1/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
-    }
-
-    @Test // SPLIT
-    fun `SinglePageHandler does what it should`() = TestUtil.test(singlePageApp) { app, http ->
-        assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE), containsString("application/javascript"))
-        assertThat(http.htmlGet("/webjars/swagger-ui/3.17.1/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
-        assertThat(http.htmlGet("/not-a-path").body, containsString("HTML works"))
-        assertThat(http.htmlGet("/not-a-file.html").body, containsString("HTML works"))
-        assertThat(http.jsonGet("/not-a-path").body, containsString("Not found"))
-        assertThat(http.jsonGet("/not-a-file.html").body, containsString("Not found"))
     }
 
 }
