@@ -239,7 +239,7 @@ public class Javalin {
      * instead results in a 200 with the file-content as response body
      */
     public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath) {
-        ensureActionIsPerformedBeforeServerStart("Enabling single page subpath");
+        ensureActionIsPerformedBeforeServerStart("Enabling single page mode");
         singlePageHandler.add(path, filePath);
         return this;
     }
