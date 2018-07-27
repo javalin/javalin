@@ -28,6 +28,7 @@ class JavalinServlet(
         val defaultContentType: String,
         val maxRequestCacheBodySize: Long,
         val prefer405over404: Boolean,
+        val singlePageHandler: SinglePageHandler,
         val jettyResourceHandler: JettyResourceHandler) {
 
     fun service(servletRequest: HttpServletRequest, res: HttpServletResponse) {
@@ -52,6 +53,7 @@ class JavalinServlet(
             }
             if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
                 if (jettyResourceHandler.handle(req, res)) return@tryWithExceptionMapper
+                if (singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
             if (prefer405over404 && availableHandlerTypes.isNotEmpty()) {

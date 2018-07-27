@@ -1,6 +1,5 @@
 package io.javalin
 
-import io.javalin.core.util.Header
 import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -11,7 +10,7 @@ class TestMethodNotAllowed {
 
     private val preferring405Javalin = Javalin.create()
             .prefer405over404()
-            .get("/test") { ctx -> ctx.result("Hello world") }
+            .post("/test") { ctx -> ctx.result("Hello world") }
             .put("/test") { ctx -> ctx.result("Hello world") }
             .delete("/test") { ctx -> ctx.result("Hello world") }
 
@@ -19,28 +18,26 @@ class TestMethodNotAllowed {
             |Method not allowed
             |
             |Available methods:
-            |GET, PUT, DELETE
+            |POST, PUT, DELETE
             |""".trimMargin()
 
     private val expectedJson = """{
     |    "title": "Method not allowed",
     |    "status": 405,
     |    "type": "https://javalin.io/documentation#MethodNotAllowedResponse",
-    |    "details": [{"availableMethods": "GET, PUT, DELETE"}]
+    |    "details": [{"availableMethods": "POST, PUT, DELETE"}]
     |}""".trimMargin()
 
     @Test
     fun `405 response for HTML works`() = TestUtil.test(preferring405Javalin) { app, http ->
-        val response = http.post("/test").header(Header.ACCEPT, "text/html").asString()
-        assertThat(response.status, `is`(HttpServletResponse.SC_METHOD_NOT_ALLOWED))
-        assertThat(response.body, `is`(expectedHtml))
+        assertThat(http.htmlGet("/test").status, `is`(HttpServletResponse.SC_METHOD_NOT_ALLOWED))
+        assertThat(http.htmlGet("/test").body, `is`(expectedHtml))
     }
 
     @Test
     fun `405 response for JSON works`() = TestUtil.test(preferring405Javalin) { app, http ->
-        val response = http.post("/test").header(Header.ACCEPT, "application/json").asString()
-        assertThat(response.status, `is`(HttpServletResponse.SC_METHOD_NOT_ALLOWED))
-        assertThat(response.body, `is`(expectedJson))
+        assertThat(http.jsonGet("/test").status, `is`(HttpServletResponse.SC_METHOD_NOT_ALLOWED))
+        assertThat(http.jsonGet("/test").body, `is`(expectedJson))
     }
 
 }

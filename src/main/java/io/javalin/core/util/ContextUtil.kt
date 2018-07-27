@@ -46,4 +46,6 @@ object ContextUtil {
         null
     }
 
+    fun acceptsHtml(ctx: Context) = ctx.header(Header.ACCEPT)?.contains("text/html") == true
+
 }
