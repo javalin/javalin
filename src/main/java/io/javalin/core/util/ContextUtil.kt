@@ -28,8 +28,8 @@ object ContextUtil {
         ).mapValues { it.value.toList() }
     }
 
-    fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
-            pathParams[key.toLowerCase().replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'")
+    fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String, lowerCasePaths:Boolean) =
+            pathParams[key.run { if ( lowerCasePaths ) toLowerCase() else this }.replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'")
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 

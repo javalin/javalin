@@ -16,7 +16,7 @@ import java.net.InetSocketAddress
  * It adds functionality similar to the API found in [io.javalin.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-class WsSession(val id: String, session: Session, private var pathParamMap: Map<String, String>, private val matchedPath: String) : Session {
+class WsSession(val id: String, session: Session, private var pathParamMap: Map<String, String>, private val matchedPath: String, private val lowerCasePaths:Boolean) : Session {
 
     private val webSocketSession = session as WebSocketSession
 
@@ -29,7 +29,7 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
-    fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath)
+    fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath,lowerCasePaths)
     fun pathParamMap(): Map<String, String> = pathParamMap
     fun host(): String? = webSocketSession.upgradeRequest.host
     fun header(header: String): String? = webSocketSession.upgradeRequest.getHeader(header)
