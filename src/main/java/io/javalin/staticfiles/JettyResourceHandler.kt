@@ -79,7 +79,7 @@ class JettyResourceHandler(staticFileConfig: Set<StaticFileConfig>, jettyServer:
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
 
     private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
-            this != null && this.isDirectory && handler.getResource(welcomeFilePath(target)).exists()
+            this != null && this.isDirectory && handler.getResource(welcomeFilePath(target))?.exists() == true
 
     private fun welcomeFilePath(target: String) = if (!target.endsWith("/") && ignoreTrailingSlashes) "$target/index.html" else "${target}index.html"
 
