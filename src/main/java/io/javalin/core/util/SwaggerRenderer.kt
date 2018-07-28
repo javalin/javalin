@@ -14,16 +14,15 @@ import org.slf4j.LoggerFactory
 class SwaggerRenderer(val filePath: String) : Handler {
 
     private val log = LoggerFactory.getLogger(SwaggerRenderer::class.java)
-    private val classLoader = this.javaClass.classLoader
     private val swaggerVersion = OptionalDependency.SWAGGERUI.version
 
     override fun handle(ctx: Context) {
-        if (classLoader.getResource("META-INF/resources/webjars/swagger-ui/3.17.1/swagger-ui.css") == null) {
+        if (Util.getResource("META-INF/resources/webjars/swagger-ui/3.17.1/swagger-ui.css") == null) {
             log.warn(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
             throw InternalServerErrorResponse(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
         }
         if (ctx.queryParam("spec") != null)
-            ctx.result(classLoader.getResource(ctx.queryParam("spec")).readText())
+            ctx.result(Util.getResource(ctx.queryParam("spec")!!)!!.readText())
         else ctx.html("""
             <head>
                 <meta charset="UTF-8">

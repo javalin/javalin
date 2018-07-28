@@ -13,6 +13,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.net.URL
 import java.util.*
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
@@ -108,10 +109,12 @@ object Util {
     }
 
     fun enableWebJarsIfAnyWebJarsIncluded(app: Javalin, log: Logger) {
-        if (this.javaClass.classLoader.getResource("META-INF/resources/webjars") != null) {
+        if (getResource("META-INF/resources/webjars") != null) {
             log.info("WebJars detected, enabling static file handling for WebJars.")
             app.enableStaticFiles("/webjars", Location.CLASSPATH)
         }
     }
+
+    fun getResource(path: String): URL? = this.javaClass.classLoader.getResource(path)
 
 }

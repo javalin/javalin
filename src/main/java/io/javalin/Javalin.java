@@ -18,6 +18,7 @@ import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.HttpResponseExceptionMapper;
 import io.javalin.core.util.JettyServerUtil;
 import io.javalin.core.util.RouteOverviewUtil;
+import io.javalin.core.util.SinglePageHandler;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
@@ -61,6 +62,7 @@ public class Javalin {
     private AccessManager accessManager = SecurityUtil::noopAccessManager;
     private RequestLogger requestLogger = null;
 
+    private SinglePageHandler singlePageHandler = new SinglePageHandler();
     private PathMatcher pathMatcher = new PathMatcher();
     private WsPathMatcher wsPathMatcher = new WsPathMatcher();
     private ExceptionMapper exceptionMapper = new ExceptionMapper();
@@ -125,6 +127,7 @@ public class Javalin {
                     defaultContentType,
                     maxRequestCacheBodySize,
                     prefer405over404,
+                    singlePageHandler,
                     new JettyResourceHandler(staticFileConfig, jettyServer, ignoreTrailingSlashes)
                 );
                 port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, wsPathMatcher, log);
@@ -228,6 +231,16 @@ public class Javalin {
     public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         staticFileConfig.add(new StaticFileConfig(path, location));
+        return this;
+    }
+
+    /**
+     * Any request that would normally result in a 404 for the path and its subpaths
+     * instead results in a 200 with the file-content as response body
+     */
+    public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath) {
+        ensureActionIsPerformedBeforeServerStart("Enabling single page mode");
+        singlePageHandler.add(path, filePath);
         return this;
     }
 

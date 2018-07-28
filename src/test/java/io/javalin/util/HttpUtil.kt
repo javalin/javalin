@@ -10,6 +10,7 @@ import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
 import com.mashape.unirest.request.HttpRequestWithBody
 import io.javalin.Javalin
+import io.javalin.core.util.Header
 import org.apache.http.impl.client.HttpClients
 
 class HttpUtil(javalin: Javalin) {
@@ -26,5 +27,7 @@ class HttpUtil(javalin: Javalin) {
     fun getBody(path: String) = Unirest.get(origin + path).asString().body
     fun post(path: String) = Unirest.post(origin + path)
     fun call(method: HttpMethod, pathname: String) = HttpRequestWithBody(method, origin + pathname).asString()
+    fun htmlGet(path: String) = Unirest.get(origin + path).header(Header.ACCEPT, "text/html").asString()
+    fun jsonGet(path: String) = Unirest.get(origin + path).header(Header.ACCEPT, "application/json").asString()
 
 }
