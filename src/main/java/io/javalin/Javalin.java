@@ -345,8 +345,7 @@ public class Javalin {
      */
     public Javalin enableRouteOverview(@NotNull String path) {
         ensureActionIsPerformedBeforeServerStart("Enabling route overview");
-        RouteOverviewUtil.enableRouteOverview(path, this);
-        return this;
+        return this.get(path, ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(this)));
     }
 
     /**

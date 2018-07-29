@@ -12,9 +12,6 @@ import sun.reflect.ConstantPool
 object RouteOverviewUtil {
 
     @JvmStatic
-    fun enableRouteOverview(path: String, app: Javalin) = app.get(path) { ctx -> ctx.html(createHtmlOverview(app)) }
-
-    @JvmStatic
     fun createHtmlOverview(app: Javalin): String {
         return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
