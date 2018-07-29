@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Static methods for routes definitions in Javalin
+ * Static methods for route declarations in Javalin
  *
  * @see Javalin#routes(EndpointGroup)
  */
@@ -58,7 +58,7 @@ public class ApiBuilder {
 
     private static Javalin staticInstance() {
         if (staticJavalin == null) {
-            throw new IllegalStateException("The static API can only be called within a routes() call");
+            throw new IllegalStateException("The static API can only be used within a routes() call");
         }
         return staticJavalin;
     }
@@ -140,7 +140,7 @@ public class ApiBuilder {
     // Secured HTTP verbs
 
     /**
-     * Wraps a GET handler using the current AccessManager and adds it to the instance
+     * Adds a GET request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -152,7 +152,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a POST handler using the current AccessManager and adds it to the instance
+     * Adds a POST request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -164,7 +164,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a PUT handler using the current AccessManager and adds it to the instance
+     * Adds a PUT request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -176,7 +176,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a PATCH handler using the current AccessManager and adds it to the instance
+     * Adds a PATCH request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -188,7 +188,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a DELETE handler using the current AccessManager and adds it to the instance
+     * Adds a DELETE request handler with the given roles for the specified path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -274,8 +274,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a GET handler using the current AccessManager and adds it to
-     * the instance using the current path
+     * Adds a GET request handler with the given roles for the current path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -287,8 +286,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a POST handler using the current AccessManager and adds it to
-     * the instance using the current path
+     * Adds a POST request handler with the given roles for the current path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -300,8 +298,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a PUT handler using the current AccessManager and adds it to
-     * the instance using the current path
+     * Adds a PUT request handler with the given roles for the current path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -313,8 +310,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a PATCH handler using the current AccessManager and adds it to
-     * the instance using the current path
+     * Adds a PATCH request handler with the given roles for the current path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -326,8 +322,7 @@ public class ApiBuilder {
     }
 
     /**
-     * Wraps a DELETE handler using the current AccessManager and adds it to
-     * the instance using the current path
+     * Adds a DELETE request handler with the given roles for the current path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
@@ -339,14 +334,21 @@ public class ApiBuilder {
     }
 
     /**
-     * Adds a lambda handler for a WebSocket connection on the specified path.
-     * Has some added functionality (path params, wrapped session) compared to
-     * the other ws methods.
+     * Adds a WebSocket handler on the specified path.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
-        staticJavalin.ws(prefixPath(path), ws);
+        staticInstance().ws(prefixPath(path), ws);
+    }
+
+    /**
+     * Adds a WebSocket handler on the current path.
+     *
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
+     */
+    public static void ws(@NotNull Consumer<WsHandler> ws) {
+        staticInstance().ws(prefixPath(""), ws);
     }
 
 }
