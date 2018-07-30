@@ -47,13 +47,27 @@ class TestRouting {
     @Test
     fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
         app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
-        assertThat(http.getBody("/path-param/path/splat"), `is`("path-paramsplat"))
+        assertThat(http.getBody("/path-param/Path/Splat"), `is`("path-paramsplat"))
+    }
+
+    @Test
+    fun `extracting path-param and splat works case sensitive`() = TestUtil.test( Javalin.create().enableCaseSensitivePaths() ) { app, http ->
+        app.get("/:path-param/Path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
+        assertThat(http.getBody("/path-param/Path/Splat"), `is`("path-paramSplat"))
+        assertThat(http.getBody("/path-param/path/Splat"), `is`("Not found"))
     }
 
     @Test
     fun `utf-8 encoded path-params work`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        val paramValue = "te/st"
+        val paramValue = "TE/ST"
+        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode(paramValue, "UTF-8")), `is`(paramValue.toLowerCase()))
+    }
+
+    @Test
+    fun `utf-8 encoded path-params work case sensitive`() = TestUtil.test( Javalin.create().enableCaseSensitivePaths() ) { app, http ->
+        app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
+        val paramValue = "TE/ST"
         assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode(paramValue, "UTF-8")), `is`(paramValue))
     }
 

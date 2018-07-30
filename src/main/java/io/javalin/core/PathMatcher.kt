@@ -7,12 +7,13 @@
 package io.javalin.core
 
 import io.javalin.Handler
+import io.javalin.core.util.ContextUtil.toLowerCaseIfNot
 import io.javalin.core.util.ContextUtil.urlDecode
 import org.slf4j.LoggerFactory
 import java.util.*
 
-data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler, val rawHandler: Handler) {
-    private val pathParser = PathParser(path)
+data class HandlerEntry(val type: HandlerType, val path: String, private val caseSensitiveUrls:Boolean, val handler: Handler, val rawHandler: Handler) {
+    private val pathParser = PathParser(path,caseSensitiveUrls)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
     fun extractSplats(requestUri: String) = pathParser.extractSplats(requestUri)
@@ -20,6 +21,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
 class PathParser(
         path: String,
+        private val caseSensitiveUrls:Boolean,
         private val pathParamNames: List<String> = path.split("/")
                 .filter { it.startsWith(":") }
                 .map { it.replace(":", "") },
@@ -39,7 +41,7 @@ class PathParser(
     fun matches(url: String) = url matches matchRegex
 
     fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
-        name.toLowerCase() to urlDecode(value)
+        name.toLowerCaseIfNot(caseSensitiveUrls) to urlDecode(value)
     }.toMap()
 
     fun extractSplats(url: String) = values(splatRegex, url).map { urlDecode(it) }
