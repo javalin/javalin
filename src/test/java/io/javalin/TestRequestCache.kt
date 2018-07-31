@@ -28,7 +28,7 @@ class TestRequestCache {
     fun `disabling request-caching works`() = TestUtil.test(Javalin.create().disableRequestCache()) { app, http ->
         app.post("/disabled-cache") { ctx ->
             if (ctx.req.inputStream.javaClass.simpleName == "CachedServletInputStream") {
-                throw IllegalStateException("Cache should be disabled")
+                throw IllegalStateException("Cache should be disabled.")
             }
         }
         val response = http.post("/disabled-cache").body("test").asBinary()

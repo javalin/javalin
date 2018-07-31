@@ -11,7 +11,7 @@ import io.javalin.Javalin
 object CorsUtil {
 
     fun enableCors(app: Javalin, origins: Array<String>): Javalin {
-        if (origins.isEmpty()) throw IllegalArgumentException("Origins cannot be empty")
+        if (origins.isEmpty()) throw IllegalArgumentException("Origins cannot be empty.")
         app.options("*") { ctx ->
             ctx.header(Header.ACCESS_CONTROL_REQUEST_HEADERS)?.let {
                 ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, it)

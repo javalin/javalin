@@ -58,7 +58,7 @@ public class ApiBuilder {
 
     private static Javalin staticInstance() {
         if (staticJavalin == null) {
-            throw new IllegalStateException("The static API can only be used within a routes() call");
+            throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
         return staticJavalin;
     }

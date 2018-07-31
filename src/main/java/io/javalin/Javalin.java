@@ -397,7 +397,7 @@ public class Javalin {
 
     private void ensureActionIsPerformedBeforeServerStart(@NotNull String action) {
         if (started) {
-            throw new IllegalStateException(action + " must be done before starting the server");
+            throw new IllegalStateException(action + " must be done before starting the server.");
         }
     }
 
