@@ -69,12 +69,4 @@ class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
 
     private fun slashMismatch(s1: String, s2: String) = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
 
-    fun findHandlerPath(predicate: (HandlerEntry) -> Boolean): String? {
-        val entries = handlerEntries.values.flatten().filter(predicate)
-        if (entries.size > 1) {
-            log.warn("More than one path found for handler, returning first match: '{} {}'", entries[0].type, entries[0].path)
-        }
-        return if (entries.isNotEmpty()) entries[0].path else null
-    }
-
 }
