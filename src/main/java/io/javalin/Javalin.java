@@ -14,7 +14,6 @@ import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
-import io.javalin.core.util.UtilKt;
 import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.HttpResponseExceptionMapper;
 import io.javalin.core.util.JettyServerUtil;
@@ -186,11 +185,8 @@ public class Javalin {
      */
     public Javalin enableCaseSensitiveUrls() {
         caseSensitiveUrls = true;
+        wsPathMatcher.setCaseSensitive(true);
         return this;
-    }
-
-    public boolean isCaseSensitiveUrlsEnabled() {
-        return caseSensitiveUrls;
     }
 
     /**
@@ -258,11 +254,6 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Enabling single page mode");
         singlePageHandler.add(path, filePath);
         return this;
-    }
-
-    // Context path (common prefix) for the instance.
-    public String contextPath() {
-        return this.contextPath;
     }
 
     /**
@@ -461,9 +452,7 @@ public class Javalin {
     }
 
     private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
-        String prefixedPath = UtilKt.toLowerCaseIfNot(
-            Util.INSTANCE.prefixContextPath(contextPath, path),
-            caseSensitiveUrls);
+        String prefixedPath = caseSensitiveUrls ? Util.prefixContextPath(contextPath, path) : Util.prefixContextPath(contextPath, path).toLowerCase();
         Handler protectedHandler = handlerType.isHttpMethod() ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
         pathMatcher.getHandlerEntries().get(handlerType).add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler));
         handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
@@ -711,9 +700,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
-        String prefixedPath = UtilKt.toLowerCaseIfNot(
-            Util.INSTANCE.prefixContextPath(contextPath, path),
-            caseSensitiveUrls);
+        String prefixedPath = caseSensitiveUrls ? Util.prefixContextPath(contextPath, path) : Util.prefixContextPath(contextPath, path).toLowerCase();
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
         wsPathMatcher.getWsEntries().add(new WsEntry(prefixedPath, configuredWebSocket));

@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class TestWebSocket {
 
     private val contextPathJavalin = Javalin.create().contextPath("/websocket")
+    private val caseSensitiveJavalin = Javalin.create().enableCaseSensitiveUrls()
     private var log = mutableListOf<String>()
 
     @Before
@@ -127,18 +128,9 @@ class TestWebSocket {
         app.ws("/params/:1") { ws -> ws.onConnect { session -> log.add(session.pathParam("1")) } }
         app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { session -> log.add(session.pathParam("1") + " " + session.pathParam("2") + " " + session.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { session -> log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
-        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one")).let {
-            doAndSleepWhile({ it.connect() }, { !it.isOpen })
-            doAndSleepWhile({ it.close() }, { it.isClosing })
-        }
-        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/%E2%99%94")).let {
-            doAndSleepWhile({ it.connect() }, { !it.isOpen })
-            doAndSleepWhile({ it.close() }, { it.isClosing })
-        }
-        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/another/test/long/path")).let {
-            doAndSleepWhile({ it.connect() }, { !it.isOpen })
-            doAndSleepWhile({ it.close() }, { it.isClosing })
-        }
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one")))
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/%E2%99%94")))
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/another/test/long/path")))
         assertThat(log, containsInAnyOrder("one", "♔", "another long path"))
         assertThat(log, not(hasItem("catchall")))
     }
@@ -161,10 +153,7 @@ class TestWebSocket {
             ws.onConnect { session -> log.add("Header: " + session.header("Test")!!) }
             ws.onClose { session, _, _ -> log.add("Closed connection from: " + session.host()!!) }
         }
-        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), mapOf("Test" to "HeaderParameter")).let {
-            doAndSleepWhile({ it.connect() }, { !it.isOpen })
-            doAndSleepWhile({ it.close() }, { it.isClosing })
-        }
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), mapOf("Test" to "HeaderParameter")))
         assertThat(log, containsInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost"))
     }
 
@@ -182,14 +171,28 @@ class TestWebSocket {
                 queryParams = session.queryParams("qps")
             }
         }
-        TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/channel-one?qp=just-a-qp&qps=1&qps=2")).let {
-            doAndSleepWhile({ it.connect() }, { !it.isOpen })
-            doAndSleepWhile({ it.close() }, { it.isClosing })
-        }
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/channel-one?qp=just-a-qp&qps=1&qps=2")))
         assertThat(matchedPath, `is`("/websocket/:channel"))
         assertThat(pathParam, `is`("channel-one"))
         assertThat(queryParam, `is`("just-a-qp"))
         assertThat(queryParams, contains("1", "2"))
+    }
+
+    @Test
+    fun `routing and path-params case insensitive by default() work`() = TestUtil.test { app, _ ->
+        app.ws("/path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PATH/my-PARAM")))
+        assertThat(log, containsInAnyOrder("my-param"))
+    }
+
+    @Test
+    fun `routing and path-params case sensitive works`() = TestUtil.test(caseSensitiveJavalin) { app, _ ->
+        app.ws("/path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
+        app.ws("/other-path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PATH/my-param")))
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/other-path/My-PaRaM")))
+        assertThat(log, not(hasItem("my-param")))
+        assertThat(log, hasItem("My-PaRaM"))
     }
 
     internal inner class TestClient : WebSocketClient {
@@ -203,6 +206,11 @@ class TestWebSocket {
         override fun onOpen(serverHandshake: ServerHandshake) {}
         override fun onClose(i: Int, s: String, b: Boolean) {}
         override fun onError(e: Exception) {}
+    }
+
+    private fun connectAndDisconnect(testClient: TestClient) {
+        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
+        doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
     }
 
     private fun doAndSleepWhile(func1: () -> Unit, func2: () -> Boolean) {

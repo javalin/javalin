@@ -25,6 +25,8 @@ object Util {
     var noServerHasBeenStarted = true
 
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
+
+    @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
 
     private fun classExists(className: String) = try {
@@ -118,5 +120,3 @@ object Util {
     fun getResource(path: String): URL? = this.javaClass.classLoader.getResource(path)
 
 }
-
-fun String.toLowerCaseIfNot( caseSensitiveUrls:Boolean ) = if ( caseSensitiveUrls ) this else toLowerCase()

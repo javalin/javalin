@@ -24,7 +24,7 @@ data class WsEntry(val path: String, val handler: WsHandler) {
  * Session IDs are generated and tracked here, and path-parameters are cached for performance.
  */
 @WebSocket
-class WsPathMatcher() {
+class WsPathMatcher(var caseSensitive: Boolean = false) {
 
     val wsEntries = mutableListOf<WsEntry>()
     private val sessionIds = ConcurrentHashMap<Session, String>()
@@ -53,11 +53,11 @@ class WsPathMatcher() {
 
     private fun findEntry(session: Session) = findEntry(session.upgradeRequest)
 
-    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.requestURI.path) }
+    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.javalinPath) }
 
     private fun wrap(session: Session, wsEntry: WsEntry): WsSession {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
-        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.requestURI.path))
+        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.javalinPath))
         return WsSession(sessionIds[session]!!, session, sessionPathParams[session]!!, wsEntry.path)
     }
 
@@ -65,5 +65,7 @@ class WsPathMatcher() {
         sessionIds.remove(session)
         sessionPathParams.remove(session)
     }
+
+    private val UpgradeRequest.javalinPath get() = this.requestURI.path.let { if (caseSensitive) it else it.toLowerCase() }
 
 }
