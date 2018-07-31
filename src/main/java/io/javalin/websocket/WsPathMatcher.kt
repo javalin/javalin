@@ -10,6 +10,7 @@ import io.javalin.core.PathParser
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.UpgradeRequest
 import org.eclipse.jetty.websocket.api.annotations.*
+import java.io.InputStream
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -38,6 +39,11 @@ class WsPathMatcher() {
     @OnWebSocketMessage
     fun webSocketMessage(session: Session, message: String) {
         findEntry(session)?.let { it.handler.messageHandler?.handle(wrap(session, it), message) }
+    }
+
+    @OnWebSocketMessage
+    fun webSocketBinaryMessage(session: Session, stream: InputStream) {
+        findEntry(session)?.let { it.handler.binaryMessageHandler?.handle(wrap(session, it), stream.readBytes().toTypedArray()) }
     }
 
     @OnWebSocketError

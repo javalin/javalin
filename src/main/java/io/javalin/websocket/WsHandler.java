@@ -12,6 +12,7 @@ public class WsHandler {
 
     ConnectHandler connectHandler = null;
     MessageHandler messageHandler = null;
+    BinaryMessageHandler binaryMessageHandler = null;
     CloseHandler closeHandler = null;
     ErrorHandler errorHandler = null;
 
@@ -30,6 +31,15 @@ public class WsHandler {
      */
     public void onMessage(@NotNull MessageHandler messageHandler) {
         this.messageHandler = messageHandler;
+    }
+
+    /**
+     * Add a {@link BinaryMessageHandler} to the WsHandler.
+     * The handler is called when a WebSocket client sends
+     * a binary message.
+     */
+    public void onBinaryMessage(@NotNull BinaryMessageHandler binaryMessageHandler) {
+        this.binaryMessageHandler = binaryMessageHandler;
     }
 
     /**
