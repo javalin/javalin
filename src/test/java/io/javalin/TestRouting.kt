@@ -72,6 +72,29 @@ class TestRouting {
     }
 
     @Test
+    fun `path-param names case-insensitive`() = TestUtil.test { app, http ->
+        app.get("/:param/:Param") { ctx ->
+            ctx.result(ctx.pathParam("param") + ctx.pathParam("Param")) }
+        val param1Value = "a"
+        val param2Value = "B"
+        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode(param1Value, "UTF-8") + "/" +
+            URLEncoder.encode(param2Value, "UTF-8") ),
+            `is`(param2Value.toLowerCase() + param2Value.toLowerCase())) // 2nd param wins
+    }
+
+    @Test
+    fun `path-param names case-sensitive`() = TestUtil.test( Javalin.create().enableCaseSensitiveUrls() ) { app, http ->
+        app.get("/:param/:Param") { ctx ->
+            ctx.result(ctx.pathParam("param") + ctx.pathParam("Param")) }
+        val param1Value = "a"
+        val param2Value = "B"
+        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode(param1Value, "UTF-8") + "/" +
+            URLEncoder.encode(param2Value, "UTF-8") ),
+            `is`(param1Value + param2Value))
+    }
+
+
+    @Test
     fun `utf-8 encoded splat works`() = TestUtil.test { app, http ->
         app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
         val responseBody = okHttp.getBody(http.origin + "/"
