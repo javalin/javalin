@@ -43,6 +43,13 @@ class TestRouting {
         assertThat(http.getBody("/s1/s2/p/s3"), `is`("/s1/s2/p/s3"))
         assertThat(http.getBody("/s/s/s/s"), `is`("/s/s/s/s"))
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `duplicate type and path throws IllegalArgumentException`() = TestUtil.test { app, http ->
+        app.get("/my-url") { ctx -> ctx.result("OK") }
+        app.get("/my-url") { ctx -> ctx.result("OK") }
+    }
+
     @Test
     fun `urls are case insensitive by default`() = TestUtil.test { app, http ->
         app.get("/my-url") { ctx -> ctx.result("OK") }

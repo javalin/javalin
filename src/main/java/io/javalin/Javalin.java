@@ -463,7 +463,7 @@ public class Javalin {
     private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         String prefixedPath = caseSensitiveUrls ? Util.prefixContextPath(contextPath, path) : Util.prefixContextPath(contextPath, path).toLowerCase();
         Handler protectedHandler = handlerType.isHttpMethod() ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
-        pathMatcher.getHandlerEntries().get(handlerType).add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler));
+        pathMatcher.add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler));
         handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
         return this;
     }

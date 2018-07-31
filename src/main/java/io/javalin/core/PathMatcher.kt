@@ -50,12 +50,19 @@ class PathParser(
 
 class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
 
-    val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
+    private val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
         it to arrayListOf()
     }
 
-    fun findEntries(requestType: HandlerType, requestUri: String) =
-            handlerEntries[requestType]!!.filter { he -> match(he, requestUri) }
+    fun add(entry: HandlerEntry) {
+        if (entry.type.isHttpMethod() && handlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
+            throw IllegalArgumentException("Handler with type='${entry.type}' and path='${entry.path}' already exists.")
+        }
+        handlerEntries[entry.type]!!.add(entry)
+    }
+
+    fun findEntries(handlerType: HandlerType, requestUri: String) =
+            handlerEntries[handlerType]!!.filter { he -> match(he, requestUri) }
 
     private fun match(entry: HandlerEntry, requestPath: String): Boolean = when {
         entry.path == "*" -> true
