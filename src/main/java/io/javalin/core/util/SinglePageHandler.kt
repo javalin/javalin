@@ -8,6 +8,11 @@ package io.javalin.core.util
 
 import io.javalin.Context
 
+/**
+ * This is just a glorified 404 handler.
+ * Ex: app.enableSinglePageMode("/my-path", "index.html")
+ * If no routes or static files are found on "/my-path/" (or any subpath), index.html will be returned
+ */
 class SinglePageHandler {
 
     private val pathPageMap = mutableMapOf<String, String>()
