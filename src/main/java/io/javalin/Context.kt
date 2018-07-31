@@ -26,8 +26,7 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-class Context(private val servletResponse: HttpServletResponse, private val servletRequest: HttpServletRequest,
-    private val caseSensitiveUrls:Boolean ) {
+class Context(private val servletResponse: HttpServletResponse, private val servletRequest: HttpServletRequest) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
@@ -153,7 +152,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * and a browser GETs /users/123,
      * pathParam("user-id") will return "123"
      */
-    fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath, caseSensitiveUrls)
+    fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath)
 
     /**
      * Gets a map of all the [pathParam] keys and values.

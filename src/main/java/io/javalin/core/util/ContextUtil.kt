@@ -28,10 +28,8 @@ object ContextUtil {
         ).mapValues { it.value.toList() }
     }
 
-    fun String.toLowerCaseIfNot( caseSensitiveUrls:Boolean ) = if ( caseSensitiveUrls ) this else toLowerCase()
-
-    fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String, caseSensitiveUrls:Boolean ) =
-            pathParams[key.toLowerCaseIfNot(caseSensitiveUrls).replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'")
+    fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
+            pathParams[key.toLowerCase().replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'")
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 

@@ -118,3 +118,5 @@ object Util {
     fun getResource(path: String): URL? = this.javaClass.classLoader.getResource(path)
 
 }
+
+fun String.toLowerCaseIfNot( caseSensitiveUrls:Boolean ) = if ( caseSensitiveUrls ) this else toLowerCase()

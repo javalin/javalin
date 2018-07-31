@@ -11,7 +11,6 @@ import io.javalin.MethodNotAllowedResponse
 import io.javalin.NotFoundResponse
 import io.javalin.RequestLogger
 import io.javalin.core.util.*
-import io.javalin.core.util.ContextUtil.toLowerCaseIfNot
 import io.javalin.staticfiles.JettyResourceHandler
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
@@ -38,7 +37,7 @@ class JavalinServlet(
         val req = CachedRequestWrapper(servletRequest, maxRequestCacheBodySize) // cached for reading multiple times
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.toLowerCaseIfNot(caseSensitiveUrls)
-        val ctx = Context(res, req, caseSensitiveUrls)
+        val ctx = Context(res, req)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
