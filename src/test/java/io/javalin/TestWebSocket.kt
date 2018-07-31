@@ -129,7 +129,7 @@ class TestWebSocket {
 
         val receivedBinaryData = mutableListOf<ByteArray>()
         app.ws("/binary") { ws ->
-            ws.onBinaryMessage { _, message ->
+            ws.onMessage { _, message, _, _ ->
                 receivedBinaryData.add(message.toByteArray())
             }
         }

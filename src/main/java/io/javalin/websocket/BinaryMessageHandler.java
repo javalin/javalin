@@ -8,5 +8,5 @@ package io.javalin.websocket;
 
 @FunctionalInterface
 public interface BinaryMessageHandler {
-    void handle(WsSession session, Byte[] msg);
+    void handle(WsSession session, Byte[] msg, int offset, int length);
 }

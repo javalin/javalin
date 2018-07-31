@@ -38,7 +38,7 @@ public class WsHandler {
      * The handler is called when a WebSocket client sends
      * a binary message.
      */
-    public void onBinaryMessage(@NotNull BinaryMessageHandler binaryMessageHandler) {
+    public void onMessage(@NotNull BinaryMessageHandler binaryMessageHandler) {
         this.binaryMessageHandler = binaryMessageHandler;
     }
 
