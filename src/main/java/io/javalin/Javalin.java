@@ -351,8 +351,17 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableRouteOverview(@NotNull String path) {
+        return enableRouteOverview(path, new HashSet<>());
+    }
+
+    /**
+     * Configure instance to display a visual overview of all its mapped routes
+     * on the specified path with the specified roles
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
         ensureActionIsPerformedBeforeServerStart("Enabling route overview");
-        return this.get(path, ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(this)));
+        return this.get(path, ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(this)), permittedRoles);
     }
 
     /**
