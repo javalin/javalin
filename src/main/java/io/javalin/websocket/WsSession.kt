@@ -10,6 +10,7 @@ import io.javalin.core.util.ContextUtil
 import org.eclipse.jetty.websocket.api.*
 import org.eclipse.jetty.websocket.common.WebSocketSession
 import java.net.InetSocketAddress
+import java.nio.ByteBuffer
 
 /**
  * The [WsSession] class is a wrapper for Jetty's [Session].
@@ -21,6 +22,7 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
     private val webSocketSession = session as WebSocketSession
 
     fun send(message: String) = webSocketSession.remote.sendString(message)
+    fun send(message: ByteBuffer) = webSocketSession.remote.sendBytes(message)
     fun queryString() = webSocketSession.upgradeRequest!!.queryString
     @JvmOverloads
     fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull() ?: default

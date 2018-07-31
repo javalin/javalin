@@ -40,6 +40,11 @@ class WsPathMatcher(var caseSensitive: Boolean = false) {
         findEntry(session)?.let { it.handler.messageHandler?.handle(wrap(session, it), message) }
     }
 
+    @OnWebSocketMessage
+    fun webSocketBinaryMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
+        findEntry(session)?.let { it.handler.binaryMessageHandler?.handle(wrap(session, it), buffer.toTypedArray(), offset, length) }
+    }
+
     @OnWebSocketError
     fun webSocketError(session: Session, throwable: Throwable?) {
         findEntry(session)?.let { it.handler.errorHandler?.handle(wrap(session, it), throwable) }

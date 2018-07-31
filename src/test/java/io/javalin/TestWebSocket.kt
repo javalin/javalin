@@ -124,6 +124,28 @@ class TestWebSocket {
     }
 
     @Test
+    fun `binary messages`() = TestUtil.test(contextPathJavalin) { app, _ ->
+        val byteDataToSend1 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
+        val byteDataToSend2 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
+
+        val receivedBinaryData = mutableListOf<ByteArray>()
+        app.ws("/binary") { ws ->
+            ws.onMessage { _, message, _, _ ->
+                receivedBinaryData.add(message.toByteArray())
+            }
+        }
+
+        val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/binary"))
+
+        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
+        doAndSleep { testClient.send(byteDataToSend1) }
+        doAndSleep { testClient.send(byteDataToSend2) }
+        doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
+
+        assertThat(receivedBinaryData, containsInAnyOrder(byteDataToSend1, byteDataToSend2))
+    }
+
+    @Test
     fun `routing and pathParams() work`() = TestUtil.test(contextPathJavalin) { app, _ ->
         app.ws("/params/:1") { ws -> ws.onConnect { session -> log.add(session.pathParam("1")) } }
         app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { session -> log.add(session.pathParam("1") + " " + session.pathParam("2") + " " + session.pathParam("3")) } }
