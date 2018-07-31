@@ -8,7 +8,6 @@ package io.javalin.core
 
 import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
-import org.slf4j.LoggerFactory
 import java.util.*
 
 data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler, val rawHandler: Handler) {
@@ -50,8 +49,6 @@ class PathParser(
 }
 
 class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
-
-    private val log = LoggerFactory.getLogger(PathMatcher::class.java)
 
     val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
         it to arrayListOf()
