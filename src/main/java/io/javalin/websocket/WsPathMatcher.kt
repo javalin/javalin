@@ -13,8 +13,8 @@ import org.eclipse.jetty.websocket.api.annotations.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-data class WsEntry(val path: String, val handler: WsHandler) {
-    private val pathParser = PathParser(path)
+data class WsEntry(val path: String, val handler: WsHandler, val caseSensitiveUrls: Boolean) {
+    private val pathParser = PathParser(path, caseSensitiveUrls)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
 }
@@ -24,7 +24,7 @@ data class WsEntry(val path: String, val handler: WsHandler) {
  * Session IDs are generated and tracked here, and path-parameters are cached for performance.
  */
 @WebSocket
-class WsPathMatcher(var caseSensitive: Boolean = false) {
+class WsPathMatcher {
 
     val wsEntries = mutableListOf<WsEntry>()
     private val sessionIds = ConcurrentHashMap<Session, String>()
@@ -58,11 +58,11 @@ class WsPathMatcher(var caseSensitive: Boolean = false) {
 
     private fun findEntry(session: Session) = findEntry(session.upgradeRequest)
 
-    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.javalinPath) }
+    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.requestURI.path) }
 
     private fun wrap(session: Session, wsEntry: WsEntry): WsSession {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
-        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.javalinPath))
+        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.requestURI.path))
         return WsSession(sessionIds[session]!!, session, sessionPathParams[session]!!, wsEntry.path)
     }
 
@@ -70,7 +70,5 @@ class WsPathMatcher(var caseSensitive: Boolean = false) {
         sessionIds.remove(session)
         sessionPathParams.remove(session)
     }
-
-    private val UpgradeRequest.javalinPath get() = this.requestURI.path.let { if (caseSensitive) it else it.toLowerCase() }
 
 }
