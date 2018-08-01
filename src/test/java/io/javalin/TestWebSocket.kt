@@ -202,16 +202,16 @@ class TestWebSocket {
 
     @Test
     fun `routing and path-params case insensitive by default() work`() = TestUtil.test { app, _ ->
-        app.ws("/path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PATH/my-PARAM")))
+        app.ws("/pAtH/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PaTh/my-PARAM")))
         assertThat(log, containsInAnyOrder("my-param"))
     }
 
     @Test
     fun `routing and path-params case sensitive works`() = TestUtil.test(caseSensitiveJavalin) { app, _ ->
-        app.ws("/path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
+        app.ws("/pAtH/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
         app.ws("/other-path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PATH/my-param")))
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PaTh/my-param")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/other-path/My-PaRaM")))
         assertThat(log, not(hasItem("my-param")))
         assertThat(log, hasItem("My-PaRaM"))
