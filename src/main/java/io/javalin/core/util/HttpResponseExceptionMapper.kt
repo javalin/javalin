@@ -7,10 +7,22 @@
 package io.javalin.core.util
 
 import io.javalin.*
+import java.util.concurrent.CompletionException
 
 object HttpResponseExceptionMapper {
 
-    fun map(e: HttpResponseException, ctx: Context) {
+    fun attachMappers(app: Javalin) {
+        app.exception(CompletionException::class.java) { e, ctx ->
+            if (e.cause is HttpResponseException) {
+                handleException(e.cause as HttpResponseException, ctx)
+            }
+        }
+        app.exception(HttpResponseException::class.java) { e, ctx ->
+            handleException(e, ctx)
+        }
+    }
+
+    private fun handleException(e: HttpResponseException, ctx: Context) {
         if (ctx.header(Header.ACCEPT)?.contains("application/json") == true) {
             ctx.status(e.status).result("""{
                 |    "title": "${e.msg}",
@@ -48,4 +60,5 @@ object HttpResponseExceptionMapper {
         is ServiceUnavailableResponse -> classUrl(e)
         else -> docsUrl + "error-responses"
     }
+
 }

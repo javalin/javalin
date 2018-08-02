@@ -10,9 +10,13 @@ import io.javalin.core.util.Header
 import io.javalin.util.TestUtil
 import org.eclipse.jetty.http.HttpStatus
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.not
 import org.junit.Test
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 
 class TestHttpResponseExceptions {
 
@@ -75,7 +79,7 @@ class TestHttpResponseExceptions {
         app.before("/admin/*") { throw UnauthorizedResponse() }
         app.get("/admin/protected") { ctx -> ctx.result("Protected resource") }
         assertThat(http.get("/admin/protected").status, `is`(401))
-        assertThat(http.getBody("/admin/protected"), Matchers.not("Protected resource"))
+        assertThat(http.getBody("/admin/protected"), not("Protected resource"))
     }
 
     @Test
@@ -91,6 +95,35 @@ class TestHttpResponseExceptions {
         app.after { ctx -> ctx.status(418) }
         assertThat(http.get("/some-route").status, `is`(418))
         assertThat(http.getBody("/some-route"), `is`("Stop!"))
+    }
+
+    @Test
+    fun `completing exceptionally with HttpResponseExceptions in future works`() = TestUtil.test { app, http ->
+        app.get("/completed-future-route") { ctx -> ctx.result(getExceptionallyCompletingFuture()) }
+        assertThat(http.get("/completed-future-route").body, `is`("Unauthorized"))
+        assertThat(http.get("/completed-future-route").status, `is`(401))
+    }
+
+    private fun getExceptionallyCompletingFuture(): CompletableFuture<String> {
+        val future = CompletableFuture<String>()
+        Executors.newSingleThreadScheduledExecutor().schedule({
+            future.completeExceptionally(UnauthorizedResponse())
+        }, 10, TimeUnit.MILLISECONDS)
+        return future
+    }
+
+    @Test
+    fun `throwing HttpResponseExceptions in future works`() = TestUtil.test { app, http ->
+        app.get("/throwing-future-route") { ctx -> ctx.result(getThrowingFuture()) }
+        assertThat(http.get("/throwing-future-route").body, `is`("Unauthorized"))
+        assertThat(http.get("/throwing-future-route").status, `is`(401))
+    }
+
+    private fun getThrowingFuture() = CompletableFuture.supplyAsync {
+        if (true) {
+            throw UnauthorizedResponse()
+        }
+        "Result"
     }
 
 }

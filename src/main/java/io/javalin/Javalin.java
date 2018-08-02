@@ -116,7 +116,7 @@ public class Javalin {
             try {
                 log.info("Starting Javalin ...");
                 Util.INSTANCE.enableWebJarsIfAnyWebJarsIncluded(this, log);
-                exception(HttpResponseException.class, HttpResponseExceptionMapper.INSTANCE::map); // could be moved to Javalin.create() ?
+                HttpResponseExceptionMapper.INSTANCE.attachMappers(this);
                 JavalinServlet javalinServlet = new JavalinServlet(
                     pathMatcher,
                     exceptionMapper,
