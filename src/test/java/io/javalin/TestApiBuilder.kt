@@ -124,5 +124,42 @@ class TestApiBuilder {
         app2.stop()
     }
 
+    @Test
+    fun `CrudHandler works`() = TestUtil.test { app, http ->
+        app.routes {
+            crud("user", UserController())
+        }
+        assertThat(Unirest.get(http.origin + "/user").asString().body, `is`("All my users"))
+        assertThat(Unirest.post(http.origin + "/user").asString().status, `is`(201))
+        assertThat(Unirest.get(http.origin + "/user/myUser").asString().body, `is`("My single user"))
+        assertThat(Unirest.patch(http.origin + "/user/myUser").asString().status, `is`(204))
+        assertThat(Unirest.delete(http.origin + "/user/myUser").asString().status, `is`(204))
+    }
+
+    class UserController : ApiBuilder.CrudHandler {
+
+        override fun getAll(ctx: Context) {
+            ctx.result("All my users")
+        }
+
+        override fun getOne(ctx: Context) {
+            ctx.result("My single user")
+        }
+
+        override fun create(ctx: Context) {
+            ctx.status(201)
+        }
+
+        override fun update(ctx: Context) {
+            ctx.status(204)
+        }
+
+        override fun delete(ctx: Context) {
+            ctx.status(204)
+        }
+
+    }
+
+
 }
 

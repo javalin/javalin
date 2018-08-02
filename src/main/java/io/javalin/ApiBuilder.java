@@ -352,4 +352,36 @@ public class ApiBuilder {
         staticInstance().ws(prefixPath(""), ws);
     }
 
+    /////////////////////////////////////////////////////////////
+    // CrudHandler
+    /////////////////////////////////////////////////////////////
+
+    public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler) {
+        staticInstance().get(path, crudHandler::getAll);
+        staticInstance().post(path, crudHandler::create);
+        staticInstance().get(idPath(path), crudHandler::getOne);
+        staticInstance().patch(idPath(path), crudHandler::update);
+        staticInstance().delete(idPath(path), crudHandler::delete);
+    }
+
+    public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
+        staticInstance().get(path, crudHandler::getAll, permittedRoles);
+        staticInstance().post(path, crudHandler::create, permittedRoles);
+        staticInstance().get(idPath(path), crudHandler::getOne, permittedRoles);
+        staticInstance().patch(idPath(path), crudHandler::update, permittedRoles);
+        staticInstance().delete(idPath(path), crudHandler::delete, permittedRoles);
+    }
+
+    private static String idPath(@NotNull String path) {
+        return path + "/:" + path + "-id";
+    }
+
+    public interface CrudHandler {
+        void getAll(Context ctx);
+        void getOne(Context ctx);
+        void create(Context ctx);
+        void update(Context ctx);
+        void delete(Context ctx);
+    }
+
 }
