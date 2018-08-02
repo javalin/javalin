@@ -52,6 +52,14 @@ class TestRouting {
     }
 
     @Test
+    fun `urls are case insensitive by default`() = TestUtil.test { app, http ->
+        app.get("/my-url") { ctx -> ctx.result("OK") }
+        assertThat(http.getBody("/my-url"), `is`("OK"))
+        assertThat(http.getBody("/My-UrL"), `is`("OK"))
+        assertThat(http.getBody("/MY-URL"), `is`("OK"))
+    }
+
+    @Test
     fun `case sensitive urls work`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
         app.get("/My-Url") { ctx -> ctx.result("OK") }
         assertThat(http.getBody("/MY-URL"), `is`("Not found"))
