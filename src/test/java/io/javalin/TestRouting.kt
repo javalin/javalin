@@ -47,12 +47,12 @@ class TestRouting {
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `urls must be lowercase insensitive by default`() = TestUtil.test { app, http ->
+    fun `urls must be lowercase by default`() = TestUtil.test { app, http ->
         app.get("/My-Url") { ctx -> ctx.result("OK") }
     }
 
     @Test
-    fun `case sensitive urls work`() = TestUtil.test(Javalin.create().enableCaseSensitiveUrls()) { app, http ->
+    fun `case sensitive urls work`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
         app.get("/My-Url") { ctx -> ctx.result("OK") }
         assertThat(http.getBody("/MY-URL"), `is`("Not found"))
         assertThat(http.getBody("/My-Url"), `is`("OK"))
@@ -60,8 +60,8 @@ class TestRouting {
 
     @Test
     fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
-        app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
-        assertThat(http.getBody("/path-param/Path/Splat"), `is`("path-paramsplat"))
+        app.get("/path/:path-param/*") { ctx -> ctx.result("/" + ctx.pathParam("path-param") + "/" + ctx.splat(0)) }
+        assertThat(http.getBody("/PATH/P/S"), `is`("/P/S"))
     }
 
     @Test
@@ -73,12 +73,6 @@ class TestRouting {
 
     @Test
     fun `utf-8 encoded path-params work`() = TestUtil.test { app, http ->
-        app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST", "UTF-8")), `is`("te/st"))
-    }
-
-    @Test
-    fun `utf-8 encoded path-params work case sensitive`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST", "UTF-8")), `is`("TE/ST"))
     }
@@ -103,13 +97,7 @@ class TestRouting {
     }
 
     @Test
-    fun `path-param values are lowercased by default`() = TestUtil.test { app, http ->
-        app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        assertThat(http.getBody("/SomeCamelCasedValue"), `is`("somecamelcasedvalue"))
-    }
-
-    @Test
-    fun `path-param values work case sensitive`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
+    fun `path-param values retain their casing`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/SomeCamelCasedValue"), `is`("SomeCamelCasedValue"))
     }
