@@ -357,19 +357,19 @@ public class ApiBuilder {
     /////////////////////////////////////////////////////////////
 
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler) {
-        staticInstance().get(path, crudHandler::getAll);
-        staticInstance().post(path, crudHandler::create);
-        staticInstance().get(idPath(path), crudHandler::getOne);
-        staticInstance().patch(idPath(path), crudHandler::update);
-        staticInstance().delete(idPath(path), crudHandler::delete);
+        staticInstance().get(prefixPath(path), crudHandler::getAll);
+        staticInstance().post(prefixPath(path), crudHandler::create);
+        staticInstance().get(prefixPath(idPath(path)), crudHandler::getOne);
+        staticInstance().patch(prefixPath(idPath(path)), crudHandler::update);
+        staticInstance().delete(prefixPath(idPath(path)), crudHandler::delete);
     }
 
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().get(path, crudHandler::getAll, permittedRoles);
-        staticInstance().post(path, crudHandler::create, permittedRoles);
-        staticInstance().get(idPath(path), crudHandler::getOne, permittedRoles);
-        staticInstance().patch(idPath(path), crudHandler::update, permittedRoles);
-        staticInstance().delete(idPath(path), crudHandler::delete, permittedRoles);
+        staticInstance().get(prefixPath(path), crudHandler::getAll, permittedRoles);
+        staticInstance().post(prefixPath(path), crudHandler::create, permittedRoles);
+        staticInstance().get(prefixPath(idPath(path)), crudHandler::getOne, permittedRoles);
+        staticInstance().patch(prefixPath(idPath(path)), crudHandler::update, permittedRoles);
+        staticInstance().delete(prefixPath(idPath(path)), crudHandler::delete, permittedRoles);
     }
 
     private static String idPath(@NotNull String path) {
