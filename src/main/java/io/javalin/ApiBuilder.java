@@ -13,7 +13,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -53,7 +52,7 @@ public class ApiBuilder {
     }
 
     private static String prefixPath(@NotNull String path) {
-        return pathDeque.stream().collect(Collectors.joining("")) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
+        return String.join("", pathDeque) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
     }
 
     private static Javalin staticInstance() {
@@ -63,7 +62,9 @@ public class ApiBuilder {
         return staticJavalin;
     }
 
+    /////////////////////////////////////////////////////////////
     // HTTP verbs
+    /////////////////////////////////////////////////////////////
 
     /**
      * Adds a GET request handler for the specified path to the {@link Javalin} instance.
@@ -74,70 +75,6 @@ public class ApiBuilder {
     public static void get(@NotNull String path, @NotNull Handler handler) {
         staticInstance().get(prefixPath(path), handler);
     }
-
-    /**
-     * Adds a POST request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void post(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().post(prefixPath(path), handler);
-    }
-
-    /**
-     * Adds a PUT request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void put(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().put(prefixPath(path), handler);
-    }
-
-    /**
-     * Adds a PATCH request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void patch(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().patch(prefixPath(path), handler);
-    }
-
-    /**
-     * Adds a DELETE request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void delete(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().delete(prefixPath(path), handler);
-    }
-
-    // Filters
-
-    /**
-     * Adds a BEFORE request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
-     */
-    public static void before(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().before(prefixPath(path), handler);
-    }
-
-    /**
-     * Adds an AFTER request handler for the specified path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
-     */
-    public static void after(@NotNull String path, @NotNull Handler handler) {
-        staticInstance().after(prefixPath(path), handler);
-    }
-
-    // Secured HTTP verbs
 
     /**
      * Adds a GET request handler with the given roles for the specified path to the instance.
@@ -152,56 +89,6 @@ public class ApiBuilder {
     }
 
     /**
-     * Adds a POST request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().post(prefixPath(path), handler, permittedRoles);
-    }
-
-    /**
-     * Adds a PUT request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().put(prefixPath(path), handler, permittedRoles);
-    }
-
-    /**
-     * Adds a PATCH request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().patch(prefixPath(path), handler, permittedRoles);
-    }
-
-    /**
-     * Adds a DELETE request handler with the given roles for the specified path to the instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().delete(prefixPath(path), handler, permittedRoles);
-    }
-
-    // HTTP verbs (no path specified)
-
-    /**
      * Adds a GET request handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
@@ -209,68 +96,6 @@ public class ApiBuilder {
      */
     public static void get(@NotNull Handler handler) {
         staticInstance().get(prefixPath(""), handler);
-    }
-
-    /**
-     * Adds a POST request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void post(@NotNull Handler handler) {
-        staticInstance().post(prefixPath(""), handler);
-    }
-
-    /**
-     * Adds a PUT request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void put(@NotNull Handler handler) {
-        staticInstance().put(prefixPath(""), handler);
-    }
-
-    /**
-     * Adds a PATCH request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void patch(@NotNull Handler handler) {
-        staticInstance().patch(prefixPath(""), handler);
-    }
-
-    /**
-     * Adds a DELETE request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void delete(@NotNull Handler handler) {
-        staticInstance().delete(prefixPath(""), handler);
-    }
-
-    // Filters
-
-    /**
-     * Adds a BEFORE request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void before(@NotNull Handler handler) {
-        staticInstance().before(prefixPath("/*"), handler);
-    }
-
-    /**
-     * Adds a AFTER request handler for the current path to the {@link Javalin} instance.
-     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public static void after(@NotNull Handler handler) {
-        staticInstance().after(prefixPath("/*"), handler);
     }
 
     /**
@@ -286,6 +111,38 @@ public class ApiBuilder {
     }
 
     /**
+     * Adds a POST request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void post(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().post(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a POST request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
+        staticInstance().post(prefixPath(path), handler, permittedRoles);
+    }
+
+    /**
+     * Adds a POST request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void post(@NotNull Handler handler) {
+        staticInstance().post(prefixPath(""), handler);
+    }
+
+    /**
      * Adds a POST request handler with the given roles for the current path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
@@ -295,6 +152,38 @@ public class ApiBuilder {
      */
     public static void post(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().post(prefixPath(""), handler, permittedRoles);
+    }
+
+    /**
+     * Adds a PUT request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void put(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().put(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a PUT request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
+        staticInstance().put(prefixPath(path), handler, permittedRoles);
+    }
+
+    /**
+     * Adds a PUT request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void put(@NotNull Handler handler) {
+        staticInstance().put(prefixPath(""), handler);
     }
 
     /**
@@ -310,6 +199,38 @@ public class ApiBuilder {
     }
 
     /**
+     * Adds a PATCH request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void patch(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().patch(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a PATCH request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
+        staticInstance().patch(prefixPath(path), handler, permittedRoles);
+    }
+
+    /**
+     * Adds a PATCH request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void patch(@NotNull Handler handler) {
+        staticInstance().patch(prefixPath(""), handler);
+    }
+
+    /**
      * Adds a PATCH request handler with the given roles for the current path to the instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
@@ -319,6 +240,38 @@ public class ApiBuilder {
      */
     public static void patch(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().patch(prefixPath(""), handler, permittedRoles);
+    }
+
+    /**
+     * Adds a DELETE request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void delete(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().delete(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a DELETE request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
+        staticInstance().delete(prefixPath(path), handler, permittedRoles);
+    }
+
+    /**
+     * Adds a DELETE request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void delete(@NotNull Handler handler) {
+        staticInstance().delete(prefixPath(""), handler);
     }
 
     /**
@@ -332,6 +285,54 @@ public class ApiBuilder {
     public static void delete(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
         staticInstance().delete(prefixPath(""), handler, permittedRoles);
     }
+
+    /////////////////////////////////////////////////////////////
+    // Filters
+    /////////////////////////////////////////////////////////////
+
+    /**
+     * Adds a BEFORE request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
+     */
+    public static void before(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().before(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a BEFORE request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void before(@NotNull Handler handler) {
+        staticInstance().before(prefixPath("/*"), handler);
+    }
+
+    /**
+     * Adds an AFTER request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
+     */
+    public static void after(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().after(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a AFTER request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void after(@NotNull Handler handler) {
+        staticInstance().after(prefixPath("/*"), handler);
+    }
+
+    /////////////////////////////////////////////////////////////
+    // WebSockets
+    /////////////////////////////////////////////////////////////
 
     /**
      * Adds a WebSocket handler on the specified path.
