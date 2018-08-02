@@ -377,11 +377,11 @@ public class ApiBuilder {
     }
 
     public interface CrudHandler {
-        void getAll(Context ctx);
-        void getOne(Context ctx);
-        void create(Context ctx);
-        void update(Context ctx);
-        void delete(Context ctx);
+        void getAll(@NotNull Context ctx);
+        void getOne(@NotNull Context ctx);
+        void create(@NotNull Context ctx);
+        void update(@NotNull Context ctx);
+        void delete(@NotNull Context ctx);
     }
 
 }
