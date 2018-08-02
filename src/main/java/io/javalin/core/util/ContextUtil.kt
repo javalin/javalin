@@ -29,7 +29,7 @@ object ContextUtil {
     }
 
     fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
-            pathParams[key.toLowerCase().replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
+            pathParams[key.replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 

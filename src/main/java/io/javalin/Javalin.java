@@ -459,7 +459,7 @@ public class Javalin {
     }
 
     private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
-        String prefixedPath = caseSensitiveUrls ? Util.prefixContextPath(contextPath, path) : Util.prefixContextPath(contextPath, path).toLowerCase();
+        String prefixedPath = Util.prefixContextPath(contextPath, path);
         Handler protectedHandler = handlerType.isHttpMethod() ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
         pathMatcher.add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler, caseSensitiveUrls));
         handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
@@ -707,10 +707,10 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
-        String prefixedPath = caseSensitiveUrls ? Util.prefixContextPath(contextPath, path) : Util.prefixContextPath(contextPath, path).toLowerCase();
+        String prefixedPath = Util.prefixContextPath(contextPath, path);
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
-        wsPathMatcher.getWsEntries().add(new WsEntry(prefixedPath, configuredWebSocket, caseSensitiveUrls));
+        wsPathMatcher.add(new WsEntry(prefixedPath, configuredWebSocket, caseSensitiveUrls));
         handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, prefixedPath, ws, new HashSet<>()));
         return this;
     }

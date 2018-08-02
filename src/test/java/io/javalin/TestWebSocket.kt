@@ -200,11 +200,14 @@ class TestWebSocket {
         assertThat(queryParams, contains("1", "2"))
     }
 
-    @Test
-    fun `routing and path-params case insensitive by default() work`() = TestUtil.test { app, _ ->
+    @Test(expected = IllegalArgumentException::class)
+    fun `paths must be lowercase by default`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PaTh/my-PARAM")))
-        assertThat(log, containsInAnyOrder("my-param"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `path-params must be lowercase by default`() = TestUtil.test { app, _ ->
+        app.ws("/path/:Param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
     }
 
     @Test

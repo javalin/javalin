@@ -30,6 +30,13 @@ class WsPathMatcher {
     private val sessionIds = ConcurrentHashMap<Session, String>()
     private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
+    fun add(wsEntry: WsEntry) {
+        if (!wsEntry.caseSensitiveUrls && wsEntry.path != wsEntry.path.toLowerCase()) {
+            throw IllegalArgumentException("By default URLs must be lowercase. Change casing or call `app.enableCaseSensitiveUrls()` to allow mixed casing.")
+        }
+        wsEntries.add(wsEntry)
+    }
+
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
         findEntry(session)?.let { it.handler.connectHandler?.handle(wrap(session, it)) }

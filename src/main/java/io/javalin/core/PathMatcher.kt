@@ -39,7 +39,7 @@ class PathParser(
     fun matches(url: String) = url.lowerCaseIfNot(caseSensitive) matches matchRegex
 
     fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url.lowerCaseIfNot(caseSensitive))) { name, value ->
-        name.toLowerCase() to urlDecode(value)
+        name to urlDecode(value)
     }.toMap()
 
     fun extractSplats(url: String) = values(splatRegex, url.lowerCaseIfNot(caseSensitive)).map { urlDecode(it) }
@@ -58,6 +58,9 @@ class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
     }
 
     fun add(entry: HandlerEntry) {
+        if (!entry.caseSensitiveUrls && entry.path != entry.path.toLowerCase()) {
+            throw IllegalArgumentException("By default URLs must be lowercase. Change casing or call `app.enableCaseSensitiveUrls()` to allow mixed casing.")
+        }
         if (entry.type.isHttpMethod() && handlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
             throw IllegalArgumentException("Handler with type='${entry.type}' and path='${entry.path}' already exists.")
         }
