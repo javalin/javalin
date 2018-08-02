@@ -357,23 +357,19 @@ public class ApiBuilder {
     /////////////////////////////////////////////////////////////
 
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler) {
-        staticInstance().get(prefixPath(path), crudHandler::getAll);
-        staticInstance().post(prefixPath(path), crudHandler::create);
-        staticInstance().get(prefixPath(idPath(path)), crudHandler::getOne);
-        staticInstance().patch(prefixPath(idPath(path)), crudHandler::update);
-        staticInstance().delete(prefixPath(idPath(path)), crudHandler::delete);
+        staticInstance().get(prefixPath(path.split("/")[0]), crudHandler::getAll);
+        staticInstance().post(prefixPath(path.split("/")[0]), crudHandler::create);
+        staticInstance().get(prefixPath(path), crudHandler::getOne);
+        staticInstance().patch(prefixPath(path), crudHandler::update);
+        staticInstance().delete(prefixPath(path), crudHandler::delete);
     }
 
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().get(prefixPath(path), crudHandler::getAll, permittedRoles);
-        staticInstance().post(prefixPath(path), crudHandler::create, permittedRoles);
-        staticInstance().get(prefixPath(idPath(path)), crudHandler::getOne, permittedRoles);
-        staticInstance().patch(prefixPath(idPath(path)), crudHandler::update, permittedRoles);
-        staticInstance().delete(prefixPath(idPath(path)), crudHandler::delete, permittedRoles);
-    }
-
-    private static String idPath(@NotNull String path) {
-        return path + "/:" + path + "-id";
+        staticInstance().get(prefixPath(path.split("/")[0]), crudHandler::getAll, permittedRoles);
+        staticInstance().post(prefixPath(path.split("/")[0]), crudHandler::create, permittedRoles);
+        staticInstance().get(prefixPath(path), crudHandler::getOne, permittedRoles);
+        staticInstance().patch(prefixPath(path), crudHandler::update, permittedRoles);
+        staticInstance().delete(prefixPath(path), crudHandler::delete, permittedRoles);
     }
 
     public interface CrudHandler {
