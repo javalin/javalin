@@ -10,8 +10,8 @@ import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
 import java.util.*
 
-data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler, val rawHandler: Handler) {
-    private val pathParser = PathParser(path)
+data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler, val rawHandler: Handler, val caseSensitiveUrls: Boolean) {
+    private val pathParser = PathParser(path, caseSensitiveUrls)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
     fun extractSplats(requestUri: String) = pathParser.extractSplats(requestUri)
@@ -19,6 +19,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
 class PathParser(
         path: String,
+        private val caseSensitive: Boolean,
         private val pathParamNames: List<String> = path.split("/")
                 .filter { it.startsWith(":") }
                 .map { it.replace(":", "") },
@@ -35,16 +36,18 @@ class PathParser(
         private val splatRegex: Regex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex(),
         private val pathParamRegex: Regex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()) {
 
-    fun matches(url: String) = url matches matchRegex
+    fun matches(url: String) = url.lowerCaseIfNot(caseSensitive) matches matchRegex
 
-    fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
+    fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url.lowerCaseIfNot(caseSensitive))) { name, value ->
         name.toLowerCase() to urlDecode(value)
     }.toMap()
 
-    fun extractSplats(url: String) = values(splatRegex, url).map { urlDecode(it) }
+    fun extractSplats(url: String) = values(splatRegex, url.lowerCaseIfNot(caseSensitive)).map { urlDecode(it) }
 
     // Match and group values, then drop first element (the input string)
     private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
+
+    private fun String.lowerCaseIfNot(caseSensitive: Boolean) = this.let { if (caseSensitive) it else it.toLowerCase() }
 
 }
 
