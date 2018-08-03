@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.core.util.Header
+import io.javalin.core.util.OptionalDependency
 import io.javalin.util.TestUtil
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.containsString
@@ -30,8 +31,8 @@ class TestSinglePageMode {
     @Test
     fun `SinglePageHandler doesn't affect static files`() = TestUtil.test(rootSinglePageApp) { app, http ->
         assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE), containsString("application/javascript"))
-        assertThat(http.htmlGet("/webjars/swagger-ui/3.17.1/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
-        assertThat(http.htmlGet("/webjars/swagger-ui/3.17.1/swagger-ui.css").status, `is`(200))
+        assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
+        assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status, `is`(200))
     }
 
     @Test
