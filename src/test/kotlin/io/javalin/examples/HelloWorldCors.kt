@@ -6,8 +6,8 @@
 
 package io.javalin.examples
 
-import io.javalin.ApiBuilder.*
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.*
 
 fun main(args: Array<String>) {
 

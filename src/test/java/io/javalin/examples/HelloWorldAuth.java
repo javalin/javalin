@@ -9,18 +9,14 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.security.Role;
-import static io.javalin.ApiBuilder.get;
-import static io.javalin.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO;
 import static io.javalin.security.SecurityUtil.roles;
 
 public class HelloWorldAuth {
-
-    enum MyRoles implements Role {
-        ROLE_ONE, ROLE_TWO, ROLE_THREE
-    }
 
     public static void main(String[] args) {
         Javalin.create()
@@ -43,6 +39,10 @@ public class HelloWorldAuth {
                     get("/hast", ctx -> ctx.status(200).result("Hello World 5").header("test", "tast"), roles(ROLE_ONE, ROLE_THREE));
                 });
             });
+    }
+
+    enum MyRoles implements Role {
+        ROLE_ONE, ROLE_TWO, ROLE_THREE
     }
 
 }

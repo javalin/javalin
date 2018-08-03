@@ -9,7 +9,9 @@ package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
-import io.javalin.ApiBuilder.*
+import io.javalin.apibuilder.ApiBuilder
+import io.javalin.apibuilder.ApiBuilder.*
+import io.javalin.apibuilder.CrudHandler
 import io.javalin.util.TestUtil
 import io.javalin.util.TestUtil.okHandler
 import org.hamcrest.CoreMatchers
@@ -134,41 +136,40 @@ class TestApiBuilder {
         }
         assertThat(Unirest.get(http.origin + "/users").asString().body, `is`("All my users"))
         assertThat(Unirest.post(http.origin + "/users").asString().status, `is`(201))
-        assertThat(Unirest.get(http.origin + "/users/myUser").asString().body, `is`("My single user"))
+        assertThat(Unirest.get(http.origin + "/users/myUser").asString().body, `is`("My single user: myUser"))
         assertThat(Unirest.patch(http.origin + "/users/myUser").asString().status, `is`(204))
         assertThat(Unirest.delete(http.origin + "/users/myUser").asString().status, `is`(204))
 
         assertThat(Unirest.get(http.origin + "/s/users").asString().body, `is`("All my users"))
         assertThat(Unirest.post(http.origin + "/s/users").asString().status, `is`(201))
-        assertThat(Unirest.get(http.origin + "/s/users/myUser").asString().body, `is`("My single user"))
+        assertThat(Unirest.get(http.origin + "/s/users/myUser").asString().body, `is`("My single user: myUser"))
         assertThat(Unirest.patch(http.origin + "/s/users/myUser").asString().status, `is`(204))
         assertThat(Unirest.delete(http.origin + "/s/users/myUser").asString().status, `is`(204))
     }
 
-    class UserController : ApiBuilder.CrudHandler {
+    class UserController : CrudHandler {
 
         override fun getAll(ctx: Context) {
             ctx.result("All my users")
         }
 
-        override fun getOne(ctx: Context) {
-            ctx.result("My single user")
+        override fun getOne(ctx: Context, userId: String) {
+            ctx.result("My single user: $userId")
         }
 
         override fun create(ctx: Context) {
             ctx.status(201)
         }
 
-        override fun update(ctx: Context) {
+        override fun update(ctx: Context, userId: String) {
             ctx.status(204)
         }
 
-        override fun delete(ctx: Context) {
+        override fun delete(ctx: Context, userId: String) {
             ctx.status(204)
         }
 
     }
-
 
 }
 

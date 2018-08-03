@@ -19,12 +19,6 @@ public class TestRouteOverview_Java {
     private static Handler lambdaField = ctx -> {
     };
 
-    private static class ImplementingClass implements Handler {
-        @Override
-        public void handle(Context context) {
-        }
-    }
-
     private void methodReference(Context context) {
     }
 
@@ -47,6 +41,12 @@ public class TestRouteOverview_Java {
     @Test
     public void lambda_works() {
         assertThat(RouteOverviewUtil.getMetaInfo((Handler) (ctx -> ctx.result(""))), is("io.javalin.routeoverview.TestRouteOverview_Java::??? (anonymous lambda)"));
+    }
+
+    private static class ImplementingClass implements Handler {
+        @Override
+        public void handle(Context context) {
+        }
     }
 
 }

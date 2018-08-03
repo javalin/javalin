@@ -6,11 +6,11 @@
 
 package io.javalin.examples
 
-import io.javalin.ApiBuilder.get
-import io.javalin.ApiBuilder.path
 import io.javalin.Context
 import io.javalin.Handler
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.examples.HelloWorldAuth.MyRoles.*
 import io.javalin.security.Role
 import io.javalin.security.SecurityUtil.roles
