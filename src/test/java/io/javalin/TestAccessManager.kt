@@ -8,9 +8,9 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
-import io.javalin.ApiBuilder.get
 import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
+import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.security.AccessManager
 import io.javalin.security.Role
 import io.javalin.security.SecurityUtil.roles

@@ -4,13 +4,16 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin;
+package io.javalin.apibuilder;
 
+import io.javalin.Handler;
+import io.javalin.Javalin;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -22,21 +25,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    @FunctionalInterface
-    public interface EndpointGroup {
-        void addEndpoints();
-    }
+    private static Javalin staticJavalin;
+    private static Deque<String> pathDeque = new ArrayDeque<>();
 
-    static void setStaticJavalin(@NotNull Javalin javalin) {
+    public static void setStaticJavalin(@NotNull Javalin javalin) {
         staticJavalin = javalin;
     }
 
-    static void clearStaticJavalin() {
+    public static void clearStaticJavalin() {
         staticJavalin = null;
     }
-
-    private static Javalin staticJavalin;
-    private static Deque<String> pathDeque = new ArrayDeque<>();
 
     /**
      * Prefixes all handlers defined in its scope with the specified path.
@@ -350,6 +348,24 @@ public class ApiBuilder {
      */
     public static void ws(@NotNull Consumer<WsHandler> ws) {
         staticInstance().ws(prefixPath(""), ws);
+    }
+
+    /////////////////////////////////////////////////////////////
+    // CrudHandler
+    /////////////////////////////////////////////////////////////
+
+    public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler) {
+       ApiBuilder.crud(path, crudHandler, new HashSet<>());
+    }
+
+    public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
+        String resourceBase = path.split("/")[0];
+        String resourceId = path.split("/")[1];
+        staticInstance().get(prefixPath(resourceBase), crudHandler::getAll, permittedRoles);
+        staticInstance().post(prefixPath(resourceBase), crudHandler::create, permittedRoles);
+        staticInstance().get(prefixPath(path), ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), permittedRoles);
+        staticInstance().patch(prefixPath(path), ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), permittedRoles);
+        staticInstance().delete(prefixPath(path), ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), permittedRoles);
     }
 
 }

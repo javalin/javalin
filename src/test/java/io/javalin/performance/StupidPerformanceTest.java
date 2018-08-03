@@ -18,22 +18,21 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
-import static io.javalin.ApiBuilder.after;
-import static io.javalin.ApiBuilder.before;
-import static io.javalin.ApiBuilder.delete;
-import static io.javalin.ApiBuilder.get;
-import static io.javalin.ApiBuilder.patch;
-import static io.javalin.ApiBuilder.path;
-import static io.javalin.ApiBuilder.post;
+import static io.javalin.apibuilder.ApiBuilder.after;
+import static io.javalin.apibuilder.ApiBuilder.before;
+import static io.javalin.apibuilder.ApiBuilder.delete;
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.patch;
+import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
 @BenchmarkOptions(benchmarkRounds = 40000, warmupRounds = 5000, concurrency = 4, clock = Clock.NANO_TIME)
 public class StupidPerformanceTest {
 
-    @Rule
-    public TestRule benchmarkRun = new BenchmarkRule();
-
     private static Javalin app;
     private static String origin;
+    @Rule
+    public TestRule benchmarkRun = new BenchmarkRule();
 
     @AfterClass
     public static void tearDown() {

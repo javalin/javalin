@@ -7,6 +7,8 @@
 
 package io.javalin;
 
+import io.javalin.apibuilder.ApiBuilder;
+import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.core.ErrorMapper;
 import io.javalin.core.EventManager;
 import io.javalin.core.ExceptionMapper;
@@ -451,7 +453,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#handler-groups">Handler groups in documentation</a>
      * @see ApiBuilder
      */
-    public Javalin routes(@NotNull ApiBuilder.EndpointGroup endpointGroup) {
+    public Javalin routes(@NotNull EndpointGroup endpointGroup) {
         ApiBuilder.setStaticJavalin(this);
         endpointGroup.addEndpoints();
         ApiBuilder.clearStaticJavalin();

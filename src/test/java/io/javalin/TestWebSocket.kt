@@ -7,7 +7,7 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
-import io.javalin.ApiBuilder.ws
+import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.util.TestUtil
 import io.javalin.websocket.WsSession
 import org.hamcrest.CoreMatchers.`is`

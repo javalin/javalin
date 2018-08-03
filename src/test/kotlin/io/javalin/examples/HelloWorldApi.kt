@@ -6,9 +6,9 @@
 
 package io.javalin.examples
 
-import io.javalin.ApiBuilder.get
-import io.javalin.ApiBuilder.path
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.path
 
 fun main(args: Array<String>) {
 

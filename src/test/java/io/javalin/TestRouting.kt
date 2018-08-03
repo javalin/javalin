@@ -7,8 +7,8 @@
 
 package io.javalin
 
-import io.javalin.ApiBuilder.get
-import io.javalin.ApiBuilder.path
+import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.util.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
