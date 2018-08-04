@@ -355,7 +355,7 @@ public class ApiBuilder {
     /////////////////////////////////////////////////////////////
 
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler) {
-       ApiBuilder.crud(path, crudHandler, new HashSet<>());
+        ApiBuilder.crud(path, crudHandler, new HashSet<>());
     }
 
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
