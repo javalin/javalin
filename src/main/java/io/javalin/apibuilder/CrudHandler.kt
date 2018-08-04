@@ -8,6 +8,12 @@ package io.javalin.apibuilder
 
 import io.javalin.Context
 
+/**
+ * The CrudHandler is an interface for handling the five most
+ * common CRUD operations. It's only available through the ApiBuilder.
+ *
+ * @see ApiBuilder
+ */
 interface CrudHandler {
     fun getAll(ctx: Context)
     fun getOne(ctx: Context, resourceId: String)

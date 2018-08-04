@@ -130,8 +130,8 @@ class TestApiBuilder {
     fun `CrudHandler works`() = TestUtil.test { app, http ->
         app.routes {
             crud("users/:user-id", UserController())
-            path("s") {
-                crud("users/:user-id", UserController())
+            path("/s") {
+                crud("/users/:user-id", UserController())
             }
         }
         assertThat(Unirest.get(http.origin + "/users").asString().body, `is`("All my users"))

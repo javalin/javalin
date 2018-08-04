@@ -354,10 +354,20 @@ public class ApiBuilder {
     // CrudHandler
     /////////////////////////////////////////////////////////////
 
+    /**
+     * Adds a CrudHandler handler to the specified path to the instance.
+     *
+     * @see CrudHandler
+     */
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler) {
         ApiBuilder.crud(path, crudHandler, new HashSet<>());
     }
 
+    /**
+     * Adds a CrudHandler handler to the specified path with the given roles to the instance.
+     *
+     * @see CrudHandler
+     */
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
         path = path.startsWith("/") ? path : "/" + path;
         String resourceBase = path.split("/")[1];
