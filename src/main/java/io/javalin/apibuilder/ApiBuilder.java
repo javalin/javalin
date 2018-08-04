@@ -359,8 +359,9 @@ public class ApiBuilder {
     }
 
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
-        String resourceBase = path.split("/")[0];
-        String resourceId = path.split("/")[1];
+        path = path.startsWith("/") ? path : "/" + path;
+        String resourceBase = path.split("/")[1];
+        String resourceId = path.split("/")[2];
         staticInstance().get(prefixPath(resourceBase), crudHandler::getAll, permittedRoles);
         staticInstance().post(prefixPath(resourceBase), crudHandler::create, permittedRoles);
         staticInstance().get(prefixPath(path), ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), permittedRoles);
