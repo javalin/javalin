@@ -17,7 +17,7 @@ class SwaggerRenderer(val filePath: String) : Handler {
     private val swaggerVersion = OptionalDependency.SWAGGERUI.version
 
     override fun handle(ctx: Context) {
-        if (Util.getResource("META-INF/resources/webjars/swagger-ui/3.17.1/swagger-ui.css") == null) {
+        if (Util.getResource("META-INF/resources/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css") == null) {
             log.warn(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
             throw InternalServerErrorResponse(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
         }
