@@ -28,4 +28,10 @@ object JavalinJson {
         override fun map(obj: Any): String = JavalinJackson.toJson(obj)
     }
 
+    @JvmStatic
+    fun toJson(obj: Any) = toJsonMapper.map(obj)
+
+    @JvmStatic
+    fun <T> fromJson(json: String, targetClass: Class<T>) = fromJsonMapper.map(json, targetClass)
+
 }

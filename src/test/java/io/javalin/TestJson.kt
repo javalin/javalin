@@ -110,4 +110,12 @@ class TestJson {
         assertThat(http.post("/").body(gson.toJson(SerializeableObject())).asString().body, `is`("success"))
     }
 
+    @Test
+    fun `can use JavalinJson as an object-mapper`() {
+        val mapped = JavalinJson.toJson(SerializeableObject())
+        val mappedBack = JavalinJson.fromJson(mapped, SerializeableObject::class.java)
+        assertThat(SerializeableObject().value1, `is`(mappedBack.value1))
+        assertThat(SerializeableObject().value2, `is`(mappedBack.value2))
+    }
+
 }
