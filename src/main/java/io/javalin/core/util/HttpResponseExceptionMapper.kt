@@ -27,7 +27,7 @@ object HttpResponseExceptionMapper {
             ctx.status(e.status).result("""{
                 |    "title": "${e.msg}",
                 |    "status": ${e.status},
-                |    "type": "${getTypeUrl(e)}",
+                |    "type": "${getTypeUrl(e).toLowerCase()}",
                 |    "details": ${e.details.map { """{"${it.key}": "${it.value}"}""" }}
                 |}""".trimMargin()
             ).contentType("application/json")

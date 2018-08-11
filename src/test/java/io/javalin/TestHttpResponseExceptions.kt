@@ -52,7 +52,7 @@ class TestHttpResponseExceptions {
         assertThat(response.body, `is`("""{
                 |    "title": "Off limits!",
                 |    "status": 403,
-                |    "type": "https://javalin.io/documentation#ForbiddenResponse",
+                |    "type": "https://javalin.io/documentation#forbiddenresponse",
                 |    "details": []
                 |}""".trimMargin()
         ))
