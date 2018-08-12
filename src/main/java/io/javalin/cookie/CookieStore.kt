@@ -1,9 +1,6 @@
 package io.javalin.cookie
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import io.javalin.json.JavalinJson
 import java.util.*
 import javax.servlet.http.Cookie
 
@@ -26,14 +23,8 @@ class CookieStore(cookie: String?) {
 
     @Suppress("UNCHECKED_CAST")
     private fun deserialize(cookie: String?) = if (!cookie.isNullOrEmpty()) {
-        ObjectInputStream(ByteArrayInputStream(
-                Base64.getDecoder().decode(cookie)
-        )).readObject() as MutableMap<String, Any>
+        JavalinJson.fromJson(String(Base64.getDecoder().decode(cookie)), Map::class.java) as MutableMap<String, Any>
     } else mutableMapOf()
 
-    private fun serialize(map: MutableMap<String, Any>): String {
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        ObjectOutputStream(byteArrayOutputStream).writeObject(map)
-        return Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray())
-    }
+    private fun serialize(map: MutableMap<String, Any>) = Base64.getEncoder().encodeToString(JavalinJson.toJson(map).toByteArray())
 }

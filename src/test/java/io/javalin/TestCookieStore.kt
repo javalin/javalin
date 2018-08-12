@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import io.javalin.misc.SerializeableObject
 import io.javalin.rendering.template.TemplateUtil
 import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
@@ -18,9 +17,9 @@ class TestCookieStore {
 
     @Test
     fun `cookieStore() works between two handlers`() = TestUtil.test { app, http ->
-        app.get("/cookie-store") { ctx -> ctx.cookieStore("test-object", SerializeableObject()) }
+        app.get("/cookie-store") { ctx -> ctx.cookieStore("test-object", 123) }
         app.after("/cookie-store") { ctx ->
-            if (ctx.cookieStore<Any>("test-object") is SerializeableObject) {
+            if (ctx.cookieStore<Any>("test-object") is Int) {
                 ctx.result("Got stored value from different handler")
             }
         }
@@ -29,7 +28,7 @@ class TestCookieStore {
 
     @Test
     fun `cookieStore() can be cleared`() = TestUtil.test { app, http ->
-        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", SerializeableObject()) }
+        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 123) }
         app.get("/cookie-clearer") { it.clearCookieStore() }
         app.get("/cookie-checker") { ctx -> ctx.result("stored: " + ctx.cookie("javalin-cookie-store")) }
         http.getBody("/cookie-storer")
@@ -39,9 +38,9 @@ class TestCookieStore {
 
     @Test
     fun `cookieStore() works between two requests`() = TestUtil.test { app, http ->
-        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", SerializeableObject()) }
+        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 123) }
         app.get("/cookie-reader") { ctx ->
-            if (ctx.cookieStore<Any>("test-object") is SerializeableObject) {
+            if (ctx.cookieStore<Any>("test-object") is Int) {
                 ctx.result("Got stored value from different request")
             }
         }
@@ -49,22 +48,9 @@ class TestCookieStore {
         assertThat(http.getBody("/cookie-reader"), `is`("Got stored value from different request"))
     }
 
-    @Test // TODO: Find out what this tests
-    fun `cookieStore() works between two request with state overwrite`() = TestUtil.test { app, http ->
-        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", SerializeableObject()) }
-        app.after("/cookie-storer") { ctx -> ctx.cookieStore("test-object-2", SerializeableObject()) }
-        app.get("/cookie-reader") { ctx ->
-            if (ctx.cookieStore<Any>("test-object") is SerializeableObject && ctx.cookieStore<Any>("test-object-2") is SerializeableObject) {
-                ctx.result("Got stored value from two different handlers on different request")
-            }
-        }
-        http.getBody("/cookie-storer")
-        assertThat(http.getBody("/cookie-reader"), `is`("Got stored value from two different handlers on different request"))
-    }
-
-    @Test // TODO: Find out what this tests
+    @Test
     fun `cookieStore() works between two request with object overwrite`() = TestUtil.test { app, http ->
-        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", SerializeableObject()) }
+        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 1) }
         app.get("/cookie-overwriter") { ctx -> ctx.cookieStore("test-object", "Hello world!") }
         app.get("/cookie-reader") { ctx ->
             if ("Hello world!" == ctx.cookieStore<Any>("test-object")) {
