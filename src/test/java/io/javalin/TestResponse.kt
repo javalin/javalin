@@ -53,12 +53,12 @@ class TestResponse {
 
     @Test
     fun `setting an InputStream result works and InputStream is closed`() = TestUtil.test { app, http ->
-        val path = "src/test/my-file.txt";
+        val path = "src/test/my-file.txt"
         File(path).printWriter().use { out ->
             out.print("Hello, World!")
         }
         app.get("/file") { ctx ->
-            ctx.result(FileUtils.openInputStream(File(path)));
+            ctx.result(FileUtils.openInputStream(File(path)))
         }
         assertThat(http.getBody("/file"), `is`("Hello, World!"))
         assertThat(File(path).delete(), `is`(true))

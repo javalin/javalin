@@ -76,11 +76,11 @@ object JettyServerUtil {
 
         val notFoundHandler = object : SessionHandler() {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                val msg = "Not found. Request is below context-path (context-path: '${contextPath}')"
+                val msg = "Not found. Request is below context-path (context-path: '$contextPath')"
                 response.status = 404
                 ByteArrayInputStream(msg.toByteArray()).copyTo(response.outputStream)
                 response.outputStream.close()
-                log.warn("Received a request below context-path (context-path: '${contextPath}'). Returned 404.")
+                log.warn("Received a request below context-path (context-path: '$contextPath'). Returned 404.")
             }
         }
 

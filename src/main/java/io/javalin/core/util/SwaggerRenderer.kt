@@ -36,7 +36,7 @@ class SwaggerRenderer(val filePath: String) : Handler {
                 <div id="swagger-ui"></div>
                 <script>
                     window.ui = SwaggerUIBundle({
-                        url: "${ctx.matchedPath}?spec=${filePath}",
+                        url: "${ctx.matchedPath}?spec=$filePath",
                         dom_id: "#swagger-ui",
                         deepLinking: true,
                         presets: [SwaggerUIBundle.presets.apis],
