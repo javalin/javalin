@@ -31,12 +31,10 @@ object JavalinThymeleaf : FileRenderer {
         return templateEngine!!.process(filePath, context)
     }
 
-    private fun defaultThymeLeafEngine(): TemplateEngine {
-        val templateEngine = TemplateEngine()
-        val templateResolver = ClassLoaderTemplateResolver()
-        templateResolver.templateMode = TemplateMode.HTML
-        templateEngine.setTemplateResolver(templateResolver)
-        return templateEngine
+    private fun defaultThymeLeafEngine() = TemplateEngine().apply {
+        setTemplateResolver(ClassLoaderTemplateResolver().apply {
+            templateMode = TemplateMode.HTML
+        })
     }
 
 }
