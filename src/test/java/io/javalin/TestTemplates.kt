@@ -27,20 +27,28 @@ import org.junit.Test
 
 class TestTemplates {
 
+    private val defaultVelocityEngine = VelocityEngine().apply {
+        setProperty("resource.loader", "class")
+        setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
+    }
+
     @Test
     fun `velocity templates work`() = TestUtil.test { app, http ->
+        JavalinVelocity.configure(defaultVelocityEngine)
         app.get("/hello") { ctx -> ctx.render("/templates/velocity/test.vm", model("message", "Hello Velocity!")) }
         assertThat(http.getBody("/hello"), `is`("<h1>Hello Velocity!</h1>"))
     }
 
     @Test
     fun `velocity template variables work`() = TestUtil.test { app, http ->
+        JavalinVelocity.configure(defaultVelocityEngine)
         app.get("/hello") { ctx -> ctx.render("/templates/velocity/test-set.vm") }
         assertThat(http.getBody("/hello"), `is`("<h1>Set works</h1>"))
     }
 
     @Test
     fun `velocity custom engines work`() = TestUtil.test { app, http ->
+        JavalinVelocity.configure(defaultVelocityEngine)
         app.get("/hello") { ctx -> ctx.render("/templates/velocity/test.vm") }
         assertThat(http.getBody("/hello"), `is`("<h1>\$message</h1>"))
         JavalinVelocity.configure(VelocityEngine().apply {
@@ -49,6 +57,15 @@ class TestTemplates {
             setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
         })
         assertThat(http.getBody("/hello"), `is`("Internal server error"))
+    }
+
+    @Test
+    fun `velocity external templates work`() = TestUtil.test { app, http ->
+        JavalinVelocity.configure(VelocityEngine().apply {
+            setProperty("file.resource.loader.path", "src/test/resources/templates/velocity");
+        })
+        app.get("/hello") { ctx -> ctx.render("test.vm") }
+        assertThat(http.getBody("/hello"), `is`("<h1>\$message</h1>"))
     }
 
     @Test
