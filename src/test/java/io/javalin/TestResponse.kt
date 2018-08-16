@@ -13,13 +13,13 @@ import io.javalin.util.TestUtil
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.*
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
+import javax.servlet.http.Cookie
 
 class TestResponse {
 
@@ -112,6 +112,13 @@ class TestResponse {
         app.get("/get-cookie") { ctx -> ctx.result(ctx.cookie("Test")!!) }
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE), `is`("Test=Tast;Path=/"))
         assertThat(http.getBody("/get-cookie"), `is`("Tast"))
+    }
+
+    @Test
+    fun `setting a Cookie object works`() = TestUtil.test { app, http ->
+        app.get("/create-cookie") { ctx -> ctx.cookie(Cookie("Hest", "Hast").apply { maxAge = 7 }) }
+        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE), containsString("Hest=Hast"))
+        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE), containsString("Max-Age=7"))
     }
 
 }

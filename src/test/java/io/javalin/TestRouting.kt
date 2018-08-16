@@ -129,4 +129,10 @@ class TestRouting {
         assertThat(http.getBody("/test/"), `is`("test"))
     }
 
+    @Test
+    fun `getting splat-list works`() = TestUtil.test { app, http ->
+        app.get("/*/*/*") { ctx -> ctx.result(ctx.splats().toString()) }
+        assertThat(http.getBody("/1/2/3"), `is`("[1, 2, 3]"))
+    }
+
 }

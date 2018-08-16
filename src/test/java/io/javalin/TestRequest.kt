@@ -11,12 +11,13 @@ import io.javalin.core.util.Header
 import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.containsString
 import org.junit.Test
 
 class TestRequest {
 
     /*
-     * Session
+     * Session/Attributes
      */
     @Test
     fun `session-attributes work`() = TestUtil.test { app, http ->
@@ -62,6 +63,17 @@ class TestRequest {
         app.get("/read") { ctx -> ctx.result("${ctx.sessionAttribute<Any?>("tast")} and ${ctx.attribute<Any?>("test")}") }
         http.getBody("/store")
         assertThat(http.getBody("/read"), `is`("null and null"))
+    }
+
+    @Test
+    fun `attributeMap works`() = TestUtil.test { app, http ->
+        app.get("/attr-map") { ctx ->
+            ctx.attribute("test", "tast")
+            ctx.attribute("hest", "hast")
+            ctx.result(ctx.attributeMap<Any>().toString())
+        }
+        assertThat(http.getBody("/attr-map"), containsString("test=tast"))
+        assertThat(http.getBody("/attr-map"), containsString("hest=hast"))
     }
 
     /*
@@ -267,6 +279,51 @@ class TestRequest {
             ctx.result("$name|$missing")
         }
         assertThat(http.post("/").body("name=some%20name").asString().body, `is`("Internal server error"))
+    }
+
+    /**
+     * Simple proxy methods
+     */
+    @Test
+    fun `contentLength() works`() = TestUtil.test { app, http ->
+        app.post("/") { ctx -> ctx.result(ctx.contentLength().toString()) }
+        assertThat(http.post("/").body("Hello").asString().body, `is`("5"))
+    }
+
+    @Test
+    fun `host() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.host()!!) }
+        assertThat(http.getBody("/"), `is`("localhost:" + app.port()))
+    }
+
+    @Test
+    fun `ip() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.ip()) }
+        assertThat(http.getBody("/"), `is`("127.0.0.1"))
+    }
+
+    @Test
+    fun `protocol() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.protocol()) }
+        assertThat(http.getBody("/"), `is`("HTTP/1.1"))
+    }
+
+    @Test
+    fun `scheme() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.scheme()) }
+        assertThat(http.getBody("/"), `is`("http"))
+    }
+
+    @Test
+    fun `url() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.url()) }
+        assertThat(http.getBody("/"), `is`("http://localhost:" + app.port() + "/"))
+    }
+
+    @Test
+    fun `userAgent() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.userAgent()!!) }
+        assertThat(http.getBody("/"), `is`("unirest-java/1.3.11"))
     }
 
 }

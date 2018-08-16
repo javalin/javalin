@@ -11,8 +11,15 @@ import io.javalin.util.TestUtil
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.Test
+import java.io.ByteArrayInputStream
 
 class TestBodyReading {
+
+    @Test
+    fun `reading body as bytes works`() = TestUtil.test { app, http ->
+        app.post("/body-reader") { ctx -> ctx.result(ByteArrayInputStream(ctx.bodyAsBytes())) }
+        assertThat(http.post("/body-reader").body("my-body").asString().body, `is`("my-body"))
+    }
 
     @Test
     fun `reading query-params then body works`() = TestUtil.test { app, http ->
