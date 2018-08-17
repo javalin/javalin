@@ -104,10 +104,15 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `WebJars available if in POM`() = TestUtil.test { app, http ->
+    fun `WebJars available if enabled`() = TestUtil.test(Javalin.create().enableWebJars()) { app, http ->
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status, `is`(200))
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CACHE_CONTROL), `is`("max-age=31622400"))
+    }
+
+    @Test
+    fun `WebJars not available if not enabled`() = TestUtil.test { app, http ->
+        assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status, `is`(404))
     }
 
 }

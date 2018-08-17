@@ -16,7 +16,7 @@ import org.junit.Test
 
 class TestSinglePageMode {
 
-    private val rootSinglePageApp = Javalin.create().enableStaticFiles("/public").enableSinglePageMode("/", "/public/html.html")
+    private val rootSinglePageApp = Javalin.create().enableStaticFiles("/public").enableWebJars().enableSinglePageMode("/", "/public/html.html")
     private val dualSinglePageApp = Javalin.create().enableStaticFiles("/public")
             .enableSinglePageMode("/admin", "/public/protected/secret.html")
             .enableSinglePageMode("/public", "/public/html.html")

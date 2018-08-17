@@ -110,13 +110,6 @@ object Util {
         return cis.checksum.value.toString()
     }
 
-    fun enableWebJarsIfAnyWebJarsIncluded(app: Javalin, log: Logger) {
-        if (getResource("META-INF/resources/webjars") != null) {
-            log.info("WebJars detected, enabling static file handling for WebJars.")
-            app.enableStaticFiles("/webjars", Location.CLASSPATH)
-        }
-    }
-
     fun getResource(path: String): URL? = this.javaClass.classLoader.getResource(path)
 
 }

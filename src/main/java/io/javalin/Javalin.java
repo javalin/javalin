@@ -117,7 +117,6 @@ public class Javalin {
             eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
             try {
                 log.info("Starting Javalin ...");
-                Util.INSTANCE.enableWebJarsIfAnyWebJarsIncluded(this, log);
                 HttpResponseExceptionMapper.INSTANCE.attachMappers(this);
                 JavalinServlet javalinServlet = new JavalinServlet(
                     pathMatcher,
@@ -244,6 +243,13 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
         staticFileConfig.add(new StaticFileConfig(path, location));
         return this;
+    }
+
+    /**
+     * Configure instance to serve WebJars
+     */
+    public Javalin enableWebJars() {
+        return enableStaticFiles("/webjars", Location.CLASSPATH);
     }
 
     /**
