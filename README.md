@@ -21,7 +21,7 @@ Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javal
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>1.7.0</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
@@ -32,7 +32,7 @@ import io.javalin.Javalin;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        Javalin app = Javalin.start(7000);
+        Javalin app = Javalin.create().start(7000);
         app.get("/", ctx -> ctx.result("Hello World"));
     }
 }
@@ -42,7 +42,7 @@ public class HelloWorld {
 
 ### Add dependency (gradle)
 ```kotlin
-compile 'io.javalin:javalin:1.7.0'
+compile 'io.javalin:javalin:2.0.0'
 ```
 
 ### Start programming
@@ -50,7 +50,7 @@ compile 'io.javalin:javalin:1.7.0'
 import io.javalin.Javalin
 
 fun main(args: Array<String>) {
-    val app = Javalin.start(7000)
+    val app = Javalin.create().start(7000)
     app.get("/") { ctx -> ctx.result("Hello World") }
 }
 ```
@@ -62,31 +62,22 @@ All examples are in Kotlin, but you can find them in Java in the documentation (
 ### Api structure and server config
 ```kotlin
 val app = Javalin.create().apply {
-    enableStandardRequestLogging()
-    enableDynamicGzip()
-    port(port)
-}.start()
+    enableCorsForAllOrigins()
+    enableStaticFiles("/public")
+    enableStaticFiles("uploads", Location.EXTERNAL)
+}.start(port)
 
 app.routes {
     path("users") {
-        get(UserController::getAllUserIds)
-        post(UserController::createUser)
+        get(UserController::getAll)
+        post(UserController::create)
         path(":user-id") {
-            get(UserController::getUser)
-            patch(UserController::updateUser)
-            delete(UserController::deleteUser)
+            get(UserController::getOne)
+            patch(UserController::update)
+            delete(UserController::delete)
         }
     }
 }
-```
-
-### Filters and Mappers
-```kotlin
-app.before("/some-path/*") { ctx ->  ... } // runs before requests to /some-path/*
-app.before { ctx -> ... } // runs before all requests
-app.after { ctx -> ... } // runs after all requests
-app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
-app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
 ```
 
 ### WebSockets
@@ -102,6 +93,15 @@ app.ws("/websocket") { ws ->
 }
 ```
 
+### Filters and Mappers
+```kotlin
+app.before("/some-path/*") { ctx ->  ... } // runs before requests to /some-path/*
+app.before { ctx -> ... } // runs before all requests
+app.after { ctx -> ... } // runs after all requests
+app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
+app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
+```
+
 ### JSON-mapping
 ```kotlin
 var todos = arrayOf(...)
@@ -109,7 +109,7 @@ app.get("/todos") { ctx -> // map array of Todos to json-string
     ctx.json(todos)
 }
 app.put("/todos") { ctx -> // map request-body (json) to array of Todos
-    todos = ctx.bodyAsClass(Array<Todo>::class.java)
+    todos = ctx.body<Array<Todo>>()
     ctx.status(204)
 }
 ```
@@ -118,7 +118,7 @@ app.put("/todos") { ctx -> // map request-body (json) to array of Todos
 ```kotlin
 app.post("/upload") { ctx ->
     ctx.uploadedFiles("files").forEach { (contentType, content, name, extension) ->
-        content.copyTo(File("upload/" + name))
+        FileUtil.streamToFile(content, "upload/$name")
     }
 }
 ```
