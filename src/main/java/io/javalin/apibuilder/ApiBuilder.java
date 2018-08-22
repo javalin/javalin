@@ -372,9 +372,9 @@ public class ApiBuilder {
         path = path.startsWith("/") ? path : "/" + path;
         String resourceBase = path.split("/")[1];
         String resourceId = path.split("/")[2];
+        staticInstance().get(prefixPath(path), ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), permittedRoles);
         staticInstance().get(prefixPath(resourceBase), crudHandler::getAll, permittedRoles);
         staticInstance().post(prefixPath(resourceBase), crudHandler::create, permittedRoles);
-        staticInstance().get(prefixPath(path), ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), permittedRoles);
         staticInstance().patch(prefixPath(path), ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), permittedRoles);
         staticInstance().delete(prefixPath(path), ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), permittedRoles);
     }
