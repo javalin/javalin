@@ -147,6 +147,27 @@ class TestApiBuilder {
         assertThat(Unirest.delete(http.origin + "/s/users/myUser").asString().status, `is`(204))
     }
 
+    @Test
+    fun `CrudHandler works with wildcards`() = TestUtil.test { app, http ->
+        app.routes {
+            path("/s") {
+                crud("/*/:user-id", UserController())
+            }
+            crud("*/:user-id", UserController())
+        }
+        assertThat(Unirest.get(http.origin + "/users").asString().body, `is`("All my users"))
+        assertThat(Unirest.post(http.origin + "/users").asString().status, `is`(201))
+        assertThat(Unirest.get(http.origin + "/users/myUser").asString().body, `is`("My single user: myUser"))
+        assertThat(Unirest.patch(http.origin + "/users/myUser").asString().status, `is`(204))
+        assertThat(Unirest.delete(http.origin + "/users/myUser").asString().status, `is`(204))
+
+        assertThat(Unirest.get(http.origin + "/s/users").asString().body, `is`("All my users"))
+        assertThat(Unirest.post(http.origin + "/s/users").asString().status, `is`(201))
+        assertThat(Unirest.get(http.origin + "/s/users/myUser").asString().body, `is`("My single user: myUser"))
+        assertThat(Unirest.patch(http.origin + "/s/users/myUser").asString().status, `is`(204))
+        assertThat(Unirest.delete(http.origin + "/s/users/myUser").asString().status, `is`(204))
+    }
+
     class UserController : CrudHandler {
 
         override fun getAll(ctx: Context) {
