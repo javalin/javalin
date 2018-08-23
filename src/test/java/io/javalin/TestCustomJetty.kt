@@ -10,11 +10,18 @@ package io.javalin
 import io.javalin.util.TestUtil
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.handler.HandlerList
+import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.RequestLogHandler
 import org.eclipse.jetty.server.handler.StatisticsHandler
+import org.eclipse.jetty.server.session.DefaultSessionCache
+import org.eclipse.jetty.server.session.FileSessionDataStore
+import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.servlet.ServletContextHandler
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 
 class TestCustomJetty {
@@ -54,5 +61,28 @@ class TestCustomJetty {
             assertThat(handlerChain.responses4xx, `is`(requests))
             assertThat(logCount.get(), `is`((requests * 2).toLong()))
         }
+    }
+
+    @Test
+    fun `custom SessionHandler works`() {
+        val server = Server()
+        val fileSessionHandler = fileSessionHandler()
+        val app = Javalin.create()
+                .sessionHandler { fileSessionHandler }
+                .server { server }
+                .start()
+        val httpHandler = (((server.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
+        assertThat(httpHandler.sessionHandler, `is`(fileSessionHandler))
+        app.stop()
+    }
+
+    private fun fileSessionHandler() = SessionHandler().apply {
+        httpOnly = true
+        val cache = DefaultSessionCache(this)
+        cache.sessionDataStore = FileSessionDataStore().apply {
+            val baseDir = File(System.getProperty("java.io.tmpdir"))
+            this.storeDir = File(baseDir, "javalin-session-store").apply { mkdir() }
+        }
+        this.sessionCache = cache
     }
 }

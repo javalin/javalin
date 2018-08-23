@@ -34,9 +34,13 @@ object JettyServerUtil {
     }
 
     @JvmStatic
+    fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
+
+    @JvmStatic
     @Throws(BindException::class)
     fun initialize(
             server: Server,
+            sessionHandler: SessionHandler,
             port: Int,
             contextPath: String,
             javalinServlet: JavalinServlet,
@@ -60,7 +64,7 @@ object JettyServerUtil {
                 jettyRequest.isHandled = true
             }
         }.apply {
-            this.sessionHandler.httpOnly = true
+            this.sessionHandler = sessionHandler
         }
 
         val webSocketHandler = ServletContextHandler(parent, contextPath).apply {

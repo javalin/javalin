@@ -7,9 +7,6 @@
 package io.javalin.core.util
 
 import io.javalin.InternalServerErrorResponse
-import io.javalin.Javalin
-import io.javalin.staticfiles.Location
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.InputStream

@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ public class Javalin {
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     private Server jettyServer = JettyServerUtil.defaultServer();
+    private SessionHandler jettySessionHandler = JettyServerUtil.defaultSessionHandler();
     private Set<StaticFileConfig> staticFileConfig = new HashSet<>();
     private boolean ignoreTrailingSlashes = true;
 
@@ -132,7 +134,7 @@ public class Javalin {
                     singlePageHandler,
                     new JettyResourceHandler(staticFileConfig, jettyServer, ignoreTrailingSlashes)
                 );
-                port = JettyServerUtil.initialize(jettyServer, port, contextPath, javalinServlet, wsPathMatcher, log);
+                port = JettyServerUtil.initialize(jettyServer, jettySessionHandler, port, contextPath, javalinServlet, wsPathMatcher, log);
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
@@ -217,7 +219,17 @@ public class Javalin {
      */
     public Javalin server(@NotNull Supplier<Server> server) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
-        this.jettyServer = server.get();
+        jettyServer = server.get();
+        return this;
+    }
+
+    /**
+     * Configure instance to use a custom jetty SessionHandler.
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
+        ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
+        jettySessionHandler = sessionHandler.get();
         return this;
     }
 
