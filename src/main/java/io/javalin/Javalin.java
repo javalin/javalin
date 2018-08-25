@@ -19,7 +19,7 @@ import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.HttpResponseExceptionMapper;
 import io.javalin.core.util.JettyServerUtil;
-import io.javalin.core.util.RouteOverviewUtil;
+import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.SinglePageHandler;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
@@ -379,7 +379,7 @@ public class Javalin {
      */
     public Javalin enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
         ensureActionIsPerformedBeforeServerStart("Enabling route overview");
-        return this.get(path, ctx -> ctx.html(RouteOverviewUtil.createHtmlOverview(this)), permittedRoles);
+        return this.get(path, new RouteOverviewRenderer(this), permittedRoles);
     }
 
     /**

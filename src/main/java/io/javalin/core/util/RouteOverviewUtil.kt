@@ -6,7 +6,15 @@
 
 package io.javalin.core.util
 
+import io.javalin.Context
+import io.javalin.Handler
 import io.javalin.Javalin
+
+class RouteOverviewRenderer(val app: Javalin) : Handler {
+    override fun handle(ctx: Context) {
+        ctx.html(RouteOverviewUtil.createHtmlOverview(app))
+    }
+}
 
 object RouteOverviewUtil {
 
