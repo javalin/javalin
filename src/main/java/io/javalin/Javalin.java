@@ -16,7 +16,8 @@ import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
-import io.javalin.core.util.CorsUtil;
+import io.javalin.core.util.CorsBeforeHandler;
+import io.javalin.core.util.CorsOptionsHandler;
 import io.javalin.core.util.HttpResponseExceptionMapper;
 import io.javalin.core.util.JettyServerUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
@@ -329,7 +330,10 @@ public class Javalin {
      */
     public Javalin enableCorsForOrigin(@NotNull String... origin) {
         ensureActionIsPerformedBeforeServerStart("Enabling CORS");
-        return CorsUtil.INSTANCE.enableCors(this, origin);
+        if (origin.length == 0) throw new IllegalArgumentException("Origins cannot be empty.");
+        this.before("*", new CorsBeforeHandler(origin));
+        this.options("*", new CorsOptionsHandler());
+        return this;
     }
 
     /**
