@@ -17,6 +17,10 @@ class UnauthorizedResponse(message: String = "Unauthorized") : HttpResponseExcep
 class ForbiddenResponse(message: String = "Forbidden") : HttpResponseException(HttpStatus.FORBIDDEN_403, message)
 class NotFoundResponse(message: String = "Not found") : HttpResponseException(HttpStatus.NOT_FOUND_404, message)
 class MethodNotAllowedResponse(message: String = "Method not allowed", details: Map<String, String>) : HttpResponseException(HttpStatus.METHOD_NOT_ALLOWED_405, message, details)
+class ConflictResponse(message: String = "Conflict", details: Map<String, String>) : HttpResponseException(HttpStatus.CONFLICT_409, message, details)
+class GoneResponse(message: String = "Gone", details: Map<String, String>) : HttpResponseException(HttpStatus.GONE_410, message, details)
 
 class InternalServerErrorResponse(message: String = "Internal server error") : HttpResponseException(HttpStatus.INTERNAL_SERVER_ERROR_500, message)
+class BadGatewayResponse(message: String = "Bad gateway") : HttpResponseException(HttpStatus.BAD_GATEWAY_502, message)
 class ServiceUnavailableResponse(message: String = "Service unavailable") : HttpResponseException(HttpStatus.SERVICE_UNAVAILABLE_503, message)
+class GatewayTimeoutResponse(message: String = "Gateway timeout") : HttpResponseException(HttpStatus.GATEWAY_TIMEOUT_504, message)
