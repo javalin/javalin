@@ -56,8 +56,12 @@ object HttpResponseExceptionMapper {
         is ForbiddenResponse -> classUrl(e)
         is NotFoundResponse -> classUrl(e)
         is MethodNotAllowedResponse -> classUrl(e)
+        is ConflictResponse -> classUrl(e)
+        is GoneResponse -> classUrl(e)
         is InternalServerErrorResponse -> classUrl(e)
         is ServiceUnavailableResponse -> classUrl(e)
+        is BadGatewayResponse -> classUrl(e)
+        is GatewayTimeoutResponse -> classUrl(e)
         else -> docsUrl + "error-responses"
     }
 
