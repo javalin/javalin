@@ -9,8 +9,11 @@ package io.javalin.core.util
 import io.javalin.BasicAuthCredentials
 import io.javalin.Context
 import io.javalin.core.HandlerEntry
+import io.javalin.core.HandlerType
 import java.net.URLDecoder
 import java.util.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 object ContextUtil {
 
@@ -47,5 +50,21 @@ object ContextUtil {
     }
 
     fun acceptsHtml(ctx: Context) = ctx.header(Header.ACCEPT)?.contains("text/html") == true
+
+    @JvmStatic
+    @JvmOverloads
+    fun init(
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            matchedPath: String = "*",
+            pathParamMap: Map<String, String> = mapOf(),
+            splatList: List<String> = listOf(),
+            handlerType: HandlerType = HandlerType.INVALID
+    ) = Context(request, response).apply {
+        this.matchedPath = matchedPath
+        this.pathParamMap = pathParamMap
+        this.splatList = splatList
+        this.handlerType = handlerType
+    }
 
 }

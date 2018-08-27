@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-class Context(private val servletResponse: HttpServletResponse, private val servletRequest: HttpServletRequest) {
+class Context(private val servletRequest: HttpServletRequest, private val servletResponse: HttpServletResponse) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
@@ -34,8 +34,8 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @JvmField val res = servletResponse
     @JvmField val req = servletRequest
+    @JvmField val res = servletResponse
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }

@@ -36,7 +36,7 @@ class JavalinServlet(
         val req = CachedRequestWrapper(servletRequest, maxRequestCacheBodySize) // cached for reading multiple times
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI
-        val ctx = Context(res, req)
+        val ctx = Context(req, res)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
