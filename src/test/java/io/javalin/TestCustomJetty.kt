@@ -78,11 +78,12 @@ class TestCustomJetty {
 
     private fun fileSessionHandler() = SessionHandler().apply {
         httpOnly = true
-        val cache = DefaultSessionCache(this)
-        cache.sessionDataStore = FileSessionDataStore().apply {
-            val baseDir = File(System.getProperty("java.io.tmpdir"))
-            this.storeDir = File(baseDir, "javalin-session-store").apply { mkdir() }
+        sessionCache = DefaultSessionCache(this).apply {
+            sessionDataStore = FileSessionDataStore().apply {
+                val baseDir = File(System.getProperty("java.io.tmpdir"))
+                this.storeDir = File(baseDir, "javalin-session-store").apply { mkdir() }
+            }
         }
-        this.sessionCache = cache
     }
+
 }
