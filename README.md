@@ -21,7 +21,7 @@ Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javal
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
@@ -42,7 +42,7 @@ public class HelloWorld {
 
 ### Add dependency (gradle)
 ```kotlin
-compile 'io.javalin:javalin:2.0.0'
+compile 'io.javalin:javalin:2.1.0'
 ```
 
 ### Start programming
