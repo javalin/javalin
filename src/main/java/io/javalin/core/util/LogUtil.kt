@@ -53,6 +53,6 @@ object LogUtil {
 
     fun startTimer(ctx: Context) = ctx.attribute("javalin-request-log-start-time", System.nanoTime())
 
-    fun executionTimeMs(ctx: Context) = (System.nanoTime() - ctx.attribute("javalin-request-log-start-time") as Long) / 1000000f
+    fun executionTimeMs(ctx: Context) = (System.nanoTime() - ctx.attribute<Long>("javalin-request-log-start-time")!!) / 1000000f
 }
 

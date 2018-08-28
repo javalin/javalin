@@ -36,7 +36,7 @@ class TestRequest {
     @Test
     fun `session-attribute shorthand work`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx -> ctx.sessionAttribute("test", "tast") }
-        app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttribute<String>("test")) }
+        app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttribute<String>("test")!!) }
         http.getBody("/store-session")
         assertThat(http.getBody("/read-session"), `is`("tast"))
     }

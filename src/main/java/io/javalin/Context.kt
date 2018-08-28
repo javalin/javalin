@@ -207,13 +207,12 @@ class Context(private val servletRequest: HttpServletRequest, private val servle
      * Gets the specified attribute from the request.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> attribute(attribute: String): T = servletRequest.getAttribute(attribute) as T
+    fun <T> attribute(attribute: String): T? = servletRequest.getAttribute(attribute) as? T
 
     /**
      * Gets a map with all the attribute keys and values on the request.
      */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().associate { it to attribute<T>(it) }
+    fun <T> attributeMap(): Map<String, T?> = servletRequest.attributeNames.asSequence().associate { it to attribute<T>(it) }
 
     /**
      * Gets the request content length.
@@ -346,13 +345,12 @@ class Context(private val servletRequest: HttpServletRequest, private val servle
      * Gets a specific session attribute from the request.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttribute(attribute: String): T = servletRequest.session.getAttribute(attribute) as T
+    fun <T> sessionAttribute(attribute: String): T? = servletRequest.session.getAttribute(attribute) as? T
 
     /**
      * Gets a map of all the session attributes on the request.
      */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().associate { it to servletRequest.session.getAttribute(it) as T }
+    fun <T> sessionAttributeMap(): Map<String, T?> = servletRequest.session.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
 
     /**
      * Gets the request url.
