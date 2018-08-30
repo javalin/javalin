@@ -496,7 +496,7 @@ class Context(private val servletRequest: HttpServletRequest, private val servle
     /**
      * Sets context result to specified html string and sets content-type to text/html.
      */
-    fun html(html: String): Context = result(html).contentType("text/html")
+    fun html(html: String): Context = contentType("text/html").result(html)
 
     /**
      * Serializes object to a JSON-string using JavalinJson and sets it as the context result.
@@ -504,7 +504,7 @@ class Context(private val servletRequest: HttpServletRequest, private val servle
      * Sets content type to application/json.
      */
     fun json(obj: Any): Context {
-        return result(JavalinJson.toJsonMapper.map(obj)).contentType("application/json")
+        return contentType("application/json").result(JavalinJson.toJsonMapper.map(obj))
     }
 
     /**
