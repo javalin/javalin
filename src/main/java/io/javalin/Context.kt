@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-class Context(private val servletRequest: HttpServletRequest, private val servletResponse: HttpServletResponse) {
+open class Context(private val servletRequest: HttpServletRequest, private val servletResponse: HttpServletResponse) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
