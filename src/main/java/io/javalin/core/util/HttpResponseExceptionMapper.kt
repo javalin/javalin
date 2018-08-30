@@ -11,18 +11,9 @@ import java.util.concurrent.CompletionException
 
 object HttpResponseExceptionMapper {
 
-    fun attachMappers(app: Javalin) {
-        app.exception(CompletionException::class.java) { e, ctx ->
-            if (e.cause is HttpResponseException) {
-                handleException(e.cause as HttpResponseException, ctx)
-            }
-        }
-        app.exception(HttpResponseException::class.java) { e, ctx ->
-            handleException(e, ctx)
-        }
-    }
+    fun handleException(exception: Exception, ctx: Context) {
+        val e = unwrap(exception)
 
-    private fun handleException(e: HttpResponseException, ctx: Context) {
         if (ctx.header(Header.ACCEPT)?.contains("application/json") == true) {
             ctx.status(e.status).result("""{
                 |    "title": "${e.msg}",
@@ -44,8 +35,13 @@ object HttpResponseExceptionMapper {
         }
     }
 
+    fun shouldHandleException(e: Exception): Boolean {
+        return (e is HttpResponseException || (e is CompletionException && e.cause is HttpResponseException))
+    }
+
     private const val docsUrl = "https://javalin.io/documentation#"
     private fun classUrl(e: HttpResponseException) = docsUrl + e.javaClass.simpleName
+    private fun unwrap(e: Exception) = (if (e is CompletionException) e.cause else e) as HttpResponseException
 
     // this could be removed by introducing a "DefaultResponse", but I would
     // rather keep this ugly snippet than introduced another abstraction layer
