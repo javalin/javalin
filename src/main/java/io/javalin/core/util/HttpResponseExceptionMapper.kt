@@ -11,9 +11,11 @@ import java.util.concurrent.CompletionException
 
 object HttpResponseExceptionMapper {
 
+    fun shouldHandleException(e: Exception) =
+            (e is HttpResponseException || (e is CompletionException && e.cause is HttpResponseException))
+
     fun handleException(exception: Exception, ctx: Context) {
         val e = unwrap(exception)
-
         if (ctx.header(Header.ACCEPT)?.contains("application/json") == true) {
             ctx.status(e.status).result("""{
                 |    "title": "${e.msg}",
@@ -33,10 +35,6 @@ object HttpResponseExceptionMapper {
             }.joinToString("")}""".trimMargin()
             ctx.status(e.status).result(result)
         }
-    }
-
-    fun shouldHandleException(e: Exception): Boolean {
-        return (e is HttpResponseException || (e is CompletionException && e.cause is HttpResponseException))
     }
 
     private const val docsUrl = "https://javalin.io/documentation#"

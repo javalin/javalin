@@ -20,18 +20,17 @@ class ExceptionMapper {
     val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
-        ctx.inExceptionHandler = true
         if (HttpResponseExceptionMapper.shouldHandleException(exception)) {
-            HttpResponseExceptionMapper.handleException(exception, ctx)
+            return HttpResponseExceptionMapper.handleException(exception, ctx)
+        }
+        ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
+        val exceptionHandler = this.getHandler(exception.javaClass)
+        if (exceptionHandler != null) {
+            exceptionHandler.handle(exception, ctx)
         } else {
-            val exceptionHandler = this.getHandler(exception.javaClass)
-            if (exceptionHandler != null) {
-                exceptionHandler.handle(exception, ctx)
-            } else {
-                log.warn("Uncaught exception", exception)
-                ctx.result("Internal server error")
-                ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
-            }
+            log.warn("Uncaught exception", exception)
+            ctx.result("Internal server error")
+            ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
         }
         ctx.inExceptionHandler = false
     }

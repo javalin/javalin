@@ -130,7 +130,7 @@ class TestHttpResponseExceptions {
     @Test
     fun `completing exceptionally with unexpected exceptions in future works`() = TestUtil.test { app, http ->
         app.get("/completed-future-route") { ctx -> ctx.result(getUnexpectedExceptionallyCompletingFuture()) }
-        app.exception(IllegalStateException::class.java, { exception, ctx -> ctx.result(exception.message as String) })
+        app.exception(IllegalStateException::class.java) { exception, ctx -> ctx.result(exception.message!!) }
         assertThat(http.get("/completed-future-route").body, `is`("Unexpected message"))
     }
 
@@ -145,7 +145,7 @@ class TestHttpResponseExceptions {
     @Test
     fun `throwing unexpected exception in future works`() = TestUtil.test { app, http ->
         app.get("/throwing-future-route") { ctx -> ctx.result(getUnexpectedThrowingFuture()) }
-        app.exception(CompletionException::class.java, { exception, ctx -> ctx.result(exception.cause?.message as String) })
+        app.exception(CompletionException::class.java) { exception, ctx -> ctx.result(exception.cause?.message!!) }
         assertThat(http.get("/throwing-future-route").body, `is`("Unexpected message"))
     }
 
