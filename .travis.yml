@@ -1,3 +1,4 @@
+sudo: required # this became required on 30-08-2018 for unknown reasons
 language: java
 jdk:
   - oraclejdk8
