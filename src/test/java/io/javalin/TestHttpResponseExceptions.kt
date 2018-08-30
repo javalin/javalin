@@ -14,6 +14,7 @@ import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.not
 import org.junit.Test
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -122,6 +123,35 @@ class TestHttpResponseExceptions {
     private fun getThrowingFuture() = CompletableFuture.supplyAsync {
         if (true) {
             throw UnauthorizedResponse()
+        }
+        "Result"
+    }
+
+    @Test
+    fun `completing exceptionally with unexpected exceptions in future works`() = TestUtil.test { app, http ->
+        app.get("/completed-future-route") { ctx -> ctx.result(getUnexpectedExceptionallyCompletingFuture()) }
+        app.exception(IllegalStateException::class.java, { exception, ctx -> ctx.result(exception.message as String) })
+        assertThat(http.get("/completed-future-route").body, `is`("Unexpected message"))
+    }
+
+    private fun getUnexpectedExceptionallyCompletingFuture(): CompletableFuture<String> {
+        val future = CompletableFuture<String>()
+        Executors.newSingleThreadScheduledExecutor().schedule({
+            future.completeExceptionally(IllegalStateException("Unexpected message"))
+        }, 10, TimeUnit.MILLISECONDS)
+        return future
+    }
+
+    @Test
+    fun `throwing unexpected exception in future works`() = TestUtil.test { app, http ->
+        app.get("/throwing-future-route") { ctx -> ctx.result(getUnexpectedThrowingFuture()) }
+        app.exception(CompletionException::class.java, { exception, ctx -> ctx.result(exception.cause?.message as String) })
+        assertThat(http.get("/throwing-future-route").body, `is`("Unexpected message"))
+    }
+
+    private fun getUnexpectedThrowingFuture() = CompletableFuture.supplyAsync {
+        if (true) {
+            throw IllegalStateException("Unexpected message")
         }
         "Result"
     }

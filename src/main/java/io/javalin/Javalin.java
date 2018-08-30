@@ -18,7 +18,6 @@ import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsBeforeHandler;
 import io.javalin.core.util.CorsOptionsHandler;
-import io.javalin.core.util.HttpResponseExceptionMapper;
 import io.javalin.core.util.JettyServerUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.SinglePageHandler;
@@ -120,7 +119,6 @@ public class Javalin {
             eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
             try {
                 log.info("Starting Javalin ...");
-                HttpResponseExceptionMapper.INSTANCE.attachMappers(this);
                 JavalinServlet javalinServlet = new JavalinServlet(
                     pathMatcher,
                     exceptionMapper,
