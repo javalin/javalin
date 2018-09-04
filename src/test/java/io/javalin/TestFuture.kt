@@ -18,6 +18,12 @@ class TestFuture {
     }
 
     @Test
+    fun `hello future world json`() = TestUtil.test { app, http ->
+        app.get("/test-future-json") { ctx -> ctx.json(getFuture("JSON result")) }
+        assertThat(http.getBody("/test-future-json"), `is`("\"JSON result\""))
+    }
+
+    @Test
     fun `after-handlers run after future is resolved`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx -> ctx.result(getFuture("Not result")) }
         app.after { ctx -> ctx.result("Overwritten by after-handler") }
