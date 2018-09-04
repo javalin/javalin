@@ -7,16 +7,27 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.get
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
-    Javalin.create().apply {
-        get("/") { ctx ->
+    val app = Javalin.create().enableDebugLogging().start(7070)
+
+    app.routes {
+        get("/result") { ctx ->
             val future = CompletableFuture<String>()
-            Executors.newSingleThreadScheduledExecutor().schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
+            Executors.newSingleThreadScheduledExecutor()
+                    .schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
             ctx.result(future)
         }
-    }.start(7070)
+        get("/json") { ctx ->
+            val future = CompletableFuture<List<String>>()
+            Executors.newSingleThreadScheduledExecutor()
+                    .schedule({ future.complete(Arrays.asList("a", "b", "c")) }, 10, TimeUnit.MILLISECONDS)
+            ctx.json(future)
+        }
+    }
 }
