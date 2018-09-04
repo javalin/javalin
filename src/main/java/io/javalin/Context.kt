@@ -500,8 +500,9 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
 
     /**
      * Serializes object to a JSON-string using JavalinJson and sets it as the context result.
-     * JavalinJson can be configured to use any mapping library.
      * Sets content type to application/json.
+     *
+     * JavalinJson can be configured to use any mapping library.
      */
     fun json(obj: Any): Context {
         return contentType("application/json").result(JavalinJson.toJsonMapper.map(obj))
@@ -510,12 +511,13 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     /**
      * Serializes the object resulting from the completion of the given future
      * to a JSON-string using JavalinJson and sets it as the context result.
-     * JavalinJson can be configured to use any mapping library.
      * Sets content type to application/json.
+     *
+     * JavalinJson can be configured to use any mapping library.
      */
     fun json(future: CompletableFuture<*>): Context {
-        return contentType("application/json")
-                .result(future.thenApply { obj -> JavalinJson.toJsonMapper.map(obj) })
+        val mappingFuture = future.thenApply { obj -> JavalinJson.toJsonMapper.map(obj) }
+        return contentType("application/json").result(mappingFuture)
     }
 
     /**
