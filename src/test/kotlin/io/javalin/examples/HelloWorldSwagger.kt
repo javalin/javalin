@@ -17,6 +17,7 @@ import io.javalin.core.util.SwaggerRenderer
 
 fun main(args: Array<String>) {
     val app = Javalin.create().apply {
+        enableWebJars()
         get("/my-docs", SwaggerRenderer("exampleApiSpec.yaml"))
-    }.start(7070)
+    }.start(0)
 }
