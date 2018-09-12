@@ -13,6 +13,8 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
 import io.javalin.json.JavalinJson
 import io.javalin.rendering.JavalinRenderer
+import io.javalin.validation.Param
+import io.javalin.validation.Validator
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -529,5 +531,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun render(filePath: String, model: Map<String, Any?> = emptyMap()): Context {
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
     }
+
+    fun validate(paramType: Param, key: String) = Validator(paramType, key, this)
 
 }
