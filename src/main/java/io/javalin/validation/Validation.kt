@@ -7,31 +7,14 @@
 package io.javalin.validation
 
 import io.javalin.BadRequestResponse
-import io.javalin.Context
-
-enum class Param {
-    QUERY, FORM, PATH
-}
 
 data class Rule(val predicate: (String) -> Boolean, val invalidMessage: String)
 
-class Validator(paramType: Param, key: String, ctx: Context) {
+class Validator(val value: String?, val messagePrefix: String) {
 
     private val rules = mutableSetOf<Rule>()
 
-    private val value = when (paramType) {
-        Param.QUERY -> ctx.queryParam(key)
-        Param.FORM -> ctx.formParam(key)
-        Param.PATH -> ctx.pathParam(key)
-    }
-
-    private val param = when (paramType) {
-        Param.QUERY -> "Query parameter '$key'"
-        Param.FORM -> "Form parameter '$key'"
-        Param.PATH -> "Path parameter '$key'"
-    }
-
-    private val notNullOrBlank = Rule({ v -> !v.isEmpty() }, "$param cannot be null or blank")
+    private val notNullOrBlank = Rule({ it.isEmpty() }, "$messagePrefix cannot be null or blank")
 
     private fun addToRules(rule: Rule): Validator {
         rules.add(rule)
@@ -41,7 +24,11 @@ class Validator(paramType: Param, key: String, ctx: Context) {
     fun notNullOrBlank() = addToRules(notNullOrBlank) // i think we'll always check this... include for readability?
 
     fun check(predicate: (String) -> Boolean, errorMessage: String) = addToRules(
-            Rule(predicate, "$param invalid - $errorMessage")
+            Rule(predicate, "$messagePrefix invalid - $errorMessage")
+    )
+
+    fun matches(regex: String) = addToRules(
+            Rule({ Regex(regex).matches(it) }, "$messagePrefix does not match '$regex'")
     )
 
     @Suppress("UNCHECKED_CAST")
@@ -73,6 +60,7 @@ class Validator(paramType: Param, key: String, ctx: Context) {
             Int::class.java -> convert(Int::class.java) { value.toInt() } as T
             Integer::class.java -> convert(Integer::class.java) { value.toInt() } as T
             Double::class.java -> convert(Double::class.java) { value.toDouble() } as T
+            Long::class.java -> convert(Long::class.java) { value.toLong() } as T
             else -> throw IllegalArgumentException("Can't auto-cast to $clazz. Use get() and do it manually.")
         }
     }
@@ -80,7 +68,7 @@ class Validator(paramType: Param, key: String, ctx: Context) {
     private fun convert(clazz: Class<*>, converter: () -> Any): Any = try {
         converter.invoke()
     } catch (e: Exception) {
-        throw BadRequestResponse("$param is not a valid ${clazz.simpleName}")
+        throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
     }
 
 }
