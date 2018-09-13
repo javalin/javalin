@@ -6,10 +6,10 @@
 
 package io.javalin
 
+import io.javalin.json.JavalinJson
 import io.javalin.util.TestUtil
 import io.javalin.validation.Validator
 import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.time.Instant
@@ -81,7 +81,8 @@ class TestValidation {
             val myInstant = ctx.validatedQueryParam("my-qp").getAs<Instant>{ Instant.ofEpochMilli(it.toLong()) }
             ctx.json(myInstant)
         }
-        assertThat(http.get("/instant?my-qp=1262347200000").body, containsString(""""epochSecond":1262347200}"""))
+        val instant = JavalinJson.fromJson(http.get("/instant?my-qp=1262347200000").body, Instant::class.java)
+        assertThat(instant.epochSecond, `is`(1262347200L))
     }
 
 }

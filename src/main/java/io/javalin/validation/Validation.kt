@@ -66,7 +66,7 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
             Double::class.java -> convert(clazz) { value.toDouble() } as T
             Long::class.java -> convert(clazz) { value.toLong() } as T
             Date::class.java -> convert(clazz) { Date(value) } as T
-            else -> throw IllegalArgumentException("Can't auto-cast to $clazz. Use get() and do it manually.")
+            else -> throw IllegalArgumentException("Can't auto-cast to $clazz. Add a converter as a second argument.")
         }
     }
 
