@@ -77,8 +77,9 @@ class TestValidation {
 
     @Test
     fun `test custom converter()`() = TestUtil.test { app, http ->
+        JavalinValidation.registerConverter(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
-            val myInstant = ctx.validatedQueryParam("my-qp").getAs<Instant> { Instant.ofEpochMilli(it.toLong()) }
+            val myInstant = ctx.validatedQueryParam("my-qp").getAs<Instant>()
             ctx.json(myInstant)
         }
         val instant = JavalinJson.fromJson(http.get("/instant?my-qp=1262347200000").body, Instant::class.java)

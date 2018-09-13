@@ -44,28 +44,32 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
         return value
     }
 
-    @Suppress("UNCHECKED_CAST")
-    @JvmOverloads
-    fun <T> getAs(clazz: Class<T>, converter: ((String) -> Any)? = null): T {
+    fun <T> getAs(clazz: Class<T>): T {
         val validValue = this.get()
-        return if (converter != null) {
-            convert(clazz) { converter.invoke(validValue) } as T
-        } else when (clazz) {
-            Int::class.java -> convert(clazz) { validValue.toInt() } as T
-            Integer::class.java -> convert(clazz) { validValue.toInt() } as T
-            Double::class.java -> convert(clazz) { validValue.toDouble() } as T
-            Long::class.java -> convert(clazz) { validValue.toLong() } as T
-            Date::class.java -> convert(clazz) { Date(validValue) } as T
-            else -> throw IllegalArgumentException("Can't auto-cast to $clazz. Add a converter as a second argument.")
+        return try {
+            JavalinValidation.converters[clazz]?.invoke(validValue) as T
+                    ?: throw IllegalArgumentException("Can't auto-cast to ${clazz.simpleName}. Register a custom converter using JavalinValidation#registerConverter.")
+        } catch (e: Exception) {
+            throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
         }
     }
 
-    inline fun <reified T : Any> getAs(noinline converter: ((String) -> Any)? = null): T = getAs(T::class.java, converter)
+    inline fun <reified T : Any> getAs(): T = getAs(T::class.java)
 
-    private fun convert(clazz: Class<*>, converter: () -> Any): Any = try {
-        converter.invoke()
-    } catch (e: Exception) {
-        throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
-    }
+}
 
+object JavalinValidation {
+    val converters = mutableMapOf<Class<*>, (String) -> Any>(
+            Int::class.java to { s -> s.toInt() },
+            Integer::class.java to { s -> s.toInt() },
+            Double::class.java to { s -> s.toDouble() },
+            Long::class.java to { s -> s.toLong() },
+            Date::class.java to { s -> Date(s) }
+    )
+
+    @JvmStatic
+    fun registerConverter(clazz: Class<*>, converter: (String) -> Any) = converters.put(clazz, converter)
+
+    @JvmStatic
+    fun validate(value: String?) = Validator(value)
 }
