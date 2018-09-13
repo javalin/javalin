@@ -4,11 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin
+package io.javalin.validation
 
+import io.javalin.BadRequestResponse
 import io.javalin.json.JavalinJson
 import io.javalin.util.TestUtil
-import io.javalin.validation.Validator
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -78,7 +78,7 @@ class TestValidation {
     @Test
     fun `test custom converter()`() = TestUtil.test { app, http ->
         app.get("/instant") { ctx ->
-            val myInstant = ctx.validatedQueryParam("my-qp").getAs<Instant>{ Instant.ofEpochMilli(it.toLong()) }
+            val myInstant = ctx.validatedQueryParam("my-qp").getAs<Instant> { Instant.ofEpochMilli(it.toLong()) }
             ctx.json(myInstant)
         }
         val instant = JavalinJson.fromJson(http.get("/instant?my-qp=1262347200000").body, Instant::class.java)

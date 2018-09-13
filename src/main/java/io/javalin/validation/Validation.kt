@@ -11,7 +11,7 @@ import java.util.*
 
 data class Rule(val predicate: (String) -> Boolean, val invalidMessage: String)
 
-class Validator(val value: String?, private val messagePrefix: String = "Value") {
+class Validator @JvmOverloads constructor(val value: String?, private val messagePrefix: String = "Value") {
 
     private val rules = mutableSetOf<Rule>()
 
