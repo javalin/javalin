@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.util.TestUtil
+import io.javalin.validation.Validator
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -55,6 +56,30 @@ class TestValidation {
         }
         assertThat(http.get("/?my-qp=a").body, `is`("Query parameter 'my-qp' with value 'a' does not match '[0-9]'"))
         assertThat(http.get("/?my-qp=1").body, `is`("1"))
+    }
+
+    @Test
+    fun `test self-instantiated validator()`() = TestUtil.test { app, http ->
+        try {
+            val myValue = Validator(null).notNullOrBlank().get()
+        } catch (e: BadRequestResponse) {
+            assertThat(e.msg, `is`("Value cannot be null or blank"))
+        }
+        try {
+            val jsonProp = ""
+            val myValue = Validator(jsonProp, "jsonProp").notNullOrBlank().get()
+        } catch (e: BadRequestResponse) {
+            assertThat(e.msg, `is`("jsonProp cannot be null or blank"))
+        }
+    }
+
+    @Test
+    fun `test custom converter()`() = TestUtil.test { app, http ->
+        app.get("/int") { ctx ->
+            val myInt = ctx.validatedQueryParam("my-qp").getAs<Int>{ Integer.parseInt(it) }
+            ctx.result((myInt * 2).toString())
+        }
+        assertThat(http.get("/int?my-qp=123").body, `is`("246"))
     }
 
 }

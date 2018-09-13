@@ -7,10 +7,11 @@
 package io.javalin.validation
 
 import io.javalin.BadRequestResponse
+import java.util.*
 
 data class Rule(val predicate: (String) -> Boolean, val invalidMessage: String)
 
-class Validator(val value: String?, val messagePrefix: String) {
+class Validator(val value: String?, private val messagePrefix: String = "Value") {
 
     private val rules = mutableSetOf<Rule>()
 
@@ -44,10 +45,11 @@ class Validator(val value: String?, val messagePrefix: String) {
         return value;
     }
 
-    inline fun <reified T : Any> getAs(): T = getAs(T::class.java)
+    inline fun <reified T : Any> getAs(noinline converter: ((String) -> Any)? = null): T = getAs(T::class.java, converter)
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> getAs(clazz: Class<T>): T {
+    @JvmOverloads
+    fun <T> getAs(clazz: Class<T>, converter: ((String) -> Any)? = null): T {
         if (value == null || value.isEmpty()) {
             throw BadRequestResponse(notNullOrBlank.invalidMessage)
         }
@@ -56,11 +58,14 @@ class Validator(val value: String?, val messagePrefix: String) {
                 throw BadRequestResponse(rule.invalidMessage)
             }
         }
-        return when (clazz) {
-            Int::class.java -> convert(Int::class.java) { value.toInt() } as T
-            Integer::class.java -> convert(Integer::class.java) { value.toInt() } as T
-            Double::class.java -> convert(Double::class.java) { value.toDouble() } as T
-            Long::class.java -> convert(Long::class.java) { value.toLong() } as T
+        return if (converter != null) {
+            converter.invoke(value) as T
+        } else when (clazz) {
+            Int::class.java -> convert(clazz) { value.toInt() } as T
+            Integer::class.java -> convert(clazz) { value.toInt() } as T
+            Double::class.java -> convert(clazz) { value.toDouble() } as T
+            Long::class.java -> convert(clazz) { value.toLong() } as T
+            Date::class.java -> convert(clazz) { Date(value) } as T
             else -> throw IllegalArgumentException("Can't auto-cast to $clazz. Use get() and do it manually.")
         }
     }
