@@ -9,13 +9,13 @@ package io.javalin.validation
 import io.javalin.BadRequestResponse
 import java.util.*
 
-data class Rule(val predicate: (String) -> Boolean, val invalidMessage: String)
-
 class Validator @JvmOverloads constructor(val value: String?, private val messagePrefix: String = "Value") {
 
-    private val rules = mutableSetOf<Rule>()
+    data class Rule(val predicate: (String) -> Boolean, val invalidMessage: String)
 
     private val notNullOrBlank = Rule({ it.isEmpty() }, "$messagePrefix cannot be null or blank")
+
+    private val rules = mutableSetOf<Rule>()
 
     private fun addToRules(rule: Rule): Validator {
         rules.add(rule)
@@ -32,7 +32,6 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
             Rule({ Regex(regex).matches(it) }, "$messagePrefix does not match '$regex'")
     )
 
-    @Suppress("UNCHECKED_CAST")
     fun get(): String {
         if (value == null || value.isEmpty()) {
             throw BadRequestResponse(notNullOrBlank.invalidMessage)
@@ -42,33 +41,26 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
                 throw BadRequestResponse(rule.invalidMessage)
             }
         }
-        return value;
+        return value
     }
-
-    inline fun <reified T : Any> getAs(noinline converter: ((String) -> Any)? = null): T = getAs(T::class.java, converter)
 
     @Suppress("UNCHECKED_CAST")
     @JvmOverloads
     fun <T> getAs(clazz: Class<T>, converter: ((String) -> Any)? = null): T {
-        if (value == null || value.isEmpty()) {
-            throw BadRequestResponse(notNullOrBlank.invalidMessage)
-        }
-        rules.forEach { rule ->
-            if (!rule.predicate.invoke(value)) {
-                throw BadRequestResponse(rule.invalidMessage)
-            }
-        }
+        val validValue = this.get()
         return if (converter != null) {
-            convert(clazz) { converter.invoke(value) } as T
+            convert(clazz) { converter.invoke(validValue) } as T
         } else when (clazz) {
-            Int::class.java -> convert(clazz) { value.toInt() } as T
-            Integer::class.java -> convert(clazz) { value.toInt() } as T
-            Double::class.java -> convert(clazz) { value.toDouble() } as T
-            Long::class.java -> convert(clazz) { value.toLong() } as T
-            Date::class.java -> convert(clazz) { Date(value) } as T
+            Int::class.java -> convert(clazz) { validValue.toInt() } as T
+            Integer::class.java -> convert(clazz) { validValue.toInt() } as T
+            Double::class.java -> convert(clazz) { validValue.toDouble() } as T
+            Long::class.java -> convert(clazz) { validValue.toLong() } as T
+            Date::class.java -> convert(clazz) { Date(validValue) } as T
             else -> throw IllegalArgumentException("Can't auto-cast to $clazz. Add a converter as a second argument.")
         }
     }
+
+    inline fun <reified T : Any> getAs(noinline converter: ((String) -> Any)? = null): T = getAs(T::class.java, converter)
 
     private fun convert(clazz: Class<*>, converter: () -> Any): Any = try {
         converter.invoke()
