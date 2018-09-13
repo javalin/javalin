@@ -16,7 +16,7 @@ public class TestValidation_Java {
 
     @Test
     public void validator_works_from_java_too() {
-        JavalinValidation.registerConverter(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
+        JavalinValidation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
         String intString = "123";
         int myInt = validate(intString).getAs(Integer.class);
         assertThat(myInt, is(123));

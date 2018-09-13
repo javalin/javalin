@@ -11,7 +11,7 @@ import java.util.*
 
 class Validator @JvmOverloads constructor(val value: String?, private val messagePrefix: String = "Value") {
 
-    data class Rule(val predicate: (String) -> Boolean, val invalidMessage: String)
+    data class Rule(val test: (String) -> Boolean, val invalidMessage: String)
 
     private val notNullOrBlank = Rule({ it.isEmpty() }, "$messagePrefix cannot be null or blank")
 
@@ -37,7 +37,7 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
             throw BadRequestResponse(notNullOrBlank.invalidMessage)
         }
         rules.forEach { rule ->
-            if (!rule.predicate.invoke(value)) {
+            if (!rule.test.invoke(value)) {
                 throw BadRequestResponse(rule.invalidMessage)
             }
         }
@@ -48,7 +48,7 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
         val validValue = this.get()
         return try {
             JavalinValidation.converters[clazz]?.invoke(validValue) as T
-                    ?: throw IllegalArgumentException("Can't auto-cast to ${clazz.simpleName}. Register a custom converter using JavalinValidation#registerConverter.")
+                    ?: throw IllegalArgumentException("Can't auto-cast to ${clazz.simpleName}. Register a custom converter using JavalinValidation#register.")
         } catch (e: Exception) {
             throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
         }
@@ -68,7 +68,7 @@ object JavalinValidation {
     )
 
     @JvmStatic
-    fun registerConverter(clazz: Class<*>, converter: (String) -> Any) = converters.put(clazz, converter)
+    fun register(clazz: Class<*>, converter: (String) -> Any) = converters.put(clazz, converter)
 
     @JvmStatic
     fun validate(value: String?) = Validator(value)
