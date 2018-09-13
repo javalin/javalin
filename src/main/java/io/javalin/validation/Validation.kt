@@ -59,7 +59,7 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
             }
         }
         return if (converter != null) {
-            converter.invoke(value) as T
+            convert(clazz) { converter.invoke(value) } as T
         } else when (clazz) {
             Int::class.java -> convert(clazz) { value.toInt() } as T
             Integer::class.java -> convert(clazz) { value.toInt() } as T

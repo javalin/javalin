@@ -11,6 +11,7 @@ import io.javalin.validation.Validator
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.time.Instant
 
 class TestValidation {
 
@@ -75,11 +76,11 @@ class TestValidation {
 
     @Test
     fun `test custom converter()`() = TestUtil.test { app, http ->
-        app.get("/int") { ctx ->
-            val myInt = ctx.validatedQueryParam("my-qp").getAs<Int>{ Integer.parseInt(it) }
-            ctx.result((myInt * 2).toString())
+        app.get("/instant") { ctx ->
+            val myInstant = ctx.validatedQueryParam("my-qp").getAs<Instant>{ Instant.ofEpochMilli(it.toLong()) }
+            ctx.json(myInstant)
         }
-        assertThat(http.get("/int?my-qp=123").body, `is`("246"))
+        assertThat(http.get("/instant?my-qp=1262347200000").body, `is`("""{"nano":0,"epochSecond":1262347200}"""))
     }
 
 }
