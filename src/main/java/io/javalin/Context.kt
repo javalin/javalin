@@ -535,18 +535,18 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails
      */
-    fun validatedFormParam(key: String) = Validator(this.formParam(key), "Form parameter '$key' with value '${this.formParam(key)}'")
+    fun validatedFormParam(key: String) = Validator(formParam(key), "Form parameter '$key' with value '${formParam(key)}'")
 
     /**
      * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails
      */
-    fun validatedPathParam(key: String) = Validator(this.pathParam(key), "Path parameter '$key' with value '${this.pathParam(key)}'")
+    fun validatedPathParam(key: String) = Validator(pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'")
 
     /**
      * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails
      */
-    fun validatedQueryParam(key: String) = Validator(this.queryParam(key), "Query parameter '$key' with value '${this.queryParam(key)}'")
+    fun validatedQueryParam(key: String) = Validator(queryParam(key), "Query parameter '$key' with value '${queryParam(key)}'")
 
 }
