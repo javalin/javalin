@@ -1,0 +1,38 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.java,*.kt]
+indent_style = space
+indent_size = 4
+continuation_indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.adoc]
+trim_trailing_whitespace = false
+
+
+[*.{js,css,html}]
+indent_style = space
+indent_size = 4
+insert_final_newline = false
+
+[*.yml]
+indent_style = space
+indent_size = 2
+
+[*.json]
+indent_style = space
+indent_size = 2
+
+[*.xml]
+indent_style = space
+indent_size = 4
