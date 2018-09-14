@@ -7,7 +7,6 @@
 package io.javalin.validation
 
 import io.javalin.BadRequestResponse
-import java.util.*
 
 class Validator @JvmOverloads constructor(val value: String?, private val messagePrefix: String = "Value") {
 
@@ -58,18 +57,3 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
 
 }
 
-object JavalinValidation {
-    val converters = mutableMapOf<Class<*>, (String) -> Any>(
-            Int::class.java to { s -> s.toInt() },
-            Integer::class.java to { s -> s.toInt() },
-            Double::class.java to { s -> s.toDouble() },
-            Long::class.java to { s -> s.toLong() },
-            Date::class.java to { s -> Date(s) }
-    )
-
-    @JvmStatic
-    fun register(clazz: Class<*>, converter: (String) -> Any) = converters.put(clazz, converter)
-
-    @JvmStatic
-    fun validate(value: String?) = Validator(value)
-}

@@ -531,8 +531,16 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
     }
 
+    /**
+     * Creates a [Validator] with the prefix "Query parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails
+     */
     fun validatedQueryParam(key: String) = Validator(this.queryParam(key), "Query parameter '$key' with value '${this.queryParam(key)}'")
-    fun validatedFormParam(key: String) = Validator(this.formParam(key), "Form parameter '$key' with value '${this.formParam(key)}'")
+
+    /**
+     * Creates a [Validator] with the prefix "Path parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails
+     */
     fun validatedPathParam(key: String) = Validator(this.pathParam(key), "Path parameter '$key' with value '${this.pathParam(key)}'")
 
 }

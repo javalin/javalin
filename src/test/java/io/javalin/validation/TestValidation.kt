@@ -9,7 +9,8 @@ package io.javalin.validation
 import io.javalin.BadRequestResponse
 import io.javalin.json.JavalinJson
 import io.javalin.util.TestUtil
-import org.hamcrest.CoreMatchers.`is`
+import io.javalin.validation.JavalinValidation.validate
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.time.Instant
@@ -61,7 +62,7 @@ class TestValidation {
     }
 
     @Test
-    fun `test self-instantiated validator()`() = TestUtil.test { app, http ->
+    fun `test self-instantiated validator`() = TestUtil.test { app, http ->
         try {
             val myValue = Validator(null).notNullOrBlank().get()
         } catch (e: BadRequestResponse) {
@@ -76,7 +77,7 @@ class TestValidation {
     }
 
     @Test
-    fun `test custom converter()`() = TestUtil.test { app, http ->
+    fun `test custom converter`() = TestUtil.test { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
             val myInstant = ctx.validatedQueryParam("my-qp").getAs<Instant>()
@@ -84,6 +85,20 @@ class TestValidation {
         }
         val instant = JavalinJson.fromJson(http.get("/instant?my-qp=1262347200000").body, Instant::class.java)
         assertThat(instant.epochSecond, `is`(1262347200L))
+    }
+
+    @Test
+    fun `test default converters`() = TestUtil.test { app, http ->
+        assertThat(validate("true").getAs(Boolean::class.java), `is`(instanceOf(Boolean::class.java)))
+        assertThat(validate("TRUE").getAs<Boolean>(), `is`(instanceOf(Boolean::class.java)))
+        assertThat(validate("1.2").getAs(Double::class.java), `is`(instanceOf(Double::class.java)))
+        assertThat(validate("123").getAs<Double>(), `is`(instanceOf(Double::class.java)))
+        assertThat(validate("1.2").getAs(Float::class.java), `is`(instanceOf(Float::class.java)))
+        assertThat(validate("123").getAs<Float>(), `is`(instanceOf(Float::class.java)))
+        assertThat(validate("123").getAs<Int>(), `is`(instanceOf(Int::class.java)))
+        assertThat(validate("123").getAs(Int::class.java), `is`(instanceOf(Int::class.java)))
+        assertThat(validate("123").getAs<Long>(), `is`(instanceOf(Long::class.java)))
+        assertThat(validate("123").getAs(Long::class.java), `is`(instanceOf(Long::class.java)))
     }
 
 }
