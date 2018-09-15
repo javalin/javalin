@@ -24,5 +24,6 @@ object JavalinValidation {
     fun register(clazz: Class<*>, converter: (String) -> Any) = converters.put(clazz, converter)
 
     @JvmStatic
-    fun validate(value: String?) = Validator(value)
+    @JvmOverloads
+    fun validate(value: String?, messagePrefix: String = "Value") = Validator(value, messagePrefix)
 }

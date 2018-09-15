@@ -8,17 +8,17 @@ package io.javalin.validation
 
 import io.javalin.BadRequestResponse
 
+internal data class Rule<T>(val test: (T) -> Boolean, val invalidMessage: String)
+
 class Validator @JvmOverloads constructor(val value: String?, private val messagePrefix: String = "Value") {
 
     init {
         if (value == null || value.isEmpty()) throw BadRequestResponse("$messagePrefix cannot be null or empty")
     }
 
-    data class Rule(val test: (String) -> Boolean, val invalidMessage: String)
+    private val rules = mutableSetOf<Rule<String>>()
 
-    private val rules = mutableSetOf<Rule>()
-
-    fun check(predicate: (String) -> Boolean, errorMessage: String): Validator {
+    fun check(predicate: (String) -> Boolean, errorMessage: String = "Failed check"): Validator {
         rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
         return this;
     }
@@ -31,16 +31,37 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
     fun notNullOrEmpty() = this // can be called for readability, but presence is asserted in constructor
 
     // find first invalid rule and throw, else return validated value
-    fun get(): String = rules.find { !it.test.invoke(value!!) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value!!
+    fun getOrThrow() = validate(rules, value!!)
 
-    fun <T> getAs(clazz: Class<T>) = convertToType(clazz, this.get())
+    // Convert to typed validator
 
-    inline fun <reified T : Any> getAs(): T = getAs(T::class.java)
+    fun asBoolean() = TypedValidator(convertToType(Boolean::class.java, getOrThrow()), messagePrefix)
+    fun asDouble() = TypedValidator(convertToType(Double::class.java, getOrThrow()), messagePrefix)
+    fun asFloat() = TypedValidator(convertToType(Float::class.java, getOrThrow()), messagePrefix)
+    fun asInt() = TypedValidator(convertToType(Int::class.java, getOrThrow()), messagePrefix)
+    fun asLong() = TypedValidator(convertToType(Long::class.java, getOrThrow()), messagePrefix)
+    fun <T> asClass(clazz: Class<T>) = TypedValidator(convertToType(clazz, getOrThrow()), messagePrefix)
+    inline fun <reified T : Any> asClass() = asClass(T::class.java)
 
     private fun <T> convertToType(clazz: Class<T>, value: String) = try {
-        JavalinValidation.converters[clazz]?.invoke(value) ?: throw IllegalArgumentException("Can't cast to ${clazz.simpleName}. Register a custom converter using JavalinValidation#register.")
+        JavalinValidation.converters[clazz]?.invoke(value) ?: throw IllegalArgumentException("Can't convert to ${clazz.simpleName}. Register a converter using JavalinValidation#register.")
     } catch (e: Exception) {
         throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
     } as T
 
 }
+
+class TypedValidator<T> @JvmOverloads constructor(val value: T, private val messagePrefix: String = "Value") {
+
+    private val rules = mutableSetOf<Rule<T>>()
+
+    fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): TypedValidator<T> {
+        rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
+        return this;
+    }
+
+    fun getOrThrow() = validate(rules, value)
+
+}
+
+private fun <T> validate(rules: Set<Rule<T>>, value: T) = rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value

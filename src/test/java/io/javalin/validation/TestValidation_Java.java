@@ -19,18 +19,18 @@ public class TestValidation_Java {
     public void validator_works_from_java_too() {
         JavalinValidation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
         String intString = "123";
-        int myInt = validate(intString).getAs(Integer.class);
+        int myInt = validate(intString).asClass(Integer.class).getOrThrow();
         assertThat(myInt, is(123));
 
         String instantString = "1262347200000";
-        Instant myInstant = validate(instantString).getAs(Instant.class);
+        Instant myInstant = validate(instantString).asClass(Instant.class).getOrThrow();
         assertThat(myInstant.getEpochSecond(), is(1262347200L));
 
-        assertThat(validate("true").getAs(Boolean.class), is(instanceOf(Boolean.class)));
-        assertThat(validate("1.2").getAs(Double.class), is(instanceOf(Double.class)));
-        assertThat(validate("1.2").getAs(Float.class), is(instanceOf(Float.class)));
-        assertThat(validate("123").getAs(Integer.class), is(instanceOf(Integer.class)));
-        assertThat(validate("123").getAs(Long.class), is(instanceOf(Long.class)));
+        assertThat(validate("true").asBoolean().getOrThrow(), is(instanceOf(Boolean.class)));
+        assertThat(validate("1.2").asDouble().getOrThrow(), is(instanceOf(Double.class)));
+        assertThat(validate("1.2").asFloat().getOrThrow(), is(instanceOf(Float.class)));
+        assertThat(validate("123").asInt().getOrThrow(), is(instanceOf(Integer.class)));
+        assertThat(validate("123").asLong().getOrThrow(), is(instanceOf(Long.class)));
     }
 
 }

@@ -22,7 +22,7 @@ class TestValidation {
         app.get("/") { ctx ->
             val myString = ctx.validatedQueryParam("my-qp")
                     .notNullOrEmpty()
-                    .get()
+                    .getOrThrow()
         }
         assertThat(http.get("/").body, `is`("Query parameter 'my-qp' with value 'null' cannot be null or empty"))
         assertThat(http.get("/").status, `is`(400))
@@ -31,11 +31,11 @@ class TestValidation {
     @Test
     fun `test getAs(clazz)`() = TestUtil.test { app, http ->
         app.get("/int") { ctx ->
-            val myInt = ctx.validatedQueryParam("my-qp").getAs<Int>()
+            val myInt = ctx.validatedQueryParam("my-qp").asInt().getOrThrow()
             ctx.result((myInt * 2).toString())
         }
         assertThat(http.get("/int").body, `is`("Query parameter 'my-qp' with value 'null' cannot be null or empty"))
-        assertThat(http.get("/int?my-qp=abc").body, `is`("Query parameter 'my-qp' with value 'abc' is not a valid Integer"))
+        assertThat(http.get("/int?my-qp=abc").body, `is`("Query parameter 'my-qp' with value 'abc' is not a valid int"))
         assertThat(http.get("/int?my-qp=123").body, `is`("246"))
     }
 
@@ -44,7 +44,7 @@ class TestValidation {
         app.get("/") { ctx ->
             val myString = ctx.validatedQueryParam("my-qp")
                     .check({ it.length > 5 }, "Length must be more than five")
-                    .get()
+                    .getOrThrow()
         }
         assertThat(http.get("/?my-qp=1").body, `is`("Query parameter 'my-qp' with value '1' invalid - Length must be more than five"))
     }
@@ -54,7 +54,8 @@ class TestValidation {
         app.get("/") { ctx ->
             val myLong = ctx.validatedQueryParam("my-qp")
                     .matches("[0-9]")
-                    .getAs(Long::class.java)
+                    .asLong()
+                    .getOrThrow()
             ctx.result(myLong.toString())
         }
         assertThat(http.get("/?my-qp=a").body, `is`("Query parameter 'my-qp' with value 'a' does not match '[0-9]'"))
@@ -64,13 +65,13 @@ class TestValidation {
     @Test
     fun `test self-instantiated validator`() = TestUtil.test { app, http ->
         try {
-            val myValue = Validator(null).notNullOrEmpty().get()
+            val myValue = validate(null).notNullOrEmpty().getOrThrow()
         } catch (e: BadRequestResponse) {
             assertThat(e.msg, `is`("Value cannot be null or empty"))
         }
         try {
             val jsonProp = ""
-            val myValue = Validator(jsonProp, "jsonProp").notNullOrEmpty().get()
+            val myValue = validate(jsonProp, "jsonProp").notNullOrEmpty().getOrThrow()
         } catch (e: BadRequestResponse) {
             assertThat(e.msg, `is`("jsonProp cannot be null or empty"))
         }
@@ -80,25 +81,26 @@ class TestValidation {
     fun `test custom converter`() = TestUtil.test { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
-            val myInstant = ctx.validatedQueryParam("my-qp").getAs<Instant>()
-            ctx.json(myInstant)
+            val fromDate = ctx.validatedQueryParam("from")
+                    .asClass<Instant>()
+                    .getOrThrow()
+            val toDate = ctx.validatedQueryParam("to")
+                    .asClass<Instant>()
+                    .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
+                    .getOrThrow()
+            ctx.json(toDate.isAfter(fromDate))
         }
-        val instant = JavalinJson.fromJson(http.get("/instant?my-qp=1262347200000").body, Instant::class.java)
-        assertThat(instant.epochSecond, `is`(1262347200L))
+        assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body, `is`("true"))
+        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body, `is`("Query parameter 'to' with value '1262347100000' invalid - 'to' has to be after 'from'"))
     }
 
     @Test
     fun `test default converters`() = TestUtil.test { app, http ->
-        assertThat(validate("true").getAs(Boolean::class.java), `is`(instanceOf(Boolean::class.java)))
-        assertThat(validate("TRUE").getAs<Boolean>(), `is`(instanceOf(Boolean::class.java)))
-        assertThat(validate("1.2").getAs(Double::class.java), `is`(instanceOf(Double::class.java)))
-        assertThat(validate("123").getAs<Double>(), `is`(instanceOf(Double::class.java)))
-        assertThat(validate("1.2").getAs(Float::class.java), `is`(instanceOf(Float::class.java)))
-        assertThat(validate("123").getAs<Float>(), `is`(instanceOf(Float::class.java)))
-        assertThat(validate("123").getAs<Int>(), `is`(instanceOf(Int::class.java)))
-        assertThat(validate("123").getAs(Int::class.java), `is`(instanceOf(Int::class.java)))
-        assertThat(validate("123").getAs<Long>(), `is`(instanceOf(Long::class.java)))
-        assertThat(validate("123").getAs(Long::class.java), `is`(instanceOf(Long::class.java)))
+        assertThat(validate("true").asBoolean().getOrThrow(), `is`(instanceOf(Boolean::class.java)))
+        assertThat(validate("1.2").asDouble().getOrThrow(), `is`(instanceOf(Double::class.java)))
+        assertThat(validate("1.2").asFloat().getOrThrow(), `is`(instanceOf(Float::class.java)))
+        assertThat(validate("123").asInt().getOrThrow(), `is`(instanceOf(Int::class.java)))
+        assertThat(validate("123").asLong().getOrThrow(), `is`(instanceOf(Long::class.java)))
     }
 
 }
