@@ -59,7 +59,7 @@ class TestValidation {
                     .getOrThrow()
             ctx.result(myLong.toString())
         }
-        assertThat(http.get("/?my-qp=a").body, `is`("Query parameter 'my-qp' with value 'a' does not match '[0-9]'"))
+        assertThat(http.get("/?my-qp=a").body, `is`("Query parameter 'my-qp' with value 'a' invalid - does not match '[0-9]'"))
         assertThat(http.get("/?my-qp=1").body, `is`("1"))
     }
 
