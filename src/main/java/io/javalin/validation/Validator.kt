@@ -23,10 +23,7 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
         return this;
     }
 
-    fun matches(regex: String): Validator {
-        rules.add(Rule({ Regex(regex).matches(it) }, "$messagePrefix does not match '$regex'"))
-        return this
-    }
+    fun matches(regex: String) = check({ Regex(regex).matches(it) }, "$messagePrefix does not match '$regex'")
 
     fun notNullOrEmpty() = this // can be called for readability, but presence is asserted in constructor
 
