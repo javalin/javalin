@@ -10,11 +10,13 @@ import io.javalin.BadRequestResponse
 
 class Validator @JvmOverloads constructor(val value: String?, private val messagePrefix: String = "Value") {
 
+    init {
+        if (value == null || value.isEmpty()) throw BadRequestResponse("$messagePrefix cannot be null or empty")
+    }
+
     data class Rule(val test: (String) -> Boolean, val invalidMessage: String)
 
     private val rules = mutableSetOf<Rule>()
-
-    fun notNullOrBlank() = this // can be called for readability, but we always ensure that value is present
 
     fun check(predicate: (String) -> Boolean, errorMessage: String): Validator {
         rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
@@ -26,29 +28,19 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
         return this
     }
 
-    fun get(): String {
-        if (value == null || value.isEmpty()) {
-            throw BadRequestResponse("$messagePrefix cannot be null or blank")
-        }
-        rules.forEach { rule ->
-            if (!rule.test.invoke(value)) {
-                throw BadRequestResponse(rule.invalidMessage)
-            }
-        }
-        return value
-    }
+    fun notNullOrEmpty() = this // can be called for readability, but presence is asserted in constructor
 
-    fun <T> getAs(clazz: Class<T>): T {
-        val validValue = this.get()
-        return try {
-            JavalinValidation.converters[clazz]?.invoke(validValue) as T
-                    ?: throw IllegalArgumentException("Can't auto-cast to ${clazz.simpleName}. Register a custom converter using JavalinValidation#register.")
-        } catch (e: Exception) {
-            throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
-        }
-    }
+    // find first invalid rule and throw, else return validated value
+    fun get(): String = rules.find { !it.test.invoke(value!!) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value!!
+
+    fun <T> getAs(clazz: Class<T>) = convertToType(clazz, this.get())
 
     inline fun <reified T : Any> getAs(): T = getAs(T::class.java)
 
-}
+    private fun <T> convertToType(clazz: Class<T>, value: String) = try {
+        JavalinValidation.converters[clazz]?.invoke(value) ?: throw IllegalArgumentException("Can't cast to ${clazz.simpleName}. Register a custom converter using JavalinValidation#register.")
+    } catch (e: Exception) {
+        throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
+    } as T
 
+}

@@ -21,10 +21,10 @@ class TestValidation {
     fun `test notNullOrBlank()`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myString = ctx.validatedQueryParam("my-qp")
-                    .notNullOrBlank()
+                    .notNullOrEmpty()
                     .get()
         }
-        assertThat(http.get("/").body, `is`("Query parameter 'my-qp' with value 'null' cannot be null or blank"))
+        assertThat(http.get("/").body, `is`("Query parameter 'my-qp' with value 'null' cannot be null or empty"))
         assertThat(http.get("/").status, `is`(400))
     }
 
@@ -34,7 +34,7 @@ class TestValidation {
             val myInt = ctx.validatedQueryParam("my-qp").getAs<Int>()
             ctx.result((myInt * 2).toString())
         }
-        assertThat(http.get("/int").body, `is`("Query parameter 'my-qp' with value 'null' cannot be null or blank"))
+        assertThat(http.get("/int").body, `is`("Query parameter 'my-qp' with value 'null' cannot be null or empty"))
         assertThat(http.get("/int?my-qp=abc").body, `is`("Query parameter 'my-qp' with value 'abc' is not a valid Integer"))
         assertThat(http.get("/int?my-qp=123").body, `is`("246"))
     }
@@ -64,15 +64,15 @@ class TestValidation {
     @Test
     fun `test self-instantiated validator`() = TestUtil.test { app, http ->
         try {
-            val myValue = Validator(null).notNullOrBlank().get()
+            val myValue = Validator(null).notNullOrEmpty().get()
         } catch (e: BadRequestResponse) {
-            assertThat(e.msg, `is`("Value cannot be null or blank"))
+            assertThat(e.msg, `is`("Value cannot be null or empty"))
         }
         try {
             val jsonProp = ""
-            val myValue = Validator(jsonProp, "jsonProp").notNullOrBlank().get()
+            val myValue = Validator(jsonProp, "jsonProp").notNullOrEmpty().get()
         } catch (e: BadRequestResponse) {
-            assertThat(e.msg, `is`("jsonProp cannot be null or blank"))
+            assertThat(e.msg, `is`("jsonProp cannot be null or empty"))
         }
     }
 
