@@ -8,6 +8,7 @@ package io.javalin.validation
 
 import io.javalin.BadRequestResponse
 import io.javalin.json.JavalinJson
+import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
 import io.javalin.validation.JavalinValidation.validate
 import org.hamcrest.CoreMatchers.*
@@ -101,6 +102,23 @@ class TestValidation {
         assertThat(validate("1.2").asFloat().getOrThrow(), `is`(instanceOf(Float::class.java)))
         assertThat(validate("123").asInt().getOrThrow(), `is`(instanceOf(Int::class.java)))
         assertThat(validate("123").asLong().getOrThrow(), `is`(instanceOf(Long::class.java)))
+    }
+
+    @Test
+    fun `test validatedBody()`() = TestUtil.test { app, http ->
+        app.post("/json") { ctx ->
+        val obj = ctx.validatedBody<SerializeableObject>()
+                .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
+                .getOrThrow()
+            ctx.result(obj.value1)
+        }
+        val invalidJson = JavalinJson.toJson(SerializeableObject())
+        val validJson = JavalinJson.toJson(SerializeableObject().apply {
+            value1 = "Bananas"
+        })
+        assertThat(http.post("/json").body("not-json").asString().body, `is`("Couldn't deserialize body to SerializeableObject"))
+        assertThat(http.post("/json").body(invalidJson).asString().body, `is`("Request body as SerializeableObject invalid - value1 must be 'Bananas'"))
+        assertThat(http.post("/json").body(validJson).asString().body, `is`("Bananas"))
     }
 
 }
