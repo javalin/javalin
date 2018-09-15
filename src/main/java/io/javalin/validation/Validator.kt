@@ -10,7 +10,7 @@ import io.javalin.BadRequestResponse
 
 internal data class Rule<T>(val test: (T) -> Boolean, val invalidMessage: String)
 
-class Validator @JvmOverloads constructor(val value: String?, private val messagePrefix: String = "Value") {
+class Validator(val value: String?, private val messagePrefix: String = "Value") {
 
     init {
         if (value == null || value.isEmpty()) throw BadRequestResponse("$messagePrefix cannot be null or empty")
@@ -30,8 +30,7 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
 
     fun notNullOrEmpty() = this // can be called for readability, but presence is asserted in constructor
 
-    // find first invalid rule and throw, else return validated value
-    fun getOrThrow() = validate(rules, value!!)
+    fun getOrThrow() = validate(rules, value!!) // !! is safe, value is checked for null in init{}
 
     // Convert to typed validator
 
@@ -51,7 +50,7 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
 
 }
 
-class TypedValidator<T> @JvmOverloads constructor(val value: T, private val messagePrefix: String = "Value") {
+class TypedValidator<T>(val value: T, private val messagePrefix: String = "Value") {
 
     private val rules = mutableSetOf<Rule<T>>()
 
@@ -64,4 +63,5 @@ class TypedValidator<T> @JvmOverloads constructor(val value: T, private val mess
 
 }
 
+// find first invalid rule and throw, else return validated value
 private fun <T> validate(rules: Set<Rule<T>>, value: T) = rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
