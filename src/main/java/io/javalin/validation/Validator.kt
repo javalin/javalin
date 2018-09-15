@@ -12,28 +12,23 @@ class Validator @JvmOverloads constructor(val value: String?, private val messag
 
     data class Rule(val test: (String) -> Boolean, val invalidMessage: String)
 
-    private val notNullOrBlank = Rule({ it.isEmpty() }, "$messagePrefix cannot be null or blank")
-
     private val rules = mutableSetOf<Rule>()
 
-    private fun addToRules(rule: Rule): Validator {
-        rules.add(rule)
+    fun notNullOrBlank() = this // can be called for readability, but we always ensure that value is present
+
+    fun check(predicate: (String) -> Boolean, errorMessage: String): Validator {
+        rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
         return this;
     }
 
-    fun notNullOrBlank() = addToRules(notNullOrBlank) // i think we'll always check this... include for readability?
-
-    fun check(predicate: (String) -> Boolean, errorMessage: String) = addToRules(
-            Rule(predicate, "$messagePrefix invalid - $errorMessage")
-    )
-
-    fun matches(regex: String) = addToRules(
-            Rule({ Regex(regex).matches(it) }, "$messagePrefix does not match '$regex'")
-    )
+    fun matches(regex: String): Validator {
+        rules.add(Rule({ Regex(regex).matches(it) }, "$messagePrefix does not match '$regex'"))
+        return this
+    }
 
     fun get(): String {
         if (value == null || value.isEmpty()) {
-            throw BadRequestResponse(notNullOrBlank.invalidMessage)
+            throw BadRequestResponse("$messagePrefix cannot be null or blank")
         }
         rules.forEach { rule ->
             if (!rule.test.invoke(value)) {
