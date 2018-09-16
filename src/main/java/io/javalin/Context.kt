@@ -13,6 +13,8 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
 import io.javalin.json.JavalinJson
 import io.javalin.rendering.JavalinRenderer
+import io.javalin.validation.TypedValidator
+import io.javalin.validation.Validator
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -528,6 +530,42 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     @JvmOverloads
     fun render(filePath: String, model: Map<String, Any?> = emptyMap()): Context {
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
+    }
+
+    // Validation
+
+    /**
+     * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails
+     */
+    fun validatedFormParam(key: String) = Validator(formParam(key), "Form parameter '$key' with value '${formParam(key)}'")
+
+    /**
+     * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails
+     */
+    fun validatedPathParam(key: String) = Validator(pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'")
+
+    /**
+     * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails
+     */
+    fun validatedQueryParam(key: String) = Validator(queryParam(key), "Query parameter '$key' with value '${queryParam(key)}'")
+
+    /**
+     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
+     * Throws [BadRequestResponse] if validation fails
+     */
+    inline fun <reified T : Any> validatedBody() = validatedBodyAsClass(T::class.java)
+
+    /**
+     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
+     * Throws [BadRequestResponse] if validation fails
+     */
+    fun <T> validatedBodyAsClass(clazz: Class<T>) = try {
+        TypedValidator(JavalinJson.fromJsonMapper.map(body(), clazz), "Request body as ${clazz.simpleName}")
+    } catch (e: Exception) {
+        throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
 
 }
