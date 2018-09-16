@@ -13,19 +13,22 @@ Chatroom: https://gitter.im/javalin-io/general
 
 Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javalin/blob/master/CONTRIBUTING.md)
 
-## Java quickstart
+## Quickstart
 
-### Add dependency (maven)
+### Add dependency
 
 ```xml
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>2.1.1</version>
+    <version>2.2.0</version>
 </dependency>
+
+// or gradle, if you must
+compile 'io.javalin:javalin:2.2.0'
 ```
 
-### Start programming:
+### Start programming (Java)
 
 ```java
 import io.javalin.Javalin;
@@ -38,14 +41,7 @@ public class HelloWorld {
 }
 ```
 
-## Kotlin quickstart
-
-### Add dependency (gradle)
-```kotlin
-compile 'io.javalin:javalin:2.1.1'
-```
-
-### Start programming
+### Start programming (Kotlin)
 ```kotlin
 import io.javalin.Javalin
 
