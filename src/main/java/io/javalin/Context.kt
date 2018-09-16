@@ -96,7 +96,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * @return The mapped object
      */
     fun <T> bodyAsClass(clazz: Class<T>): T {
-        return JavalinJson.fromJsonMapper.map(body(), clazz)
+        return JavalinJson.fromJson(body(), clazz)
     }
 
     /**
@@ -507,7 +507,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * JavalinJson can be configured to use any mapping library.
      */
     fun json(obj: Any): Context {
-        return contentType("application/json").result(JavalinJson.toJsonMapper.map(obj))
+        return contentType("application/json").result(JavalinJson.toJson(obj))
     }
 
     /**
@@ -518,7 +518,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * JavalinJson can be configured to use any mapping library.
      */
     fun json(future: CompletableFuture<*>): Context {
-        val mappingFuture = future.thenApply { obj -> JavalinJson.toJsonMapper.map(obj) }
+        val mappingFuture = future.thenApply { JavalinJson.toJson(it) }
         return contentType("application/json").result(mappingFuture)
     }
 
@@ -563,7 +563,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * Throws [BadRequestResponse] if validation fails
      */
     fun <T> validatedBodyAsClass(clazz: Class<T>) = try {
-        TypedValidator(JavalinJson.fromJsonMapper.map(body(), clazz), "Request body as ${clazz.simpleName}")
+        TypedValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
     } catch (e: Exception) {
         throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
