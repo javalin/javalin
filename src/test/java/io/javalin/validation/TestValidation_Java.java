@@ -22,9 +22,12 @@ public class TestValidation_Java {
         int myInt = validate(intString).asClass(Integer.class).getOrThrow();
         assertThat(myInt, is(123));
 
-        String instantString = "1262347200000";
-        Instant myInstant = validate(instantString).asClass(Instant.class).getOrThrow();
-        assertThat(myInstant.getEpochSecond(), is(1262347200L));
+        Instant fromDate = validate("1262347200000").asClass(Instant.class).getOrThrow();
+        Instant toDate = validate("1262347300000").asClass(Instant.class)
+            .check(it -> it.isAfter(fromDate), "'to' has to be after 'from'")
+            .getOrThrow();
+
+        assertThat(toDate.getEpochSecond(), is(1262347300L));
 
         assertThat(validate("true").asBoolean().getOrThrow(), is(instanceOf(Boolean.class)));
         assertThat(validate("1.2").asDouble().getOrThrow(), is(instanceOf(Double.class)));
