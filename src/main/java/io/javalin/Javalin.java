@@ -33,8 +33,10 @@ import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsPathMatcher;
 import java.net.BindException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -74,6 +76,7 @@ public class Javalin {
     private ErrorMapper errorMapper = new ErrorMapper();
     private EventManager eventManager = new EventManager();
     private List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
+    private Map<Class, Object> extensions = new HashMap<>();
 
     protected Javalin() {
     }
@@ -120,6 +123,7 @@ public class Javalin {
             try {
                 log.info("Starting Javalin ...");
                 JavalinServlet javalinServlet = new JavalinServlet(
+                    this,
                     pathMatcher,
                     exceptionMapper,
                     errorMapper,
@@ -404,6 +408,30 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Changing request cache body size");
         this.maxRequestCacheBodySize = bodySizeInBytes;
         return this;
+    }
+
+    /**
+     * Registers an extension on the instance.
+     * Instance is available on the {@link Context} through {@link Context#javalin()}.
+     *
+     * Ex: app.register(MyExt.class, myExtInstance())
+     */
+    public Javalin register(Class clazz, Object obj) {
+        ensureActionIsPerformedBeforeServerStart("Registering extensions");
+        extensions.put(clazz, obj);
+        return this;
+    }
+
+    /**
+     * Use an extension stored on the instance.
+     * Instance is available on the {@link Context} through {@link Context#javalin()}.
+     *
+     * Ex: app.use(MyExt.class).myMethod()
+     * Ex: ctx.javalin().use(MyExt.class).myMethod()
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T use(Class<T> clazz) {
+        return (T) extensions.get(clazz);
     }
 
     /**

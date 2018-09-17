@@ -8,6 +8,7 @@ package io.javalin.core.util
 
 import io.javalin.BasicAuthCredentials
 import io.javalin.Context
+import io.javalin.Javalin
 import io.javalin.core.HandlerEntry
 import io.javalin.core.HandlerType
 import java.net.URLDecoder
@@ -59,8 +60,9 @@ object ContextUtil {
             matchedPath: String = "*",
             pathParamMap: Map<String, String> = mapOf(),
             splatList: List<String> = listOf(),
-            handlerType: HandlerType = HandlerType.INVALID
-    ) = Context(request, response).apply {
+            handlerType: HandlerType = HandlerType.INVALID,
+            javalin: Javalin
+    ) = Context(request, response, javalin).apply {
         this.matchedPath = matchedPath
         this.pathParamMap = pathParamMap
         this.splatList = splatList
