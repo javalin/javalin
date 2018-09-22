@@ -538,6 +538,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails
      */
+    @JvmOverloads
     fun validatedFormParam(key: String, default: String? = null) = Validator(formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'")
 
     /**
@@ -550,6 +551,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails
      */
+    @JvmOverloads
     fun validatedQueryParam(key: String, default: String? = null) = Validator(queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'")
 
     /**
