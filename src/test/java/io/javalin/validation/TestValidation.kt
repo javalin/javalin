@@ -64,6 +64,19 @@ class TestValidation {
     }
 
     @Test
+    fun `test default()`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val myInt = ctx.validatedQueryParam("my-qp", "788")
+                    .asInt()
+                    .getOrThrow()
+            ctx.result(myInt.toString())
+        }
+        assertThat(http.get("/?my-qp=a").body, `is`("Query parameter 'my-qp' with value 'a' is not a valid int"))
+        assertThat(http.get("/?my-qp=1").body, `is`("1"))
+        assertThat(http.get("/").body, `is`("788"))
+    }
+
+    @Test
     fun `test self-instantiated validator`() = TestUtil.test { app, http ->
         try {
             val myValue = validate(null).notNullOrEmpty().getOrThrow()
