@@ -1,5 +1,9 @@
 sudo: required # this became required on 30-08-2018 for unknown reasons
 language: java
 jdk:
-  - oraclejdk8
-  - oraclejdk9
+- oraclejdk8
+- oraclejdk9
+- oraclejdk10
+- openjdk8
+- openjdk9
+- openjdk10
