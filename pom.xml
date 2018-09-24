@@ -303,15 +303,6 @@
 
     <profiles>
         <profile>
-            <id>jdk9plus</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <properties>
-                <maven.compiler.release>8</maven.compiler.release>
-            </properties>
-        </profile>
-        <profile>
             <id>sign-artifacts</id>
             <activation>
                 <property>
