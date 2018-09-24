@@ -272,7 +272,7 @@
                 <version>0.9.16</version>
                 <executions>
                     <execution>
-                       <phase>pre-site</phase>
+                        <phase>pre-site</phase>
                         <goals>
                             <goal>dokka</goal>
                         </goals>
