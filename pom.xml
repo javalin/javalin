@@ -266,8 +266,8 @@
                 </executions>
                 <configuration>
                     <source>${java.version}</source>
-                    <target>${java.version}</target>	
-                    <optimize>true</optimize>	
+                    <target>${java.version}</target>
+                    <optimize>true</optimize>
                 </configuration>
             </plugin>
             <plugin>
