@@ -20,16 +20,20 @@ object JavalinJackson {
         objectMapper = staticObjectMapper
     }
 
+    @JvmStatic
+    fun getObjectMapper(): ObjectMapper {
+        objectMapper = objectMapper ?: createObjectMapper()
+        return objectMapper!!
+    }
+
     fun toJson(`object`: Any): String {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        objectMapper = objectMapper ?: createObjectMapper()
-        return objectMapper!!.writeValueAsString(`object`)
+        return getObjectMapper().writeValueAsString(`object`)
     }
 
     fun <T> fromJson(json: String, clazz: Class<T>): T {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        objectMapper = objectMapper ?: createObjectMapper()
-        return objectMapper!!.readValue(json, clazz)
+        return getObjectMapper().readValue(json, clazz)
     }
 
     private fun createObjectMapper(): ObjectMapper = try {
