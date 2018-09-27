@@ -25,8 +25,28 @@ class TestValidation {
                     .notNullOrEmpty()
                     .getOrThrow()
         }
-        assertThat(http.get("/").body, `is`("Query parameter 'my-qp' with value 'null' cannot be null or empty"))
+        assertThat(http.get("/").body, `is`("Query parameter 'my-qp' with value 'null' invalid - cannot be null or empty"))
         assertThat(http.get("/").status, `is`(400))
+    }
+
+    @Test
+    fun `test implicit notNullOrBlank()`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val myString = ctx.validatedQueryParam("my-qp")
+                    .getOrThrow()
+        }
+        assertThat(http.get("/").body, `is`("Query parameter 'my-qp' with value 'null' invalid - cannot be null or empty"))
+        assertThat(http.get("/").status, `is`(400))
+    }
+
+    @Test
+    fun `test empty without empty check`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val myString = ctx.validatedQueryParam("my-qp")
+                    .getOrThrow()
+        }
+        assertThat(http.get("/?my-qp=").body, `is`(""))
+        assertThat(http.get("/?my-qp=").status, `is`(200))
     }
 
     @Test
@@ -35,8 +55,8 @@ class TestValidation {
             val myInt = ctx.validatedQueryParam("my-qp").asInt().getOrThrow()
             ctx.result((myInt * 2).toString())
         }
-        assertThat(http.get("/int").body, `is`("Query parameter 'my-qp' with value 'null' cannot be null or empty"))
-        assertThat(http.get("/int?my-qp=abc").body, `is`("Query parameter 'my-qp' with value 'abc' is not a valid int"))
+        assertThat(http.get("/int").body, `is`("Query parameter 'my-qp' with value 'null' invalid - cannot be null or empty"))
+        assertThat(http.get("/int?my-qp=abc").body, `is`("Query parameter 'my-qp' with value 'abc' invalid - not a valid int"))
         assertThat(http.get("/int?my-qp=123").body, `is`("246"))
     }
 
@@ -44,7 +64,8 @@ class TestValidation {
     fun `test check()`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myString = ctx.validatedQueryParam("my-qp")
-                    .check({ it.length > 5 }, "Length must be more than five")
+                    .notNullOrEmpty()
+                    .check({ it!!.length > 5 }, "Length must be more than five")
                     .getOrThrow()
         }
         assertThat(http.get("/?my-qp=1").body, `is`("Query parameter 'my-qp' with value '1' invalid - Length must be more than five"))
@@ -71,9 +92,33 @@ class TestValidation {
                     .getOrThrow()
             ctx.result(myInt.toString())
         }
-        assertThat(http.get("/?my-qp=a").body, `is`("Query parameter 'my-qp' with value 'a' is not a valid int"))
+        assertThat(http.get("/?my-qp=a").body, `is`("Query parameter 'my-qp' with value 'a' invalid - not a valid int"))
         assertThat(http.get("/?my-qp=1").body, `is`("1"))
         assertThat(http.get("/").body, `is`("788"))
+    }
+
+    @Test
+    fun `test Int getOrDefault()`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val myInt = ctx.validatedQueryParam("my-qp")
+                    .asInt()
+                    .getOrDefault(788)
+            ctx.result(myInt.toString())
+        }
+        assertThat(http.get("/?my-qp=a").body, `is`("Query parameter 'my-qp' with value 'a' invalid - not a valid int"))
+        assertThat(http.get("/?my-qp=1").body, `is`("1"))
+        assertThat(http.get("/").body, `is`("788"))
+    }
+
+    @Test
+    fun `test String getOrDefault()`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val myStr = ctx.validatedQueryParam("my-qp")
+                    .getOrDefault("default")
+            ctx.result(myStr)
+        }
+        assertThat(http.get("/?my-qp=1").body, `is`("1"))
+        assertThat(http.get("/").body, `is`("default"))
     }
 
     @Test
@@ -81,13 +126,13 @@ class TestValidation {
         try {
             val myValue = validate(null).notNullOrEmpty().getOrThrow()
         } catch (e: BadRequestResponse) {
-            assertThat(e.msg, `is`("Value cannot be null or empty"))
+            assertThat(e.msg, `is`("Value invalid - cannot be null or empty"))
         }
         try {
             val jsonProp = ""
             val myValue = validate(jsonProp, "jsonProp").notNullOrEmpty().getOrThrow()
         } catch (e: BadRequestResponse) {
-            assertThat(e.msg, `is`("jsonProp cannot be null or empty"))
+            assertThat(e.msg, `is`("jsonProp invalid - cannot be null or empty"))
         }
     }
 
@@ -99,8 +144,9 @@ class TestValidation {
                     .asClass<Instant>()
                     .getOrThrow()
             val toDate = ctx.validatedQueryParam("to")
+                    .notNullOrEmpty()
                     .asClass<Instant>()
-                    .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
+                    .check({ it!!.isAfter(fromDate) }, "'to' has to be after 'from'")
                     .getOrThrow()
             ctx.json(toDate.isAfter(fromDate))
         }
@@ -121,7 +167,7 @@ class TestValidation {
     fun `test validatedBody()`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
         val obj = ctx.validatedBody<SerializeableObject>()
-                .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
+                .check({ it!!.value1 == "Bananas" }, "value1 must be 'Bananas'")
                 .getOrThrow()
             ctx.result(obj.value1)
         }
