@@ -27,7 +27,7 @@ class TestJavalinOnContext {
     fun `javalin instance is available and extensions work`() = TestUtil.test(extendedJavalin) { app, http ->
         val gson = GsonBuilder().create()
         app.get("/") { ctx ->
-            val rendered = ctx.javalin().use(MyJson::class.java).render(SerializeableObject())
+            val rendered = ctx.app.use(MyJson::class.java).render(SerializeableObject())
             ctx.result(rendered)
         }
         assertThat(http.getBody("/"), `is`(gson.toJson(SerializeableObject())))
