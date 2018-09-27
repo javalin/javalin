@@ -120,9 +120,9 @@ class TestValidation {
     @Test
     fun `test validatedBody()`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
-        val obj = ctx.validatedBody<SerializeableObject>()
-                .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
-                .getOrThrow()
+            val obj = ctx.validatedBody<SerializeableObject>()
+                    .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
+                    .getOrThrow()
             ctx.result(obj.value1)
         }
         val invalidJson = JavalinJson.toJson(SerializeableObject())
