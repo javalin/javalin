@@ -14,6 +14,7 @@ import io.javalin.validation.JavalinValidation.validate
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.time.Duration
 import java.time.Instant
 
 class TestValidation {
@@ -89,6 +90,12 @@ class TestValidation {
         } catch (e: BadRequestResponse) {
             assertThat(e.msg, `is`("jsonProp cannot be null or empty"))
         }
+    }
+
+    @Test
+    fun `test unregistered converter`() = TestUtil.test { app, http ->
+        app.get("/duration") { it.validatedQueryParam("from").asClass<Duration>().getOrThrow() }
+        assertThat(http.get("/duration?from=abc").status, `is`(500))
     }
 
     @Test
