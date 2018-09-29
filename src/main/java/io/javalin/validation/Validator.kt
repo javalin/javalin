@@ -41,6 +41,7 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
     private fun <T> convertToType(clazz: Class<T>, value: String) = try {
         JavalinValidation.converters[clazz]?.invoke(value) ?: throw IllegalArgumentException("Can't convert to ${clazz.simpleName}. Register a converter using JavalinValidation#register.")
     } catch (e: Exception) {
+        if (e.message?.startsWith("Can't convert to") == true) throw e
         throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
     } as T
 
