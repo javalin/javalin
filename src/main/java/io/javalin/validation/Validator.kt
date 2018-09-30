@@ -8,25 +8,32 @@ package io.javalin.validation
 
 import io.javalin.BadRequestResponse
 
-class Validator(val value: String?, private val messagePrefix: String = "Value") {
+open class TypedValidator<T>(val value: T?, val messagePrefix: String = "Value") {
 
-    private val rules = mutableSetOf<Rule<String>>()
+    data class Rule<T>(val test: (T) -> Boolean, val invalidMessage: String)
+
+    private val rules = mutableSetOf<Rule<T>>()
 
     @JvmOverloads
-    fun check(predicate: (String) -> Boolean, errorMessage: String = "Failed check"): Validator {
+    open fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): TypedValidator<T> {
         rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
         return this
     }
 
+    fun getOrThrow(): T {
+        if (value == null || (value is String && value.isEmpty())) throw BadRequestResponse("$messagePrefix cannot be null or empty")
+        return rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
+    }
+
+}
+
+class Validator(value: String?, messagePrefix: String = "Value") : TypedValidator<String>(value, messagePrefix) {
+
+    override fun check(predicate: (String) -> Boolean, errorMessage: String) = super.check(predicate, errorMessage) as Validator
+
     fun matches(regex: String) = check({ Regex(regex).matches(it) }, "does not match '$regex'")
 
-    /** Can be called for readability, but presence is asserted in [getOrThrow]. */
-    fun notNullOrEmpty() = this
-
-    fun getOrThrow(): String {
-        if (value == null || value.isEmpty()) throw BadRequestResponse("$messagePrefix cannot be null or empty")
-        return rules.validate(value)
-    }
+    fun notNullOrEmpty() = this // can be called for readability, is always checked in TypedValidator#getOrThrow
 
     inline fun <reified T : Any> asClass() = asClass(T::class.java)
     fun asBoolean() = asClass(Boolean::class.java)
@@ -46,22 +53,3 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
     }
 
 }
-
-class TypedValidator<T>(val value: T, private val messagePrefix: String = "Value") {
-
-    private val rules = mutableSetOf<Rule<T>>()
-
-    @JvmOverloads
-    fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): TypedValidator<T> {
-        rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
-        return this;
-    }
-
-    fun getOrThrow() = rules.validate(value)
-
-}
-
-private data class Rule<T>(val test: (T) -> Boolean, val invalidMessage: String)
-
-/** Find first invalid [Rule] and throw, else return validated value */
-private fun <T> Set<Rule<T>>.validate(value: T) = this.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
