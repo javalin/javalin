@@ -8,12 +8,11 @@ package io.javalin.validation
 
 import io.javalin.BadRequestResponse
 
-internal data class Rule<T>(val test: (T) -> Boolean, val invalidMessage: String)
-
 class Validator(val value: String?, private val messagePrefix: String = "Value") {
 
     private val rules = mutableSetOf<Rule<String>>()
 
+    @JvmOverloads
     fun check(predicate: (String) -> Boolean, errorMessage: String = "Failed check"): Validator {
         rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
         return this
@@ -21,17 +20,18 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
 
     fun matches(regex: String) = check({ Regex(regex).matches(it) }, "does not match '$regex'")
 
-    fun notNullOrEmpty() = this // can be called for readability, but presence is asserted in constructor
+    /** Can be called for readability, but presence is asserted in [getOrThrow]. */
+    fun notNullOrEmpty() = this
 
     fun getOrThrow(): String {
         if (value == null || value.isEmpty()) throw BadRequestResponse("$messagePrefix cannot be null or empty")
-        return validate(rules, value)
+        return rules.validate(value)
     }
 
     // Convert to typed validator
     fun <T> asClass(clazz: Class<T>) = TypedValidator(convertToType(clazz, getOrThrow()), messagePrefix)
-    inline fun <reified T : Any> asClass() = asClass(T::class.java)
 
+    inline fun <reified T : Any> asClass() = asClass(T::class.java)
     fun asBoolean() = asClass(Boolean::class.java)
     fun asDouble() = asClass(Double::class.java)
     fun asFloat() = asClass(Float::class.java)
@@ -51,15 +51,17 @@ class TypedValidator<T>(val value: T, private val messagePrefix: String = "Value
 
     private val rules = mutableSetOf<Rule<T>>()
 
+    @JvmOverloads
     fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): TypedValidator<T> {
         rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
         return this;
     }
 
-    fun getOrThrow() = validate(rules, value)
+    fun getOrThrow() = rules.validate(value)
 
 }
 
-// find first invalid rule and throw, else return validated value
-private fun <T> validate(rules: Set<Rule<T>>, value: T) = rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
+private data class Rule<T>(val test: (T) -> Boolean, val invalidMessage: String)
 
+/** Find first invalid [Rule] and throw, else return validated value */
+private fun <T> Set<Rule<T>>.validate(value: T) = this.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
