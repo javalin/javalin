@@ -28,9 +28,6 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
         return rules.validate(value)
     }
 
-    // Convert to typed validator
-    fun <T> asClass(clazz: Class<T>) = TypedValidator(convertToType(clazz, getOrThrow()), messagePrefix)
-
     inline fun <reified T : Any> asClass() = asClass(T::class.java)
     fun asBoolean() = asClass(Boolean::class.java)
     fun asDouble() = asClass(Double::class.java)
@@ -38,12 +35,15 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
     fun asInt() = asClass(Int::class.java)
     fun asLong() = asClass(Long::class.java)
 
-    private fun <T> convertToType(clazz: Class<T>, value: String) = try {
-        JavalinValidation.converters[clazz]?.invoke(value) ?: throw IllegalArgumentException("Can't convert to ${clazz.simpleName}. Register a converter using JavalinValidation#register.")
-    } catch (e: Exception) {
-        if (e.message?.startsWith("Can't convert to") == true) throw e
-        throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
-    } as T
+    fun <T> asClass(clazz: Class<T>): TypedValidator<T> {
+        val validValue = getOrThrow() // throw appropriate error messages before type conversion
+        return TypedValidator(try {
+            JavalinValidation.converters[clazz]?.invoke(validValue) ?: throw ConversionException(clazz.simpleName)
+        } catch (e: Exception) {
+            if (e is ConversionException) throw e
+            throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
+        } as T, messagePrefix)
+    }
 
 }
 
