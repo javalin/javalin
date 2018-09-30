@@ -29,14 +29,14 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
     }
 
     // Convert to typed validator
-
-    fun asBoolean() = TypedValidator(convertToType(Boolean::class.java, getOrThrow()), messagePrefix)
-    fun asDouble() = TypedValidator(convertToType(Double::class.java, getOrThrow()), messagePrefix)
-    fun asFloat() = TypedValidator(convertToType(Float::class.java, getOrThrow()), messagePrefix)
-    fun asInt() = TypedValidator(convertToType(Int::class.java, getOrThrow()), messagePrefix)
-    fun asLong() = TypedValidator(convertToType(Long::class.java, getOrThrow()), messagePrefix)
     fun <T> asClass(clazz: Class<T>) = TypedValidator(convertToType(clazz, getOrThrow()), messagePrefix)
     inline fun <reified T : Any> asClass() = asClass(T::class.java)
+
+    fun asBoolean() = asClass(Boolean::class.java)
+    fun asDouble() = asClass(Double::class.java)
+    fun asFloat() = asClass(Float::class.java)
+    fun asInt() = asClass(Int::class.java)
+    fun asLong() = asClass(Long::class.java)
 
     private fun <T> convertToType(clazz: Class<T>, value: String) = try {
         JavalinValidation.converters[clazz]?.invoke(value) ?: throw IllegalArgumentException("Can't convert to ${clazz.simpleName}. Register a converter using JavalinValidation#register.")
