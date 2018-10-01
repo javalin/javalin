@@ -424,7 +424,7 @@ public class Javalin {
 
     /**
      * Use an extension stored on the instance.
-     * Instance is available on the {@link Context} through {@link Context#appAttribute}.
+     * Available on the {@link Context} through {@link Context#appAttribute}.
      *
      * Ex: app.use(MyExt.class).myMethod()
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
