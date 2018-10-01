@@ -33,11 +33,14 @@ object JavalinJackson {
 
     fun <T> fromJson(json: String, clazz: Class<T>): T {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
+        if (Util.isKotlinClass(clazz)) {
+            Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
+        }
         return getObjectMapper().readValue(json, clazz)
     }
 
     private fun createObjectMapper(): ObjectMapper = try {
-        val className = "com.fasterxml.jackson.module.kotlin.KotlinModule"
+        val className = OptionalDependency.JACKSON_KT.testClass
         ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
     } catch (e: ClassNotFoundException) {
         ObjectMapper()
