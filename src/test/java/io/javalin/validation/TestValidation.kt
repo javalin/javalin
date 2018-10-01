@@ -11,7 +11,8 @@ import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
 import io.javalin.validation.JavalinValidation.validate
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.time.Duration
