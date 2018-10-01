@@ -109,4 +109,15 @@ object Util {
 
     fun getResource(path: String): URL? = this.javaClass.classLoader.getResource(path)
 
+    fun isKotlinClass(clazz: Class<*>): Boolean {
+      try {
+        for (annotation in clazz.declaredAnnotations) {
+          // Note: annotation.simpleClass can be used if kotlin-reflect is available.
+          if (annotation.annotationClass.toString().contains("kotlin.Metadata")) {
+            return true
+          }
+        }
+      } catch (ignored: Exception) {}
+      return false
+    }
 }
