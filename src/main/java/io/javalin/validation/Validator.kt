@@ -39,7 +39,6 @@ class Validator(val value: String?, private val messagePrefix: String = "Value")
     fun <T> asClass(clazz: Class<T>) = TypedValidator(convertToType(clazz, getOrThrow()), messagePrefix)
     inline fun <reified T : Any> asClass() = asClass(T::class.java)
 
-    @Suppress("UNCHECKED_CAST")
     private fun <T> convertToType(clazz: Class<T>, value: String) = try {
         JavalinValidation.converters[clazz]?.invoke(value) ?: throw IllegalArgumentException("Can't convert to ${clazz.simpleName}. Register a converter using JavalinValidation#register.")
     } catch (e: Exception) {
