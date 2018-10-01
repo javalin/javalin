@@ -41,6 +41,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
+    private var queryMap = mapOf<String, List<String>>()
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
 
@@ -253,7 +254,12 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun queryParams(queryParam: String): List<String> = queryParamMap()[queryParam] ?: emptyList()
 
     /** Gets a map with all the query param keys and values. */
-    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
+    fun queryParamMap(): Map<String, List<String>> {
+        if(queryMap.isEmpty()){
+            queryMap = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
+        }
+        return queryMap
+    }
 
     /**
      * Maps query params to values, or returns null if any of the params are null.

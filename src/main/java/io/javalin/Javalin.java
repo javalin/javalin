@@ -33,6 +33,7 @@ import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsPathMatcher;
 import java.net.BindException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -371,7 +372,7 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableRouteOverview(@NotNull String path) {
-        return enableRouteOverview(path, new HashSet<>());
+        return enableRouteOverview(path, Collections.emptySet());
     }
 
     /**
@@ -482,14 +483,14 @@ public class Javalin {
 
     private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         String prefixedPath = Util.prefixContextPath(contextPath, path);
-        Handler protectedHandler = handlerType.isHttpMethod() ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
+        Handler protectedHandler = handlerType.isHttpMethod() && !roles.isEmpty() ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
         pathMatcher.add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler, caseSensitiveUrls));
         handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
         return this;
     }
 
     private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
-        return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone)
+        return addHandler(httpMethod, path, handler, Collections.emptySet()); // no roles set for this route (open to everyone)
     }
 
     // HTTP verbs
@@ -733,7 +734,7 @@ public class Javalin {
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
         wsPathMatcher.add(new WsEntry(prefixedPath, configuredWebSocket, caseSensitiveUrls));
-        handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, prefixedPath, ws, new HashSet<>()));
+        handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, prefixedPath, ws, Collections.emptySet()));
         return this;
     }
 
