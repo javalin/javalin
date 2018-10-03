@@ -416,7 +416,7 @@ public class Javalin {
      *
      * Ex: app.register(MyExt.class, myExtInstance())
      */
-    public Javalin register(Class clazz, Object obj) {
+    public Javalin attribute(Class clazz, Object obj) {
         ensureActionIsPerformedBeforeServerStart("Registering app attributes");
         appAttributes.put(clazz, obj);
         return this;
@@ -430,7 +430,7 @@ public class Javalin {
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
     @SuppressWarnings("unchecked")
-    public <T> T use(Class<T> clazz) {
+    public <T> T attribute(Class<T> clazz) {
         return (T) appAttributes.get(clazz);
     }
 

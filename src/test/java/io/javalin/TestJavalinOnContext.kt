@@ -20,7 +20,7 @@ class TestJavalinOnContext {
     }
 
     private val extendedJavalin = Javalin.create().apply {
-        register(MyJson::class.java, MyJson())
+        attribute(MyJson::class.java, MyJson())
     }
 
     @Test

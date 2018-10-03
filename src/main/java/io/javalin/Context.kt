@@ -45,7 +45,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     private var resultFuture: CompletableFuture<*>? = null
 
     /** Gets an attribute from the Javalin instance serving the request */
-    fun <T> appAttribute(clazz: Class<T>): T = javalin.use(clazz) as T
+    fun <T> appAttribute(clazz: Class<T>): T = javalin.attribute(clazz) as T
 
     /**
      * Gets cookie store value for specified key.
