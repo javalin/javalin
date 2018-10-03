@@ -76,7 +76,7 @@ public class Javalin {
     private ErrorMapper errorMapper = new ErrorMapper();
     private EventManager eventManager = new EventManager();
     private List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
-    private Map<Class, Object> extensions = new HashMap<>();
+    private Map<Class, Object> appAttributes = new HashMap<>();
 
     protected Javalin() {
     }
@@ -412,13 +412,13 @@ public class Javalin {
 
     /**
      * Registers an extension on the instance.
-     * Instance is available on the {@link Context} through {@link Context#javalin()}.
+     * Instance is available on the {@link Context} through {@link Context#appAttribute}.
      *
      * Ex: app.register(MyExt.class, myExtInstance())
      */
     public Javalin register(Class clazz, Object obj) {
-        ensureActionIsPerformedBeforeServerStart("Registering extensions");
-        extensions.put(clazz, obj);
+        ensureActionIsPerformedBeforeServerStart("Registering app attributes");
+        appAttributes.put(clazz, obj);
         return this;
     }
 
@@ -431,7 +431,7 @@ public class Javalin {
      */
     @SuppressWarnings("unchecked")
     public <T> T use(Class<T> clazz) {
-        return (T) extensions.get(clazz);
+        return (T) appAttributes.get(clazz);
     }
 
     /**
