@@ -18,15 +18,15 @@ object HttpResponseExceptionMapper {
         val e = unwrap(exception)
         if (ctx.header(Header.ACCEPT)?.contains("application/json") == true) {
             ctx.status(e.status).result("""{
-                |    "title": "${e.msg}",
+                |    "title": "${e.message}",
                 |    "status": ${e.status},
                 |    "type": "${getTypeUrl(e).toLowerCase()}",
                 |    "details": ${e.details.map { """{"${it.key}": "${it.value}"}""" }}
                 |}""".trimMargin()
             ).contentType("application/json")
         } else {
-            val result = if (e.details.isEmpty()) e.msg else """
-                |${e.msg}
+            val result = if (e.details.isEmpty()) "${e.message}" else """
+                |${e.message}
                 |${e.details.map {
                 """
                 |${it.key}:

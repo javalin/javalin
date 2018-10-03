@@ -84,12 +84,14 @@ class TestValidation {
             val myValue = validate(null).notNullOrEmpty().getOrThrow()
         } catch (e: BadRequestResponse) {
             assertThat(e.msg, `is`("Value cannot be null or empty"))
+            assertThat(e.message, `is`("Value cannot be null or empty"))
         }
         try {
             val jsonProp = ""
             val myValue = validate(jsonProp, "jsonProp").notNullOrEmpty().getOrThrow()
         } catch (e: BadRequestResponse) {
             assertThat(e.msg, `is`("jsonProp cannot be null or empty"))
+            assertThat(e.message, `is`("jsonProp cannot be null or empty"))
         }
     }
 
