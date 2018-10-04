@@ -9,7 +9,10 @@ package io.javalin.core.util
 import io.javalin.core.JavalinServlet
 import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.server.*
-import org.eclipse.jetty.server.handler.*
+import org.eclipse.jetty.server.handler.HandlerCollection
+import org.eclipse.jetty.server.handler.HandlerList
+import org.eclipse.jetty.server.handler.HandlerWrapper
+import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
