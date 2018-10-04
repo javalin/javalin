@@ -92,9 +92,8 @@ class TestCustomJetty {
         }
         server.handler = handler
 
-        TestUtil.test(Javalin.create().server { server }) {myapp, http ->
-            myapp.get("/bar") { ctx -> ctx.result("Hello")}
-
+        TestUtil.test(Javalin.create().server { server }) { app, http ->
+            app.get("/bar") { ctx -> ctx.result("Hello") }
             assertThat(http.getBody("/foo/foo"), `is`("yo dude"))
             assertThat(http.get("/foo/baz").status, `is`(404))
             assertThat(http.getBody("/bar"), `is`("Hello"))
