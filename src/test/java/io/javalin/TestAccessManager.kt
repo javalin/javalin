@@ -11,7 +11,6 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.security.AccessManager
 import io.javalin.security.Role
 import io.javalin.security.SecurityUtil.roles
 import io.javalin.util.TestUtil
@@ -23,7 +22,7 @@ class TestAccessManager {
 
     enum class MyRoles : Role { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
-    private val accessManager = AccessManager { handler, ctx, permittedRoles ->
+    private val managedApp = Javalin.create().accessManager { handler, ctx, permittedRoles ->
         val userRole = ctx.queryParam("role")
         if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
             handler.handle(ctx)
@@ -39,8 +38,7 @@ class TestAccessManager {
     }
 
     @Test
-    fun `AccessManager can restrict access for instance`() = TestUtil.test { app, http ->
-        app.accessManager(accessManager)
+    fun `AccessManager can restrict access for instance`() = TestUtil.test(managedApp) { app, http ->
         app.get("/secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO))
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE"), `is`("Hello"))
         assertThat(callWithRole(http.origin, "/secured", "ROLE_TWO"), `is`("Hello"))
@@ -48,8 +46,7 @@ class TestAccessManager {
     }
 
     @Test
-    fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test { app, http ->
-        app.accessManager(accessManager)
+    fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test(managedApp) { app, http ->
         app.routes {
             get("/static-secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO))
         }
