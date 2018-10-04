@@ -10,19 +10,20 @@ package io.javalin
 import io.javalin.util.TestUtil
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.handler.HandlerList
-import org.eclipse.jetty.server.handler.HandlerWrapper
-import org.eclipse.jetty.server.handler.RequestLogHandler
-import org.eclipse.jetty.server.handler.StatisticsHandler
+import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class TestCustomJetty {
 
@@ -74,6 +75,31 @@ class TestCustomJetty {
         val httpHandler = (((server.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
         assertThat(httpHandler.sessionHandler, `is`(fileSessionHandler))
         app.stop()
+    }
+
+    @Test
+    fun `custom ContextHandlerCollection works`() {
+        val server = Server()
+        val handler = ContextHandlerCollection().apply {
+            setContextClass(ServletContextHandler::class.java)
+            val ctx = addContext("/foo", ".") as ServletContextHandler
+            ctx.addServlet(ServletHolder(object : HttpServlet() {
+                override fun doGet(req: HttpServletRequest?, resp: HttpServletResponse?) {
+                    resp?.writer?.write("yo dude")
+                }
+            }), "/foo")
+
+        }
+        server.handler = handler
+
+        TestUtil.test(Javalin.create().server { server }) {myapp, http ->
+            myapp.get("/bar") { ctx -> ctx.result("Hello")}
+
+            assertThat(http.getBody("/foo/foo"), `is`("yo dude"))
+            assertThat(http.get("/foo/baz").status, `is`(404))
+            assertThat(http.getBody("/bar"), `is`("Hello"))
+
+        }
     }
 
     private fun fileSessionHandler() = SessionHandler().apply {
