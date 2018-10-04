@@ -428,6 +428,7 @@ public class Javalin {
      * @see AccessManager
      */
     public Javalin accessManager(@NotNull AccessManager accessManager) {
+        ensureActionIsPerformedBeforeServerStart("Setting an AccessManager");
         this.accessManager = accessManager;
         return this;
     }
