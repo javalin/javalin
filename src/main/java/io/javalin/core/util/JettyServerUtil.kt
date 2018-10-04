@@ -9,9 +9,7 @@ package io.javalin.core.util
 import io.javalin.core.JavalinServlet
 import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.server.*
-import org.eclipse.jetty.server.handler.HandlerList
-import org.eclipse.jetty.server.handler.HandlerWrapper
-import org.eclipse.jetty.server.handler.StatisticsHandler
+import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
@@ -89,7 +87,7 @@ object JettyServerUtil {
         }
 
         server.apply {
-            handler = attachHandlersToTail(server.handler, HandlerList(httpHandler, webSocketHandler, notFoundHandler))
+            handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler, notFoundHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = port
             })
@@ -100,10 +98,14 @@ object JettyServerUtil {
         return (server.connectors[0] as ServerConnector).localPort
     }
 
-    private fun attachHandlersToTail(userHandler: Handler?, handlerList: HandlerList): HandlerWrapper {
-        val handlerWrapper = (userHandler ?: HandlerWrapper()) as HandlerWrapper
-        HandlerWrapper().apply { handler = handlerList }.insertHandler(handlerWrapper)
-        return handlerWrapper
+    private fun attachJavalinHandlers(userHandler: Handler?, javalinHandlers: HandlerList) = when (userHandler) {
+        null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom handlers set
+        is HandlerCollection -> userHandler.apply { addHandler(javalinHandlers) }
+        is HandlerWrapper -> HandlerWrapper().apply {
+            handler = javalinHandlers
+            insertHandler(userHandler)
+        }
+        else -> throw IllegalStateException("Server has unidentified handler attached to it")
     }
 
     private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
