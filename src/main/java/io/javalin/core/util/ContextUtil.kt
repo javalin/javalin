@@ -61,7 +61,7 @@ object ContextUtil {
             pathParamMap: Map<String, String> = mapOf(),
             splatList: List<String> = listOf(),
             handlerType: HandlerType = HandlerType.INVALID,
-            javalin: Javalin = Javalin.create()
+            javalin: Javalin = object : Javalin() {} // dummy javalin
     ) = Context(request, response, javalin).apply {
         this.matchedPath = matchedPath
         this.pathParamMap = pathParamMap
