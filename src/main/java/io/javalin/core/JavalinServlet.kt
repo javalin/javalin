@@ -6,10 +6,7 @@
 
 package io.javalin.core
 
-import io.javalin.Context
-import io.javalin.MethodNotAllowedResponse
-import io.javalin.NotFoundResponse
-import io.javalin.RequestLogger
+import io.javalin.*
 import io.javalin.core.util.*
 import io.javalin.staticfiles.JettyResourceHandler
 import java.io.InputStream
@@ -18,6 +15,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JavalinServlet(
+        val javalin: Javalin,
         val matcher: PathMatcher,
         val exceptionMapper: ExceptionMapper,
         val errorMapper: ErrorMapper,
@@ -36,7 +34,7 @@ class JavalinServlet(
         val req = CachedRequestWrapper(servletRequest, maxRequestCacheBodySize) // cached for reading multiple times
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI
-        val ctx = Context(req, res)
+        val ctx = Context(req, res, javalin)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
