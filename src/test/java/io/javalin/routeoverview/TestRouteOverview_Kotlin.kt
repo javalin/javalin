@@ -16,8 +16,8 @@ import org.junit.Test
 // fields/properties, both standalone and within a class/object
 // functions/methods, both bound and unbound
 
-val standAloneField = Handler { }
-fun standAloneMethod(ctx: Context) { ctx.status(200) }
+val standAloneField = Handler {}
+fun standAloneMethod(ctx: Context) {}
 
 class TestRouteOverview_Kotlin {
 
@@ -49,16 +49,16 @@ class TestRouteOverview_Kotlin {
 }
 
 object ObjectHandlers {
-    val lambdaField = Handler { }
-    fun methodReference(ctx: Context) { ctx.status(200) }
+    val lambdaField = Handler {}
+    fun methodReference(ctx: Context) {}
     class ImplementingClass : Handler {
         override fun handle(context: Context) {}
     }
 }
 
 class ClassHandlers {
-    val lambdaField = Handler { }
-    fun methodReference(ctx: Context) { ctx.status(200) }
+    val lambdaField = Handler {}
+    fun methodReference(ctx: Context) {}
 }
 
 class HandlerImplementation : Handler {
