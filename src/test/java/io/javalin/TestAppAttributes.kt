@@ -13,18 +13,28 @@ import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
-class TestJavalinOnContext {
+class TestAppAttributes {
 
     class MyJson {
         fun render(obj: Any) = GsonBuilder().create().toJson(obj)
     }
 
-    private val extendedJavalin = Javalin.create().apply {
+    class MyOtherThing {
+        val test = "Test"
+    }
+
+    private val attributedJavalin = Javalin.create().apply {
         attribute(MyJson::class.java, MyJson())
+        attribute(MyOtherThing::class.java, MyOtherThing())
     }
 
     @Test
-    fun `javalin instance is available and extensions work`() = TestUtil.test(extendedJavalin) { app, http ->
+    fun `app attributes can be accessed through the app`() = TestUtil.test(attributedJavalin) { app, _ ->
+        assertThat(app.attribute(MyOtherThing::class.java).test, `is`("Test"))
+    }
+
+    @Test
+    fun `app attributes can be accessed through the Context`() = TestUtil.test(attributedJavalin) { app, http ->
         val gson = GsonBuilder().create()
         app.get("/") { ctx ->
             val rendered = ctx.appAttribute(MyJson::class.java).render(SerializeableObject())
