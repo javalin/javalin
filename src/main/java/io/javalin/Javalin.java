@@ -411,9 +411,9 @@ public class Javalin {
     }
 
     /**
-     * Registers an extension on the instance.
+     * Registers an attribute on the instance.
      * Instance is available on the {@link Context} through {@link Context#appAttribute}.
-     * Ex: app.register(MyExt.class, myExtInstance())
+     * Ex: app.attribute(MyExt.class, myExtInstance())
      */
     public Javalin attribute(Class clazz, Object obj) {
         ensureActionIsPerformedBeforeServerStart("Registering app attributes");
@@ -422,9 +422,9 @@ public class Javalin {
     }
 
     /**
-     * Use an extension stored on the instance.
+     * Retrieve an attribute stored on the instance.
      * Available on the {@link Context} through {@link Context#appAttribute}.
-     * Ex: app.use(MyExt.class).myMethod()
+     * Ex: app.attribute(MyExt.class).myMethod()
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
     @SuppressWarnings("unchecked")
