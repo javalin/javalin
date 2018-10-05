@@ -53,14 +53,14 @@ class TestFuture {
     @Test
     fun `unresolved futures are handled by exception-mapper`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx -> ctx.result(getFuture(null)) }
-        app.exception(CancellationException::class.java) { e, ctx -> ctx.result("Handled") }
+        app.exception(CancellationException::class.java) { _, ctx -> ctx.result("Handled") }
         assertThat(http.getBody("/test-future"), `is`("Handled"))
     }
 
     @Test
     fun `setting a future in an exception-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> throw Exception() }
-        app.exception(Exception::class.java) { exception, ctx -> ctx.result(getFuture("Exception result")) }
+        app.get("/test-future") { throw Exception() }
+        app.exception(Exception::class.java) { _, ctx -> ctx.result(getFuture("Exception result")) }
         assertThat(http.getBody("/test-future"), `is`(""))
         assertThat(http.get("/test-future").status, `is`(500))
     }

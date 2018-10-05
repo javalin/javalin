@@ -55,13 +55,13 @@ class TestContextPath {
     }
 
     @Test
-    fun `static-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
+    fun `static-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { _, http ->
         assertThat(http.get("/script.js").status, `is`(404))
         assertThat(http.getBody("/context-path/script.js"), containsString("JavaScript works"))
     }
 
     @Test
-    fun `welcome-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { app, http ->
+    fun `welcome-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { _, http ->
         assertThat(http.getBody("/context-path/subdir/"), `is`("<h1>Welcome file</h1>"))
     }
 

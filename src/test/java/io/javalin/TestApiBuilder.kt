@@ -106,7 +106,7 @@ class TestApiBuilder {
     private fun updateAnswer(body: String) = Handler { ctx -> ctx.result(ctx.resultString()!! + body) }
 
     @Test(expected = IllegalStateException::class)
-    fun `ApiBuilder throws if used outside of routes{} call`() = TestUtil.test { app, http ->
+    fun `ApiBuilder throws if used outside of routes{} call`() = TestUtil.test { _, _ ->
         ApiBuilder.get("/") { ctx -> ctx.result("") }
     }
 
@@ -174,19 +174,19 @@ class TestApiBuilder {
             ctx.result("All my users")
         }
 
-        override fun getOne(ctx: Context, userId: String) {
-            ctx.result("My single user: $userId")
+        override fun getOne(ctx: Context, resourceId: String) {
+            ctx.result("My single user: $resourceId")
         }
 
         override fun create(ctx: Context) {
             ctx.status(201)
         }
 
-        override fun update(ctx: Context, userId: String) {
+        override fun update(ctx: Context, resourceId: String) {
             ctx.status(204)
         }
 
-        override fun delete(ctx: Context, userId: String) {
+        override fun delete(ctx: Context, resourceId: String) {
             ctx.status(204)
         }
 

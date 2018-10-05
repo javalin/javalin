@@ -28,21 +28,21 @@ class TestStaticFiles {
     private val debugLoggingApp = Javalin.create().enableStaticFiles("/public").enableDebugLogging()
 
     @Test
-    fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
+    fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status, `is`(200))
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE), containsString("text/html"))
         assertThat(http.getBody("/html.html"), containsString("HTML works"))
     }
 
     @Test
-    fun `serving JS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
+    fun `serving JS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/script.js").status, `is`(200))
         assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE), containsString("application/javascript"))
         assertThat(http.getBody("/script.js"), containsString("JavaScript works"))
     }
 
     @Test
-    fun `serving CSS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
+    fun `serving CSS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/styles.css").status, `is`(200))
         assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
         assertThat(http.getBody("/styles.css"), containsString("CSS works"))
@@ -56,35 +56,35 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `directory root returns simple 404 if there is no welcome file`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
+    fun `directory root returns simple 404 if there is no welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/").status, `is`(404))
         assertThat(http.getBody("/"), `is`("Not found"))
     }
 
     @Test
-    fun `directory root return welcome file if there is a welcome file`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
+    fun `directory root return welcome file if there is a welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/subdir/").status, `is`(200))
         assertThat(http.getBody("/subdir/"), `is`("<h1>Welcome file</h1>"))
     }
 
     @Test
-    fun `expires is set to max-age=0 by default`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
+    fun `expires is set to max-age=0 by default`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/script.js").headers.getFirst(Header.CACHE_CONTROL), `is`("max-age=0"))
     }
 
     @Test
-    fun `expires is set to 1 year for files in immutable directory`() = TestUtil.test(defaultStaticResourceApp) { app, http ->
+    fun `expires is set to 1 year for files in immutable directory`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/immutable/library-1.0.0.min.js").headers.getFirst(Header.CACHE_CONTROL), `is`("max-age=31622400"))
     }
 
     @Test
-    fun `files in external locations are found`() = TestUtil.test(externalStaticResourceApp) { app, http ->
+    fun `files in external locations are found`() = TestUtil.test(externalStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status, `is`(200))
         assertThat(http.getBody("/html.html"), containsString("HTML works"))
     }
 
     @Test
-    fun `one app can handle multiple static file locations`() = TestUtil.test(multiLocationStaticResourceApp) { app, http ->
+    fun `one app can handle multiple static file locations`() = TestUtil.test(multiLocationStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status, `is`(200)) // src/test/external/html.html
         assertThat(http.getBody("/html.html"), containsString("HTML works"))
         assertThat(http.get("/").status, `is`(200))
@@ -95,7 +95,7 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `content type works in debugmmode`() = TestUtil.test(debugLoggingApp) { app, http ->
+    fun `content type works in debugmmode`() = TestUtil.test(debugLoggingApp) { _, http ->
         assertThat(http.get("/html.html").status, `is`(200))
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE), containsString("text/html"))
         assertThat(http.getBody("/html.html"), containsString("HTML works"))
@@ -104,14 +104,14 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `WebJars available if enabled`() = TestUtil.test(Javalin.create().enableWebJars()) { app, http ->
+    fun `WebJars available if enabled`() = TestUtil.test(Javalin.create().enableWebJars()) { _, http ->
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status, `is`(200))
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CACHE_CONTROL), `is`("max-age=31622400"))
     }
 
     @Test
-    fun `WebJars not available if not enabled`() = TestUtil.test { app, http ->
+    fun `WebJars not available if not enabled`() = TestUtil.test { _, http ->
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status, `is`(404))
     }
 

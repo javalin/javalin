@@ -21,7 +21,7 @@ class TestCors {
     }
 
     @Test
-    fun `enableCorsForOrigin() enables cors for specific origins`() = TestUtil.test(Javalin.create().enableCorsForOrigin("origin-1", "referer-1")) { app, http ->
+    fun `enableCorsForOrigin() enables cors for specific origins`() = TestUtil.test(Javalin.create().enableCorsForOrigin("origin-1", "referer-1")) { app, _ ->
         app.get("/") { ctx -> ctx.result("Hello") }
         val path = "http://localhost:" + app.port() + "/"
         assertThat<List<String>>(Unirest.get(path).asString().headers["Access-Control-Allow-Origin"], `is`(nullValue()))
@@ -30,7 +30,7 @@ class TestCors {
     }
 
     @Test
-    fun `enableCorsForAllOrigins() enables cors for all origins`() = TestUtil.test(Javalin.create().enableCorsForAllOrigins()) { app, http ->
+    fun `enableCorsForAllOrigins() enables cors for all origins`() = TestUtil.test(Javalin.create().enableCorsForAllOrigins()) { app, _ ->
         app.get("/") { ctx -> ctx.result("Hello") }
         val path = "http://localhost:" + app.port() + "/"
         assertThat(Unirest.get(path).header("Origin", "some-origin").asString().headers["Access-Control-Allow-Origin"]!![0], `is`("some-origin"))

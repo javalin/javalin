@@ -22,28 +22,28 @@ class TestSinglePageMode {
             .enableSinglePageMode("/public", "/public/html.html")
 
     @Test
-    fun `SinglePageHandler works for HTML requests`() = TestUtil.test(rootSinglePageApp) { app, http ->
+    fun `SinglePageHandler works for HTML requests`() = TestUtil.test(rootSinglePageApp) { _, http ->
         assertThat(http.htmlGet("/not-a-path").body, containsString("HTML works"))
         assertThat(http.htmlGet("/not-a-file.html").body, containsString("HTML works"))
         assertThat(http.htmlGet("/not-a-file.html").status, `is`(200))
     }
 
     @Test
-    fun `SinglePageHandler doesn't affect static files`() = TestUtil.test(rootSinglePageApp) { app, http ->
+    fun `SinglePageHandler doesn't affect static files`() = TestUtil.test(rootSinglePageApp) { _, http ->
         assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE), containsString("application/javascript"))
         assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE), containsString("text/css"))
         assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status, `is`(200))
     }
 
     @Test
-    fun `SinglePageHandler doesn't affect JSON requests`() = TestUtil.test(rootSinglePageApp) { app, http ->
+    fun `SinglePageHandler doesn't affect JSON requests`() = TestUtil.test(rootSinglePageApp) { _, http ->
         assertThat(http.jsonGet("/").body, containsString("Not found"))
         assertThat(http.jsonGet("/not-a-file.html").body, containsString("Not found"))
         assertThat(http.jsonGet("/not-a-file.html").status, `is`(404))
     }
 
     @Test
-    fun `SinglePageHandler works for just subpaths`() = TestUtil.test(dualSinglePageApp) { app, http ->
+    fun `SinglePageHandler works for just subpaths`() = TestUtil.test(dualSinglePageApp) { _, http ->
         assertThat(http.htmlGet("/").body, containsString("Not found"))
         assertThat(http.htmlGet("/").status, `is`(404))
         assertThat(http.htmlGet("/admin").body, containsString("Secret file"))

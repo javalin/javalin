@@ -24,7 +24,7 @@ import org.junit.Test
 class TestJson {
 
     @Before
-    fun resetObjectMapper() = TestUtil.test { app, http ->
+    fun resetObjectMapper() {
         JavalinJackson.configure(CustomMapper()) // reset for every test
     }
 
@@ -83,6 +83,7 @@ class TestJson {
         assertThat(http.getBody("/"), `is`(gson.toJson(SerializeableObject())))
     }
 
+    @Suppress("UNCHECKED_CAST")
     @Test
     fun `custom silly fromJsonMapper works`() = TestUtil.test { app, http ->
         val sillyString = "Silly string"

@@ -29,13 +29,13 @@ class TestMethodNotAllowed {
     |}""".trimMargin()
 
     @Test
-    fun `405 response for HTML works`() = TestUtil.test(preferring405Javalin) { app, http ->
+    fun `405 response for HTML works`() = TestUtil.test(preferring405Javalin) { _, http ->
         assertThat(http.htmlGet("/test").status, `is`(HttpServletResponse.SC_METHOD_NOT_ALLOWED))
         assertThat(http.htmlGet("/test").body, `is`(expectedHtml))
     }
 
     @Test
-    fun `405 response for JSON works`() = TestUtil.test(preferring405Javalin) { app, http ->
+    fun `405 response for JSON works`() = TestUtil.test(preferring405Javalin) { _, http ->
         assertThat(http.jsonGet("/test").status, `is`(HttpServletResponse.SC_METHOD_NOT_ALLOWED))
         assertThat(http.jsonGet("/test").body, `is`(expectedJson))
     }
