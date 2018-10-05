@@ -62,7 +62,7 @@ class TestTemplates {
     @Test
     fun `velocity external templates work`() = TestUtil.test { app, http ->
         JavalinVelocity.configure(VelocityEngine().apply {
-            setProperty("file.resource.loader.path", "src/test/resources/templates/velocity");
+            setProperty("file.resource.loader.path", "src/test/resources/templates/velocity")
         })
         app.get("/hello") { ctx -> ctx.render("test.vm") }
         assertThat(http.getBody("/hello"), `is`("<h1>\$message</h1>"))
@@ -140,7 +140,7 @@ class TestTemplates {
 
     @Test
     fun `registering custom renderer works`() = TestUtil.test { app, http ->
-        JavalinRenderer.register(FileRenderer { filePath, model -> "Hah." }, ".lol")
+        JavalinRenderer.register(FileRenderer { _, _ -> "Hah." }, ".lol")
         app.get("/hello") { ctx -> ctx.render("/markdown/test.lol") }
         assertThat(http.getBody("/hello"), `is`("Hah."))
     }

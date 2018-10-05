@@ -23,25 +23,25 @@ class TestStaticDirectorySlash {
             .dontIgnoreTrailingSlashes()
 
     @Test
-    fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { app, http ->
+    fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { _, http ->
         assertThat(http.getBody("/subpage"), `is`("TEST")) // ok, is directory
         assertThat(http.getBody("/subpage/"), `is`("TEST")) // ok, is directory
     }
 
     @Test
-    fun `nonIgnoringJavalin (dontIgnoreTrailingSlashes()) doesn't ignore static file slashes`() = TestUtil.test(nonIgnoringJavalin) { app, http ->
+    fun `nonIgnoringJavalin (dontIgnoreTrailingSlashes()) doesn't ignore static file slashes`() = TestUtil.test(nonIgnoringJavalin) { _, http ->
         assertThat(http.getBody("/subpage"), `is`("Not found")) // nope, non ignoring and doesnt have slash
         assertThat(http.getBody("/subpage/"), `is`("TEST")) // ok has slash
     }
 
     @Test
-    fun `normal Javalin serves files but serves directory if it is a directory`() = TestUtil.test(normalJavalin) { app, http ->
+    fun `normal Javalin serves files but serves directory if it is a directory`() = TestUtil.test(normalJavalin) { _, http ->
         assertThat(http.getBody("/file"), `is`("TESTFILE")) // ok is file = no slash
         assertThat(http.getBody("/file/"), `is`("Not found")) // nope has slash must be directory
     }
 
     @Test
-    fun `nonIgnoring Javalin serves files but serves directory if it is a directory`() = TestUtil.test(nonIgnoringJavalin) { app, http ->
+    fun `nonIgnoring Javalin serves files but serves directory if it is a directory`() = TestUtil.test(nonIgnoringJavalin) { _, http ->
         assertThat(http.getBody("/file"), `is`("TESTFILE")) // ok is file = no slash
         assertThat(http.getBody("/file/"), `is`("Not found"))// nope has slash must be directory
     }

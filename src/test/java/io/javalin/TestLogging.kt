@@ -23,7 +23,7 @@ class TestLogging {
     fun `debug logging works`() = runTest(Javalin.create().enableDebugLogging())
 
     @Test
-    fun `custom logging works`() = runTest(Javalin.create().requestLogger { ctx, executionTimeMs -> println("That took $executionTimeMs milliseconds") })
+    fun `custom logging works`() = runTest(Javalin.create().requestLogger { _, executionTimeMs -> println("That took $executionTimeMs milliseconds") })
 
     private fun runTest(app: Javalin) {
         app.get("/blocking") { ctx -> ctx.result("Hello Blocking World!") }

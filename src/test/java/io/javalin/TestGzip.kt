@@ -35,26 +35,26 @@ class TestGzip {
     private val hugeLength = getSomeObjects(1000).toString().length
 
     @Test
-    fun `doesn't gzip when Accepts is not set`() = TestUtil.test(app) { app, http ->
+    fun `doesn't gzip when Accepts is not set`() = TestUtil.test(app) { _, http ->
         assertThat(Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "null").asString().body.length, `is`(hugeLength))
         assertThat(getResponse(http.origin, "/huge", "null").headers().get(Header.CONTENT_ENCODING), `is`(nullValue()))
     }
 
     @Test
-    fun `doesn't gzip when response is too small`() = TestUtil.test(app) { app, http ->
+    fun `doesn't gzip when response is too small`() = TestUtil.test(app) { _, http ->
         assertThat(Unirest.get(http.origin + "/tiny").asString().body.length, `is`(tinyLength))
         assertThat(getResponse(http.origin, "/tiny", "gzip").headers().get(Header.CONTENT_ENCODING), `is`(nullValue()))
     }
 
     @Test
-    fun `does gzip when size is big and Accept header is set`() = TestUtil.test(app) { app, http ->
+    fun `does gzip when size is big and Accept header is set`() = TestUtil.test(app) { _, http ->
         assertThat(Unirest.get(http.origin + "/huge").asString().body.length, `is`(hugeLength))
         assertThat(getResponse(http.origin, "/huge", "gzip").headers().get(Header.CONTENT_ENCODING), `is`("gzip"))
         assertThat(getResponse(http.origin, "/huge", "gzip").body()!!.contentLength(), `is`(7740L)) // hardcoded because lazy
     }
 
     @Test
-    fun `doesn't gzip when gzip is disabled`() = TestUtil.test(gzipDisabledApp) { app, http ->
+    fun `doesn't gzip when gzip is disabled`() = TestUtil.test(gzipDisabledApp) { _, http ->
         assertThat(getResponse(http.origin, "/huge", "gzip").headers().get(Header.CONTENT_ENCODING), `is`(nullValue()))
     }
 

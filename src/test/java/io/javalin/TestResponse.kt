@@ -73,8 +73,8 @@ class TestResponse {
 
     @Test
     fun `redirect in exception-mapper works`() = TestUtil.test { app, http ->
-        app.get("/get") { ctx -> throw Exception() }
-        app.exception(Exception::class.java) { exception, ctx -> ctx.redirect("/redirected") }
+        app.get("/get") { throw Exception() }
+        app.exception(Exception::class.java) { _, ctx -> ctx.redirect("/redirected") }
         app.get("/redirected") { ctx -> ctx.result("Redirected") }
         assertThat(http.getBody("/get"), `is`("Redirected"))
     }

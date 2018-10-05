@@ -47,7 +47,7 @@ class TestRouting {
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun `urls must be lowercase by default`() = TestUtil.test { app, http ->
+    fun `urls must be lowercase by default`() = TestUtil.test { app, _ ->
         app.get("/My-Url") { ctx -> ctx.result("OK") }
     }
 

@@ -37,7 +37,7 @@ class TestHttpVerbs {
     }
 
     @Test
-    fun `all unmapped verbs return 404`() = TestUtil.test { app, http ->
+    fun `all unmapped verbs return 404`() = TestUtil.test { _, http ->
         for (httpMethod in HttpMethod.values()) {
             assertThat(http.call(httpMethod, "/unmapped").status, `is`(404))
         }

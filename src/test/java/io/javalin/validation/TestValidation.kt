@@ -23,7 +23,7 @@ class TestValidation {
     @Test
     fun `test notNullOrBlank()`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myString = ctx.validatedQueryParam("my-qp")
+            ctx.validatedQueryParam("my-qp")
                     .notNullOrEmpty()
                     .getOrThrow()
         }
@@ -45,7 +45,7 @@ class TestValidation {
     @Test
     fun `test check()`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myString = ctx.validatedQueryParam("my-qp")
+            ctx.validatedQueryParam("my-qp")
                     .check({ it.length > 5 }, "Length must be more than five")
                     .getOrThrow()
         }
@@ -79,16 +79,16 @@ class TestValidation {
     }
 
     @Test
-    fun `test self-instantiated validator`() = TestUtil.test { app, http ->
+    fun `test self-instantiated validator`() {
         try {
-            val myValue = validate(null).notNullOrEmpty().getOrThrow()
+            validate(null).notNullOrEmpty().getOrThrow()
         } catch (e: BadRequestResponse) {
             assertThat(e.msg, `is`("Value cannot be null or empty"))
             assertThat(e.message, `is`("Value cannot be null or empty"))
         }
         try {
             val jsonProp = ""
-            val myValue = validate(jsonProp, "jsonProp").notNullOrEmpty().getOrThrow()
+            validate(jsonProp, "jsonProp").notNullOrEmpty().getOrThrow()
         } catch (e: BadRequestResponse) {
             assertThat(e.msg, `is`("jsonProp cannot be null or empty"))
             assertThat(e.message, `is`("jsonProp cannot be null or empty"))
@@ -119,7 +119,7 @@ class TestValidation {
     }
 
     @Test
-    fun `test default converters`() = TestUtil.test { app, http ->
+    fun `test default converters`() {
         assertThat(validate("true").asBoolean().getOrThrow(), `is`(instanceOf(Boolean::class.java)))
         assertThat(validate("1.2").asDouble().getOrThrow(), `is`(instanceOf(Double::class.java)))
         assertThat(validate("1.2").asFloat().getOrThrow(), `is`(instanceOf(Float::class.java)))
