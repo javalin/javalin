@@ -33,8 +33,10 @@ import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsPathMatcher;
 import java.net.BindException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -74,6 +76,7 @@ public class Javalin {
     private ErrorMapper errorMapper = new ErrorMapper();
     private EventManager eventManager = new EventManager();
     private List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
+    private Map<Class, Object> appAttributes = new HashMap<>();
 
     protected Javalin() {
     }
@@ -120,6 +123,7 @@ public class Javalin {
             try {
                 log.info("Starting Javalin ...");
                 JavalinServlet javalinServlet = new JavalinServlet(
+                    this,
                     pathMatcher,
                     exceptionMapper,
                     errorMapper,
@@ -404,6 +408,28 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Changing request cache body size");
         this.maxRequestCacheBodySize = bodySizeInBytes;
         return this;
+    }
+
+    /**
+     * Registers an attribute on the instance.
+     * Instance is available on the {@link Context} through {@link Context#appAttribute}.
+     * Ex: app.attribute(MyExt.class, myExtInstance())
+     */
+    public Javalin attribute(Class clazz, Object obj) {
+        ensureActionIsPerformedBeforeServerStart("Registering app attributes");
+        appAttributes.put(clazz, obj);
+        return this;
+    }
+
+    /**
+     * Retrieve an attribute stored on the instance.
+     * Available on the {@link Context} through {@link Context#appAttribute}.
+     * Ex: app.attribute(MyExt.class).myMethod()
+     * Ex: ctx.appAttribute(MyExt.class).myMethod()
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T attribute(Class<T> clazz) {
+        return (T) appAttributes.get(clazz);
     }
 
     /**
