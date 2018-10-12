@@ -147,6 +147,12 @@
             <version>3.17.6</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.fizzed</groupId>
+            <artifactId>rocker-runtime</artifactId>
+            <version>1.1.0</version>
+            <optional>true</optional>
+        </dependency>
         <!-- END Optional dependencies -->
 
         <!-- BEGIN Test dependencies -->
@@ -308,6 +314,27 @@
                         </manifestEntries>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.fizzed</groupId>
+                <artifactId>rocker-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-rocker-templates</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <javaVersion>1.6</javaVersion>
+                            <templateDirectory>${basedir}/src/test/resources</templateDirectory>
+                            <classDirectory>${basedir}/target/test-classes</classDirectory>
+                            <outputDirectory>${basedir}/target/generated-test-sources/rocker</outputDirectory>
+                            <addAsTestSources>true</addAsTestSources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

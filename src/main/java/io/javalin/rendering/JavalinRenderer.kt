@@ -24,6 +24,7 @@ object JavalinRenderer {
         register(JavalinPebble, ".peb", ".pebble")
         register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
         register(JavalinCommonmark, ".md", ".markdown")
+        register(JavalinRocker, ".html")
     }
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>): String {
