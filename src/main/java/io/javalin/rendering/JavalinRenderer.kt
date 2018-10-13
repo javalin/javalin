@@ -15,7 +15,6 @@ object JavalinRenderer {
     private val log = LoggerFactory.getLogger(JavalinRenderer.javaClass)
 
     private val extensions = mutableMapOf<String, FileRenderer>()
-    private val complexExtensions = mutableMapOf<String, FileRenderer>()
 
     init {
         register(JavalinVelocity, ".vm", ".vtl")
@@ -29,32 +28,22 @@ object JavalinRenderer {
     }
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>): String {
-        var complexExtensionRenderer: FileRenderer? = null
-        if (filePath.hasAnyExtension && filePath.complexExtension.hasMultipleDots) {
-            complexExtensionRenderer = complexExtensions[filePath.complexExtension]
-        }
-        val renderer = complexExtensionRenderer ?: extensions[filePath.extension]
-        ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
+        val extension = if (filePath.hasTwoDots) filePath.doubleExtension else filePath.extension
+        val renderer = extensions[extension]
+                ?: extensions[filePath.extension] // fallback to a non-double extension
+                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
         return renderer.render(filePath, model)
     }
 
     @JvmStatic
     fun register(fileRenderer: FileRenderer, vararg ext: String) = ext.forEach {
-        if (it.hasMultipleDots) {
-            if (complexExtensions[it] != null) {
-                log.info("'$it' is already registered to ${complexExtensions[it]!!.javaClass}. Overriding.")
-            }
-            complexExtensions[it] = fileRenderer
-        } else {
-            if (extensions[it] != null) {
-                log.info("'$it' is already registered to ${extensions[it]!!.javaClass}. Overriding.")
-            }
-            extensions[it] = fileRenderer
+        if (extensions[it] != null) {
+            log.info("'$it' is already registered to ${extensions[it]!!.javaClass}. Overriding.")
         }
+        extensions[it] = fileRenderer
     }
 
     private val String.extension: String get() = this.replaceBeforeLast(".", "")
-    private val String.hasAnyExtension: Boolean get() = this.indexOf(".") >= 0
-    private val String.complexExtension: String get() = this.substring(this.indexOf("."))
-    private val String.hasMultipleDots: Boolean get() = this.hasAnyExtension && this.indexOfFirst { it == '.' } != this.indexOfLast { it == '.' }
+    private val String.doubleExtension: String get() = this.substringBeforeLast(".", "").extension + this.extension
+    private val String.hasTwoDots: Boolean get() = this.count { it == '.' } > 1
 }
