@@ -20,11 +20,10 @@ object JavalinRenderer {
         register(JavalinVelocity, ".vm", ".vtl")
         register(JavalinFreemarker, ".ftl")
         register(JavalinMustache, ".mustache")
-        register(JavalinJtwig, ".jtwig", ".twig")
+        register(JavalinJtwig, ".jtwig", ".twig", ".html.twig")
         register(JavalinPebble, ".peb", ".pebble")
         register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
         register(JavalinCommonmark, ".md", ".markdown")
-        register(JavalinRocker, ".rocker.html")
     }
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>): String {

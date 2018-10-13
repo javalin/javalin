@@ -127,12 +127,6 @@ class TestTemplates {
     }
 
     @Test
-    fun `rocker templates work`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.render("templates/rocker/test.rocker.html", model("message", "Hello Rocker!")) }
-        assertThat(http.getBody("/hello"), `is`("<h1>Hello Rocker!</h1>\n"))
-    }
-
-    @Test
     fun `markdown works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/markdown/test.md") }
         assertThat(http.getBody("/hello"), `is`("<h1>Hello Markdown!</h1>\n"))
@@ -151,4 +145,15 @@ class TestTemplates {
         assertThat(http.getBody("/hello"), `is`("Hah."))
     }
 
+    @Test
+    fun `double extension works`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/jtwig/test.html.twig", model("message", "Hello jTwig!")) }
+        assertThat(http.getBody("/hello"), `is`("<h1>Hello jTwig!</h1>"))
+    }
+
+    @Test
+    fun `multiple dots in filenames are okay`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/jtwig/multiple.dots.twig", model("message", "Hello jTwig!")) }
+        assertThat(http.getBody("/hello"), `is`("<h1>Hello jTwig!</h1>"))
+    }
 }
