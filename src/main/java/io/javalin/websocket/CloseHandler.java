@@ -6,7 +6,10 @@
 
 package io.javalin.websocket;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 @FunctionalInterface
 public interface CloseHandler {
-    void handle(WsSession session, int statusCode, String reason) throws Exception;
+    void handle(@NotNull WsSession session, int statusCode, @Nullable String reason) throws Exception;
 }

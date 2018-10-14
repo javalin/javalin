@@ -62,6 +62,6 @@ class ClassHandlers {
 }
 
 class HandlerImplementation : Handler {
-    override fun handle(ctx: Context?) {
+    override fun handle(ctx: Context) {
     }
 }

@@ -6,6 +6,8 @@
 
 package io.javalin;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Main interface for endpoint actions. A handler has a void return type,
  * so you have to use {@link Context#result} to return data to the client.
@@ -15,5 +17,5 @@ package io.javalin;
  */
 @FunctionalInterface
 public interface Handler {
-    void handle(Context ctx) throws Exception;
+    void handle(@NotNull Context ctx) throws Exception;
 }
