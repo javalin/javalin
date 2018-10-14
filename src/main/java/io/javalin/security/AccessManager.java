@@ -9,6 +9,8 @@ package io.javalin.security;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.core.HandlerType;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
 
 /**
@@ -22,5 +24,5 @@ import java.util.Set;
  */
 @FunctionalInterface
 public interface AccessManager {
-    void manage(Handler handler, Context ctx, Set<Role> permittedRoles) throws Exception;
+    void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<Role> permittedRoles) throws Exception;
 }
