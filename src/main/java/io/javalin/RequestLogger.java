@@ -6,6 +6,8 @@
 
 package io.javalin;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Interface for logging requests.
  *
@@ -14,5 +16,5 @@ package io.javalin;
  */
 @FunctionalInterface
 public interface RequestLogger {
-    void handle(Context ctx, Float executionTimeMs) throws Exception;
+    void handle(@NotNull Context ctx, @NotNull Float executionTimeMs) throws Exception;
 }
