@@ -6,6 +6,8 @@
 
 package io.javalin;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * A handler for use with {@link Javalin#exception(Class, ExceptionHandler)}.
  * Is triggered when exceptions are thrown by a {@link Handler}.
@@ -15,5 +17,5 @@ package io.javalin;
  */
 @FunctionalInterface
 public interface ExceptionHandler<T extends Exception> {
-    void handle(T exception, Context ctx);
+    void handle(@NotNull T exception, @NotNull Context ctx);
 }
