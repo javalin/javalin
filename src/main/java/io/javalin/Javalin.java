@@ -189,6 +189,7 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableCaseSensitiveUrls() {
+        ensureActionIsPerformedBeforeServerStart("Enabling case sensitive urls");
         caseSensitiveUrls = true;
         return this;
     }
@@ -261,7 +262,8 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to serve WebJars
+     * Configure instance to serve WebJars.
+     * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableWebJars() {
         return enableStaticFiles("/webjars", Location.CLASSPATH);
@@ -269,7 +271,8 @@ public class Javalin {
 
     /**
      * Any request that would normally result in a 404 for the path and its subpaths
-     * instead results in a 200 with the file-content as response body
+     * instead results in a 200 with the file-content as response body.
+     * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath) {
         ensureActionIsPerformedBeforeServerStart("Enabling single page mode");
@@ -414,6 +417,7 @@ public class Javalin {
      * Registers an attribute on the instance.
      * Instance is available on the {@link Context} through {@link Context#appAttribute}.
      * Ex: app.attribute(MyExt.class, myExtInstance())
+     * The method must be called before {@link Javalin#start()}.
      */
     public Javalin attribute(Class clazz, Object obj) {
         ensureActionIsPerformedBeforeServerStart("Registering app attributes");
@@ -449,7 +453,7 @@ public class Javalin {
 
     /**
      * Sets the access manager for the instance. Secured endpoints require one to be set.
-     *
+     * The method must be called before {@link Javalin#start()}.
      * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
      * @see AccessManager
      */
