@@ -156,4 +156,18 @@ class TestHttpResponseExceptions {
         "Result"
     }
 
+    @Test
+    fun `default content type affects http response errors`() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
+        app.get("/content-type") { throw ForbiddenResponse() }
+        val response = http.get("/content-type")
+        assertThat(response.status, `is`(HttpStatus.FORBIDDEN_403))
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE), `is`("application/json"))
+        assertThat(response.body, `is`("""{
+                |    "title": "Forbidden",
+                |    "status": 403,
+                |    "type": "https://javalin.io/documentation#forbiddenresponse",
+                |    "details": []
+                |}""".trimMargin()
+        ))
+    }
 }
