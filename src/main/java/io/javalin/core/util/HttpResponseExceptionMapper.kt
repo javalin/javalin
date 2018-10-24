@@ -16,7 +16,7 @@ object HttpResponseExceptionMapper {
 
     fun handleException(exception: Exception, ctx: Context) {
         val e = unwrap(exception)
-        if (ctx.header(Header.ACCEPT)?.contains("application/json") == true) {
+        if (ctx.header(Header.ACCEPT)?.contains("application/json") == true || ctx.res.contentType == "application/json") {
             ctx.status(e.status).result("""{
                 |    "title": "${e.message}",
                 |    "status": ${e.status},
