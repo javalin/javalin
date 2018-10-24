@@ -7,11 +7,13 @@
 package io.javalin.core.util
 
 import io.javalin.InternalServerErrorResponse
+import org.eclipse.jetty.server.session.SessionHandler
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.URL
 import java.util.*
+import java.util.function.Supplier
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 
@@ -121,4 +123,16 @@ object Util {
         }
         return false
     }
+
+    fun getValidSessionHandlerOrThrow(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
+        val uuid = UUID.randomUUID().toString()
+        val sessionHandler = sessionHandlerSupplier.get()
+        try {
+            sessionHandler.isIdInUse(uuid)
+            return sessionHandler
+        } catch (e: Exception) {
+            throw IllegalStateException("Could not look up dummy session ID in store. Misconfigured session handler", e)
+        }
+    }
+
 }

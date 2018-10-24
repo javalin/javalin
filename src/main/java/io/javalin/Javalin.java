@@ -233,7 +233,7 @@ public class Javalin {
      */
     public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
-        jettySessionHandler = sessionHandler.get();
+        jettySessionHandler = Util.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler);
         return this;
     }
 
