@@ -75,6 +75,9 @@ class TestCustomJetty {
         val httpHandler = (((server.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
         assertThat(httpHandler.sessionHandler, `is`(fileSessionHandler))
         app.stop()
+
+        val baseDir = File(System.getProperty("java.io.tmpdir"))
+        File(baseDir, "javalin-session-store-for-test").deleteRecursively()
     }
 
     @Test
@@ -106,7 +109,7 @@ class TestCustomJetty {
         sessionCache = DefaultSessionCache(this).apply {
             sessionDataStore = FileSessionDataStore().apply {
                 val baseDir = File(System.getProperty("java.io.tmpdir"))
-                this.storeDir = File(baseDir, "javalin-session-store").apply { mkdir() }
+                this.storeDir = File(baseDir, "javalin-session-store-for-test").apply { mkdir() }
             }
         }
     }
