@@ -10,5 +10,5 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface BinaryMessageHandler {
-    void handle(@NotNull WsSession session, @NotNull Byte[] msg, int offset, int length);
+    void handle(@NotNull WsSession session, @NotNull Byte[] msg, int offset, int length) throws Exception;
 }
