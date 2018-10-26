@@ -7,7 +7,6 @@
 package io.javalin.websocket
 
 import io.javalin.core.PathParser
-import io.javalin.core.util.LogUtil
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.UpgradeRequest
 import org.eclipse.jetty.websocket.api.annotations.*
@@ -29,7 +28,6 @@ class WsPathMatcher {
 
     val wsEntries = mutableListOf<WsEntry>()
     var wsLogger: WsHandler? = null
-    var debugLogging: Boolean = false
     private val sessionIds = ConcurrentHashMap<Session, String>()
     private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
@@ -45,7 +43,7 @@ class WsPathMatcher {
         findEntry(session)?.let {
             val wsSession = wrap(session, it)
             it.handler.connectHandler?.handle(wsSession)
-            wsLogger?.connectHandler?.handle(wsSession) ?: logIfEnabled { LogUtil.logOnConnect(wsSession) }
+            wsLogger?.connectHandler?.handle(wsSession)
         }
 
     }
@@ -56,7 +54,6 @@ class WsPathMatcher {
             val wsSession = wrap(session, it)
             it.handler.messageHandler?.handle(wsSession, message)
             wsLogger?.messageHandler?.handle(wsSession, message)
-                    ?: logIfEnabled { LogUtil.logOnMessage(wsSession, message) }
         }
     }
 
@@ -66,7 +63,6 @@ class WsPathMatcher {
             val wsSession = wrap(session, it)
             it.handler.binaryMessageHandler?.handle(wsSession, buffer.toTypedArray(), offset, length)
             wsLogger?.binaryMessageHandler?.handle(wsSession, buffer.toTypedArray(), offset, length)
-                    ?: logIfEnabled { LogUtil.logOnBinaryMessage(wsSession, buffer.toTypedArray(), offset, length) }
         }
     }
 
@@ -76,7 +72,6 @@ class WsPathMatcher {
             val wsSession = wrap(session, it)
             it.handler.errorHandler?.handle(wsSession, throwable)
             wsLogger?.errorHandler?.handle(wsSession, throwable)
-                    ?: logIfEnabled { LogUtil.logOnError(wsSession, throwable) }
         }
     }
 
@@ -86,7 +81,6 @@ class WsPathMatcher {
             val wsSession = wrap(session, it)
             it.handler.closeHandler?.handle(wsSession, statusCode, reason)
             wsLogger?.closeHandler?.handle(wsSession, statusCode, reason)
-                    ?: logIfEnabled { LogUtil.logOnClose(wsSession, statusCode, reason) }
         }
         destroy(session)
     }
@@ -106,9 +100,4 @@ class WsPathMatcher {
         sessionPathParams.remove(session)
     }
 
-    private inline fun logIfEnabled(action: () -> Unit) {
-        if (debugLogging) {
-            action()
-        }
-    }
 }
