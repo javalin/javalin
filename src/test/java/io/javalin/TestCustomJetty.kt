@@ -66,7 +66,7 @@ class TestCustomJetty {
 
     @Test
     fun `embedded server can have a wrapped handler collection`() {
-        var handlerCollection = HandlerCollection()
+        val handlerCollection = HandlerCollection()
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val server = Server().apply { handler = handlerChain }
         TestUtil.test(Javalin.create().server { server }) { app, http ->
