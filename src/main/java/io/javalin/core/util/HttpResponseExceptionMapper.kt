@@ -11,7 +11,7 @@ import java.util.concurrent.CompletionException
 
 object HttpResponseExceptionMapper {
 
-    fun shouldHandleException(e: Exception) =
+    fun canHandleException(e: Exception) =
             (e is HttpResponseException || (e is CompletionException && e.cause is HttpResponseException))
 
     fun handleException(exception: Exception, ctx: Context) {

@@ -33,7 +33,7 @@ public class VisualTest {
             .enableCorsForAllOrigins();
         app.start();
 
-        app.get("/", ctx -> ctx.redirect("/route-overview"));
+        app.get("/", ctx -> ctx.redirect("/context-path/route-overview"));
         app.get("/just-some-path", new HandlerImplementation());
         app.post("/test/:hmm/", VisualTest::methodReference);
         app.put("/user/*", ctx -> ctx.result(""), roles(ROLE_ONE));

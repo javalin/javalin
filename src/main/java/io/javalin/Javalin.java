@@ -454,6 +454,7 @@ public class Javalin {
     /**
      * Sets the access manager for the instance. Secured endpoints require one to be set.
      * The method must be called before {@link Javalin#start()}.
+     *
      * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
      * @see AccessManager
      */

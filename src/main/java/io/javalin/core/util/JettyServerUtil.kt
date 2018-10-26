@@ -96,10 +96,12 @@ object JettyServerUtil {
             })
         }.start()
 
-        log.info("Jetty is listening on: " + server.connectors.map { it as ServerConnector; (if (it.protocols.contains("ssl")) "https" else "http") + "://${it.host ?: "localhost"}:${it.localPort}${contextPath}" })
+        log.info("Jetty is listening on: " + server.connectors.map { it as ServerConnector }.map { "${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath" })
 
         return (server.connectors[0] as ServerConnector).localPort
     }
+
+    private val ServerConnector.protocol get() = if (this.protocols.contains("ssl")) "https" else "http"
 
     private fun attachJavalinHandlers(userHandler: Handler?, javalinHandlers: HandlerList) = when (userHandler) {
         null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom handlers set

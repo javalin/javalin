@@ -7,9 +7,8 @@
 package io.javalin.rendering;
 
 import io.javalin.Context;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface for creating renderers to be used with {@link Context#render}.
