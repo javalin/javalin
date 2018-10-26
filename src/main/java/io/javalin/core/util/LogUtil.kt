@@ -112,7 +112,7 @@ object LogUtil {
             |   Host: ${host()}
             |   Matched Path: ${matchedPath()}
             |   PathParams: ${pathParamMap()}
-            |   QueryParams: ${queryParamMap()}
+            |   QueryParams: ${if (queryString() != null) queryParamMap().mapValues { (_, v) -> v.toString() }.toString() else "No query string was provided"}
             |"""
         }
     }
