@@ -96,10 +96,7 @@ object JettyServerUtil {
             })
         }.start()
 
-        log.info("Jetty is listening on: " + server.connectors.map {
-            it as ServerConnector; (if (it.protocols.contains("ssl")) "https" else "http") + "://${it.host
-                ?: "localhost"}:${it.localPort}"
-        })
+        log.info("Jetty is listening on: " + server.connectors.map { it as ServerConnector; (if (it.protocols.contains("ssl")) "https" else "http") + "://${it.host ?: "localhost"}:${it.localPort}" })
 
         return (server.connectors[0] as ServerConnector).localPort
     }
