@@ -107,8 +107,8 @@ object JettyServerUtil {
         null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom Handler set, wrap Javalin handlers in a HandlerWrapper
         is HandlerCollection -> userHandler.apply { addHandler(javalinHandlers) } // user is using a HandlerCollection, add Javalin handlers to it
         is HandlerWrapper -> userHandler.apply {
-            (unwrap(this) as? HandlerCollection)?.apply { addHandler(javalinHandlers) } // if HandlerWrapper unwraps as HandlerCollection, add Javalin handlers
-            (unwrap(this) as? HandlerWrapper)?.apply { handler = javalinHandlers } // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
+            (unwrap(this) as? HandlerCollection)?.addHandler(javalinHandlers) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handlers
+            (unwrap(this) as? HandlerWrapper)?.handler = javalinHandlers // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
         }
         else -> throw IllegalStateException("Server has unidentified handler attached to it")
     }
