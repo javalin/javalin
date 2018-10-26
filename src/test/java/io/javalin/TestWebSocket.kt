@@ -220,6 +220,22 @@ class TestWebSocket {
         assertThat(log, hasItem("My-PaRaM"))
     }
 
+    @Test
+    fun `web socket logging works`() = TestUtil.test(Javalin.create().wsLogger { ws ->
+        ws.onConnect { session ->  log.add(session.pathParam("param") + " connected") }
+        ws.onClose { session, _, _ ->  log.add(session.pathParam("param") + " disconnected")}
+    }) { app, _ ->
+        app.ws("/path/:param") {}
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/1")))
+        assertThat(log, containsInAnyOrder(
+                "0 connected",
+                "1 connected",
+                "0 disconnected",
+                "1 disconnected"
+        ))
+    }
+
     internal inner class TestClient : WebSocketClient {
         constructor(serverUri: URI) : super(serverUri)
         constructor(serverUri: URI, headers: Map<String, String>) : super(serverUri, Draft_6455(), headers, 0)

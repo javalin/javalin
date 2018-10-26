@@ -27,6 +27,7 @@ data class WsEntry(val path: String, val handler: WsHandler, val caseSensitiveUr
 class WsPathMatcher {
 
     val wsEntries = mutableListOf<WsEntry>()
+    var wsLogger: WsHandler? = null
     private val sessionIds = ConcurrentHashMap<Session, String>()
     private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
@@ -39,27 +40,43 @@ class WsPathMatcher {
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
-        findEntry(session)?.let { it.handler.connectHandler?.handle(wrap(session, it)) }
+        findEntry(session)?.let {
+            it.handler.connectHandler?.handle(wrap(session, it))
+            wsLogger?.connectHandler?.handle(wrap(session, it))
+        }
+
     }
 
     @OnWebSocketMessage
     fun webSocketMessage(session: Session, message: String) {
-        findEntry(session)?.let { it.handler.messageHandler?.handle(wrap(session, it), message) }
+        findEntry(session)?.let {
+            it.handler.messageHandler?.handle(wrap(session, it), message)
+            wsLogger?.messageHandler?.handle(wrap(session, it), message)
+        }
     }
 
     @OnWebSocketMessage
     fun webSocketBinaryMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        findEntry(session)?.let { it.handler.binaryMessageHandler?.handle(wrap(session, it), buffer.toTypedArray(), offset, length) }
+        findEntry(session)?.let {
+            it.handler.binaryMessageHandler?.handle(wrap(session, it), buffer.toTypedArray(), offset, length)
+            wsLogger?.binaryMessageHandler?.handle(wrap(session, it), buffer.toTypedArray(), offset, length)
+        }
     }
 
     @OnWebSocketError
     fun webSocketError(session: Session, throwable: Throwable?) {
-        findEntry(session)?.let { it.handler.errorHandler?.handle(wrap(session, it), throwable) }
+        findEntry(session)?.let {
+            it.handler.errorHandler?.handle(wrap(session, it), throwable)
+            wsLogger?.errorHandler?.handle(wrap(session, it), throwable)
+        }
     }
 
     @OnWebSocketClose
     fun webSocketClose(session: Session, statusCode: Int, reason: String?) {
-        findEntry(session)?.let { it.handler.closeHandler?.handle(wrap(session, it), statusCode, reason) }
+        findEntry(session)?.let {
+            it.handler.closeHandler?.handle(wrap(session, it), statusCode, reason)
+            wsLogger?.closeHandler?.handle(wrap(session, it), statusCode, reason)
+        }
         destroy(session)
     }
 

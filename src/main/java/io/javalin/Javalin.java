@@ -493,6 +493,7 @@ public class Javalin {
     public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
+        wsPathMatcher.setWsLogger(configuredWebSocket);
         return this;
     }
 
