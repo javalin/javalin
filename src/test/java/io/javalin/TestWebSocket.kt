@@ -245,6 +245,22 @@ class TestWebSocket {
         assertThat(log.size, `is`(0))
     }
 
+    @Test
+    fun `queryParamMap does not throw`() = TestUtil.test { app, _ ->
+        app.ws("/*") {ws ->
+            ws.onConnect { session ->
+                try {
+                    session.queryParamMap()
+                } catch (e: Exception) {
+                    log.add("exception queryParamMap")
+                }
+            }
+        }
+
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
+        assertThat(log.size, `is`(0))
+    }
+
     internal inner class TestClient : WebSocketClient {
         constructor(serverUri: URI) : super(serverUri)
         constructor(serverUri: URI, headers: Map<String, String>) : super(serverUri, Draft_6455(), headers, 0)
