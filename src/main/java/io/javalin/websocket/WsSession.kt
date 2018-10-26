@@ -23,7 +23,7 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
 
     fun send(message: String) = webSocketSession.remote.sendString(message)
     fun send(message: ByteBuffer) = webSocketSession.remote.sendBytes(message)
-    fun queryString() = webSocketSession.upgradeRequest!!.queryString
+    fun queryString(): String? = webSocketSession.upgradeRequest!!.queryString
     @JvmOverloads
     fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull() ?: default
 
