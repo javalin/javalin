@@ -49,9 +49,9 @@ object JettyServerUtil {
             log: Logger
     ): Int {
 
-        val parent = null // javalin handlers are orphans
+        val nullParent = null // javalin handlers are orphans
 
-        val httpHandler = object : ServletContextHandler(parent, contextPath, SESSIONS) {
+        val httpHandler = object : ServletContextHandler(nullParent, contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 if (request.isWebSocket()) return // don't touch websocket requests
                 try {
@@ -68,7 +68,7 @@ object JettyServerUtil {
             this.sessionHandler = sessionHandler
         }
 
-        val webSocketHandler = ServletContextHandler(parent, contextPath).apply {
+        val webSocketHandler = ServletContextHandler(nullParent, contextPath).apply {
             addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
                     factory.creator = WebSocketCreator { req, res ->
@@ -104,28 +104,20 @@ object JettyServerUtil {
     private val ServerConnector.protocol get() = if (this.protocols.contains("ssl")) "https" else "http"
 
     private fun attachJavalinHandlers(userHandler: Handler?, javalinHandlers: HandlerList) = when (userHandler) {
-        null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom handlers set
-        is HandlerCollection -> userHandler.apply { addHandler(javalinHandlers) }
-        is HandlerWrapper -> HandlerWrapper().apply {
-            handler = userHandler
-            val targetHandler = findTargetHandler(userHandler)
-            when(targetHandler) {
-                is HandlerCollection -> targetHandler.apply { addHandler(javalinHandlers) }
-                is HandlerWrapper -> targetHandler.apply { handler = javalinHandlers }
-            }
+        null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom Handler set, wrap Javalin handlers in a HandlerWrapper
+        is HandlerCollection -> userHandler.apply { addHandler(javalinHandlers) } // user is using a HandlerCollection, add Javalin handlers to it
+        is HandlerWrapper -> userHandler.apply {
+            (unwrap(this) as? HandlerCollection)?.apply { addHandler(javalinHandlers) } // if HandlerWrapper unwraps as HandlerCollection, add Javalin handlers
+            (unwrap(this) as? HandlerWrapper)?.apply { handler = javalinHandlers } // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
         }
         else -> throw IllegalStateException("Server has unidentified handler attached to it")
     }
 
-    private fun findTargetHandler(userHandler: HandlerWrapper): Handler {
-        val handler = userHandler.handler
-        return when(handler)
-        {
-            null -> userHandler
-            is HandlerCollection -> userHandler.handler
-            is HandlerWrapper -> findTargetHandler(handler)
-            else -> throw IllegalStateException("Cannot insert javalin handlers into a handler that is not a HandlerCollection or HandlerWrapper")
-        }
+    private fun unwrap(userHandler: HandlerWrapper): Handler = when (userHandler.handler) {
+        null -> userHandler // current HandlerWrapper is last element, return the HandlerWrapper
+        is HandlerCollection -> userHandler.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
+        is HandlerWrapper -> unwrap(userHandler.handler as HandlerWrapper) // HandlerWrapper wraps another HandlerWrapper, recursive call required
+        else -> throw IllegalStateException("Cannot insert Javalin handlers into a Handler that is not a HandlerCollection or HandlerWrapper")
     }
 
     private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
