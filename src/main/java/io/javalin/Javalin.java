@@ -19,6 +19,7 @@ import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsBeforeHandler;
 import io.javalin.core.util.CorsOptionsHandler;
 import io.javalin.core.util.JettyServerUtil;
+import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.SinglePageHandler;
 import io.javalin.core.util.Util;
@@ -315,7 +316,7 @@ public class Javalin {
     public Javalin enableDebugLogging() {
         ensureActionIsPerformedBeforeServerStart("Enabling debug-logging");
         this.debugLogging = true;
-        wsPathMatcher.setDebugLogging(true);
+        wsLogger(LogUtil::wsDebugLogger);
         return this;
     }
 

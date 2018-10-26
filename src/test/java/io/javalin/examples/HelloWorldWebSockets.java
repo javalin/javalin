@@ -12,7 +12,7 @@ import io.javalin.Javalin;
 // see HelloWorldSecure for how to set that up
 public class HelloWorldWebSockets {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().port(7070);
+        Javalin app = Javalin.create().enableDebugLogging().port(7070);
         app.ws("/websocket", ws -> {
             ws.onConnect(session -> {
                 System.out.println("Connected");
