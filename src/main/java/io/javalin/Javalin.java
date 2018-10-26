@@ -491,7 +491,7 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
-        ensureActionIsPerformedBeforeServerStart("Adding a web socket logger");
+        ensureActionIsPerformedBeforeServerStart("Adding a WebSocket logger");
         WsHandler wsLogger = new WsHandler();
         ws.accept(wsLogger);
         wsPathMatcher.setWsLogger(wsLogger);
