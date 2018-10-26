@@ -9,6 +9,7 @@ package io.javalin.core.util
 import io.javalin.Context
 import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
+import io.javalin.websocket.WsSession
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -54,5 +55,66 @@ object LogUtil {
     fun startTimer(ctx: Context) = ctx.attribute("javalin-request-log-start-time", System.nanoTime())
 
     fun executionTimeMs(ctx: Context) = (System.nanoTime() - ctx.attribute<Long>("javalin-request-log-start-time")!!) / 1000000f
+
+    fun logOnConnect(session: WsSession) {
+        with(session) {
+            log.info("""JAVALIN WEB SOCKET DEBUG LOG: onConnect
+                        ${logCommonWsSession(this)}
+                        |----------------------------------------------------------------------------------""".trimMargin())
+        }
+    }
+
+    fun logOnMessage(session: WsSession, message: String) {
+        with(session) {
+            log.info("""JAVALIN WEB SOCKET DEBUG LOG: onMessage
+                        ${logCommonWsSession(this)}
+                        |Message:
+                        |$message
+                        |----------------------------------------------------------------------------------""".trimMargin())
+        }
+    }
+
+    fun logOnBinaryMessage(session: WsSession, msg: Array<Byte>, offset: Int, length: Int) {
+        with(session) {
+            log.info("""JAVALIN WEB SOCKET DEBUG LOG: onBinaryMessage
+                        ${logCommonWsSession(this)}
+                        |Offset: $offset Length: $length
+                        |Binary Message:
+                        |$msg
+                        |----------------------------------------------------------------------------------""".trimMargin())
+        }
+    }
+
+    fun logOnClose(session: WsSession, statusCode: Int, reason: String?) {
+        with(session) {
+            log.info("""JAVALIN WEB SOCKET DEBUG LOG: onClose
+                        ${logCommonWsSession(this)}
+                        |StatusCode: $statusCode
+                        |Reason: ${reason ?: "No reason was provided"}
+                        |----------------------------------------------------------------------------------""".trimMargin())
+        }
+    }
+
+    fun logOnError(session: WsSession, throwable: Throwable?) {
+        with(session) {
+            log.info("""JAVALIN WEB SOCKET DEBUG LOG: onError
+                        ${logCommonWsSession(this)}
+                        |Throwable:  ${throwable ?: "No throwable was provided"}
+                        |----------------------------------------------------------------------------------""".trimMargin())
+        }
+    }
+
+    private fun logCommonWsSession(session: WsSession): String {
+        return with(session) {
+            """|
+            |Common information:
+            |   Session Id: $id
+            |   Host: ${host()}
+            |   Matched Path: ${matchedPath()}
+            |   PathParams: ${pathParamMap()}
+            |   QueryParams: ${if (queryString() != null) queryParamMap().mapValues { (_, v) -> v.toString() }.toString() else "No query string was provided"}
+            |"""
+        }
+    }
 }
 
