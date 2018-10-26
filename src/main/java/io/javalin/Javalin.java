@@ -315,6 +315,7 @@ public class Javalin {
     public Javalin enableDebugLogging() {
         ensureActionIsPerformedBeforeServerStart("Enabling debug-logging");
         this.debugLogging = true;
+        wsPathMatcher.setDebugLogging(true);
         return this;
     }
 
@@ -484,6 +485,19 @@ public class Javalin {
     public Javalin event(@NotNull JavalinEvent javalinEvent, @NotNull EventListener eventListener) {
         ensureActionIsPerformedBeforeServerStart("Event-mapping");
         eventManager.getListenerMap().get(javalinEvent).add(eventListener);
+        return this;
+    }
+
+    /**
+     * Configures a web socket handler to be called after every web socket event
+     * The method must be called before {@link Javalin#start()}.
+     * Will override the default logger of {@link Javalin#enableDebugLogging()}.
+     */
+    public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
+        ensureActionIsPerformedBeforeServerStart("Adding a WebSocket logger");
+        WsHandler wsLogger = new WsHandler();
+        ws.accept(wsLogger);
+        wsPathMatcher.setWsLogger(wsLogger);
         return this;
     }
 

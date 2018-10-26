@@ -7,6 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.core.PathParser
+import io.javalin.core.util.LogUtil
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.UpgradeRequest
 import org.eclipse.jetty.websocket.api.annotations.*
@@ -27,6 +28,8 @@ data class WsEntry(val path: String, val handler: WsHandler, val caseSensitiveUr
 class WsPathMatcher {
 
     val wsEntries = mutableListOf<WsEntry>()
+    var wsLogger: WsHandler? = null
+    var debugLogging: Boolean = false
     private val sessionIds = ConcurrentHashMap<Session, String>()
     private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
@@ -39,27 +42,52 @@ class WsPathMatcher {
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
-        findEntry(session)?.let { it.handler.connectHandler?.handle(wrap(session, it)) }
+        findEntry(session)?.let {
+            val wsSession = wrap(session, it)
+            it.handler.connectHandler?.handle(wsSession)
+            wsLogger?.connectHandler?.handle(wsSession) ?: logIfEnabled { LogUtil.logOnConnect(wsSession) }
+        }
+
     }
 
     @OnWebSocketMessage
     fun webSocketMessage(session: Session, message: String) {
-        findEntry(session)?.let { it.handler.messageHandler?.handle(wrap(session, it), message) }
+        findEntry(session)?.let {
+            val wsSession = wrap(session, it)
+            it.handler.messageHandler?.handle(wsSession, message)
+            wsLogger?.messageHandler?.handle(wsSession, message)
+                    ?: logIfEnabled { LogUtil.logOnMessage(wsSession, message) }
+        }
     }
 
     @OnWebSocketMessage
     fun webSocketBinaryMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        findEntry(session)?.let { it.handler.binaryMessageHandler?.handle(wrap(session, it), buffer.toTypedArray(), offset, length) }
+        findEntry(session)?.let {
+            val wsSession = wrap(session, it)
+            it.handler.binaryMessageHandler?.handle(wsSession, buffer.toTypedArray(), offset, length)
+            wsLogger?.binaryMessageHandler?.handle(wsSession, buffer.toTypedArray(), offset, length)
+                    ?: logIfEnabled { LogUtil.logOnBinaryMessage(wsSession, buffer.toTypedArray(), offset, length) }
+        }
     }
 
     @OnWebSocketError
     fun webSocketError(session: Session, throwable: Throwable?) {
-        findEntry(session)?.let { it.handler.errorHandler?.handle(wrap(session, it), throwable) }
+        findEntry(session)?.let {
+            val wsSession = wrap(session, it)
+            it.handler.errorHandler?.handle(wsSession, throwable)
+            wsLogger?.errorHandler?.handle(wsSession, throwable)
+                    ?: logIfEnabled { LogUtil.logOnError(wsSession, throwable) }
+        }
     }
 
     @OnWebSocketClose
     fun webSocketClose(session: Session, statusCode: Int, reason: String?) {
-        findEntry(session)?.let { it.handler.closeHandler?.handle(wrap(session, it), statusCode, reason) }
+        findEntry(session)?.let {
+            val wsSession = wrap(session, it)
+            it.handler.closeHandler?.handle(wsSession, statusCode, reason)
+            wsLogger?.closeHandler?.handle(wsSession, statusCode, reason)
+                    ?: logIfEnabled { LogUtil.logOnClose(wsSession, statusCode, reason) }
+        }
         destroy(session)
     }
 
@@ -78,4 +106,9 @@ class WsPathMatcher {
         sessionPathParams.remove(session)
     }
 
+    private inline fun logIfEnabled(action: () -> Unit) {
+        if (debugLogging) {
+            action()
+        }
+    }
 }
