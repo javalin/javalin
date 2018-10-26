@@ -487,6 +487,16 @@ public class Javalin {
     }
 
     /**
+     * Configures a web socket handler to be called after every web socket event
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
+        WsHandler configuredWebSocket = new WsHandler();
+        ws.accept(configuredWebSocket);
+        return this;
+    }
+
+    /**
      * Adds an error mapper to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      *
