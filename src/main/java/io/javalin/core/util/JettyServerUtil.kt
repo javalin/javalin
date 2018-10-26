@@ -107,10 +107,25 @@ object JettyServerUtil {
         null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom handlers set
         is HandlerCollection -> userHandler.apply { addHandler(javalinHandlers) }
         is HandlerWrapper -> HandlerWrapper().apply {
-            handler = javalinHandlers
-            insertHandler(userHandler)
+            handler = userHandler
+            val targetHandler = findTargetHandler(userHandler)
+            when(targetHandler) {
+                is HandlerCollection -> targetHandler.apply { addHandler(javalinHandlers) }
+                is HandlerWrapper -> targetHandler.apply { handler = javalinHandlers }
+            }
         }
         else -> throw IllegalStateException("Server has unidentified handler attached to it")
+    }
+
+    private fun findTargetHandler(userHandler: HandlerWrapper): Handler {
+        val handler = userHandler.handler
+        return when(handler)
+        {
+            null -> userHandler
+            is HandlerCollection -> userHandler.handler
+            is HandlerWrapper -> findTargetHandler(handler)
+            else -> throw IllegalStateException("Cannot insert javalin handlers into a handler that is not a HandlerCollection or HandlerWrapper")
+        }
     }
 
     private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null

@@ -65,6 +65,24 @@ class TestCustomJetty {
     }
 
     @Test
+    fun `embedded server can have a wrapped handler collection`() {
+        var handlerCollection = HandlerCollection()
+        val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
+        val server = Server().apply { handler = handlerChain }
+        TestUtil.test(Javalin.create().server { server }) { app, http ->
+            app.get("/") { ctx -> ctx.result("Hello World") }
+            val requests = 10
+            for (i in 0 until requests) {
+                assertThat(http.getBody("/"), `is`("Hello World"))
+                assertThat(http.get("/not_there").status, `is`(404))
+            }
+            assertThat(handlerChain.dispatched, `is`(requests * 2))
+            assertThat(handlerChain.responses2xx, `is`(requests))
+            assertThat(handlerChain.responses4xx, `is`(requests))
+        }
+    }
+
+    @Test
     fun `custom SessionHandler works`() {
         val server = Server()
         val fileSessionHandler = fileSessionHandler()
