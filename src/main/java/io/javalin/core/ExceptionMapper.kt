@@ -20,11 +20,12 @@ class ExceptionMapper {
     val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
-        if (HttpResponseExceptionMapper.shouldHandleException(exception)) {
+        val exceptionHandler = this.getHandler(exception.javaClass)
+        if (HttpResponseExceptionMapper.shouldHandleException(exception) &&
+                (exceptionHandler == null || !this.exceptionMap.containsKey(exception.javaClass))) {
             return HttpResponseExceptionMapper.handleException(exception, ctx)
         }
         ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
-        val exceptionHandler = this.getHandler(exception.javaClass)
         if (exceptionHandler != null) {
             exceptionHandler.handle(exception, ctx)
         } else {
