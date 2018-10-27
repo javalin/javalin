@@ -98,6 +98,12 @@ class TestCustomJetty {
         File(baseDir, "javalin-session-store-for-test").deleteRecursively()
     }
 
+    @Test(expected = IllegalStateException::class)
+    fun `invalid SessionHandler gets handled`() {
+        val invalidSessionHandler = misconfiguredSessionHandler()
+        Javalin.create().sessionHandler { invalidSessionHandler }
+    }
+
     @Test
     fun `custom ContextHandlerCollection works`() {
         val server = Server()
@@ -129,6 +135,12 @@ class TestCustomJetty {
                 val baseDir = File(System.getProperty("java.io.tmpdir"))
                 this.storeDir = File(baseDir, "javalin-session-store-for-test").apply { mkdir() }
             }
+        }
+    }
+
+    private fun misconfiguredSessionHandler() = SessionHandler().apply {
+        fun getSession(sessionId : String) = {
+            throw Exception("Generic error: cannot find session ID ${sessionId}")
         }
     }
 
