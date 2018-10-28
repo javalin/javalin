@@ -44,7 +44,7 @@ class TestJson {
     fun `json-mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(NonSerializableObject()) }
         assertThat(http.get("/hello").status, `is`(500))
-        assertThat(http.getBody("/hello"), `is`("Internal server error"))
+        assertThat(http.getBody("/hello"), `is`("{\n    \"title\": \"Internal server error\",\n    \"status\": 500,\n    \"type\": \"https://javalin.io/documentation#internalservererrorresponse\",\n    \"details\": []\n}"))
     }
 
     @Test
