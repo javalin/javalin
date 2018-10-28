@@ -51,8 +51,8 @@ public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    private Server jettyServer = JettyServerUtil.defaultServer();
-    private SessionHandler jettySessionHandler = JettyServerUtil.defaultSessionHandler();
+    private Server jettyServer = null;
+    private SessionHandler jettySessionHandler = null;
     private Set<StaticFileConfig> staticFileConfig = new HashSet<>();
     private boolean ignoreTrailingSlashes = true;
 
@@ -123,7 +123,13 @@ public class Javalin {
             eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
             try {
                 log.info("Starting Javalin ...");
+                if (jettyServer == null) {
+                    jettyServer = JettyServerUtil.defaultServer();
+                }
                 JavalinServlet javalinServlet = createServlet(new JettyResourceHandler(staticFileConfig, jettyServer, ignoreTrailingSlashes));
+                if (jettySessionHandler == null) {
+                    jettySessionHandler = JettyServerUtil.defaultSessionHandler();
+                }
                 port = JettyServerUtil.initialize(jettyServer, jettySessionHandler, port, contextPath, javalinServlet, wsPathMatcher, log);
                 log.info("Javalin has started \\o/");
                 started = true;
@@ -171,7 +177,9 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            jettyServer.stop();
+            if (jettyServer != null) {
+                jettyServer.stop();
+            }
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
