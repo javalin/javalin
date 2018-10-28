@@ -24,6 +24,7 @@ import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.SinglePageHandler;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
+import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
 import io.javalin.security.SecurityUtil;
 import io.javalin.staticfiles.JettyResourceHandler;
@@ -46,6 +47,7 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static io.javalin.security.SecurityUtil.roles;
 
 public class Javalin {
 
@@ -339,7 +341,7 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Enabling CORS");
         if (origin.length == 0) throw new IllegalArgumentException("Origins cannot be empty.");
         this.before("*", new CorsBeforeHandler(origin));
-        this.options("*", new CorsOptionsHandler());
+        this.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));
         return this;
     }
 
@@ -528,8 +530,9 @@ public class Javalin {
     }
 
     private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
+        boolean shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP); // don't wrap CORS options
         String prefixedPath = Util.prefixContextPath(contextPath, path);
-        Handler protectedHandler = handlerType.isHttpMethod() ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
+        Handler protectedHandler = shouldWrap ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
         pathMatcher.add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler, caseSensitiveUrls));
         handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
         return this;

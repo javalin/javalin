@@ -23,3 +23,5 @@ object SecurityUtil {
     }
 
 }
+
+internal enum class CoreRoles : Role { NO_WRAP } // used to avoid wrapping CORS options
