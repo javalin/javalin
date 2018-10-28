@@ -8,6 +8,7 @@ package io.javalin.core
 
 import io.javalin.Context
 import io.javalin.ExceptionHandler
+import io.javalin.InternalServerErrorResponse
 import io.javalin.core.util.HttpResponseExceptionMapper
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -29,8 +30,7 @@ class ExceptionMapper {
             exceptionHandler.handle(exception, ctx)
         } else {
             log.warn("Uncaught exception", exception)
-            ctx.result("Internal server error")
-            ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            HttpResponseExceptionMapper.handleException(InternalServerErrorResponse(), ctx)
         }
         ctx.inExceptionHandler = false
     }
