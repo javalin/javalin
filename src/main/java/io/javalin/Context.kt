@@ -33,6 +33,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
     @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
+    @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
@@ -231,6 +232,15 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * matchedPath() will return /users/:user-id
      */
     fun matchedPath() = matchedPath
+
+    /**
+     * Gets the path that Javalin used to match this request (excluding any AFTER handlers)
+     */
+    fun endpointHandlerPath() = if (handlerType != HandlerType.BEFORE) {
+        endpointHandlerPath
+    } else {
+        throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
+    }
 
     /** Gets the request method. */
     fun method(): String = servletRequest.method
