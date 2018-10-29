@@ -23,6 +23,9 @@ object ContextUtil {
         pathParamMap = handlerEntry.extractPathParams(requestUri)
         splatList = handlerEntry.extractSplats(requestUri)
         handlerType = handlerEntry.type
+        if (handlerType != HandlerType.AFTER) {
+            endpointHandlerPath = handlerEntry.path
+        }
     }
 
     fun splitKeyValueStringAndGroupByKey(string: String): Map<String, List<String>> {
