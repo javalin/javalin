@@ -237,6 +237,15 @@ class TestRequest {
     }
 
     @Test
+    fun `endpointHandlerPath() returns the path used to match the request (excluding any AFTER handlers)`() = TestUtil.test { app, http ->
+        app.before { }
+        app.get("/matched/:path-param") { }
+        app.get("/matched/:another-path-param") { }
+        app.after { ctx -> ctx.result(ctx.endpointHandlerPath()) }
+        assertThat(http.getBody("/matched/p1"), `is`("/matched/:path-param"))
+    }
+
+    @Test
     fun `servlet-context is not null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(if (ctx.req.servletContext != null) "not-null" else "null") }
         assertThat(http.getBody("/"), `is`("not-null"))
