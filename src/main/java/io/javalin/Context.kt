@@ -15,6 +15,9 @@ import io.javalin.json.JavalinJson
 import io.javalin.rendering.JavalinRenderer
 import io.javalin.validation.TypedValidator
 import io.javalin.validation.Validator
+import org.everit.json.schema.Schema
+import org.everit.json.schema.ValidationException
+import org.json.JSONObject
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -95,7 +98,28 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * @return The mapped object
      */
     fun <T> bodyAsClass(clazz: Class<T>): T {
-        return JavalinJson.fromJson(body(), clazz)
+        if(javalin.isValidationStrictMode){
+            throw InternalServerErrorResponse("Validation strict mode is enabled, but not used!")
+        }
+        else{
+            return JavalinJson.fromJson(body(), clazz)
+        }
+    }
+
+    /**
+     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
+     * JavalinJson can be configured to use any mapping library.
+     * Accepts a schema which the body is checked against first
+     * @return The mapped object
+     */
+    fun <T> bodyAsClass(clazz: Class<T>, schema: Schema): T {
+        try{
+            schema.validate(JSONObject(body()))
+            return JavalinJson.fromJson(body(), clazz)
+        }
+        catch (e: ValidationException){
+            throw BadRequestResponse("Validation strict mode is enabled, but not used!", e)
+        }
     }
 
     /** Gets first [UploadedFile] for the specified name, or null. */

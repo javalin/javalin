@@ -147,6 +147,12 @@
             <version>3.17.6</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.github.everit-org.json-schema</groupId>
+            <artifactId>org.everit.json.schema</artifactId>
+            <version>1.9.2</version>
+            <optional>true</optional>
+        </dependency>
         <!-- END Optional dependencies -->
 
         <!-- BEGIN Test dependencies -->
@@ -199,6 +205,13 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
     <pluginRepositories>
         <pluginRepository>

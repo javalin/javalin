@@ -68,6 +68,7 @@ public class Javalin {
     private boolean hideBanner = false;
     private boolean prefer405over404 = false;
     private boolean caseSensitiveUrls = false;
+    private boolean validationStrictMode = false;
     private boolean started = false;
     private AccessManager accessManager = SecurityUtil::noopAccessManager;
     private RequestLogger requestLogger = null;
@@ -415,6 +416,19 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Changing request cache body size");
         this.maxRequestCacheBodySize = bodySizeInBytes;
         return this;
+    }
+
+    /**
+     * Enables or disables the json validation strict mode.
+     * If enabled, the developer must call bodyAsClass with a json schema or validatedBodyAsClass from Context
+     */
+    public Javalin setValidationStrictMode(boolean strictMode){
+        validationStrictMode = strictMode;
+        return this;
+    }
+
+    public boolean isValidationStrictMode(){
+        return validationStrictMode;
     }
 
     /**
