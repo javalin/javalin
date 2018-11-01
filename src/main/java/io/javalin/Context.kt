@@ -118,7 +118,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
             return JavalinJson.fromJson(body(), clazz)
         }
         catch (e: ValidationException){
-            throw BadRequestResponse("Validation strict mode is enabled, but not used!", e)
+            throw BadRequestResponse("Json-Object not valid, check against schema", e)
         }
     }
 

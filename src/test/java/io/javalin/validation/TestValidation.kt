@@ -7,14 +7,18 @@
 package io.javalin.validation
 
 import io.javalin.BadRequestResponse
+import io.javalin.json.FromJsonMapper
 import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
 import io.javalin.validation.JavalinValidation.validate
 import org.eclipse.jetty.http.HttpStatus
+import org.everit.json.schema.Schema
+import org.everit.json.schema.loader.SchemaLoader
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.json.JSONObject
 import org.junit.Test
 import java.time.Duration
 import java.time.Instant
@@ -158,6 +162,46 @@ class TestValidation {
         }
         assertThat(http.get("/").body, `is`("Error Expected!"))
         assertThat(http.get("/").status, `is`(HttpStatus.EXPECTATION_FAILED_417))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun `test validation strict mode`() = TestUtil.test { app, http ->
+        val sillyString = "2"
+
+        JavalinJson.fromJsonMapper = object : FromJsonMapper {
+            override fun <T> map(json: String, targetClass: Class<T>) = sillyString as T
+        }
+
+        val testSchema: Schema = SchemaLoader.load(JSONObject("{\n" +
+                "  \"type\": \"object\",\n" +
+                "  \"required\": [\n" +
+                "    \"test\"\n" +
+                "  ],\n" +
+                "  \"properties\": {\n" +
+                "    \"test\": {\n" +
+                "      \"type\": \"integer\",\n" +
+                "      \"title\": \"The Test Schema\",\n" +
+                "      \"default\": 0\n" +
+                "    }\n" +
+                "  }\n" +
+                "}"))
+
+        app.setValidationStrictMode(true)
+
+        app.get("/") { ctx ->
+            ctx.result(ctx.bodyAsClass(String::class.java))
+        }
+
+        app.post("/test"){ctx ->
+            ctx.result(ctx.bodyAsClass(sillyString::class.java, testSchema))
+        }
+
+        assertThat(http.get("/").body, `is`("Validation strict mode is enabled, but not used!"))
+        assertThat(http.get("/").status, `is`(HttpStatus.INTERNAL_SERVER_ERROR_500))
+
+        assertThat(http.post("/test").body("{\"test\": $sillyString}").asString().body, `is`(sillyString))
+        assertThat(http.post("/test").body("{\"test\": $sillyString}").asString().status, `is`(HttpStatus.OK_200))
     }
 
 }
