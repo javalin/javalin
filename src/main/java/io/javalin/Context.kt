@@ -8,9 +8,7 @@ package io.javalin
 
 import io.javalin.cookie.CookieStore
 import io.javalin.core.HandlerType
-import io.javalin.core.util.ContextUtil
-import io.javalin.core.util.Header
-import io.javalin.core.util.MultipartUtil
+import io.javalin.core.util.*
 import io.javalin.json.JavalinJson
 import io.javalin.rendering.JavalinRenderer
 import io.javalin.validation.TypedValidator
@@ -113,6 +111,8 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * @return The mapped object
      */
     fun <T> bodyAsClass(clazz: Class<T>, schema: Schema): T {
+        Util.ensureDependencyPresent(OptionalDependency.JSON_SCHEMA_VALIDATOR)
+
         try{
             schema.validate(JSONObject(body()))
             return JavalinJson.fromJson(body(), clazz)
