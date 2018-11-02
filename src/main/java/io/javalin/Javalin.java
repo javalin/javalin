@@ -181,9 +181,6 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            if (jettyServer == null) {
-                throw new IllegalStateException("Not started");
-            }
             jettyServer.stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
