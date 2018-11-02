@@ -173,19 +173,17 @@ class TestValidation {
             override fun <T> map(json: String, targetClass: Class<T>) = sillyString as T
         }
 
-        val testSchema: Schema = SchemaLoader.load(JSONObject("{\n" +
-                "  \"type\": \"object\",\n" +
-                "  \"required\": [\n" +
-                "    \"test\"\n" +
-                "  ],\n" +
-                "  \"properties\": {\n" +
-                "    \"test\": {\n" +
-                "      \"type\": \"integer\",\n" +
-                "      \"title\": \"The Test Schema\",\n" +
-                "      \"default\": 0\n" +
-                "    }\n" +
-                "  }\n" +
-                "}"))
+        val testSchema: Schema = SchemaLoader.load(JSONObject("""{
+                          "type": "object",
+                          "required": [
+                            "test"
+                          ],
+                          "properties": {
+                            "test": {
+                              "type": "integer",
+                            }
+                          }
+                        }"""))
 
         app.setValidationStrictMode(true)
 
@@ -193,7 +191,7 @@ class TestValidation {
             ctx.result(ctx.bodyAsClass(String::class.java))
         }
 
-        app.post("/test"){ctx ->
+        app.post("/test") { ctx ->
             ctx.result(ctx.bodyAsClass(sillyString::class.java, testSchema))
         }
 

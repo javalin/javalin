@@ -12,7 +12,7 @@ open class HttpResponseException(val status: Int, @Deprecated("Use 'message' ins
 
 class RedirectResponse(status: Int = HttpStatus.FOUND_302, msg: String = "Redirected") : HttpResponseException(status, msg)
 
-class BadRequestResponse(message: String = "Bad request", cause: Throwable? = null) : HttpResponseException(HttpStatus.BAD_REQUEST_400, message, mapOf(), cause)
+class BadRequestResponse(message: String = "Bad request", cause: Throwable? = null) : HttpResponseException(HttpStatus.BAD_REQUEST_400, message, cause = cause)
 class UnauthorizedResponse(message: String = "Unauthorized") : HttpResponseException(HttpStatus.UNAUTHORIZED_401, message)
 class ForbiddenResponse(message: String = "Forbidden") : HttpResponseException(HttpStatus.FORBIDDEN_403, message)
 class NotFoundResponse(message: String = "Not found") : HttpResponseException(HttpStatus.NOT_FOUND_404, message)
@@ -20,7 +20,7 @@ class MethodNotAllowedResponse(message: String = "Method not allowed", details: 
 class ConflictResponse(message: String = "Conflict") : HttpResponseException(HttpStatus.CONFLICT_409, message)
 class GoneResponse(message: String = "Gone") : HttpResponseException(HttpStatus.GONE_410, message)
 
-class InternalServerErrorResponse(message: String = "Internal server error", cause: Throwable? = null) : HttpResponseException(HttpStatus.INTERNAL_SERVER_ERROR_500, message, mapOf(), cause)
+class InternalServerErrorResponse(message: String = "Internal server error", cause: Throwable? = null) : HttpResponseException(HttpStatus.INTERNAL_SERVER_ERROR_500, message, cause = cause)
 class BadGatewayResponse(message: String = "Bad gateway") : HttpResponseException(HttpStatus.BAD_GATEWAY_502, message)
 class ServiceUnavailableResponse(message: String = "Service unavailable") : HttpResponseException(HttpStatus.SERVICE_UNAVAILABLE_503, message)
 class GatewayTimeoutResponse(message: String = "Gateway timeout") : HttpResponseException(HttpStatus.GATEWAY_TIMEOUT_504, message)
