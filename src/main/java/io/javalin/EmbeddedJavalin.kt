@@ -2,7 +2,7 @@ package io.javalin
 
 import io.javalin.core.JavalinServlet
 
-class EmbeddedJavalin : Javalin() {
+class EmbeddedJavalin : Javalin(null, null) {
 
     override fun createServlet() = JavalinServlet(
         this,

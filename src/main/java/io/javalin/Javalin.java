@@ -83,7 +83,13 @@ public class Javalin {
     protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
     protected Map<Class, Object> appAttributes = new HashMap<>();
 
+    protected Javalin(Server jettyServer, SessionHandler jettySessionHandler) {
+        this.jettyServer = jettyServer;
+        this.jettySessionHandler = jettySessionHandler;
+    }
+
     protected Javalin() {
+        this(JettyServerUtil.defaultServer(), JettyServerUtil.defaultSessionHandler());
     }
 
     /**
@@ -96,7 +102,7 @@ public class Javalin {
      */
     public static Javalin create() {
         Util.INSTANCE.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
-        return new Javalin();
+        return new Javalin(JettyServerUtil.defaultServer(), JettyServerUtil.defaultSessionHandler());
     }
 
     /**
@@ -127,13 +133,7 @@ public class Javalin {
             eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
             try {
                 log.info("Starting Javalin ...");
-                if (jettyServer == null) {
-                    jettyServer = JettyServerUtil.defaultServer();
-                }
                 JavalinServlet javalinServlet = createServlet();
-                if (jettySessionHandler == null) {
-                    jettySessionHandler = JettyServerUtil.defaultSessionHandler();
-                }
                 port = JettyServerUtil.initialize(jettyServer, jettySessionHandler, port, contextPath, javalinServlet, wsPathMatcher, log);
                 log.info("Javalin has started \\o/");
                 started = true;
