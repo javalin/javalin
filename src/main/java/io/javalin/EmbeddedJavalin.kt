@@ -2,6 +2,28 @@ package io.javalin
 
 import io.javalin.core.JavalinServlet
 
+/**
+ * Use this class instead of [Javalin] to embed Javalin into servlet containers such as Tomcat. Instantiating this class
+ * allows you to exclude all Jetty dependencies and tie Javalin to a servlet as follows:
+ *
+ * ```
+ * @WebServlet(urlPatterns = ["/rest/*"], name = "MyFooServlet", asyncSupported = false)  // */
+ * class MyFooServlet : HttpServlet() {
+ *   val javalin = EmbeddedJavalin()
+ *     .get("/rest") { ctx -> ctx.result("Hello!") }
+ *     .createServlet()
+ *
+ *   init {
+ *     // to prevent Javalin from from displaying an helpful message (which is unhelpful in this case)
+ *     Util.noServerHasBeenStarted = false
+ *   }
+ *
+ *   override fun service(req: HttpServletRequest, resp: HttpServletResponse) {
+ *     javalin.service(req, resp)
+ *   }
+ * }
+ * ```
+ */
 class EmbeddedJavalin : Javalin(null, null) {
 
     override fun createServlet() = JavalinServlet(
