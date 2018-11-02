@@ -102,7 +102,7 @@ public class Javalin {
      */
     public static Javalin create() {
         Util.INSTANCE.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
-        return new Javalin(JettyServerUtil.defaultServer(), JettyServerUtil.defaultSessionHandler());
+        return new Javalin();
     }
 
     /**
