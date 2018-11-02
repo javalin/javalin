@@ -284,6 +284,50 @@ public class ApiBuilder {
         staticInstance().delete(prefixPath(""), handler, permittedRoles);
     }
 
+    /**
+     * Adds a HEAD request handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void head(@NotNull String path, @NotNull Handler handler) {
+        staticInstance().head(prefixPath(path), handler);
+    }
+
+    /**
+     * Adds a HEAD request handler with the given roles for the specified path to the instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void head(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
+        staticInstance().head(prefixPath(path), handler, permittedRoles);
+    }
+
+    /**
+     * Adds a HEAD request handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void head(@NotNull Handler handler) {
+        staticInstance().head(prefixPath(""), handler);
+    }
+
+    /**
+     * Adds a HEAD request handler with the given roles for the current path to the instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void head(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
+        staticInstance().head(prefixPath(""), handler, permittedRoles);
+    }
+
     /////////////////////////////////////////////////////////////
     // Filters
     /////////////////////////////////////////////////////////////
