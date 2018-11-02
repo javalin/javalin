@@ -55,8 +55,8 @@ public class Javalin {
      * Start with null value; attempting to instantiate Jetty Server at this point will lead to exception
      * if we're using Javalin in embedded mode: {@link EmbeddedJavalin}.
      */
-    private Server jettyServer = null;
-    private SessionHandler jettySessionHandler = null;
+    private Server jettyServer;
+    private SessionHandler jettySessionHandler;
     private Set<StaticFileConfig> staticFileConfig = new HashSet<>();
     private boolean ignoreTrailingSlashes = true;
 
