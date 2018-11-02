@@ -1,6 +1,7 @@
 package io.javalin
 
 import io.javalin.core.JavalinServlet
+import io.javalin.core.util.Util
 
 /**
  * Use this class instead of [Javalin] to embed Javalin into servlet containers such as Tomcat. Instantiating this class
@@ -13,11 +14,6 @@ import io.javalin.core.JavalinServlet
  *     .get("/rest") { ctx -> ctx.result("Hello!") }
  *     .createServlet()
  *
- *   init {
- *     // to prevent Javalin from from displaying an helpful message (which is unhelpful in this case)
- *     Util.noServerHasBeenStarted = false
- *   }
- *
  *   override fun service(req: HttpServletRequest, resp: HttpServletResponse) {
  *     javalin.service(req, resp)
  *   }
@@ -25,6 +21,12 @@ import io.javalin.core.JavalinServlet
  * ```
  */
 class EmbeddedJavalin : Javalin(null, null) {
+
+    init {
+        // to prevent Javalin from from displaying a message that Jetty server hasn't been started (since we're not
+        // starting the Jetty server at all)
+        Util.noServerHasBeenStarted = false
+    }
 
     override fun createServlet() = JavalinServlet(
         this,
