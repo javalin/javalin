@@ -21,7 +21,7 @@ object Util {
 
     private val log = LoggerFactory.getLogger(Util::class.java)
 
-    var noServerHasBeenStarted = true
+    var noJettyStarted = true
 
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
 
@@ -67,7 +67,7 @@ object Util {
         // this helper is not intended for people with more than one instance
         Thread {
             Thread.sleep(1000)
-            if (noServerHasBeenStarted) {
+            if (noJettyStarted) {
                 log.info("It looks like you created a Javalin instance, but you never started it.")
                 log.info("Try: Javalin app = Javalin.create().start();")
                 log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
