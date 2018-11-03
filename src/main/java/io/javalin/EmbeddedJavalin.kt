@@ -2,6 +2,9 @@ package io.javalin
 
 import io.javalin.core.JavalinServlet
 import io.javalin.core.util.Util
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.session.SessionHandler
+import java.util.function.Supplier
 
 /**
  * Use this class instead of [Javalin] to embed Javalin into servlet containers such as Tomcat. Instantiating this class
@@ -44,11 +47,14 @@ class EmbeddedJavalin : Javalin(null, null) {
         null
     )
 
-    @Deprecated("not available in standalone mode", level = DeprecationLevel.ERROR)
-    override fun enableStaticFiles(classpathPath: String) = notAvailable("enableStaticFiles()")
-    @Deprecated("not available in standalone mode", level = DeprecationLevel.ERROR)
     override fun contextPath(contextPath: String) = notAvailable("contextPath()")
-    @Deprecated("not available in standalone mode", level = DeprecationLevel.ERROR)
+    override fun enableStaticFiles(classpathPath: String) = notAvailable("enableStaticFiles()")
+    override fun enableWebJars() = notAvailable("enableWebJars()")
+    override fun port() = notAvailable("port()")
+    override fun port(port: Int) = notAvailable("port(port)")
+    override fun server(server: Supplier<Server>) = notAvailable("server()")
+    override fun sessionHandler(sessionHandler: Supplier<SessionHandler>) = notAvailable("sessionHandler()")
     override fun start() = notAvailable("start()")
+    override fun stop() = notAvailable("stop()")
     private fun notAvailable(action: String): Nothing = throw RuntimeException("$action is not available in standalone mode")
 }
