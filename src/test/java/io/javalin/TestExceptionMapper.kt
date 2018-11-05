@@ -31,6 +31,22 @@ class TestExceptionMapper {
     }
 
     @Test
+    fun `HttpResponseException subclass handler is used`() = TestUtil.test { app, http ->
+        app.get("/mapped-http-response-exception") { throw NotFoundResponse() }
+                .exception(NotFoundResponse::class.java) { _, ctx -> ctx.result("It's been handled.")}
+        assertThat(http.get("/mapped-http-response-exception").status, `is`(200))
+        assertThat(http.getBody("/mapped-exception"), `is`("It's been handled."))
+    }
+
+    @Test
+    fun `HttpResponseException handler is used for subclasses`() = TestUtil.test { app, http ->
+        app.get("/mapped-http-response-exception") { throw NotFoundResponse() }
+                .exception(HttpResponseException::class.java) { _, ctx -> ctx.result("It's been handled.")}
+        assertThat(http.get("/mapped-http-response-exception").status, `is`(200))
+        assertThat(http.getBody("/mapped-exception"), `is`("It's been handled."))
+    }
+
+    @Test
     fun `type information of exception is not lost`() = TestUtil.test { app, http ->
         app.get("/typed-exception") { throw TypedException() }
                 .exception(TypedException::class.java) { e, ctx -> ctx.result(e.proofOfType()) }
