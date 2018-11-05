@@ -22,16 +22,19 @@ class ExceptionMapper {
 
     internal fun handle(exception: Exception, ctx: Context) {
         ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
-        if (noUserMapperFound(exception) && HttpResponseExceptionMapper.canHandleException(exception)) {
-            return HttpResponseExceptionMapper.handleException(exception, ctx)
-        }
         val exceptionHandler = this.getHandler(exception.javaClass)
-        if (exceptionHandler != null) {
-            exceptionHandler.handle(exception, ctx)
-        } else {
-            log.warn("Uncaught exception", exception)
-            HttpResponseExceptionMapper.handleException(InternalServerErrorResponse(), ctx)
+
+        when {
+            exceptionHandler != null ->
+                exceptionHandler.handle(exception, ctx)
+            HttpResponseExceptionMapper.canHandleException(exception) ->
+                HttpResponseExceptionMapper.handleException(exception, ctx)
+            else -> {
+                log.warn("Uncaught exception", exception)
+                HttpResponseExceptionMapper.handleException(InternalServerErrorResponse(), ctx)
+            }
         }
+
         ctx.inExceptionHandler = false
     }
 
@@ -57,7 +60,4 @@ class ExceptionMapper {
         this.exceptionMap[exceptionClass] = null // nothing was found, avoid search next time
         return null
     }
-
-    private fun noUserMapperFound(exception: Exception) = !this.exceptionMap.containsKey(exception.javaClass)
-
 }
