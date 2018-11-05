@@ -25,10 +25,8 @@ class ExceptionMapper {
         val exceptionHandler = this.getHandler(exception.javaClass)
 
         when {
-            exceptionHandler != null ->
-                exceptionHandler.handle(exception, ctx)
-            HttpResponseExceptionMapper.canHandleException(exception) ->
-                HttpResponseExceptionMapper.handleException(exception, ctx)
+            exceptionHandler != null -> exceptionHandler.handle(exception, ctx)
+            HttpResponseExceptionMapper.canHandleException(exception) -> HttpResponseExceptionMapper.handleException(exception, ctx)
             else -> {
                 log.warn("Uncaught exception", exception)
                 HttpResponseExceptionMapper.handleException(InternalServerErrorResponse(), ctx)
