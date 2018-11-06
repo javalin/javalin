@@ -13,7 +13,7 @@ import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 
-class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize: Long) : HttpServletRequestWrapper(request) {
+class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize: Long, private val exceptionOnRequestCacheIsSmall: Boolean) : HttpServletRequestWrapper(request) {
 
     private val size = request.contentLengthLong
     private val chunkedTransferEncoding by lazy {
@@ -23,12 +23,16 @@ class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize
     // Do not read unless we have to
     private val cachedBytes: ByteArray by lazy { super.getInputStream().readBytes() }
 
-    override fun getInputStream(): ServletInputStream =
-            if (chunkedTransferEncoding || maxCacheSize < size) {
-                super.getInputStream()
-            } else {
-                CachedServletInputStream(cachedBytes)
-            }
+    override fun getInputStream(): ServletInputStream {
+        if (exceptionOnRequestCacheIsSmall && maxCacheSize < size)
+            throw Exception("Request cache size is too small for request body.")
+
+        if (chunkedTransferEncoding || maxCacheSize < size) {
+            return super.getInputStream()
+        } else {
+            return CachedServletInputStream(cachedBytes)
+        }
+    }
 
     private inner class CachedServletInputStream(cachedBytes: ByteArray) : ServletInputStream() {
         private val byteArrayInputStream: ByteArrayInputStream = ByteArrayInputStream(cachedBytes)

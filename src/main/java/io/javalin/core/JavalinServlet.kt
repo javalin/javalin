@@ -27,11 +27,12 @@ class JavalinServlet(
         val maxRequestCacheBodySize: Long,
         val prefer405over404: Boolean,
         val singlePageHandler: SinglePageHandler,
-        val jettyResourceHandler: JettyResourceHandler?) {
+        val jettyResourceHandler: JettyResourceHandler?,
+        val exceptionOnRequestCacheIsSmall: Boolean = false) {
 
     fun service(servletRequest: HttpServletRequest, res: HttpServletResponse) {
 
-        val req = CachedRequestWrapper(servletRequest, maxRequestCacheBodySize) // cached for reading multiple times
+        val req = CachedRequestWrapper(servletRequest, maxRequestCacheBodySize, exceptionOnRequestCacheIsSmall) // cached for reading multiple times
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI
         val ctx = Context(req, res, javalin)
