@@ -2,7 +2,7 @@ package io.javalin
 
 import io.javalin.util.TestUtil.test
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.*
 import org.junit.Test
 
 class TestRequestTooLong {
@@ -21,7 +21,7 @@ class TestRequestTooLong {
             }
 
             val longPostBody = "{\"some_long_string\":\"loooooongteext\"}";
-            assertThat(http.post("/long-post-body").body(longPostBody).asString().body, `is`("java.lang.Exception: Request cache size is too small for request body.") )
+            assertThat(http.post("/long-post-body").body(longPostBody).asString().body, containsString("io.javalin.RequestTooLongResponse") )
         }
     }
 

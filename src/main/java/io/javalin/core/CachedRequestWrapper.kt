@@ -6,6 +6,7 @@
 
 package io.javalin.core
 
+import io.javalin.RequestTooLongResponse
 import io.javalin.core.util.Header
 import java.io.ByteArrayInputStream
 import javax.servlet.ReadListener
@@ -13,7 +14,7 @@ import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 
-class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize: Long, private val exceptionOnRequestCacheIsSmall: Boolean) : HttpServletRequestWrapper(request) {
+class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize: Long, private val requestTooLongExceptionEnabled: Boolean) : HttpServletRequestWrapper(request) {
 
     private val size = request.contentLengthLong
     private val chunkedTransferEncoding by lazy {
@@ -24,8 +25,8 @@ class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize
     private val cachedBytes: ByteArray by lazy { super.getInputStream().readBytes() }
 
     override fun getInputStream(): ServletInputStream {
-        if (exceptionOnRequestCacheIsSmall && maxCacheSize < size)
-            throw Exception("Request cache size is too small for request body.")
+        if (requestTooLongExceptionEnabled && maxCacheSize < size)
+            throw RequestTooLongResponse()
 
         if (chunkedTransferEncoding || maxCacheSize < size) {
             return super.getInputStream()

@@ -13,6 +13,7 @@ open class HttpResponseException(val status: Int, @Deprecated("Use 'message' ins
 class RedirectResponse(status: Int = HttpStatus.FOUND_302, msg: String = "Redirected") : HttpResponseException(status, msg)
 
 class BadRequestResponse(message: String = "Bad request") : HttpResponseException(HttpStatus.BAD_REQUEST_400, message)
+class RequestTooLongResponse(message: String = "Request cache size is too small for request body.") : HttpResponseException(HttpStatus.BAD_REQUEST_400, message)
 class UnauthorizedResponse(message: String = "Unauthorized") : HttpResponseException(HttpStatus.UNAUTHORIZED_401, message)
 class ForbiddenResponse(message: String = "Forbidden") : HttpResponseException(HttpStatus.FORBIDDEN_403, message)
 class NotFoundResponse(message: String = "Not found") : HttpResponseException(HttpStatus.NOT_FOUND_404, message)
