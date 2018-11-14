@@ -5,11 +5,11 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
 import org.junit.Test
 
-class TestRequestTooLong {
+class TestRequestBodyCaching {
 
     @Test
-    fun `throws exception when request cache is too small for request body` () {
-        val javalin = Javalin.create().enableRequestTooLongException().maxBodySizeForRequestCache(10)
+    fun `consume_body_several_times_if_request_body_cache_size_is_enought_for_body_size` () {
+        val javalin = Javalin.create().maxBodySizeForRequestCache(100)
         test(javalin) { app, http ->
             app.post("/long-post-body") {ctx ->
                 val bodyStringFirstRead = ctx.body()
@@ -21,12 +21,12 @@ class TestRequestTooLong {
             }
 
             val longPostBody = "{\"some_long_string\":\"loooooongteext\"}";
-            assertThat(http.post("/long-post-body").body(longPostBody).asString().body, containsString("io.javalin.RequestTooLongResponse") )
+            assertThat(http.post("/long-post-body").body(longPostBody).asString().body, `is`(longPostBody))
         }
     }
 
     @Test
-    fun `do_not_throw_exception_when_request_cache_is_too_small_if_throwing_exception_disabled_(default)` () {
+    fun `throws_exception_when_request_body_cache_is_too_small_and_body_consumed_several_times` () {
         val javalin = Javalin.create().maxBodySizeForRequestCache(10)
         test(javalin) { app, http ->
             app.post("/long-post-body") {ctx ->
@@ -36,7 +36,7 @@ class TestRequestTooLong {
             }
 
             val longPostBody = "{\"some_long_string\":\"loooooongteext\"}";
-            assertThat(http.post("/long-post-body").body(longPostBody).asString().body, `is`(""))
+            assertThat(http.post("/long-post-body").body(longPostBody).asString().status, `is`(413))
         }
     }
 
