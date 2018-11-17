@@ -526,6 +526,17 @@ public class Javalin {
     }
 
     /**
+     * Registers an {@link Extension} with the instance.
+     *
+     * @param extension You're free to implement the extension as a class or a lambda expression
+     * @return Self instance for fluent, method-chaining API
+     */
+    public Javalin register(Extension extension) {
+        extension.addToJavalin(this);
+        return this;
+    }
+
+    /**
      * Creates a temporary static instance in the scope of the endpointGroup.
      * Allows you to call get(handler), post(handler), etc. without without using the instance prefix.
      *
