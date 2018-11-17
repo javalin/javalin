@@ -31,8 +31,8 @@ class TestWebSocket {
     private val contextPathJavalin = Javalin.create().contextPath("/websocket")
     private val caseSensitiveJavalin = Javalin.create().enableCaseSensitiveUrls()
     private val javalinWithWsLogger = Javalin.create().wsLogger { ws ->
-        ws.onConnect { session ->  log.add(session.pathParam("param") + " connected") }
-        ws.onClose { session, _, _ ->  log.add(session.pathParam("param") + " disconnected")}
+        ws.onConnect { session -> log.add(session.pathParam("param") + " connected") }
+        ws.onClose { session, _, _ -> log.add(session.pathParam("param") + " disconnected") }
     }
     private var log = mutableListOf<String>()
 
@@ -247,7 +247,7 @@ class TestWebSocket {
 
     @Test
     fun `queryParamMap does not throw`() = TestUtil.test { app, _ ->
-        app.ws("/*") {ws ->
+        app.ws("/*") { ws ->
             ws.onConnect { session ->
                 try {
                     session.queryParamMap()

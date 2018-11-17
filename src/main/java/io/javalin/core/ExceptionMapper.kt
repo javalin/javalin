@@ -12,7 +12,6 @@ import io.javalin.InternalServerErrorResponse
 import io.javalin.core.util.HttpResponseExceptionMapper
 import org.slf4j.LoggerFactory
 import java.util.*
-import javax.servlet.http.HttpServletResponse
 
 class ExceptionMapper {
 

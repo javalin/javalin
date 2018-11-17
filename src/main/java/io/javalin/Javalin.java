@@ -532,7 +532,7 @@ public class Javalin {
      * @return Self instance for fluent, method-chaining API
      */
     public Javalin register(Extension extension) {
-        extension.addToJavalin(this);
+        extension.registerOn(this);
         return this;
     }
 
