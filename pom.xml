@@ -144,7 +144,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>swagger-ui</artifactId>
-            <version>3.17.6</version>
+            <version>3.20.0</version>
             <optional>true</optional>
         </dependency>
         <!-- END Optional dependencies -->
