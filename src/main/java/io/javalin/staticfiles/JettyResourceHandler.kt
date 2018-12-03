@@ -20,7 +20,10 @@ import javax.servlet.http.HttpServletResponse
 data class StaticFileConfig(val path: String, val location: Location)
 enum class Location { CLASSPATH, EXTERNAL; }
 
-class JettyResourceHandler(staticFileConfig: Set<StaticFileConfig>, jettyServer: Server, private val ignoreTrailingSlashes: Boolean) {
+class JettyResourceHandler(
+        staticFileConfig: Set<StaticFileConfig>,
+        jettyServer: Server,
+        private val ignoreTrailingSlashes: Boolean) : io.javalin.staticfiles.ResourceHandler {
 
     private val log = LoggerFactory.getLogger("io.javalin.Javalin")
 
@@ -55,7 +58,7 @@ class JettyResourceHandler(staticFileConfig: Set<StaticFileConfig>, jettyServer:
         return staticFileConfig.path
     }
 
-    fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
+    override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
         for (gzipHandler in handlers) {
