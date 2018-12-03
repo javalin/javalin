@@ -44,7 +44,7 @@ class EmbeddedJavalin : Javalin(null, null) {
             maxRequestCacheBodySize = maxRequestCacheBodySize,
             prefer405over404 = prefer405over404,
             singlePageHandler = singlePageHandler,
-            jettyResourceHandler = null // no jetty here
+            resourceHandler = null // no jetty here
     )
 
     override fun contextPath(contextPath: String) = notAvailable("contextPath()")
