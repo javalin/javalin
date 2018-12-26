@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.util.HttpUtil
+import io.javalin.util.TestUtil
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -23,7 +24,9 @@ class TestLogging {
     fun `debug logging works`() = runTest(Javalin.create().enableDebugLogging())
 
     @Test
-    fun `custom logging works`() = runTest(Javalin.create().requestLogger { _, executionTimeMs -> println("That took $executionTimeMs milliseconds") })
+    fun `custom logging works`() = runTest(Javalin.create().requestLogger { _, executionTimeMs ->
+        println("That took $executionTimeMs milliseconds")
+    })
 
     private fun runTest(app: Javalin) {
         app.get("/blocking") { ctx -> ctx.result("Hello Blocking World!") }
@@ -37,6 +40,20 @@ class TestLogging {
         assertThat(http.getBody("/async"), `is`("Hello Async World!"))
         assertThat(http.getBody("/blocking"), `is`("Hello Blocking World!"))
         app.stop()
+    }
+
+    private val loggerLog = mutableListOf<String?>()
+    private val bodyLoggingJavalin = Javalin.create().requestLogger { ctx, ms ->
+        loggerLog.add(ctx.resultString())
+        loggerLog.add(ctx.resultString())
+    }
+
+    @Test
+    fun `resultString is available in logger and can be read twice`() = TestUtil.test(bodyLoggingJavalin) { app, http ->
+        app.get("/") { it.result("Hello") }
+        http.get("/") // trigger log
+        assertThat(loggerLog[0], `is`("Hello"))
+        assertThat(loggerLog[1], `is`("Hello"))
     }
 
 }

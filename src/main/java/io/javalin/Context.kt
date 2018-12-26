@@ -321,11 +321,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
 
     /** Gets the current context result as a [String] (if set). */
-    fun resultString(): String? {
-        val string = resultStream?.readBytes()?.toString(responseCharset())
-        resultStream?.reset()
-        return string
-    }
+    fun resultString() = resultStream?.apply { reset() }?.readBytes()?.toString(responseCharset())
 
     /**
      * Sets context result to the specified [InputStream].
