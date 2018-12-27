@@ -16,10 +16,11 @@ public class HelloWorldWebSockets {
         app.ws("/websocket", ws -> {
             ws.onConnect(session -> {
                 System.out.println("Connected");
+                session.send("[MESSAGE FROM SERVER] Connection established");
             });
             ws.onMessage((session, message) -> {
                 System.out.println("Received: " + message);
-                session.send("Echo: " + message);
+                session.send("[MESSAGE FROM SERVER] Echo: " + message);
             });
             ws.onClose((session, statusCode, reason) -> {
                 System.out.println("Closed");
@@ -27,6 +28,15 @@ public class HelloWorldWebSockets {
             ws.onError((session, throwable) -> {
                 System.out.println("Errored");
             });
+        });
+        app.get("/", ctx -> {
+            ctx.html("<h1>WebSocket example</h1>\n" +
+                "<script>\n" +
+                "   let ws = new WebSocket(\"ws://localhost:7070/websocket\");\n" +
+                "   ws.onmessage = e => document.body.insertAdjacentHTML(\"beforeEnd\", \"<pre>\" + e.data + \"</pre>\");\n" +
+                "   ws.onclose = () => alert(\"WebSocket connection closed\");\n" +
+                "   setInterval(() => ws.send(\"Repeating request every 2 seconds\"), 2000);\n" +
+                "</script>");
         });
         app.start();
     }
