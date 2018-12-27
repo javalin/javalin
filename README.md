@@ -5,52 +5,54 @@
 
 # Javalin - A simple web framework for Java and Kotlin
 
-The project webpage is [javalin.io](https://javalin.io).
+Javalin is a very lightweight web framework for Kotlin and Java which supports WebSockets, HTTP2 and async requests. Javalin’s main goals are simplicity, a great developer experience, and first class interoperability between Kotlin and Java.
 
-Documentation: [javalin.io/documentation](https://javalin.io/documentation)
+Javalin is more of a library than a framework. Some key points:
+* You *don't* need to extend anything
+* There are *no* @Annotations
+* There is *no* reflection
+* Simply speaking: there is *no* other magic; just code.
 
-Chatroom: https://gitter.im/javalin-io/general
+General information:
+* The project webpage is [javalin.io](https://javalin.io).
+* Documentation: [javalin.io/documentation](https://javalin.io/documentation)
+* Chat: https://gitter.im/javalin-io/general
+* Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javalin/blob/master/CONTRIBUTING.md)
 
-Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javalin/blob/master/CONTRIBUTING.md)
+## Quickstart
 
-## Java quickstart
-
-### Add dependency (maven)
+### Add dependency
 
 ```xml
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>1.7.0</version>
+    <version>2.4.0</version>
 </dependency>
+
+// or gradle, if you must
+compile 'io.javalin:javalin:2.4.0'
 ```
 
-### Start programming:
+### Start programming (Java)
 
 ```java
 import io.javalin.Javalin;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        Javalin app = Javalin.start(7000);
+        Javalin app = Javalin.create().start(7000);
         app.get("/", ctx -> ctx.result("Hello World"));
     }
 }
 ```
 
-## Kotlin quickstart
-
-### Add dependency (gradle)
-```kotlin
-compile 'io.javalin:javalin:1.7.0'
-```
-
-### Start programming
+### Start programming (Kotlin)
 ```kotlin
 import io.javalin.Javalin
 
 fun main(args: Array<String>) {
-    val app = Javalin.start(7000)
+    val app = Javalin.create().start(7000)
     app.get("/") { ctx -> ctx.result("Hello World") }
 }
 ```
@@ -62,31 +64,22 @@ All examples are in Kotlin, but you can find them in Java in the documentation (
 ### Api structure and server config
 ```kotlin
 val app = Javalin.create().apply {
-    enableStandardRequestLogging()
-    enableDynamicGzip()
-    port(port)
-}.start()
+    enableCorsForAllOrigins()
+    enableStaticFiles("/public")
+    enableStaticFiles("uploads", Location.EXTERNAL)
+}.start(port)
 
 app.routes {
     path("users") {
-        get(UserController::getAllUserIds)
-        post(UserController::createUser)
+        get(UserController::getAll)
+        post(UserController::create)
         path(":user-id") {
-            get(UserController::getUser)
-            patch(UserController::updateUser)
-            delete(UserController::deleteUser)
+            get(UserController::getOne)
+            patch(UserController::update)
+            delete(UserController::delete)
         }
     }
 }
-```
-
-### Filters and Mappers
-```kotlin
-app.before("/some-path/*") { ctx ->  ... } // runs before requests to /some-path/*
-app.before { ctx -> ... } // runs before all requests
-app.after { ctx -> ... } // runs after all requests
-app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
-app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
 ```
 
 ### WebSockets
@@ -102,6 +95,15 @@ app.ws("/websocket") { ws ->
 }
 ```
 
+### Filters and Mappers
+```kotlin
+app.before("/some-path/*") { ctx ->  ... } // runs before requests to /some-path/*
+app.before { ctx -> ... } // runs before all requests
+app.after { ctx -> ... } // runs after all requests
+app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
+app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
+```
+
 ### JSON-mapping
 ```kotlin
 var todos = arrayOf(...)
@@ -109,7 +111,7 @@ app.get("/todos") { ctx -> // map array of Todos to json-string
     ctx.json(todos)
 }
 app.put("/todos") { ctx -> // map request-body (json) to array of Todos
-    todos = ctx.bodyAsClass(Array<Todo>::class.java)
+    todos = ctx.body<Array<Todo>>()
     ctx.status(204)
 }
 ```
@@ -118,7 +120,7 @@ app.put("/todos") { ctx -> // map request-body (json) to array of Todos
 ```kotlin
 app.post("/upload") { ctx ->
     ctx.uploadedFiles("files").forEach { (contentType, content, name, extension) ->
-        content.copyTo(File("upload/" + name))
+        FileUtil.streamToFile(content, "upload/$name")
     }
 }
 ```

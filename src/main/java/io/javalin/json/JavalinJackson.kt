@@ -20,20 +20,27 @@ object JavalinJackson {
         objectMapper = staticObjectMapper
     }
 
+    @JvmStatic
+    fun getObjectMapper(): ObjectMapper {
+        objectMapper = objectMapper ?: createObjectMapper()
+        return objectMapper!!
+    }
+
     fun toJson(`object`: Any): String {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        objectMapper = objectMapper ?: createObjectMapper()
-        return objectMapper!!.writeValueAsString(`object`)
+        return getObjectMapper().writeValueAsString(`object`)
     }
 
     fun <T> fromJson(json: String, clazz: Class<T>): T {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        objectMapper = objectMapper ?: createObjectMapper()
-        return objectMapper!!.readValue(json, clazz)
+        if (Util.isKotlinClass(clazz)) {
+            Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
+        }
+        return getObjectMapper().readValue(json, clazz)
     }
 
     private fun createObjectMapper(): ObjectMapper = try {
-        val className = "com.fasterxml.jackson.module.kotlin.KotlinModule"
+        val className = OptionalDependency.JACKSON_KT.testClass
         ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
     } catch (e: ClassNotFoundException) {
         ObjectMapper()

@@ -9,19 +9,22 @@ package io.javalin.routeoverview;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.Javalin;
-import io.javalin.util.HandlerImplementation;
+import io.javalin.misc.HandlerImplementation;
 import io.javalin.websocket.WsHandler;
-import static io.javalin.ApiBuilder.delete;
-import static io.javalin.ApiBuilder.get;
-import static io.javalin.ApiBuilder.patch;
-import static io.javalin.ApiBuilder.path;
-import static io.javalin.ApiBuilder.post;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
+import static io.javalin.apibuilder.ApiBuilder.delete;
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.patch;
+import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.security.SecurityUtil.roles;
 
 public class VisualTest {
+
+    private static Handler lambdaField = ctx -> {
+    };
 
     public static void main(String[] args) {
         Javalin app = Javalin.create()
@@ -30,7 +33,7 @@ public class VisualTest {
             .enableCorsForAllOrigins();
         app.start();
 
-        app.get("/", ctx -> ctx.redirect("/route-overview"));
+        app.get("/", ctx -> ctx.redirect("/context-path/route-overview"));
         app.get("/just-some-path", new HandlerImplementation());
         app.post("/test/:hmm/", VisualTest::methodReference);
         app.put("/user/*", ctx -> ctx.result(""), roles(ROLE_ONE));
@@ -64,16 +67,13 @@ public class VisualTest {
         wsHandler.onConnect(session -> session.getRemote().sendString("Connected!"));
     }
 
-    private static Handler lambdaField = ctx -> {
-    };
+    private static void methodReference(Context context) {
+    }
 
     private static class ImplementingClass implements Handler {
         @Override
         public void handle(Context context) {
         }
-    }
-
-    private static void methodReference(Context context) {
     }
 
 }

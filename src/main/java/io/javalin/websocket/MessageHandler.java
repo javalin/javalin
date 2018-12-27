@@ -6,7 +6,9 @@
 
 package io.javalin.websocket;
 
+import org.jetbrains.annotations.NotNull;
+
 @FunctionalInterface
 public interface MessageHandler {
-    void handle(WsSession session, String msg) throws Exception;
+    void handle(@NotNull WsSession session, @NotNull String msg) throws Exception;
 }

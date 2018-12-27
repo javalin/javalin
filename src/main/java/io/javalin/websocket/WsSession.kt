@@ -10,6 +10,7 @@ import io.javalin.core.util.ContextUtil
 import org.eclipse.jetty.websocket.api.*
 import org.eclipse.jetty.websocket.common.WebSocketSession
 import java.net.InetSocketAddress
+import java.nio.ByteBuffer
 
 /**
  * The [WsSession] class is a wrapper for Jetty's [Session].
@@ -21,12 +22,13 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
     private val webSocketSession = session as WebSocketSession
 
     fun send(message: String) = webSocketSession.remote.sendString(message)
-    fun queryString() = webSocketSession.upgradeRequest!!.queryString
+    fun send(message: ByteBuffer) = webSocketSession.remote.sendBytes(message)
+    fun queryString(): String? = webSocketSession.upgradeRequest!!.queryString
     @JvmOverloads
     fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull() ?: default
 
     fun queryParams(queryParam: String): List<String> = queryParamMap()[queryParam] ?: emptyList()
-    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString())
+    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
     fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
     fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath)

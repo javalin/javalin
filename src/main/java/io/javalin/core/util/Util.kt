@@ -6,11 +6,14 @@
 
 package io.javalin.core.util
 
-import io.javalin.HaltException
+import io.javalin.InternalServerErrorResponse
+import org.eclipse.jetty.server.session.SessionHandler
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.net.URL
 import java.util.*
+import java.util.function.Supplier
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 
@@ -18,9 +21,11 @@ object Util {
 
     private val log = LoggerFactory.getLogger(Util::class.java)
 
-    var noServerHasBeenStarted = true
+    var noJettyStarted = true
 
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
+
+    @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
 
     private fun classExists(className: String) = try {
@@ -37,30 +42,32 @@ object Util {
             return
         }
         if (!classExists(dependency.testClass)) {
-            val message = """
-                |Missing dependency '${dependency.displayName}'. Add the dependency.
-                |
-                |pom.xml:
-                |<dependency>
-                |    <groupId>${dependency.groupId}</groupId>
-                |    <artifactId>${dependency.artifactId}</artifactId>
-                |    <version>${dependency.version}</version>
-                |</dependency>
-                |
-                |build.gradle:
-                |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
+            val message = missingDependencyMessage(dependency)
             log.warn(message)
-            throw HaltException(500, message)
+            throw InternalServerErrorResponse(message)
         }
         dependencyCheckCache[dependency.testClass] = true
     }
+
+    internal fun missingDependencyMessage(dependency: OptionalDependency) = """
+            |Missing dependency '${dependency.displayName}'. Add the dependency.
+            |
+            |pom.xml:
+            |<dependency>
+            |    <groupId>${dependency.groupId}</groupId>
+            |    <artifactId>${dependency.artifactId}</artifactId>
+            |    <version>${dependency.version}</version>
+            |</dependency>
+            |
+            |build.gradle:
+            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
 
     fun printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond() {
         // per instance checks are not considered necessary
         // this helper is not intended for people with more than one instance
         Thread {
             Thread.sleep(1000)
-            if (noServerHasBeenStarted) {
+            if (noJettyStarted) {
                 log.info("It looks like you created a Javalin instance, but you never started it.")
                 log.info("Try: Javalin app = Javalin.create().start();")
                 log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
@@ -71,16 +78,12 @@ object Util {
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
     fun printHelpfulMessageIfLoggerIsMissing() {
-        if (!classExists("org.slf4j.impl.StaticLoggerBinder")) {
-            val message = """
-            -------------------------------------------------------------------
-            Javalin: In the Java world, it's common to add your own logger.
-            Javalin: To easily fix the warning above, get the latest version of slf4j-simple:
-            Javalin: https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-            Javalin: then add it to your dependencies (pom.xml or build.gradle)
-            Javalin: Visit https://javalin.io/documentation#logging if you need more help
-            """.trimIndent()
-            System.err.println(message)
+        if (!classExists(OptionalDependency.SLF4JSIMPLE.testClass)) {
+            System.err.println("""
+            |-------------------------------------------------------------------
+            |${missingDependencyMessage(OptionalDependency.SLF4JSIMPLE)}
+            |-------------------------------------------------------------------
+            |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin())
         }
     }
 
@@ -105,4 +108,31 @@ object Util {
         inputStream.reset()
         return cis.checksum.value.toString()
     }
+
+    fun getResource(path: String): URL? = this.javaClass.classLoader.getResource(path)
+
+    fun isKotlinClass(clazz: Class<*>): Boolean {
+        try {
+            for (annotation in clazz.declaredAnnotations) {
+                // Note: annotation.simpleClass can be used if kotlin-reflect is available.
+                if (annotation.annotationClass.toString().contains("kotlin.Metadata")) {
+                    return true
+                }
+            }
+        } catch (ignored: Exception) {
+        }
+        return false
+    }
+
+    fun getValidSessionHandlerOrThrow(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
+        val uuid = UUID.randomUUID().toString()
+        val sessionHandler = sessionHandlerSupplier.get()
+        try {
+            sessionHandler.isIdInUse(uuid)
+            return sessionHandler
+        } catch (e: Exception) {
+            throw IllegalStateException("Could not look up dummy session ID in store. Misconfigured session handler", e)
+        }
+    }
+
 }

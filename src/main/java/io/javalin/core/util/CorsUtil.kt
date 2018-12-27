@@ -6,28 +6,26 @@
 
 package io.javalin.core.util
 
-import io.javalin.Javalin
+import io.javalin.Context
+import io.javalin.Handler
 
-object CorsUtil {
-
-    fun enableCors(app: Javalin, origins: Array<String>): Javalin {
-        if (origins.isEmpty()) throw IllegalArgumentException("Origins cannot be empty")
-        app.options("*") { ctx ->
-            ctx.header(Header.ACCESS_CONTROL_REQUEST_HEADERS)?.let {
-                ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, it)
-            }
-            ctx.header(Header.ACCESS_CONTROL_REQUEST_METHOD)?.let {
-                ctx.header(Header.ACCESS_CONTROL_ALLOW_METHODS, it)
-            }
+class CorsOptionsHandler : Handler {
+    override fun handle(ctx: Context) {
+        ctx.header(Header.ACCESS_CONTROL_REQUEST_HEADERS)?.let {
+            ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, it)
         }
-        app.before("*") { ctx ->
-            (ctx.header(Header.ORIGIN) ?: ctx.header(Header.REFERER))?.let { header ->
-                origins.map { it.removeSuffix("/") }.firstOrNull { it == "*" || header.startsWith(it) }?.let {
-                    ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, header)
-                }
-            }
+        ctx.header(Header.ACCESS_CONTROL_REQUEST_METHOD)?.let {
+            ctx.header(Header.ACCESS_CONTROL_ALLOW_METHODS, it)
         }
-        return app
     }
+}
 
+class CorsBeforeHandler(private val origins: Array<String>) : Handler {
+    override fun handle(ctx: Context) {
+        (ctx.header(Header.ORIGIN) ?: ctx.header(Header.REFERER))?.let { header ->
+            origins.map { it.removeSuffix("/") }.firstOrNull { it == "*" || header.startsWith(it) }?.let {
+                ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, header)
+            }
+        }
+    }
 }

@@ -8,10 +8,10 @@ package io.javalin.core
 
 import io.javalin.Context
 import io.javalin.ExceptionHandler
-import io.javalin.HaltException
+import io.javalin.InternalServerErrorResponse
+import io.javalin.core.util.HttpResponseExceptionMapper
 import org.slf4j.LoggerFactory
 import java.util.*
-import javax.servlet.http.HttpServletResponse
 
 class ExceptionMapper {
 
@@ -20,20 +20,18 @@ class ExceptionMapper {
     val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
-        ctx.inExceptionHandler = true
-        if (exception is HaltException) {
-            ctx.status(exception.statusCode)
-            ctx.result(exception.body)
-        } else {
-            val exceptionHandler = this.getHandler(exception.javaClass)
-            if (exceptionHandler != null) {
-                exceptionHandler.handle(exception, ctx)
-            } else {
+        ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
+        val exceptionHandler = this.getHandler(exception.javaClass)
+
+        when {
+            exceptionHandler != null -> exceptionHandler.handle(exception, ctx)
+            HttpResponseExceptionMapper.canHandleException(exception) -> HttpResponseExceptionMapper.handleException(exception, ctx)
+            else -> {
                 log.warn("Uncaught exception", exception)
-                ctx.result("Internal server error")
-                ctx.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+                HttpResponseExceptionMapper.handleException(InternalServerErrorResponse(), ctx)
             }
         }
+
         ctx.inExceptionHandler = false
     }
 
@@ -59,5 +57,4 @@ class ExceptionMapper {
         this.exceptionMap[exceptionClass] = null // nothing was found, avoid search next time
         return null
     }
-
 }

@@ -7,13 +7,11 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.util.TypedException
+import io.javalin.misc.TypedException
 
 fun main(args: Array<String>) {
 
-    val app = Javalin.create().port(7070).start()
-
-    with(app) {
+    Javalin.create().apply {
 
         get("/users") { ctx ->
             ctx.result("")
@@ -43,7 +41,7 @@ fun main(args: Array<String>) {
             ctx.result("not found")
         }
 
-    }
+    }.start(7070)
 
 }
 

@@ -13,6 +13,8 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
 import io.javalin.json.JavalinJson
 import io.javalin.rendering.JavalinRenderer
+import io.javalin.validation.TypedValidator
+import io.javalin.validation.Validator
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -26,21 +28,25 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-class Context(private val servletResponse: HttpServletResponse, private val servletRequest: HttpServletRequest) {
+open class Context(private val servletRequest: HttpServletRequest, private val servletResponse: HttpServletResponse, private val javalin: Javalin) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
     @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
+    @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @JvmField val res = servletResponse
     @JvmField val req = servletRequest
+    @JvmField val res = servletResponse
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
+
+    /** Gets an attribute from the Javalin instance serving the request */
+    fun <T> appAttribute(clazz: Class<T>): T = javalin.attribute(clazz) as T
 
     /**
      * Gets cookie store value for specified key.
@@ -71,9 +77,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     // Request-ish methods
     ///////////////////////////////////////////////////////////////
 
-    /**
-     * Gets the request body as a String.
-     */
+    /** Gets the request body as a [String]. */
     fun body(): String = bodyAsBytes().toString(Charset.forName(servletRequest.characterEncoding ?: "UTF-8"))
 
     /**
@@ -83,9 +87,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
 
-    /**
-     * Gets the request body as a ByteArray.
-     */
+    /** Gets the request body as a [ByteArray]. */
     fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
 
     /**
@@ -94,40 +96,29 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      * @return The mapped object
      */
     fun <T> bodyAsClass(clazz: Class<T>): T {
-        return JavalinJson.fromJsonMapper.map(body(), clazz)
+        return JavalinJson.fromJson(body(), clazz)
     }
 
-    /**
-     * Gets first uploaded file for the specified name.
-     * Requires Apache commons-fileupload library in the classpath.
-     */
+    /** Gets first [UploadedFile] for the specified name, or null. */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
 
-    /**
-     * Gets a list of uploaded files for the specified name.
-     * Requires Apache commons-fileupload library in the classpath.
-     */
+    /** Gets a list of [UploadedFile]s for the specified name, or empty list. */
     fun uploadedFiles(fileName: String): List<UploadedFile> {
         return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(servletRequest, fileName) else listOf()
     }
 
     /**
      * Gets a form param if it exists, else a default value (null if not specified explicitly).
-     * Variant using default is mainly useful when calling from Java,
+     * Including a default value is mainly useful when calling from Java,
      * use elvis (formParam(key) ?: default) instead in Kotlin.
      */
     @JvmOverloads
     fun formParam(formParam: String, default: String? = null): String? = formParams(formParam).firstOrNull() ?: default
 
-    /**
-     * Gets a list of form params for the specified key.
-     * If the key does not exist, returns empty list.
-     */
+    /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(formParam: String): List<String> = formParamMap()[formParam] ?: emptyList()
 
-    /**
-     * Gets a map with all the form param keys and values.
-     */
+    /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> =
             if (isMultipartFormData()) MultipartUtil.getFieldMap(servletRequest)
             else ContextUtil.splitKeyValueStringAndGroupByKey(body())
@@ -154,9 +145,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath)
 
-    /**
-     * Gets a map of all the [pathParam] keys and values.
-     */
+    /** Gets a map of all the [pathParam] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
 
     //
@@ -167,9 +156,7 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     //
     fun splat(splatNr: Int): String? = splatList[splatNr]
 
-    /**
-     * Gets a list of all the [splat] values.
-     */
+    /** Gets a list of all the [splat] values. */
     fun splats(): List<String> = Collections.unmodifiableList(splatList)
 
     /**
@@ -197,72 +184,44 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     @Suppress("UNCHECKED_CAST")
     fun <T> use(clazz: Class<T>): T = servletRequest.getAttribute("ctx-ext-${clazz.canonicalName}") as T
 
-    /**
-     * Sets an attribute on the request, which will be made available to
-     * other handlers in the request lifecycle
-     */
+    /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle */
     fun attribute(attribute: String, value: Any?) = servletRequest.setAttribute(attribute, value)
 
-    /**
-     * Gets the specified attribute from the request.
-     */
+    /** Gets the specified attribute from the request. */
     @Suppress("UNCHECKED_CAST")
-    fun <T> attribute(attribute: String): T = servletRequest.getAttribute(attribute) as T
+    fun <T> attribute(attribute: String): T? = servletRequest.getAttribute(attribute) as? T
 
-    /**
-     * Gets a map with all the attribute keys and values on the request.
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> attributeMap(): Map<String, T> = servletRequest.attributeNames.asSequence().associate { it to attribute<T>(it) }
+    /** Gets a map with all the attribute keys and values on the request. */
+    fun <T> attributeMap(): Map<String, T?> = servletRequest.attributeNames.asSequence().associate { it to attribute<T>(it) }
 
-    /**
-     * Gets the request content length.
-     */
+    /** Gets the request content length. */
     fun contentLength(): Int = servletRequest.contentLength
 
-    /**
-     * Gets the request content type.
-     */
+    /** Gets the request content type, or null. */
     fun contentType(): String? = servletRequest.contentType
 
-    /**
-     * Gets a request cookie by name.
-     */
+    /** Gets a request cookie by name, or null. */
     fun cookie(name: String): String? = servletRequest.cookies?.find { name == it.name }?.value
 
-    /**
-     * Gets a map with all the cookie keys and values on the request.
-     */
+    /** Gets a map with all the cookie keys and values on the request. */
     fun cookieMap(): Map<String, String> = servletRequest.cookies?.associate { it.name to it.value } ?: emptyMap()
 
-    /**
-     * Gets a request header by name.
-     */
+    /** Gets a request header by name, or null. */
     fun header(header: String): String? = servletRequest.getHeader(header)
 
-    /**
-     * Gets a map with all the header keys and values on the request.
-     */
+    /** Gets a map with all the header keys and values on the request. */
     fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().associate { it to header(it)!! }
 
-    /**
-     * Gets the request host.
-     */
+    /** Gets the request host, or null. */
     fun host(): String? = servletRequest.getHeader(Header.HOST)
 
-    /**
-     * Gets the request ip.
-     */
+    /** Gets the request ip. */
     fun ip(): String = servletRequest.remoteAddr
 
-    /**
-     * Returns true if request is multipart.
-     */
+    /** Returns true if request is multipart. */
     fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/") == true
 
-    /**
-     * Returns true if request is multipart/form-data.
-     */
+    /** Returns true if request is multipart/form-data. */
     fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/form-data") == true
 
     /**
@@ -275,42 +234,38 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     fun matchedPath() = matchedPath
 
     /**
-     * Gets the request method.
+     * Gets the path that Javalin used to match this request (excluding any AFTER handlers)
      */
+    fun endpointHandlerPath() = if (handlerType != HandlerType.BEFORE) {
+        endpointHandlerPath
+    } else {
+        throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
+    }
+
+    /** Gets the request method. */
     fun method(): String = servletRequest.method
 
-    /**
-     * Gets the request path.
-     */
+    /** Gets the request path. */
     fun path(): String = servletRequest.requestURI
 
-    /**
-     * Gets the request port.
-     */
+    /** Gets the request port. */
     fun port(): Int = servletRequest.serverPort
 
-    /**
-     * Gets the request protocol.
-     */
+    /** Gets the request protocol. */
     fun protocol(): String = servletRequest.protocol
 
     /**
      * Gets a query param if it exists, else a default value (null if not specified explicitly).
-     * Variant using default is mainly useful when calling from Java,
+     * Including a default value is mainly useful when calling from Java,
      * use elvis (queryParam(key) ?: default) instead in Kotlin.
      */
     @JvmOverloads
     fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull() ?: default
 
-    /**
-     * Gets a list of query params for the specified key.
-     * If the key does not exist, returns empty list.
-     */
+    /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(queryParam: String): List<String> = queryParamMap()[queryParam] ?: emptyList()
 
-    /**
-     * Gets a map with all the query param keys and values.
-     */
+    /** Gets a map with all the query param keys and values. */
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
 
     /**
@@ -326,51 +281,33 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
      */
     fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
 
-    /**
-     * Gets the request query string.
-     */
+    /** Gets the request query string, or null. */
     fun queryString(): String? = servletRequest.queryString
 
-    /**
-     * Gets the request scheme.
-     */
+    /** Gets the request scheme. */
     fun scheme(): String = servletRequest.scheme
 
-    /**
-     * Sets a session attribute on the request, which will be made available to
-     * other handlers in the session lifecycle.
-     */
+    /** Sets an attribute for the user session. */
     fun sessionAttribute(attribute: String, value: Any?) = servletRequest.session.setAttribute(attribute, value)
 
-    /**
-     * Gets a specific session attribute from the request.
-     */
+    /** Gets specified attribute from the user session, or null. */
     @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttribute(attribute: String): T = servletRequest.session.getAttribute(attribute) as T
+    fun <T> sessionAttribute(attribute: String): T? = servletRequest.session.getAttribute(attribute) as? T
 
-    /**
-     * Gets a map of all the session attributes on the request.
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttributeMap(): Map<String, T> = servletRequest.session.attributeNames.asSequence().associate { it to servletRequest.session.getAttribute(it) as T }
+    /** Gets a map of all the attributes in the user session. */
+    fun <T> sessionAttributeMap(): Map<String, T?> = servletRequest.session.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
 
-    /**
-     * Gets the request url.
-     */
+    /** Gets the request url. */
     fun url(): String = servletRequest.requestURL.toString()
 
-    /**
-     * Gets the request user agent.
-     */
+    /** Gets the request user agent, or null. */
     fun userAgent(): String? = servletRequest.getHeader(Header.USER_AGENT)
 
     ///////////////////////////////////////////////////////////////
     // Response-ish methods
     ///////////////////////////////////////////////////////////////
 
-    /**
-     * Gets the current response charset.
-     */
+    /** Gets the current response [Charset]. */
     private fun responseCharset() = try {
         Charset.forName(servletResponse.characterEncoding)
     } catch (e: Exception) {
@@ -378,22 +315,16 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     }
 
     /**
-     * Sets context result to the specified String.
+     * Sets context result to the specified [String].
      * Will overwrite the current result if there is one.
      */
     fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
 
-    /**
-     * Gets the current context result as a String (if set).
-     */
-    fun resultString(): String? {
-        val string = resultStream?.readBytes()?.toString(responseCharset())
-        resultStream?.reset()
-        return string
-    }
+    /** Gets the current context result as a [String] (if set). */
+    fun resultString() = resultStream?.apply { reset() }?.readBytes()?.toString(responseCharset())
 
     /**
-     * Sets context result to the specified InputStream.
+     * Sets context result to the specified [InputStream].
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
@@ -402,16 +333,14 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
         return this
     }
 
-    /**
-     * Gets the current context result as an InputStream (if set).
-     */
+    /** Gets the current context result as an [InputStream] (if set). */
     fun resultStream(): InputStream? = resultStream
 
     /**
      * Sets context result to the specified CompletableFuture<String>
      * or CompletableFuture<InputStream>.
      * Will overwrite the current result if there is one.
-     * Can only be called inside endpoint handlers (ones representing HTTP verbs)
+     * Can only be called inside endpoint handlers (ones representing HTTP verbs).
      */
     fun result(future: CompletableFuture<*>): Context {
         resultStream = null
@@ -422,69 +351,52 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
         throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
     }
 
-    /**
-     * Gets the current context result as a CompletableFuture (if set).
-     */
+    /** Gets the current context result as a [CompletableFuture] (if set). */
     fun resultFuture(): CompletableFuture<*>? = resultFuture
 
-    /**
-     * Sets response content type to specified value.
-     */
+    /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {
         servletResponse.contentType = contentType
         return this
     }
 
-    /**
-     * Sets response header by name and value.
-     */
+    /** Sets response header by name and value. */
     fun header(headerName: String, headerValue: String): Context {
         servletResponse.setHeader(headerName, headerValue)
         return this
     }
 
-    /**
-     * Sets the response status code and redirects to the specified location.
-     */
+    /** Sets the response status code and redirects to the specified location. */
     @JvmOverloads
     fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
         servletResponse.setHeader(Header.LOCATION, location)
         status(httpStatusCode)
         if (handlerType == HandlerType.BEFORE) {
-            throw HaltException(httpStatusCode)
+            throw RedirectResponse(httpStatusCode)
         }
     }
 
-    /**
-     * Sets the response status.
-     */
+    /** Sets the response status. */
     fun status(statusCode: Int): Context {
         servletResponse.status = statusCode
         return this
     }
 
-    /**
-     * Gets the response status.
-     */
+    /** Gets the response status. */
     fun status(): Int = servletResponse.status
 
-    /**
-     * Sets a cookie with name, value, and (overloaded) max-age.
-     */
+    /** Sets a cookie with name, value, and (overloaded) max-age. */
     @JvmOverloads
     fun cookie(name: String, value: String, maxAge: Int = -1): Context = cookie(Cookie(name, value).apply { setMaxAge(maxAge) })
 
-    /**
-     * Sets a Cookie.
-     */
+    /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context {
+        cookie.path = cookie.path ?: "/"
         servletResponse.addCookie(cookie)
         return this
     }
 
-    /**
-     * Removes cookie specified by name and path (optional).
-     */
+    /** Removes cookie specified by name and path (optional). */
     @JvmOverloads
     fun removeCookie(name: String, path: String? = null): Context {
         servletResponse.addCookie(Cookie(name, "").apply {
@@ -494,18 +406,29 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
         return this
     }
 
-    /**
-     * Sets context result to specified html string and sets content-type to text/html.
-     */
-    fun html(html: String): Context = result(html).contentType("text/html")
+    /** Sets context result to specified html string and sets content-type to text/html. */
+    fun html(html: String): Context = contentType("text/html").result(html)
 
     /**
      * Serializes object to a JSON-string using JavalinJson and sets it as the context result.
-     * JavalinJson can be configured to use any mapping library.
      * Sets content type to application/json.
+     *
+     * JavalinJson can be configured to use any mapping library.
      */
     fun json(obj: Any): Context {
-        return result(JavalinJson.toJsonMapper.map(obj)).contentType("application/json")
+        return contentType("application/json").result(JavalinJson.toJson(obj))
+    }
+
+    /**
+     * Serializes the object resulting from the completion of the given future
+     * to a JSON-string using JavalinJson and sets it as the context result.
+     * Sets content type to application/json.
+     *
+     * JavalinJson can be configured to use any mapping library.
+     */
+    fun json(future: CompletableFuture<*>): Context {
+        val mappingFuture = future.thenApply { JavalinJson.toJson(it) }
+        return contentType("application/json").result(mappingFuture)
     }
 
     /**
@@ -516,6 +439,44 @@ class Context(private val servletResponse: HttpServletResponse, private val serv
     @JvmOverloads
     fun render(filePath: String, model: Map<String, Any?> = emptyMap()): Context {
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
+    }
+
+    // Validation
+
+    /**
+     * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    @JvmOverloads
+    fun validatedFormParam(key: String, default: String? = null) = Validator(formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'")
+
+    /**
+     * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    fun validatedPathParam(key: String) = Validator(pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'")
+
+    /**
+     * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    @JvmOverloads
+    fun validatedQueryParam(key: String, default: String? = null) = Validator(queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'")
+
+    /**
+     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    inline fun <reified T : Any> validatedBody() = validatedBodyAsClass(T::class.java)
+
+    /**
+     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    fun <T> validatedBodyAsClass(clazz: Class<T>) = try {
+        TypedValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
+    } catch (e: Exception) {
+        throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
 
 }

@@ -7,8 +7,7 @@
 package io.javalin.performance;
 
 import io.javalin.Javalin;
-import io.javalin.util.SimpleHttpClient;
-import java.io.IOException;
+import io.javalin.util.HttpUtil;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -39,18 +38,20 @@ public class StupidAsyncTest {
             .port(0)
             .start();
 
+        HttpUtil http = new HttpUtil(app);
+
         app.get("/test-async", ctx -> ctx.result(getFuture()));
         app.get("/test-sync", ctx -> ctx.result(getBlockingResult()));
 
         timeCallable("Async result", () -> {
             return new ForkJoinPool(100).submit(() -> range(0, 50).parallel().forEach(i -> {
-                assertThat(getBody("http://localhost:" + app.port() + "/test-async"), is("success"));
+                assertThat(http.getBody("/test-async"), is("success"));
             })).get();
         });
 
         timeCallable("Blocking result", () -> {
             return new ForkJoinPool(100).submit(() -> range(0, 50).parallel().forEach(i -> {
-                assertThat(getBody("http://localhost:" + app.port() + "/test-sync"), is("success"));
+                assertThat(http.getBody("/test-sync"), is("success"));
             })).get();
         });
 
@@ -72,15 +73,6 @@ public class StupidAsyncTest {
         CompletableFuture<String> future = new CompletableFuture<>();
         Executors.newSingleThreadScheduledExecutor().schedule(() -> future.complete("success"), 2000, TimeUnit.MILLISECONDS);
         return future;
-    }
-
-    private String getBody(String url) {
-        try {
-            return new SimpleHttpClient().http_GET(url).getBody();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "";
-        }
     }
 
 }

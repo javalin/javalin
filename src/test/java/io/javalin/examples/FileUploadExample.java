@@ -7,9 +7,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import java.io.File;
-import java.io.IOException;
-import org.apache.commons.io.FileUtils;
+import io.javalin.core.util.FileUtil;
 
 public class FileUploadExample {
 
@@ -29,11 +27,7 @@ public class FileUploadExample {
 
         app.post("/", ctx -> {
             ctx.uploadedFiles("files").forEach(file -> {
-                try {
-                    FileUtils.copyInputStreamToFile(file.getContent(), new File("upload/" + file.getName()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                FileUtil.streamToFile(file.getContent(), "upload/" + file.getName());
             });
         });
 

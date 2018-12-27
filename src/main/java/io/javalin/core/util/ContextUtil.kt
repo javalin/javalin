@@ -8,9 +8,13 @@ package io.javalin.core.util
 
 import io.javalin.BasicAuthCredentials
 import io.javalin.Context
+import io.javalin.Javalin
 import io.javalin.core.HandlerEntry
+import io.javalin.core.HandlerType
 import java.net.URLDecoder
 import java.util.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 object ContextUtil {
 
@@ -19,6 +23,9 @@ object ContextUtil {
         pathParamMap = handlerEntry.extractPathParams(requestUri)
         splatList = handlerEntry.extractSplats(requestUri)
         handlerType = handlerEntry.type
+        if (handlerType != HandlerType.AFTER) {
+            endpointHandlerPath = handlerEntry.path
+        }
     }
 
     fun splitKeyValueStringAndGroupByKey(string: String): Map<String, List<String>> {
@@ -29,7 +36,7 @@ object ContextUtil {
     }
 
     fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
-            pathParams[key.toLowerCase().replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'")
+            pathParams[key.replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
@@ -44,6 +51,25 @@ object ContextUtil {
         BasicAuthCredentials(username, password)
     } catch (e: Exception) {
         null
+    }
+
+    fun acceptsHtml(ctx: Context) = ctx.header(Header.ACCEPT)?.contains("text/html") == true
+
+    @JvmStatic
+    @JvmOverloads
+    fun init(
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            matchedPath: String = "*",
+            pathParamMap: Map<String, String> = mapOf(),
+            splatList: List<String> = listOf(),
+            handlerType: HandlerType = HandlerType.INVALID,
+            javalin: Javalin = object : Javalin() {} // dummy javalin
+    ) = Context(request, response, javalin).apply {
+        this.matchedPath = matchedPath
+        this.pathParamMap = pathParamMap
+        this.splatList = splatList
+        this.handlerType = handlerType
     }
 
 }

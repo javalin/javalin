@@ -30,10 +30,8 @@ object JavalinFreemarker : FileRenderer {
         return stringWriter.toString()
     }
 
-    private fun defaultFreemarkerEngine(): Configuration {
-        val configuration = Configuration(Version(2, 3, 26))
-        configuration.setClassForTemplateLoading(JavalinFreemarker::class.java, "/")
-        return configuration
+    private fun defaultFreemarkerEngine() = Configuration(Version(2, 3, 26)).apply {
+        setClassForTemplateLoading(JavalinFreemarker::class.java, "/")
     }
 
 }

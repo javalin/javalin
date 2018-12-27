@@ -8,11 +8,12 @@ package io.javalin.rendering;
 
 import io.javalin.Context;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface for creating renderers to be used with {@link Context#render}.
  */
 @FunctionalInterface
 public interface FileRenderer {
-    String render(String filePath, Map<String, Object> model);
+    String render(@NotNull String filePath, @NotNull Map<String, Object> model);
 }

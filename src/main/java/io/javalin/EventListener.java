@@ -12,5 +12,5 @@ package io.javalin;
  */
 @FunctionalInterface
 public interface EventListener {
-    void handleEvent();
+    void handleEvent() throws Exception;
 }

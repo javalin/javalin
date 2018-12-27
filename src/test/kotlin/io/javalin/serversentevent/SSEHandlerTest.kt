@@ -1,6 +1,7 @@
 package io.javalin.serversentevent
 
 import io.javalin.Context
+import io.javalin.Javalin
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
@@ -23,7 +24,8 @@ class SSEHandlerTest {
         val sseHandler = SSEHandler.start(consumerSSE as Consumer<EventSource>)
         val request = spyk<HttpServletRequest>()
         val response = spyk<HttpServletResponse>()
-        val context = spyk(Context(response, request))
+        val javalin = spyk<Javalin>()
+        val context = spyk(Context(request, response, javalin))
         val asyncContext = mockk<AsyncContext>()
 
 

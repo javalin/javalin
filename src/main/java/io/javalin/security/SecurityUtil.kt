@@ -17,9 +17,11 @@ object SecurityUtil {
     @JvmStatic
     fun noopAccessManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
         if (permittedRoles.isNotEmpty()) {
-            throw IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'")
+            throw IllegalStateException("No access manager configured. Add an access manager using 'accessManager()'.")
         }
         handler.handle(ctx)
     }
 
 }
+
+internal enum class CoreRoles : Role { NO_WRAP } // used to avoid wrapping CORS options

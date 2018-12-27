@@ -6,6 +6,8 @@
 
 package io.javalin;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * A handler for use with {@link Javalin#error(int, ErrorHandler)}.
  * Is triggered by [{@link Context#status()}] codes at the end of the request lifecycle.
@@ -15,5 +17,5 @@ package io.javalin;
  */
 @FunctionalInterface
 public interface ErrorHandler {
-    void handle(Context ctx);
+    void handle(@NotNull Context ctx);
 }

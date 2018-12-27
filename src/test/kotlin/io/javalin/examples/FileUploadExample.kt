@@ -7,28 +7,26 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import org.apache.commons.io.FileUtils
-import java.io.File
+import io.javalin.core.util.FileUtil
 
 fun main(args: Array<String>) {
 
-    val app = Javalin.create().port(7070).start()
-
-    app.get("/") { ctx ->
-        ctx.html(
-                """
+    Javalin.create().apply {
+        get("/") { ctx ->
+            ctx.html(
+                    """
                     <form method='post' enctype='multipart/form-data'>
                         <input type='file' name='files' multiple>
                         <button>Upload</button>
                     </form>
                 """
-        )
-    }
-
-    app.post("/") { ctx ->
-        ctx.uploadedFiles("files").forEach { (_, content, name) ->
-            FileUtils.copyInputStreamToFile(content, File("upload/" + name))
+            )
         }
-    }
+        post("/") { ctx ->
+            ctx.uploadedFiles("files").forEach { (_, content, name) ->
+                FileUtil.streamToFile(content, "upload/$name")
+            }
+        }
+    }.start(7070)
 
 }

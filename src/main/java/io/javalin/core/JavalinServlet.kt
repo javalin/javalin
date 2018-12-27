@@ -6,17 +6,16 @@
 
 package io.javalin.core
 
-import io.javalin.Context
-import io.javalin.HaltException
-import io.javalin.RequestLogger
+import io.javalin.*
 import io.javalin.core.util.*
-import io.javalin.staticfiles.JettyResourceHandler
+import io.javalin.staticfiles.ResourceHandler
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JavalinServlet(
+        val javalin: Javalin,
         val matcher: PathMatcher,
         val exceptionMapper: ExceptionMapper,
         val errorMapper: ErrorMapper,
@@ -27,15 +26,15 @@ class JavalinServlet(
         val defaultContentType: String,
         val maxRequestCacheBodySize: Long,
         val prefer405over404: Boolean,
-        val jettyResourceHandler: JettyResourceHandler) {
+        val singlePageHandler: SinglePageHandler,
+        val resourceHandler: ResourceHandler?) {
 
-    fun service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
+    fun service(servletRequest: HttpServletRequest, res: HttpServletResponse) {
 
         val req = CachedRequestWrapper(servletRequest, maxRequestCacheBodySize) // cached for reading multiple times
-        val res = if (debugLogging) CachedResponseWrapper(servletResponse) else servletResponse// body needs to be copied for logging
         val type = HandlerType.fromServletRequest(req)
-        val requestUri = req.requestURI.toLowerCase()
-        val ctx = Context(res, req)
+        val requestUri = req.requestURI
+        val ctx = Context(req, res, javalin)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
@@ -51,13 +50,14 @@ class JavalinServlet(
                 return@tryWithExceptionMapper // return 200, there is a get handler
             }
             if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
-                jettyResourceHandler.handle(req, res)
+                if (resourceHandler?.handle(req, res) == true) return@tryWithExceptionMapper
+                if (singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
             if (prefer405over404 && availableHandlerTypes.isNotEmpty()) {
-                throw HaltException(405, MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
+                throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
             }
-            throw HaltException(404, "Not found")
+            throw NotFoundResponse()
         }
 
         fun tryErrorHandlers() = tryWithExceptionMapper {
@@ -86,16 +86,18 @@ class JavalinServlet(
                     res.setHeader(Header.CONTENT_ENCODING, "gzip")
                     resultStream.copyTo(gzippedStream)
                 }
+                resultStream.close()
                 return
             }
             resultStream.copyTo(res.outputStream) // no gzip
+            resultStream.close()
         }
 
         fun logRequest() {
             if (requestLogger != null) {
                 requestLogger.handle(ctx, LogUtil.executionTimeMs(ctx))
             } else if (debugLogging == true) {
-                LogUtil.logRequestAndResponse(ctx, matcher, gzipShouldBeDone(ctx))
+                LogUtil.logRequestAndResponse(ctx, matcher)
             }
         }
 

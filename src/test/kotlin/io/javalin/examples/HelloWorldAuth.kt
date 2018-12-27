@@ -6,9 +6,11 @@
 
 package io.javalin.examples
 
-import io.javalin.ApiBuilder.get
-import io.javalin.ApiBuilder.path
+import io.javalin.Context
+import io.javalin.Handler
 import io.javalin.Javalin
+import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.examples.HelloWorldAuth.MyRoles.*
 import io.javalin.security.Role
 import io.javalin.security.SecurityUtil.roles
@@ -19,25 +21,28 @@ enum class MyRoles : Role {
 
 fun main(args: Array<String>) {
 
-    Javalin.create()
-            .port(7070)
-            .start()
-            .accessManager { handler, ctx, permittedRoles ->
-                val userRole = ctx.queryParam("role")
-                if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
-                    handler.handle(ctx)
-                } else {
-                    ctx.status(401).result("Unauthorized")
-                }
-            }
-            .routes {
-                get("/hello", { ctx -> ctx.result("Hello World 1") }, roles(ROLE_ONE))
-                path("/api") {
-                    get("/test", { ctx -> ctx.result("Hello World 2") }, roles(ROLE_TWO))
-                    get("/tast", { ctx -> ctx.status(200).result("Hello world 3") }, roles(ROLE_THREE))
-                    get("/hest", { ctx -> ctx.status(200).result("Hello World 4") }, roles(ROLE_ONE, ROLE_TWO))
-                    get("/hast", { ctx -> ctx.status(200).result("Hello World 5").header("test", "tast") }, roles(ROLE_ONE, ROLE_THREE))
-                }
-            }
+    val app = Javalin.create().apply {
+        accessManager(::accessManager)
+    }.start(7070)
+
+    app.routes {
+        get("/hello", { ctx -> ctx.result("Hello World 1") }, roles(ROLE_ONE))
+        path("/api") {
+            get("/test", { ctx -> ctx.result("Hello World 2") }, roles(ROLE_TWO))
+            get("/tast", { ctx -> ctx.status(200).result("Hello world 3") }, roles(ROLE_THREE))
+            get("/hest", { ctx -> ctx.status(200).result("Hello World 4") }, roles(ROLE_ONE, ROLE_TWO))
+            get("/hast", { ctx -> ctx.status(200).result("Hello World 5").header("test", "tast") }, roles(ROLE_ONE, ROLE_THREE))
+        }
+    }
+
+}
+
+private fun accessManager(handler: Handler, ctx: Context, permittedRoles: MutableSet<Role>) {
+    val userRole = ctx.queryParam("role")
+    if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
+        handler.handle(ctx)
+    } else {
+        ctx.status(401).result("Unauthorized")
+    }
 }
 

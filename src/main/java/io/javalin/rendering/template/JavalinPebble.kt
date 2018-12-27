@@ -31,11 +31,9 @@ object JavalinPebble : FileRenderer {
         return stringWriter.toString()
     }
 
-    private fun defaultPebbleEngine(): PebbleEngine {
-        return PebbleEngine.Builder()
-                .loader(ClasspathLoader())
-                .strictVariables(false)
-                .build()
-    }
+    private fun defaultPebbleEngine() = PebbleEngine.Builder()
+            .loader(ClasspathLoader())
+            .strictVariables(false)
+            .build()
 
 }
