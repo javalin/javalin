@@ -47,7 +47,6 @@ class EmbeddedJavalin : Javalin(null, null) {
             resourceHandler = null // no jetty here
     )
 
-    override fun contextPath(contextPath: String) = notAvailable("contextPath()")
     override fun enableStaticFiles(classpathPath: String) = notAvailable("enableStaticFiles()")
     override fun enableWebJars() = notAvailable("enableWebJars()")
     override fun port() = notAvailable("port()")
