@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.staticfiles.Location
@@ -14,6 +15,7 @@ import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.io.File
 
 class TestSinglePageMode {
 
@@ -74,5 +76,17 @@ class TestSinglePageMode {
         assertThat(http.htmlGet("/not-a-file.html").status, `is`(200))
     }
 
+    @Test
+    fun `SinglePageHandler doesn't cache on localhost`() {
+        val filePath = "src/test/external/my-special-file.html"
+        val file = File(filePath).apply { createNewFile() }.apply { writeText("OLD FILE") }
+        val app = Javalin.create().enableSinglePageMode("/", filePath, Location.EXTERNAL).start()
+        fun getSpaPage() = Unirest.get("http://localhost:${app.port()}/").header(Header.ACCEPT, "text/html").asString().body
+        assertThat(getSpaPage(), containsString("OLD FILE"))
+        file.writeText("NEW FILE")
+        assertThat(getSpaPage(), containsString("NEW FILE"))
+        app.stop()
+        file.delete()
+    }
 }
 
