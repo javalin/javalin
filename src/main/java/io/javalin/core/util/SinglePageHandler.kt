@@ -7,6 +7,8 @@
 package io.javalin.core.util
 
 import io.javalin.Context
+import io.javalin.staticfiles.Location
+import java.net.URL
 
 /**
  * This is just a glorified 404 handler.
@@ -15,11 +17,15 @@ import io.javalin.Context
  */
 class SinglePageHandler {
 
+    private val pathUrlMap = mutableMapOf<String, URL>()
     private val pathPageMap = mutableMapOf<String, String>()
 
-    fun add(path: String, filePath: String) {
-        pathPageMap[path] = Util.getResource(filePath.removePrefix("/"))?.readText()
-                ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
+    fun add(path: String, filePath: String, location: Location) {
+        pathUrlMap[path] = when (location) {
+            Location.CLASSPATH -> Util.getResource(filePath.removePrefix("/")) ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
+            Location.EXTERNAL -> Util.getFileUrl(filePath) ?: throw IllegalArgumentException("External file at '$filePath' not found.")
+        }
+        pathPageMap[path] = pathUrlMap[path]!!.readText()
     }
 
     fun handle(ctx: Context): Boolean { // this could be more idiomatic

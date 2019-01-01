@@ -284,12 +284,21 @@ public class Javalin {
 
     /**
      * Any request that would normally result in a 404 for the path and its subpaths
-     * instead results in a 200 with the file-content as response body.
+     * instead results in a 200 with the file-content from path in classpath as response body.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath) {
+        return enableSinglePageMode(path, filePath, Location.CLASSPATH);
+    }
+
+    /**
+     * Any request that would normally result in a 404 for the path and its subpaths
+     * instead results in a 200 with the file-content as response body.
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling single page mode");
-        singlePageHandler.add(path, filePath);
+        singlePageHandler.add(path, filePath, location);
         return this;
     }
 
