@@ -110,7 +110,7 @@ object Util {
         return cis.checksum.value.toString()
     }
 
-    fun getResource(path: String): URL? = this.javaClass.classLoader.getResource(path)
+    fun getResourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
 
     fun getFileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
 

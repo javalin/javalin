@@ -17,12 +17,12 @@ class SwaggerRenderer(val filePath: String) : Handler {
     private val swaggerVersion = OptionalDependency.SWAGGERUI.version
 
     override fun handle(ctx: Context) {
-        if (Util.getResource("META-INF/resources/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css") == null) {
+        if (Util.getResourceUrl("META-INF/resources/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css") == null) {
             log.warn(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
             throw InternalServerErrorResponse(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
         }
         if (ctx.queryParam("spec") != null)
-            ctx.result(Util.getResource(ctx.queryParam("spec")!!)!!.readText())
+            ctx.result(Util.getResourceUrl(ctx.queryParam("spec")!!)!!.readText())
         else ctx.html("""
             <head>
                 <meta charset="UTF-8">

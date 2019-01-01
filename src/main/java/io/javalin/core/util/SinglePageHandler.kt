@@ -22,7 +22,7 @@ class SinglePageHandler {
 
     fun add(path: String, filePath: String, location: Location) {
         pathUrlMap[path] = when (location) {
-            Location.CLASSPATH -> Util.getResource(filePath.removePrefix("/")) ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
+            Location.CLASSPATH -> Util.getResourceUrl(filePath.removePrefix("/")) ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
             Location.EXTERNAL -> Util.getFileUrl(filePath) ?: throw IllegalArgumentException("External file at '$filePath' not found.")
         }
         pathPageMap[path] = pathUrlMap[path]!!.readText()
