@@ -15,5 +15,5 @@ package io.javalin;
  */
 @FunctionalInterface
 public interface Extension {
-    void registerOn(Javalin app);
+    void registerOnJavalin(Javalin app);
 }
