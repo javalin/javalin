@@ -821,9 +821,8 @@ public class Javalin {
         String prefixedPath = Util.prefixContextPath(contextPath, path);
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
-        wsPathMatcher.add(new WsEntry(prefixedPath, configuredWebSocket, caseSensitiveUrls));
+        wsPathMatcher.add(new WsEntry(prefixedPath, configuredWebSocket, caseSensitiveUrls, ctx -> accessManager.manage(Util.webSocketUpgradeHandler, ctx, roles)));
         handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, prefixedPath, ws, new HashSet<>()));
-        addHandler(HandlerType.GET, path, Util.webSocketUpgradeHandler, roles); // access management
         return this;
     }
 

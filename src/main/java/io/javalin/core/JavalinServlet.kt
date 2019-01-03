@@ -36,12 +36,6 @@ class JavalinServlet(
         val requestUri = req.requestURI
         val ctx = Context(req, res, javalin)
 
-        if (servletRequest.getHeader(Header.SEC_WEBSOCKET_KEY) != null) { // websocket upgrade request
-            return matcher.findEntries(HandlerType.GET, requestUri).forEach { entry ->
-                entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
-            }
-        }
-
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
         fun tryBeforeAndEndpointHandlers() = tryWithExceptionMapper {

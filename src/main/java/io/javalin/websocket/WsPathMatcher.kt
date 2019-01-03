@@ -6,6 +6,7 @@
 
 package io.javalin.websocket
 
+import io.javalin.Handler
 import io.javalin.core.PathParser
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.UpgradeRequest
@@ -13,7 +14,7 @@ import org.eclipse.jetty.websocket.api.annotations.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-data class WsEntry(val path: String, val handler: WsHandler, val caseSensitiveUrls: Boolean) {
+data class WsEntry(val path: String, val handler: WsHandler, val caseSensitiveUrls: Boolean, val upgradeHandler: Handler) {
     private val pathParser = PathParser(path, caseSensitiveUrls)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
@@ -86,8 +87,9 @@ class WsPathMatcher {
     }
 
     private fun findEntry(session: Session) = findEntry(session.upgradeRequest)
+    fun findEntry(req: UpgradeRequest) = findEntry(req.requestURI.path)
+    fun findEntry(path: String) = wsEntries.find { it.matches(path) }
 
-    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.requestURI.path) }
 
     private fun wrap(session: Session, wsEntry: WsEntry): WsSession {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())

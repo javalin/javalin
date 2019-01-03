@@ -53,6 +53,7 @@ object JettyServerUtil {
 
         val httpHandler = object : ServletContextHandler(nullParent, contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+                if (request.isWebSocket()) return // don't touch websocket requests
                 try {
                     request.setAttribute("jetty-target", target)
                     request.setAttribute("jetty-request", jettyRequest)
@@ -61,9 +62,6 @@ object JettyServerUtil {
                     response.status = 500
                     log.error("Exception occurred while servicing http-request", e)
                 }
-                if (request.getHeader(Header.SEC_WEBSOCKET_KEY) == null && request.getAttribute("ws-upgrade-allowed") != true) {
-                    jettyRequest.isHandled = true // only non-websocket requests are done
-                }
             }
         }.apply {
             this.sessionHandler = sessionHandler
@@ -71,10 +69,19 @@ object JettyServerUtil {
 
         val webSocketHandler = ServletContextHandler(nullParent, contextPath).apply {
             addServlet(ServletHolder(object : WebSocketServlet() {
+                lateinit var wsFactory: WebSocketServletFactory
                 override fun configure(factory: WebSocketServletFactory) {
-                    factory.creator = WebSocketCreator { req, res ->
-                        wsPathMatcher.findEntry(req) ?: res.sendError(404, "WebSocket handler not found")
-                        if (req.httpServletRequest.getAttribute("ws-upgrade-allowed") == true) wsPathMatcher else null
+                    factory.creator = WebSocketCreator { _, _ -> wsPathMatcher }
+                    wsFactory = factory // expose private member
+                }
+
+                override fun service(request: HttpServletRequest, response: HttpServletResponse) {
+                    if (!request.isWebSocket()) return // don't touch non-websocket requests
+                    val entry = wsPathMatcher.findEntry(request.requestURI) ?: return response.sendError(404, "WebSocket handler not found")
+                    val ctx = ContextUtil.init(request, response)
+                    entry.upgradeHandler.handle(ctx) // run access manager, will set below attribute if valid
+                    if (ctx.attribute<Boolean>("ws-upgrade-allowed") == true) {
+                        wsFactory.acceptWebSocket(request, response)
                     }
                 }
             }), "/*")
@@ -120,5 +127,7 @@ object JettyServerUtil {
         is HandlerWrapper -> unwrap(userHandler.handler as HandlerWrapper) // HandlerWrapper wraps another HandlerWrapper, recursive call required
         else -> throw IllegalStateException("Cannot insert Javalin handlers into a Handler that is not a HandlerCollection or HandlerWrapper")
     }
+
+    private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
 
 }
