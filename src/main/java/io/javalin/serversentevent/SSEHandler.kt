@@ -25,9 +25,9 @@ class SSEHandler private constructor(private val consumerSSE: Consumer<EventSour
         }
     }
 
-    private fun createEventEmitter(request: HttpServletRequest, context: Context): EventSourceImpl {
-        val emitterEvent = EmitterImpl(request.asyncContext)
-        val configureSSE = EventSourceImpl(emitterEvent, context.pathParamMap)
+    private fun createEventEmitter(request: HttpServletRequest, context: Context): EventSource {
+        val emitterEvent = Emitter(request.asyncContext)
+        val configureSSE = EventSource(emitterEvent, context)
         return configureSSE
     }
 
