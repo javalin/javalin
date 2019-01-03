@@ -261,6 +261,32 @@ class TestWebSocket {
         assertThat(log.size, `is`(0))
     }
 
+    val managedApp = Javalin.create().accessManager { handler, ctx, permittedRoles ->
+        log.add("handling upgrade request ...")
+        if (ctx.queryParam("allowed") == "true") {
+            log.add("upgrade request valid!")
+            handler.handle(ctx)
+        } else {
+            log.add("upgrade request invalid!")
+        }
+    }.ws("/*") { ws ->
+        ws.onConnect { log.add("connected with upgrade request") }
+    }
+
+    @Test
+    fun `accessmanager rejects invalid request`() = TestUtil.test(managedApp) { app, _ ->
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/")))
+        assertThat(log.size, `is`(2))
+        assertThat(log, containsInAnyOrder("handling upgrade request ...", "upgrade request invalid!"))
+    }
+
+    @Test
+    fun `accessmanager accepts valid request`() = TestUtil.test(managedApp) { app, _ ->
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/?allowed=true")))
+        assertThat(log.size, `is`(3))
+        assertThat(log, containsInAnyOrder("handling upgrade request ...", "upgrade request valid!", "connected with upgrade request"))
+    }
+
     internal inner class TestClient : WebSocketClient {
         constructor(serverUri: URI) : super(serverUri)
         constructor(serverUri: URI, headers: Map<String, String>) : super(serverUri, Draft_6455(), headers, 0)

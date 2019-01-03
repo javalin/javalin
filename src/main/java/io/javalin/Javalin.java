@@ -809,11 +809,21 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
+        return ws(path, ws, new HashSet<>());
+    }
+
+    /**
+     * Adds a WebSocket handler on the specified path.
+     *
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
+     */
+    public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws, @NotNull Set<Role> roles) {
         String prefixedPath = Util.prefixContextPath(contextPath, path);
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
         wsPathMatcher.add(new WsEntry(prefixedPath, configuredWebSocket, caseSensitiveUrls));
         handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, prefixedPath, ws, new HashSet<>()));
+        addHandler(HandlerType.GET, path, Util.webSocketUpgradeHandler, roles); // access management
         return this;
     }
 

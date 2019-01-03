@@ -6,6 +6,7 @@
 
 package io.javalin.core.util
 
+import io.javalin.Handler
 import io.javalin.InternalServerErrorResponse
 import org.eclipse.jetty.server.session.SessionHandler
 import org.slf4j.LoggerFactory
@@ -28,6 +29,9 @@ object Util {
 
     @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
+
+    @JvmField
+    var webSocketUpgradeHandler = Handler { it.attribute("ws-upgrade-allowed", true) } // will not be set unless it passes the AccessManager
 
     private fun classExists(className: String) = try {
         Class.forName(className)
