@@ -28,7 +28,7 @@ import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
 import io.javalin.security.SecurityUtil;
 import io.javalin.serversentevent.EventSource;
-import io.javalin.serversentevent.SSEHandler;
+import io.javalin.serversentevent.SseHandler;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
@@ -822,7 +822,7 @@ public class Javalin {
      *
      */
     public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse) {
-        return get(path, SSEHandler.Companion.start(sse));
+        return get(path, SseHandler.Companion.start(sse));
     }
 
 }

@@ -9,7 +9,7 @@ import java.io.IOException
 import java.nio.charset.Charset
 import java.util.function.Consumer
 
-class SSEHandler private constructor(private val consumerSSE: Consumer<EventSource>) : Handler {
+class SseHandler private constructor(private val consumerSSE: Consumer<EventSource>) : Handler {
     private val UTF_8 = Charset.forName("UTF-8")
 
     @Throws(Exception::class)
@@ -47,7 +47,7 @@ class SSEHandler private constructor(private val consumerSSE: Consumer<EventSour
 
     companion object {
         fun start(emitter: Consumer<EventSource>): Handler {
-            return SSEHandler(emitter)
+            return SseHandler(emitter)
         }
     }
 }
