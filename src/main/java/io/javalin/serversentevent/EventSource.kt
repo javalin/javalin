@@ -4,13 +4,9 @@ import io.javalin.Context
 
 class EventSource(private val emitter: Emitter, private val context: Context) {
 
-    private var close: SSEClose? = null
+    private var close: SseClose? = null
 
-    fun onOpen(open: SSEConnect) {
-        open(this)
-    }
-
-    fun onClose(close: SSEClose) {
+    fun onClose(close: SseClose) {
         this.close = close
     }
 

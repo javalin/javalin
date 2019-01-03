@@ -30,10 +30,7 @@ public class TestSSE {
     public void happy_path() throws Exception {
 
         server.sse( ssePath, sse -> {
-            sse.onOpen( eventSource -> {
-                eventSource.sendEvent(event, data);
-                return null;
-            });
+            sse.sendEvent(event, data);
         });
 
         Future<HttpResponse<String>> client = Unirest.get("http://localhost:" + port + ssePath )
@@ -53,11 +50,8 @@ public class TestSSE {
         List<EventSource> eventsources = new ArrayList<>();
 
         server.sse( ssePath, sse -> {
-            sse.onOpen( eventSource -> {
-                eventsources.add(eventSource);
-                eventSource.sendEvent(event, data + eventsources.size());
-                return null;
-            });
+            eventsources.add(sse);
+            sse.sendEvent(event, data + eventsources.size());
         });
         int port = server.port();
 

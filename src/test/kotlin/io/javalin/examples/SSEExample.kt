@@ -26,11 +26,9 @@ fun main(args: Array<String>) {
     }
 
     app.sse("/sse") { sse ->
-        sse.onOpen { eventSource ->
-            eventSource.sendEvent("connect", "Connected!")
-            eventSources.add(eventSource)
-        }
-        sse.onClose { eventSource -> eventSources.remove(eventSource) }
+        sse.sendEvent("connect", "Connected!")
+        eventSources.add(sse) // Save the sse to use outside of this context
+        sse.onClose { eventSource -> eventSources.remove(eventSource) } // Remove the sse to not use it outside of this context
     }
 
     while (true) {
