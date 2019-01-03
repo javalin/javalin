@@ -29,5 +29,6 @@ class HttpUtil(javalin: Javalin) {
     fun call(method: HttpMethod, pathname: String) = HttpRequestWithBody(method, origin + pathname).asString()
     fun htmlGet(path: String) = Unirest.get(origin + path).header(Header.ACCEPT, "text/html").asString()
     fun jsonGet(path: String) = Unirest.get(origin + path).header(Header.ACCEPT, "application/json").asString()
+    fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
 
 }
