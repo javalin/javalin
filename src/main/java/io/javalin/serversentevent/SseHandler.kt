@@ -29,7 +29,8 @@ class SseHandler private constructor(private val consumerSse: Consumer<EventSour
         response.status = HttpServletResponse.SC_OK
         response.characterEncoding = Charset.forName("UTF-8").name()
         response.contentType = "text/event-stream"
-        response.addHeader("Connection", "close")
+        response.addHeader("Connection", "keep-alive")
+        response.addHeader("Cache-Control","no-cache")
         response.flushBuffer()
         request.startAsync(request, response)
     }
