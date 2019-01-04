@@ -19,8 +19,8 @@ fun main(args: Array<String>) {
         ctx.html(
                 ""
                         + "<script>" +
-                        "var sse = new EventSource(\"http://localhost:7000/sse\");" +
-                        "sse.addEventListener(\"hi\", data => console.log(data));"
+                        "var sse = new EventSource('http://localhost:7000/sse');" +
+                        "sse.addEventListener('hi', data => console.log(data));"
                         + "</script>"
         )
     }

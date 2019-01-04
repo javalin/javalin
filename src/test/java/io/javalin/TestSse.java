@@ -11,9 +11,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestSse {
-    final String event = "hi";
-    final String data = "hello world";
-    final String ssePath = "/sse";
+    String event = "hi";
+    String data = "hello world";
+    String ssePath = "/sse";
 
 
     @Test

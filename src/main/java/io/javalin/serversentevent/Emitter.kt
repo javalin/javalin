@@ -4,14 +4,12 @@ import java.io.IOException
 import javax.servlet.AsyncContext
 import javax.servlet.ServletOutputStream
 
-class Emitter(asyncContext: AsyncContext) {
+class Emitter(private var asyncContext: AsyncContext) {
     private var close: Boolean = false
-    private var asyncContext: AsyncContext
     private var output: ServletOutputStream? = null
     private val CRLF = "\r\n"
 
     init {
-        this.asyncContext = asyncContext
         try {
             this.output = asyncContext.response.outputStream
         } catch (e: IOException) {
@@ -31,7 +29,6 @@ class Emitter(asyncContext: AsyncContext) {
         }
     }
 
-    fun isClose(): Boolean {
-        return close
-    }
+    fun isClose() = close
+
 }
