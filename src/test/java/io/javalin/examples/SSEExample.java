@@ -32,10 +32,7 @@ public class SSEExample {
         app.sse( "/sse/:id", sse -> {
             sse.sendEvent( "connect", "Connected!" );
             eventSources.add( sse );
-            sse.onClose( eventSource -> {
-                eventSources.remove( eventSource );
-                return null;
-            } );
+            sse.onClose( eventSource -> eventSources.remove( eventSource ) );
         } );
 
         while (true) {
