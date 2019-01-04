@@ -536,9 +536,7 @@ public class Javalin {
 
     /**
      * Registers an {@link Extension} with the instance.
-     *
-     * @param extension You're free to implement the extension as a class or a lambda expression
-     * @return Self instance for fluent, method-chaining API
+     * You're free to implement the extension as a class or a lambda expression
      */
     public Javalin register(Extension extension) {
         extension.registerOnJavalin(this);
