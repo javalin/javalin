@@ -3,6 +3,10 @@ package io.javalin.serversentevent
 import java.io.IOException
 import javax.servlet.AsyncContext
 import javax.servlet.ServletOutputStream
+import java.io.StringReader
+import java.io.BufferedReader
+
+
 
 class Emitter(private var asyncContext: AsyncContext) {
     private var close: Boolean = false
@@ -21,7 +25,9 @@ class Emitter(private var asyncContext: AsyncContext) {
         synchronized(this) {
             try {
                 output?.println("event: $event$CRLF")
-                output?.println("data: $data$CRLF")
+                val reader = BufferedReader(StringReader(data))
+                reader.lineSequence().forEach { line -> output?.println("data: $line$CRLF") }
+                output?.println("$CRLF")
                 asyncContext.response.flushBuffer()
             } catch (e: IOException) {
                 close = true
