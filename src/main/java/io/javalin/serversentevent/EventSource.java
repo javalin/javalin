@@ -29,4 +29,12 @@ public class EventSource {
     public Context getContext() {
         return this.context;
     }
+
+    public void sendEvent(int id, String event, String data) {
+        this.emitter.event(id, event, data);
+
+        if(emitter.isClose()) {
+            close.ifPresent( closeHandle -> closeHandle.handle( this ) );
+        }
+    }
 }

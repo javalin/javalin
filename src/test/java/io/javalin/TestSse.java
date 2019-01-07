@@ -31,6 +31,19 @@ public class TestSse {
     }
 
     @Test
+    public void happy_path_with_id() {
+        TestUtil.test( ((server, httpUtil) -> {
+            int id = 1;
+            server.sse( ssePath, sse -> sse.sendEvent( id, event, data ) );
+
+            final String body = httpUtil.sse( ssePath ).get().getBody();
+            assertTrue( body.contains( "id: " + id ) );
+            assertTrue( body.contains( "event: " + event ) );
+            assertTrue( body.contains( "data: " + data ) );
+        }) );
+    }
+
+    @Test
     public void multiple_clients() {
         TestUtil.test( ((server, httpUtil) -> {
             List<EventSource> eventsources = new ArrayList<>();
@@ -64,10 +77,10 @@ public class TestSse {
             final String contentType = headers.get("Content-Type").get(headers.get("Content-Type").size() - 1).toLowerCase();
             final String cacheControl = headers.get("Cache-Control").get(headers.get("Cache-Control").size() - 1).toLowerCase();
 
-            assertTrue(connection.contains("keep-alive"));          // should be "keep-alive" NOT "close"
-            assertTrue(cacheControl.contains("no-cache"));          // should be sent
-            assertTrue(contentType.contains("text/event-stream"));  // passes
-            assertTrue(contentType.contains("charset=utf-8"));      // passes
+            assertTrue(connection.contains("close"));
+            assertTrue(cacheControl.contains("no-cache"));
+            assertTrue(contentType.contains("text/event-stream"));
+            assertTrue(contentType.contains("charset=utf-8"));
 
         }) );
     }

@@ -31,4 +31,17 @@ class Emitter(private var asyncContext: AsyncContext) {
 
     fun isClose() = close
 
+    fun event(id: Int, event: String, data: String) {
+        synchronized(this) {
+            try {
+                output?.println("id: $id$CRLF")
+                output?.println("event: $event$CRLF")
+                output?.println("data: $data$CRLF")
+                asyncContext.response.flushBuffer()
+            } catch (e: IOException) {
+                close = true
+            }
+        }
+    }
+
 }
