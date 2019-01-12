@@ -828,7 +828,7 @@ public class Javalin {
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      */
     public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse) {
-        return get(path, SseHandler.Companion.start(sse));
+        return get(path, new SseHandler(sse));
     }
 
 }
