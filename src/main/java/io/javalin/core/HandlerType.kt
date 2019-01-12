@@ -10,7 +10,7 @@ import io.javalin.core.util.Header
 import javax.servlet.http.HttpServletRequest
 
 enum class HandlerType {
-    GET, POST, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS, BEFORE, AFTER, INVALID, WEBSOCKET;
+    GET, POST, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS, BEFORE, AFTER, INVALID, WEBSOCKET, SERVER_SENT_EVENT;
 
     fun isHttpMethod() = when (this) {
         GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH -> true
