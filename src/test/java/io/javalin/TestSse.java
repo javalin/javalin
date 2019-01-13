@@ -13,11 +13,11 @@ import static org.junit.Assert.assertTrue;
 
 public class TestSse {
 
-    String event = "hi";
-    String data = "hello world";
-    String ssePath = "/sse";
+    private String event = "hi";
+    private String data = "hello world";
+    private String ssePath = "/sse";
 
-    public Javalin shortTimeoutServer() {
+    private Javalin shortTimeoutServer() {
         return Javalin.create().after(ctx -> ctx.req.getAsyncContext().setTimeout(10));
     }
 
@@ -35,7 +35,7 @@ public class TestSse {
     public void happy_path_with_id() {
         TestUtil.test(shortTimeoutServer(), ((server, httpUtil) -> {
             int id = 1;
-            server.sse(ssePath, sse -> sse.sendEvent(id, event, data));
+            server.sse(ssePath, sse -> sse.sendEvent(event, data, String.valueOf(id)));
             String body = httpUtil.sse(ssePath).get().getBody();
             assertTrue(body.contains("id: " + id));
             assertTrue(body.contains("event: " + event));

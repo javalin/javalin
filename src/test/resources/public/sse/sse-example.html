@@ -1,0 +1,16 @@
+<h1 id="stats">Stats</h1>
+<pre id="c-1">Connection 1:</pre>
+<pre id="c-2">Connection 2:</pre>
+<pre id="c-3">Connection 3:</pre>
+<pre id="c-4">Connection 4:</pre>
+<script>
+    const origin = "http://localhost:7000";
+    const id = id => document.getElementById(id);
+    new EventSource(origin + "/sse-stats").onmessage = msg => id("stats").innerHTML = msg.data;
+    new EventSource(origin + "/sse-counter").onmessage = msg => id("c-1").insertAdjacentHTML("beforeEnd", " OK");
+    new EventSource(origin + "/sse-counter").onmessage = msg => id("c-2").insertAdjacentHTML("beforeEnd", " OK");
+    new EventSource(origin + "/sse-counter").onmessage = msg => id("c-3").insertAdjacentHTML("beforeEnd", " OK");
+    new EventSource(origin + "/sse-counter").addEventListener("counter", msg => {
+        id("c-4").insertAdjacentHTML("beforeEnd", " OK");
+    });
+</script>

@@ -18,26 +18,19 @@ public class EventSource {
         this.closeHandler = close;
     }
 
-    public void sendEvent(String event, String data) { //TODO: why is this
-        this.emitter.event(event, data);
-        ifClosedRunClosedHandler();
+    public void sendEvent(String event, String data) {
+        sendEvent(event, data, null);
     }
 
-    public void sendEvent(int id, String event, String data) { //TODO: not calling this?
-        this.emitter.event(id, event, data);
-        ifClosedRunClosedHandler();
+    public void sendEvent(String event, String data, String id) {
+        this.emitter.event(event, data, id);
+        if (emitter.isClose() && closeHandler != null) {
+            closeHandler.accept(this);
+        }
     }
 
     public Context getContext() {
         return this.ctx;
-    }
-
-    private void ifClosedRunClosedHandler() {
-        if (emitter.isClose()) {
-            if (closeHandler != null) {
-                closeHandler.accept( this );
-            }
-        }
     }
 
 }
