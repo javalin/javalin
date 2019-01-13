@@ -17,6 +17,7 @@ class SseHandler(private val eventSourceConsumer: Consumer<EventSource>) : Handl
                 flushBuffer()
             }
             ctx.req.startAsync(ctx.req, ctx.res)
+            ctx.req.asyncContext.timeout = 0
             eventSourceConsumer.accept(EventSource(ctx))
         }
     }
