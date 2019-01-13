@@ -18,6 +18,10 @@ public class EventSource {
         this.closeHandler = close;
     }
 
+    public void sendEvent(String data) {
+        sendEvent("message", data);
+    }
+
     public void sendEvent(String event, String data) {
         sendEvent(event, data, null);
     }

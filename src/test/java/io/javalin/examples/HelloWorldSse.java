@@ -28,7 +28,7 @@ public class HelloWorldSse {
                 "")
         );
 
-        app.sse("/sse/:id", sse -> {
+        app.sse("/sse", sse -> {
             sse.sendEvent("connect", "Connected!");
             eventSources.add(sse);
             sse.onClose(eventSources::remove);

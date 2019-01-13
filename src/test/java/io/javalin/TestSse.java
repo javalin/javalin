@@ -73,7 +73,6 @@ public class TestSse {
             assertTrue(cacheControl.contains("no-cache"));
             assertTrue(contentType.contains("text/event-stream"));
             assertTrue(contentType.contains("charset=utf-8"));
-
         }));
     }
 

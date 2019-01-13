@@ -19,14 +19,12 @@ fun main(args: Array<String>) {
     val counterSse = ConcurrentLinkedQueue<EventSource>()
     val statsSse = ConcurrentLinkedQueue<EventSource>()
     var counter = 1
-    var eventsSent = 0;
 
     Javalin.create().apply {
         enableStaticFiles("/public")
         server { Server(threadPool) }
         get("/") { it.redirect("/sse/sse-example.html")}
         sse("/sse-counter") { sse ->
-            println("Adding new connection ...")
             counterSse.add(sse)
             sse.onClose { eventSource -> counterSse.remove(eventSource) }
         }
@@ -37,9 +35,14 @@ fun main(args: Array<String>) {
     }.start(7000)
 
     while (true) {
-        statsSse.forEach { it.sendEvent("stats", "Connections: ${counterSse.size + statsSse.size}, Threads: ${threadPool.busyThreads}/${threadPool.threads}, ", 999.toString()) }
-        counterSse.forEach { it.sendEvent("counter", "Counter: ${counter++}", 1.toString()) }
+        statsSse.forEach {
+            it.sendEvent("stats", "Connections: ${counterSse.size + statsSse.size}, Threads: ${threadPool.busyThreads}/${threadPool.threads}", 999.toString())
+        }
+        counter++
+        counterSse.forEach {
+            it.sendEvent("Counter: $counter") // send as "message"
+            it.sendEvent("counter", "Counter: $counter", 1.toString())
+        }
         TimeUnit.SECONDS.sleep(1)
-        println("Sending event ${eventsSent++}")
     }
 }
