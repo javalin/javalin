@@ -10,6 +10,7 @@ import io.javalin.InternalServerErrorResponse
 import org.eclipse.jetty.server.session.SessionHandler
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import java.net.URL
 import java.util.*
@@ -109,7 +110,9 @@ object Util {
         return cis.checksum.value.toString()
     }
 
-    fun getResource(path: String): URL? = this.javaClass.classLoader.getResource(path)
+    fun getResourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
+
+    fun getFileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
 
     fun isKotlinClass(clazz: Class<*>): Boolean {
         try {

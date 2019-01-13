@@ -6,29 +6,36 @@
 
 package io.javalin.core
 
-import io.javalin.core.util.Header
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import javax.servlet.ReadListener
 import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 
-class CachedRequestWrapper(request: HttpServletRequest, private val maxCacheSize: Long) : HttpServletRequestWrapper(request) {
+class CachedRequestWrapper(request: HttpServletRequest, private val bodyCacheSize: Long) : HttpServletRequestWrapper(request) {
 
-    private val size = request.contentLengthLong
-    private val chunkedTransferEncoding by lazy {
-        request.getHeader(Header.TRANSFER_ENCODING)?.contains("chunked") ?: false
+    companion object {
+        val log = LoggerFactory.getLogger(CachedRequestWrapper::class.java)
     }
 
-    // Do not read unless we have to
-    private val cachedBytes: ByteArray by lazy { super.getInputStream().readBytes() }
+    private val bodySize = this.contentLengthLong
+    private var bodyConsumed = false
 
-    override fun getInputStream(): ServletInputStream =
-            if (chunkedTransferEncoding || maxCacheSize < size) {
-                super.getInputStream()
-            } else {
-                CachedServletInputStream(cachedBytes)
-            }
+    private val cachedBytes: ByteArray by lazy { super.getInputStream().readBytes() } // don't read unless we have to
+
+    override fun getInputStream(): ServletInputStream {
+        if (bodyConsumed && bodySize > bodyCacheSize) { // consumed AND too big for cache
+            log.error("Body already consumed, and was too big to cache. Adjust cache size with app.maxBodySizeForRequestCache(newMaxSize);")
+        }
+        bodyConsumed = true
+        return if (bodySize > bodyCacheSize || this.getHeader("Transfer-Encoding")?.contains("chunked") == true) {
+            super.getInputStream() // get raw stream if size is bigger than cache OR content is chunked
+        } else {
+            CachedServletInputStream(cachedBytes)
+        }
+    }
+
 
     private inner class CachedServletInputStream(cachedBytes: ByteArray) : ServletInputStream() {
         private val byteArrayInputStream: ByteArrayInputStream = ByteArrayInputStream(cachedBytes)

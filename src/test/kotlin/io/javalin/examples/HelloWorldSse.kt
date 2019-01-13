@@ -8,32 +8,32 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 import io.javalin.serversentevent.EventSource
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
-    val eventSources = ArrayList<EventSource>()
+
+    val eventSources = mutableListOf<EventSource>()
 
     val app = Javalin.create().start(7000)
     app.get("/") { ctx ->
-        ctx.html(
-                ""
-                        + "<script>" +
-                        "var sse = new EventSource('http://localhost:7000/sse');" +
-                        "sse.addEventListener('hi', data => console.log(data));"
-                        + "</script>"
-        )
+        ctx.html("" +
+                "<script>" +
+                "var sse = new EventSource('http://localhost:7000/sse');" +
+                "sse.addEventListener('hi', data => console.log(data));" +
+                "</script>" +
+                "")
     }
 
     app.sse("/sse") { sse ->
         sse.sendEvent("connect", "Connected!")
-        eventSources.add(sse) // Save the sse to use outside of this context
+        eventSources.add(sse) // save the sse to use outside of this context
         sse.onClose { eventSource -> eventSources.remove(eventSource) }
     }
 
     while (true) {
-        for (sse in eventSources)
+        for (sse in eventSources) {
             sse.sendEvent("hi", "hello world")
+        }
         TimeUnit.SECONDS.sleep(1)
     }
 }

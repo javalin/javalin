@@ -64,7 +64,7 @@ public class TestExtension {
         }
 
         @Override
-        public void registerOn(Javalin app) {
+        public void registerOnJavalin(Javalin app) {
             app.before(ctx -> {
                 throw new BadRequestResponse(magicValue);
             });

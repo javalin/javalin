@@ -286,12 +286,21 @@ public class Javalin {
 
     /**
      * Any request that would normally result in a 404 for the path and its subpaths
-     * instead results in a 200 with the file-content as response body.
+     * instead results in a 200 with the file-content from path in classpath as response body.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath) {
+        return enableSinglePageMode(path, filePath, Location.CLASSPATH);
+    }
+
+    /**
+     * Any request that would normally result in a 404 for the path and its subpaths
+     * instead results in a 200 with the file-content as response body.
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling single page mode");
-        singlePageHandler.add(path, filePath);
+        singlePageHandler.add(path, filePath, location);
         return this;
     }
 
@@ -529,12 +538,10 @@ public class Javalin {
 
     /**
      * Registers an {@link Extension} with the instance.
-     *
-     * @param extension You're free to implement the extension as a class or a lambda expression
-     * @return Self instance for fluent, method-chaining API
+     * You're free to implement the extension as a class or a lambda expression
      */
     public Javalin register(Extension extension) {
-        extension.registerOn(this);
+        extension.registerOnJavalin(this);
         return this;
     }
 
@@ -821,7 +828,7 @@ public class Javalin {
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      */
     public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse) {
-        return get(path, SseHandler.Companion.start(sse));
+        return get(path, new SseHandler(sse));
     }
 
 }

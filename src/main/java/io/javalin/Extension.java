@@ -8,12 +8,10 @@
 package io.javalin;
 
 /**
- * An extension is a feature module adding a group of functionality to the Javalin application.
- * Inspired by Sinatra extensions and the `Sinatra.register` DSL.
- *
- * @link http://sinatrarb.com/extensions.html#extending-the-dsl-class-context-with-sinatraregister
+ * An extension is a modular way of adding functionality to a Javalin instance.
+ * For use with {@link Javalin#register}.
  */
 @FunctionalInterface
 public interface Extension {
-    void registerOn(Javalin app);
+    void registerOnJavalin(Javalin app);
 }

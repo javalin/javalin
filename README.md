@@ -27,11 +27,11 @@ General information:
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>2.4.0</version>
+    <version>2.5.0</version>
 </dependency>
 
 // or gradle, if you must
-compile 'io.javalin:javalin:2.4.0'
+compile 'io.javalin:javalin:2.5.0'
 ```
 
 ### Start programming (Java)

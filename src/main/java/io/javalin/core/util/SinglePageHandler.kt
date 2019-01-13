@@ -7,6 +7,8 @@
 package io.javalin.core.util
 
 import io.javalin.Context
+import io.javalin.staticfiles.Location
+import java.net.URL
 
 /**
  * This is just a glorified 404 handler.
@@ -15,18 +17,25 @@ import io.javalin.Context
  */
 class SinglePageHandler {
 
+    private val pathUrlMap = mutableMapOf<String, URL>()
     private val pathPageMap = mutableMapOf<String, String>()
 
-    fun add(path: String, filePath: String) {
-        pathPageMap[path] = Util.getResource(filePath.removePrefix("/"))?.readText()
-                ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
+    fun add(path: String, filePath: String, location: Location) {
+        pathUrlMap[path] = when (location) {
+            Location.CLASSPATH -> Util.getResourceUrl(filePath.removePrefix("/")) ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
+            Location.EXTERNAL -> Util.getFileUrl(filePath) ?: throw IllegalArgumentException("External file at '$filePath' not found.")
+        }
+        pathPageMap[path] = pathUrlMap[path]!!.readText()
     }
 
-    fun handle(ctx: Context): Boolean { // this could be more idiomatic
+    fun handle(ctx: Context): Boolean {
         if (!ContextUtil.acceptsHtml(ctx)) return false
-        for (entry in pathPageMap) {
-            if (ctx.path().startsWith(entry.key)) {
-                ctx.html(entry.value)
+        for (path in pathPageMap.keys) {
+            if (ctx.path().startsWith(path)) {
+                ctx.html(when (ContextUtil.isLocalhost(ctx)) {
+                    true -> pathUrlMap[path]!!.readText() // is localhost, read file again
+                    false -> pathPageMap[path]!! // not localhost, use cached content
+                })
                 return true
             }
         }
