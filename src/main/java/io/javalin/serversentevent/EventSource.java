@@ -20,24 +20,24 @@ public class EventSource {
 
     public void sendEvent(String event, String data) { //TODO: why is this
         this.emitter.event(event, data);
-        if (emitter.isClose()) {
-            if (closeHandler != null) {
-                closeHandler.accept(this);
-            }
-        }
+        ifClosedRunClosedHandler();
     }
 
     public void sendEvent(int id, String event, String data) { //TODO: not calling this?
         this.emitter.event(id, event, data);
-        if (emitter.isClose()) {
-            if (closeHandler != null) {
-                closeHandler.accept(this);
-            }
-        }
+        ifClosedRunClosedHandler();
     }
 
     public Context getContext() {
         return this.ctx;
+    }
+
+    private void ifClosedRunClosedHandler() {
+        if (emitter.isClose()) {
+            if (closeHandler != null) {
+                closeHandler.accept( this );
+            }
+        }
     }
 
 }

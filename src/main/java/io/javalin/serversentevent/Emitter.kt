@@ -22,10 +22,7 @@ class Emitter(private var asyncContext: AsyncContext) {
 
     fun event(event: String, data: String) = synchronized(this) { //TODO: why is this
         try {
-            output.println("event: $event$CR")
-            BufferedReader(StringReader(data)).lineSequence().forEach { line -> output.println("data: $line$CR") }
-            output.println("$CR$CR")
-            asyncContext.response.flushBuffer()
+            sendEvent(event, data)
         } catch (e: IOException) {
             close = true
         }
@@ -34,14 +31,20 @@ class Emitter(private var asyncContext: AsyncContext) {
     fun event(id: Int, event: String, data: String) = synchronized(this) { //TODO: not calling this?
         try {
             output.println("id: $id$CR")
-            output.println("event: $event$CR")
-            output.println("data: $data$CR")
-            asyncContext.response.flushBuffer()
+            sendEvent(event, data)
         } catch (e: IOException) {
             close = true
         }
     }
 
     fun isClose() = close
+
+
+    private fun sendEvent(event: String, data: String) {
+        output.println("event: $event$CR")
+        BufferedReader(StringReader(data)).lineSequence().forEach { line -> output.println("data: $line$CR") }
+        output.println("$CR$CR")
+        asyncContext.response.flushBuffer()
+    }
 
 }
