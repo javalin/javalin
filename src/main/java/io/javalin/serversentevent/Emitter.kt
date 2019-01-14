@@ -1,15 +1,14 @@
 package io.javalin.serversentevent
 
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.StringReader
+import java.lang.StringBuilder
 import javax.servlet.AsyncContext
 import javax.servlet.ServletOutputStream
 
 class Emitter(private var asyncContext: AsyncContext) {
 
     private lateinit var output: ServletOutputStream
-    private var close: Boolean = false
+    private var close = false
     private val CR = "\n"
 
     init {
@@ -20,31 +19,25 @@ class Emitter(private var asyncContext: AsyncContext) {
         }
     }
 
-    fun event(event: String, data: String) = synchronized(this) { //TODO: why is this
+    @JvmOverloads
+    fun event(event: String, data: String, id: String? = null) = synchronized(this) {
         try {
-            sendEvent(event, data)
-        } catch (e: IOException) {
-            close = true
-        }
-    }
-
-    fun event(id: Int, event: String, data: String) = synchronized(this) { //TODO: not calling this?
-        try {
-            output.println("id: $id$CR")
-            sendEvent(event, data)
+            val sb = StringBuilder()
+            if (id != null) {
+                sb.append("id: $id$CR")
+            }
+            sb.append("event: $event$CR")
+            data.lines().forEach { line ->
+                sb.append("data: $line$CR")
+            }
+            sb.append("$CR$CR")
+            output.print(sb.toString())
+            asyncContext.response.flushBuffer()
         } catch (e: IOException) {
             close = true
         }
     }
 
     fun isClose() = close
-
-
-    private fun sendEvent(event: String, data: String) {
-        output.println("event: $event$CR")
-        BufferedReader(StringReader(data)).lineSequence().forEach { line -> output.println("data: $line$CR") }
-        output.println("$CR$CR")
-        asyncContext.response.flushBuffer()
-    }
 
 }
