@@ -50,6 +50,8 @@ public class VisualTest {
         app.options("/what/:are/*/my-options", new HandlerImplementation());
         app.trace("/tracer", new HandlerImplementation());
         app.ws("/websocket", VisualTest::wsMethodRef);
+        app.sse("/sse", sse -> {
+        });
         app.routes(() -> {
             path("users", () -> {
                 get(new HandlerImplementation());

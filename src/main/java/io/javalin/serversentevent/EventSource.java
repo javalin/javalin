@@ -4,8 +4,8 @@ import io.javalin.Context;
 
 public class EventSource {
 
+    public final Context ctx;
     private Emitter emitter;
-    private Context ctx;
     private Runnable closeCallback = null;
 
     public EventSource(Context ctx) {
@@ -30,10 +30,6 @@ public class EventSource {
         if (emitter.isClose() && closeCallback != null) {
             closeCallback.run();
         }
-    }
-
-    public Context getContext() {
-        return this.ctx;
     }
 
 }

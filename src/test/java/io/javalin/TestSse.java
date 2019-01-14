@@ -85,4 +85,14 @@ public class TestSse {
         }));
     }
 
+    @Test
+    public void getting_queryparam() {
+        TestUtil.test(shortTimeoutServer(), ((server, httpUtil) -> {
+            server.sse(ssePath, sse -> sse.sendEvent(event, sse.ctx.queryParam("qp")));
+            String body = httpUtil.sse(ssePath + "?qp=my-qp").get().getBody();
+            assertTrue(body.contains("event: " + event));
+            assertTrue(body.contains("data: " + "my-qp"));
+        }));
+    }
+
 }
