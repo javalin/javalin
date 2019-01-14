@@ -15,33 +15,31 @@ import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
 
-    val threadPool = QueuedThreadPool(100, 2, 60_000)
+    val tp = QueuedThreadPool(8, 2, 60_000)
     val counterSse = ConcurrentLinkedQueue<EventSource>()
     val statsSse = ConcurrentLinkedQueue<EventSource>()
-    var counter = 1
 
     Javalin.create().apply {
         enableStaticFiles("/public")
-        server { Server(threadPool) }
-        get("/") { it.redirect("/sse/sse-example.html")}
+        server { Server(tp) }
+        get("/") { it.redirect("/sse/sse-example.html") }
         sse("/sse-counter") { sse ->
             counterSse.add(sse)
-            sse.onClose { eventSource -> counterSse.remove(eventSource) }
+            sse.onClose { counterSse.remove(sse) }
         }
         sse("/sse-stats") { sse ->
             statsSse.add(sse)
-            sse.onClose { eventSource -> statsSse.remove(eventSource) }
+            sse.onClose { statsSse.remove(sse) }
         }
     }.start(7000)
 
-    while (true) {
-        statsSse.forEach {
-            it.sendEvent("stats", "Connections: ${counterSse.size + statsSse.size}, Threads: ${threadPool.busyThreads}/${threadPool.threads}", 999.toString())
-        }
-        counter++
+    for (counter in 1..999) {
         counterSse.forEach {
             it.sendEvent("Counter: $counter") // send as "message"
             it.sendEvent("counter", "Counter: $counter", 1.toString())
+        }
+        statsSse.forEach {
+            it.sendEvent("stats", "Clients: ${counterSse.size + statsSse.size}, Threads: ${tp.busyThreads}/${tp.threads}", 999.toString())
         }
         TimeUnit.SECONDS.sleep(1)
     }

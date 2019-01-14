@@ -8,30 +8,21 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.serversentevent.EventSource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 public class HelloWorldSse {
 
     public static void main(String[] args) throws InterruptedException {
 
-        List<EventSource> eventSources = new ArrayList<>();
+        Queue<EventSource> eventSources = new ConcurrentLinkedQueue<>();
 
         Javalin app = Javalin.create().start(7000);
-        app.get("/", ctx ->
-            ctx.html("" +
-                "<script>" +
-                "var sse = new EventSource('http://localhost:7000/sse');" +
-                "sse.addEventListener('hi', data => console.log(data));" +
-                "</script>" +
-                "")
-        );
-
+        app.get("/", ctx -> ctx.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));"));
         app.sse("/sse", sse -> {
-            sse.sendEvent("connect", "Connected!");
             eventSources.add(sse);
-            sse.onClose(eventSources::remove);
+            sse.onClose(() -> eventSources.remove(sse));
         });
 
         while (true) {

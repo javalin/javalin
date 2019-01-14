@@ -1,7 +1,6 @@
 package io.javalin.serversentevent
 
 import java.io.IOException
-import java.lang.StringBuilder
 import javax.servlet.AsyncContext
 import javax.servlet.ServletOutputStream
 
@@ -9,7 +8,7 @@ class Emitter(private var asyncContext: AsyncContext) {
 
     private lateinit var output: ServletOutputStream
     private var close = false
-    private val CR = "\n"
+    private val newline = "\n"
 
     init {
         try {
@@ -20,17 +19,17 @@ class Emitter(private var asyncContext: AsyncContext) {
     }
 
     @JvmOverloads
-    fun event(event: String, data: String, id: String? = null) = synchronized(this) {
+    fun emit(event: String, data: String, id: String? = null) = synchronized(this) {
         try {
             val sb = StringBuilder()
             if (id != null) {
-                sb.append("id: $id$CR")
+                sb.append("id: $id$newline")
             }
-            sb.append("event: $event$CR")
+            sb.append("event: $event$newline")
             data.lines().forEach { line ->
-                sb.append("data: $line$CR")
+                sb.append("data: $line$newline")
             }
-            sb.append("$CR$CR")
+            sb.append("$newline$newline")
             output.print(sb.toString())
             asyncContext.response.flushBuffer()
         } catch (e: IOException) {

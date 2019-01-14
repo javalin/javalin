@@ -8,26 +8,19 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 import io.javalin.serversentevent.EventSource
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
 
-    val eventSources = mutableListOf<EventSource>()
+    val eventSources = ConcurrentLinkedQueue<EventSource>()
 
     val app = Javalin.create().start(7000)
-    app.get("/") { ctx ->
-        ctx.html("" +
-                "<script>" +
-                "var sse = new EventSource('http://localhost:7000/sse');" +
-                "sse.addEventListener('hi', data => console.log(data));" +
-                "</script>" +
-                "")
-    }
+    app.get("/") { ctx -> ctx.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));") }
 
     app.sse("/sse") { sse ->
-        sse.sendEvent("connect", "Connected!")
         eventSources.add(sse) // save the sse to use outside of this context
-        sse.onClose { eventSource -> eventSources.remove(eventSource) }
+        sse.onClose { eventSources.remove(sse) }
     }
 
     while (true) {

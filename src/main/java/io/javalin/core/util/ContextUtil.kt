@@ -72,6 +72,6 @@ object ContextUtil {
         this.handlerType = handlerType
     }
 
-    fun isLocalhost(ctx: Context)= ctx.host()?.contains("localhost") == true || ctx.host()?.contains("127.0.0.1") == true
+    fun isLocalhost(ctx: Context) = ctx.host()?.contains("localhost") == true || ctx.host()?.contains("127.0.0.1") == true
 
 }
