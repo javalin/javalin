@@ -828,7 +828,15 @@ public class Javalin {
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      */
     public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse) {
-        return get(path, new SseHandler(sse));
+        return sse(path, sse, new HashSet<>());
+    }
+
+    /**
+     * Adds a lambda handler for a Server Sent Event connection on the specified path.
+     * Requires an access manager to be set on the instance.
+     */
+    public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse, @NotNull Set<Role> permittedRoles) {
+        return get(path, new SseHandler(sse), permittedRoles);
     }
 
 }
