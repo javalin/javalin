@@ -1,0 +1,11 @@
+<h1 id="stats">Stats</h1>
+<pre id="c-1">onmessage:</pre>
+<pre id="c-2">addEventListener("counter"):</pre>
+<script>
+    const id = id => document.getElementById(id);
+    new EventSource("http://localhost:7000/sse-stats").addEventListener("stats", msg => id("stats").innerHTML = msg.data);
+    new EventSource("http://localhost:7000/sse-counter").onmessage = msg => id("c-1").insertAdjacentHTML("beforeEnd", " OK");
+    new EventSource("http://localhost:7000/sse-counter").addEventListener("counter", msg => {
+        id("c-2").insertAdjacentHTML("beforeEnd", " OK");
+    });
+</script>

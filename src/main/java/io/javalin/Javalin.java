@@ -27,6 +27,8 @@ import io.javalin.security.AccessManager;
 import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
 import io.javalin.security.SecurityUtil;
+import io.javalin.serversentevent.EventSource;
+import io.javalin.serversentevent.SseHandler;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
@@ -820,6 +822,13 @@ public class Javalin {
      */
     public List<HandlerMetaInfo> getHandlerMetaInfo() {
         return new ArrayList<>(handlerMetaInfo);
+    }
+
+    /**
+     * Adds a lambda handler for a Server Sent Event connection on the specified path.
+     */
+    public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse) {
+        return get(path, new SseHandler(sse));
     }
 
 }
