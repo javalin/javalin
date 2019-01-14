@@ -113,6 +113,7 @@ class JavalinServlet(
             return // sync lifecycle complete
         } else { // finish request asynchronously
             val asyncContext = req.startAsync()
+            asyncContext.timeout = ctx.attribute<Long>("javalin-async-timeout") ?: 30_000
             ctx.resultFuture()!!.exceptionally { throwable ->
                 if (throwable is Exception) {
                     exceptionMapper.handle(throwable, ctx)

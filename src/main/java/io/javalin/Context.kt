@@ -48,6 +48,9 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     /** Gets an attribute from the Javalin instance serving the request */
     fun <T> appAttribute(clazz: Class<T>): T = javalin.attribute(clazz) as T
 
+    /** Sets the async timeout for the request (only applicable when setting Future results */
+    fun asyncTimeout(timeout: Long) = attribute("javalin-async-timeout", timeout)
+
     /**
      * Gets cookie store value for specified key.
      * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
