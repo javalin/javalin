@@ -53,7 +53,6 @@ class ExceptionMapper {
             }
             superclass = superclass.superclass
         }
-        this.exceptionMap[exceptionClass] = null // nothing was found, avoid search next time
         return null
     }
 
