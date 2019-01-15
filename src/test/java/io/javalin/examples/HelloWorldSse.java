@@ -7,7 +7,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.serversentevent.EventSource;
+import io.javalin.serversentevent.SseClient;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -16,17 +16,17 @@ public class HelloWorldSse {
 
     public static void main(String[] args) throws InterruptedException {
 
-        Queue<EventSource> eventSources = new ConcurrentLinkedQueue<>();
+        Queue<SseClient> clients = new ConcurrentLinkedQueue<>();
 
         Javalin app = Javalin.create().start(7000);
-        app.get("/", ctx -> ctx.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));"));
-        app.sse("/sse", sse -> {
-            eventSources.add(sse);
-            sse.onClose(() -> eventSources.remove(sse));
+        app.get("/", ctx -> ctx.html("<script>new SseClient('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));"));
+        app.sse("/sse", client -> {
+            clients.add(client);
+            client.onClose(() -> clients.remove(client));
         });
 
         while (true) {
-            for (EventSource sse : eventSources) {
+            for (SseClient sse : clients) {
                 sse.sendEvent("hi", "hello world");
             }
             TimeUnit.SECONDS.sleep(1);

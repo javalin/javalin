@@ -7,7 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.serversentevent.EventSource
+import io.javalin.serversentevent.SseClient
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -16,30 +16,30 @@ import java.util.concurrent.TimeUnit
 fun main(args: Array<String>) {
 
     val tp = QueuedThreadPool(8, 2, 60_000)
-    val counterSse = ConcurrentLinkedQueue<EventSource>()
-    val statsSse = ConcurrentLinkedQueue<EventSource>()
+    val counterClients = ConcurrentLinkedQueue<SseClient>()
+    val statsClients = ConcurrentLinkedQueue<SseClient>()
 
     Javalin.create().apply {
         enableStaticFiles("/public")
         server { Server(tp) }
         get("/") { it.redirect("/sse/sse-example.html") }
-        sse("/sse-counter") { sse ->
-            counterSse.add(sse)
-            sse.onClose { counterSse.remove(sse) }
+        sse("/sse-counter") { client ->
+            counterClients.add(client)
+            client.onClose { counterClients.remove(client) }
         }
-        sse("/sse-stats") { sse ->
-            statsSse.add(sse)
-            sse.onClose { statsSse.remove(sse) }
+        sse("/sse-stats") { eventSource ->
+            statsClients.add(eventSource)
+            eventSource.onClose { statsClients.remove(eventSource) }
         }
     }.start(7000)
 
     for (counter in 1..999) {
-        counterSse.forEach {
+        counterClients.forEach {
             it.sendEvent("Counter: $counter") // send as "message"
             it.sendEvent("counter", "Counter: $counter", 1.toString())
         }
-        statsSse.forEach {
-            it.sendEvent("stats", "Clients: ${counterSse.size + statsSse.size}, Threads: ${tp.busyThreads}/${tp.threads}", 999.toString())
+        statsClients.forEach {
+            it.sendEvent("stats", "Clients: ${counterClients.size + statsClients.size}, Threads: ${tp.busyThreads}/${tp.threads}", 999.toString())
         }
         TimeUnit.SECONDS.sleep(1)
     }

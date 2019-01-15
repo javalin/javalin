@@ -5,7 +5,7 @@ import io.javalin.Handler
 import io.javalin.core.util.Header
 import java.util.function.Consumer
 
-class SseHandler(private val eventSourceConsumer: Consumer<EventSource>) : Handler {
+class SseHandler(private val clientConsumer: Consumer<SseClient>) : Handler {
     override fun handle(ctx: Context) {
         if (ctx.header(Header.ACCEPT) == "text/event-stream") {
             ctx.res.apply {
@@ -18,7 +18,7 @@ class SseHandler(private val eventSourceConsumer: Consumer<EventSource>) : Handl
             }
             ctx.req.startAsync(ctx.req, ctx.res)
             ctx.req.asyncContext.timeout = 0
-            eventSourceConsumer.accept(EventSource(ctx))
+            clientConsumer.accept(SseClient(ctx))
         }
     }
 }

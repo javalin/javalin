@@ -27,7 +27,7 @@ import io.javalin.security.AccessManager;
 import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
 import io.javalin.security.SecurityUtil;
-import io.javalin.serversentevent.EventSource;
+import io.javalin.serversentevent.SseClient;
 import io.javalin.serversentevent.SseHandler;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
@@ -827,16 +827,16 @@ public class Javalin {
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      */
-    public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse) {
-        return sse(path, sse, new HashSet<>());
+    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client) {
+        return sse(path, client, new HashSet<>());
     }
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      * Requires an access manager to be set on the instance.
      */
-    public Javalin sse(@NotNull String path, @NotNull Consumer<EventSource> sse, @NotNull Set<Role> permittedRoles) {
-        return get(path, new SseHandler(sse), permittedRoles);
+    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
+        return get(path, new SseHandler(client), permittedRoles);
     }
 
 }

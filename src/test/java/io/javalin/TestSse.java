@@ -1,7 +1,7 @@
 package io.javalin;
 
 import com.mashape.unirest.http.Headers;
-import io.javalin.serversentevent.EventSource;
+import io.javalin.serversentevent.SseClient;
 import io.javalin.util.TestUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public class TestSse {
     @Test
     public void multiple_clients() {
         TestUtil.test(shortTimeoutServer(), ((server, httpUtil) -> {
-            List<EventSource> eventsources = new ArrayList<>();
+            List<SseClient> eventsources = new ArrayList<>();
             server.sse(ssePath, sse -> {
                 eventsources.add(sse);
                 sse.sendEvent(event, data + eventsources.size());

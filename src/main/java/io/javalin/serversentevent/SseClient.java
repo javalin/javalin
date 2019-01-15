@@ -2,13 +2,13 @@ package io.javalin.serversentevent;
 
 import io.javalin.Context;
 
-public class EventSource {
+public class SseClient {
 
     public final Context ctx;
     private Emitter emitter;
     private Runnable closeCallback = null;
 
-    public EventSource(Context ctx) {
+    public SseClient(Context ctx) {
         this.emitter = new Emitter(ctx.req.getAsyncContext());
         this.ctx = ctx;
     }
