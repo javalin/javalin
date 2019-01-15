@@ -8,6 +8,7 @@ package io.javalin.core
 
 import io.javalin.Context
 import io.javalin.ExceptionHandler
+import io.javalin.HttpResponseException
 import io.javalin.InternalServerErrorResponse
 import io.javalin.core.util.HttpResponseExceptionMapper
 import org.slf4j.LoggerFactory
@@ -21,17 +22,17 @@ class ExceptionMapper {
 
     internal fun handle(exception: Exception, ctx: Context) {
         ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
-        val exceptionHandler = this.getHandler(exception.javaClass)
-
-        when {
-            exceptionHandler != null -> exceptionHandler.handle(exception, ctx)
-            HttpResponseExceptionMapper.canHandleException(exception) -> HttpResponseExceptionMapper.handleException(exception, ctx)
-            else -> {
+        if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
+            HttpResponseExceptionMapper.handle(exception, ctx)
+        } else {
+            val exceptionHandler = this.getHandler(exception.javaClass)
+            if (exceptionHandler != null) {
+                exceptionHandler.handle(exception, ctx)
+            } else {
                 log.warn("Uncaught exception", exception)
-                HttpResponseExceptionMapper.handleException(InternalServerErrorResponse(), ctx)
+                HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
             }
         }
-
         ctx.inExceptionHandler = false
     }
 
@@ -45,16 +46,17 @@ class ExceptionMapper {
         if (this.exceptionMap.containsKey(exceptionClass)) {
             return this.exceptionMap[exceptionClass]
         }
-        var superclass: Class<*>? = exceptionClass.superclass
+        var superclass = exceptionClass.superclass
         while (superclass != null) {
             if (this.exceptionMap.containsKey(superclass)) {
-                val matchingHandler = this.exceptionMap[superclass]
-                this.exceptionMap[exceptionClass] = matchingHandler // superclass was found, avoid search next time
-                return matchingHandler
+                return exceptionMap[superclass]
             }
             superclass = superclass.superclass
         }
         this.exceptionMap[exceptionClass] = null // nothing was found, avoid search next time
         return null
     }
+
+    private fun noUserHandler(e: Exception) =
+            this.exceptionMap[e::class.java] == null && this.exceptionMap[HttpResponseException::class.java] == null
 }

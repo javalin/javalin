@@ -63,4 +63,17 @@ class TestExceptionMapper {
         assertThat(http.getBody("/exception-priority"), `is`("Typed!"))
     }
 
+    @Test
+    fun `catch-all Exception mapper doesn't override 404`() = TestUtil.test { app, http ->
+        app.exception(Exception::class.java) { _, ctx -> ctx.status(500) }
+        assertThat(http.get("/not-found").status, `is`(404))
+    }
+
+    @Test
+    fun `catch-all Exception mapper doesn't override HttpResponseExceptions`() = TestUtil.test { app, http ->
+        app.exception(Exception::class.java) { _, ctx -> ctx.status(500) }
+        app.get("/") { throw BadRequestResponse() }
+        assertThat(http.get("/").status, `is`(400))
+    }
+
 }

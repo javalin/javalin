@@ -11,10 +11,11 @@ import java.util.concurrent.CompletionException
 
 object HttpResponseExceptionMapper {
 
-    fun canHandleException(e: Exception) =
-            (e is HttpResponseException || (e is CompletionException && e.cause is HttpResponseException))
+    fun canHandle(e: Exception) = isHttpResponseException(e) || (e is CompletionException && isHttpResponseException(e.cause!!))
 
-    fun handleException(exception: Exception, ctx: Context) {
+    private fun isHttpResponseException(t: Throwable) = HttpResponseException::class.java.isAssignableFrom(t::class.java) // is HttpResponseException or subclass
+
+    fun handle(exception: Exception, ctx: Context) {
         val e = unwrap(exception)
         if (ctx.header(Header.ACCEPT)?.contains("application/json") == true || ctx.res.contentType == "application/json") {
             ctx.status(e.status).result("""{
