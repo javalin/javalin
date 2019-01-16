@@ -330,6 +330,18 @@ class TestRequest {
     }
 
     @Test
+    fun `empty contextPath() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
+        assertThat(http.getBody("/"), `is`(""))
+    }
+
+    @Test
+    fun `contextPath() with value works`() = TestUtil.test(Javalin.create().contextPath("/ctx")) { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
+        assertThat(http.getBody("/ctx/"), `is`("/ctx"))
+    }
+
+    @Test
     fun `userAgent() works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.userAgent()!!) }
         assertThat(http.getBody("/"), `is`("unirest-java/1.3.11"))

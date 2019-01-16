@@ -300,6 +300,9 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     /** Gets the request url. */
     fun url(): String = servletRequest.requestURL.toString()
 
+    /** Gets the request context path. */
+    fun contextPath(): String = servletRequest.contextPath
+
     /** Gets the request user agent, or null. */
     fun userAgent(): String? = servletRequest.getHeader(Header.USER_AGENT)
 
