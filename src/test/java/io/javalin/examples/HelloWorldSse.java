@@ -19,15 +19,15 @@ public class HelloWorldSse {
         Queue<SseClient> clients = new ConcurrentLinkedQueue<>();
 
         Javalin app = Javalin.create().start(7000);
-        app.get("/", ctx -> ctx.html("<script>new SseClient('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));"));
+        app.get("/", ctx -> ctx.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));"));
         app.sse("/sse", client -> {
             clients.add(client);
             client.onClose(() -> clients.remove(client));
         });
 
         while (true) {
-            for (SseClient sse : clients) {
-                sse.sendEvent("hi", "hello world");
+            for (SseClient client : clients) {
+                client.sendEvent("hi", "hello world");
             }
             TimeUnit.SECONDS.sleep(1);
         }

@@ -16,7 +16,7 @@ fun main(args: Array<String>) {
     val clients = ConcurrentLinkedQueue<SseClient>()
 
     val app = Javalin.create().start(7000)
-    app.get("/") { ctx -> ctx.html("<script>new SseClient('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));") }
+    app.get("/") { ctx -> ctx.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));") }
 
     app.sse("/sse") { client ->
         clients.add(client) // save the sse to use outside of this context
