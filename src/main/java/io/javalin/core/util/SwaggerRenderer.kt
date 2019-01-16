@@ -27,9 +27,9 @@ class SwaggerRenderer(val filePath: String) : Handler {
             <head>
                 <meta charset="UTF-8">
                 <title>Swagger UI</title>
-                <link rel="icon" type="image/png" href="/webjars/swagger-ui/$swaggerVersion/favicon-16x16.png" sizes="16x16" />
-                <link rel="stylesheet" href="/webjars/swagger-ui/$swaggerVersion/swagger-ui.css" >
-                <script src="/webjars/swagger-ui/$swaggerVersion/swagger-ui-bundle.js"></script>
+                <link rel="icon" type="image/png" href="${ctx.contextPath()}/webjars/swagger-ui/$swaggerVersion/favicon-16x16.png" sizes="16x16" />
+                <link rel="stylesheet" href="${ctx.contextPath()}/webjars/swagger-ui/$swaggerVersion/swagger-ui.css" >
+                <script src="${ctx.contextPath()}/webjars/swagger-ui/$swaggerVersion/swagger-ui-bundle.js"></script>
                 <style>body{background:#fafafa;}</style>
             </head>
             <body>
