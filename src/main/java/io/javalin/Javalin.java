@@ -35,6 +35,7 @@ import io.javalin.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsEntry;
 import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsPathMatcher;
+
 import java.net.BindException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,11 +45,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import static io.javalin.security.SecurityUtil.roles;
 
 public class Javalin {
@@ -559,6 +562,14 @@ public class Javalin {
         return this;
     }
 
+    /**
+     * Adds a request handler for the specified handlerType and path to the instance.
+     * Requires an access manager to be set on the instance.
+     *
+     * @see AccessManager
+     * @see Javalin#accessManager(AccessManager)
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         boolean shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP); // don't wrap CORS options
         String prefixedPath = Util.prefixContextPath(contextPath, path);
@@ -568,6 +579,11 @@ public class Javalin {
         return this;
     }
 
+    /**
+     * Adds a request handler for the specified handlerType and path to the instance.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
         return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone)
     }
