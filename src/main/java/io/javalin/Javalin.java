@@ -35,7 +35,6 @@ import io.javalin.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsEntry;
 import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsPathMatcher;
-
 import java.net.BindException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,13 +44,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import static io.javalin.security.SecurityUtil.roles;
 
 public class Javalin {
@@ -565,6 +562,7 @@ public class Javalin {
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
      * Requires an access manager to be set on the instance.
+     * This is the method that all the verb-methods (get/post/put/etc) call.
      *
      * @see AccessManager
      * @see Javalin#accessManager(AccessManager)
@@ -581,6 +579,7 @@ public class Javalin {
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
+     * This is the method that all the verb-methods (get/post/put/etc) call.
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
