@@ -559,7 +559,7 @@ public class Javalin {
         return this;
     }
 
-    private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
+    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         boolean shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP); // don't wrap CORS options
         String prefixedPath = Util.prefixContextPath(contextPath, path);
         Handler protectedHandler = shouldWrap ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
@@ -568,7 +568,7 @@ public class Javalin {
         return this;
     }
 
-    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
+    public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
         return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone)
     }
 
