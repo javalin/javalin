@@ -8,10 +8,10 @@
 Javalin is a very lightweight web framework for Kotlin and Java which supports WebSockets, HTTP2 and async requests. Javalin’s main goals are simplicity, a great developer experience, and first class interoperability between Kotlin and Java.
 
 Javalin is more of a library than a framework. Some key points:
-* You *don't* need to extend anything
-* There are *no* @Annotations
-* There is *no* reflection
-* Simply speaking: there is *no* other magic; just code.
+* You don't need to extend anything
+* There are no @Annotations
+* There is no reflection
+* There is no other magic; just code.
 
 General information:
 * The project webpage is [javalin.io](https://javalin.io).
