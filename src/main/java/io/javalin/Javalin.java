@@ -46,6 +46,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +83,7 @@ public class Javalin {
     protected EventManager eventManager = new EventManager();
     protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
     protected Map<Class, Object> appAttributes = new HashMap<>();
+    protected Consumer<WebSocketServletFactory> wsFactoryConfig = WebSocketServletFactory::getPolicy;
 
     protected Javalin(Server jettyServer, SessionHandler jettySessionHandler) {
         this.jettyServer = jettyServer;
@@ -133,7 +135,16 @@ public class Javalin {
             eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
             try {
                 log.info("Starting Javalin ...");
-                port = JettyServerUtil.initialize(jettyServer, jettySessionHandler, port, contextPath, createServlet(), wsPathMatcher, log);
+                port = JettyServerUtil.initialize(
+                    jettyServer,
+                    jettySessionHandler,
+                    port,
+                    contextPath,
+                    createServlet(),
+                    wsPathMatcher,
+                    wsFactoryConfig,
+                    log
+                );
                 log.info("Javalin has started \\o/");
                 started = true;
                 eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
@@ -249,6 +260,16 @@ public class Javalin {
     public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
         jettySessionHandler = Util.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler);
+        return this;
+    }
+
+    /**
+     * Configure instance to use a custom jetty WebSocket servlet.
+     * The method must be called before {@link Javalin#start()}.
+     */
+    public Javalin wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
+        ensureActionIsPerformedBeforeServerStart("Setting a custom WebSocket factory config");
+        this.wsFactoryConfig = wsFactoryConfig;
         return this;
     }
 

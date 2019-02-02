@@ -23,6 +23,7 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.Logger
 import java.io.ByteArrayInputStream
 import java.net.BindException
+import java.util.function.Consumer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -46,6 +47,7 @@ object JettyServerUtil {
             contextPath: String,
             javalinServlet: JavalinServlet,
             wsPathMatcher: WsPathMatcher,
+            wsFactoryConfig: Consumer<WebSocketServletFactory>,
             log: Logger
     ): Int {
 
@@ -71,6 +73,7 @@ object JettyServerUtil {
         val webSocketHandler = ServletContextHandler(nullParent, contextPath).apply {
             addServlet(ServletHolder(object : WebSocketServlet() {
                 override fun configure(factory: WebSocketServletFactory) {
+                    wsFactoryConfig.accept(factory)
                     factory.creator = WebSocketCreator { req, res ->
                         wsPathMatcher.findEntry(req) ?: res.sendError(404, "WebSocket handler not found")
                         wsPathMatcher // this is a long-lived object handling multiple connections
