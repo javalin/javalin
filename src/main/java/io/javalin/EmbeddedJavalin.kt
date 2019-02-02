@@ -2,8 +2,10 @@ package io.javalin
 
 import io.javalin.core.JavalinServlet
 import io.javalin.core.util.Util
+import io.javalin.websocket.WsHandler
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 /**
@@ -55,5 +57,7 @@ class EmbeddedJavalin : Javalin(null, null) {
     override fun sessionHandler(sessionHandler: Supplier<SessionHandler>) = notAvailable("sessionHandler()")
     override fun start() = notAvailable("start()")
     override fun stop() = notAvailable("stop()")
+    override fun ws(path: String, ws: Consumer<WsHandler>) = notAvailable("WebSockets functionality")
+    override fun wsLogger(ws: Consumer<WsHandler>) = notAvailable("WebSockets functionality")
     private fun notAvailable(action: String): Nothing = throw RuntimeException("$action is not available in standalone mode")
 }
