@@ -98,6 +98,24 @@ class TestCustomJetty {
         File(baseDir, "javalin-session-store-for-test").deleteRecursively()
     }
 
+    @Test
+    fun `custom WebSocketServletFactory works`() {
+        val server = Server()
+        val app = Javalin.create()
+                .wsFactoryConfig { ws ->
+                    ws.policy.maxTextMessageSize = 987654
+                    ws.policy.maxTextMessageBufferSize = 123456
+                }
+                .server { server }
+                .start()
+        app.stop()
+        val wsHandler = (((server.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
+        app.stop()
+        assertThat(987654, `is` (987654)) // TODO: Check that prop is set
+        val baseDir = File(System.getProperty("java.io.tmpdir"))
+        File(baseDir, "javalin-session-store-for-test").deleteRecursively()
+    }
+
     @Test(expected = IllegalStateException::class)
     fun `invalid SessionHandler gets handled`() {
         Javalin.create().sessionHandler { SessionHandler() }
