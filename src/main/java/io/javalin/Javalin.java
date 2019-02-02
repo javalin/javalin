@@ -264,7 +264,7 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to use a custom jetty WebSocket servlet.
+     * Configure the WebSocketServletFactory of the instance
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
