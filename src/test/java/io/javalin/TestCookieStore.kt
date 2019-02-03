@@ -8,8 +8,7 @@ package io.javalin
 
 import io.javalin.rendering.template.TemplateUtil
 import io.javalin.util.TestUtil
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.*
 
@@ -23,7 +22,7 @@ class TestCookieStore {
                 ctx.result("Got stored value from different handler")
             }
         }
-        assertThat(http.getBody("/cookie-store"), `is`("Got stored value from different handler"))
+        assertThat(http.getBody("/cookie-store")).isEqualTo("Got stored value from different handler")
     }
 
     @Test
@@ -33,7 +32,7 @@ class TestCookieStore {
         app.get("/cookie-checker") { ctx -> ctx.result("stored: " + ctx.cookie("javalin-cookie-store")) }
         http.getBody("/cookie-storer")
         http.getBody("/cookie-clearer")
-        assertThat(http.getBody("/cookie-checker"), `is`("stored: null"))
+        assertThat(http.getBody("/cookie-checker")).isEqualTo("stored: null")
     }
 
     @Test
@@ -45,7 +44,7 @@ class TestCookieStore {
             }
         }
         http.getBody("/cookie-storer")
-        assertThat(http.getBody("/cookie-reader"), `is`("Got stored value from different request"))
+        assertThat(http.getBody("/cookie-reader")).isEqualTo("Got stored value from different request")
     }
 
     @Test
@@ -59,7 +58,7 @@ class TestCookieStore {
         }
         http.getBody("/cookie-storer")
         http.getBody("/cookie-overwriter")
-        assertThat(http.getBody("/cookie-reader"), `is`("Overwrote cookie from previous request"))
+        assertThat(http.getBody("/cookie-reader")).isEqualTo("Overwrote cookie from previous request")
     }
 
     @Test
@@ -80,7 +79,7 @@ class TestCookieStore {
             ctx.result("$s $i $d $l $m")
         }
         http.getBody("/cookie-storer")
-        assertThat(http.getBody("/cookie-reader"), `is`("Hello world! 42 42.0 [One, Two, Three] {K1=V, K2=1000.0, K3=[One, Two, Three]}"))
+        assertThat(http.getBody("/cookie-reader")).isEqualTo("Hello world! 42 42.0 [One, Two, Three] {K1=V, K2=1000.0, K3=[One, Two, Three]}")
     }
 
 }

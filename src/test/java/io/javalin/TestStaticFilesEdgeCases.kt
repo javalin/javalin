@@ -7,8 +7,7 @@
 package io.javalin
 
 import io.javalin.staticfiles.Location
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File
 
@@ -39,7 +38,7 @@ class TestStaticFilesEdgeCases {
     private fun doTest(failureExpected: Boolean, app: Javalin) {
         var failed = false
         app.event(JavalinEvent.SERVER_START_FAILED) { failed = true }.start(0).stop()
-        assertThat(failed, `is`(failureExpected))
+        assertThat(failed).isEqualTo(failureExpected)
     }
 
 }

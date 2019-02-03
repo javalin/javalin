@@ -8,8 +8,7 @@
 package io.javalin
 
 import io.javalin.util.TestUtil
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.ByteArrayInputStream
 
@@ -18,7 +17,7 @@ class TestBodyReading {
     @Test
     fun `reading body as bytes works`() = TestUtil.test { app, http ->
         app.post("/body-reader") { ctx -> ctx.result(ByteArrayInputStream(ctx.bodyAsBytes())) }
-        assertThat(http.post("/body-reader").body("my-body").asString().body, `is`("my-body"))
+        assertThat(http.post("/body-reader").body("my-body").asString().body).isEqualTo("my-body")
     }
 
     @Test
@@ -28,7 +27,7 @@ class TestBodyReading {
                 .queryString("qp", "queryparam")
                 .body("body")
                 .asString()
-        assertThat(response.body, `is`("body|queryparam"))
+        assertThat(response.body).isEqualTo("body|queryparam")
     }
 
     @Test
@@ -38,21 +37,21 @@ class TestBodyReading {
                 .queryString("qp", "queryparam")
                 .body("body")
                 .asString()
-        assertThat(response.body, `is`("queryparam|body"))
+        assertThat(response.body).isEqualTo("queryparam|body")
     }
 
     @Test
     fun `reading form-params then body works`() = TestUtil.test { app, http ->
         app.post("/body-reader") { ctx -> ctx.result(ctx.formParam("username")!! + "|" + ctx.body()) }
         val response = http.post("/body-reader").body("username=some-user").asString()
-        assertThat(response.body, `is`("some-user|username=some-user"))
+        assertThat(response.body).isEqualTo("some-user|username=some-user")
     }
 
     @Test
     fun `reading body then form-params works`() = TestUtil.test { app, http ->
         app.post("/body-reader") { ctx -> ctx.result(ctx.body() + "|" + ctx.formParam("username")!!) }
         val response = http.post("/body-reader").body("username=some-user").asString()
-        assertThat(response.body, `is`("username=some-user|some-user"))
+        assertThat(response.body).isEqualTo("username=some-user|some-user")
     }
 
     @Test
@@ -61,7 +60,7 @@ class TestBodyReading {
         val responseBody = http.post("/unicode")
                 .body("unicode=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
                 .asString().body
-        assertThat(responseBody, `is`("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"))
+        assertThat(responseBody).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
     }
 
     @Test // not sure why this does so much...
@@ -78,7 +77,7 @@ class TestBodyReading {
         }
         val params = "a=1&a=2&a=3&b=1&b=2&c=1&d=&e&f=%28%23%29"
         val response = http.post("/body-reader?$params").body(params).asString()
-        assertThat(response.body, `is`("a: 1, as: [1, 2, 3]. b: 1, bs: [1, 2]. c: 1, cs: [1]. d: , ds: []. e: , es: []. f: (#), fs: [(#)]"))
+        assertThat(response.body).isEqualTo("a: 1, as: [1, 2, 3]. b: 1, bs: [1, 2]. c: 1, cs: [1]. d: , ds: []. e: , es: []. f: (#), fs: [(#)]")
     }
 
 }

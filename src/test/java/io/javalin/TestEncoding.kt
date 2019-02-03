@@ -10,9 +10,7 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.util.TestUtil
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.containsString
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.net.URLEncoder
 
@@ -21,25 +19,25 @@ class TestEncoding {
     @Test
     fun `unicode path-params work`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        assertThat(http.getBody("/æøå"), `is`("æøå"))
-        assertThat(http.getBody("/♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"), `is`("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"))
-        assertThat(http.getBody("/こんにちは"), `is`("こんにちは"))
+        assertThat(http.getBody("/æøå")).isEqualTo("æøå")
+        assertThat(http.getBody("/♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
+        assertThat(http.getBody("/こんにちは")).isEqualTo("こんにちは")
     }
 
     @Test
     fun `unicode query-params work`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
-        assertThat(http.getBody("/?qp=æøå"), `is`("æøå"))
-        assertThat(http.getBody("/?qp=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"), `is`("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟"))
-        assertThat(http.getBody("/?qp=こんにちは"), `is`("こんにちは"))
+        assertThat(http.getBody("/?qp=æøå")).isEqualTo("æøå")
+        assertThat(http.getBody("/?qp=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
+        assertThat(http.getBody("/?qp=こんにちは")).isEqualTo("こんにちは")
     }
 
     @Test
     fun `URLEncoded query-params work`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
-        assertThat(http.getBody("/?qp=" + "8%3A00+PM"), `is`("8:00 PM"))
+        assertThat(http.getBody("/?qp=" + "8%3A00+PM")).isEqualTo("8:00 PM")
         val encoded = URLEncoder.encode("!#$&'()*+,/:;=?@[]", "UTF-8")
-        assertThat(http.getBody("/?qp=$encoded"), `is`("!#$&'()*+,/:;=?@[]"))
+        assertThat(http.getBody("/?qp=$encoded")).isEqualTo("!#$&'()*+,/:;=?@[]")
     }
 
     @Test
@@ -49,7 +47,7 @@ class TestEncoding {
                 .post(http.origin)
                 .body("qp=8%3A00+PM")
                 .asString()
-        assertThat(response.body, `is`("8:00 PM"))
+        assertThat(response.body).isEqualTo("8:00 PM")
     }
 
     @Test
@@ -57,18 +55,18 @@ class TestEncoding {
         app.get("/text") { ctx -> ctx.result("суп из капусты") }
         app.get("/json") { ctx -> ctx.json("白菜湯") }
         app.get("/html") { ctx -> ctx.html("kålsuppe") }
-        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE), `is`("text/plain"))
-        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE), `is`("application/json"))
-        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE), `is`("text/html"))
-        assertThat(http.getBody("/text"), `is`("суп из капусты"))
-        assertThat(http.getBody("/json"), `is`("\"白菜湯\""))
-        assertThat(http.getBody("/html"), `is`("kålsuppe"))
+        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/plain")
+        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
+        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/html")
+        assertThat(http.getBody("/text")).isEqualTo("суп из капусты")
+        assertThat(http.getBody("/json")).isEqualTo("\"白菜湯\"")
+        assertThat(http.getBody("/html")).isEqualTo("kålsuppe")
     }
 
     @Test
     fun `setting a default content-type works`() = TestUtil.test(Javalin.create().defaultContentType("application/json")) { app, http ->
         app.get("/default") { ctx -> ctx.result("not json") }
-        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE), containsString("application/json"))
+        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains("application/json")
     }
 
     @Test
@@ -77,8 +75,8 @@ class TestEncoding {
             ctx.res.characterEncoding = "utf-8"
             ctx.res.contentType = "text/html"
         }
-        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE), containsString("utf-8"))
-        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE), containsString("text/html"))
+        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("utf-8")
+        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
     }
 
 }

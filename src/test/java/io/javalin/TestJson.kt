@@ -16,8 +16,7 @@ import io.javalin.misc.CustomMapper
 import io.javalin.misc.NonSerializableObject
 import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 
@@ -31,20 +30,25 @@ class TestJson {
     @Test
     fun `json-mapper maps object to json`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(SerializeableObject()) }
-        assertThat(http.getBody("/hello"), `is`(CustomMapper().writeValueAsString(SerializeableObject())))
+        assertThat(http.getBody("/hello")).isEqualTo(CustomMapper().writeValueAsString(SerializeableObject()))
     }
 
     @Test
     fun `json-mapper maps String to json`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json("\"ok\"") }
-        assertThat(http.getBody("/hello"), `is`("\"\\\"ok\\\"\""))
+        assertThat(http.getBody("/hello")).isEqualTo("\"\\\"ok\\\"\"")
     }
 
     @Test
     fun `json-mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(NonSerializableObject()) }
-        assertThat(http.get("/hello").status, `is`(500))
-        assertThat(http.getBody("/hello"), `is`("{\n    \"title\": \"Internal server error\",\n    \"status\": 500,\n    \"type\": \"https://javalin.io/documentation#internalservererrorresponse\",\n    \"details\": []\n}"))
+        assertThat(http.get("/hello").status).isEqualTo(500)
+        assertThat(http.getBody("/hello")).isEqualTo("""{
+                |    "title": "Internal server error",
+                |    "status": 500,
+                |    "type": "https://javalin.io/documentation#internalservererrorresponse",
+                |    "details": []
+                |}""".trimMargin())
     }
 
     @Test
@@ -54,14 +58,14 @@ class TestJson {
             ctx.result("success")
         }
         val jsonString = JavalinJackson.toJson(SerializeableObject())
-        assertThat(http.post("/hello").body(jsonString).asString().body, `is`("success"))
+        assertThat(http.post("/hello").body(jsonString).asString().body).isEqualTo("success")
     }
 
     @Test
     fun `json-mapper throws when mapping json to unmappable object`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(ctx.body<NonSerializableObject>().javaClass.simpleName) }
-        assertThat(http.get("/hello").status, `is`(500))
-        assertThat(http.getBody("/hello"), `is`("Internal server error"))
+        assertThat(http.get("/hello").status).isEqualTo(500)
+        assertThat(http.getBody("/hello")).isEqualTo("Internal server error")
     }
 
     @Test
@@ -70,7 +74,7 @@ class TestJson {
             override fun map(obj: Any) = "Silly mapper"
         }
         app.get("/") { ctx -> ctx.json("Test") }
-        assertThat(http.getBody("/"), `is`("Silly mapper"))
+        assertThat(http.getBody("/")).isEqualTo("Silly mapper")
     }
 
     @Test
@@ -80,7 +84,7 @@ class TestJson {
             override fun map(obj: Any) = gson.toJson(obj)
         }
         app.get("/") { ctx -> ctx.json(SerializeableObject()) }
-        assertThat(http.getBody("/"), `is`(gson.toJson(SerializeableObject())))
+        assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializeableObject()))
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -95,7 +99,7 @@ class TestJson {
                 ctx.result(sillyString)
             }
         }
-        assertThat(Unirest.post("${http.origin}/").body("{}").asString().body, `is`(sillyString))
+        assertThat(Unirest.post("${http.origin}/").body("{}").asString().body).isEqualTo(sillyString)
     }
 
     @Test
@@ -108,15 +112,15 @@ class TestJson {
             ctx.bodyAsClass(SerializeableObject::class.java)
             ctx.result("success")
         }
-        assertThat(http.post("/").body(gson.toJson(SerializeableObject())).asString().body, `is`("success"))
+        assertThat(http.post("/").body(gson.toJson(SerializeableObject())).asString().body).isEqualTo("success")
     }
 
     @Test
     fun `can use JavalinJson as an object-mapper`() {
         val mapped = JavalinJson.toJson(SerializeableObject())
         val mappedBack = JavalinJson.fromJson(mapped, SerializeableObject::class.java)
-        assertThat(SerializeableObject().value1, `is`(mappedBack.value1))
-        assertThat(SerializeableObject().value2, `is`(mappedBack.value2))
+        assertThat(SerializeableObject().value1).isEqualTo(mappedBack.value1)
+        assertThat(SerializeableObject().value2).isEqualTo(mappedBack.value2)
     }
 
 }

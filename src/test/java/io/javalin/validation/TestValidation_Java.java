@@ -9,9 +9,7 @@ package io.javalin.validation;
 import java.time.Instant;
 import org.junit.Test;
 import static io.javalin.validation.JavalinValidation.validate;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestValidation_Java {
 
@@ -20,20 +18,20 @@ public class TestValidation_Java {
         JavalinValidation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
         String intString = "123";
         int myInt = validate(intString).asClass(Integer.class).getOrThrow();
-        assertThat(myInt, is(123));
+        assertThat(myInt).isEqualTo(123);
 
         Instant fromDate = validate("1262347200000").asClass(Instant.class).getOrThrow();
         Instant toDate = validate("1262347300000").asClass(Instant.class)
             .check(it -> it.isAfter(fromDate), "'to' has to be after 'from'")
             .getOrThrow();
 
-        assertThat(toDate.getEpochSecond(), is(1262347300L));
+        assertThat(toDate.getEpochSecond()).isEqualTo(1262347300L);
 
-        assertThat(validate("true").asBoolean().getOrThrow(), is(instanceOf(Boolean.class)));
-        assertThat(validate("1.2").asDouble().getOrThrow(), is(instanceOf(Double.class)));
-        assertThat(validate("1.2").asFloat().getOrThrow(), is(instanceOf(Float.class)));
-        assertThat(validate("123").asInt().getOrThrow(), is(instanceOf(Integer.class)));
-        assertThat(validate("123").asLong().getOrThrow(), is(instanceOf(Long.class)));
+        assertThat(validate("true").asBoolean().getOrThrow()).isInstanceOf(Boolean.class);
+        assertThat(validate("1.2").asDouble().getOrThrow()).isInstanceOf(Double.class);
+        assertThat(validate("1.2").asFloat().getOrThrow()).isInstanceOf(Float.class);
+        assertThat(validate("123").asInt().getOrThrow()).isInstanceOf(Integer.class);
+        assertThat(validate("123").asLong().getOrThrow()).isInstanceOf(Long.class);
     }
 
 }

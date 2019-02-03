@@ -20,8 +20,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static java.util.stream.IntStream.range;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StupidAsyncTest {
 
@@ -45,13 +44,13 @@ public class StupidAsyncTest {
 
         timeCallable("Async result", () -> {
             return new ForkJoinPool(100).submit(() -> range(0, 50).parallel().forEach(i -> {
-                assertThat(http.getBody("/test-async"), is("success"));
+                assertThat(http.getBody("/test-async")).isEqualTo("success");
             })).get();
         });
 
         timeCallable("Blocking result", () -> {
             return new ForkJoinPool(100).submit(() -> range(0, 50).parallel().forEach(i -> {
-                assertThat(http.getBody("/test-sync"), is("success"));
+                assertThat(http.getBody("/test-sync")).isEqualTo("success");
             })).get();
         });
 

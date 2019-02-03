@@ -9,8 +9,7 @@ import io.javalin.util.TestUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestExtension {
 
@@ -23,10 +22,10 @@ public class TestExtension {
                 });
                 app.get("/", ctx -> ctx.result("Hello world"));
             });
-            assertThat(http.get("/").getStatus(), is(200));
-            assertThat(http.get("/").getBody(), is("Hello world"));
-            assertThat(http.get("/protected").getStatus(), is(401));
-            assertThat(http.get("/protected").getBody(), is("Protected"));
+            assertThat(http.get("/").getStatus()).isEqualTo(200);
+            assertThat(http.get("/").getBody()).isEqualTo("Hello world");
+            assertThat(http.get("/protected").getStatus()).isEqualTo(401);
+            assertThat(http.get("/protected").getBody()).isEqualTo("Protected");
         });
     }
 
@@ -34,8 +33,8 @@ public class TestExtension {
     public void test_classExtension() {
         TestUtil.test((app, http) -> {
             app.register(new ClassExtension("Foobar!"));
-            assertThat(http.get("/").getStatus(), is(400));
-            assertThat(http.get("/").getBody(), is("Foobar!"));
+            assertThat(http.get("/").getStatus()).isEqualTo(400);
+            assertThat(http.get("/").getBody()).isEqualTo("Foobar!");
         });
     }
 
@@ -45,15 +44,15 @@ public class TestExtension {
         Javalin.create()
             .register(app -> values.add(1))
             .register(app -> values.add(2));
-        assertThat(values.get(0), is(1));
-        assertThat(values.get(1), is(2));
+        assertThat(values.get(0)).isEqualTo(1);
+        assertThat(values.get(1)).isEqualTo(2);
     }
 
     @Test
     public void test_secondExtensionDependsOnFirst() {
         Javalin.create()
             .register(app -> app.attribute(String.class, "Magic shared value"))
-            .register(app -> assertThat(app.attribute(String.class), is("Magic shared value")));
+            .register(app -> assertThat(app.attribute(String.class)).isEqualTo("Magic shared value"));
     }
 
     static class ClassExtension implements Extension {

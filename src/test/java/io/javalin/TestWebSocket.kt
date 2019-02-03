@@ -10,12 +10,9 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.util.TestUtil
 import io.javalin.websocket.WsSession
+import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.not
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.*
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
@@ -73,9 +70,9 @@ class TestWebSocket {
 
         // 3 clients and a lot of operations should only yield three unique identifiers for the clients
         val uniqueLog = HashSet(log)
-        assertThat(uniqueLog, hasSize(3))
+        assertThat(uniqueLog).hasSize(3)
         for (id in uniqueLog) {
-            assertThat(uniqueLog.count { it == id }, `is`(1))
+            assertThat(uniqueLog.count { it == id }).isEqualTo(1)
         }
     }
 
@@ -113,7 +110,7 @@ class TestWebSocket {
         doAndSleepWhile({ testClient1_2.close() }, { testClient1_2.isClosing })
         doAndSleepWhile({ testClient2_1.connect() }, { !testClient2_1.isOpen })
         doAndSleepWhile({ testClient2_1.close() }, { testClient2_1.isClosing })
-        assertThat(log, containsInAnyOrder(
+        assertThat(log).containsExactlyInAnyOrder(
                 "0 connected",
                 "1 connected",
                 "0 sent 'A' to server",
@@ -126,7 +123,7 @@ class TestWebSocket {
                 "1 disconnected",
                 "Connected to other endpoint",
                 "Disconnected from other endpoint"
-        ))
+        )
     }
 
     @Test
@@ -148,7 +145,7 @@ class TestWebSocket {
         doAndSleep { testClient.send(byteDataToSend2) }
         doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
 
-        assertThat(receivedBinaryData, containsInAnyOrder(byteDataToSend1, byteDataToSend2))
+        assertThat(receivedBinaryData).containsExactlyInAnyOrder(byteDataToSend1, byteDataToSend2)
     }
 
     @Test
@@ -159,8 +156,8 @@ class TestWebSocket {
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/%E2%99%94")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/another/test/long/path")))
-        assertThat(log, containsInAnyOrder("one", "♔", "another long path"))
-        assertThat(log, not(hasItem("catchall")))
+        assertThat(log).containsExactlyInAnyOrder("one", "♔", "another long path")
+        assertThat(log).doesNotContain("catchall")
     }
 
     @Test
@@ -172,7 +169,7 @@ class TestWebSocket {
                 .header("Sec-WebSocket-Key", "SGVsbG8sIHdvcmxkIQ==")
                 .header("Sec-WebSocket-Version", "13")
                 .asString()
-        assertThat(response.body, containsString("WebSocket handler not found"))
+        assertThat(response.body).containsSequence("WebSocket handler not found")
     }
 
     @Test
@@ -182,7 +179,7 @@ class TestWebSocket {
             ws.onClose { session, _, _ -> log.add("Closed connection from: " + session.host()!!) }
         }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), mapOf("Test" to "HeaderParameter")))
-        assertThat(log, containsInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost"))
+        assertThat(log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")
     }
 
     @Test
@@ -200,10 +197,10 @@ class TestWebSocket {
             }
         }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/channel-one?qp=just-a-qp&qps=1&qps=2")))
-        assertThat(matchedPath, `is`("/websocket/:channel"))
-        assertThat(pathParam, `is`("channel-one"))
-        assertThat(queryParam, `is`("just-a-qp"))
-        assertThat(queryParams, contains("1", "2"))
+        assertThat(matchedPath).isEqualTo("/websocket/:channel")
+        assertThat(pathParam).isEqualTo("channel-one")
+        assertThat(queryParam).isEqualTo("just-a-qp")
+        assertThat(queryParams).contains("1", "2")
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -222,8 +219,8 @@ class TestWebSocket {
         app.ws("/other-path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PaTh/my-param")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/other-path/My-PaRaM")))
-        assertThat(log, not(hasItem("my-param")))
-        assertThat(log, hasItem("My-PaRaM"))
+        assertThat(log).doesNotContain("my-param")
+        assertThat(log).contains("My-PaRaM")
     }
 
     @Test
@@ -231,12 +228,12 @@ class TestWebSocket {
         app.ws("/path/:param") {}
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/1")))
-        assertThat(log, containsInAnyOrder(
+        assertThat(log).containsExactlyInAnyOrder(
                 "0 connected",
                 "1 connected",
                 "0 disconnected",
                 "1 disconnected"
-        ))
+        )
     }
 
     @Test
@@ -244,7 +241,7 @@ class TestWebSocket {
         app.ws("/path/:param") {}
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/1?test=banana&hi=1&hi=2")))
-        assertThat(log.size, `is`(0))
+        assertThat(log.size).isEqualTo(0)
     }
 
     @Test
@@ -260,7 +257,7 @@ class TestWebSocket {
         }
 
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
-        assertThat(log.size, `is`(0))
+        assertThat(log.size).isEqualTo(0)
     }
 
     @Test
@@ -286,8 +283,8 @@ class TestWebSocket {
         doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
         app.stop()
 
-        assertThat(err!!.message, `is`(expectedMessage))
-        assertThat(err, instanceOf(MessageTooLargeException::class.java))
+        assertThat(err!!.message).isEqualTo(expectedMessage)
+        assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
     }
 
     internal inner class TestClient : WebSocketClient {

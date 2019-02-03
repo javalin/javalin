@@ -18,8 +18,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 // TODO: Fix on Windows so @Ignore can be removed
 @Ignore("For running manually")
@@ -55,7 +54,7 @@ public class TestGracefulShutdown {
         performBlockingRequest(app);
         Future<HttpResponse<String>> asyncResponse = performAsyncRequest(app);
         app.stop(); // request has not completed yet
-        assertThat(asyncResponse.get().getStatus(), equalTo(200));
+        assertEquals(asyncResponse.get().getStatus(), 200);
     }
 
     private Javalin sharedJavalinConfiguration() {

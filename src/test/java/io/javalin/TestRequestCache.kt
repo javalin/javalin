@@ -5,9 +5,8 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ByteArrayEntity
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.util.EntityUtils
-import org.hamcrest.MatcherAssert.assertThat
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import java.util.*
 
 class TestRequestCache {
 
@@ -20,7 +19,7 @@ class TestRequestCache {
         }
         val response = HttpClients.createDefault().execute(post)
         val result = EntityUtils.toByteArray(response.entity)
-        assertThat("Body should match", Arrays.equals(result, body))
+        assertThat(body).isEqualTo(result)
         response.close()
     }
 
@@ -32,6 +31,6 @@ class TestRequestCache {
             }
         }
         val response = http.post("/disabled-cache").body("test").asBinary()
-        assertThat("Request cache should be disabled", response.status == 200)
+        assertThat(response.status).isEqualTo(200)
     }
 }

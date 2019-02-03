@@ -9,8 +9,7 @@ package io.javalin
 import com.google.gson.GsonBuilder
 import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.MatcherAssert.assertThat
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestAppAttributes {
@@ -30,7 +29,7 @@ class TestAppAttributes {
 
     @Test
     fun `app attributes can be accessed through the app`() = TestUtil.test(attributedJavalin) { app, _ ->
-        assertThat(app.attribute(MyOtherThing::class.java).test, `is`("Test"))
+        assertThat(app.attribute(MyOtherThing::class.java).test).isEqualTo("Test")
     }
 
     @Test
@@ -40,7 +39,7 @@ class TestAppAttributes {
             val rendered = ctx.appAttribute(MyJson::class.java).render(SerializeableObject())
             ctx.result(rendered)
         }
-        assertThat(http.getBody("/"), `is`(gson.toJson(SerializeableObject())))
+        assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializeableObject()))
     }
 
 }

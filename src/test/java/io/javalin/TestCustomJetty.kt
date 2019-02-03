@@ -8,6 +8,7 @@
 package io.javalin
 
 import io.javalin.util.TestUtil
+import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.*
@@ -16,8 +17,6 @@ import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
@@ -35,12 +34,12 @@ class TestCustomJetty {
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 5
             for (i in 0 until requests) {
-                assertThat(http.getBody("/"), `is`("Hello World"))
-                assertThat(http.get("/not_there").status, `is`(404))
+                assertThat(http.getBody("/")).isEqualTo("Hello World")
+                assertThat(http.get("/not_there").status).isEqualTo(404)
             }
-            assertThat(statisticsHandler.dispatched, `is`(requests * 2))
-            assertThat(statisticsHandler.responses2xx, `is`(requests))
-            assertThat(statisticsHandler.responses4xx, `is`(requests))
+            assertThat(statisticsHandler.dispatched).isEqualTo(requests * 2)
+            assertThat(statisticsHandler.responses2xx).isEqualTo(requests)
+            assertThat(statisticsHandler.responses4xx).isEqualTo(requests)
         }
     }
 
@@ -54,13 +53,13 @@ class TestCustomJetty {
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 10
             for (i in 0 until requests) {
-                assertThat(http.getBody("/"), `is`("Hello World"))
-                assertThat(http.get("/not_there").status, `is`(404))
+                assertThat(http.getBody("/")).isEqualTo("Hello World")
+                assertThat(http.get("/not_there").status).isEqualTo(404)
             }
-            assertThat(handlerChain.dispatched, `is`(requests * 2))
-            assertThat(handlerChain.responses2xx, `is`(requests))
-            assertThat(handlerChain.responses4xx, `is`(requests))
-            assertThat(logCount.get(), `is`((requests * 2).toLong()))
+            assertThat(handlerChain.dispatched).isEqualTo(requests * 2)
+            assertThat(handlerChain.responses2xx).isEqualTo(requests)
+            assertThat(handlerChain.responses4xx).isEqualTo(requests)
+            assertThat(logCount.get()).isEqualTo((requests * 2).toLong())
         }
     }
 
@@ -73,12 +72,12 @@ class TestCustomJetty {
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 10
             for (i in 0 until requests) {
-                assertThat(http.getBody("/"), `is`("Hello World"))
-                assertThat(http.get("/not_there").status, `is`(404))
+                assertThat(http.getBody("/")).isEqualTo("Hello World")
+                assertThat(http.get("/not_there").status).isEqualTo(404)
             }
-            assertThat(handlerChain.dispatched, `is`(requests * 2))
-            assertThat(handlerChain.responses2xx, `is`(requests))
-            assertThat(handlerChain.responses4xx, `is`(requests))
+            assertThat(handlerChain.dispatched).isEqualTo(requests * 2)
+            assertThat(handlerChain.responses2xx).isEqualTo(requests)
+            assertThat(handlerChain.responses4xx).isEqualTo(requests)
         }
     }
 
@@ -91,7 +90,7 @@ class TestCustomJetty {
                 .server { server }
                 .start()
         val httpHandler = (((server.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
-        assertThat(httpHandler.sessionHandler, `is`(fileSessionHandler))
+        assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
         app.stop()
 
         val baseDir = File(System.getProperty("java.io.tmpdir"))
@@ -120,9 +119,9 @@ class TestCustomJetty {
 
         TestUtil.test(Javalin.create().server { server }) { app, http ->
             app.get("/bar") { ctx -> ctx.result("Hello") }
-            assertThat(http.getBody("/foo/foo"), `is`("yo dude"))
-            assertThat(http.get("/foo/baz").status, `is`(404))
-            assertThat(http.getBody("/bar"), `is`("Hello"))
+            assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
+            assertThat(http.get("/foo/baz").status).isEqualTo(404)
+            assertThat(http.getBody("/bar")).isEqualTo("Hello")
 
         }
     }

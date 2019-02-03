@@ -10,8 +10,7 @@ package io.javalin
 import com.mashape.unirest.http.HttpMethod
 import io.javalin.util.TestUtil
 import io.javalin.util.TestUtil.okHandler
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestHttpVerbs {
@@ -19,7 +18,7 @@ class TestHttpVerbs {
     @Test
     fun `basic hello world works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello World") }
-        assertThat(http.getBody("/hello"), `is`("Hello World"))
+        assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }
 
     @Test
@@ -32,21 +31,21 @@ class TestHttpVerbs {
         app.head("/mapped", okHandler)
         app.options("/mapped", okHandler)
         for (httpMethod in HttpMethod.values()) {
-            assertThat(http.call(httpMethod, "/mapped").status, `is`(200))
+            assertThat(http.call(httpMethod, "/mapped").status).isEqualTo(200)
         }
     }
 
     @Test
     fun `all unmapped verbs return 404`() = TestUtil.test { _, http ->
         for (httpMethod in HttpMethod.values()) {
-            assertThat(http.call(httpMethod, "/unmapped").status, `is`(404))
+            assertThat(http.call(httpMethod, "/unmapped").status).isEqualTo(404)
         }
     }
 
     @Test
     fun `HEAD returns 200 if GET is mapped`() = TestUtil.test { app, http ->
         app.get("/mapped", okHandler)
-        assertThat(http.call(HttpMethod.HEAD, "/mapped").status, `is`(200))
+        assertThat(http.call(HttpMethod.HEAD, "/mapped").status).isEqualTo(200)
     }
 
     @Test
@@ -57,7 +56,7 @@ class TestHttpVerbs {
         app.before { ctx -> ctx.result(ctx.resultString()!! + "4") }
         app.get("/hello") { ctx -> ctx.result(ctx.resultString()!! + "Hello") }
         app.after { ctx -> ctx.result(ctx.resultString()!! + "5") }
-        assertThat(http.getBody("/hello"), `is`("1234Hello5"))
+        assertThat(http.getBody("/hello")).isEqualTo("1234Hello5")
     }
 
 }

@@ -8,8 +8,7 @@
 package io.javalin
 
 import io.javalin.util.TestUtil
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestErrorMapper {
@@ -17,14 +16,14 @@ class TestErrorMapper {
     @Test
     fun `error-mapper works for 404`() = TestUtil.test { app, http ->
         app.error(404) { ctx -> ctx.result("Custom 404 page") }
-        assertThat(http.getBody("/unmapped"), `is`("Custom 404 page"))
+        assertThat(http.getBody("/unmapped")).isEqualTo("Custom 404 page")
     }
 
     @Test
     fun `error-mapper works for 500`() = TestUtil.test { app, http ->
         app.get("/exception") { throw RuntimeException() }
                 .error(500) { ctx -> ctx.result("Custom 500 page") }
-        assertThat(http.getBody("/exception"), `is`("Custom 500 page"))
+        assertThat(http.getBody("/exception")).isEqualTo("Custom 500 page")
     }
 
     @Test
@@ -32,7 +31,7 @@ class TestErrorMapper {
         app.get("/exception") { throw RuntimeException() }
                 .exception(Exception::class.java) { _, ctx -> ctx.status(500).result("Exception handled!") }
                 .error(500) { ctx -> ctx.result("Custom 500 page") }
-        assertThat(http.getBody("/exception"), `is`("Custom 500 page"))
+        assertThat(http.getBody("/exception")).isEqualTo("Custom 500 page")
     }
 
     @Test
@@ -43,7 +42,7 @@ class TestErrorMapper {
                     ctx.result("Custom 500 page")
                     throw RuntimeException()
                 }
-        assertThat(http.getBody("/exception"), `is`("Exception handled!"))
+        assertThat(http.getBody("/exception")).isEqualTo("Exception handled!")
     }
 
 }

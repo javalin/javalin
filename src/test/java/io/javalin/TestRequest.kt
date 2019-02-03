@@ -9,9 +9,7 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.util.TestUtil
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.containsString
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestRequest {
@@ -24,13 +22,13 @@ class TestRequest {
         app.get("/store-session") { ctx -> ctx.req.session.setAttribute("test", "tast") }
         app.get("/read-session") { ctx -> ctx.result(ctx.req.session.getAttribute("test") as String) }
         http.getBody("/store-session")
-        assertThat(http.getBody("/read-session"), `is`("tast"))
+        assertThat(http.getBody("/read-session")).isEqualTo("tast")
     }
 
     @Test
     fun `session-cookie is http-only`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx -> ctx.sessionAttribute("test", "tast") }
-        assertThat(http.get("/store-session").headers.getFirst("Set-Cookie").contains("HttpOnly"), `is`(true))
+        assertThat(http.get("/store-session").headers.getFirst("Set-Cookie").contains("HttpOnly")).isTrue()
     }
 
     @Test
@@ -38,7 +36,7 @@ class TestRequest {
         app.get("/store-session") { ctx -> ctx.sessionAttribute("test", "tast") }
         app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttribute<String>("test")!!) }
         http.getBody("/store-session")
-        assertThat(http.getBody("/read-session"), `is`("tast"))
+        assertThat(http.getBody("/read-session")).isEqualTo("tast")
     }
 
     @Test
@@ -49,7 +47,7 @@ class TestRequest {
         }
         app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttributeMap<Any>().toString()) }
         http.getBody("/store-session")
-        assertThat(http.getBody("/read-session"), `is`("{test=tast, hest=hast}"))
+        assertThat(http.getBody("/read-session")).isEqualTo("{test=tast, hest=hast}")
     }
 
     @Test
@@ -62,7 +60,7 @@ class TestRequest {
         }
         app.get("/read") { ctx -> ctx.result("${ctx.sessionAttribute<Any?>("tast")} and ${ctx.attribute<Any?>("test")}") }
         http.getBody("/store")
-        assertThat(http.getBody("/read"), `is`("null and null"))
+        assertThat(http.getBody("/read")).isEqualTo("null and null")
     }
 
     @Test
@@ -72,8 +70,8 @@ class TestRequest {
             ctx.attribute("hest", "hast")
             ctx.result(ctx.attributeMap<Any>().toString())
         }
-        assertThat(http.getBody("/attr-map"), containsString("test=tast"))
-        assertThat(http.getBody("/attr-map"), containsString("hest=hast"))
+        assertThat(http.getBody("/attr-map")).contains("test=tast")
+        assertThat(http.getBody("/attr-map")).contains("hest=hast")
     }
 
     /*
@@ -82,27 +80,27 @@ class TestRequest {
     @Test
     fun `single cookie returns null when missing`() = TestUtil.test { app, http ->
         app.get("/read-cookie-1") { ctx -> ctx.result("" + ctx.cookie("my-cookie")) }
-        assertThat(http.getBody("/read-cookie-1"), `is`("null"))
+        assertThat(http.getBody("/read-cookie-1")).isEqualTo("null")
     }
 
     @Test
     fun `single cookie works`() = TestUtil.test { app, http ->
         app.get("/read-cookie-2") { ctx -> ctx.result(ctx.cookie("my-cookie")!!) }
         val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
-        assertThat(response.body, `is`("my-cookie-value"))
+        assertThat(response.body).isEqualTo("my-cookie-value")
     }
 
     @Test
     fun `cookie-map returns empty when no cookies are set`() = TestUtil.test { app, http ->
         app.get("/read-cookie-3") { ctx -> ctx.result(ctx.cookieMap().toString()) }
-        assertThat(http.getBody("/read-cookie-3"), `is`("{}"))
+        assertThat(http.getBody("/read-cookie-3")).isEqualTo("{}")
     }
 
     @Test
     fun `cookie-map returns all cookies if cookies are set`() = TestUtil.test { app, http ->
         app.get("/read-cookie-4") { ctx -> ctx.result(ctx.cookieMap().toString()) }
         val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
-        assertThat(response.body, `is`("{k1=v1, k2=v2, k3=v3}"))
+        assertThat(response.body).isEqualTo("{k1=v1, k2=v2, k3=v3}")
     }
 
     /*
@@ -111,25 +109,25 @@ class TestRequest {
     @Test
     fun `pathParam() throws for invalid param`() = TestUtil.test { app, http ->
         app.get("/:my/:path") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        assertThat(http.getBody("/my/path"), `is`("Internal server error"))
+        assertThat(http.getBody("/my/path")).isEqualTo("Internal server error")
     }
 
     @Test
     fun `pathParam() works for multiple params`() = TestUtil.test { app, http ->
         app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")) }
-        assertThat(http.getBody("/my/path/params"), `is`("mypathparams"))
+        assertThat(http.getBody("/my/path/params")).isEqualTo("mypathparams")
     }
 
     @Test
     fun `pathParamMap() returns empty map if no path params present`() = TestUtil.test { app, http ->
         app.get("/my/path/params") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
-        assertThat(http.getBody("/my/path/params"), `is`("{}"))
+        assertThat(http.getBody("/my/path/params")).isEqualTo("{}")
     }
 
     @Test
     fun `pathParamMap() returns all present path-params`() = TestUtil.test { app, http ->
         app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
-        assertThat(http.getBody("/my/path/params"), `is`("{1=my, 2=path, 3=params}"))
+        assertThat(http.getBody("/my/path/params")).isEqualTo("{1=my, 2=path, 3=params}")
     }
 
     /*
@@ -138,49 +136,49 @@ class TestRequest {
     @Test
     fun `queryParam() returns null for unknown param`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp")) }
-        assertThat(http.getBody("/"), `is`("null"))
+        assertThat(http.getBody("/")).isEqualTo("null")
     }
 
     @Test
     fun `queryParam() defaults to default value`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp", "default")!!) }
-        assertThat(http.getBody("/"), `is`("default"))
+        assertThat(http.getBody("/")).isEqualTo("default")
     }
 
     @Test
     fun `queryParam() returns supplied values`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp1") + ctx.queryParam("qp2") + ctx.queryParam("qp3")) }
-        assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3"), `is`("123"))
+        assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3")).isEqualTo("123")
     }
 
     @Test
     fun `queryParams() returns empty list for unknown param`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParams("qp1").toString()) }
-        assertThat(http.getBody("/"), `is`("[]"))
+        assertThat(http.getBody("/")).isEqualTo("[]")
     }
 
     @Test
     fun `queryParams() returns list of supplied params`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParams("qp1").toString()) }
-        assertThat(http.getBody("/?qp1=1&qp1=2&qp1=3"), `is`("[1, 2, 3]"))
+        assertThat(http.getBody("/?qp1=1&qp1=2&qp1=3")).isEqualTo("[1, 2, 3]")
     }
 
     @Test
     fun `anyQueryParamNull() works when all params are null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("nullkey", "othernullkey")) }
-        assertThat(http.getBody("/"), `is`("true"))
+        assertThat(http.getBody("/")).isEqualTo("true")
     }
 
     @Test
     fun `anyQueryParamNull() works when some params are null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "nullkey")) }
-        assertThat(http.getBody("/?qp1=1&qp2=2"), `is`("true"))
+        assertThat(http.getBody("/?qp1=1&qp2=2")).isEqualTo("true")
     }
 
     @Test
     fun `anyQueryParamNull() works when all params are present`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "qp3")) }
-        assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3"), `is`("false"))
+        assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3")).isEqualTo("false")
     }
 
     /*
@@ -189,31 +187,31 @@ class TestRequest {
     @Test
     fun `formParam() returns supplied form-param`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp1")!!) }
-        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body, `is`("1"))
+        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("1")
     }
 
     @Test
     fun `formParam() returns null for unknown param`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp3")) }
-        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body, `is`("null"))
+        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("null")
     }
 
     @Test
     fun `formParam() returns defaults to default value`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp4", "4")!!) }
-        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body, `is`("4"))
+        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
     }
 
     @Test
     fun `anyFormParamNull() works when some params are null`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "nullkey")) }
-        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body, `is`("true"))
+        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("true")
     }
 
     @Test
     fun `anyFormParamNull() works when all params are present`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "fp3")) }
-        assertThat(http.post("/").body("fp1=1&fp2=2&fp3=3").asString().body, `is`("false"))
+        assertThat(http.post("/").body("fp1=1&fp2=2&fp3=3").asString().body).isEqualTo("false")
     }
 
     @Test
@@ -223,7 +221,7 @@ class TestRequest {
             ctx.result(basicAuthCredentials!!.username + "|" + basicAuthCredentials.password)
         }
         val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-password").asString()
-        assertThat(response.body, `is`("some-username|some-password"))
+        assertThat(response.body).isEqualTo("some-username|some-password")
     }
 
     @Test
@@ -231,9 +229,9 @@ class TestRequest {
         app.get("/matched") { ctx -> ctx.result(ctx.matchedPath()) }
         app.get("/matched/:path-param") { ctx -> ctx.result(ctx.matchedPath()) }
         app.after("/matched/:path-param/:param2") { ctx -> ctx.result(ctx.matchedPath()) }
-        assertThat(http.getBody("/matched"), `is`("/matched"))
-        assertThat(http.getBody("/matched/p1"), `is`("/matched/:path-param"))
-        assertThat(http.getBody("/matched/p1/p2"), `is`("/matched/:path-param/:param2"))
+        assertThat(http.getBody("/matched")).isEqualTo("/matched")
+        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/:path-param")
+        assertThat(http.getBody("/matched/p1/p2")).isEqualTo("/matched/:path-param/:param2")
     }
 
     @Test
@@ -242,13 +240,13 @@ class TestRequest {
         app.get("/matched/:path-param") { }
         app.get("/matched/:another-path-param") { }
         app.after { ctx -> ctx.result(ctx.endpointHandlerPath()) }
-        assertThat(http.getBody("/matched/p1"), `is`("/matched/:path-param"))
+        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/:path-param")
     }
 
     @Test
     fun `servlet-context is not null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(if (ctx.req.servletContext != null) "not-null" else "null") }
-        assertThat(http.getBody("/"), `is`("not-null"))
+        assertThat(http.getBody("/")).isEqualTo("not-null")
     }
 
     /**
@@ -260,7 +258,7 @@ class TestRequest {
             val (name, email, phone) = ctx.mapQueryParams("name", "email", "phone") ?: throw IllegalArgumentException()
             ctx.result("$name|$email|$phone")
         }
-        assertThat(http.getBody("/?name=some%20name&email=some%20email&phone=some%20phone"), `is`("some name|some email|some phone"))
+        assertThat(http.getBody("/?name=some%20name&email=some%20email&phone=some%20phone")).isEqualTo("some name|some email|some phone")
     }
 
     @Test
@@ -269,7 +267,7 @@ class TestRequest {
             val (name, missing) = ctx.mapQueryParams("name", "missing") ?: throw IllegalArgumentException()
             ctx.result("$name|$missing")
         }
-        assertThat(http.getBody("/?name=some%20name"), `is`("Internal server error"))
+        assertThat(http.getBody("/?name=some%20name")).isEqualTo("Internal server error")
     }
 
     @Test
@@ -278,7 +276,7 @@ class TestRequest {
             val (name, email, phone) = ctx.mapFormParams("name", "email", "phone") ?: throw IllegalArgumentException()
             ctx.result("$name|$email|$phone")
         }
-        assertThat(http.post("/").body("name=some%20name&email=some%20email&phone=some%20phone").asString().body, `is`("some name|some email|some phone"))
+        assertThat(http.post("/").body("name=some%20name&email=some%20email&phone=some%20phone").asString().body).isEqualTo("some name|some email|some phone")
     }
 
     @Test
@@ -287,7 +285,7 @@ class TestRequest {
             val (name, missing) = ctx.mapFormParams("missing") ?: throw IllegalArgumentException()
             ctx.result("$name|$missing")
         }
-        assertThat(http.post("/").body("name=some%20name").asString().body, `is`("Internal server error"))
+        assertThat(http.post("/").body("name=some%20name").asString().body).isEqualTo("Internal server error")
     }
 
     /**
@@ -296,55 +294,55 @@ class TestRequest {
     @Test
     fun `contentLength() works`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result(ctx.contentLength().toString()) }
-        assertThat(http.post("/").body("Hello").asString().body, `is`("5"))
+        assertThat(http.post("/").body("Hello").asString().body).isEqualTo("5")
     }
 
     @Test
     fun `host() works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.host()!!) }
-        assertThat(http.getBody("/"), `is`("localhost:" + app.port()))
+        assertThat(http.getBody("/")).isEqualTo("localhost:" + app.port())
     }
 
     @Test
     fun `ip() works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.ip()) }
-        assertThat(http.getBody("/"), `is`("127.0.0.1"))
+        assertThat(http.getBody("/")).isEqualTo("127.0.0.1")
     }
 
     @Test
     fun `protocol() works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.protocol()) }
-        assertThat(http.getBody("/"), `is`("HTTP/1.1"))
+        assertThat(http.getBody("/")).isEqualTo("HTTP/1.1")
     }
 
     @Test
     fun `scheme() works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.scheme()) }
-        assertThat(http.getBody("/"), `is`("http"))
+        assertThat(http.getBody("/")).isEqualTo("http")
     }
 
     @Test
     fun `url() works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.url()) }
-        assertThat(http.getBody("/"), `is`("http://localhost:" + app.port() + "/"))
+        assertThat(http.getBody("/")).isEqualTo("http://localhost:" + app.port() + "/")
     }
 
     @Test
     fun `empty contextPath() works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
-        assertThat(http.getBody("/"), `is`(""))
+        assertThat(http.getBody("/")).isEqualTo("")
     }
 
     @Test
     fun `contextPath() with value works`() = TestUtil.test(Javalin.create().contextPath("/ctx")) { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
-        assertThat(http.getBody("/ctx/"), `is`("/ctx"))
+        assertThat(http.getBody("/ctx/")).isEqualTo("/ctx")
     }
 
     @Test
     fun `userAgent() works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.userAgent()!!) }
-        assertThat(http.getBody("/"), `is`("unirest-java/1.3.11"))
+        assertThat(http.getBody("/")).isEqualTo("unirest-java/1.3.11")
     }
 
 }

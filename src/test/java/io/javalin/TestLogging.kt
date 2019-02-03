@@ -8,8 +8,7 @@ package io.javalin
 
 import io.javalin.util.HttpUtil
 import io.javalin.util.TestUtil
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.MatcherAssert.assertThat
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -37,8 +36,8 @@ class TestLogging {
         }
         app.start(0)
         val http = HttpUtil(app)
-        assertThat(http.getBody("/async"), `is`("Hello Async World!"))
-        assertThat(http.getBody("/blocking"), `is`("Hello Blocking World!"))
+        assertThat(http.getBody("/async")).isEqualTo("Hello Async World!")
+        assertThat(http.getBody("/blocking")).isEqualTo("Hello Blocking World!")
         app.stop()
     }
 
@@ -52,8 +51,8 @@ class TestLogging {
     fun `resultString is available in logger and can be read twice`() = TestUtil.test(bodyLoggingJavalin) { app, http ->
         app.get("/") { it.result("Hello") }
         http.get("/") // trigger log
-        assertThat(loggerLog[0], `is`("Hello"))
-        assertThat(loggerLog[1], `is`("Hello"))
+        assertThat(loggerLog[0]).isEqualTo("Hello")
+        assertThat(loggerLog[1]).isEqualTo("Hello")
     }
 
 }

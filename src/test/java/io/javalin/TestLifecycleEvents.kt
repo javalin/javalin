@@ -7,8 +7,7 @@
 
 package io.javalin
 
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.MatcherAssert.assertThat
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestLifecycleEvents {
@@ -24,7 +23,7 @@ class TestLifecycleEvents {
             event(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
             event(JavalinEvent.SERVER_STOPPED) { log += "Stopped" }
         }.start(0).stop()
-        assertThat(log, `is`("StartingStartedStoppingStoppingStoppingStopped"))
+        assertThat(log).isEqualTo("StartingStartedStoppingStoppingStoppingStopped")
     }
 
 }

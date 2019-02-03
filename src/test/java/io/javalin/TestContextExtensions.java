@@ -11,8 +11,7 @@ import com.google.gson.GsonBuilder;
 import io.javalin.misc.SerializeableObject;
 import io.javalin.util.TestUtil;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestContextExtensions {
 
@@ -22,7 +21,7 @@ public class TestContextExtensions {
             app.before(ctx -> ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx)));
             app.get("/extended", ctx -> ctx.use(MyJsonMapper.class).toJson(new SerializeableObject()));
             String expected = new GsonBuilder().create().toJson(new SerializeableObject());
-            assertThat(http.getBody("/extended"), is(expected));
+            assertThat(http.getBody("/extended")).isEqualTo(expected);
         });
     }
 

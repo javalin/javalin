@@ -12,9 +12,7 @@ import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.util.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.not
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.net.URLEncoder
 
@@ -35,15 +33,15 @@ class TestRouting {
         app.get("/*/unreachable") { ctx -> ctx.result("reached") }
         app.get("/*/*/:path-param") { ctx -> ctx.result("/" + ctx.splat(0) + "/" + ctx.splat(1) + "/" + ctx.pathParam("path-param")) }
         app.get("/*/*/:path-param/*") { ctx -> ctx.result("/" + ctx.splat(0) + "/" + ctx.splat(1) + "/" + ctx.pathParam("path-param") + "/" + ctx.splat(2)) }
-        assertThat(http.getBody("/"), `is`("/"))
-        assertThat(http.getBody("/path"), `is`("/path"))
-        assertThat(http.getBody("/path/p"), `is`("/path/p"))
-        assertThat(http.getBody("/path/p/s"), `is`("/path/p/s"))
-        assertThat(http.getBody("/s1/s2"), `is`("/s1/s2"))
-        assertThat(http.getBody("/s/unreachable"), not("reached"))
-        assertThat(http.getBody("/s1/s2/p"), `is`("/s1/s2/p"))
-        assertThat(http.getBody("/s1/s2/p/s3"), `is`("/s1/s2/p/s3"))
-        assertThat(http.getBody("/s/s/s/s"), `is`("/s/s/s/s"))
+        assertThat(http.getBody("/")).isEqualTo("/")
+        assertThat(http.getBody("/path")).isEqualTo("/path")
+        assertThat(http.getBody("/path/p")).isEqualTo("/path/p")
+        assertThat(http.getBody("/path/p/s")).isEqualTo("/path/p/s")
+        assertThat(http.getBody("/s1/s2")).isEqualTo("/s1/s2")
+        assertThat(http.getBody("/s/unreachable")).isNotEqualTo("reached")
+        assertThat(http.getBody("/s1/s2/p")).isEqualTo("/s1/s2/p")
+        assertThat(http.getBody("/s1/s2/p/s3")).isEqualTo("/s1/s2/p/s3")
+        assertThat(http.getBody("/s/s/s/s")).isEqualTo("/s/s/s/s")
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -54,35 +52,35 @@ class TestRouting {
     @Test
     fun `urls are case insensitive by default`() = TestUtil.test { app, http ->
         app.get("/my-url") { ctx -> ctx.result("OK") }
-        assertThat(http.getBody("/my-url"), `is`("OK"))
-        assertThat(http.getBody("/My-UrL"), `is`("OK"))
-        assertThat(http.getBody("/MY-URL"), `is`("OK"))
+        assertThat(http.getBody("/my-url")).isEqualTo("OK")
+        assertThat(http.getBody("/My-UrL")).isEqualTo("OK")
+        assertThat(http.getBody("/MY-URL")).isEqualTo("OK")
     }
 
     @Test
     fun `case sensitive urls work`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
         app.get("/My-Url") { ctx -> ctx.result("OK") }
-        assertThat(http.getBody("/MY-URL"), `is`("Not found"))
-        assertThat(http.getBody("/My-Url"), `is`("OK"))
+        assertThat(http.getBody("/MY-URL")).isEqualTo("Not found")
+        assertThat(http.getBody("/My-Url")).isEqualTo("OK")
     }
 
     @Test
     fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
         app.get("/path/:path-param/*") { ctx -> ctx.result("/" + ctx.pathParam("path-param") + "/" + ctx.splat(0)) }
-        assertThat(http.getBody("/PATH/P/S"), `is`("/P/S"))
+        assertThat(http.getBody("/PATH/P/S")).isEqualTo("/P/S")
     }
 
     @Test
     fun `extracting path-param and splat works case sensitive`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
         app.get("/:path-param/Path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
-        assertThat(http.getBody("/path-param/Path/Splat"), `is`("path-paramSplat"))
-        assertThat(http.getBody("/path-param/path/Splat"), `is`("Not found"))
+        assertThat(http.getBody("/path-param/Path/Splat")).isEqualTo("path-paramSplat")
+        assertThat(http.getBody("/path-param/path/Splat")).isEqualTo("Not found")
     }
 
     @Test
     fun `utf-8 encoded path-params work`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST", "UTF-8")), `is`("TE/ST"))
+        assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST", "UTF-8"))).isEqualTo("TE/ST")
     }
 
     @Test
@@ -93,28 +91,28 @@ class TestRouting {
                 + "/path/"
                 + URLEncoder.encode("/java/kotlin", "UTF-8")
         )
-        assertThat(responseBody, `is`("java/kotlin/java/kotlin"))
+        assertThat(responseBody).isEqualTo("java/kotlin/java/kotlin")
     }
 
     @Test
     fun `path-params work case-sensitive`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
         app.get("/:userId") { ctx -> ctx.result(ctx.pathParam("userId")) }
-        assertThat(http.getBody("/path-param"), `is`("path-param"))
+        assertThat(http.getBody("/path-param")).isEqualTo("path-param")
         app.get("/:a/:A") { ctx -> ctx.result("${ctx.pathParam("a")}-${ctx.pathParam("A")}") }
-        assertThat(http.getBody("/a/B"), `is`("a-B"))
+        assertThat(http.getBody("/a/B")).isEqualTo("a-B")
     }
 
     @Test
     fun `path-param values retain their casing`() = TestUtil.test { app, http ->
         app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        assertThat(http.getBody("/SomeCamelCasedValue"), `is`("SomeCamelCasedValue"))
+        assertThat(http.getBody("/SomeCamelCasedValue")).isEqualTo("SomeCamelCasedValue")
     }
 
     @Test
     fun `path regex works`() = TestUtil.test { app, http ->
         app.get("/:path-param/[0-9]+/") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        assertThat(http.getBody("/test/pathParam"), `is`("Not found"))
-        assertThat(http.getBody("/test/21"), `is`("test"))
+        assertThat(http.getBody("/test/pathParam")).isEqualTo("Not found")
+        assertThat(http.getBody("/test/21")).isEqualTo("test")
     }
 
     @Test
@@ -125,14 +123,14 @@ class TestRouting {
                 get { ctx -> ctx.result("test") }
             }
         }
-        assertThat(http.getBody("/test/path-param/"), `is`("path-param"))
-        assertThat(http.getBody("/test/"), `is`("test"))
+        assertThat(http.getBody("/test/path-param/")).isEqualTo("path-param")
+        assertThat(http.getBody("/test/")).isEqualTo("test")
     }
 
     @Test
     fun `getting splat-list works`() = TestUtil.test { app, http ->
         app.get("/*/*/*") { ctx -> ctx.result(ctx.splats().toString()) }
-        assertThat(http.getBody("/1/2/3"), `is`("[1, 2, 3]"))
+        assertThat(http.getBody("/1/2/3")).isEqualTo("[1, 2, 3]")
     }
 
 }

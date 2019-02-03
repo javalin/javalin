@@ -6,9 +6,8 @@ import io.javalin.util.TestUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
-import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class TestSse {
@@ -81,7 +80,7 @@ public class TestSse {
         TestUtil.test(shortTimeoutServer(), ((server, httpUtil) -> {
             server.sse(ssePath, sse -> sse.sendEvent(event, data));
             int status = httpUtil.sse(ssePath).get().getStatus();
-            assertThat(status, equalTo(200));
+            assertEquals(200, status);
         }));
     }
 
