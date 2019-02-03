@@ -10,6 +10,8 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.util.TestUtil
 import io.javalin.websocket.WsSession
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
@@ -259,6 +261,33 @@ class TestWebSocket {
 
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
         assertThat(log.size, `is`(0))
+    }
+
+    @Test
+    fun `custom WebSocketServletFactory works`() {
+        val server = Server()
+        var err: Throwable? = Exception("Bang")
+        val maxTextSize = 1
+        val textToSend = "This text is far too long."
+        val expectedMessage = "Text message size [${textToSend.length}] exceeds maximum size [$maxTextSize]"
+        val app = Javalin.create()
+                .wsFactoryConfig { ws ->
+                    ws.policy.maxTextMessageSize = maxTextSize
+                }
+                .ws("/ws") {ws ->
+                    ws.onError { _, throwable -> err = throwable }
+                }
+                .server { server }
+                .start()
+        val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/ws"))
+
+        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
+        doAndSleep { testClient.send(textToSend) }
+        doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
+        app.stop()
+
+        assertThat(err!!.message, `is`(expectedMessage))
+        assertThat(err, instanceOf(MessageTooLargeException::class.java))
     }
 
     internal inner class TestClient : WebSocketClient {
