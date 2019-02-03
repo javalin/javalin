@@ -271,10 +271,10 @@ class TestWebSocket {
         val textToSend = "This text is far too long."
         val expectedMessage = "Text message size [${textToSend.length}] exceeds maximum size [$maxTextSize]"
         val app = Javalin.create()
-                .wsFactoryConfig { ws ->
-                    ws.policy.maxTextMessageSize = maxTextSize
+                .wsFactoryConfig { wsFactory ->
+                    wsFactory.policy.maxTextMessageSize = maxTextSize
                 }
-                .ws("/ws") {ws ->
+                .ws("/ws") { ws ->
                     ws.onError { _, throwable -> err = throwable }
                 }
                 .server { server }
