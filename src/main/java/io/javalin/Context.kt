@@ -482,4 +482,20 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
         throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
 
+    /**
+     * This will add a header to the response
+     */
+    fun addResponseHeader(name: String, value: String) = servletResponse.addHeader(name, value)
+
+    /**
+     * This will add a data header to the response
+     */
+    fun addResponseHeader(name: String, value: Long) = servletResponse.addDateHeader(name, value)
+
+    /**
+     * this will add a int header to the response
+     */
+    fun addResponseHeader(name: String, value: Int) = servletResponse.addIntHeader(name, value)
+
+
 }
