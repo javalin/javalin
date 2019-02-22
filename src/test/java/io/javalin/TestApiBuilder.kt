@@ -175,6 +175,13 @@ class TestApiBuilder {
     }
 
     @Test(expected = IllegalArgumentException::class)
+    fun `CrudHandler rejects missing resource`() = TestUtil.test { app, http ->
+        app.routes {
+            crud("/foo/bar/users", UserController())
+        }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
     fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, http ->
         app.routes {
             crud("/:user-id", UserController())
