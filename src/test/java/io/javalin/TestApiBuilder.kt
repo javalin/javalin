@@ -16,6 +16,7 @@ import io.javalin.util.TestUtil
 import io.javalin.util.TestUtil.okHandler
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import java.lang.IllegalArgumentException
 
 class TestApiBuilder {
 
@@ -143,6 +144,48 @@ class TestApiBuilder {
         assertThat(Unirest.get(http.origin + "/s/users/myUser").asString().body).isEqualTo("My single user: myUser")
         assertThat(Unirest.patch(http.origin + "/s/users/myUser").asString().status).isEqualTo(204)
         assertThat(Unirest.delete(http.origin + "/s/users/myUser").asString().status).isEqualTo(204)
+    }
+
+    @Test
+    fun `CrudHandler works with long nested resources`() = TestUtil.test { app, http ->
+        app.routes {
+            crud("/foo/bar/users/:user-id", UserController())
+            path("/foo/baz") {
+                crud("/users/:user-id", UserController())
+            }
+        }
+        assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
+        assertThat(Unirest.post(http.origin + "/foo/bar/users").asString().status).isEqualTo(201)
+        assertThat(Unirest.get(http.origin + "/foo/bar/users/myUser").asString().body).isEqualTo("My single user: myUser")
+        assertThat(Unirest.patch(http.origin + "/foo/bar/users/myUser").asString().status).isEqualTo(204)
+        assertThat(Unirest.delete(http.origin + "/foo/bar/users/myUser").asString().status).isEqualTo(204)
+
+        assertThat(Unirest.get(http.origin + "/foo/baz/users").asString().body).isEqualTo("All my users")
+        assertThat(Unirest.post(http.origin + "/foo/baz/users").asString().status).isEqualTo(201)
+        assertThat(Unirest.get(http.origin + "/foo/baz/users/myUser").asString().body).isEqualTo("My single user: myUser")
+        assertThat(Unirest.patch(http.origin + "/foo/baz/users/myUser").asString().status).isEqualTo(204)
+        assertThat(Unirest.delete(http.origin + "/foo/baz/users/myUser").asString().status).isEqualTo(204)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `CrudHandler rejects resource in the middle`() = TestUtil.test { app, http ->
+        app.routes {
+            crud("/foo/bar/:user-id/users", UserController())
+        }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `CrudHandler rejects missing resource`() = TestUtil.test { app, http ->
+        app.routes {
+            crud("/foo/bar/users", UserController())
+        }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, http ->
+        app.routes {
+            crud("/:user-id", UserController())
+        }
     }
 
     @Test
