@@ -414,16 +414,13 @@ public class ApiBuilder {
      */
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
         path = path.startsWith("/") ? path : "/" + path;
-
-        if(path.startsWith("/:")) {
-           throw new IllegalArgumentException("The provided path is missing an actual resource base, try something like '/users/:user-id'");
+        if (path.startsWith("/:")) {
+            throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path e.g. '/users/:user-id'");
         }
-
-        if(!path.contains("/:") || path.lastIndexOf("/") > path.lastIndexOf("/:")) {
-            throw new IllegalArgumentException("The path for the crud handler expects a path-parameter at the end of the provided path e.g. '/users/:user-id'");
+        if (!path.contains("/:") || path.lastIndexOf("/") > path.lastIndexOf("/:")) {
+            throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path e.g. '/users/:user-id'");
         }
-
-        final String SEPARATOR = "/:";
+        String SEPARATOR = "/:";
         String resourceBase = path.substring(0, path.lastIndexOf(SEPARATOR));
         String resourceId = path.substring(path.lastIndexOf(SEPARATOR) + SEPARATOR.length());
         staticInstance().get(prefixPath(path), ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), permittedRoles);
