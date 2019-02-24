@@ -2,6 +2,7 @@ package io.javalin
 
 import io.javalin.core.JavalinServlet
 import io.javalin.core.util.Util
+import io.javalin.staticfiles.Location
 import io.javalin.websocket.WsHandler
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
@@ -49,6 +50,7 @@ class EmbeddedJavalin : Javalin(null, null) {
             resourceHandler = null // no jetty here
     )
 
+    override fun enableStaticFiles(path: String, location: Location) = notAvailable("enableStaticFiles()")
     override fun enableStaticFiles(classpathPath: String) = notAvailable("enableStaticFiles()")
     override fun enableWebJars() = notAvailable("enableWebJars()")
     override fun port() = notAvailable("port()")
