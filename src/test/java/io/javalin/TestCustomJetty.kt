@@ -7,8 +7,10 @@
 
 package io.javalin
 
+import io.javalin.util.TestServlet
 import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.*
@@ -84,7 +86,15 @@ class TestCustomJetty {
     @Test
     fun `custom SessionHandler works`() {
         val server = Server()
-        val fileSessionHandler = fileSessionHandler()
+        val fileSessionHandler = SessionHandler().apply {
+            httpOnly = true
+            sessionCache = DefaultSessionCache(this).apply {
+                sessionDataStore = FileSessionDataStore().apply {
+                    val baseDir = File(System.getProperty("java.io.tmpdir"))
+                    this.storeDir = File(baseDir, "javalin-session-store-for-test").apply { mkdir() }
+                }
+            }
+        }
         val app = Javalin.create()
                 .sessionHandler { fileSessionHandler }
                 .server { server }
@@ -126,13 +136,20 @@ class TestCustomJetty {
         }
     }
 
-    private fun fileSessionHandler() = SessionHandler().apply {
-        httpOnly = true
-        sessionCache = DefaultSessionCache(this).apply {
-            sessionDataStore = FileSessionDataStore().apply {
-                val baseDir = File(System.getProperty("java.io.tmpdir"))
-                this.storeDir = File(baseDir, "javalin-session-store-for-test").apply { mkdir() }
+    @Test
+    fun `custom Servlet works`() {
+        val server = Server().apply {
+            handler = ContextHandlerCollection().apply {
+                handlers = arrayOf<Handler>(ServletContextHandler().apply {
+                    contextPath = "/other-servlet"
+                    addServlet(TestServlet::class.java, "/")
+                })
             }
+        }
+        TestUtil.test(Javalin.create().server { server }) { app, http ->
+            app.get("/") { ctx -> ctx.result("Hello Javalin World!") }
+            assertThat(http.getBody("/")).contains("Hello Javalin World!")
+            assertThat(http.getBody("/other-servlet")).contains("Hello Servlet World!")
         }
     }
 
