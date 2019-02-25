@@ -16,13 +16,8 @@ import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
-import io.javalin.core.util.CorsBeforeHandler;
-import io.javalin.core.util.CorsOptionsHandler;
-import io.javalin.core.util.JettyServerUtil;
-import io.javalin.core.util.LogUtil;
-import io.javalin.core.util.RouteOverviewRenderer;
-import io.javalin.core.util.SinglePageHandler;
-import io.javalin.core.util.Util;
+import io.javalin.core.util.*;
+import io.javalin.metrics.JavalinMetrics;
 import io.javalin.security.AccessManager;
 import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
@@ -45,6 +40,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
@@ -74,6 +70,7 @@ public class Javalin {
     protected boolean started = false;
     protected AccessManager accessManager = SecurityUtil::noopAccessManager;
     protected RequestLogger requestLogger = null;
+    protected JavalinMetrics javalinMetrics = null;
 
     protected SinglePageHandler singlePageHandler = new SinglePageHandler();
     protected PathMatcher pathMatcher = new PathMatcher();
@@ -372,6 +369,15 @@ public class Javalin {
     public Javalin requestLogger(@NotNull RequestLogger requestLogger) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom request logger");
         this.requestLogger = requestLogger;
+        return this;
+    }
+
+    public Javalin enableMetrics() {
+        ensureActionIsPerformedBeforeServerStart("Enable application metrics");
+        Util.INSTANCE.ensureDependencyPresent(OptionalDependency.MICROMETER);
+        final StatisticsHandler statisticsHandler = new StatisticsHandler();
+        this.jettyServer.insertHandler(statisticsHandler);
+        this.javalinMetrics = new JavalinMetrics(statisticsHandler, this.jettyServer.getThreadPool());
         return this;
     }
 
