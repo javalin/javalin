@@ -16,7 +16,7 @@ public class JavalinMetrics {
     public final CompositeMeterRegistry registry;
 
     public JavalinMetrics(@NotNull StatisticsHandler jettyStatisticsHandler, @NotNull ThreadPool jettyThreadPool) {
-        registry  = Metrics.globalRegistry;
+        registry = Metrics.globalRegistry;
         registerStatisticsHandler(jettyStatisticsHandler);
         registerThreadPool(jettyThreadPool);
     }
