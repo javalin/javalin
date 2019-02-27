@@ -70,7 +70,6 @@ public class Javalin {
     protected boolean started = false;
     protected AccessManager accessManager = SecurityUtil::noopAccessManager;
     protected RequestLogger requestLogger = null;
-    protected JavalinMetrics javalinMetrics = null;
 
     protected SinglePageHandler singlePageHandler = new SinglePageHandler();
     protected PathMatcher pathMatcher = new PathMatcher();
@@ -377,7 +376,7 @@ public class Javalin {
         Util.INSTANCE.ensureDependencyPresent(OptionalDependency.MICROMETER);
         final StatisticsHandler statisticsHandler = new StatisticsHandler();
         this.jettyServer.insertHandler(statisticsHandler);
-        this.javalinMetrics = new JavalinMetrics(statisticsHandler, this.jettyServer.getThreadPool());
+        JavalinMetrics.createInstanceIfNeeded(statisticsHandler, this.jettyServer.getThreadPool());
         return this;
     }
 

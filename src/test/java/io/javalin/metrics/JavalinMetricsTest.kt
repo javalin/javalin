@@ -9,7 +9,13 @@ class JavalinMetricsTest {
 
     @Test
     fun `enable javalin metrics`() = TestUtil.test(Javalin.create().enableMetrics()) { app, http ->
-        app.get("/test") { ctx -> ctx.result("Hello World!") }
-        assertEquals("Hello World!", http.get("/test").body)
+        app.get("/test") { ctx -> ctx.result("Hello World with metrics enabled!") }
+        assertEquals("Hello World with metrics enabled!", http.get("/test").body)
+    }
+
+    @Test
+    fun `enable javalin metrics twice`() = TestUtil.test(Javalin.create().enableMetrics().enableMetrics()) { app, http ->
+        app.get("/test") { ctx -> ctx.result("Hello World with metrics enabled!") }
+        assertEquals("Hello World with metrics enabled!", http.get("/test").body)
     }
 }
