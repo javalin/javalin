@@ -44,7 +44,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <jackson.version>2.9.8</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.3.21</kotlin.version>
+        <kotlin.version>1.2.71</kotlin.version> <!-- This is 1.2.71 on purpose, don't bump -->
         <kotlin.compiler.jvmTarget>1.6</kotlin.compiler.jvmTarget> <!-- This is 1.6 on purpose, don't bump -->
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
