@@ -10,35 +10,30 @@ import io.javalin.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File
+import java.lang.RuntimeException
 
 class TestStaticFilesEdgeCases {
 
-    @Test
+    @Test(expected = RuntimeException::class)
     fun `server doesn't start for non-existent classpath folder`() {
-        doTest(failureExpected = true, app = Javalin.create().enableStaticFiles("some-fake-folder"))
+        Javalin.create().enableStaticFiles("some-fake-folder").start()
     }
 
-    @Test
+    @Test(expected = RuntimeException::class)
     fun `server doesn't start for non-existent external folder`() {
-        doTest(failureExpected = true, app = Javalin.create().enableStaticFiles("some-fake-folder", Location.EXTERNAL))
+        Javalin.create().enableStaticFiles("some-fake-folder", Location.EXTERNAL).start()
     }
 
-    @Test
+    @Test(expected = RuntimeException::class)
     fun `server doesn't start for empty classpath folder`() {
         File("src/test/external/empty").mkdir()
-        doTest(failureExpected = true, app = Javalin.create().enableStaticFiles("src/test/external/empty", Location.CLASSPATH))
+        Javalin.create().enableStaticFiles("src/test/external/empty", Location.CLASSPATH).start()
     }
 
     @Test
     fun `server starts for empty external folder`() {
         File("src/test/external/empty").mkdir()
-        doTest(failureExpected = false, app = Javalin.create().enableStaticFiles("src/test/external/empty", Location.EXTERNAL))
-    }
-
-    private fun doTest(failureExpected: Boolean, app: Javalin) {
-        var failed = false
-        app.event(JavalinEvent.SERVER_START_FAILED) { failed = true }.start(0).stop()
-        assertThat(failed).isEqualTo(failureExpected)
+        Javalin.create().enableStaticFiles("src/test/external/empty", Location.EXTERNAL).start().stop()
     }
 
 }

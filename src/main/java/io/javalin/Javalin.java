@@ -35,7 +35,6 @@ import io.javalin.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsEntry;
 import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsPathMatcher;
-import java.net.BindException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -149,15 +148,14 @@ public class Javalin {
                 started = true;
                 eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
             } catch (Exception e) {
-                log.error("Failed to start Javalin", e);
-                if (e instanceof BindException && e.getMessage() != null) {
-                    if (e.getMessage().toLowerCase().contains("in use")) {
-                        log.error("Port already in use. Make sure no other process is using port " + port + " and try again.");
-                    } else if (e.getMessage().toLowerCase().contains("permission denied")) {
-                        log.error("Port 1-1023 require elevated privileges (process must be started by admin).");
-                    }
-                }
+                log.error("Failed to start Javalin");
                 eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
+                if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
+                    throw new RuntimeException("Port already in use. Make sure no other process is using port " + port + " and try again.", e);
+                } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
+                    throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).");
+                }
+                throw new RuntimeException(e);
             }
         }
         return this;
