@@ -374,7 +374,7 @@ public class Javalin {
         Util.INSTANCE.ensureDependencyPresent(OptionalDependency.MICROMETER);
         final StatisticsHandler statisticsHandler = new StatisticsHandler();
         this.jettyServer.insertHandler(statisticsHandler);
-        JavalinMetrics.createInstanceIfNeeded(statisticsHandler, this.jettyServer.getThreadPool());
+        JavalinMetrics.Companion.createInstanceIfNeeded(statisticsHandler, this.jettyServer.getThreadPool());
         return this;
     }
 
