@@ -1,3 +1,9 @@
+/*
+ * Javalin - https://javalin.io
+ * Copyright 2019 David Åse
+ * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ */
+
 package io.javalin.metrics;
 
 import io.micrometer.core.instrument.Metrics;
@@ -11,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.Optional;
 
 public class JavalinMetrics {
 
@@ -23,20 +28,13 @@ public class JavalinMetrics {
      *
      * @param jettyStatisticsHandler {@link StatisticsHandler} which is already registered via {@link org.eclipse.jetty.server.Server#insertHandler(HandlerWrapper)}
      * @param jettyThreadPool the {@link ThreadPool} which is used by {@link io.javalin.Javalin}
-     * @return new created or already present instance of {@link JavalinMetrics}
      */
     @NotNull
-    public synchronized static JavalinMetrics createInstanceIfNeeded(@NotNull StatisticsHandler jettyStatisticsHandler, @NotNull ThreadPool jettyThreadPool) {
+    public synchronized static void createInstanceIfNeeded(@NotNull StatisticsHandler jettyStatisticsHandler, @NotNull ThreadPool jettyThreadPool) {
         if(instance == null) {
             instance = new JavalinMetrics(jettyStatisticsHandler, jettyThreadPool);
         }
 
-        return instance;
-    }
-
-    @NotNull
-    public Optional<JavalinMetrics> getInstance() {
-        return Optional.ofNullable(instance);
     }
 
     @NotNull
