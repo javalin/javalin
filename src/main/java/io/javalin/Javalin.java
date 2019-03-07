@@ -153,7 +153,7 @@ public class Javalin {
                 if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
                     throw new RuntimeException("Port already in use. Make sure no other process is using port " + port + " and try again.", e);
                 } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
-                    throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).");
+                    throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
                 }
                 throw new RuntimeException(e);
             }
