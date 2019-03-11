@@ -7,10 +7,8 @@
 package io.javalin
 
 import io.javalin.staticfiles.Location
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File
-import java.lang.RuntimeException
 
 class TestStaticFilesEdgeCases {
 

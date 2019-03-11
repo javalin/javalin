@@ -102,7 +102,7 @@ public class Javalin {
      * @see Javalin#start(int)
      */
     public static Javalin create() {
-        Util.INSTANCE.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
+        JettyServerUtil.INSTANCE.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
         return new Javalin();
     }
 
@@ -132,7 +132,6 @@ public class Javalin {
             log.info(Util.INSTANCE.javalinBanner());
         }
         Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
-        Util.INSTANCE.setNoJettyStarted(false);
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             log.info("Starting Javalin ...");
@@ -143,11 +142,11 @@ public class Javalin {
                 contextPath,
                 createServlet(),
                 wsPathMatcher,
-                wsFactoryConfig,
-                log
+                wsFactoryConfig
             );
             log.info("Javalin has started \\o/");
             started = true;
+            JettyServerUtil.INSTANCE.setNoJettyStarted(false);
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
             log.error("Failed to start Javalin");
@@ -259,7 +258,7 @@ public class Javalin {
      */
     public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
-        jettySessionHandler = Util.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler);
+        jettySessionHandler = JettyServerUtil.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler);
         return this;
     }
 

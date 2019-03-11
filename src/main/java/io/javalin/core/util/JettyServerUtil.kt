@@ -6,6 +6,7 @@
 
 package io.javalin.core.util
 
+import io.javalin.Javalin
 import io.javalin.core.JavalinServlet
 import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.server.*
@@ -20,16 +21,19 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
-import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.net.BindException
+import java.util.*
 import java.util.function.Consumer
+import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 object JettyServerUtil {
 
     private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
+    private val log = LoggerFactory.getLogger(Javalin::class.java) // let's pretend
 
     @JvmStatic
     fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(jettyDefaultLogger)
@@ -55,8 +59,7 @@ object JettyServerUtil {
             contextPath: String,
             javalinServlet: JavalinServlet,
             wsPathMatcher: WsPathMatcher,
-            wsFactoryConfig: Consumer<WebSocketServletFactory>,
-            log: Logger
+            wsFactoryConfig: Consumer<WebSocketServletFactory>
     ): Int {
 
         val nullParent = null // javalin handlers are orphans
@@ -132,6 +135,31 @@ object JettyServerUtil {
     }
 
     private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
+
+    var noJettyStarted = true
+    fun printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond() {
+        // per instance checks are not considered necessary
+        // this helper is not intended for people with more than one instance
+        Thread {
+            Thread.sleep(1000)
+            if (noJettyStarted) {
+                log.info("It looks like you created a Javalin instance, but you never started it.")
+                log.info("Try: Javalin app = Javalin.create().start();")
+                log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+            }
+        }.start()
+    }
+
+    fun getValidSessionHandlerOrThrow(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
+        val uuid = UUID.randomUUID().toString()
+        val sessionHandler = sessionHandlerSupplier.get()
+        try {
+            sessionHandler.isIdInUse(uuid)
+            return sessionHandler
+        } catch (e: Exception) {
+            throw IllegalStateException("Could not look up dummy session ID in store. Misconfigured session handler", e)
+        }
+    }
 }
 
 class NoopLogger : org.eclipse.jetty.util.log.Logger {
