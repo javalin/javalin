@@ -158,6 +158,7 @@ public class Javalin {
                 throw new RuntimeException(e);
             }
         }
+        JettyServerUtil.reEnableJettyLogger();
         return this;
     }
 

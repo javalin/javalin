@@ -29,10 +29,18 @@ import javax.servlet.http.HttpServletResponse
 
 object JettyServerUtil {
 
+    private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
+
     @JvmStatic
-    fun defaultServer() = Server(QueuedThreadPool(250, 8, 60_000)).apply {
-        server.addBean(LowResourceMonitor(this))
-        server.insertHandler(StatisticsHandler())
+    fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(jettyDefaultLogger)
+
+    @JvmStatic
+    fun defaultServer(): Server {
+        org.eclipse.jetty.util.log.Log.setLog(io.javalin.core.util.NoopLogger()) // disable logger before server creation
+        return Server(QueuedThreadPool(250, 8, 60_000)).apply {
+            server.addBean(LowResourceMonitor(this))
+            server.insertHandler(StatisticsHandler())
+        }
     }
 
     @JvmStatic
@@ -124,4 +132,22 @@ object JettyServerUtil {
     }
 
     private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
+}
+
+class NoopLogger : org.eclipse.jetty.util.log.Logger {
+    override fun getName() = "noop"
+    override fun getLogger(name: String) = this
+    override fun setDebugEnabled(enabled: Boolean) {}
+    override fun isDebugEnabled() = false
+    override fun ignore(ignored: Throwable) {}
+    override fun warn(msg: String, vararg args: Any) {}
+    override fun warn(thrown: Throwable) {}
+    override fun warn(msg: String, thrown: Throwable) {}
+    override fun info(msg: String, vararg args: Any) {}
+    override fun info(thrown: Throwable) {}
+    override fun info(msg: String, thrown: Throwable) {}
+    override fun debug(msg: String, vararg args: Any) {}
+    override fun debug(s: String, l: Long) {}
+    override fun debug(thrown: Throwable) {}
+    override fun debug(msg: String, thrown: Throwable) {}
 }
