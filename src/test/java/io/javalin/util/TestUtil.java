@@ -6,6 +6,7 @@
 
 package io.javalin.util;
 
+import com.mashape.unirest.http.HttpMethod;
 import io.javalin.Handler;
 import io.javalin.Javalin;
 import io.javalin.json.JavalinJackson;
@@ -19,8 +20,8 @@ public class TestUtil {
         javalin.disableStartupBanner().start(0);
         HttpUtil http = new HttpUtil(javalin);
         test.accept(javalin, http);
-        javalin.get("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
-        http.get("/x-test-cookie-cleaner");
+        javalin.delete("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
+        http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
         javalin.stop();
         JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE::toJson);
         JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE::fromJson);
