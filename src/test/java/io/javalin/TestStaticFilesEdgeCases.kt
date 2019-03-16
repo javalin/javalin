@@ -31,7 +31,7 @@ class TestStaticFilesEdgeCases {
     @Test
     fun `server starts for empty external folder`() {
         File("src/test/external/empty").mkdir()
-        Javalin.create().enableStaticFiles("src/test/external/empty", Location.EXTERNAL).start().stop()
+        Javalin.create().port(0).enableStaticFiles("src/test/external/empty", Location.EXTERNAL).start().stop()
     }
 
 }

@@ -275,6 +275,7 @@ class TestWebSocket {
                     ws.onError { _, throwable -> err = throwable }
                 }
                 .server { server }
+                .port(0)
                 .start()
         val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/ws"))
 
