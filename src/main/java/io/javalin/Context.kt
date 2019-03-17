@@ -159,7 +159,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * Creates a [TypedValidator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
-    fun <T> pathParam(key: String, clazz: Class<T>): TypedValidator<T> = Validator(pathParam(key)).asClass(clazz)
+    fun <T> pathParam(key: String, clazz: Class<T>) = Validator(pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'").asClass(clazz)
 
     /** Reified version of [pathParam] (Kotlin only) */
     inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)

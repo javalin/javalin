@@ -20,10 +20,26 @@ import java.time.Instant
 class TestValidation {
 
     @Test
-    fun `test notNullOrBlank()`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
-            ctx.queryParam<String>("my-qp").get()
-        }
+    fun `test pathParam() gives correct error message`() = TestUtil.test { app, http ->
+        app.get("/:param") { ctx -> ctx.pathParam<Int>("param").get() }
+        assertThat(http.get("/abc").body).isEqualTo("Path parameter 'param' with value 'abc' is not a valid Integer")
+    }
+
+    @Test
+    fun `test queryParam() gives correct error message`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.queryParam<Int>("param").get() }
+        assertThat(http.get("/?param=abc").body).isEqualTo("Query parameter 'param' with value 'abc' is not a valid Integer")
+    }
+
+    @Test
+    fun `test formParam() gives correct error message`() = TestUtil.test { app, http ->
+        app.post("/") { ctx -> ctx.formParam<Int>("param").get() }
+        assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("Form parameter 'param' with value 'abc' is not a valid Integer")
+    }
+
+    @Test
+    fun `test notNullOrEmpty()`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.queryParam<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("Query parameter 'my-qp' with value 'null' cannot be null or empty")
         assertThat(http.get("/").status).isEqualTo(400)
     }
@@ -61,7 +77,7 @@ class TestValidation {
     }
 
     @Test
-    fun `test default()`() = TestUtil.test { app, http ->
+    fun `test default query param value`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myInt = ctx.queryParam<Int>("my-qp", "788").get()
             ctx.result(myInt.toString())
