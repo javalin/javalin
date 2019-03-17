@@ -26,7 +26,7 @@ open class TypedValidator<T>(val value: T?, val messagePrefix: String = "Value")
         return rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
     }
 
-    fun get() = getOrThrow()
+    fun get() = getOrThrow() // will replace getOrThrow() in v3
 
 }
 
