@@ -485,10 +485,10 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     }
 
     // Deprecated validation, will be removed in 3.0
-    @Deprecated("User bodyValidator(class) instead")
+    @Deprecated("Use bodyValidator(class) instead")
     fun <T> validatedBodyAsClass(clazz: Class<T>) = bodyValidator(clazz)
 
-    @Deprecated("User bodyValidator() instead")
+    @Deprecated("Use bodyValidator() instead")
     inline fun <reified T : Any> validatedBody() = bodyValidator(T::class.java)
 
     @Deprecated("Use formParam(key, class) instead.")
