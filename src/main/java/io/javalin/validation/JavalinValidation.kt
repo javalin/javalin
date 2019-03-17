@@ -15,11 +15,13 @@ object JavalinValidation {
             java.lang.Float::class.java to { s -> s.toFloat() },
             java.lang.Integer::class.java to { s -> s.toInt() },
             java.lang.Long::class.java to { s -> s.toLong() },
+            java.lang.String::class.java to { s -> s },
             Boolean::class.java to { s -> s.toBoolean() },
             Double::class.java to { s -> s.toDouble() },
             Float::class.java to { s -> s.toFloat() },
             Int::class.java to { s -> s.toInt() },
-            Long::class.java to { s -> s.toLong() }
+            Long::class.java to { s -> s.toLong() },
+            String::class.java to { s -> s }
     )
 
     @JvmStatic

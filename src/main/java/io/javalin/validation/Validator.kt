@@ -20,10 +20,13 @@ open class TypedValidator<T>(val value: T?, val messagePrefix: String = "Value")
         return this
     }
 
+    @Deprecated("Use get() instead")
     fun getOrThrow(): T {
         if (value == null || (value is String && value.isEmpty())) throw BadRequestResponse("$messagePrefix cannot be null or empty")
         return rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
     }
+
+    fun get() = getOrThrow() // will replace getOrThrow() in v3
 
 }
 
@@ -43,7 +46,7 @@ class Validator(value: String?, messagePrefix: String = "Value") : TypedValidato
     fun asLong() = asClass(Long::class.java)
 
     fun <T> asClass(clazz: Class<T>): TypedValidator<T> {
-        val validValue = getOrThrow() // throw appropriate error messages before type conversion
+        val validValue = get() // throw appropriate error messages before type conversion
         return TypedValidator(try {
             JavalinValidation.converters[clazz]?.invoke(validValue) ?: throw ConversionException(clazz.simpleName)
         } catch (e: Exception) {
