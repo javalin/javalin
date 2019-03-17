@@ -95,9 +95,20 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * JavalinJson can be configured to use any mapping library.
      * @return The mapped object
      */
-    fun <T> bodyAsClass(clazz: Class<T>): T {
-        return JavalinJson.fromJson(body(), clazz)
+    fun <T> bodyAsClass(clazz: Class<T>): T = JavalinJson.fromJson(body(), clazz)
+
+    /**
+     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    fun <T> bodyValidator(clazz: Class<T>) = try {
+        TypedValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
+    } catch (e: Exception) {
+        throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
+
+    /** Reified version of [bodyValidator] */
+    inline fun <reified T : Any> bodyValidator() = bodyValidator(T::class.java)
 
     /** Gets first [UploadedFile] for the specified name, or null. */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
@@ -473,20 +484,12 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
     }
 
-    /**
-     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    fun <T> validatedBodyAsClass(clazz: Class<T>) = try {
-        TypedValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
-    } catch (e: Exception) {
-        throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
-    }
+    // Deprecated validation, will be removed in 3.0
+    @Deprecated("User bodyValidator(class) instead")
+    fun <T> validatedBodyAsClass(clazz: Class<T>) = bodyValidator(clazz)
 
-    /** Reified version of [validatedBodyAsClass] */
-    inline fun <reified T : Any> validatedBody() = validatedBodyAsClass(T::class.java)
-
-    // Deprecated validation
+    @Deprecated("User bodyValidator() instead")
+    inline fun <reified T : Any> validatedBody() = bodyValidator(T::class.java)
 
     @Deprecated("Use formParam(key, class) instead.")
     @JvmOverloads

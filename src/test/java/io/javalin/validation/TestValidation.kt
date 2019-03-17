@@ -136,7 +136,7 @@ class TestValidation {
     @Test
     fun `test validatedBody()`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
-            val obj = ctx.validatedBody<SerializeableObject>()
+            val obj = ctx.bodyValidator<SerializeableObject>()
                     .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
                     .get()
             ctx.result(obj.value1)
