@@ -71,7 +71,7 @@ object JettyServerUtil {
                     request.setAttribute("jetty-target", target)
                     request.setAttribute("jetty-request", jettyRequest)
                     javalinServlet.service(request, response)
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     response.status = 500
                     log.error("Exception occurred while servicing http-request", e)
                 }
