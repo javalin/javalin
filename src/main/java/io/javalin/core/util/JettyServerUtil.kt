@@ -8,7 +8,6 @@ package io.javalin.core.util
 
 import io.javalin.Javalin
 import io.javalin.core.JavalinServlet
-import io.javalin.core.util.JettyServerUtil.protocol
 import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerCollection
@@ -18,7 +17,6 @@ import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import org.eclipse.jetty.unixsocket.UnixSocketConnector
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
@@ -112,17 +110,15 @@ object JettyServerUtil {
             })
         }.start()
 
-        val serverConnectors = server.connectors.filterIsInstance<ServerConnector>()
-        if (serverConnectors.isNotEmpty()) {
-            log.info("Jetty is listening on: " + serverConnectors.map { "${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath" })
+        server.connectors.filterIsInstance<ServerConnector>().forEach {
+            log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath")
         }
 
-        val unixSocketConnectors = server.connectors.filterIsInstance<UnixSocketConnector>()
-        if (unixSocketConnectors.isNotEmpty()) {
-            log.info("Jetty is binding to: " + unixSocketConnectors.map { "${it.unixSocket}" })
+        server.connectors.filter { it !is ServerConnector }.forEach {
+            log.info("Binding to: $it")
         }
 
-        return serverConnectors.first().localPort
+        return (server.connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
     private val ServerConnector.protocol get() = if (this.protocols.contains("ssl")) "https" else "http"
