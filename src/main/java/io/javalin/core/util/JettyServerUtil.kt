@@ -110,9 +110,15 @@ object JettyServerUtil {
             })
         }.start()
 
-        log.info("Jetty is listening on: " + server.connectors.map { it as ServerConnector }.map { "${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath" })
+        server.connectors.filterIsInstance<ServerConnector>().forEach {
+            log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath")
+        }
 
-        return (server.connectors[0] as ServerConnector).localPort
+        server.connectors.filter { it !is ServerConnector }.forEach {
+            log.info("Binding to: $it")
+        }
+
+        return (server.connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
     private val ServerConnector.protocol get() = if (this.protocols.contains("ssl")) "https" else "http"
