@@ -25,18 +25,18 @@ class TestUnixSocketConnector {
 
         val unixSocketJavalin = Javalin.create().server {
             val server = Server()
-            val unixSocketConnector = UnixSocketConnector(server)
-            unixSocketConnector.unixSocket = socketFileName
-            server.addConnector(unixSocketConnector)
             val serverConnector = ServerConnector(server)
             serverConnector.port = 0
             server.addConnector(serverConnector)
+            val unixSocketConnector = UnixSocketConnector(server)
+            unixSocketConnector.unixSocket = socketFileName
+            server.addConnector(unixSocketConnector)
             server
         }
 
         unixSocketJavalin.get(testPath) { ctx -> ctx.status(200).result(expectedResultString) }
 
-        TestUtil.test(unixSocketJavalin) { app, http ->
+        TestUtil.test(unixSocketJavalin) { _, _ ->
 
             val socketAddress = UnixSocketAddress(File(socketFileName))
             val socket = UnixSocketChannel.open(socketAddress).socket()
