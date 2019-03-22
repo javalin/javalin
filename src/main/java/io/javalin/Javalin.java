@@ -53,6 +53,8 @@ import static io.javalin.security.SecurityUtil.roles;
 
 public class Javalin {
 
+    private JavalinConfig c = new JavalinConfig();
+
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     protected Server jettyServer;
@@ -872,6 +874,14 @@ public class Javalin {
      */
     public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
         return get(path, new SseHandler(client), permittedRoles);
+    }
+
+    public Javalin config(Consumer<JavalinConfig> config) {
+        if (started) {
+            throw new IllegalStateException("Config must be called before starting the server.");
+        }
+        config.accept(c);
+        return this;
     }
 
 }
