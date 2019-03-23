@@ -18,6 +18,7 @@ import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.CorsBeforeHandler;
 import io.javalin.core.util.CorsOptionsHandler;
+import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.JettyServerUtil;
 import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
@@ -47,13 +48,9 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static io.javalin.security.SecurityUtil.roles;
 
 public class Javalin {
-
-    private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     protected Server jettyServer;
     protected SessionHandler jettySessionHandler;
@@ -129,12 +126,12 @@ public class Javalin {
             throw new IllegalStateException("Cannot call start() again on a started server.");
         }
         if (showStartupBanner) {
-            log.info(Util.INSTANCE.javalinBanner());
+            JavalinLogger.info(Util.INSTANCE.javalinBanner());
         }
         Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
-            log.info("Starting Javalin ...");
+            JavalinLogger.info("Starting Javalin ...");
             port = JettyServerUtil.initialize(
                 jettyServer,
                 jettySessionHandler,
@@ -144,12 +141,12 @@ public class Javalin {
                 wsPathMatcher,
                 wsFactoryConfig
             );
-            log.info("Javalin has started \\o/");
+            JavalinLogger.info("Javalin has started \\o/");
             started = true;
             JettyServerUtil.INSTANCE.setNoJettyStarted(false);
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
-            log.error("Failed to start Javalin");
+            JavalinLogger.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
                 throw new RuntimeException("Port already in use. Make sure no other process is using port " + port + " and try again.", e);
@@ -188,13 +185,13 @@ public class Javalin {
      */
     public Javalin stop() {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
-        log.info("Stopping Javalin ...");
+        JavalinLogger.info("Stopping Javalin ...");
         try {
             jettyServer.stop();
         } catch (Exception e) {
-            log.error("Javalin failed to stop gracefully", e);
+            JavalinLogger.error("Javalin failed to stop gracefully", e);
         }
-        log.info("Javalin has stopped");
+        JavalinLogger.info("Javalin has stopped");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
         return this;
     }

@@ -11,12 +11,10 @@ import io.javalin.ExceptionHandler
 import io.javalin.HttpResponseException
 import io.javalin.InternalServerErrorResponse
 import io.javalin.core.util.HttpResponseExceptionMapper
-import org.slf4j.LoggerFactory
+import io.javalin.core.util.JavalinLogger
 import java.util.*
 
 class ExceptionMapper {
-
-    private val log = LoggerFactory.getLogger(ExceptionMapper::class.java)
 
     val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
 
@@ -29,7 +27,7 @@ class ExceptionMapper {
             if (exceptionHandler != null) {
                 exceptionHandler.handle(exception, ctx)
             } else {
-                log.warn("Uncaught exception", exception)
+                JavalinLogger.warn("Uncaught exception", exception)
                 HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
             }
         }

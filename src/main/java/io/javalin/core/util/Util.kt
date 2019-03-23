@@ -7,7 +7,6 @@
 package io.javalin.core.util
 
 import io.javalin.InternalServerErrorResponse
-import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -17,8 +16,6 @@ import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 
 object Util {
-
-    private val log = LoggerFactory.getLogger(Util::class.java)
 
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
 
@@ -40,7 +37,7 @@ object Util {
         }
         if (!classExists(dependency.testClass)) {
             val message = missingDependencyMessage(dependency)
-            log.warn(message)
+            JavalinLogger.warn(message)
             throw InternalServerErrorResponse(message)
         }
         dependencyCheckCache[dependency.testClass] = true

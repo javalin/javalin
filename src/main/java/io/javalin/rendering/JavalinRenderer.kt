@@ -6,13 +6,11 @@
 
 package io.javalin.rendering
 
+import io.javalin.core.util.JavalinLogger
 import io.javalin.rendering.markdown.JavalinCommonmark
 import io.javalin.rendering.template.*
-import org.slf4j.LoggerFactory
 
 object JavalinRenderer {
-
-    private val log = LoggerFactory.getLogger(JavalinRenderer.javaClass)
 
     private val extensions = mutableMapOf<String, FileRenderer>()
 
@@ -37,7 +35,7 @@ object JavalinRenderer {
     @JvmStatic
     fun register(fileRenderer: FileRenderer, vararg ext: String) = ext.forEach {
         if (extensions[it] != null) {
-            log.info("'$it' is already registered to ${extensions[it]!!.javaClass}. Overriding.")
+            JavalinLogger.info("'$it' is already registered to ${extensions[it]!!.javaClass}. Overriding.")
         }
         extensions[it] = fileRenderer
     }

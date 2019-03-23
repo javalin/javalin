@@ -6,7 +6,6 @@
 
 package io.javalin.core.util
 
-import io.javalin.Javalin
 import io.javalin.core.JavalinServlet
 import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.server.*
@@ -21,7 +20,6 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
-import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.net.BindException
 import java.util.*
@@ -33,7 +31,6 @@ import javax.servlet.http.HttpServletResponse
 object JettyServerUtil {
 
     private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
-    private val log = LoggerFactory.getLogger(Javalin::class.java) // let's pretend
 
     @JvmStatic
     fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(jettyDefaultLogger)
@@ -73,7 +70,7 @@ object JettyServerUtil {
                     javalinServlet.service(request, response)
                 } catch (t: Throwable) {
                     response.status = 500
-                    log.error("Exception occurred while servicing http-request", t)
+                    JavalinLogger.error("Exception occurred while servicing http-request", t)
                 }
                 jettyRequest.isHandled = true
             }
@@ -99,7 +96,7 @@ object JettyServerUtil {
                 response.status = 404
                 ByteArrayInputStream(msg.toByteArray()).copyTo(response.outputStream)
                 response.outputStream.close()
-                log.warn("Received a request below context-path (context-path: '$contextPath'). Returned 404.")
+                JavalinLogger.warn("Received a request below context-path (context-path: '$contextPath'). Returned 404.")
             }
         }
 
@@ -111,11 +108,11 @@ object JettyServerUtil {
         }.start()
 
         server.connectors.filterIsInstance<ServerConnector>().forEach {
-            log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath")
+            JavalinLogger.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath")
         }
 
         server.connectors.filter { it !is ServerConnector }.forEach {
-            log.info("Binding to: $it")
+            JavalinLogger.info("Binding to: $it")
         }
 
         return (server.connectors[0] as? ServerConnector)?.localPort ?: -1
@@ -149,9 +146,9 @@ object JettyServerUtil {
         Thread {
             Thread.sleep(1000)
             if (noJettyStarted) {
-                log.info("It looks like you created a Javalin instance, but you never started it.")
-                log.info("Try: Javalin app = Javalin.create().start();")
-                log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+                JavalinLogger.info("It looks like you created a Javalin instance, but you never started it.")
+                JavalinLogger.info("Try: Javalin app = Javalin.create().start();")
+                JavalinLogger.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
             }
         }.start()
     }

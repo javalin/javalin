@@ -6,7 +6,7 @@
 
 package io.javalin.core
 
-import org.slf4j.LoggerFactory
+import io.javalin.core.util.JavalinLogger
 import java.io.ByteArrayInputStream
 import javax.servlet.ReadListener
 import javax.servlet.ServletInputStream
@@ -15,10 +15,6 @@ import javax.servlet.http.HttpServletRequestWrapper
 
 class CachedRequestWrapper(request: HttpServletRequest, private val bodyCacheSize: Long) : HttpServletRequestWrapper(request) {
 
-    companion object {
-        val log = LoggerFactory.getLogger(CachedRequestWrapper::class.java)
-    }
-
     private val bodySize = this.contentLengthLong
     private var bodyConsumed = false
 
@@ -26,7 +22,7 @@ class CachedRequestWrapper(request: HttpServletRequest, private val bodyCacheSiz
 
     override fun getInputStream(): ServletInputStream {
         if (bodyConsumed && bodySize > bodyCacheSize) { // consumed AND too big for cache
-            log.error("Body already consumed, and was too big to cache. Adjust cache size with app.maxBodySizeForRequestCache(newMaxSize);")
+            JavalinLogger.error("Body already consumed, and was too big to cache. Adjust cache size with app.maxBodySizeForRequestCache(newMaxSize);")
         }
         bodyConsumed = true
         return if (bodySize > bodyCacheSize || this.getHeader("Transfer-Encoding")?.contains("chunked") == true) {

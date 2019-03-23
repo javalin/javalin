@@ -9,16 +9,14 @@ package io.javalin.core.util
 import io.javalin.Context
 import io.javalin.Handler
 import io.javalin.InternalServerErrorResponse
-import org.slf4j.LoggerFactory
 
 class SwaggerRenderer(val filePath: String) : Handler {
 
-    private val log = LoggerFactory.getLogger(SwaggerRenderer::class.java)
     private val swaggerVersion = OptionalDependency.SWAGGERUI.version
 
     override fun handle(ctx: Context) {
         if (Util.getResourceUrl("META-INF/resources/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css") == null) {
-            log.warn(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
+            JavalinLogger.warn(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
             throw InternalServerErrorResponse(Util.missingDependencyMessage(OptionalDependency.SWAGGERUI))
         }
         if (ctx.queryParam("spec") != null)

@@ -7,12 +7,12 @@
 package io.javalin.staticfiles
 
 import io.javalin.core.util.Header
+import io.javalin.core.util.JavalinLogger
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
-import org.slf4j.LoggerFactory
 import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -25,8 +25,6 @@ class JettyResourceHandler(
         jettyServer: Server,
         private val ignoreTrailingSlashes: Boolean) : io.javalin.staticfiles.ResourceHandler {
 
-    private val log = LoggerFactory.getLogger("io.javalin.Javalin")
-
     private val handlers = staticFileConfig.map { config ->
         GzipHandler().apply {
             server = jettyServer // the handler is standalone, this assignment just prevents a log.warn
@@ -34,7 +32,7 @@ class JettyResourceHandler(
                 resourceBase = getResourcePath(config)
                 isDirAllowed = false
                 isEtags = true
-                log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
+                JavalinLogger.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
         }
     }.onEach { it.start() }
@@ -73,7 +71,7 @@ class JettyResourceHandler(
                     return true
                 }
             } catch (e: Exception) { // it's fine
-                log.error("Exception occurred while handling static resource", e)
+                JavalinLogger.error("Exception occurred while handling static resource", e)
             }
         }
         return false

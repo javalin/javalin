@@ -11,12 +11,9 @@ import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
 import io.javalin.websocket.WsHandler
 import io.javalin.websocket.WsSession
-import org.slf4j.LoggerFactory
 import java.util.*
 
 object LogUtil {
-
-    private val log = LoggerFactory.getLogger(LogUtil::class.java)
 
     fun logRequestAndResponse(ctx: Context, matcher: PathMatcher) = try {
         val type = HandlerType.fromServletRequest(ctx.req)
@@ -28,7 +25,7 @@ object LogUtil {
             val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) + matcher.findEntries(type, requestUri) + matcher.findEntries(HandlerType.AFTER, requestUri)).map { it.type.name + "=" + it.path }
             val resBody = resultStream()?.apply { reset() }?.bufferedReader()?.use { it.readText() } ?: ""
             val resHeaders = res.headerNames.asSequence().map { it to res.getHeader(it) }.toMap()
-            log.info("""JAVALIN REQUEST DEBUG LOG:
+            JavalinLogger.info("""JAVALIN REQUEST DEBUG LOG:
                         |Request: ${method()} [${path()}]
                         |    Matching endpoint-handlers: $allMatching
                         |    Headers: ${headerMap()}
@@ -43,7 +40,7 @@ object LogUtil {
                         |----------------------------------------------------------------------------------""".trimMargin())
         }
     } catch (e: Exception) {
-        log.info("An exception occurred while logging debug-info", e)
+        JavalinLogger.info("An exception occurred while logging debug-info", e)
     }
 
     private fun resBody(resBody: String, gzipped: Boolean, staticFile: Boolean) = when {
@@ -67,7 +64,7 @@ object LogUtil {
     }
 
     private fun WsSession.logEvent(event: String, additionalInfo: String = "") {
-        log.info("""JAVALIN WEBSOCKET DEBUG LOG
+        JavalinLogger.info("""JAVALIN WEBSOCKET DEBUG LOG
                 |WebSocket Event: $event
                 |Session Id: ${this.id}
                 |Host: ${this.host()}
