@@ -125,6 +125,7 @@ public class Javalin {
      * @see Javalin#create()
      */
     public Javalin start() {
+        long startupTimer = System.currentTimeMillis();
         if (started) {
             throw new IllegalStateException("Cannot call start() again on a started server.");
         }
@@ -144,7 +145,7 @@ public class Javalin {
                 wsPathMatcher,
                 wsFactoryConfig
             );
-            log.info("Javalin has started \\o/");
+            log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             started = true;
             JettyServerUtil.INSTANCE.setNoJettyStarted(false);
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
