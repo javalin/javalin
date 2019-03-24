@@ -17,7 +17,7 @@ import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.PathMatcher;
 import io.javalin.core.util.*;
-import io.javalin.metrics.JavalinMetrics;
+import io.javalin.metrics.JavalinMicrometer;
 import io.javalin.security.AccessManager;
 import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
@@ -372,16 +372,12 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to enable application metrics via {@link JavalinMetrics}
+     * Configure instance to enable application metrics via {@link JavalinMicrometer}
      * The method must be called before {@link Javalin#start()}.
      * Make sure you add the required dependencies (micrometer core + your preferred registry)
      */
-    public Javalin enableMetrics() {
-        ensureActionIsPerformedBeforeServerStart("Enable application metrics");
-        Util.INSTANCE.ensureDependencyPresent(OptionalDependency.MICROMETER);
-        final StatisticsHandler statisticsHandler = new StatisticsHandler();
-        this.jettyServer.insertHandler(statisticsHandler);
-        JavalinMetrics.init(statisticsHandler, this.jettyServer.getThreadPool());
+    public Javalin enableMicrometer() {
+        JavalinMicrometer.init(this.jettyServer);
         return this;
     }
 
