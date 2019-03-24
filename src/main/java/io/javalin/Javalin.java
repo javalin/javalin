@@ -11,6 +11,7 @@ import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.core.EventManager;
 import io.javalin.core.HandlerType;
+import io.javalin.core.JavalinServer;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.util.CorsBeforeHandler;
 import io.javalin.core.util.CorsOptionsHandler;
@@ -26,9 +27,9 @@ import io.javalin.serversentevent.SseHandler;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
+import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsEntry;
 import io.javalin.websocket.WsHandler;
-import io.javalin.websocket.WsPathMatcher;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,13 +50,6 @@ public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    protected Server jettyServer;
-    protected SessionHandler jettySessionHandler;
-    protected Consumer<WebSocketServletFactory> wsFactoryConfig = WebSocketServletFactory::getPolicy;
-    protected WsPathMatcher wsPathMatcher = new WsPathMatcher();
-
-    protected int port = 7000;
-    protected String contextPath = "/";
     protected boolean showStartupBanner = true;
     protected boolean started = false;
 
@@ -63,15 +57,11 @@ public class Javalin {
     protected Map<Class, Object> appAttributes = new HashMap<>();
     protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
 
-    private JavalinServlet javalinServlet = new JavalinServlet(this);
-
-    protected Javalin(Server jettyServer, SessionHandler jettySessionHandler) {
-        this.jettyServer = jettyServer;
-        this.jettySessionHandler = jettySessionHandler;
-    }
+    private JavalinServer server = new JavalinServer();
+    private JavalinServlet servlet = new JavalinServlet(this);
+    private JavalinWsServlet wsServlet = new JavalinWsServlet();
 
     protected Javalin() {
-        this(JettyServerUtil.defaultServer(), JettyServerUtil.defaultSessionHandler());
     }
 
     /**
@@ -117,15 +107,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             log.info("Starting Javalin ...");
-            port = JettyServerUtil.initialize(
-                jettyServer,
-                jettySessionHandler,
-                port,
-                contextPath,
-                javalinServlet,
-                wsPathMatcher,
-                wsFactoryConfig
-            );
+            server.start(servlet, wsServlet);
             log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             started = true;
             JettyServerUtil.INSTANCE.setNoJettyStarted(false);
@@ -134,7 +116,7 @@ public class Javalin {
             log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new RuntimeException("Port already in use. Make sure no other process is using port " + port + " and try again.", e);
+                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getPort() + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
                 throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
             }
@@ -153,7 +135,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            jettyServer.stop();
+            server.getJettyServer().stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -168,7 +150,7 @@ public class Javalin {
      */
     public Javalin prefer405over404() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to return 405 instead of 404 when applicable");
-        javalinServlet.setPrefer405over404(true);
+        servlet.setPrefer405over404(true);
         return this;
     }
 
@@ -188,11 +170,11 @@ public class Javalin {
      */
     public Javalin dontIgnoreTrailingSlashes() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore slashes");
-        javalinServlet.getMatcher().setIgnoreTrailingSlashes(false);
-        if (javalinServlet.getResourceHandler() == null) {
-            javalinServlet.setResourceHandler(new JettyResourceHandler());
+        servlet.getMatcher().setIgnoreTrailingSlashes(false);
+        if (servlet.getResourceHandler() == null) {
+            servlet.setResourceHandler(new JettyResourceHandler());
         }
-        javalinServlet.getResourceHandler().dontIgnoreTrailingSlashes();
+        servlet.getResourceHandler().dontIgnoreTrailingSlashes();
         return this;
     }
 
@@ -204,7 +186,7 @@ public class Javalin {
      */
     public Javalin server(@NotNull Supplier<Server> server) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
-        jettyServer = server.get();
+        this.server.setJettyServer(server.get());
         return this;
     }
 
@@ -214,7 +196,7 @@ public class Javalin {
      */
     public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
-        jettySessionHandler = JettyServerUtil.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler);
+        server.setJettySessionHandler(JettyServerUtil.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler));
         return this;
     }
 
@@ -224,7 +206,7 @@ public class Javalin {
      */
     public Javalin wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom WebSocket factory config");
-        this.wsFactoryConfig = wsFactoryConfig;
+        wsServlet.setWsFactoryConfig(wsFactoryConfig);
         return this;
     }
 
@@ -248,10 +230,10 @@ public class Javalin {
      */
     public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling static files");
-        if (javalinServlet.getResourceHandler() == null) {
-            javalinServlet.setResourceHandler(new JettyResourceHandler());
+        if (servlet.getResourceHandler() == null) {
+            servlet.setResourceHandler(new JettyResourceHandler());
         }
-        javalinServlet.getResourceHandler().addStaticFileConfig(new StaticFileConfig(path, location));
+        servlet.getResourceHandler().addStaticFileConfig(new StaticFileConfig(path, location));
         return this;
     }
 
@@ -279,7 +261,7 @@ public class Javalin {
      */
     public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
         ensureActionIsPerformedBeforeServerStart("Enabling single page mode");
-        javalinServlet.getSinglePageHandler().add(path, filePath, location);
+        servlet.getSinglePageHandler().add(path, filePath, location);
         return this;
     }
 
@@ -289,7 +271,7 @@ public class Javalin {
      */
     public Javalin contextPath(@NotNull String contextPath) {
         ensureActionIsPerformedBeforeServerStart("Setting the context path");
-        this.contextPath = Util.INSTANCE.normalizeContextPath(contextPath);
+        server.setContextPath(Util.INSTANCE.normalizeContextPath(contextPath));
         return this;
     }
 
@@ -298,7 +280,7 @@ public class Javalin {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return port;
+        return server.getPort();
     }
 
     /**
@@ -307,7 +289,7 @@ public class Javalin {
      */
     public Javalin port(int port) {
         ensureActionIsPerformedBeforeServerStart("Setting the port");
-        this.port = port;
+        server.setPort(port);
         return this;
     }
 
@@ -317,7 +299,7 @@ public class Javalin {
      */
     public Javalin enableDebugLogging() {
         ensureActionIsPerformedBeforeServerStart("Enabling debug-logging");
-        javalinServlet.setDebugLogging(true);
+        servlet.setDebugLogging(true);
         wsLogger(LogUtil::wsDebugLogger);
         return this;
     }
@@ -329,7 +311,7 @@ public class Javalin {
      */
     public Javalin requestLogger(@NotNull RequestLogger requestLogger) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom request logger");
-        this.javalinServlet.setRequestLogger(requestLogger);
+        this.servlet.setRequestLogger(requestLogger);
         return this;
     }
 
@@ -360,7 +342,7 @@ public class Javalin {
      */
     public Javalin disableDynamicGzip() {
         ensureActionIsPerformedBeforeServerStart("Disabling dynamic GZIP");
-        javalinServlet.setDynamicGzipEnabled(false);
+        servlet.setDynamicGzipEnabled(false);
         return this;
     }
 
@@ -372,7 +354,7 @@ public class Javalin {
      */
     public Javalin enableAutogeneratedEtags() {
         ensureActionIsPerformedBeforeServerStart("Enabling autogenerated etags");
-        javalinServlet.setAutogeneratedEtagsEnabled(true);
+        servlet.setAutogeneratedEtagsEnabled(true);
         return this;
     }
 
@@ -402,7 +384,7 @@ public class Javalin {
      */
     public Javalin defaultContentType(@NotNull String contentType) {
         ensureActionIsPerformedBeforeServerStart("Changing default content type");
-        javalinServlet.setDefaultContentType(contentType);
+        servlet.setDefaultContentType(contentType);
         return this;
     }
 
@@ -413,7 +395,7 @@ public class Javalin {
      */
     public Javalin maxBodySizeForRequestCache(long bodySizeInBytes) {
         ensureActionIsPerformedBeforeServerStart("Changing request cache body size");
-        javalinServlet.setMaxRequestCacheBodySize(bodySizeInBytes);
+        servlet.setMaxRequestCacheBodySize(bodySizeInBytes);
         return this;
     }
 
@@ -464,7 +446,7 @@ public class Javalin {
      */
     public Javalin accessManager(@NotNull AccessManager accessManager) {
         ensureActionIsPerformedBeforeServerStart("Setting an AccessManager");
-        this.javalinServlet.setAccessManager(accessManager);
+        this.servlet.setAccessManager(accessManager);
         return this;
     }
 
@@ -475,7 +457,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
-        javalinServlet.getExceptionMapper().getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        servlet.getExceptionMapper().getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
@@ -500,7 +482,7 @@ public class Javalin {
         ensureActionIsPerformedBeforeServerStart("Adding a WebSocket logger");
         WsHandler wsLogger = new WsHandler();
         ws.accept(wsLogger);
-        wsPathMatcher.setWsLogger(wsLogger);
+        wsServlet.getWsPathMatcher().setWsLogger(wsLogger);
         return this;
     }
 
@@ -511,7 +493,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
     public Javalin error(int statusCode, @NotNull ErrorHandler errorHandler) {
-        javalinServlet.getErrorMapper().getErrorHandlerMap().put(statusCode, errorHandler);
+        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, errorHandler);
         return this;
     }
 
@@ -548,8 +530,8 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
-        javalinServlet.addHandler(handlerType, path, handler, roles);
-        handlerMetaInfo.add(new HandlerMetaInfo(handlerType, Util.prefixContextPath(contextPath, path), handler, roles));
+        servlet.addHandler(handlerType, path, handler, roles);
+        handlerMetaInfo.add(new HandlerMetaInfo(handlerType, Util.prefixContextPath(server.getContextPath(), path), handler, roles));
         return this;
     }
 
@@ -802,8 +784,8 @@ public class Javalin {
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
-        wsPathMatcher.add(new WsEntry(path, configuredWebSocket));
-        handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(contextPath, path), ws, new HashSet<>()));
+        wsServlet.getWsPathMatcher().add(new WsEntry(path, configuredWebSocket));
+        handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(server.getContextPath(), path), ws, new HashSet<>()));
         return this;
     }
 

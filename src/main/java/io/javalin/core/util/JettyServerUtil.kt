@@ -8,7 +8,7 @@ package io.javalin.core.util
 
 import io.javalin.Javalin
 import io.javalin.core.JavalinServlet
-import io.javalin.websocket.WsPathMatcher
+import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerList
@@ -18,14 +18,10 @@ import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import org.eclipse.jetty.websocket.servlet.WebSocketCreator
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.net.BindException
 import java.util.*
-import java.util.function.Consumer
 import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -58,8 +54,7 @@ object JettyServerUtil {
             port: Int,
             contextPath: String,
             javalinServlet: JavalinServlet,
-            wsPathMatcher: WsPathMatcher,
-            wsFactoryConfig: Consumer<WebSocketServletFactory>
+            javalinWsServlet: JavalinWsServlet
     ): Int {
 
         val nullParent = null // javalin handlers are orphans
@@ -82,15 +77,7 @@ object JettyServerUtil {
         }
 
         val webSocketHandler = ServletContextHandler(nullParent, contextPath).apply {
-            addServlet(ServletHolder(object : WebSocketServlet() {
-                override fun configure(factory: WebSocketServletFactory) {
-                    wsFactoryConfig.accept(factory)
-                    factory.creator = WebSocketCreator { req, res ->
-                        wsPathMatcher.findEntry(req) ?: res.sendError(404, "WebSocket handler not found")
-                        wsPathMatcher // this is a long-lived object handling multiple connections
-                    }
-                }
-            }), "/*")
+            addServlet(ServletHolder(javalinWsServlet), "/*")
         }
 
         val notFoundHandler = object : SessionHandler() {
