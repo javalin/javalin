@@ -8,7 +8,6 @@ package io.javalin.staticfiles
 
 import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
@@ -20,24 +19,28 @@ import javax.servlet.http.HttpServletResponse
 data class StaticFileConfig(val path: String, val location: Location)
 enum class Location { CLASSPATH, EXTERNAL; }
 
-class JettyResourceHandler(
-        staticFileConfig: Set<StaticFileConfig>,
-        jettyServer: Server,
-        private val ignoreTrailingSlashes: Boolean) : io.javalin.staticfiles.ResourceHandler {
+class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
 
     private val log = LoggerFactory.getLogger("io.javalin.Javalin")
 
-    private val handlers = staticFileConfig.map { config ->
-        GzipHandler().apply {
-            server = jettyServer // the handler is standalone, this assignment just prevents a log.warn
+    var ignoreTrailingSlashes = true
+    val handlers = mutableListOf<GzipHandler>()
+
+    override fun dontIgnoreTrailingSlashes() {
+        ignoreTrailingSlashes = false;
+    }
+
+    override fun addStaticFileConfig(config: StaticFileConfig) {
+        handlers.add(GzipHandler().apply {
             handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
                 resourceBase = getResourcePath(config)
                 isDirAllowed = false
                 isEtags = true
                 log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
-        }
-    }.onEach { it.start() }
+            start()
+        })
+    }
 
     inner class WebjarHandler : ResourceHandler() {
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
