@@ -18,5 +18,6 @@ enum class OptionalDependency(val displayName: String, val testClass: String, va
     COMMONMARK("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark", "commonmark", "0.11.0"),
     SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "1.7.26"),
     SWAGGERUI("Swagger UI", "STATIC-FILES", "org.webjars", "swagger-ui", "3.17.6"),
+    MICROMETER("Micrometer", "io.micrometer.core.instrument.Metrics", "io.micrometer", "micrometer-core", "1.1.3"),
 }
 

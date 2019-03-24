@@ -50,6 +50,7 @@ class EmbeddedJavalin : Javalin(null, null) {
             resourceHandler = null // no jetty here
     )
 
+    override fun enableMetrics() = notAvailable("enableMetrics()")
     override fun enableStaticFiles(path: String, location: Location) = notAvailable("enableStaticFiles()")
     override fun enableStaticFiles(classpathPath: String) = notAvailable("enableStaticFiles()")
     override fun enableWebJars() = notAvailable("enableWebJars()")
