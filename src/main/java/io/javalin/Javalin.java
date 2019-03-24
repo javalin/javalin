@@ -51,23 +51,23 @@ public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
+    private JavalinServlet javalinServlet = new JavalinServlet(this);
+
     protected Server jettyServer;
     protected SessionHandler jettySessionHandler;
 
-    private JavalinServlet javalinServlet = new JavalinServlet(this);
+    protected Consumer<WebSocketServletFactory> wsFactoryConfig = WebSocketServletFactory::getPolicy;
+    protected WsPathMatcher wsPathMatcher = new WsPathMatcher();
 
     protected int port = 7000;
     protected String contextPath = "/";
-    protected boolean showStartupBanner = true;
-    protected boolean caseSensitiveUrls = false;
-    protected boolean started = false;
     protected AccessManager accessManager = SecurityUtil::noopAccessManager;
-    protected WsPathMatcher wsPathMatcher = new WsPathMatcher();
 
+    protected boolean showStartupBanner = true;
+    protected boolean started = false;
     protected EventManager eventManager = new EventManager();
-    protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
     protected Map<Class, Object> appAttributes = new HashMap<>();
-    protected Consumer<WebSocketServletFactory> wsFactoryConfig = WebSocketServletFactory::getPolicy;
+    protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
 
     protected Javalin(Server jettyServer, SessionHandler jettySessionHandler) {
         this.jettyServer = jettyServer;
@@ -173,16 +173,6 @@ public class Javalin {
     public Javalin prefer405over404() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to return 405 instead of 404 when applicable");
         javalinServlet.setPrefer405over404(true);
-        return this;
-    }
-
-    /**
-     * Configure the instance to not use lower-case paths for path matching and parsing.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableCaseSensitiveUrls() {
-        ensureActionIsPerformedBeforeServerStart("Enabling case sensitive urls");
-        caseSensitiveUrls = true;
         return this;
     }
 
@@ -565,7 +555,7 @@ public class Javalin {
         boolean shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP); // don't wrap CORS options
         String prefixedPath = Util.prefixContextPath(contextPath, path);
         Handler protectedHandler = shouldWrap ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
-        javalinServlet.getMatcher().add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler, caseSensitiveUrls));
+        javalinServlet.getMatcher().add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler));
         handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
         return this;
     }
@@ -820,7 +810,7 @@ public class Javalin {
         String prefixedPath = Util.prefixContextPath(contextPath, path);
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
-        wsPathMatcher.add(new WsEntry(prefixedPath, configuredWebSocket, caseSensitiveUrls));
+        wsPathMatcher.add(new WsEntry(prefixedPath, configuredWebSocket));
         handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, prefixedPath, ws, new HashSet<>()));
         return this;
     }

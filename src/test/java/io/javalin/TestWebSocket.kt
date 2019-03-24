@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger
 class TestWebSocket {
 
     private val contextPathJavalin = Javalin.create().contextPath("/websocket")
-    private val caseSensitiveJavalin = Javalin.create().enableCaseSensitiveUrls()
     private val javalinWithWsLogger = Javalin.create().wsLogger { ws ->
         ws.onConnect { session -> log.add(session.pathParam("param") + " connected") }
         ws.onClose { session, _, _ -> log.add(session.pathParam("param") + " disconnected") }
@@ -203,18 +202,8 @@ class TestWebSocket {
         assertThat(queryParams).contains("1", "2")
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `paths must be lowercase by default`() = TestUtil.test { app, _ ->
-        app.ws("/pAtH/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
-    }
-
-    @Test(expected = IllegalArgumentException::class)
-    fun `path-params must be lowercase by default`() = TestUtil.test { app, _ ->
-        app.ws("/path/:Param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
-    }
-
     @Test
-    fun `routing and path-params case sensitive works`() = TestUtil.test(caseSensitiveJavalin) { app, _ ->
+    fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
         app.ws("/other-path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PaTh/my-param")))

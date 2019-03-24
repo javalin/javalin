@@ -13,8 +13,8 @@ import org.eclipse.jetty.websocket.api.annotations.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-data class WsEntry(val path: String, val handler: WsHandler, val caseSensitiveUrls: Boolean) {
-    private val pathParser = PathParser(path, caseSensitiveUrls)
+data class WsEntry(val path: String, val handler: WsHandler) {
+    private val pathParser = PathParser(path)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
 }
@@ -32,9 +32,6 @@ class WsPathMatcher {
     private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
     fun add(wsEntry: WsEntry) {
-        if (!wsEntry.caseSensitiveUrls && wsEntry.path != wsEntry.path.toLowerCase()) {
-            throw IllegalArgumentException("By default URLs must be lowercase. Change casing or call `app.enableCaseSensitiveUrls()` to allow mixed casing.")
-        }
         wsEntries.add(wsEntry)
     }
 
