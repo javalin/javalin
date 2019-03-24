@@ -48,17 +48,21 @@ import static io.javalin.security.SecurityUtil.roles;
 public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
+
     protected Server jettyServer;
     protected SessionHandler jettySessionHandler;
     protected Consumer<WebSocketServletFactory> wsFactoryConfig = WebSocketServletFactory::getPolicy;
     protected WsPathMatcher wsPathMatcher = new WsPathMatcher();
+
     protected int port = 7000;
     protected String contextPath = "/";
     protected boolean showStartupBanner = true;
     protected boolean started = false;
+
     protected EventManager eventManager = new EventManager();
     protected Map<Class, Object> appAttributes = new HashMap<>();
     protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
+
     private JavalinServlet javalinServlet = new JavalinServlet(this);
 
     protected Javalin(Server jettyServer, SessionHandler jettySessionHandler) {
