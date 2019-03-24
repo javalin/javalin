@@ -14,11 +14,12 @@ import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.ThreadPool
 
-class JavalinMetrics private constructor(jettyStatisticsHandler: StatisticsHandler, jettyThreadPool: ThreadPool) {
+object JavalinMetrics {
 
     val registry: CompositeMeterRegistry = Metrics.globalRegistry
 
-    init {
+    @JvmStatic
+    fun init(jettyStatisticsHandler: StatisticsHandler, jettyThreadPool: ThreadPool) {
         registerStatisticsHandler(jettyStatisticsHandler)
         registerThreadPool(jettyThreadPool)
     }
@@ -30,23 +31,5 @@ class JavalinMetrics private constructor(jettyStatisticsHandler: StatisticsHandl
     private fun registerThreadPool(threadPool: ThreadPool) {
         val threadPoolMetrics = JettyServerThreadPoolMetrics(threadPool, emptyList<Tag>())
         threadPoolMetrics.bindTo(this.registry)
-    }
-
-    companion object {
-
-        private var instance: JavalinMetrics? = null
-
-        /**
-         * Creates a new [JavalinMetrics] instance if needed to prevent multiple and unneeded instantiations.
-         *
-         * @param jettyStatisticsHandler [StatisticsHandler] which is already registered via [org.eclipse.jetty.server.Server.insertHandler]
-         * @param jettyThreadPool the [ThreadPool] which is used by [io.javalin.Javalin]
-         */
-        @Synchronized
-        fun createInstanceIfNeeded(jettyStatisticsHandler: StatisticsHandler, jettyThreadPool: ThreadPool) {
-            if (instance == null) {
-                instance = JavalinMetrics(jettyStatisticsHandler, jettyThreadPool)
-            }
-        }
     }
 }
