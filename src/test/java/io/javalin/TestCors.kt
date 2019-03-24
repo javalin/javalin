@@ -7,6 +7,7 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
+import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_HEADERS
 import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_ORIGIN
@@ -37,6 +38,7 @@ class TestCors {
     fun `enableCorsForAllOrigins() enables cors for all origins`() = TestUtil.test(Javalin.create().enableCorsForAllOrigins()) { app, http ->
         app.get("/") { ctx -> ctx.result("Hello") }
         assertThat(Unirest.get(http.origin).header("Origin", "some-origin").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("some-origin")
+        assertThat(Unirest.get(http.origin).header("Origin", "some-origin").asString().headers[ACCESS_CONTROL_ALLOW_CREDENTIALS]!![0]).isEqualTo("true") // cookies allowed
         assertThat(Unirest.get(http.origin).header("Referer", "some-referer").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("some-referer")
         assertThat(Unirest.get(http.origin).asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isNull()
     }

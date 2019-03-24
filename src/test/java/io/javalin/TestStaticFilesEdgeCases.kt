@@ -7,10 +7,8 @@
 package io.javalin
 
 import io.javalin.staticfiles.Location
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File
-import java.lang.RuntimeException
 
 class TestStaticFilesEdgeCases {
 
@@ -33,7 +31,7 @@ class TestStaticFilesEdgeCases {
     @Test
     fun `server starts for empty external folder`() {
         File("src/test/external/empty").mkdir()
-        Javalin.create().enableStaticFiles("src/test/external/empty", Location.EXTERNAL).start().stop()
+        Javalin.create().port(0).enableStaticFiles("src/test/external/empty", Location.EXTERNAL).start().stop()
     }
 
 }

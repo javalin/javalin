@@ -7,22 +7,18 @@
 package io.javalin.core.util
 
 import io.javalin.InternalServerErrorResponse
-import org.eclipse.jetty.server.session.SessionHandler
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.net.URL
 import java.util.*
-import java.util.function.Supplier
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 
 object Util {
 
     private val log = LoggerFactory.getLogger(Util::class.java)
-
-    var noJettyStarted = true
 
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
 
@@ -63,19 +59,6 @@ object Util {
             |build.gradle:
             |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
 
-    fun printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond() {
-        // per instance checks are not considered necessary
-        // this helper is not intended for people with more than one instance
-        Thread {
-            Thread.sleep(1000)
-            if (noJettyStarted) {
-                log.info("It looks like you created a Javalin instance, but you never started it.")
-                log.info("Try: Javalin app = Javalin.create().start();")
-                log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
-            }
-        }.start()
-    }
-
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
     fun printHelpfulMessageIfLoggerIsMissing() {
@@ -90,16 +73,14 @@ object Util {
 
     fun javalinBanner(): String {
         return "\n" + """
-             _________________________________________
-            |        _                  _ _           |
-            |       | | __ ___   ____ _| (_)_ __      |
-            |    _  | |/ _` \ \ / / _` | | | '_ \     |
-            |   | |_| | (_| |\ V / (_| | | | | | |    |
-            |    \___/ \__,_| \_/ \__,_|_|_|_| |_|    |
-            |_________________________________________|
-            |                                         |
-            |    https://javalin.io/documentation     |
-            |_________________________________________|""".trimIndent()
+          |           __                      __ _
+          |          / /____ _ _   __ ____ _ / /(_)____
+          |     __  / // __ `/| | / // __ `// // // __ \
+          |    / /_/ // /_/ / | |/ // /_/ // // // / / /
+          |    \____/ \__,_/  |___/ \__,_//_//_//_/ /_/
+          |
+          |        https://javalin.io/documentation
+          |""".trimMargin()
     }
 
     fun getChecksumAndReset(inputStream: InputStream): String {
@@ -125,17 +106,6 @@ object Util {
         } catch (ignored: Exception) {
         }
         return false
-    }
-
-    fun getValidSessionHandlerOrThrow(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
-        val uuid = UUID.randomUUID().toString()
-        val sessionHandler = sessionHandlerSupplier.get()
-        try {
-            sessionHandler.isIdInUse(uuid)
-            return sessionHandler
-        } catch (e: Exception) {
-            throw IllegalStateException("Could not look up dummy session ID in store. Misconfigured session handler", e)
-        }
     }
 
 }

@@ -1,7 +1,7 @@
 package io.javalin
 
 import io.javalin.core.JavalinServlet
-import io.javalin.core.util.Util
+import io.javalin.core.util.JettyServerUtil
 import io.javalin.staticfiles.Location
 import io.javalin.websocket.WsHandler
 import org.eclipse.jetty.server.Server
@@ -31,7 +31,7 @@ import java.util.function.Supplier
 class EmbeddedJavalin : Javalin(null, null) {
 
     init {
-        Util.noJettyStarted = false // embeddable doesn't use Jetty
+        JettyServerUtil.noJettyStarted = false // embeddable doesn't use Jetty
     }
 
     override fun createServlet() = JavalinServlet(

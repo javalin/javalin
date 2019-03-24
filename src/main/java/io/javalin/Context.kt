@@ -95,9 +95,20 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * JavalinJson can be configured to use any mapping library.
      * @return The mapped object
      */
-    fun <T> bodyAsClass(clazz: Class<T>): T {
-        return JavalinJson.fromJson(body(), clazz)
+    fun <T> bodyAsClass(clazz: Class<T>): T = JavalinJson.fromJson(body(), clazz)
+
+    /**
+     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    fun <T> bodyValidator(clazz: Class<T>) = try {
+        TypedValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
+    } catch (e: Exception) {
+        throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
+
+    /** Reified version of [bodyValidator] */
+    inline fun <reified T : Any> bodyValidator() = bodyValidator(T::class.java)
 
     /** Gets first [UploadedFile] for the specified name, or null. */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
@@ -113,10 +124,20 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * use elvis (formParam(key) ?: default) instead in Kotlin.
      */
     @JvmOverloads
-    fun formParam(formParam: String, default: String? = null): String? = formParams(formParam).firstOrNull() ?: default
+    fun formParam(key: String, default: String? = null): String? = formParams(key).firstOrNull() ?: default
+
+    /**
+     * Creates a [TypedValidator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    @JvmOverloads
+    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator(formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'").asClass(clazz)
+
+    /** Reified version of [formParam] (Kotlin only) */
+    inline fun <reified T : Any> formParam(key: String, default: String? = null) = formParam(key, T::class.java, default)
 
     /** Gets a list of form params for the specified key, or empty list. */
-    fun formParams(formParam: String): List<String> = formParamMap()[formParam] ?: emptyList()
+    fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
 
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> =
@@ -143,7 +164,16 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * and a browser GETs /users/123,
      * pathParam("user-id") will return "123"
      */
-    fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath)
+    fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
+
+    /**
+     * Creates a [TypedValidator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    fun <T> pathParam(key: String, clazz: Class<T>) = Validator(pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'").asClass(clazz)
+
+    /** Reified version of [pathParam] (Kotlin only) */
+    inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)
 
     /** Gets a map of all the [pathParam] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
@@ -260,10 +290,20 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * use elvis (queryParam(key) ?: default) instead in Kotlin.
      */
     @JvmOverloads
-    fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull() ?: default
+    fun queryParam(key: String, default: String? = null): String? = queryParams(key).firstOrNull() ?: default
+
+    /**
+     * Creates a [TypedValidator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
+     * Throws [BadRequestResponse] if validation fails.
+     */
+    @JvmOverloads
+    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator(queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'").asClass(clazz)
+
+    /** Reified version of [queryParam] (Kotlin only) */
+    inline fun <reified T : Any> queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)
 
     /** Gets a list of query params for the specified key, or empty list. */
-    fun queryParams(queryParam: String): List<String> = queryParamMap()[queryParam] ?: emptyList()
+    fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
 
     /** Gets a map with all the query param keys and values. */
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
@@ -444,42 +484,22 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
     }
 
-    // Validation
+    // Deprecated validation, will be removed in 3.0
+    @Deprecated("Use bodyValidator(class) instead")
+    fun <T> validatedBodyAsClass(clazz: Class<T>) = bodyValidator(clazz)
 
-    /**
-     * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
+    @Deprecated("Use bodyValidator() instead")
+    inline fun <reified T : Any> validatedBody() = bodyValidator(T::class.java)
+
+    @Deprecated("Use formParam(key, class) instead.")
     @JvmOverloads
     fun validatedFormParam(key: String, default: String? = null) = Validator(formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'")
 
-    /**
-     * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
+    @Deprecated("Use pathParam(key, class) instead.")
     fun validatedPathParam(key: String) = Validator(pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'")
 
-    /**
-     * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
+    @Deprecated("Use queryParam(key, class) instead")
     @JvmOverloads
     fun validatedQueryParam(key: String, default: String? = null) = Validator(queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'")
-
-    /**
-     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    inline fun <reified T : Any> validatedBody() = validatedBodyAsClass(T::class.java)
-
-    /**
-     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    fun <T> validatedBodyAsClass(clazz: Class<T>) = try {
-        TypedValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
-    } catch (e: Exception) {
-        throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
-    }
 
 }

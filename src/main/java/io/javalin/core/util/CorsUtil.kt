@@ -25,6 +25,7 @@ class CorsBeforeHandler(private val origins: Array<String>) : Handler {
         (ctx.header(Header.ORIGIN) ?: ctx.header(Header.REFERER))?.let { header ->
             origins.map { it.removeSuffix("/") }.firstOrNull { it == "*" || header.startsWith(it) }?.let {
                 ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, header)
+                ctx.header(Header.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
             }
         }
     }

@@ -17,21 +17,21 @@ public class TestValidation_Java {
     public void validator_works_from_java_too() {
         JavalinValidation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
         String intString = "123";
-        int myInt = validate(intString).asClass(Integer.class).getOrThrow();
+        int myInt = validate(intString).asClass(Integer.class).get();
         assertThat(myInt).isEqualTo(123);
 
-        Instant fromDate = validate("1262347200000").asClass(Instant.class).getOrThrow();
+        Instant fromDate = validate("1262347200000").asClass(Instant.class).get();
         Instant toDate = validate("1262347300000").asClass(Instant.class)
             .check(it -> it.isAfter(fromDate), "'to' has to be after 'from'")
-            .getOrThrow();
+            .get();
 
         assertThat(toDate.getEpochSecond()).isEqualTo(1262347300L);
 
-        assertThat(validate("true").asBoolean().getOrThrow()).isInstanceOf(Boolean.class);
-        assertThat(validate("1.2").asDouble().getOrThrow()).isInstanceOf(Double.class);
-        assertThat(validate("1.2").asFloat().getOrThrow()).isInstanceOf(Float.class);
-        assertThat(validate("123").asInt().getOrThrow()).isInstanceOf(Integer.class);
-        assertThat(validate("123").asLong().getOrThrow()).isInstanceOf(Long.class);
+        assertThat(validate("true").asBoolean().get()).isInstanceOf(Boolean.class);
+        assertThat(validate("1.2").asDouble().get()).isInstanceOf(Double.class);
+        assertThat(validate("1.2").asFloat().get()).isInstanceOf(Float.class);
+        assertThat(validate("123").asInt().get()).isInstanceOf(Integer.class);
+        assertThat(validate("123").asLong().get()).isInstanceOf(Long.class);
     }
 
 }
