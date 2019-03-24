@@ -10,7 +10,6 @@ package io.javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.core.EventManager;
-import io.javalin.core.HandlerEntry;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.util.CorsBeforeHandler;
@@ -22,7 +21,6 @@ import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
 import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
-import io.javalin.security.SecurityUtil;
 import io.javalin.serversentevent.SseClient;
 import io.javalin.serversentevent.SseHandler;
 import io.javalin.staticfiles.JettyResourceHandler;
@@ -50,24 +48,18 @@ import static io.javalin.security.SecurityUtil.roles;
 public class Javalin {
 
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
-
-    private JavalinServlet javalinServlet = new JavalinServlet(this);
-
     protected Server jettyServer;
     protected SessionHandler jettySessionHandler;
-
     protected Consumer<WebSocketServletFactory> wsFactoryConfig = WebSocketServletFactory::getPolicy;
     protected WsPathMatcher wsPathMatcher = new WsPathMatcher();
-
     protected int port = 7000;
     protected String contextPath = "/";
-    protected AccessManager accessManager = SecurityUtil::noopAccessManager;
-
     protected boolean showStartupBanner = true;
     protected boolean started = false;
     protected EventManager eventManager = new EventManager();
     protected Map<Class, Object> appAttributes = new HashMap<>();
     protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
+    private JavalinServlet javalinServlet = new JavalinServlet(this);
 
     protected Javalin(Server jettyServer, SessionHandler jettySessionHandler) {
         this.jettyServer = jettyServer;
@@ -468,7 +460,7 @@ public class Javalin {
      */
     public Javalin accessManager(@NotNull AccessManager accessManager) {
         ensureActionIsPerformedBeforeServerStart("Setting an AccessManager");
-        this.accessManager = accessManager;
+        this.javalinServlet.setAccessManager(accessManager);
         return this;
     }
 
@@ -552,11 +544,8 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
-        boolean shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP); // don't wrap CORS options
-        String prefixedPath = Util.prefixContextPath(contextPath, path);
-        Handler protectedHandler = shouldWrap ? ctx -> accessManager.manage(handler, ctx, roles) : handler;
-        javalinServlet.getMatcher().add(new HandlerEntry(handlerType, prefixedPath, protectedHandler, handler));
-        handlerMetaInfo.add(new HandlerMetaInfo(handlerType, prefixedPath, handler, roles));
+        javalinServlet.addHandler(handlerType, path, handler, roles);
+        handlerMetaInfo.add(new HandlerMetaInfo(handlerType, Util.prefixContextPath(contextPath, path), handler, roles));
         return this;
     }
 
