@@ -173,7 +173,7 @@ class TestWebSocket {
 
     @Test
     fun `headers and host are available in session`() = TestUtil.test { app, _ ->
-        app.ws("websocket") { ws ->
+        app.ws("/websocket") { ws ->
             ws.onConnect { session -> log.add("Header: " + session.header("Test")!!) }
             ws.onClose { session, _, _ -> log.add("Closed connection from: " + session.host()!!) }
         }

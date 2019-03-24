@@ -796,11 +796,10 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
-        String prefixedPath = Util.prefixContextPath(contextPath, path);
         WsHandler configuredWebSocket = new WsHandler();
         ws.accept(configuredWebSocket);
-        wsPathMatcher.add(new WsEntry(prefixedPath, configuredWebSocket));
-        handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, prefixedPath, ws, new HashSet<>()));
+        wsPathMatcher.add(new WsEntry(path, configuredWebSocket));
+        handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(contextPath, path), ws, new HashSet<>()));
         return this;
     }
 

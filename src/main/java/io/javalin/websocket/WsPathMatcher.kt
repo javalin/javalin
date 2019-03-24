@@ -10,6 +10,7 @@ import io.javalin.core.PathParser
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.UpgradeRequest
 import org.eclipse.jetty.websocket.api.annotations.*
+import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -84,11 +85,11 @@ class WsPathMatcher {
 
     private fun findEntry(session: Session) = findEntry(session.upgradeRequest)
 
-    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.requestURI.path) }
+    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.uriNoContextPath()) }
 
     private fun wrap(session: Session, wsEntry: WsEntry): WsSession {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
-        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.requestURI.path))
+        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.uriNoContextPath()))
         return WsSession(sessionIds[session]!!, session, sessionPathParams[session]!!, wsEntry.path)
     }
 
@@ -96,5 +97,7 @@ class WsPathMatcher {
         sessionIds.remove(session)
         sessionPathParams.remove(session)
     }
+
+    private fun UpgradeRequest.uriNoContextPath() = this.requestURI.path.removePrefix((this as ServletUpgradeRequest).httpServletRequest.contextPath)
 
 }
