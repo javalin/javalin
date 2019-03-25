@@ -157,13 +157,10 @@ object JettyServerUtil {
     }
 
     fun getValidSessionHandlerOrThrow(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
-        val uuid = UUID.randomUUID().toString()
         val sessionHandler = sessionHandlerSupplier.get()
-        return if (sessionHandler.sessionCache == null)
-            sessionHandler
-        else try {
-            sessionHandler.isIdInUse(uuid)
-            sessionHandler
+        try {
+            sessionHandler.sessionCache?.sessionDataStore?.exists("id-that-does-not-exist")
+            return sessionHandler
         } catch (e: Exception) {
             throw IllegalStateException("Could not look up dummy session ID in store. Misconfigured session handler", e)
         }
