@@ -14,9 +14,7 @@ import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.*
-import org.eclipse.jetty.server.session.DefaultSessionCache
-import org.eclipse.jetty.server.session.FileSessionDataStore
-import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.server.session.*
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.junit.Test
@@ -108,9 +106,23 @@ class TestCustomJetty {
         File(baseDir, "javalin-session-store-for-test").deleteRecursively()
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun `invalid SessionHandler gets handled`() {
+    @Test
+    fun `default SessionHandler works`() {
         Javalin.create().sessionHandler { SessionHandler() }
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `broken SessionHandler throws`() {
+        fun sqlSessionHandler(driver: String, url: String) = SessionHandler().apply {
+            sessionCache = DefaultSessionCache(this).apply {
+                sessionDataStore = JDBCSessionDataStoreFactory().apply {
+                    setDatabaseAdaptor(DatabaseAdaptor().apply {
+                        setDriverInfo(driver, url)
+                    })
+                }.getSessionDataStore(sessionHandler)
+            }
+        }
+        Javalin.create().sessionHandler { sqlSessionHandler(driver = "null", url = "null") }
     }
 
     @Test

@@ -18,7 +18,7 @@ import org.eclipse.jetty.server.handler.StatisticsHandler
 
 object JavalinMicrometer {
 
-    private val registry: CompositeMeterRegistry = Metrics.globalRegistry
+    val registry: CompositeMeterRegistry = Metrics.globalRegistry
 
     @JvmStatic
     fun init(server: Server) {
