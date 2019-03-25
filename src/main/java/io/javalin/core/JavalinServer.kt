@@ -13,18 +13,18 @@ import org.eclipse.jetty.server.session.SessionHandler
 
 class JavalinServer {
 
-    var jettyServer: Server? = null
-    var jettySessionHandler: SessionHandler? = null
+    var server: Server? = null
+    var sessionHandler: SessionHandler? = null
 
     var port = 7000
     var contextPath = "/"
 
     fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
-        val server = jettyServer ?: JettyServerUtil.defaultServer()
-        val sessionHandler = jettySessionHandler ?: JettyServerUtil.defaultSessionHandler()
+        server = server ?: JettyServerUtil.defaultServer()
+        sessionHandler = sessionHandler ?: JettyServerUtil.defaultSessionHandler()
         port = JettyServerUtil.initialize(
-                server,
-                sessionHandler,
+                server!!,
+                sessionHandler!!,
                 port,
                 contextPath,
                 javalinServlet,

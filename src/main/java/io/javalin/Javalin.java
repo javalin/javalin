@@ -135,7 +135,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            server.getJettyServer().stop();
+            server.getServer().stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -186,7 +186,7 @@ public class Javalin {
      */
     public Javalin server(@NotNull Supplier<Server> server) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
-        this.server.setJettyServer(server.get());
+        this.server.setServer(server.get());
         return this;
     }
 
@@ -196,7 +196,7 @@ public class Javalin {
      */
     public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
-        server.setJettySessionHandler(JettyServerUtil.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler));
+        server.setSessionHandler(JettyServerUtil.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler));
         return this;
     }
 
