@@ -24,7 +24,6 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.net.BindException
-import java.util.*
 import java.util.function.Consumer
 import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
@@ -156,14 +155,15 @@ object JettyServerUtil {
         }.start()
     }
 
-    fun getValidSessionHandlerOrThrow(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
+    fun getSessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
         val sessionHandler = sessionHandlerSupplier.get()
         try {
             sessionHandler.sessionCache?.sessionDataStore?.exists("id-that-does-not-exist")
-            return sessionHandler
         } catch (e: Exception) {
-            throw IllegalStateException("Could not look up dummy session ID in store. Misconfigured session handler", e)
+            // TODO: This should throw... Find a way to check this that doesn't fail for valid SessionHandlers.
+            log.warn("Failed to look up ID in sessionDataStore. SessionHandler might be misconfigured.")
         }
+        return sessionHandler
     }
 }
 
