@@ -12,11 +12,11 @@ import org.eclipse.jetty.websocket.common.WebSocketSession
 import java.nio.ByteBuffer
 
 /**
- * The [WsSession] class is a wrapper for Jetty's [Session].
+ * The [WsContext] class holds Jetty's [Session] and provides (convenient) delegate methods.
  * It adds functionality similar to the API found in [io.javalin.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-class WsSession(val id: String, session: Session, private var pathParamMap: Map<String, String>, private val matchedPath: String) {
+class WsContext(val id: String, session: Session, private var pathParamMap: Map<String, String>, private val matchedPath: String) {
 
     private val webSocketSession = session as WebSocketSession
 
@@ -38,6 +38,6 @@ class WsSession(val id: String, session: Session, private var pathParamMap: Map<
     fun headerMap(): Map<String, String> = webSocketSession.upgradeRequest.headers.keys.map { it to webSocketSession.upgradeRequest.getHeader(it) }.toMap()
     fun matchedPath() = matchedPath
 
-    override fun equals(other: Any?) = webSocketSession == (other as WsSession).webSocketSession
+    override fun equals(other: Any?) = webSocketSession == (other as WsContext).webSocketSession
     override fun hashCode() = webSocketSession.hashCode()
 }

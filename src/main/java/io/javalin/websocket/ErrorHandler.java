@@ -11,5 +11,5 @@ import org.jetbrains.annotations.Nullable;
 
 @FunctionalInterface
 public interface ErrorHandler {
-    void handle(@NotNull WsSession session, @Nullable Throwable throwable) throws Exception;
+    void handle(@NotNull WsContext ctx, @Nullable Throwable throwable) throws Exception;
 }

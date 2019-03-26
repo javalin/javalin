@@ -10,7 +10,7 @@ import io.javalin.Context
 import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
 import io.javalin.websocket.WsHandler
-import io.javalin.websocket.WsSession
+import io.javalin.websocket.WsContext
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -59,14 +59,14 @@ object LogUtil {
 
     @JvmStatic
     fun wsDebugLogger(ws: WsHandler) {
-        ws.onConnect { s -> s.logEvent("onConnect") }
-        ws.onMessage { s, msg -> s.logEvent("onMessage (String)", "Message (next line):\n$msg") }
-        ws.onMessage { s, msg, offset, length -> s.logEvent("onMessage (Binary)", "Offset: $offset, Length: $length\nMessage (next line):\n$msg") }
-        ws.onClose { s, statusCode, reason -> s.logEvent("onClose", "StatusCode: $statusCode\nReason: ${reason ?: "No reason was provided"}") }
-        ws.onError { s, throwable -> s.logEvent("onError", "Throwable:  ${throwable ?: "No throwable was provided"}") }
+        ws.onConnect { ctx -> ctx.logEvent("onConnect") }
+        ws.onMessage { ctx, msg -> ctx.logEvent("onMessage (String)", "Message (next line):\n$msg") }
+        ws.onMessage { ctx, msg, offset, length -> ctx.logEvent("onMessage (Binary)", "Offset: $offset, Length: $length\nMessage (next line):\n$msg") }
+        ws.onClose { ctx, statusCode, reason -> ctx.logEvent("onClose", "StatusCode: $statusCode\nReason: ${reason ?: "No reason was provided"}") }
+        ws.onError { ctx, throwable -> ctx.logEvent("onError", "Throwable:  ${throwable ?: "No throwable was provided"}") }
     }
 
-    private fun WsSession.logEvent(event: String, additionalInfo: String = "") {
+    private fun WsContext.logEvent(event: String, additionalInfo: String = "") {
         log.info("""JAVALIN WEBSOCKET DEBUG LOG
                 |WebSocket Event: $event
                 |Session Id: ${this.id}

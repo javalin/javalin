@@ -14,16 +14,16 @@ fun main(args: Array<String>) {
     Javalin.create().apply {
         enableDebugLogging()
         ws("/websocket") { ws ->
-            ws.onConnect { session ->
+            ws.onConnect { ctx ->
                 println("Connection established")
-                session.send("[MESSAGE FROM SERVER] Connection established")
+                ctx.send("[MESSAGE FROM SERVER] Connection established")
             }
-            ws.onMessage { session, message ->
+            ws.onMessage { ctx, message ->
                 println("Received: " + message)
-                session.send("[MESSAGE FROM SERVER] Echo: " + message)
+                ctx.send("[MESSAGE FROM SERVER] Echo: " + message)
             }
-            ws.onClose { session, statusCode, reason -> println("Closed") }
-            ws.onError { session, throwable -> println("Errored") }
+            ws.onClose { ctx, statusCode, reason -> println("Closed") }
+            ws.onError { ctx, throwable -> println("Errored") }
         }
         get("/") { ctx ->
             ctx.html("""<h1>WebSocket example</h1>

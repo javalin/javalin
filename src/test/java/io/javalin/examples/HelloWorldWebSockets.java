@@ -14,18 +14,18 @@ public class HelloWorldWebSockets {
     public static void main(String[] args) {
         Javalin app = Javalin.create().enableDebugLogging().port(7070);
         app.ws("/websocket", ws -> {
-            ws.onConnect(session -> {
+            ws.onConnect(ctx -> {
                 System.out.println("Connected");
-                session.send("[MESSAGE FROM SERVER] Connection established");
+                ctx.send("[MESSAGE FROM SERVER] Connection established");
             });
-            ws.onMessage((session, message) -> {
+            ws.onMessage((ctx, message) -> {
                 System.out.println("Received: " + message);
-                session.send("[MESSAGE FROM SERVER] Echo: " + message);
+                ctx.send("[MESSAGE FROM SERVER] Echo: " + message);
             });
-            ws.onClose((session, statusCode, reason) -> {
+            ws.onClose((ctx, statusCode, reason) -> {
                 System.out.println("Closed");
             });
-            ws.onError((session, throwable) -> {
+            ws.onError((ctx, throwable) -> {
                 System.out.println("Errored");
             });
         });

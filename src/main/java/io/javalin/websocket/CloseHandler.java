@@ -11,5 +11,5 @@ import org.jetbrains.annotations.Nullable;
 
 @FunctionalInterface
 public interface CloseHandler {
-    void handle(@NotNull WsSession session, int statusCode, @Nullable String reason) throws Exception;
+    void handle(@NotNull WsContext ctx, int statusCode, @Nullable String reason) throws Exception;
 }

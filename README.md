@@ -85,13 +85,13 @@ app.routes {
 ### WebSockets
 ```kotlin
 app.ws("/websocket") { ws ->
-    ws.onConnect { session -> println("Connected") }
-    ws.onMessage { session, message ->
+    ws.onConnect { ctx -> println("Connected") }
+    ws.onMessage { ctx, message ->
         println("Received: " + message)
-        session.remote.sendString("Echo: " + message)
+        ctx.send("Echo: " + message)
     }
-    ws.onClose { session, statusCode, reason -> println("Closed") }
-    ws.onError { session, throwable -> println("Errored") }
+    ws.onClose { ctx, statusCode, reason -> println("Closed") }
+    ws.onError { ctx, throwable -> println("Errored") }
 }
 ```
 

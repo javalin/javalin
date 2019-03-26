@@ -66,7 +66,7 @@ public class VisualTest {
     }
 
     private static void wsMethodRef(WsHandler wsHandler) {
-        wsHandler.onConnect(session -> session.session().getRemote().sendString("Connected!"));
+        wsHandler.onConnect(ctx -> ctx.session().getRemote().sendString("Connected!"));
     }
 
     private static void methodReference(Context context) {

@@ -89,10 +89,10 @@ class WsPathMatcher {
 
     fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.requestURI.path) }
 
-    private fun wrap(session: Session, wsEntry: WsEntry): WsSession {
+    private fun wrap(session: Session, wsEntry: WsEntry): WsContext {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
         sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.requestURI.path))
-        return WsSession(sessionIds[session]!!, session, sessionPathParams[session]!!, wsEntry.path)
+        return WsContext(sessionIds[session]!!, session, sessionPathParams[session]!!, wsEntry.path)
     }
 
     private fun destroy(session: Session) {
