@@ -16,7 +16,7 @@ import java.nio.ByteBuffer
  * It adds functionality similar to the API found in [io.javalin.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-class WsContext(val id: String, session: Session, private var pathParamMap: Map<String, String>, private val matchedPath: String) {
+class WsContext(val sessionId: String, session: Session, private var pathParamMap: Map<String, String>, private val matchedPath: String) {
 
     private val webSocketSession = session as WebSocketSession
 

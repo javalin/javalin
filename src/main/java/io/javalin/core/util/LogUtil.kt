@@ -69,7 +69,7 @@ object LogUtil {
     private fun WsContext.logEvent(event: String, additionalInfo: String = "") {
         log.info("""JAVALIN WEBSOCKET DEBUG LOG
                 |WebSocket Event: $event
-                |Session Id: ${this.id}
+                |Session Id: ${this.sessionId}
                 |Host: ${this.host()}
                 |Matched Path: ${this.matchedPath()}
                 |PathParams: ${this.pathParamMap()}
