@@ -60,10 +60,10 @@ object LogUtil {
     @JvmStatic
     fun wsDebugLogger(ws: WsHandler) {
         ws.onConnect { ctx -> ctx.logEvent("onConnect") }
-        ws.onMessage { ctx, msg -> ctx.logEvent("onMessage (String)", "Message (next line):\n$msg") }
-        ws.onMessage { ctx, msg, offset, length -> ctx.logEvent("onMessage (Binary)", "Offset: $offset, Length: $length\nMessage (next line):\n$msg") }
-        ws.onClose { ctx, statusCode, reason -> ctx.logEvent("onClose", "StatusCode: $statusCode\nReason: ${reason ?: "No reason was provided"}") }
-        ws.onError { ctx, throwable -> ctx.logEvent("onError", "Throwable:  ${throwable ?: "No throwable was provided"}") }
+        ws.onMessage { ctx -> ctx.logEvent("onMessage", "Message (next line):\n${ctx.message()}") }
+        ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Offset: ${ctx.offset}, Length: ${ctx.length}\nMessage (next line):\n${ctx.data}") }
+        ws.onClose { ctx -> ctx.logEvent("onClose", "StatusCode: ${ctx.statusCode}\nReason: ${ctx.reason ?: "No reason was provided"}") }
+        ws.onError { ctx -> ctx.logEvent("onError", "Throwable:  ${ctx.error ?: "No throwable was provided"}") }
     }
 
     private fun WsContext.logEvent(event: String, additionalInfo: String = "") {

@@ -8,6 +8,8 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
+import io.javalin.json.JavalinJson
+import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
 import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
@@ -31,7 +33,7 @@ class TestWebSocket {
     private val caseSensitiveJavalin = Javalin.create().enableCaseSensitiveUrls()
     private val javalinWithWsLogger = Javalin.create().wsLogger { ws ->
         ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
-        ws.onClose { ctx, _, _ -> log.add(ctx.pathParam("param") + " disconnected") }
+        ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
     }
     private var log = mutableListOf<String>()
 
@@ -44,14 +46,14 @@ class TestWebSocket {
     fun `each connection receives a unique id`() = TestUtil.test(contextPathJavalin) { app, _ ->
         app.ws("/test-websocket-1") { ws ->
             ws.onConnect { ctx -> log.add(ctx.sessionId) }
-            ws.onMessage { ctx, _ -> log.add(ctx.sessionId) }
-            ws.onClose { ctx, _, _ -> log.add(ctx.sessionId) }
+            ws.onMessage { ctx -> log.add(ctx.sessionId) }
+            ws.onClose { ctx -> log.add(ctx.sessionId) }
         }
         app.routes {
             ws("/test-websocket-2") { ws ->
                 ws.onConnect { ctx -> log.add(ctx.sessionId) }
-                ws.onMessage { ctx, _ -> log.add(ctx.sessionId) }
-                ws.onClose { ctx, _, _ -> log.add(ctx.sessionId) }
+                ws.onMessage { ctx -> log.add(ctx.sessionId) }
+                ws.onClose { ctx -> log.add(ctx.sessionId) }
             }
         }
 
@@ -85,16 +87,17 @@ class TestWebSocket {
                 userUsernameMap[ctx] = atomicInteger.getAndIncrement()
                 log.add(userUsernameMap[ctx].toString() + " connected")
             }
-            ws.onMessage { ctx, message ->
+            ws.onMessage { ctx ->
+                val message = ctx.message()
                 log.add(userUsernameMap[ctx].toString() + " sent '" + message + "' to server")
                 userUsernameMap.forEach { client, _ -> doAndSleep { client.send("Server sent '" + message + "' to " + userUsernameMap[client]) } }
             }
-            ws.onClose { ctx, _, _ -> log.add(userUsernameMap[ctx].toString() + " disconnected") }
+            ws.onClose { ctx -> log.add(userUsernameMap[ctx].toString() + " disconnected") }
         }
         app.routes {
             ws("/test-websocket-2") { ws ->
-                ws.onConnect { _ -> log.add("Connected to other endpoint") }
-                ws.onClose { _, _, _ -> log.add("Disconnected from other endpoint") }
+                ws.onConnect { log.add("Connected to other endpoint") }
+                ws.onClose { _ -> log.add("Disconnected from other endpoint") }
             }
         }
 
@@ -127,14 +130,43 @@ class TestWebSocket {
     }
 
     @Test
+    fun `receive and send json messages`() = TestUtil.test(contextPathJavalin) { app, _ ->
+        val clientMessage = SerializeableObject().apply { value1 = "test1"; value2 = "test2" }
+        val clientMessageJson = JavalinJson.toJson(clientMessage)
+
+        val serverMessage = SerializeableObject().apply { value1 = "echo1"; value2 = "echo2" }
+        val serverMessageJson = JavalinJson.toJson(serverMessage)
+
+        var receivedJson: String? = null
+        var receivedMessage: SerializeableObject? = null
+        app.ws("/message") { ws ->
+            ws.onMessage { ctx ->
+                receivedJson = ctx.message()
+                receivedMessage = ctx.message<SerializeableObject>()
+                ctx.send(serverMessage)
+            }
+        }
+
+        val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/message"))
+        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
+        doAndSleep { testClient.send(clientMessageJson) }
+
+        assertThat(receivedJson).isEqualTo(clientMessageJson)
+        assertThat(receivedMessage).isNotNull
+        assertThat(receivedMessage!!.value1).isEqualTo(clientMessage.value1)
+        assertThat(receivedMessage!!.value2).isEqualTo(clientMessage.value2)
+        assertThat(log.last()).isEqualTo(serverMessageJson)
+    }
+
+    @Test
     fun `binary messages`() = TestUtil.test(contextPathJavalin) { app, _ ->
         val byteDataToSend1 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
         val byteDataToSend2 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
 
         val receivedBinaryData = mutableListOf<ByteArray>()
         app.ws("/binary") { ws ->
-            ws.onMessage { _, message, _, _ ->
-                receivedBinaryData.add(message.toByteArray())
+            ws.onBinaryMessage { ctx ->
+                receivedBinaryData.add(ctx.data.toByteArray())
             }
         }
 
@@ -176,7 +208,7 @@ class TestWebSocket {
     fun `headers and host are available in session`() = TestUtil.test { app, _ ->
         app.ws("websocket") { ws ->
             ws.onConnect { ctx -> log.add("Header: " + ctx.header("Test")!!) }
-            ws.onClose { ctx, _, _ -> log.add("Closed connection from: " + ctx.host()!!) }
+            ws.onClose { ctx -> log.add("Closed connection from: " + ctx.host()!!) }
         }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), mapOf("Test" to "HeaderParameter")))
         assertThat(log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")
@@ -272,7 +304,7 @@ class TestWebSocket {
                     wsFactory.policy.maxTextMessageSize = maxTextSize
                 }
                 .ws("/ws") { ws ->
-                    ws.onError { _, throwable -> err = throwable }
+                    ws.onError { ctx -> err = ctx.error }
                 }
                 .server { server }
                 .port(0)

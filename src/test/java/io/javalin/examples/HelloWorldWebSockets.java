@@ -18,14 +18,14 @@ public class HelloWorldWebSockets {
                 System.out.println("Connected");
                 ctx.send("[MESSAGE FROM SERVER] Connection established");
             });
-            ws.onMessage((ctx, message) -> {
-                System.out.println("Received: " + message);
-                ctx.send("[MESSAGE FROM SERVER] Echo: " + message);
+            ws.onMessage(ctx -> {
+                System.out.println("Received: " + ctx.message());
+                ctx.send("[MESSAGE FROM SERVER] Echo: " + ctx.message());
             });
-            ws.onClose((ctx, statusCode, reason) -> {
+            ws.onClose(ctx -> {
                 System.out.println("Closed");
             });
-            ws.onError((ctx, throwable) -> {
+            ws.onError(ctx -> {
                 System.out.println("Errored");
             });
         });
