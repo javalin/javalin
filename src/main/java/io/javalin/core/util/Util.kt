@@ -7,6 +7,7 @@
 package io.javalin.core.util
 
 import io.javalin.InternalServerErrorResponse
+import io.javalin.core.JavalinServer
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -107,5 +108,16 @@ object Util {
         }
         return false
     }
+
+
+    @JvmStatic
+    fun logWarningIfNotStartedAfterOneSecond(server: JavalinServer) = Thread {
+        Thread.sleep(1000)
+        if (!server.started) {
+            log.info("It looks like you created a Javalin instance, but you never started it.")
+            log.info("Try: Javalin app = Javalin.create().start();")
+            log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+        }
+    }.start()
 
 }

@@ -13,7 +13,7 @@ import io.javalin.core.EventManager;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JavalinServlet;
-import io.javalin.core.JettyServerUtil;
+import io.javalin.core.JettyUtil;
 import io.javalin.core.util.CorsBeforeHandler;
 import io.javalin.core.util.CorsOptionsHandler;
 import io.javalin.core.util.LogUtil;
@@ -61,6 +61,7 @@ public class Javalin {
     private JavalinWsServlet wsServlet = new JavalinWsServlet();
 
     protected Javalin() {
+        Util.logWarningIfNotStartedAfterOneSecond(this.server);
     }
 
     /**
@@ -72,7 +73,6 @@ public class Javalin {
      * @see Javalin#start(int)
      */
     public static Javalin create() {
-        JettyServerUtil.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
         return new Javalin();
     }
 
@@ -192,7 +192,7 @@ public class Javalin {
      */
     public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
-        server.setJettySessionHandler(JettyServerUtil.getSessionHandler(sessionHandler));
+        server.setJettySessionHandler(JettyUtil.getSessionHandler(sessionHandler));
         return this;
     }
 

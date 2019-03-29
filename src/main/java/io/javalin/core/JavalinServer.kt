@@ -91,8 +91,8 @@ class JavalinServer {
             log.info("Binding to: $it")
         }
 
-        JettyServerUtil.noJettyStarted = false
         reEnableJettyLogger()
+        started = true
         port = (jettyServer.connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
@@ -128,24 +128,9 @@ class JavalinServer {
     private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
 }
 
-object JettyServerUtil {
+object JettyUtil {
 
     private val log = LoggerFactory.getLogger(Javalin::class.java) // let's pretend
-
-    var noJettyStarted = true
-    @JvmStatic
-    fun printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond() {
-        // per instance checks are not considered necessary
-        // this helper is not intended for people with more than one instance
-        Thread {
-            Thread.sleep(1000)
-            if (noJettyStarted) {
-                log.info("It looks like you created a Javalin instance, but you never started it.")
-                log.info("Try: Javalin app = Javalin.create().start();")
-                log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
-            }
-        }.start()
-    }
 
     @JvmStatic
     fun getSessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
