@@ -21,6 +21,7 @@ object Util {
 
     private val log = LoggerFactory.getLogger(Util::class.java)
 
+    @JvmStatic
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
 
     @JvmStatic
@@ -62,6 +63,7 @@ object Util {
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
+    @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
         if (!classExists(OptionalDependency.SLF4JSIMPLE.testClass)) {
             System.err.println("""
@@ -72,6 +74,7 @@ object Util {
         }
     }
 
+    @JvmStatic
     fun javalinBanner(): String {
         return "\n" + """
           |           __                      __ _

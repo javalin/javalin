@@ -100,9 +100,9 @@ public class Javalin {
             throw new IllegalStateException("Cannot call start() again on a started server.");
         }
         if (showStartupBanner) {
-            log.info(Util.INSTANCE.javalinBanner());
+            log.info(Util.javalinBanner());
         }
-        Util.INSTANCE.printHelpfulMessageIfLoggerIsMissing();
+        Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             log.info("Starting Javalin ...");
@@ -267,7 +267,7 @@ public class Javalin {
      */
     public Javalin contextPath(@NotNull String contextPath) {
         ensureActionIsPerformedBeforeServerStart("Setting the context path");
-        server.setContextPath(Util.INSTANCE.normalizeContextPath(contextPath));
+        server.setContextPath(Util.normalizeContextPath(contextPath));
         return this;
     }
 
