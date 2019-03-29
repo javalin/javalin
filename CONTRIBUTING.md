@@ -17,11 +17,11 @@ Every PR will be considered.
 
 ## Running tests
 
-`mvn test`
+`./mvnw test` (or `mvnw.cmd test` for Windows)
 
 ## Building project locally
 
-`mvn install`
+`./mvnw install` (or `mvnw.cmd install` for Windows)
 
 ## Project overview
 
