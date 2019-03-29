@@ -10,5 +10,5 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface ConnectHandler {
-    void handle(@NotNull WsConnectContext ctx) throws Exception;
+    void handleConnect(@NotNull WsConnectContext ctx) throws Exception;
 }

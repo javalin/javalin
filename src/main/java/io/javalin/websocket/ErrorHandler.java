@@ -10,5 +10,5 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface ErrorHandler {
-    void handle(@NotNull WsErrorContext ctx) throws Exception;
+    void handleError(@NotNull WsErrorContext ctx) throws Exception;
 }

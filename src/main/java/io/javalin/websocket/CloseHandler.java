@@ -10,5 +10,5 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface CloseHandler {
-    void handle(@NotNull WsCloseContext ctx) throws Exception;
+    void handleClose(@NotNull WsCloseContext ctx) throws Exception;
 }

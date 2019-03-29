@@ -42,8 +42,8 @@ class WsPathMatcher {
     fun webSocketConnect(session: Session) {
         findEntry(session)?.let {
             val ctx = WsConnectContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path)
-            it.handler.connectHandler?.handle(ctx)
-            wsLogger?.connectHandler?.handle(ctx)
+            it.handler.connectHandler?.handleConnect(ctx)
+            wsLogger?.connectHandler?.handleConnect(ctx)
         }
 
     }
@@ -52,8 +52,8 @@ class WsPathMatcher {
     fun webSocketMessage(session: Session, message: String) {
         findEntry(session)?.let {
             val ctx = WsMessageContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path, message)
-            it.handler.messageHandler?.handle(ctx)
-            wsLogger?.messageHandler?.handle(ctx)
+            it.handler.messageHandler?.handleMessage(ctx)
+            wsLogger?.messageHandler?.handleMessage(ctx)
         }
     }
 
@@ -61,8 +61,8 @@ class WsPathMatcher {
     fun webSocketBinaryMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
         findEntry(session)?.let {
             val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path, buffer.toTypedArray(), offset, length)
-            it.handler.binaryMessageHandler?.handle(ctx)
-            wsLogger?.binaryMessageHandler?.handle(ctx)
+            it.handler.binaryMessageHandler?.handleBinaryMessage(ctx)
+            wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
         }
     }
 
@@ -70,8 +70,8 @@ class WsPathMatcher {
     fun webSocketError(session: Session, throwable: Throwable?) {
         findEntry(session)?.let {
             val ctx = WsErrorContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path, throwable)
-            it.handler.errorHandler?.handle(ctx)
-            wsLogger?.errorHandler?.handle(ctx)
+            it.handler.errorHandler?.handleError(ctx)
+            wsLogger?.errorHandler?.handleError(ctx)
         }
     }
 
@@ -79,8 +79,8 @@ class WsPathMatcher {
     fun webSocketClose(session: Session, statusCode: Int, reason: String?) {
         findEntry(session)?.let {
             val ctx = WsCloseContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path, statusCode, reason)
-            it.handler.closeHandler?.handle(ctx)
-            wsLogger?.closeHandler?.handle(ctx)
+            it.handler.closeHandler?.handleClose(ctx)
+            wsLogger?.closeHandler?.handleClose(ctx)
         }
         destroy(session)
     }
