@@ -8,8 +8,10 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
+import io.javalin.json.JavalinJson
+import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
-import io.javalin.websocket.WsSession
+import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
@@ -30,8 +32,8 @@ class TestWebSocket {
     private val contextPathJavalin = Javalin.create().contextPath("/websocket")
     private val caseSensitiveJavalin = Javalin.create().enableCaseSensitiveUrls()
     private val javalinWithWsLogger = Javalin.create().wsLogger { ws ->
-        ws.onConnect { session -> log.add(session.pathParam("param") + " connected") }
-        ws.onClose { session, _, _ -> log.add(session.pathParam("param") + " disconnected") }
+        ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
+        ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
     }
     private var log = mutableListOf<String>()
 
@@ -43,15 +45,15 @@ class TestWebSocket {
     @Test
     fun `each connection receives a unique id`() = TestUtil.test(contextPathJavalin) { app, _ ->
         app.ws("/test-websocket-1") { ws ->
-            ws.onConnect { session -> log.add(session.id) }
-            ws.onMessage { session, _ -> log.add(session.id) }
-            ws.onClose { session, _, _ -> log.add(session.id) }
+            ws.onConnect { ctx -> log.add(ctx.sessionId) }
+            ws.onMessage { ctx -> log.add(ctx.sessionId) }
+            ws.onClose { ctx -> log.add(ctx.sessionId) }
         }
         app.routes {
             ws("/test-websocket-2") { ws ->
-                ws.onConnect { session -> log.add(session.id) }
-                ws.onMessage { session, _ -> log.add(session.id) }
-                ws.onClose { session, _, _ -> log.add(session.id) }
+                ws.onConnect { ctx -> log.add(ctx.sessionId) }
+                ws.onMessage { ctx -> log.add(ctx.sessionId) }
+                ws.onClose { ctx -> log.add(ctx.sessionId) }
             }
         }
 
@@ -78,23 +80,24 @@ class TestWebSocket {
 
     @Test
     fun `general integration test`() = TestUtil.test(contextPathJavalin) { app, _ ->
-        val userUsernameMap = LinkedHashMap<WsSession, Int>()
+        val userUsernameMap = LinkedHashMap<WsContext, Int>()
         val atomicInteger = AtomicInteger()
         app.ws("/test-websocket-1") { ws ->
-            ws.onConnect { session ->
-                userUsernameMap[session] = atomicInteger.getAndIncrement()
-                log.add(userUsernameMap[session].toString() + " connected")
+            ws.onConnect { ctx ->
+                userUsernameMap[ctx] = atomicInteger.getAndIncrement()
+                log.add(userUsernameMap[ctx].toString() + " connected")
             }
-            ws.onMessage { session, message ->
-                log.add(userUsernameMap[session].toString() + " sent '" + message + "' to server")
+            ws.onMessage { ctx ->
+                val message = ctx.message()
+                log.add(userUsernameMap[ctx].toString() + " sent '" + message + "' to server")
                 userUsernameMap.forEach { client, _ -> doAndSleep { client.send("Server sent '" + message + "' to " + userUsernameMap[client]) } }
             }
-            ws.onClose { session, _, _ -> log.add(userUsernameMap[session].toString() + " disconnected") }
+            ws.onClose { ctx -> log.add(userUsernameMap[ctx].toString() + " disconnected") }
         }
         app.routes {
             ws("/test-websocket-2") { ws ->
-                ws.onConnect { _ -> log.add("Connected to other endpoint") }
-                ws.onClose { _, _, _ -> log.add("Disconnected from other endpoint") }
+                ws.onConnect { log.add("Connected to other endpoint") }
+                ws.onClose { _ -> log.add("Disconnected from other endpoint") }
             }
         }
 
@@ -127,14 +130,43 @@ class TestWebSocket {
     }
 
     @Test
+    fun `receive and send json messages`() = TestUtil.test(contextPathJavalin) { app, _ ->
+        val clientMessage = SerializeableObject().apply { value1 = "test1"; value2 = "test2" }
+        val clientMessageJson = JavalinJson.toJson(clientMessage)
+
+        val serverMessage = SerializeableObject().apply { value1 = "echo1"; value2 = "echo2" }
+        val serverMessageJson = JavalinJson.toJson(serverMessage)
+
+        var receivedJson: String? = null
+        var receivedMessage: SerializeableObject? = null
+        app.ws("/message") { ws ->
+            ws.onMessage { ctx ->
+                receivedJson = ctx.message()
+                receivedMessage = ctx.message<SerializeableObject>()
+                ctx.send(serverMessage)
+            }
+        }
+
+        val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/message"))
+        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
+        doAndSleep { testClient.send(clientMessageJson) }
+
+        assertThat(receivedJson).isEqualTo(clientMessageJson)
+        assertThat(receivedMessage).isNotNull
+        assertThat(receivedMessage!!.value1).isEqualTo(clientMessage.value1)
+        assertThat(receivedMessage!!.value2).isEqualTo(clientMessage.value2)
+        assertThat(log.last()).isEqualTo(serverMessageJson)
+    }
+
+    @Test
     fun `binary messages`() = TestUtil.test(contextPathJavalin) { app, _ ->
         val byteDataToSend1 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
         val byteDataToSend2 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
 
         val receivedBinaryData = mutableListOf<ByteArray>()
         app.ws("/binary") { ws ->
-            ws.onMessage { _, message, _, _ ->
-                receivedBinaryData.add(message.toByteArray())
+            ws.onBinaryMessage { ctx ->
+                receivedBinaryData.add(ctx.data.toByteArray())
             }
         }
 
@@ -150,8 +182,8 @@ class TestWebSocket {
 
     @Test
     fun `routing and pathParams() work`() = TestUtil.test(contextPathJavalin) { app, _ ->
-        app.ws("/params/:1") { ws -> ws.onConnect { session -> log.add(session.pathParam("1")) } }
-        app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { session -> log.add(session.pathParam("1") + " " + session.pathParam("2") + " " + session.pathParam("3")) } }
+        app.ws("/params/:1") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("1")) } }
+        app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { _ -> log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/%E2%99%94")))
@@ -175,8 +207,8 @@ class TestWebSocket {
     @Test
     fun `headers and host are available in session`() = TestUtil.test { app, _ ->
         app.ws("websocket") { ws ->
-            ws.onConnect { session -> log.add("Header: " + session.header("Test")!!) }
-            ws.onClose { session, _, _ -> log.add("Closed connection from: " + session.host()!!) }
+            ws.onConnect { ctx -> log.add("Header: " + ctx.header("Test")!!) }
+            ws.onClose { ctx -> log.add("Closed connection from: " + ctx.host()!!) }
         }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), mapOf("Test" to "HeaderParameter")))
         assertThat(log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")
@@ -189,11 +221,11 @@ class TestWebSocket {
         var queryParam = ""
         var queryParams = listOf<String>()
         app.ws("/websocket/:channel") { ws ->
-            ws.onConnect { session ->
-                matchedPath = session.matchedPath()
-                pathParam = session.pathParam("channel")
-                queryParam = session.queryParam("qp")!!
-                queryParams = session.queryParams("qps")
+            ws.onConnect { ctx ->
+                matchedPath = ctx.matchedPath()
+                pathParam = ctx.pathParam("channel")
+                queryParam = ctx.queryParam("qp")!!
+                queryParams = ctx.queryParams("qps")
             }
         }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/channel-one?qp=just-a-qp&qps=1&qps=2")))
@@ -205,18 +237,18 @@ class TestWebSocket {
 
     @Test(expected = IllegalArgumentException::class)
     fun `paths must be lowercase by default`() = TestUtil.test { app, _ ->
-        app.ws("/pAtH/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
+        app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun `path-params must be lowercase by default`() = TestUtil.test { app, _ ->
-        app.ws("/path/:Param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
+        app.ws("/path/:Param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
     }
 
     @Test
     fun `routing and path-params case sensitive works`() = TestUtil.test(caseSensitiveJavalin) { app, _ ->
-        app.ws("/pAtH/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
-        app.ws("/other-path/:param") { ws -> ws.onConnect { session -> log.add(session.pathParam("param")) } }
+        app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
+        app.ws("/other-path/:param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PaTh/my-param")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/other-path/My-PaRaM")))
         assertThat(log).doesNotContain("my-param")
@@ -247,9 +279,9 @@ class TestWebSocket {
     @Test
     fun `queryParamMap does not throw`() = TestUtil.test { app, _ ->
         app.ws("/*") { ws ->
-            ws.onConnect { session ->
+            ws.onConnect { ctx ->
                 try {
-                    session.queryParamMap()
+                    ctx.queryParamMap()
                 } catch (e: Exception) {
                     log.add("exception queryParamMap")
                 }
@@ -272,7 +304,7 @@ class TestWebSocket {
                     wsFactory.policy.maxTextMessageSize = maxTextSize
                 }
                 .ws("/ws") { ws ->
-                    ws.onError { _, throwable -> err = throwable }
+                    ws.onError { ctx -> err = ctx.error }
                 }
                 .server { server }
                 .port(0)
