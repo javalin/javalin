@@ -13,9 +13,9 @@ import io.javalin.core.EventManager;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JavalinServlet;
+import io.javalin.core.JettyServerUtil;
 import io.javalin.core.util.CorsBeforeHandler;
 import io.javalin.core.util.CorsOptionsHandler;
-import io.javalin.core.util.JettyServerUtil;
 import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
@@ -51,7 +51,6 @@ public class Javalin {
     private static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     protected boolean showStartupBanner = true;
-    protected boolean started = false;
 
     protected EventManager eventManager = new EventManager();
     protected Map<Class, Object> appAttributes = new HashMap<>();
@@ -73,7 +72,7 @@ public class Javalin {
      * @see Javalin#start(int)
      */
     public static Javalin create() {
-        JettyServerUtil.INSTANCE.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
+        JettyServerUtil.printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond();
         return new Javalin();
     }
 
@@ -97,7 +96,7 @@ public class Javalin {
      */
     public Javalin start() {
         long startupTimer = System.currentTimeMillis();
-        if (started) {
+        if (server.getStarted()) {
             throw new IllegalStateException("Cannot call start() again on a started server.");
         }
         if (showStartupBanner) {
@@ -109,8 +108,6 @@ public class Javalin {
             log.info("Starting Javalin ...");
             server.start(servlet, wsServlet);
             log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
-            started = true;
-            JettyServerUtil.INSTANCE.setNoJettyStarted(false);
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
             log.error("Failed to start Javalin");
@@ -122,7 +119,6 @@ public class Javalin {
             }
             throw new RuntimeException(e);
         }
-        JettyServerUtil.reEnableJettyLogger();
         return this;
     }
 
@@ -135,7 +131,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            server.getServer().stop();
+            server.getJettyServer().stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -186,7 +182,7 @@ public class Javalin {
      */
     public Javalin server(@NotNull Supplier<Server> server) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom server");
-        this.server.setServer(server.get());
+        this.server.setJettyServer(server.get());
         return this;
     }
 
@@ -196,7 +192,7 @@ public class Javalin {
      */
     public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
-        server.setSessionHandler(JettyServerUtil.INSTANCE.getValidSessionHandlerOrThrow(sessionHandler));
+        server.setJettySessionHandler(JettyServerUtil.getSessionHandler(sessionHandler));
         return this;
     }
 
@@ -432,7 +428,7 @@ public class Javalin {
     }
 
     private void ensureActionIsPerformedBeforeServerStart(@NotNull String action) {
-        if (started) {
+        if (server.getStarted()) {
             throw new IllegalStateException(action + " must be done before starting the server.");
         }
     }

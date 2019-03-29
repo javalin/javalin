@@ -111,8 +111,8 @@ class TestCustomJetty {
         Javalin.create().sessionHandler { SessionHandler() }
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun `broken SessionHandler throws`() {
+    @Test
+    fun `broken SessionHandler logs`() {
         fun sqlSessionHandler(driver: String, url: String) = SessionHandler().apply {
             sessionCache = DefaultSessionCache(this).apply {
                 sessionDataStore = JDBCSessionDataStoreFactory().apply {
