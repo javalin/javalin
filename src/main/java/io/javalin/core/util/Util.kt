@@ -7,6 +7,7 @@
 package io.javalin.core.util
 
 import io.javalin.InternalServerErrorResponse
+import io.javalin.Javalin
 import io.javalin.core.JavalinServer
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
@@ -19,7 +20,7 @@ import java.util.zip.CheckedInputStream
 
 object Util {
 
-    private val log = LoggerFactory.getLogger(Util::class.java)
+    private val log = LoggerFactory.getLogger(Javalin::class.java)
 
     @JvmStatic
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
@@ -75,8 +76,8 @@ object Util {
     }
 
     @JvmStatic
-    fun javalinBanner(): String {
-        return "\n" + """
+    fun logJavalinBanner(showBanner: Boolean) {
+        if (showBanner) log.info("\n" + """
           |           __                      __ _
           |          / /____ _ _   __ ____ _ / /(_)____
           |     __  / // __ `/| | / // __ `// // // __ \
@@ -84,7 +85,7 @@ object Util {
           |    \____/ \__,_/  |___/ \__,_//_//_//_/ /_/
           |
           |        https://javalin.io/documentation
-          |""".trimMargin()
+          |""".trimMargin())
     }
 
     fun getChecksumAndReset(inputStream: InputStream): String {

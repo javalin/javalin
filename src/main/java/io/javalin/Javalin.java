@@ -99,9 +99,7 @@ public class Javalin {
         if (server.getStarted()) {
             throw new IllegalStateException("Cannot call start() again on a started server.");
         }
-        if (showStartupBanner) {
-            log.info(Util.javalinBanner());
-        }
+        Util.logJavalinBanner(showStartupBanner);
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
@@ -113,7 +111,7 @@ public class Javalin {
             log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getPort() + " and try again.", e);
+                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getJettyPort() + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
                 throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
             }
@@ -276,7 +274,7 @@ public class Javalin {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return server.getPort();
+        return server.getJettyPort();
     }
 
     /**
@@ -285,7 +283,7 @@ public class Javalin {
      */
     public Javalin port(int port) {
         ensureActionIsPerformedBeforeServerStart("Setting the port");
-        server.setPort(port);
+        server.setJettyPort(port);
         return this;
     }
 
@@ -293,17 +291,17 @@ public class Javalin {
      * Configure instance to log debug information for each request.
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin enableDebugLogging() {
+    public Javalin enableDevLogging() {
         ensureActionIsPerformedBeforeServerStart("Enabling debug-logging");
-        servlet.setDebugLogging(true);
-        wsLogger(LogUtil::wsDebugLogger);
+        requestLogger(LogUtil::requestDevLogger);
+        wsLogger(LogUtil::wsDevLogger);
         return this;
     }
 
     /**
      * Configure instance use specified request-logger
      * The method must be called before {@link Javalin#start()}.
-     * Will override the default logger of {@link Javalin#enableDebugLogging()}.
+     * Will override the default logger of {@link Javalin#enableDevLogging()}.
      */
     public Javalin requestLogger(@NotNull RequestLogger requestLogger) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom request logger");
@@ -472,7 +470,7 @@ public class Javalin {
     /**
      * Configures a web socket handler to be called after every web socket event
      * The method must be called before {@link Javalin#start()}.
-     * Will override the default logger of {@link Javalin#enableDebugLogging()}.
+     * Will override the default logger of {@link Javalin#enableDevLogging()}.
      */
     public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
         ensureActionIsPerformedBeforeServerStart("Adding a WebSocket logger");

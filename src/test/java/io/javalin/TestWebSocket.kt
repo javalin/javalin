@@ -258,7 +258,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `debug logging works for web sockets`() = TestUtil.test(Javalin.create().enableDebugLogging()) { app, _ ->
+    fun `debug logging works for web sockets`() = TestUtil.test(Javalin.create().enableDevLogging()) { app, _ ->
         app.ws("/path/:param") {}
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/1?test=banana&hi=1&hi=2")))

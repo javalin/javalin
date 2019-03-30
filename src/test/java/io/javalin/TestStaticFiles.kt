@@ -23,7 +23,7 @@ class TestStaticFiles {
             .enableStaticFiles("/public/immutable")
             .enableStaticFiles("/public/protected")
             .enableStaticFiles("/public/subdir")
-    private val debugLoggingApp = Javalin.create().enableStaticFiles("/public").enableDebugLogging()
+    private val debugLoggingApp = Javalin.create().enableStaticFiles("/public").enableDevLogging()
 
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->

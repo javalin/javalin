@@ -34,12 +34,13 @@ class JavalinServer {
     lateinit var jettyServer: Server
     lateinit var jettySessionHandler: SessionHandler
 
-    var port = 7000
+    var jettyPort = 7000
     var contextPath = "/"
     var started = false
 
     @Throws(BindException::class)
     fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
+
         disableJettyLogger()
         if (!::jettyServer.isInitialized) jettyServer = defaultServer()
         if (!::jettySessionHandler.isInitialized) jettySessionHandler = defaultSessionHandler()
@@ -79,7 +80,7 @@ class JavalinServer {
         jettyServer.apply {
             handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler, notFoundHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
-                this.port = port
+                this.port = jettyPort
             })
         }.start()
 
@@ -93,7 +94,7 @@ class JavalinServer {
 
         reEnableJettyLogger()
         started = true
-        port = (jettyServer.connectors[0] as? ServerConnector)?.localPort ?: -1
+        jettyPort = (jettyServer.connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
     private fun disableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(NoopLogger()) // disable logger before server creation
