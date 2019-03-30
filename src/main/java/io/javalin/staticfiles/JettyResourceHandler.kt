@@ -16,9 +16,6 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-data class StaticFileConfig(val path: String, val location: Location)
-enum class Location { CLASSPATH, EXTERNAL; }
-
 class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
 
     private val log = LoggerFactory.getLogger("io.javalin.Javalin")
