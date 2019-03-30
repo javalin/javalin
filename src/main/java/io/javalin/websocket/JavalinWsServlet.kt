@@ -13,11 +13,11 @@ import java.util.function.Consumer
 
 class JavalinWsServlet : WebSocketServlet() {
 
-    var wsFactoryConfig = Consumer<WebSocketServletFactory> { }
+    var wsFactoryConfig: Consumer<WebSocketServletFactory>? = null
     var wsPathMatcher = WsPathMatcher()
 
     override fun configure(factory: WebSocketServletFactory) {
-        wsFactoryConfig.accept(factory)
+        wsFactoryConfig?.accept(factory)
         factory.creator = WebSocketCreator { req, res ->
             wsPathMatcher.findEntry(req) ?: res.sendError(404, "WebSocket handler not found")
             wsPathMatcher // this is a long-lived object handling multiple connections
