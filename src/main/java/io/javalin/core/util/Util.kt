@@ -7,6 +7,8 @@
 package io.javalin.core.util
 
 import io.javalin.InternalServerErrorResponse
+import io.javalin.Javalin
+import io.javalin.core.JavalinServer
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -18,8 +20,9 @@ import java.util.zip.CheckedInputStream
 
 object Util {
 
-    private val log = LoggerFactory.getLogger(Util::class.java)
+    private val log = LoggerFactory.getLogger(Javalin::class.java)
 
+    @JvmStatic
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
 
     @JvmStatic
@@ -61,6 +64,7 @@ object Util {
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
+    @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
         if (!classExists(OptionalDependency.SLF4JSIMPLE.testClass)) {
             System.err.println("""
@@ -71,8 +75,9 @@ object Util {
         }
     }
 
-    fun javalinBanner(): String {
-        return "\n" + """
+    @JvmStatic
+    fun logJavalinBanner(showBanner: Boolean) {
+        if (showBanner) log.info("\n" + """
           |           __                      __ _
           |          / /____ _ _   __ ____ _ / /(_)____
           |     __  / // __ `/| | / // __ `// // // __ \
@@ -80,7 +85,7 @@ object Util {
           |    \____/ \__,_/  |___/ \__,_//_//_//_/ /_/
           |
           |        https://javalin.io/documentation
-          |""".trimMargin()
+          |""".trimMargin())
     }
 
     fun getChecksumAndReset(inputStream: InputStream): String {
@@ -107,5 +112,16 @@ object Util {
         }
         return false
     }
+
+
+    @JvmStatic
+    fun logWarningIfNotStartedAfterOneSecond(server: JavalinServer) = Thread {
+        Thread.sleep(1000)
+        if (!server.started) {
+            log.info("It looks like you created a Javalin instance, but you never started it.")
+            log.info("Try: Javalin app = Javalin.create().start();")
+            log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+        }
+    }.start()
 
 }

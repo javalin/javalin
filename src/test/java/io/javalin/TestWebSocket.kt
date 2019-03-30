@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger
 class TestWebSocket {
 
     private val contextPathJavalin = Javalin.create().contextPath("/websocket")
-    private val caseSensitiveJavalin = Javalin.create().enableCaseSensitiveUrls()
     private val javalinWithWsLogger = Javalin.create().wsLogger { ws ->
         ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
         ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
@@ -206,7 +205,7 @@ class TestWebSocket {
 
     @Test
     fun `headers and host are available in session`() = TestUtil.test { app, _ ->
-        app.ws("websocket") { ws ->
+        app.ws("/websocket") { ws ->
             ws.onConnect { ctx -> log.add("Header: " + ctx.header("Test")!!) }
             ws.onClose { ctx -> log.add("Closed connection from: " + ctx.host()!!) }
         }
@@ -235,18 +234,8 @@ class TestWebSocket {
         assertThat(queryParams).contains("1", "2")
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `paths must be lowercase by default`() = TestUtil.test { app, _ ->
-        app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
-    }
-
-    @Test(expected = IllegalArgumentException::class)
-    fun `path-params must be lowercase by default`() = TestUtil.test { app, _ ->
-        app.ws("/path/:Param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
-    }
-
     @Test
-    fun `routing and path-params case sensitive works`() = TestUtil.test(caseSensitiveJavalin) { app, _ ->
+    fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
         app.ws("/other-path/:param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PaTh/my-param")))
@@ -269,7 +258,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `debug logging works for web sockets`() = TestUtil.test(Javalin.create().enableDebugLogging()) { app, _ ->
+    fun `debug logging works for web sockets`() = TestUtil.test(Javalin.create().enableDevLogging()) { app, _ ->
         app.ws("/path/:param") {}
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/1?test=banana&hi=1&hi=2")))

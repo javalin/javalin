@@ -4,11 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core.util
+package io.javalin.core
 
 import io.javalin.Javalin
-import io.javalin.core.JavalinServlet
-import io.javalin.websocket.WsPathMatcher
+import io.javalin.core.util.Header
+import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerList
@@ -18,49 +18,32 @@ import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import org.eclipse.jetty.websocket.servlet.WebSocketCreator
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.net.BindException
-import java.util.function.Consumer
 import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-object JettyServerUtil {
+class JavalinServer {
 
-    private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
     private val log = LoggerFactory.getLogger(Javalin::class.java) // let's pretend
 
-    @JvmStatic
-    fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(jettyDefaultLogger)
+    private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
 
-    @JvmStatic
-    fun defaultServer(): Server {
-        org.eclipse.jetty.util.log.Log.setLog(io.javalin.core.util.NoopLogger()) // disable logger before server creation
-        return Server(QueuedThreadPool(250, 8, 60_000)).apply {
-            server.addBean(LowResourceMonitor(this))
-            server.insertHandler(StatisticsHandler())
-        }
-    }
+    lateinit var jettyServer: Server
+    lateinit var jettySessionHandler: SessionHandler
 
-    @JvmStatic
-    fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
+    var jettyPort = 7000
+    var contextPath = "/"
+    var started = false
 
-    @JvmStatic
     @Throws(BindException::class)
-    fun initialize(
-            server: Server,
-            sessionHandler: SessionHandler,
-            port: Int,
-            contextPath: String,
-            javalinServlet: JavalinServlet,
-            wsPathMatcher: WsPathMatcher,
-            wsFactoryConfig: Consumer<WebSocketServletFactory>
-    ): Int {
+    fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
 
+        disableJettyLogger()
+        if (!::jettyServer.isInitialized) jettyServer = defaultServer()
+        if (!::jettySessionHandler.isInitialized) jettySessionHandler = defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
         val httpHandler = object : ServletContextHandler(nullParent, contextPath, SESSIONS) {
@@ -77,19 +60,11 @@ object JettyServerUtil {
                 jettyRequest.isHandled = true
             }
         }.apply {
-            this.sessionHandler = sessionHandler
+            this.sessionHandler = jettySessionHandler
         }
 
         val webSocketHandler = ServletContextHandler(nullParent, contextPath).apply {
-            addServlet(ServletHolder(object : WebSocketServlet() {
-                override fun configure(factory: WebSocketServletFactory) {
-                    wsFactoryConfig.accept(factory)
-                    factory.creator = WebSocketCreator { req, res ->
-                        wsPathMatcher.findEntry(req) ?: res.sendError(404, "WebSocket handler not found")
-                        wsPathMatcher // this is a long-lived object handling multiple connections
-                    }
-                }
-            }), "/*")
+            addServlet(ServletHolder(javalinWsServlet), "/*")
         }
 
         val notFoundHandler = object : SessionHandler() {
@@ -102,23 +77,35 @@ object JettyServerUtil {
             }
         }
 
-        server.apply {
+        jettyServer.apply {
             handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler, notFoundHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
-                this.port = port
+                this.port = jettyPort
             })
         }.start()
 
-        server.connectors.filterIsInstance<ServerConnector>().forEach {
+        jettyServer.connectors.filterIsInstance<ServerConnector>().forEach {
             log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath")
         }
 
-        server.connectors.filter { it !is ServerConnector }.forEach {
+        jettyServer.connectors.filter { it !is ServerConnector }.forEach {
             log.info("Binding to: $it")
         }
 
-        return (server.connectors[0] as? ServerConnector)?.localPort ?: -1
+        reEnableJettyLogger()
+        started = true
+        jettyPort = (jettyServer.connectors[0] as? ServerConnector)?.localPort ?: -1
     }
+
+    private fun disableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(NoopLogger()) // disable logger before server creation
+    private fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(jettyDefaultLogger)
+
+    private fun defaultServer() = Server(QueuedThreadPool(250, 8, 60_000)).apply {
+        server.addBean(LowResourceMonitor(this))
+        server.insertHandler(StatisticsHandler())
+    }
+
+    private fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
 
     private val ServerConnector.protocol get() = if (this.protocols.contains("ssl")) "https" else "http"
 
@@ -140,21 +127,13 @@ object JettyServerUtil {
     }
 
     private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
+}
 
-    var noJettyStarted = true
-    fun printHelpfulMessageIfNoServerHasBeenStartedAfterOneSecond() {
-        // per instance checks are not considered necessary
-        // this helper is not intended for people with more than one instance
-        Thread {
-            Thread.sleep(1000)
-            if (noJettyStarted) {
-                log.info("It looks like you created a Javalin instance, but you never started it.")
-                log.info("Try: Javalin app = Javalin.create().start();")
-                log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
-            }
-        }.start()
-    }
+object JettyUtil {
 
+    private val log = LoggerFactory.getLogger(Javalin::class.java) // let's pretend
+
+    @JvmStatic
     fun getSessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
         val sessionHandler = sessionHandlerSupplier.get()
         try {
@@ -165,6 +144,7 @@ object JettyServerUtil {
         }
         return sessionHandler
     }
+
 }
 
 class NoopLogger : org.eclipse.jetty.util.log.Logger {
@@ -184,3 +164,4 @@ class NoopLogger : org.eclipse.jetty.util.log.Logger {
     override fun debug(thrown: Throwable) {}
     override fun debug(msg: String, thrown: Throwable) {}
 }
+

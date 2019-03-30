@@ -10,11 +10,12 @@ import io.javalin.core.PathParser
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.UpgradeRequest
 import org.eclipse.jetty.websocket.api.annotations.*
+import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-data class WsEntry(val path: String, val handler: WsHandler, val caseSensitiveUrls: Boolean) {
-    private val pathParser = PathParser(path, caseSensitiveUrls)
+data class WsEntry(val path: String, val handler: WsHandler) {
+    private val pathParser = PathParser(path)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
 }
@@ -32,9 +33,6 @@ class WsPathMatcher {
     private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
     fun add(wsEntry: WsEntry) {
-        if (!wsEntry.caseSensitiveUrls && wsEntry.path != wsEntry.path.toLowerCase()) {
-            throw IllegalArgumentException("By default URLs must be lowercase. Change casing or call `app.enableCaseSensitiveUrls()` to allow mixed casing.")
-        }
         wsEntries.add(wsEntry)
     }
 
@@ -87,16 +85,18 @@ class WsPathMatcher {
 
     private fun findEntry(session: Session) = findEntry(session.upgradeRequest)?.also { cacheSession(session, it) }
 
-    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.requestURI.path) }
+    fun findEntry(req: UpgradeRequest) = wsEntries.find { it.matches(req.uriNoContextPath()) }
 
     private fun cacheSession(session: Session, wsEntry: WsEntry) {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
-        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.requestURI.path))
+        sessionPathParams.putIfAbsent(session, wsEntry.extractPathParams(session.upgradeRequest.uriNoContextPath()))
     }
 
     private fun destroy(session: Session) {
         sessionIds.remove(session)
         sessionPathParams.remove(session)
     }
+
+    private fun UpgradeRequest.uriNoContextPath() = this.requestURI.path.removePrefix((this as ServletUpgradeRequest).httpServletRequest.contextPath)
 
 }

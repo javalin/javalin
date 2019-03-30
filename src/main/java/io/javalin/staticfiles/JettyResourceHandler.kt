@@ -8,7 +8,6 @@ package io.javalin.staticfiles
 
 import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
@@ -17,27 +16,23 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-data class StaticFileConfig(val path: String, val location: Location)
-enum class Location { CLASSPATH, EXTERNAL; }
-
-class JettyResourceHandler(
-        staticFileConfig: Set<StaticFileConfig>,
-        jettyServer: Server,
-        private val ignoreTrailingSlashes: Boolean) : io.javalin.staticfiles.ResourceHandler {
+class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
 
     private val log = LoggerFactory.getLogger("io.javalin.Javalin")
 
-    private val handlers = staticFileConfig.map { config ->
-        GzipHandler().apply {
-            server = jettyServer // the handler is standalone, this assignment just prevents a log.warn
+    val handlers = mutableListOf<GzipHandler>()
+
+    override fun addStaticFileConfig(config: StaticFileConfig) {
+        handlers.add(GzipHandler().apply {
             handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
                 resourceBase = getResourcePath(config)
                 isDirAllowed = false
                 isEtags = true
                 log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
-        }
-    }.onEach { it.start() }
+            start()
+        })
+    }
 
     inner class WebjarHandler : ResourceHandler() {
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
@@ -58,14 +53,14 @@ class JettyResourceHandler(
         return staticFileConfig.path
     }
 
-    override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
+    override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse, ignoreTrailingSlashes: Boolean): Boolean {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
         for (gzipHandler in handlers) {
             try {
                 val resourceHandler = (gzipHandler.handler as ResourceHandler)
                 val resource = resourceHandler.getResource(target)
-                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target)) {
+                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target, ignoreTrailingSlashes)) {
                     val maxAge = if (target.startsWith("/immutable/") || resourceHandler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
@@ -81,9 +76,9 @@ class JettyResourceHandler(
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
 
-    private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
-            this != null && this.isDirectory && handler.getResource(welcomeFilePath(target))?.exists() == true
+    private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String, ignoreTrailingSlashes: Boolean) =
+            this != null && this.isDirectory && handler.getResource(welcomeFilePath(target, ignoreTrailingSlashes))?.exists() == true
 
-    private fun welcomeFilePath(target: String) = if (!target.endsWith("/") && ignoreTrailingSlashes) "$target/index.html" else "${target}index.html"
+    private fun welcomeFilePath(target: String, ignoreTrailingSlashes: Boolean) = if (!target.endsWith("/") && ignoreTrailingSlashes) "$target/index.html" else "${target}index.html"
 
 }

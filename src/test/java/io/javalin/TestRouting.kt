@@ -21,8 +21,6 @@ class TestRouting {
     private val okHttp = OkHttpClient().newBuilder().build()
     fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body()!!.string()
 
-    val caseSensitiveJavalin = Javalin.create().enableCaseSensitiveUrls()
-
     @Test
     fun `general integration test`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("/") }
@@ -44,21 +42,8 @@ class TestRouting {
         assertThat(http.getBody("/s/s/s/s")).isEqualTo("/s/s/s/s")
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `urls must be lowercase by default`() = TestUtil.test { app, _ ->
-        app.get("/My-Url") { ctx -> ctx.result("OK") }
-    }
-
     @Test
-    fun `urls are case insensitive by default`() = TestUtil.test { app, http ->
-        app.get("/my-url") { ctx -> ctx.result("OK") }
-        assertThat(http.getBody("/my-url")).isEqualTo("OK")
-        assertThat(http.getBody("/My-UrL")).isEqualTo("OK")
-        assertThat(http.getBody("/MY-URL")).isEqualTo("OK")
-    }
-
-    @Test
-    fun `case sensitive urls work`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
+    fun `case sensitive urls work`() = TestUtil.test { app, http ->
         app.get("/My-Url") { ctx -> ctx.result("OK") }
         assertThat(http.getBody("/MY-URL")).isEqualTo("Not found")
         assertThat(http.getBody("/My-Url")).isEqualTo("OK")
@@ -67,11 +52,11 @@ class TestRouting {
     @Test
     fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
         app.get("/path/:path-param/*") { ctx -> ctx.result("/" + ctx.pathParam("path-param") + "/" + ctx.splat(0)) }
-        assertThat(http.getBody("/PATH/P/S")).isEqualTo("/P/S")
+        assertThat(http.getBody("/path/P/S")).isEqualTo("/P/S")
     }
 
     @Test
-    fun `extracting path-param and splat works case sensitive`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
+    fun `extracting path-param and splat works case sensitive`() = TestUtil.test { app, http ->
         app.get("/:path-param/Path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
         assertThat(http.getBody("/path-param/Path/Splat")).isEqualTo("path-paramSplat")
         assertThat(http.getBody("/path-param/path/Splat")).isEqualTo("Not found")
@@ -95,7 +80,7 @@ class TestRouting {
     }
 
     @Test
-    fun `path-params work case-sensitive`() = TestUtil.test(caseSensitiveJavalin) { app, http ->
+    fun `path-params work case-sensitive`() = TestUtil.test { app, http ->
         app.get("/:userId") { ctx -> ctx.result(ctx.pathParam("userId")) }
         assertThat(http.getBody("/path-param")).isEqualTo("path-param")
         app.get("/:a/:A") { ctx -> ctx.result("${ctx.pathParam("a")}-${ctx.pathParam("A")}") }

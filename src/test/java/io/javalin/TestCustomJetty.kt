@@ -7,6 +7,7 @@
 
 package io.javalin
 
+import com.mashape.unirest.http.Unirest
 import io.javalin.util.TestServlet
 import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -25,6 +26,12 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class TestCustomJetty {
+
+    @Test
+    fun `setting port works`() {
+        Javalin.create().start(1234).get("/") { it.result("PORT WORKS") }
+        assertThat(Unirest.get("http://localhost:1234/").asString().body).isEqualTo("PORT WORKS")
+    }
 
     @Test
     fun `embedded server can have custom jetty Handler`() {

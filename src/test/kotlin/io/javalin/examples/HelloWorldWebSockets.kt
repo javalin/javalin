@@ -12,7 +12,7 @@ import io.javalin.Javalin
 // see HelloWorldSecure for how to set that up
 fun main(args: Array<String>) {
     Javalin.create().apply {
-        enableDebugLogging()
+        enableDevLogging()
         ws("/websocket") { ws ->
             ws.onConnect { ctx ->
                 println("Connection established")

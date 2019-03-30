@@ -10,8 +10,8 @@ import io.javalin.Handler
 import io.javalin.core.util.ContextUtil.urlDecode
 import java.util.*
 
-data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler, val rawHandler: Handler, val caseSensitiveUrls: Boolean) {
-    private val pathParser = PathParser(path, caseSensitiveUrls)
+data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler, val rawHandler: Handler) {
+    private val pathParser = PathParser(path)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
     fun extractSplats(requestUri: String) = pathParser.extractSplats(requestUri)
@@ -19,7 +19,6 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
 
 class PathParser(
         path: String,
-        private val caseSensitive: Boolean,
         private val pathParamNames: List<String> = path.split("/")
                 .filter { it.startsWith(":") }
                 .map { it.replace(":", "") },
@@ -32,7 +31,7 @@ class PathParser(
                 .replace("/$".toRegex(), "/?") // Replace trailing slash to optional one
                 .run { if (!endsWith("/?")) this + "/?" else this } // Add slash if doesn't have one
                 .run { "^" + this + "$" } // Let the matcher know that it is the whole path
-                .toCasedRegex(caseSensitive),
+                .toRegex(),
         private val splatRegex: Regex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex(RegexOption.IGNORE_CASE),
         private val pathParamRegex: Regex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex(RegexOption.IGNORE_CASE)) {
 
@@ -49,8 +48,6 @@ class PathParser(
 
 }
 
-private fun String.toCasedRegex(caseSensitive: Boolean) = this.let { if (caseSensitive) it.toRegex() else it.toRegex(RegexOption.IGNORE_CASE) }
-
 class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
 
     private val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
@@ -58,9 +55,6 @@ class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
     }
 
     fun add(entry: HandlerEntry) {
-        if (!entry.caseSensitiveUrls && entry.path != entry.path.toLowerCase()) {
-            throw IllegalArgumentException("By default URLs must be lowercase. Change casing or call `app.enableCaseSensitiveUrls()` to allow mixed casing.")
-        }
         if (entry.type.isHttpMethod() && handlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
             throw IllegalArgumentException("Handler with type='${entry.type}' and path='${entry.path}' already exists.")
         }

@@ -9,8 +9,8 @@ package io.javalin.core.util
 import io.javalin.Context
 import io.javalin.core.HandlerType
 import io.javalin.core.PathMatcher
-import io.javalin.websocket.WsHandler
 import io.javalin.websocket.WsContext
+import io.javalin.websocket.WsHandler
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -18,13 +18,14 @@ object LogUtil {
 
     private val log = LoggerFactory.getLogger(LogUtil::class.java)
 
-    fun logRequestAndResponse(ctx: Context, matcher: PathMatcher) = try {
+    @JvmStatic
+    fun requestDevLogger(ctx: Context, time: Float) = try {
         val type = HandlerType.fromServletRequest(ctx.req)
         val requestUri = ctx.req.requestURI
-        val executionTimeMs = Formatter(Locale.US).format("%.2f", executionTimeMs(ctx))
         val gzipped = ctx.res.getHeader(Header.CONTENT_ENCODING) == "gzip"
         val staticFile = ctx.req.getAttribute("handled-as-static-file") == true
         with(ctx) {
+            val matcher = ctx.attribute<PathMatcher>("javalin-request-log-matcher")!!
             val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) + matcher.findEntries(type, requestUri) + matcher.findEntries(HandlerType.AFTER, requestUri)).map { it.type.name + "=" + it.path }
             val resBody = resultStream()?.apply { reset() }?.bufferedReader()?.use { it.readText() } ?: ""
             val resHeaders = res.headerNames.asSequence().map { it to res.getHeader(it) }.toMap()
@@ -37,7 +38,7 @@ object LogUtil {
                         |    QueryString: ${queryString()}
                         |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.toString() }}
                         |    FormParams: ${formParamMap().mapValues { (_, v) -> v.toString() }}
-                        |Response: [${status()}], execution took $executionTimeMs ms
+                        |Response: [${status()}], execution took ${Formatter(Locale.US).format("%.2f", time)} ms
                         |    Headers: $resHeaders
                         |    ${resBody(resBody, gzipped, staticFile)}
                         |----------------------------------------------------------------------------------""".trimMargin())
@@ -53,12 +54,15 @@ object LogUtil {
         else -> "No body was set"
     }
 
-    fun startTimer(ctx: Context) = ctx.attribute("javalin-request-log-start-time", System.nanoTime())
+    fun setup(ctx: Context, matcher: PathMatcher) {
+        ctx.attribute("javalin-request-log-matcher", matcher)
+        ctx.attribute("javalin-request-log-start-time", System.nanoTime())
+    }
 
     fun executionTimeMs(ctx: Context) = (System.nanoTime() - ctx.attribute<Long>("javalin-request-log-start-time")!!) / 1000000f
 
     @JvmStatic
-    fun wsDebugLogger(ws: WsHandler) {
+    fun wsDevLogger(ws: WsHandler) {
         ws.onConnect { ctx -> ctx.logEvent("onConnect") }
         ws.onMessage { ctx -> ctx.logEvent("onMessage", "Message (next line):\n${ctx.message()}") }
         ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Offset: ${ctx.offset}, Length: ${ctx.length}\nMessage (next line):\n${ctx.data}") }

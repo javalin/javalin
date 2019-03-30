@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-open class Context(private val servletRequest: HttpServletRequest, private val servletResponse: HttpServletResponse, private val javalin: Javalin) {
+open class Context(private val servletRequest: HttpServletRequest, private val servletResponse: HttpServletResponse, private val appAttributes: Map<Class<*>, Any>) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
@@ -46,7 +46,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     private var resultFuture: CompletableFuture<*>? = null
 
     /** Gets an attribute from the Javalin instance serving the request */
-    fun <T> appAttribute(clazz: Class<T>): T = javalin.attribute(clazz) as T
+    fun <T> appAttribute(clazz: Class<T>): T = appAttributes[clazz] as T
 
     /**
      * Gets cookie store value for specified key.
