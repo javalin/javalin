@@ -28,13 +28,10 @@ abstract class WsContext(val sessionId: String, session: Session, private val pa
     fun send(message: ByteBuffer) = webSocketSession.remote.sendBytes(message)
     fun queryString(): String? = webSocketSession.upgradeRequest!!.queryString
     @JvmOverloads
-    fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull()
-            ?: default
+    fun queryParam(queryParam: String, default: String? = null): String? = queryParams(queryParam).firstOrNull() ?: default
 
     fun queryParams(queryParam: String): List<String> = queryParamMap()[queryParam] ?: emptyList()
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
-    fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
-    fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
     fun pathParam(pathParam: String): String = ContextUtil.pathParamOrThrow(pathParamMap, pathParam, matchedPath)
     fun pathParamMap(): Map<String, String> = pathParamMap
     fun host(): String? = webSocketSession.upgradeRequest.host

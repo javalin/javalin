@@ -144,19 +144,6 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
             else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
     /**
-     * Maps form params to values, or returns null if any of the params are null.
-     * Ex: val (username, email) = ctx.mapFormParams("username", "email") ?: throw MissingFormParamException()
-     * This method is mainly useful when calling from Kotlin.
-     */
-    fun mapFormParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { formParam(it) }
-
-    /**
-     * Returns true if any of the specified form params are null.
-     * Mainly useful when calling from Java as a replacement for [mapFormParams].
-     */
-    fun anyFormParamNull(vararg keys: String): Boolean = keys.any { formParam(it) == null }
-
-    /**
      * Gets a path param by name (ex: pathParam("param").
      *
      * Ex: If the handler path is /users/:user-id,
@@ -295,19 +282,6 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
 
     /** Gets a map with all the query param keys and values. */
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
-
-    /**
-     * Maps query params to values, or returns null if any of the params are null.
-     * Ex: val (username, email) = ctx.mapQueryParams("username", "email") ?: throw MissingQueryParamException()
-     * This method is mainly useful when calling from Kotlin.
-     */
-    fun mapQueryParams(vararg keys: String): List<String>? = ContextUtil.mapKeysOrReturnNullIfAnyNulls(keys) { queryParam(it) }
-
-    /**
-     * Returns true if any of the specified query params are null.
-     * Mainly useful when calling from Java as a replacement for [mapQueryParams]
-     */
-    fun anyQueryParamNull(vararg keys: String): Boolean = keys.any { queryParam(it) == null }
 
     /** Gets the request query string, or null. */
     fun queryString(): String? = servletRequest.queryString
@@ -471,23 +445,5 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun render(filePath: String, model: Map<String, Any?> = emptyMap()): Context {
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
     }
-
-    // Deprecated validation, will be removed in 3.0
-    @Deprecated("Use bodyValidator(class) instead")
-    fun <T> validatedBodyAsClass(clazz: Class<T>) = bodyValidator(clazz)
-
-    @Deprecated("Use bodyValidator() instead")
-    inline fun <reified T : Any> validatedBody() = bodyValidator(T::class.java)
-
-    @Deprecated("Use formParam(key, class) instead.")
-    @JvmOverloads
-    fun validatedFormParam(key: String, default: String? = null) = Validator(formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'")
-
-    @Deprecated("Use pathParam(key, class) instead.")
-    fun validatedPathParam(key: String) = Validator(pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'")
-
-    @Deprecated("Use queryParam(key, class) instead")
-    @JvmOverloads
-    fun validatedQueryParam(key: String, default: String? = null) = Validator(queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'")
 
 }

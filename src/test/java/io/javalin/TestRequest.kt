@@ -163,24 +163,6 @@ class TestRequest {
         assertThat(http.getBody("/?qp1=1&qp1=2&qp1=3")).isEqualTo("[1, 2, 3]")
     }
 
-    @Test
-    fun `anyQueryParamNull() works when all params are null`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("nullkey", "othernullkey")) }
-        assertThat(http.getBody("/")).isEqualTo("true")
-    }
-
-    @Test
-    fun `anyQueryParamNull() works when some params are null`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "nullkey")) }
-        assertThat(http.getBody("/?qp1=1&qp2=2")).isEqualTo("true")
-    }
-
-    @Test
-    fun `anyQueryParamNull() works when all params are present`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result("" + ctx.anyQueryParamNull("qp1", "qp2", "qp3")) }
-        assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3")).isEqualTo("false")
-    }
-
     /*
      * Form params
      */
@@ -200,18 +182,6 @@ class TestRequest {
     fun `formParam() returns defaults to default value`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp4", "4")!!) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
-    }
-
-    @Test
-    fun `anyFormParamNull() works when some params are null`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "nullkey")) }
-        assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("true")
-    }
-
-    @Test
-    fun `anyFormParamNull() works when all params are present`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.result("" + ctx.anyFormParamNull("fp1", "fp2", "fp3")) }
-        assertThat(http.post("/").body("fp1=1&fp2=2&fp3=3").asString().body).isEqualTo("false")
     }
 
     @Test
@@ -247,45 +217,6 @@ class TestRequest {
     fun `servlet-context is not null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(if (ctx.req.servletContext != null) "not-null" else "null") }
         assertThat(http.getBody("/")).isEqualTo("not-null")
-    }
-
-    /**
-     * Param mapping
-     */
-    @Test
-    fun `mapQueryParams() maps when all params are present`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
-            val (name, email, phone) = ctx.mapQueryParams("name", "email", "phone") ?: throw IllegalArgumentException()
-            ctx.result("$name|$email|$phone")
-        }
-        assertThat(http.getBody("/?name=some%20name&email=some%20email&phone=some%20phone")).isEqualTo("some name|some email|some phone")
-    }
-
-    @Test
-    fun `mapQueryParams() throws when any param is missing`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
-            val (name, missing) = ctx.mapQueryParams("name", "missing") ?: throw IllegalArgumentException()
-            ctx.result("$name|$missing")
-        }
-        assertThat(http.getBody("/?name=some%20name")).isEqualTo("Internal server error")
-    }
-
-    @Test
-    fun `mapFormParams() maps when all params are present`() = TestUtil.test { app, http ->
-        app.post("/") { ctx ->
-            val (name, email, phone) = ctx.mapFormParams("name", "email", "phone") ?: throw IllegalArgumentException()
-            ctx.result("$name|$email|$phone")
-        }
-        assertThat(http.post("/").body("name=some%20name&email=some%20email&phone=some%20phone").asString().body).isEqualTo("some name|some email|some phone")
-    }
-
-    @Test
-    fun `mapFormParams() throws when any param is missing`() = TestUtil.test { app, http ->
-        app.post("/") { ctx ->
-            val (name, missing) = ctx.mapFormParams("missing") ?: throw IllegalArgumentException()
-            ctx.result("$name|$missing")
-        }
-        assertThat(http.post("/").body("name=some%20name").asString().body).isEqualTo("Internal server error")
     }
 
     /**
