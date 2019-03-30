@@ -13,7 +13,6 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.MultipartUtil
 import io.javalin.json.JavalinJson
 import io.javalin.rendering.JavalinRenderer
-import io.javalin.validation.TypedValidator
 import io.javalin.validation.Validator
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -97,11 +96,11 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun <T> bodyAsClass(clazz: Class<T>): T = JavalinJson.fromJson(body(), clazz)
 
     /**
-     * Creates a [TypedValidator] for the body() value, with the prefix "Request body as $clazz"
+     * Creates a [Validator] for the body() value, with the prefix "Request body as $clazz"
      * Throws [BadRequestResponse] if validation fails.
      */
     fun <T> bodyValidator(clazz: Class<T>) = try {
-        TypedValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
+        Validator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
     } catch (e: Exception) {
         throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
@@ -126,11 +125,11 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun formParam(key: String, default: String? = null): String? = formParams(key).firstOrNull() ?: default
 
     /**
-     * Creates a [TypedValidator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
+     * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
     @JvmOverloads
-    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator(formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'").asClass(clazz)
+    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'")
 
     /** Reified version of [formParam] (Kotlin only) */
     inline fun <reified T : Any> formParam(key: String, default: String? = null) = formParam(key, T::class.java, default)
@@ -153,10 +152,10 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
 
     /**
-     * Creates a [TypedValidator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
+     * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
-    fun <T> pathParam(key: String, clazz: Class<T>) = Validator(pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'").asClass(clazz)
+    fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'")
 
     /** Reified version of [pathParam] (Kotlin only) */
     inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)
@@ -268,11 +267,11 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun queryParam(key: String, default: String? = null): String? = queryParams(key).firstOrNull() ?: default
 
     /**
-     * Creates a [TypedValidator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
+     * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
     @JvmOverloads
-    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator(queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'").asClass(clazz)
+    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'")
 
     /** Reified version of [queryParam] (Kotlin only) */
     inline fun <reified T : Any> queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)

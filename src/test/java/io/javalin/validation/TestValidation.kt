@@ -10,7 +10,6 @@ import io.javalin.BadRequestResponse
 import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
-import io.javalin.validation.JavalinValidation.validate
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
 import org.junit.Test
@@ -64,19 +63,6 @@ class TestValidation {
     }
 
     @Test
-    fun `test matches()`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
-            val myLong = validate(ctx.queryParam("my-qp"))
-                    .matches("[0-9]")
-                    .asLong()
-                    .get()
-            ctx.result(myLong.toString())
-        }
-        assertThat(http.get("/?my-qp=a").body).isEqualTo("Value invalid - does not match '[0-9]'")
-        assertThat(http.get("/?my-qp=1").body).isEqualTo("1")
-    }
-
-    @Test
     fun `test default query param value`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myInt = ctx.queryParam<Int>("my-qp", "788").get()
@@ -85,23 +71,6 @@ class TestValidation {
         assertThat(http.get("/?my-qp=a").body).isEqualTo("Query parameter 'my-qp' with value 'a' is not a valid Integer")
         assertThat(http.get("/?my-qp=1").body).isEqualTo("1")
         assertThat(http.get("/").body).isEqualTo("788")
-    }
-
-    @Test
-    fun `test self-instantiated validator`() {
-        try {
-            validate(null).notNullOrEmpty().get()
-        } catch (e: BadRequestResponse) {
-            assertThat(e.msg).isEqualTo("Value cannot be null or empty")
-            assertThat(e.message).isEqualTo("Value cannot be null or empty")
-        }
-        try {
-            val jsonProp = ""
-            validate(jsonProp, "jsonProp").notNullOrEmpty().get()
-        } catch (e: BadRequestResponse) {
-            assertThat(e.msg).isEqualTo("jsonProp cannot be null or empty")
-            assertThat(e.message).isEqualTo("jsonProp cannot be null or empty")
-        }
     }
 
     @Test
@@ -126,11 +95,11 @@ class TestValidation {
 
     @Test
     fun `test default converters`() {
-        assertThat(validate("true").asBoolean().get() is Boolean).isTrue()
-        assertThat(validate("1.2").asDouble().get() is Double).isTrue()
-        assertThat(validate("1.2").asFloat().get() is Float).isTrue()
-        assertThat(validate("123").asInt().get() is Int).isTrue()
-        assertThat(validate("123").asLong().get() is Long).isTrue()
+        assertThat(Validator.create(Boolean::class.java, "true").get() is Boolean).isTrue()
+        assertThat(Validator.create(Double::class.java, "1.2").get() is Double).isTrue()
+        assertThat(Validator.create(Float::class.java, "1.2").get() is Float).isTrue()
+        assertThat(Validator.create(Int::class.java, "123").get() is Int).isTrue()
+        assertThat(Validator.create(Long::class.java, "123").get() is Long).isTrue()
     }
 
     @Test

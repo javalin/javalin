@@ -8,7 +8,6 @@ package io.javalin.core.util
 
 import io.javalin.BasicAuthCredentials
 import io.javalin.Context
-import io.javalin.Javalin
 import io.javalin.core.HandlerEntry
 import io.javalin.core.HandlerType
 import java.net.URLDecoder

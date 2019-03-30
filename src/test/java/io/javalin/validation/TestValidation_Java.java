@@ -8,7 +8,6 @@ package io.javalin.validation;
 
 import java.time.Instant;
 import org.junit.Test;
-import static io.javalin.validation.JavalinValidation.validate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestValidation_Java {
@@ -17,21 +16,20 @@ public class TestValidation_Java {
     public void validator_works_from_java_too() {
         JavalinValidation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
         String intString = "123";
-        int myInt = validate(intString).asClass(Integer.class).get();
+        int myInt = Validator.create(Integer.class, intString).get();
         assertThat(myInt).isEqualTo(123);
 
-        Instant fromDate = validate("1262347200000").asClass(Instant.class).get();
-        Instant toDate = validate("1262347300000").asClass(Instant.class)
+        Instant fromDate = Validator.create(Instant.class, "1262347200000").get();
+        Instant toDate = Validator.create(Instant.class, "1262347300000")
             .check(it -> it.isAfter(fromDate), "'to' has to be after 'from'")
             .get();
 
         assertThat(toDate.getEpochSecond()).isEqualTo(1262347300L);
-
-        assertThat(validate("true").asBoolean().get()).isInstanceOf(Boolean.class);
-        assertThat(validate("1.2").asDouble().get()).isInstanceOf(Double.class);
-        assertThat(validate("1.2").asFloat().get()).isInstanceOf(Float.class);
-        assertThat(validate("123").asInt().get()).isInstanceOf(Integer.class);
-        assertThat(validate("123").asLong().get()).isInstanceOf(Long.class);
+        assertThat(Validator.create(Boolean.class, "true").get()).isInstanceOf(Boolean.class);
+        assertThat(Validator.create(Double.class, "1.2").get()).isInstanceOf(Double.class);
+        assertThat(Validator.create(Float.class, "1.2").get()).isInstanceOf(Float.class);
+        assertThat(Validator.create(Integer.class, "123").get()).isInstanceOf(Integer.class);
+        assertThat(Validator.create(Long.class, "123").get()).isInstanceOf(Long.class);
     }
 
 }
