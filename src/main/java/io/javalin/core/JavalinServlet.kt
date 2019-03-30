@@ -54,7 +54,7 @@ class JavalinServlet(private val appAttributes: Map<Class<*>, Any>) {
                 return@tryWithExceptionMapper // return 200, there is a get handler
             }
             if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
-                if (resourceHandler?.handle(req, res) == true) return@tryWithExceptionMapper
+                if (resourceHandler?.handle(req, res, matcher.ignoreTrailingSlashes) == true) return@tryWithExceptionMapper
                 if (singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)

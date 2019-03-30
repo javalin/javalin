@@ -165,10 +165,6 @@ public class Javalin {
     public Javalin dontIgnoreTrailingSlashes() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore slashes");
         servlet.getMatcher().setIgnoreTrailingSlashes(false);
-        if (servlet.getResourceHandler() == null) {
-            servlet.setResourceHandler(new JettyResourceHandler());
-        }
-        servlet.getResourceHandler().dontIgnoreTrailingSlashes();
         return this;
     }
 
