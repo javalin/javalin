@@ -53,11 +53,11 @@ public class Javalin {
     protected boolean showStartupBanner = true;
 
     protected EventManager eventManager = new EventManager();
-    protected Map<Class, Object> appAttributes = new HashMap<>();
+    protected Map<Class<?>, Object> appAttributes = new HashMap<>();
     protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
 
     private JavalinServer server = new JavalinServer();
-    private JavalinServlet servlet = new JavalinServlet(this);
+    private JavalinServlet servlet = new JavalinServlet(appAttributes);
     private JavalinWsServlet wsServlet = new JavalinWsServlet();
 
     protected Javalin() {
