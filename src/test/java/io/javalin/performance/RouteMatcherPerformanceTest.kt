@@ -50,28 +50,6 @@ class RouteMatcherPerformanceTest {
         return false
     }
 
-    fun oldSplat(request: List<String>, matched: List<String>): List<String> {
-        val numRequestParts = request.size
-        val numHandlerParts = matched.size
-        val splat = ArrayList<String>()
-        var i = 0
-        while (i < numRequestParts && i < numHandlerParts) {
-            val matchedPart = matched[i]
-            if (matchedPart == "*") {
-                val splatParam = StringBuilder(request[i])
-                if (numRequestParts != numHandlerParts && i == numHandlerParts - 1) {
-                    for (j in i + 1..numRequestParts - 1) {
-                        splatParam.append("/")
-                        splatParam.append(request[j])
-                    }
-                }
-                splat.add(urlDecode(splatParam.toString()))
-            }
-            i++
-        }
-        return splat
-    }
-
     fun oldParams(requestPaths: List<String>, handlerPaths: List<String>): Map<String, String> {
         val params = HashMap<String, String>()
         var i = 0
@@ -87,15 +65,14 @@ class RouteMatcherPerformanceTest {
 
     fun newMatch(entry: NewHandlerEntry, path: String) = entry.matches(path)
 
-    fun newSplat(entry: NewHandlerEntry, path: String) = entry.extractSplats(path)
     fun newParams(entry: NewHandlerEntry, path: String) = entry.extractPathParams(path)
 
     companion object {
         val routes = listOf(
                 "/test/:user/some/path/here",
                 "/test/*/some/more/path/here",
-                "/test/path/route/without/splats",
-                "/test/has/splat/at/the/end/*",
+                "/test/path/route/without/wildcards",
+                "/test/has/wildcard/at/the/end/*",
                 "/test/:id/simple/route/:user/create/",
                 "/matches/all/*/user",
                 "/test/*"
@@ -109,10 +86,10 @@ class RouteMatcherPerformanceTest {
                 "/test/1234/some/here/path",
                 "/test/3322/some/more/path/here",
                 "/test/more/path/some/more/path/here",
-                "/test/path/route/without/splats",
+                "/test/path/route/without/wildcards",
                 "/test/path/route/without/solats",
-                "/test/has/splat/at/the/end/for/everything",
-                "/test/has/splat/at/the/and/something/else",
+                "/test/has/wildcard/at/the/end/for/everything",
+                "/test/has/wildcard/at/the/and/something/else",
                 "/test/1/simple/route/John/create/",
                 "/test/2/simple/route/Lisa/create/",
                 "/test/3/simple/route/Temp/create/",
@@ -149,7 +126,6 @@ class RouteMatcherPerformanceTest {
                 val requestList = Util.pathToList(requestUri)
                 val entryList = Util.pathToList(entry.path)
                 oldParams(requestList, entryList)
-                oldSplat(requestList, entryList)
             }
         }
     }
@@ -160,7 +136,6 @@ class RouteMatcherPerformanceTest {
         testEntries.forEach { requestUri ->
             newEntries.forEach { entry ->
                 newParams(entry, requestUri)
-                newSplat(entry, requestUri)
             }
         }
     }

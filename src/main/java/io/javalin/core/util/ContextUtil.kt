@@ -21,7 +21,6 @@ object ContextUtil {
     fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
         matchedPath = handlerEntry.path
         pathParamMap = handlerEntry.extractPathParams(requestUri)
-        splatList = handlerEntry.extractSplats(requestUri)
         handlerType = handlerEntry.type
         if (handlerType != HandlerType.AFTER) {
             endpointHandlerPath = handlerEntry.path
@@ -62,13 +61,11 @@ object ContextUtil {
             response: HttpServletResponse,
             matchedPath: String = "*",
             pathParamMap: Map<String, String> = mapOf(),
-            splatList: List<String> = listOf(),
             handlerType: HandlerType = HandlerType.INVALID,
             appAttributes: Map<Class<*>, Any> = mapOf()
     ) = Context(request, response, appAttributes).apply {
         this.matchedPath = matchedPath
         this.pathParamMap = pathParamMap
-        this.splatList = splatList
         this.handlerType = handlerType
     }
 

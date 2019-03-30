@@ -35,7 +35,6 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
-    @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
     @JvmField val req = servletRequest
     @JvmField val res = servletResponse
@@ -177,17 +176,6 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
 
     /** Gets a map of all the [pathParam] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
-
-    //
-    // Gets a splat by its index.
-    // Ex: If the handler path is /users/*
-    // and a browser GETs /users/123,
-    // splat(0) will return "123"
-    //
-    fun splat(splatNr: Int): String? = splatList[splatNr]
-
-    /** Gets a list of all the [splat] values. */
-    fun splats(): List<String> = Collections.unmodifiableList(splatList)
 
     /**
      * Gets basic-auth credentials from the request.

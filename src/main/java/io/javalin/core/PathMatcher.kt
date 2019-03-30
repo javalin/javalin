@@ -14,7 +14,6 @@ data class HandlerEntry(val type: HandlerType, val path: String, val handler: Ha
     private val pathParser = PathParser(path)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
-    fun extractSplats(requestUri: String) = pathParser.extractSplats(requestUri)
 }
 
 class PathParser(
@@ -25,14 +24,13 @@ class PathParser(
         private val matchRegex: Regex = pathParamNames
                 .fold(path) { p, name -> p.replace(":$name", "[^/]+?") } // Replace path param names with wildcards (accepting everything except slash)
                 .replace("//", "/") // Replace double slash occurrences
-                .replace("/*/", "/.*?/") // Replace splat between slashes to a wildcard
-                .replace("^\\*".toRegex(), ".*?") // Replace splat in the beginning of path to a wildcard (allow paths like (*/path/)
-                .replace("/*", "/.*?") // Replace splat in the end of string to a wildcard
-                .replace("/$".toRegex(), "/?") // Replace trailing slash to optional one
+                .replace("/*/", "/.*?/") // Replace star between slashes with wildcard
+                .replace("^\\*".toRegex(), ".*?") // Replace star in the beginning of path with wildcard (allow paths like (*/path/)
+                .replace("/*", "/.*?") // Replace star in the end of string with wildcard
+                .replace("/$".toRegex(), "/?") // Replace trailing slash with optional one
                 .run { if (!endsWith("/?")) this + "/?" else this } // Add slash if doesn't have one
                 .run { "^" + this + "$" } // Let the matcher know that it is the whole path
                 .toRegex(),
-        private val splatRegex: Regex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex(RegexOption.IGNORE_CASE),
         private val pathParamRegex: Regex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex(RegexOption.IGNORE_CASE)) {
 
     fun matches(url: String) = url matches matchRegex
@@ -40,8 +38,6 @@ class PathParser(
     fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
         name to urlDecode(value)
     }.toMap()
-
-    fun extractSplats(url: String) = values(splatRegex, url).map { urlDecode(it) }
 
     // Match and group values, then drop first element (the input string)
     private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
