@@ -69,4 +69,6 @@ class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
 
     private fun slashMismatch(s1: String, s2: String) = (s1.endsWith('/') || s2.endsWith('/')) && (s1.last() != s2.last())
 
+    fun hasEntries() = handlerEntries.flatMap { it.value }.count() > 0
+
 }

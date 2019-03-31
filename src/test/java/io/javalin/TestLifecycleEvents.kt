@@ -16,12 +16,12 @@ class TestLifecycleEvents {
     fun `life cycle events work`() {
         var log = ""
         Javalin.create().apply {
-            event(JavalinEvent.SERVER_STARTING) { log += "Starting" }
-            event(JavalinEvent.SERVER_STARTED) { log += "Started" }
-            event(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
-            event(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
-            event(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
-            event(JavalinEvent.SERVER_STOPPED) { log += "Stopped" }
+            on(JavalinEvent.SERVER_STARTING) { log += "Starting" }
+            on(JavalinEvent.SERVER_STARTED) { log += "Started" }
+            on(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
+            on(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
+            on(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
+            on(JavalinEvent.SERVER_STOPPED) { log += "Stopped" }
         }.start(0).stop()
         assertThat(log).isEqualTo("StartingStartedStoppingStoppingStoppingStopped")
     }

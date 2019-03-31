@@ -8,18 +8,26 @@ package io.javalin.core.util
 
 import io.javalin.Context
 import io.javalin.Handler
+import io.javalin.HandlerMetaInfo
 import io.javalin.Javalin
 
 class RouteOverviewRenderer(val app: Javalin) : Handler {
+
+    val handlerMetaInfo = mutableListOf<HandlerMetaInfo>()
+
+    init {
+        app.onHandlerAdded { handlerMetaInfo.add(it) }
+    }
+
     override fun handle(ctx: Context) {
-        ctx.html(RouteOverviewUtil.createHtmlOverview(app))
+        ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfo))
     }
 }
 
 object RouteOverviewUtil {
 
     @JvmStatic
-    fun createHtmlOverview(app: Javalin): String {
+    fun createHtmlOverview(handlerInfo: List<HandlerMetaInfo>): String {
         return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
@@ -115,7 +123,7 @@ object RouteOverviewUtil {
                         <td>Roles</td>
                     </tr>
                 </thead>
-                ${app.handlerMetaInfo.map { (httpMethod, path, handler, roles) ->
+                ${handlerInfo.map { (httpMethod, path, handler, roles) ->
             """
                     <tr class="method $httpMethod">
                         <td>$httpMethod</span></td>

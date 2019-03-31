@@ -30,7 +30,7 @@ data class BasicAuthCredentials(val username: String, val password: String)
 
 /**
  * Server lifecycle events
- * @see Javalin.event
+ * @see Javalin.on
  */
 enum class JavalinEvent {
     SERVER_STARTING,

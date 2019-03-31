@@ -6,11 +6,15 @@
 
 package io.javalin.core
 
-import io.javalin.EventListener
+import io.javalin.HandlerMetaInfo
 import io.javalin.JavalinEvent
 import java.util.*
+import java.util.function.Consumer
 
 class EventManager {
-    val listenerMap = JavalinEvent.values().associate { it to ArrayList<EventListener>() }
-    fun fireEvent(javalinEvent: JavalinEvent) = listenerMap[javalinEvent]!!.forEach { listener -> listener.handleEvent() }
+    val callbackMap = JavalinEvent.values().associate { it to ArrayList<Runnable>() }
+    fun fireEvent(javalinEvent: JavalinEvent) = callbackMap[javalinEvent]!!.forEach { callback -> callback.run() }
+
+    var handlerAddedCallback: Consumer<HandlerMetaInfo>? = null
+    fun fireHandlerAddedEvent(handlerMetaInfo: HandlerMetaInfo) = handlerAddedCallback.apply { this?.accept(handlerMetaInfo) }
 }

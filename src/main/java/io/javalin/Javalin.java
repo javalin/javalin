@@ -28,12 +28,9 @@ import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.StaticFileConfig;
 import io.javalin.websocket.JavalinWsServlet;
-import io.javalin.websocket.WsEntry;
 import io.javalin.websocket.WsHandler;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -58,14 +55,6 @@ public class Javalin {
     private JavalinServer server = new JavalinServer();
     private JavalinServlet servlet = new JavalinServlet(appAttributes);
     private JavalinWsServlet wsServlet = new JavalinWsServlet();
-
-    // Todo: remove ?
-    protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
-
-    public List<HandlerMetaInfo> getHandlerMetaInfo() {
-        return new ArrayList<>(handlerMetaInfo);
-    }
-    // Todo: ^^^ remove ?
 
     protected Javalin() {
         Util.logWarningIfNotStartedAfterOneSecond(this.server);
@@ -360,7 +349,9 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
-        ensureActionIsPerformedBeforeServerStart("Enabling route overview");
+        if (this.servlet.getMatcher().hasEntries()) {
+            throw new IllegalStateException("The route-overview listens for 'onHandlerAdded' events. It must be enabled before adding handlers.");
+        }
         return this.get(path, new RouteOverviewRenderer(this), permittedRoles);
     }
 
@@ -454,9 +445,17 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#lifecycle-events">Events in docs</a>
      */
-    public Javalin event(@NotNull JavalinEvent javalinEvent, @NotNull EventListener eventListener) {
+    public Javalin on(@NotNull JavalinEvent javalinEvent, @NotNull Runnable callback) {
         ensureActionIsPerformedBeforeServerStart("Event-mapping");
-        eventManager.getListenerMap().get(javalinEvent).add(eventListener);
+        eventManager.getCallbackMap().get(javalinEvent).add(callback);
+        return this;
+    }
+
+    /**
+     * Adds a handler-added event listener which exposes meta-info about the added handler
+     */
+    public Javalin onHandlerAdded(Consumer<HandlerMetaInfo> handlerEntryConsumer) {
+        eventManager.setHandlerAddedCallback(handlerEntryConsumer);
         return this;
     }
 
@@ -505,7 +504,7 @@ public class Javalin {
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         servlet.addHandler(handlerType, path, handler, roles);
-        handlerMetaInfo.add(new HandlerMetaInfo(handlerType, Util.prefixContextPath(server.getContextPath(), path), handler, roles));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(server.getContextPath(), path), handler, roles));
         return this;
     }
 
@@ -786,7 +785,7 @@ public class Javalin {
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
         wsServlet.addHandler(path, ws);
-        handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(server.getContextPath(), path), ws, new HashSet<>()));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(server.getContextPath(), path), ws, new HashSet<>()));
         return this;
     }
 
