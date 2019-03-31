@@ -6,19 +6,17 @@
 
 package io.javalin.staticfiles
 
+import io.javalin.Javalin
 import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
-import org.slf4j.LoggerFactory
 import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
-
-    private val log = LoggerFactory.getLogger("io.javalin.Javalin")
 
     val handlers = mutableListOf<GzipHandler>()
 
@@ -28,7 +26,7 @@ class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
                 resourceBase = getResourcePath(config)
                 isDirAllowed = false
                 isEtags = true
-                log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
+                Javalin.log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
             start()
         })
@@ -68,7 +66,7 @@ class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
                     return true
                 }
             } catch (e: Exception) { // it's fine
-                log.error("Exception occurred while handling static resource", e)
+                Javalin.log.error("Exception occurred while handling static resource", e)
             }
         }
         return false

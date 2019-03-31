@@ -9,7 +9,6 @@ package io.javalin.core.util
 import io.javalin.InternalServerErrorResponse
 import io.javalin.Javalin
 import io.javalin.core.JavalinServer
-import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -19,8 +18,6 @@ import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 
 object Util {
-
-    private val log = LoggerFactory.getLogger(Javalin::class.java)
 
     @JvmStatic
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
@@ -43,7 +40,7 @@ object Util {
         }
         if (!classExists(dependency.testClass)) {
             val message = missingDependencyMessage(dependency)
-            log.warn(message)
+            Javalin.log.warn(message)
             throw InternalServerErrorResponse(message)
         }
         dependencyCheckCache[dependency.testClass] = true
@@ -77,7 +74,7 @@ object Util {
 
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
-        if (showBanner) log.info("\n" + """
+        if (showBanner) Javalin.log.info("\n" + """
           |           __                      __ _
           |          / /____ _ _   __ ____ _ / /(_)____
           |     __  / // __ `/| | / // __ `// // // __ \
@@ -118,9 +115,9 @@ object Util {
     fun logWarningIfNotStartedAfterOneSecond(server: JavalinServer) = Thread {
         Thread.sleep(1000)
         if (!server.started) {
-            log.info("It looks like you created a Javalin instance, but you never started it.")
-            log.info("Try: Javalin app = Javalin.create().start();")
-            log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+            Javalin.log.info("It looks like you created a Javalin instance, but you never started it.")
+            Javalin.log.info("Try: Javalin app = Javalin.create().start();")
+            Javalin.log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
         }
     }.start()
 

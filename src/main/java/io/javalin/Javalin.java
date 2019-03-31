@@ -48,7 +48,7 @@ import static io.javalin.security.SecurityUtil.roles;
 
 public class Javalin {
 
-    private static Logger log = LoggerFactory.getLogger(Javalin.class);
+    public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     protected boolean showStartupBanner = true;
 

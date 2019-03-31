@@ -18,7 +18,6 @@ import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.net.BindException
 import java.util.function.Supplier
@@ -26,8 +25,6 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JavalinServer {
-
-    private val log = LoggerFactory.getLogger(Javalin::class.java) // let's pretend
 
     private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
 
@@ -55,7 +52,7 @@ class JavalinServer {
                     javalinServlet.service(request, response)
                 } catch (t: Throwable) {
                     response.status = 500
-                    log.error("Exception occurred while servicing http-request", t)
+                    Javalin.log.error("Exception occurred while servicing http-request", t)
                 }
                 jettyRequest.isHandled = true
             }
@@ -73,7 +70,7 @@ class JavalinServer {
                 response.status = 404
                 ByteArrayInputStream(msg.toByteArray()).copyTo(response.outputStream)
                 response.outputStream.close()
-                log.warn("Received a request below context-path (context-path: '$contextPath'). Returned 404.")
+                Javalin.log.warn("Received a request below context-path (context-path: '$contextPath'). Returned 404.")
             }
         }
 
@@ -85,11 +82,11 @@ class JavalinServer {
         }.start()
 
         jettyServer.connectors.filterIsInstance<ServerConnector>().forEach {
-            log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath")
+            Javalin.log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath")
         }
 
         jettyServer.connectors.filter { it !is ServerConnector }.forEach {
-            log.info("Binding to: $it")
+            Javalin.log.info("Binding to: $it")
         }
 
         reEnableJettyLogger()
@@ -131,8 +128,6 @@ class JavalinServer {
 
 object JettyUtil {
 
-    private val log = LoggerFactory.getLogger(Javalin::class.java) // let's pretend
-
     @JvmStatic
     fun getSessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
         val sessionHandler = sessionHandlerSupplier.get()
@@ -140,7 +135,7 @@ object JettyUtil {
             sessionHandler.sessionCache?.sessionDataStore?.exists("id-that-does-not-exist")
         } catch (e: Exception) {
             // TODO: This should throw... Find a way to check this that doesn't fail for valid SessionHandlers.
-            log.warn("Failed to look up ID in sessionDataStore. SessionHandler might be misconfigured.")
+            Javalin.log.warn("Failed to look up ID in sessionDataStore. SessionHandler might be misconfigured.")
         }
         return sessionHandler
     }
