@@ -6,8 +6,6 @@
 
 package io.javalin
 
-import io.javalin.core.HandlerType
-import io.javalin.security.Role
 import java.io.InputStream
 
 /**
@@ -27,17 +25,3 @@ data class UploadedFile(val contentType: String, val content: InputStream, val n
  * @see Context.basicAuthCredentials
  */
 data class BasicAuthCredentials(val username: String, val password: String)
-
-/**
- * Server lifecycle events
- * @see Javalin.on
- */
-enum class JavalinEvent {
-    SERVER_STARTING,
-    SERVER_STARTED,
-    SERVER_START_FAILED,
-    SERVER_STOPPING,
-    SERVER_STOPPED
-}
-
-data class HandlerMetaInfo(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: Set<Role>)

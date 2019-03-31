@@ -7,6 +7,7 @@
 
 package io.javalin
 
+import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
@@ -16,14 +17,22 @@ class TestLifecycleEvents {
     fun `life cycle events work`() {
         var log = ""
         Javalin.create().apply {
-            on(JavalinEvent.SERVER_STARTING) { log += "Starting" }
-            on(JavalinEvent.SERVER_STARTED) { log += "Started" }
-            on(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
-            on(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
-            on(JavalinEvent.SERVER_STOPPING) { log += "Stopping" }
-            on(JavalinEvent.SERVER_STOPPED) { log += "Stopped" }
+            on.serverStarting { log += "Starting" }
+            on.serverStarted { log += "Started" }
+            on.serverStopping { log += "Stopping" }
+            on.serverStopping { log += "Stopping" }
+            on.serverStopping { log += "Stopping" }
+            on.serverStopped { log += "Stopped" }
         }.start(0).stop()
         assertThat(log).isEqualTo("StartingStartedStoppingStoppingStoppingStopped")
+    }
+
+    @Test
+    fun `handlerAdded event works`() = TestUtil.test { app, http ->
+        var log = ""
+        app.on.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
+        app.get("/test-path") {}
+        assertThat(log).isEqualTo("/test-path")
     }
 
 }

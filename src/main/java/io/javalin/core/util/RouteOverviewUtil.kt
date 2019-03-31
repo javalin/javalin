@@ -8,15 +8,15 @@ package io.javalin.core.util
 
 import io.javalin.Context
 import io.javalin.Handler
-import io.javalin.HandlerMetaInfo
 import io.javalin.Javalin
+import io.javalin.core.HandlerMetaInfo
 
 class RouteOverviewRenderer(val app: Javalin) : Handler {
 
     val handlerMetaInfo = mutableListOf<HandlerMetaInfo>()
 
     init {
-        app.onHandlerAdded { handlerMetaInfo.add(it) }
+        app.on.handlerAdded { handlerMetaInfo.add(it) }
     }
 
     override fun handle(ctx: Context) {
