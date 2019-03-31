@@ -24,4 +24,11 @@ class JavalinWsServlet : WebSocketServlet() {
         }
     }
 
+    fun addHandler(path: String, ws: Consumer<WsHandler>) =
+            wsPathMatcher.add(WsEntry(path, WsHandler().apply { ws.accept(this) }))
+
+    fun setWsLogger(ws: Consumer<WsHandler>) {
+        wsPathMatcher.wsLogger = WsHandler().apply { ws.accept(this) }
+    }
+
 }

@@ -54,11 +54,18 @@ public class Javalin {
 
     protected EventManager eventManager = new EventManager();
     protected Map<Class<?>, Object> appAttributes = new HashMap<>();
-    protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
 
     private JavalinServer server = new JavalinServer();
     private JavalinServlet servlet = new JavalinServlet(appAttributes);
     private JavalinWsServlet wsServlet = new JavalinWsServlet();
+
+    // Todo: remove ?
+    protected List<HandlerMetaInfo> handlerMetaInfo = new ArrayList<>();
+
+    public List<HandlerMetaInfo> getHandlerMetaInfo() {
+        return new ArrayList<>(handlerMetaInfo);
+    }
+    // Todo: ^^^ remove ?
 
     protected Javalin() {
         Util.logWarningIfNotStartedAfterOneSecond(this.server);
@@ -187,16 +194,6 @@ public class Javalin {
     public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
         ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
         server.setJettySessionHandler(JettyUtil.getSessionHandler(sessionHandler));
-        return this;
-    }
-
-    /**
-     * Configure the WebSocketServletFactory of the instance
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
-        ensureActionIsPerformedBeforeServerStart("Setting a custom WebSocket factory config");
-        wsServlet.setWsFactoryConfig(wsFactoryConfig);
         return this;
     }
 
@@ -464,19 +461,6 @@ public class Javalin {
     }
 
     /**
-     * Configures a web socket handler to be called after every web socket event
-     * The method must be called before {@link Javalin#start()}.
-     * Will override the default logger of {@link Javalin#enableDevLogging()}.
-     */
-    public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
-        ensureActionIsPerformedBeforeServerStart("Adding a WebSocket logger");
-        WsHandler wsLogger = new WsHandler();
-        ws.accept(wsLogger);
-        wsServlet.getWsPathMatcher().setWsLogger(wsLogger);
-        return this;
-    }
-
-    /**
      * Adds an error mapper to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      *
@@ -532,7 +516,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
-        return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone)
+        return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone with default access manager)
     }
 
     // HTTP verbs
@@ -728,6 +712,21 @@ public class Javalin {
         return addHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
     }
 
+    /**
+     * Adds a lambda handler for a Server Sent Event connection on the specified path.
+     */
+    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client) {
+        return sse(path, client, new HashSet<>());
+    }
+
+    /**
+     * Adds a lambda handler for a Server Sent Event connection on the specified path.
+     * Requires an access manager to be set on the instance.
+     */
+    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
+        return get(path, new SseHandler(client), permittedRoles);
+    }
+
     // Filters
 
     /**
@@ -772,33 +771,29 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
-        WsHandler configuredWebSocket = new WsHandler();
-        ws.accept(configuredWebSocket);
-        wsServlet.getWsPathMatcher().add(new WsEntry(path, configuredWebSocket));
+        wsServlet.addHandler(path, ws);
         handlerMetaInfo.add(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(server.getContextPath(), path), ws, new HashSet<>()));
         return this;
     }
 
     /**
-     * Gets the list of HandlerMetaInfo-objects
+     * Configures a web socket handler to be called after every web socket event
+     * Will override the default logger of {@link Javalin#enableDevLogging()}.
      */
-    public List<HandlerMetaInfo> getHandlerMetaInfo() {
-        return new ArrayList<>(handlerMetaInfo);
+    public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
+        ensureActionIsPerformedBeforeServerStart("Adding a WebSocket logger");
+        wsServlet.setWsLogger(ws);
+        return this;
     }
 
     /**
-     * Adds a lambda handler for a Server Sent Event connection on the specified path.
+     * Configure the WebSocketServletFactory of the instance
+     * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client) {
-        return sse(path, client, new HashSet<>());
-    }
-
-    /**
-     * Adds a lambda handler for a Server Sent Event connection on the specified path.
-     * Requires an access manager to be set on the instance.
-     */
-    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
-        return get(path, new SseHandler(client), permittedRoles);
+    public Javalin wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
+        ensureActionIsPerformedBeforeServerStart("Setting a custom WebSocket factory config");
+        wsServlet.setWsFactoryConfig(wsFactoryConfig);
+        return this;
     }
 
 }
