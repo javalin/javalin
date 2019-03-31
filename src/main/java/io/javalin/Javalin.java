@@ -9,8 +9,11 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
+import io.javalin.core.EventAttacher;
 import io.javalin.core.EventManager;
+import io.javalin.core.HandlerMetaInfo;
 import io.javalin.core.HandlerType;
+import io.javalin.core.JavalinEvent;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.JettyUtil;
@@ -50,6 +53,8 @@ public class Javalin {
     protected boolean showStartupBanner = true;
 
     protected EventManager eventManager = new EventManager();
+    public EventAttacher on = eventManager.getEventAttacher();
+
     protected Map<Class<?>, Object> appAttributes = new HashMap<>();
 
     private JavalinServer server = new JavalinServer();
@@ -436,26 +441,6 @@ public class Javalin {
      */
     public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
         servlet.getExceptionMapper().getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
-        return this;
-    }
-
-    /**
-     * Adds a lifecycle event listener.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#lifecycle-events">Events in docs</a>
-     */
-    public Javalin on(@NotNull JavalinEvent javalinEvent, @NotNull Runnable callback) {
-        ensureActionIsPerformedBeforeServerStart("Event-mapping");
-        eventManager.getCallbackMap().get(javalinEvent).add(callback);
-        return this;
-    }
-
-    /**
-     * Adds a handler-added event listener which exposes meta-info about the added handler
-     */
-    public Javalin onHandlerAdded(Consumer<HandlerMetaInfo> callback) {
-        eventManager.setHandlerAddedCallback(callback);
         return this;
     }
 
