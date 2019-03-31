@@ -454,8 +454,8 @@ public class Javalin {
     /**
      * Adds a handler-added event listener which exposes meta-info about the added handler
      */
-    public Javalin onHandlerAdded(Consumer<HandlerMetaInfo> handlerEntryConsumer) {
-        eventManager.setHandlerAddedCallback(handlerEntryConsumer);
+    public Javalin onHandlerAdded(Consumer<HandlerMetaInfo> callback) {
+        eventManager.setHandlerAddedCallback(callback);
         return this;
     }
 
