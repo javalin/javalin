@@ -10,6 +10,7 @@ import io.javalin.Handler;
 import io.javalin.Javalin;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import io.javalin.serversentevent.SseClient;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -392,6 +393,26 @@ public class ApiBuilder {
      */
     public static void ws(@NotNull Consumer<WsHandler> ws) {
         staticInstance().ws(prefixPath(""), ws);
+    }
+
+    /////////////////////////////////////////////////////////////
+    // Server-sent events
+    /////////////////////////////////////////////////////////////
+
+    public static void sse(@NotNull String path, @NotNull Consumer<SseClient> client) {
+        staticInstance().sse(prefixPath(path), client);
+    }
+
+    public static void sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
+        staticInstance().sse(prefixPath(path), client, permittedRoles);
+    }
+
+    public static void sse(@NotNull Consumer<SseClient> client) {
+        staticInstance().sse(prefixPath(""), client);
+    }
+
+    public static void sse(@NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
+        staticInstance().sse(prefixPath(""), client, permittedRoles);
     }
 
     /////////////////////////////////////////////////////////////
