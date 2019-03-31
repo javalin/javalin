@@ -519,7 +519,9 @@ public class Javalin {
         return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone with default access manager)
     }
 
+    // ********************************************************************************************
     // HTTP verbs
+    // ********************************************************************************************
 
     /**
      * Adds a GET request handler for the specified path to the instance.
@@ -602,7 +604,9 @@ public class Javalin {
         return addHandler(HandlerType.OPTIONS, path, handler);
     }
 
+    // ********************************************************************************************
     // Secured HTTP verbs
+    // ********************************************************************************************
 
     /**
      * Adds a GET request handler with the given roles for the specified path to the instance.
@@ -712,6 +716,10 @@ public class Javalin {
         return addHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
     }
 
+    // ********************************************************************************************
+    // Server-sent events
+    // ********************************************************************************************
+
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      */
@@ -727,7 +735,9 @@ public class Javalin {
         return get(path, new SseHandler(client), permittedRoles);
     }
 
-    // Filters
+    // ********************************************************************************************
+    // Before/after handlers (filters)
+    // ********************************************************************************************
 
     /**
      * Adds a BEFORE request handler for the specified path to the instance.
@@ -764,6 +774,10 @@ public class Javalin {
     public Javalin after(@NotNull Handler handler) {
         return after("*", handler);
     }
+
+    // ********************************************************************************************
+    // WebSocket
+    // ********************************************************************************************
 
     /**
      * Adds a WebSocket handler on the specified path.
