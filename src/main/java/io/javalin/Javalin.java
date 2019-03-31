@@ -52,7 +52,7 @@ public class Javalin {
 
     protected boolean showStartupBanner = true;
 
-    protected EventManager eventManager = new EventManager();
+    protected EventManager eventManager = new EventManager(this);
     public EventAttacher on = eventManager.getEventAttacher();
 
     protected Map<Class<?>, Object> appAttributes = new HashMap<>();
