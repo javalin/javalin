@@ -50,18 +50,19 @@ public class Javalin {
 
     public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    protected boolean showStartupBanner = true;
+    protected boolean showJavalinBanner = true;
+
+    protected Map<Class<?>, Object> appAttributes = new HashMap<>();
+
+    protected JavalinServer server = new JavalinServer();
+    protected JavalinServlet servlet = new JavalinServlet(appAttributes);
+    protected JavalinWsServlet wsServlet = new JavalinWsServlet();
 
     protected EventManager eventManager = new EventManager(this);
     public EventAttacher on = eventManager.getEventAttacher();
 
-    protected Map<Class<?>, Object> appAttributes = new HashMap<>();
-
-    private JavalinServer server = new JavalinServer();
-    private JavalinServlet servlet = new JavalinServlet(appAttributes);
-    private JavalinWsServlet wsServlet = new JavalinWsServlet();
-
     protected Javalin() {
+        Util.logJavalinBanner(showJavalinBanner);
         Util.logWarningIfNotStartedAfterOneSecond(this.server);
     }
 
@@ -100,7 +101,6 @@ public class Javalin {
         if (server.getStarted()) {
             throw new IllegalStateException("Cannot call start() again on a started server.");
         }
-        Util.logJavalinBanner(showStartupBanner);
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
@@ -155,7 +155,7 @@ public class Javalin {
      */
     public Javalin disableStartupBanner() {
         ensureActionIsPerformedBeforeServerStart("Telling Javalin to not show banner in logs");
-        showStartupBanner = false;
+        showJavalinBanner = false;
         return this;
     }
 

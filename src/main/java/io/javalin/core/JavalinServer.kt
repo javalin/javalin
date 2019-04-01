@@ -28,6 +28,10 @@ class JavalinServer {
 
     private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
 
+    init {
+        disableJettyLogger()
+    }
+
     lateinit var jettyServer: Server
     lateinit var jettySessionHandler: SessionHandler
 
@@ -38,7 +42,6 @@ class JavalinServer {
     @Throws(BindException::class)
     fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
 
-        disableJettyLogger()
         if (!::jettyServer.isInitialized) jettyServer = defaultServer()
         if (!::jettySessionHandler.isInitialized) jettySessionHandler = defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
