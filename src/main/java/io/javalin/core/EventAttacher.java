@@ -27,7 +27,7 @@ public class EventAttacher {
     // @formatter:on
 
     public Javalin handlerAdded(@NotNull Consumer<HandlerMetaInfo> callback) {
-        this.eventManager.setHandlerAddedCallback(callback);
+        this.eventManager.getHandlerAddedCallbacks().add(callback);
         return eventManager.getParentJavalin();
     }
 

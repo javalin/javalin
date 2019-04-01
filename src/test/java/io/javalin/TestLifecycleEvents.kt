@@ -31,8 +31,9 @@ class TestLifecycleEvents {
     fun `handlerAdded event works`() = TestUtil.test { app, http ->
         var log = ""
         app.on.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
+        app.on.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
         app.get("/test-path") {}
-        assertThat(log).isEqualTo("/test-path")
+        assertThat(log).isEqualTo("/test-path/test-path")
     }
 
 }

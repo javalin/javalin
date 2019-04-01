@@ -13,10 +13,10 @@ import java.util.function.Consumer
 
 class EventManager(val parentJavalin: Javalin) {
     val eventAttacher = EventAttacher(this)
-    val callbackMap = JavalinEvent.values().associate { it to ArrayList<Runnable>() }
+    val callbackMap = JavalinEvent.values().associate { it to HashSet<Runnable>() }
     fun fireEvent(javalinEvent: JavalinEvent) = callbackMap[javalinEvent]!!.forEach { callback -> callback.run() }
-    var handlerAddedCallback: (Consumer<HandlerMetaInfo>)? = null
-    fun fireHandlerAddedEvent(handlerMetaInfo: HandlerMetaInfo) = handlerAddedCallback.apply { this?.accept(handlerMetaInfo) }
+    var handlerAddedCallbacks = mutableSetOf<Consumer<HandlerMetaInfo>>()
+    fun fireHandlerAddedEvent(handlerMetaInfo: HandlerMetaInfo) = handlerAddedCallbacks.apply { this.forEach { it.accept(handlerMetaInfo) } }
 }
 
 enum class JavalinEvent { SERVER_STARTING, SERVER_STARTED, SERVER_START_FAILED, SERVER_STOPPING, SERVER_STOPPED }
