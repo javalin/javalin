@@ -29,14 +29,16 @@ class SinglePageHandler {
     }
 
     fun handle(ctx: Context): Boolean {
-        if (!ContextUtil.acceptsHtml(ctx)) return false
-        for (path in pathPageMap.keys) {
-            if (ctx.path().startsWith(path)) {
-                ctx.html(when (ContextUtil.isLocalhost(ctx)) {
-                    true -> pathUrlMap[path]!!.readText() // is localhost, read file again
-                    false -> pathPageMap[path]!! // not localhost, use cached content
-                })
-                return true
+        val accepts = ctx.header(Header.ACCEPT) ?: ""
+        if (accepts.contains("text/html") || accepts == "*/*" || accepts == "") {
+            for (path in pathPageMap.keys) {
+                if (ctx.path().startsWith(path)) {
+                    ctx.html(when (ContextUtil.isLocalhost(ctx)) {
+                        true -> pathUrlMap[path]!!.readText() // is localhost, read file again
+                        false -> pathPageMap[path]!! // not localhost, use cached content
+                    })
+                    return true
+                }
             }
         }
         return false

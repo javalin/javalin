@@ -47,6 +47,14 @@ class TestSinglePageMode {
     }
 
     @Test
+    fun `SinglePageHandler works when accepts is blank or star-slash-star`() = TestUtil.test(rootSinglePageApp_classPath) { app, http ->
+        val blankAcceptsResponseBody = Unirest.get("http://localhost:${app.port()}/not-a-file").header(Header.ACCEPT, "").asString().body
+        assertThat(blankAcceptsResponseBody).contains("HTML works")
+        val starSlashStarAcceptsResponseBody = Unirest.get("http://localhost:${app.port()}/not-a-file").header(Header.ACCEPT, "*/*").asString().body
+        assertThat(starSlashStarAcceptsResponseBody).contains("HTML works")
+    }
+
+    @Test
     fun `SinglePageHandler works for just subpaths (classpath)`() = TestUtil.test(dualSinglePageApp_classPath) { _, http ->
         assertThat(http.htmlGet("/").body).contains("Not found")
         assertThat(http.htmlGet("/").status).isEqualTo(404)
