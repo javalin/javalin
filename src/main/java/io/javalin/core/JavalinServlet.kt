@@ -6,60 +6,17 @@
 
 package io.javalin.core
 
-import io.javalin.*
-import io.javalin.config.SamConversionsServlet
+import io.javalin.Context
+import io.javalin.Handler
+import io.javalin.MethodNotAllowedResponse
+import io.javalin.NotFoundResponse
 import io.javalin.core.util.*
-import io.javalin.security.AccessManager
 import io.javalin.security.CoreRoles
 import io.javalin.security.Role
-import io.javalin.security.SecurityUtil
-import io.javalin.staticfiles.JettyResourceHandler
-import io.javalin.staticfiles.Location
-import io.javalin.staticfiles.ResourceHandler
-import io.javalin.staticfiles.StaticFileConfig
 import java.io.InputStream
 import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-
-
-class JavalinServletConfig(private val servlet: JavalinServlet) : SamConversionsServlet {
-    // @formatter:off
-    var dynamicGzip: Boolean = true
-    var autogenerateEtags: Boolean = false
-    var prefer405over404: Boolean = false
-    var defaultContentType: String = "text/plain"
-    var requestCacheSize: Long = 4096L
-    @get:JvmSynthetic @set:JvmSynthetic internal var requestLogger: RequestLogger? = null
-    @get:JvmSynthetic @set:JvmSynthetic internal var resourceHandler: ResourceHandler? = null
-    @get:JvmSynthetic @set:JvmSynthetic internal var accessManager: AccessManager = AccessManager { handler, ctx, permittedRoles -> SecurityUtil.noopAccessManager(handler, ctx, permittedRoles) }
-    @get:JvmSynthetic @set:JvmSynthetic internal var singlePageHandler: SinglePageHandler = SinglePageHandler()
-
-    fun enableWebjars() = addStaticFiles("/webjars", Location.CLASSPATH)
-    fun addStaticFiles(classpathPath: String) = addStaticFiles(classpathPath, Location.CLASSPATH)
-    fun addStaticFiles(path: String, location: Location) {
-        resourceHandler = resourceHandler ?: JettyResourceHandler()
-        resourceHandler?.addStaticFileConfig(StaticFileConfig(path, location))
-    }
-
-    fun addSinglePageRoot(path: String, filePath: String) = addSinglePageRoot(path, filePath, Location.CLASSPATH)
-    fun addSinglePageRoot(path: String, filePath: String, location: Location) = singlePageHandler.add(path, filePath, location)
-
-    fun enableCorsForAllOrigins() = enableCorsForOrigins("*")
-    fun enableCorsForOrigins(vararg origin: String) {
-        CorsUtil.enableCorsForOrigin(servlet, arrayOf(*origin))
-    }
-
-    override fun accessManager(accessManager: AccessManager) {
-        this.accessManager = accessManager
-    }
-
-    override fun requestLogger(requestLogger: RequestLogger) {
-        this.requestLogger = requestLogger
-    }
-    // @formatter:on
-}
-
 
 class JavalinServlet(private val appAttributes: Map<Class<*>, Any>) {
 

@@ -7,7 +7,6 @@
 package io.javalin.core
 
 import io.javalin.Javalin
-import io.javalin.config.SamConversionsServer
 import io.javalin.core.util.Header
 import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.*
@@ -24,23 +23,6 @@ import java.net.BindException
 import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-
-class JavalinServerConfig : SamConversionsServer {
-    // @formatter:off
-    @get:JvmSynthetic @set:JvmSynthetic internal var server: Server? = null
-    @get:JvmSynthetic @set:JvmSynthetic internal var sessionHandler: SessionHandler? = null
-    var port: Int = 7000
-    var contextPath: String = "/"
-
-    override fun sessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>) {
-        this.sessionHandler = sessionHandlerSupplier.get()
-    }
-
-    override fun server(serverSupplier: Supplier<Server>) {
-        this.server = serverSupplier.get()
-    }
-    // @formatter:on
-}
 
 class JavalinServer {
 

@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
 
     Javalin.create().apply {
         servlet { it.addStaticFiles("/public") }
-        server { it.server = Server(tp) }
+        server { it.server { Server(tp) } }
         get("/") { it.redirect("/sse/sse-example.html") }
         sse("/sse-counter") { client ->
             counterClients.add(client)

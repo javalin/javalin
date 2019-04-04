@@ -79,7 +79,7 @@ public class Javalin {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        server.getConfig().setPort(port);
+        server(server -> server.port = port);
         return this.start();
     }
 
@@ -105,7 +105,7 @@ public class Javalin {
             log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getConfig().getPort() + " and try again.", e);
+                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getConfig().port + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
                 throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
             }
@@ -146,7 +146,7 @@ public class Javalin {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return server.getConfig().getPort();
+        return server.getConfig().port;
     }
 
     /**
@@ -257,7 +257,7 @@ public class Javalin {
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         servlet.addHandler(handlerType, path, handler, roles);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(server.getConfig().getContextPath(), path), handler, roles));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(server.getConfig().contextPath, path), handler, roles));
         return this;
     }
 
@@ -529,7 +529,7 @@ public class Javalin {
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
         wsServlet.addHandler(path, ws);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(server.getConfig().getContextPath(), path), ws, new HashSet<>()));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(server.getConfig().contextPath, path), ws, new HashSet<>()));
         return this;
     }
 

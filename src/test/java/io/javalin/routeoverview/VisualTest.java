@@ -30,7 +30,7 @@ public class VisualTest {
         Javalin app = Javalin.create()
             .enableRouteOverview("/route-overview")
             .configure((server, servlet) -> {
-                server.setContextPath("/context-path");
+                server.contextPath = "/context-path";
                 servlet.enableCorsForAllOrigins();
             }).start();
 
