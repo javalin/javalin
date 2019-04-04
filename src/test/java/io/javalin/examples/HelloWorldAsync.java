@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class HelloWorldAsync {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().port(7070).start();
+        Javalin app = Javalin.create().start(7070);
         app.get("/", ctx -> {
             CompletableFuture<String> future = new CompletableFuture<>();
             Executors.newSingleThreadScheduledExecutor().schedule(() -> future.complete("Hello World!"), 10, TimeUnit.MILLISECONDS);

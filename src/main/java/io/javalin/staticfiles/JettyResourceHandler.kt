@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse
 
 class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
 
+    val ignoreTrailingSlashes = true
     val handlers = mutableListOf<GzipHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
@@ -51,14 +52,14 @@ class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
         return staticFileConfig.path
     }
 
-    override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse, ignoreTrailingSlashes: Boolean): Boolean {
+    override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
         for (gzipHandler in handlers) {
             try {
                 val resourceHandler = (gzipHandler.handler as ResourceHandler)
                 val resource = resourceHandler.getResource(target)
-                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target, ignoreTrailingSlashes)) {
+                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || resourceHandler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
@@ -74,9 +75,9 @@ class JettyResourceHandler : io.javalin.staticfiles.ResourceHandler {
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
 
-    private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String, ignoreTrailingSlashes: Boolean) =
-            this != null && this.isDirectory && handler.getResource(welcomeFilePath(target, ignoreTrailingSlashes))?.exists() == true
+    private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
+            this != null && this.isDirectory && handler.getResource(welcomeFilePath(target))?.exists() == true
 
-    private fun welcomeFilePath(target: String, ignoreTrailingSlashes: Boolean) = if (!target.endsWith("/") && ignoreTrailingSlashes) "$target/index.html" else "${target}index.html"
+    private fun welcomeFilePath(target: String) = if (!target.endsWith("/") && ignoreTrailingSlashes) "$target/index.html" else "${target}index.html"
 
 }

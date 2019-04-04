@@ -11,6 +11,6 @@ import io.javalin.staticfiles.Location
 
 fun main(args: Array<String>) {
     Javalin.create().apply {
-        enableStaticFiles("src/test/external/", Location.EXTERNAL)
+        servlet { it.addStaticFiles("src/test/external/", Location.EXTERNAL) }
     }.start(7070)
 }

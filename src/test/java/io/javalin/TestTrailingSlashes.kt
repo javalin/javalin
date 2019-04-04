@@ -15,26 +15,26 @@ import org.junit.Test
 
 class TestTrailingSlashes {
 
-    private val nonIgnoringJavalin = Javalin.create().dontIgnoreTrailingSlashes()
+//    private val nonIgnoringJavalin = Javalin.create().servlet { ignoreTrailingSlahes = false }
 
-    @Test
-    fun `doesn't ignore when configured (instance)`() = TestUtil.test(nonIgnoringJavalin) { app, http ->
-        app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
-        assertThat(http.getBody("/hello")).isEqualTo("Hello, slash!")
-        assertThat(http.getBody("/hello/")).isEqualTo("Not found")
-    }
-
-    @Test
-    fun `doesn't ignore when configured (ApiBuilder)`() = TestUtil.test(nonIgnoringJavalin) { app, http ->
-        app.routes {
-            path("a") {
-                get { ctx -> ctx.result("a") }
-                get("/") { ctx -> ctx.result("a-slash") }
-            }
-        }
-        assertThat(http.getBody("/a")).isEqualTo("a")
-        assertThat(http.getBody("/a/")).isEqualTo("a-slash")
-    }
+//    @Test
+//    fun `doesn't ignore when configured (instance)`() = TestUtil.test(nonIgnoringJavalin) { app, http ->
+//        app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
+//        assertThat(http.getBody("/hello")).isEqualTo("Hello, slash!")
+//        assertThat(http.getBody("/hello/")).isEqualTo("Not found")
+//    }
+//
+//    @Test
+//    fun `doesn't ignore when configured (ApiBuilder)`() = TestUtil.test(nonIgnoringJavalin) { app, http ->
+//        app.routes {
+//            path("a") {
+//                get { ctx -> ctx.result("a") }
+//                get("/") { ctx -> ctx.result("a-slash") }
+//            }
+//        }
+//        assertThat(http.getBody("/a")).isEqualTo("a")
+//        assertThat(http.getBody("/a/")).isEqualTo("a-slash")
+//    }
 
     @Test
     fun `ignores by default (instance)`() = TestUtil.test { app, http ->

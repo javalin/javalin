@@ -12,10 +12,9 @@ import io.javalin.Javalin;
 public class HelloWorldStaticFiles {
 
     public static void main(String[] args) {
-        Javalin.create()
-            .port(7070)
-            .enableStaticFiles("/public")
-            .start();
+        Javalin.create().servlet(servlet -> {
+            servlet.addStaticFiles("/public");
+        }).start(7070);
     }
 
 }

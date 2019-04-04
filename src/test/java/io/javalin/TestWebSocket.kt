@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class TestWebSocket {
 
-    private val contextPathJavalin = Javalin.create().contextPath("/websocket")
+    private val contextPathJavalin = Javalin.create().server { it.contextPath = "/websocket" }
     private val javalinWithWsLogger = Javalin.create().wsLogger { ws ->
         ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
         ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
@@ -283,7 +283,7 @@ class TestWebSocket {
 
     @Test
     fun `custom WebSocketServletFactory works`() {
-        val server = Server()
+        val newServer = Server()
         var err: Throwable? = Exception("Bang")
         val maxTextSize = 1
         val textToSend = "This text is far too long."
@@ -295,9 +295,8 @@ class TestWebSocket {
                 .ws("/ws") { ws ->
                     ws.onError { ctx -> err = ctx.error }
                 }
-                .server { server }
-                .port(0)
-                .start()
+                .server { it.server = newServer }
+                .start(0)
         val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/ws"))
 
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })

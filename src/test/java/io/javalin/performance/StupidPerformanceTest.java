@@ -43,7 +43,6 @@ public class StupidPerformanceTest {
     public static void setup() {
         // Thread.sleep(7500) // uncomment if running with VisualVM
         app = Javalin.create()
-            .port(0)
             .routes(() -> {
                 before(ctx -> ctx.header("X-BEFORE", "Before"));
                 before(ctx -> ctx.status(200));
@@ -53,7 +52,7 @@ public class StupidPerformanceTest {
                     crud("/messages/:message-id", new GenericController());
                 });
                 after(ctx -> ctx.header("X-AFTER", "After"));
-            }).start();
+            }).start(0);
         origin = "http://localhost:" + app.port();
     }
 

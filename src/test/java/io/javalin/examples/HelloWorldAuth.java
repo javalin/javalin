@@ -19,26 +19,24 @@ import static io.javalin.security.SecurityUtil.roles;
 public class HelloWorldAuth {
 
     public static void main(String[] args) {
-        Javalin.create()
-            .port(7070)
-            .start()
-            .accessManager((handler, ctx, permittedRoles) -> {
+        Javalin.create().servlet(servlet -> {
+            servlet.accessManager((handler, ctx, permittedRoles) -> {
                 String userRole = ctx.queryParam("role");
                 if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
                     handler.handle(ctx);
                 } else {
                     ctx.status(401).result("Unauthorized");
                 }
-            })
-            .routes(() -> {
-                get("/hello", ctx -> ctx.result("Hello World 1"), roles(ROLE_ONE));
-                path("/api", () -> {
-                    get("/test", ctx -> ctx.result("Hello World 2"), roles(ROLE_TWO));
-                    get("/tast", ctx -> ctx.status(200).result("Hello world 3"), roles(ROLE_THREE));
-                    get("/hest", ctx -> ctx.status(200).result("Hello World 4"), roles(ROLE_ONE, ROLE_TWO));
-                    get("/hast", ctx -> ctx.status(200).result("Hello World 5").header("test", "tast"), roles(ROLE_ONE, ROLE_THREE));
-                });
             });
+        }).routes(() -> {
+            get("/hello", ctx -> ctx.result("Hello World 1"), roles(ROLE_ONE));
+            path("/api", () -> {
+                get("/test", ctx -> ctx.result("Hello World 2"), roles(ROLE_TWO));
+                get("/tast", ctx -> ctx.status(200).result("Hello world 3"), roles(ROLE_THREE));
+                get("/hest", ctx -> ctx.status(200).result("Hello World 4"), roles(ROLE_ONE, ROLE_TWO));
+                get("/hast", ctx -> ctx.status(200).result("Hello World 5").header("test", "tast"), roles(ROLE_ONE, ROLE_THREE));
+            });
+        }).start(7070);
     }
 
     enum MyRoles implements Role {

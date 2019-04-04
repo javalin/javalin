@@ -44,7 +44,9 @@ class PathParser(
 
 }
 
-class PathMatcher(var ignoreTrailingSlashes: Boolean = true) {
+class PathMatcher {
+
+    var ignoreTrailingSlashes: Boolean = true
 
     private val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
         it to arrayListOf()

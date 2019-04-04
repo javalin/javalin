@@ -17,13 +17,27 @@ import java.io.File
 
 class TestSinglePageMode {
 
-    private val rootSinglePageApp_classPath: Javalin by lazy { Javalin.create().enableStaticFiles("/public").enableWebJars().enableSinglePageMode("/", "/public/html.html") }
-    private val dualSinglePageApp_classPath: Javalin by lazy {
-        Javalin.create().enableStaticFiles("/public")
-                .enableSinglePageMode("/admin", "/public/protected/secret.html")
-                .enableSinglePageMode("/public", "/public/html.html")
+    private val rootSinglePageApp_classPath: Javalin by lazy {
+        Javalin.create().servlet { servlet ->
+            servlet.addStaticFiles("/public")
+            servlet.addSinglePageRoot("/", "/public/html.html")
+            servlet.enableWebjars()
+        }
     }
-    private val rootSinglePageApp_external: Javalin by lazy { Javalin.create().enableSinglePageMode("/", "src/test/external/html.html", Location.EXTERNAL) }
+
+    private val dualSinglePageApp_classPath: Javalin by lazy {
+        Javalin.create().servlet { servlet ->
+            servlet.addStaticFiles("/public")
+            servlet.addSinglePageRoot("/admin", "/public/protected/secret.html")
+            servlet.addSinglePageRoot("/public", "/public/html.html")
+        }
+
+    }
+    private val rootSinglePageApp_external: Javalin by lazy {
+        Javalin.create().servlet { servlet ->
+            servlet.addSinglePageRoot("/", "src/test/external/html.html", Location.EXTERNAL)
+        }
+    }
 
     @Test
     fun `SinglePageHandler works for HTML requests (classpath)`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
@@ -67,12 +81,12 @@ class TestSinglePageMode {
 
     @Test(expected = IllegalArgumentException::class)
     fun `SinglePageHandler throws for non-existent file (classpath)`() {
-        Javalin.create().enableSinglePageMode("/", "/not-a-file.html").start().stop()
+        Javalin.create().servlet { it.addSinglePageRoot("/", "/not-a-file.html") }.start().stop()
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun `SinglePageHandler throws for non-existent file (external)`() {
-        Javalin.create().enableSinglePageMode("/", "/not-a-file.html", Location.EXTERNAL).start().stop()
+        Javalin.create().servlet { it.addSinglePageRoot("/", "/not-a-file.html", Location.EXTERNAL) }.start().stop()
     }
 
     @Test
@@ -86,7 +100,7 @@ class TestSinglePageMode {
     fun `SinglePageHandler doesn't cache on localhost`() {
         val filePath = "src/test/external/my-special-file.html"
         val file = File(filePath).apply { createNewFile() }.apply { writeText("OLD FILE") }
-        val app = Javalin.create().port(0).enableSinglePageMode("/", filePath, Location.EXTERNAL).start()
+        val app = Javalin.create().servlet { it.addSinglePageRoot("/", filePath, Location.EXTERNAL) }.start(0)
         fun getSpaPage() = Unirest.get("http://localhost:${app.port()}/").header(Header.ACCEPT, "text/html").asString().body
         assertThat(getSpaPage()).contains("OLD FILE")
         file.writeText("NEW FILE")

@@ -110,8 +110,8 @@ class TestApiBuilder {
 
     @Test
     fun `ApiBuilder works with two services at once`() {
-        val app1 = Javalin.create().port(0).start()
-        val app2 = Javalin.create().port(0).start()
+        val app1 = Javalin.create().start(0)
+        val app2 = Javalin.create().start(0)
         app1.routes { get("/hello-1") { ctx -> ctx.result("Hello-1") } }
         app1.routes { get("/hello-2") { ctx -> ctx.result("Hello-2") } }
         app2.routes { get("/hello-1") { ctx -> ctx.result("Hello-1") } }
