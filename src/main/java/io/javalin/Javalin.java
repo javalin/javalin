@@ -556,16 +556,15 @@ public class Javalin {
     // ********************************************************************************************
 
     public Javalin server(Consumer<JavalinServerConfig> server) {
-        server.accept(this.server.getConfig());
-        return this;
+        return configure((serverConfig, servletConfig) -> server.accept(this.server.getConfig()));
     }
 
     public Javalin servlet(Consumer<JavalinServletConfig> servlet) {
-        servlet.accept(this.servlet.getConfig());
-        return this;
+        return configure((serverConfig, servletConfig) -> servlet.accept(this.servlet.getConfig()));
     }
 
     public Javalin configure(BiConsumer<JavalinServerConfig, JavalinServletConfig> config) {
+        if (server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
         config.accept(this.server.getConfig(), this.servlet.getConfig());
         return this;
     }
