@@ -565,8 +565,8 @@ public class Javalin {
         return this;
     }
 
-    public Javalin configure(BiConsumer<JavalinServletConfig, JavalinServerConfig> config) {
-        config.accept(this.servlet.getConfig(), this.server.getConfig());
+    public Javalin configure(BiConsumer<JavalinServerConfig, JavalinServletConfig> config) {
+        config.accept(this.server.getConfig(), this.servlet.getConfig());
         return this;
     }
 

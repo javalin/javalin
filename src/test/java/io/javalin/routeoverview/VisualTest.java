@@ -27,11 +27,12 @@ public class VisualTest {
     };
 
     public static void main(String[] args) {
-        Javalin app = Javalin.create().configure((servlet, server) -> {
-            server.setContextPath("/context-path");
-            servlet.enableCorsForAllOrigins();
-        }).enableRouteOverview("/route-overview");
-        app.start();
+        Javalin app = Javalin.create()
+            .enableRouteOverview("/route-overview")
+            .configure((server, servlet) -> {
+                server.setContextPath("/context-path");
+                servlet.enableCorsForAllOrigins();
+            }).start();
 
         app.get("/", ctx -> ctx.redirect("/context-path/route-overview"));
         app.get("/just-some-path", new HandlerImplementation());
