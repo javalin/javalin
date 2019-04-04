@@ -123,7 +123,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            server.getConfig().getServer().stop();
+            server.getServer().stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -154,7 +154,7 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableDevLogging() {
-        servlet.getConfig().setRequestLogger(LogUtil::requestDevLogger);
+        this.servlet(servlet -> servlet.requestLogger(LogUtil::requestDevLogger));
         wsLogger(LogUtil::wsDevLogger);
         return this;
     }

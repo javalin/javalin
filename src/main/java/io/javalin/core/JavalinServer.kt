@@ -25,12 +25,12 @@ import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-data class JavalinServerConfig(
-        var server: Server? = null,
-        var sessionHandler: SessionHandler? = null,
-        var port: Int = 7000,
-        var contextPath: String = "/"
-) : SamConversionsServer {
+class JavalinServerConfig : SamConversionsServer {
+    // @formatter:off
+    @get:JvmSynthetic @set:JvmSynthetic internal var server: Server? = null
+    @get:JvmSynthetic @set:JvmSynthetic internal var sessionHandler: SessionHandler? = null
+    var port: Int = 7000
+    var contextPath: String = "/"
 
     override fun sessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>) {
         this.sessionHandler = sessionHandlerSupplier.get()
@@ -39,12 +39,13 @@ data class JavalinServerConfig(
     override fun server(serverSupplier: Supplier<Server>) {
         this.server = serverSupplier.get()
     }
-
+    // @formatter:on
 }
 
 class JavalinServer {
 
     val config = JavalinServerConfig()
+    val server = config.server
 
     private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
 

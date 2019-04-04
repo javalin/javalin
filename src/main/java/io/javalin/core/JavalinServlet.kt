@@ -22,18 +22,18 @@ import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServletConfig(
-        val servlet: JavalinServlet,
-        var dynamicGzip: Boolean = true,
-        var autogenerateEtags: Boolean = false,
-        var prefer405over404: Boolean = false,
-        var defaultContentType: String = "text/plain",
-        var requestCacheSize: Long = 4096L,
-        var requestLogger: RequestLogger? = null,
-        val singlePageHandler: SinglePageHandler = SinglePageHandler(),
-        var resourceHandler: ResourceHandler? = null,
-        var accessManager: AccessManager = AccessManager { handler, ctx, permittedRoles -> SecurityUtil.noopAccessManager(handler, ctx, permittedRoles) }
-) : SamConversionsServlet {
+
+class JavalinServletConfig(private val servlet: JavalinServlet) : SamConversionsServlet {
+    // @formatter:off
+    var dynamicGzip: Boolean = true
+    var autogenerateEtags: Boolean = false
+    var prefer405over404: Boolean = false
+    var defaultContentType: String = "text/plain"
+    var requestCacheSize: Long = 4096L
+    @get:JvmSynthetic @set:JvmSynthetic internal var requestLogger: RequestLogger? = null
+    @get:JvmSynthetic @set:JvmSynthetic internal var resourceHandler: ResourceHandler? = null
+    @get:JvmSynthetic @set:JvmSynthetic internal var accessManager: AccessManager = AccessManager { handler, ctx, permittedRoles -> SecurityUtil.noopAccessManager(handler, ctx, permittedRoles) }
+    @get:JvmSynthetic @set:JvmSynthetic internal var singlePageHandler: SinglePageHandler = SinglePageHandler()
 
     fun enableWebjars() = addStaticFiles("/webjars", Location.CLASSPATH)
     fun addStaticFiles(classpathPath: String) = addStaticFiles(classpathPath, Location.CLASSPATH)
@@ -57,7 +57,9 @@ class JavalinServletConfig(
     override fun requestLogger(requestLogger: RequestLogger) {
         this.requestLogger = requestLogger
     }
+    // @formatter:on
 }
+
 
 class JavalinServlet(private val appAttributes: Map<Class<*>, Any>) {
 
