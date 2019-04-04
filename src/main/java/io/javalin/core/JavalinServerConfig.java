@@ -12,10 +12,10 @@ import org.eclipse.jetty.server.session.SessionHandler;
 
 public class JavalinServerConfig {
 
-    Server server;
-    SessionHandler sessionHandler;
     public int port = 7000;
     public String contextPath = "/";
+    Server server;
+    SessionHandler sessionHandler;
 
     public void sessionHandler(Supplier<SessionHandler> sessionHandlerSupplier) {
         this.sessionHandler = sessionHandlerSupplier.get();

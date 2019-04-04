@@ -16,6 +16,7 @@ import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.ResourceHandler;
 import io.javalin.staticfiles.StaticFileConfig;
 
+// @formatter:off
 public class JavalinServletConfig {
 
     public boolean dynamicGzip = true;
@@ -28,35 +29,24 @@ public class JavalinServletConfig {
     AccessManager accessManager = SecurityUtil::noopAccessManager;
     SinglePageHandler singlePageHandler = new SinglePageHandler();
     private JavalinServlet servlet;
+
     public JavalinServletConfig(JavalinServlet servlet) {
         this.servlet = servlet;
     }
 
-    public void enableWebjars() {
-        addStaticFiles("/webjars", Location.CLASSPATH);
-    }
-
-    public void addStaticFiles(String classpathPath) {
-        addStaticFiles(classpathPath, Location.CLASSPATH);
-    }
-
+    public void enableWebjars() { addStaticFiles("/webjars", Location.CLASSPATH); }
+    public void addStaticFiles(String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
     public void addStaticFiles(String path, Location location) {
         if (resourceHandler == null) resourceHandler = new JettyResourceHandler();
         resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
     }
 
-    public void addSinglePageRoot(String path, String filePath) {
-        addSinglePageRoot(path, filePath, Location.CLASSPATH);
-    }
-
+    public void addSinglePageRoot(String path, String filePath) { addSinglePageRoot(path, filePath, Location.CLASSPATH); }
     public void addSinglePageRoot(String path, String filePath, Location location) {
         singlePageHandler.add(path, filePath, location);
     }
 
-    public void enableCorsForAllOrigins() {
-        enableCorsForOrigins("*");
-    }
-
+    public void enableCorsForAllOrigins() { enableCorsForOrigins("*"); }
     public void enableCorsForOrigins(String... origins) {
         CorsUtil.enableCorsForOrigin(servlet, origins);
     }
@@ -70,3 +60,4 @@ public class JavalinServletConfig {
     }
 
 }
+// @formatter:on

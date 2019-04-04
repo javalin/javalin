@@ -123,7 +123,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            server.getServer().stop();
+            server.server().stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }

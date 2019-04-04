@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse
 class JavalinServer {
 
     val config = JavalinServerConfig()
-    val server = config.server
+    fun server() = config.server
 
     private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
 
