@@ -150,6 +150,15 @@ public class Javalin {
     }
 
     /**
+     * Set the server port
+     * Mostly useful if you start the instance with port(0) (random port)
+     */
+    public Javalin port(int port) {
+        server.setServerPort(port);
+        return this;
+    }
+
+    /**
      * Configure instance to log debug information for each request.
      * The method must be called before {@link Javalin#start()}.
      */
