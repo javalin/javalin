@@ -13,20 +13,22 @@ class TestConfiguration {
 
     @Test(expected = IllegalStateException::class)
     fun `Javalin#server() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
-        app.server { it.contextPath = "/test" }
+        app.server { }
     }
 
     @Test(expected = IllegalStateException::class)
     fun `Javalin#servlet() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
-        app.servlet { it.dynamicGzip = false }
+        app.servlet { }
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `Javalin#wsServlet() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
+        app.wsServlet { }
     }
 
     @Test(expected = IllegalStateException::class)
     fun `Javalin#configure() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
-        app.configure { server, servlet ->
-            server.contextPath = "/test"
-            servlet.dynamicGzip = false
-        }
+        app.configure { _, _ -> }
     }
 
 }

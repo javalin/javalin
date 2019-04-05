@@ -15,6 +15,7 @@ import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.ResourceHandler;
 import io.javalin.staticfiles.StaticFileConfig;
+import org.jetbrains.annotations.NotNull;
 
 // @formatter:off
 public class JavalinServletConfig {
@@ -23,6 +24,7 @@ public class JavalinServletConfig {
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public String defaultContentType = "text/plain";
+    public String contextPath = "/";
     public Long requestCacheSize = 4096L;
     RequestLogger requestLogger;
     ResourceHandler resourceHandler;
@@ -35,27 +37,27 @@ public class JavalinServletConfig {
     }
 
     public void enableWebjars() { addStaticFiles("/webjars", Location.CLASSPATH); }
-    public void addStaticFiles(String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
-    public void addStaticFiles(String path, Location location) {
+    public void addStaticFiles(@NotNull String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
+    public void addStaticFiles(@NotNull String path, @NotNull Location location) {
         if (resourceHandler == null) resourceHandler = new JettyResourceHandler();
         resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
     }
 
-    public void addSinglePageRoot(String path, String filePath) { addSinglePageRoot(path, filePath, Location.CLASSPATH); }
-    public void addSinglePageRoot(String path, String filePath, Location location) {
+    public void addSinglePageRoot(@NotNull String path, @NotNull String filePath) { addSinglePageRoot(path, filePath, Location.CLASSPATH); }
+    public void addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
         singlePageHandler.add(path, filePath, location);
     }
 
     public void enableCorsForAllOrigins() { enableCorsForOrigins("*"); }
-    public void enableCorsForOrigins(String... origins) {
+    public void enableCorsForOrigins(@NotNull String... origins) {
         CorsUtil.enableCorsForOrigin(servlet, origins);
     }
 
-    public void accessManager(AccessManager accessManager) {
+    public void accessManager(@NotNull AccessManager accessManager) {
         this.accessManager = accessManager;
     }
 
-    public void requestLogger(RequestLogger requestLogger) {
+    public void requestLogger(@NotNull RequestLogger requestLogger) {
         this.requestLogger = requestLogger;
     }
 

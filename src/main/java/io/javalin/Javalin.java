@@ -26,6 +26,7 @@ import io.javalin.security.Role;
 import io.javalin.serversentevent.SseClient;
 import io.javalin.serversentevent.SseHandler;
 import io.javalin.websocket.JavalinWsServlet;
+import io.javalin.websocket.JavalinWsServletConfig;
 import io.javalin.websocket.WsHandler;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -155,7 +156,7 @@ public class Javalin {
      */
     public Javalin enableDevLogging() {
         this.servlet(servlet -> servlet.requestLogger(LogUtil::requestDevLogger));
-        wsLogger(LogUtil::wsDevLogger);
+        this.wsServlet(wsServlet -> wsServlet.wsLogger(LogUtil::wsDevLogger));
         return this;
     }
 
@@ -257,7 +258,7 @@ public class Javalin {
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         servlet.addHandler(handlerType, path, handler, roles);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(server.getConfig().contextPath, path), handler, roles));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), handler, roles));
         return this;
     }
 
@@ -529,25 +530,7 @@ public class Javalin {
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
         wsServlet.addHandler(path, ws);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(server.getConfig().contextPath, path), ws, new HashSet<>()));
-        return this;
-    }
-
-    /**
-     * Configures a web socket handler to be called after every web socket event
-     * Will override the default logger of {@link Javalin#enableDevLogging()}.
-     */
-    public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
-        wsServlet.setWsLogger(ws);
-        return this;
-    }
-
-    /**
-     * Configure the WebSocketServletFactory of the instance
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
-        wsServlet.setWsFactoryConfig(wsFactoryConfig);
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(wsServlet.getConfig().contextPath, path), ws, new HashSet<>()));
         return this;
     }
 
@@ -556,11 +539,18 @@ public class Javalin {
     // ********************************************************************************************
 
     public Javalin server(Consumer<JavalinServerConfig> server) {
-        return configure((serverConfig, servletConfig) -> server.accept(this.server.getConfig()));
+        server.accept(this.server.getConfig());
+        return this;
     }
 
     public Javalin servlet(Consumer<JavalinServletConfig> servlet) {
-        return configure((serverConfig, servletConfig) -> servlet.accept(this.servlet.getConfig()));
+        servlet.accept(this.servlet.getConfig());
+        return this;
+    }
+
+    public Javalin wsServlet(Consumer<JavalinWsServletConfig> wsServlet) {
+        wsServlet.accept(this.wsServlet.getConfig());
+        return this;
     }
 
     public Javalin configure(BiConsumer<JavalinServerConfig, JavalinServletConfig> config) {

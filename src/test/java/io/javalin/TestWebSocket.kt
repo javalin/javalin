@@ -29,10 +29,12 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class TestWebSocket {
 
-    private val contextPathJavalin = Javalin.create().server { it.contextPath = "/websocket" }
-    private val javalinWithWsLogger = Javalin.create().wsLogger { ws ->
-        ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
-        ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
+    private val contextPathJavalin = Javalin.create().wsServlet { it.contextPath = "/websocket" }
+    private val javalinWithWsLogger = Javalin.create().wsServlet { wsServlet ->
+        wsServlet.wsLogger { ws ->
+            ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
+            ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
+        }
     }
     private var log = mutableListOf<String>()
 
@@ -288,15 +290,16 @@ class TestWebSocket {
         val maxTextSize = 1
         val textToSend = "This text is far too long."
         val expectedMessage = "Text message size [${textToSend.length}] exceeds maximum size [$maxTextSize]"
-        val app = Javalin.create()
-                .wsFactoryConfig { wsFactory ->
-                    wsFactory.policy.maxTextMessageSize = maxTextSize
-                }
-                .ws("/ws") { ws ->
-                    ws.onError { ctx -> err = ctx.error }
-                }
-                .server { it.server {newServer} }
-                .start(0)
+        val app = Javalin.create().wsServlet { wsServlet ->
+            wsServlet.wsFactoryConfig { wsFactory ->
+                wsFactory.policy.maxTextMessageSize = maxTextSize
+            }
+        }
+        app.ws("/ws") { ws ->
+            ws.onError { ctx -> err = ctx.error }
+        }.server {
+            it.server { newServer }
+        }.start(0)
         val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/ws"))
 
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })

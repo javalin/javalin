@@ -40,7 +40,7 @@ class TestContextPath {
 
     @Test
     fun `router works with context-path`() {
-        val javalin = Javalin.create().server { it.contextPath = "/context-path" }
+        val javalin = Javalin.create().servlet { it.contextPath = "/context-path" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { ctx -> ctx.result("Hello World") }
             assertThat(http.getBody("/hello")).isEqualTo("Not found. Request is below context-path (context-path: '/context-path')")
@@ -50,7 +50,7 @@ class TestContextPath {
 
     @Test
     fun `router works with multi-level context-path`() {
-        val javalin = Javalin.create().server { it.contextPath = "/context-path/path-context" }
+        val javalin = Javalin.create().servlet { it.contextPath = "/context-path/path-context" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { ctx -> ctx.result("Hello World") }
             assertThat(http.get("/context-path/").status).isEqualTo(404)
@@ -60,9 +60,9 @@ class TestContextPath {
 
     @Test
     fun `static-files work with context-path`() {
-        val javalin = Javalin.create().configure { server, servlet ->
+        val javalin = Javalin.create().servlet { servlet ->
             servlet.addStaticFiles("/public")
-            server.contextPath = "/context-path"
+            servlet.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->
             assertThat(http.get("/script.js").status).isEqualTo(404)
@@ -72,9 +72,9 @@ class TestContextPath {
 
     @Test
     fun `welcome-files work with context-path`() {
-        val javalin = Javalin.create().configure { server, servlet ->
+        val javalin = Javalin.create().servlet { servlet ->
             servlet.addStaticFiles("/public")
-            server.contextPath = "/context-path"
+            servlet.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->
             assertThat(http.getBody("/context-path/subdir/")).isEqualTo("<h1>Welcome file</h1>")
