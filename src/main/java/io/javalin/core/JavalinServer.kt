@@ -7,8 +7,8 @@
 package io.javalin.core
 
 import io.javalin.Javalin
-import io.javalin.core.util.Header
 import io.javalin.websocket.JavalinWsServlet
+import io.javalin.websocket.isWebSocket
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerList
@@ -18,7 +18,6 @@ import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import java.io.ByteArrayInputStream
 import java.net.BindException
 import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
@@ -65,18 +64,8 @@ class JavalinServer {
             addServlet(ServletHolder(javalinWsServlet), "/*")
         }
 
-        val notFoundHandler = object : SessionHandler() {
-            override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                val msg = "Not found. Request is below context-path (context-path: '${javalinServlet.config.contextPath}')"
-                response.status = 404
-                ByteArrayInputStream(msg.toByteArray()).copyTo(response.outputStream)
-                response.outputStream.close()
-                Javalin.log.warn("Received a request below context-path (context-path: '${javalinServlet.config.contextPath}'). Returned 404.")
-            }
-        }
-
         config.server.apply {
-            handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler, notFoundHandler))
+            handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = config.port
             })
@@ -124,7 +113,6 @@ class JavalinServer {
         else -> throw IllegalStateException("Cannot insert Javalin handlers into a Handler that is not a HandlerCollection or HandlerWrapper")
     }
 
-    private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
 }
 
 object JettyUtil {

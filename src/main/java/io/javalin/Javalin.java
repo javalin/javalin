@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -538,18 +537,21 @@ public class Javalin {
     // Servlet and Server configuration
     // ********************************************************************************************
 
-    public Javalin server(Consumer<JavalinServerConfig> server) {
-        server.accept(this.server.getConfig());
+    public Javalin server(Consumer<JavalinServerConfig> serverConfig) {
+        if (server.getStarted()) throw new IllegalStateException("Cannot call 'server()' after server start");
+        serverConfig.accept(this.server.getConfig());
         return this;
     }
 
-    public Javalin servlet(Consumer<JavalinServletConfig> servlet) {
-        servlet.accept(this.servlet.getConfig());
+    public Javalin servlet(Consumer<JavalinServletConfig> servletConfig) {
+        if (server.getStarted()) throw new IllegalStateException("Cannot call 'servlet()' after server start");
+        servletConfig.accept(this.servlet.getConfig());
         return this;
     }
 
-    public Javalin wsServlet(Consumer<JavalinWsServletConfig> wsServlet) {
-        wsServlet.accept(this.wsServlet.getConfig());
+    public Javalin wsServlet(Consumer<JavalinWsServletConfig> wsServletConfig) {
+        if (server.getStarted()) throw new IllegalStateException("Cannot call 'wsServlet()' after server start");
+        wsServletConfig.accept(this.wsServlet.getConfig());
         return this;
     }
 

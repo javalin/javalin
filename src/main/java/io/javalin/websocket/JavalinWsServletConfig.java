@@ -12,14 +12,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class JavalinWsServletConfig {
 
+    public String contextPath = "/";
+    Consumer<WebSocketServletFactory> wsFactoryConfig;
     private JavalinWsServlet wsServlet;
-
     public JavalinWsServletConfig(JavalinWsServlet wsServlet) {
         this.wsServlet = wsServlet;
     }
-
-    public String contextPath = "/";
-    Consumer<WebSocketServletFactory> wsFactoryConfig;
 
     public void wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
         this.wsFactoryConfig = wsFactoryConfig;
