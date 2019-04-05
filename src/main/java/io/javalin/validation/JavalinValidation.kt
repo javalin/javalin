@@ -9,7 +9,7 @@ package io.javalin.validation
 class ConversionException(className: String) : IllegalArgumentException("Can't convert to $className. Register a converter using JavalinValidation#register.")
 
 object JavalinValidation {
-    val converters = mutableMapOf<Class<*>, (String) -> Any>(
+    val converters = mutableMapOf<Class<*>, (String) -> Any?>(
             java.lang.Boolean::class.java to { s -> s.toBoolean() },
             java.lang.Double::class.java to { s -> s.toDouble() },
             java.lang.Float::class.java to { s -> s.toFloat() },
@@ -25,5 +25,5 @@ object JavalinValidation {
     )
 
     @JvmStatic
-    fun register(clazz: Class<*>, converter: (String) -> Any) = converters.put(clazz, converter)
+    fun register(clazz: Class<*>, converter: (String) -> Any?) = converters.put(clazz, converter)
 }
