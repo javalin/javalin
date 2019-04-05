@@ -94,6 +94,13 @@ class TestValidation {
     }
 
     @Test
+    fun `test custom converter returns null`() = TestUtil.test { app, http ->
+        JavalinValidation.register(Instant::class.java) { null }
+        app.get("/instant") { it.queryParam<Instant>("from").get() }
+        assertThat(http.get("/instant?from=1262347200000").status).isEqualTo(400)
+    }
+
+    @Test
     fun `test default converters`() {
         assertThat(Validator.create(Boolean::class.java, "true").get() is Boolean).isTrue()
         assertThat(Validator.create(Double::class.java, "1.2").get() is Double).isTrue()

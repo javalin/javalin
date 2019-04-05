@@ -28,7 +28,8 @@ open class Validator<T>(val value: T, val messagePrefix: String = "Value") {
         fun <T> create(clazz: Class<T>, value: String?, messagePrefix: String = "Value"): Validator<T> {
             if (value == null || value.isEmpty()) throw BadRequestResponse("$messagePrefix cannot be null or empty")
             return Validator(try {
-                JavalinValidation.converters[clazz]?.invoke(value) ?: throw ConversionException(clazz.simpleName)
+                val validator = JavalinValidation.converters[clazz] ?: throw ConversionException(clazz.simpleName)
+                validator.invoke(value) ?: throw NullPointerException()
             } catch (e: Exception) {
                 if (e is ConversionException) throw e
                 throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
