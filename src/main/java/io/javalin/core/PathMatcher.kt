@@ -46,8 +46,6 @@ class PathParser(
 
 class PathMatcher {
 
-    var ignoreTrailingSlashes: Boolean = true
-
     private val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
         it to arrayListOf()
     }
@@ -65,7 +63,6 @@ class PathMatcher {
     private fun match(entry: HandlerEntry, requestPath: String): Boolean = when {
         entry.path == "*" -> true
         entry.path == requestPath -> true
-        !this.ignoreTrailingSlashes && slashMismatch(entry.path, requestPath) -> false
         else -> entry.matches(requestPath)
     }
 

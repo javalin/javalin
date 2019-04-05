@@ -81,7 +81,7 @@ and provides you with a http-client you can use to perform requests.
 You can also give `test` a Javalin instance:
 
 ```
-TestUtil.test(Javalin.create().dontIgnoreTrailingSlashes()) { app, http ->
+TestUtil.test(Javalin.create().configure { ... }) { app, http ->
 ```
 
 `test` will assign the instance a random port and stop it after the test is done.
