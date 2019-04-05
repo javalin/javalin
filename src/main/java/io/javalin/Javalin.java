@@ -15,7 +15,6 @@ import io.javalin.core.HandlerMetaInfo;
 import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinEvent;
 import io.javalin.core.JavalinServer;
-import io.javalin.core.JavalinServerConfig;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.JavalinServletConfig;
 import io.javalin.core.util.LogUtil;
@@ -32,8 +31,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+import org.eclipse.jetty.server.Server;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +79,7 @@ public class Javalin {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        server(server -> server.port = port);
+        server.setServerPort(port);
         return this.start();
     }
 
@@ -105,7 +105,7 @@ public class Javalin {
             log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getConfig().port + " and try again.", e);
+                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getServerPort() + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
                 throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
             }
@@ -123,7 +123,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            server.server().stop();
+            server.getServer().stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -146,7 +146,7 @@ public class Javalin {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return server.getConfig().port;
+        return server.getServerPort();
     }
 
     /**
@@ -537,9 +537,9 @@ public class Javalin {
     // Servlet and Server configuration
     // ********************************************************************************************
 
-    public Javalin server(Consumer<JavalinServerConfig> serverConfig) {
-        if (server.getStarted()) throw new IllegalStateException("Cannot call 'server()' after server start");
-        serverConfig.accept(this.server.getConfig());
+    public Javalin server(Supplier<Server> server) {
+        if (this.server.getStarted()) throw new IllegalStateException("Cannot call 'server()' after server start");
+        this.server.setServer(server.get());
         return this;
     }
 
@@ -552,12 +552,6 @@ public class Javalin {
     public Javalin wsServlet(Consumer<JavalinWsServletConfig> wsServletConfig) {
         if (server.getStarted()) throw new IllegalStateException("Cannot call 'wsServlet()' after server start");
         wsServletConfig.accept(this.wsServlet.getConfig());
-        return this;
-    }
-
-    public Javalin configure(BiConsumer<JavalinServerConfig, JavalinServletConfig> config) {
-        if (server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
-        config.accept(this.server.getConfig(), this.servlet.getConfig());
         return this;
     }
 

@@ -33,7 +33,7 @@ public class StupidAsyncTest {
         QueuedThreadPool threadPool = new QueuedThreadPool(10, 2, 60_000);
 
         Javalin app = Javalin.create()
-            .server(serverConfig -> serverConfig.server(() -> new Server(threadPool)))
+            .server(() -> new Server(threadPool))
             .start(0);
 
         HttpUtil http = new HttpUtil(app);

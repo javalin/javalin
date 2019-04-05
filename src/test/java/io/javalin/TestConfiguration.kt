@@ -6,14 +6,17 @@
 
 package io.javalin
 
+import io.javalin.staticfiles.Location
 import io.javalin.util.TestUtil
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.session.SessionHandler
 import org.junit.Test
 
 class TestConfiguration {
 
     @Test(expected = IllegalStateException::class)
     fun `Javalin#server() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
-        app.server { }
+        app.server { Server() }
     }
 
     @Test(expected = IllegalStateException::class)
@@ -26,9 +29,35 @@ class TestConfiguration {
         app.wsServlet { }
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun `Javalin#configure() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
-        app.configure { _, _ -> }
+    @Test
+    fun `test all config options`() {
+        val app = Javalin.create()
+        app.server {
+            Server()
+        }
+        app.servlet {
+            it.addSinglePageRoot("/", "/public/html.html")
+            it.addSinglePageRoot("/", "src/test/resources/public/html.html", Location.EXTERNAL)
+            it.addStaticFiles("/public")
+            it.addStaticFiles("src/test/resources/public", Location.EXTERNAL)
+            it.contextPath = "/"
+            it.defaultContentType = "text/plain"
+            it.dynamicGzip = true
+            it.enableWebjars()
+            it.enableCorsForOrigins("*", "my-origin")
+            it.prefer405over404 = false
+            it.autogenerateEtags = true
+            it.requestCacheSize = 8192L
+            it.requestLogger { ctx, executionTimeMs ->  }
+            it.accessManager { handler, ctx, permittedRoles ->  }
+            it.sessionHandler { SessionHandler() }
+        }
+        app.wsServlet {
+            it.contextPath = "/"
+            it.wsFactoryConfig {  }
+            it.wsLogger {  }
+        }
     }
+
 
 }

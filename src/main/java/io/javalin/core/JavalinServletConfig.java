@@ -15,6 +15,8 @@ import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.ResourceHandler;
 import io.javalin.staticfiles.StaticFileConfig;
+import java.util.function.Supplier;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.jetbrains.annotations.NotNull;
 
 // @formatter:off
@@ -30,6 +32,8 @@ public class JavalinServletConfig {
     ResourceHandler resourceHandler;
     AccessManager accessManager = SecurityUtil::noopAccessManager;
     SinglePageHandler singlePageHandler = new SinglePageHandler();
+    SessionHandler sessionHandler;
+
     private JavalinServlet servlet;
 
     public JavalinServletConfig(JavalinServlet servlet) {
@@ -59,6 +63,10 @@ public class JavalinServletConfig {
 
     public void requestLogger(@NotNull RequestLogger requestLogger) {
         this.requestLogger = requestLogger;
+    }
+
+    public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
+        this.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
     }
 
 }

@@ -15,6 +15,7 @@ public class JavalinWsServletConfig {
     public String contextPath = "/";
     Consumer<WebSocketServletFactory> wsFactoryConfig;
     private JavalinWsServlet wsServlet;
+
     public JavalinWsServletConfig(JavalinWsServlet wsServlet) {
         this.wsServlet = wsServlet;
     }

@@ -298,7 +298,7 @@ class TestWebSocket {
         app.ws("/ws") { ws ->
             ws.onError { ctx -> err = ctx.error }
         }.server {
-            it.server { newServer }
+            newServer
         }.start(0)
         val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/ws"))
 
