@@ -6,7 +6,7 @@
 
 package io.javalin.validation
 
-class ConversionException(className: String) : IllegalArgumentException("Can't convert to $className. Register a converter using JavalinValidation#register.")
+class MissingConverterException(className: String) : IllegalArgumentException("Can't convert to $className. Register a converter using JavalinValidation#register.")
 
 object JavalinValidation {
     val converters = mutableMapOf<Class<*>, (String) -> Any?>(
