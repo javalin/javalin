@@ -39,7 +39,7 @@ class TestConfiguration {
             it.defaultContentType = "text/plain"
             it.dynamicGzip = true
             it.enableWebjars()
-            it.enableCorsForOrigins("*", "my-origin")
+            it.enableCorsForOrigin("*", "my-origin")
             it.prefer405over404 = false
             it.autogenerateEtags = true
             it.requestCacheSize = 8192L

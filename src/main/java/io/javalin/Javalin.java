@@ -57,7 +57,7 @@ public class Javalin {
 
     protected Javalin() {
         Util.logJavalinBanner(showJavalinBanner);
-        Util.logWarningIfNotStartedAfterOneSecond(this.server);
+        Util.logWarningIfNotStartedAfterOneSecond(server);
     }
 
     /**
@@ -82,7 +82,7 @@ public class Javalin {
      */
     public Javalin start(int port) {
         server.setServerPort(port);
-        return this.start();
+        return start();
     }
 
     /**
@@ -185,10 +185,10 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
-        if (this.servlet.getMatcher().hasEntries()) {
+        if (servlet.getMatcher().hasEntries()) {
             throw new IllegalStateException("The route-overview listens for 'onHandlerAdded' events. It must be enabled before adding handlers.");
         }
-        return this.get(path, new RouteOverviewRenderer(this), permittedRoles);
+        return get(path, new RouteOverviewRenderer(this), permittedRoles);
     }
 
     /**
@@ -545,7 +545,7 @@ public class Javalin {
     }
 
     // ********************************************************************************************
-    // Servlet and Server configuration
+    // Configuration
     // ********************************************************************************************
 
     public Javalin server(Supplier<Server> server) {
@@ -555,7 +555,7 @@ public class Javalin {
     }
 
     public Javalin configure(Consumer<JavalinConfig> config) {
-        if (server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
+        if (this.server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
         config.accept(this.config);
         if (!this.config.corsOrigins.isEmpty()) {
             CorsUtil.enableCorsForOrigin(this.servlet, this.config.corsOrigins);

@@ -23,12 +23,12 @@ class TestCors {
 
     @Test(expected = IllegalArgumentException::class)
     fun `enableCorsForOrigin() throws for empty varargs`() {
-        Javalin.create().configure { it.enableCorsForOrigins() }
+        Javalin.create().configure { it.enableCorsForOrigin() }
     }
 
     @Test
     fun `enableCorsForOrigin() enables cors for specific origins`() {
-        val javalin = Javalin.create().configure { it.enableCorsForOrigins("origin-1", "referer-1") }
+        val javalin = Javalin.create().configure { it.enableCorsForOrigin("origin-1", "referer-1") }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello") }
             assertThat(Unirest.get(http.origin).asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isNull()

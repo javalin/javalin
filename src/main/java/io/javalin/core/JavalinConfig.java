@@ -47,19 +47,19 @@ public class JavalinConfig {
     public void enableWebjars() { addStaticFiles("/webjars", Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String path, @NotNull Location location) {
-        if (resourceHandler == null) resourceHandler = new JettyResourceHandler();
-        resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
+        if (resourceHandler == null) this.resourceHandler = new JettyResourceHandler();
+        this.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
     }
 
     public void addSinglePageRoot(@NotNull String path, @NotNull String filePath) { addSinglePageRoot(path, filePath, Location.CLASSPATH); }
     public void addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
-        singlePageHandler.add(path, filePath, location);
+        this.singlePageHandler.add(path, filePath, location);
     }
 
-    public void enableCorsForAllOrigins() { enableCorsForOrigins("*"); }
-    public void enableCorsForOrigins(@NotNull String... origins) {
+    public void enableCorsForAllOrigins() { enableCorsForOrigin("*"); }
+    public void enableCorsForOrigin(@NotNull String... origins) {
         if (origins.length == 0) throw new IllegalArgumentException("Origins cannot be empty.");
-        corsOrigins.addAll(Arrays.asList(origins));
+        this.corsOrigins = Arrays.asList(origins);
     }
 
     public void accessManager(@NotNull AccessManager accessManager) {
@@ -89,7 +89,7 @@ public class JavalinConfig {
     public void wsLogger(@NotNull Consumer<WsHandler> ws) {
         WsHandler logger = new WsHandler();
         ws.accept(logger);
-        wsLogger = logger;
+        this.wsLogger = logger;
     }
 
 }
