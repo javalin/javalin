@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
@@ -90,6 +91,16 @@ public class JavalinConfig {
         WsHandler logger = new WsHandler();
         ws.accept(logger);
         this.wsLogger = logger;
+    }
+
+    // ********************************************************************************************
+    // Server
+    // ********************************************************************************************
+
+    Server server;
+
+    public void server(Supplier<Server> server) {
+        this.server = server.get();
     }
 
 }

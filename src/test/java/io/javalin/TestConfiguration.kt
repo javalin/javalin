@@ -15,11 +15,6 @@ import org.junit.Test
 class TestConfiguration {
 
     @Test(expected = IllegalStateException::class)
-    fun `Javalin#server() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
-        app.server { Server() }
-    }
-
-    @Test(expected = IllegalStateException::class)
     fun `Javalin#servlet() throws if used after Javalin#configure()`() = TestUtil.test { app, http ->
         app.configure { }
     }
@@ -27,9 +22,6 @@ class TestConfiguration {
     @Test
     fun `test all config options`() {
         val app = Javalin.create()
-        app.server {
-            Server()
-        }
         app.configure {
             it.addSinglePageRoot("/", "/public/html.html")
             it.addSinglePageRoot("/", "src/test/resources/public/html.html", Location.EXTERNAL)
@@ -49,6 +41,9 @@ class TestConfiguration {
             it.wsContextPath = "/"
             it.wsFactoryConfig {  }
             it.wsLogger {  }
+            it.server {
+                Server()
+            }
         }
     }
 

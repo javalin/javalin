@@ -20,8 +20,10 @@ fun main(args: Array<String>) {
     val statsClients = ConcurrentLinkedQueue<SseClient>()
 
     Javalin.create().apply {
-        configure { it.addStaticFiles("/public") }
-        server { Server(tp) }
+        configure {
+            it.addStaticFiles("/public")
+            it.server { Server(tp) }
+        }
         get("/") { it.redirect("/sse/sse-example.html") }
         sse("/sse-counter") { client ->
             counterClients.add(client)

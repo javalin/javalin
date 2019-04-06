@@ -32,8 +32,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
-import org.eclipse.jetty.server.Server;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +46,7 @@ public class Javalin {
 
     protected JavalinConfig config = new JavalinConfig();
 
-    protected JavalinServer server = new JavalinServer();
+    protected JavalinServer server = new JavalinServer(config);
     protected JavalinServlet servlet = new JavalinServlet(appAttributes, config);
     protected JavalinWsServlet wsServlet = new JavalinWsServlet(config);
 
@@ -547,12 +545,6 @@ public class Javalin {
     // ********************************************************************************************
     // Configuration
     // ********************************************************************************************
-
-    public Javalin server(Supplier<Server> server) {
-        if (this.server.getStarted()) throw new IllegalStateException("Cannot call 'server()' after server start");
-        this.server.setServer(server.get());
-        return this;
-    }
 
     public Javalin configure(Consumer<JavalinConfig> config) {
         if (this.server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");

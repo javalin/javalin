@@ -37,7 +37,7 @@ class TestCustomJetty {
     fun `embedded server can have custom jetty Handler`() {
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
-        val javalin = Javalin.create().server { newServer }
+        val javalin = Javalin.create().configure { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 5
@@ -57,7 +57,7 @@ class TestCustomJetty {
         val requestLogHandler = RequestLogHandler().apply { requestLog = RequestLog { _, _ -> logCount.incrementAndGet() } }
         val handlerChain = StatisticsHandler().apply { handler = requestLogHandler }
         val newServer = Server().apply { handler = handlerChain }
-        val javalin = Javalin.create().server { newServer }
+        val javalin = Javalin.create().configure { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 10
@@ -77,7 +77,7 @@ class TestCustomJetty {
         val handlerCollection = HandlerCollection()
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
-        val javalin = Javalin.create().server { newServer }
+        val javalin = Javalin.create().configure { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 10
@@ -104,10 +104,9 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create()
-                .server {
-                    newServer
-                }.configure {
+                .configure {
                     it.sessionHandler { fileSessionHandler }
+                    it.server { newServer }
                 }.start(0)
         val httpHandler = (((newServer.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
@@ -153,7 +152,7 @@ class TestCustomJetty {
         }
         newServer.handler = handler
 
-        val javalin = Javalin.create().server { newServer }
+        val javalin = Javalin.create().configure { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/bar") { ctx -> ctx.result("Hello") }
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
@@ -173,7 +172,7 @@ class TestCustomJetty {
                 })
             }
         }
-        val javalin = Javalin.create().server { newServer }
+        val javalin = Javalin.create().configure { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello Javalin World!") }
             assertThat(http.getBody("/")).contains("Hello Javalin World!")
