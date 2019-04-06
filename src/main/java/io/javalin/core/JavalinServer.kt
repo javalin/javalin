@@ -16,6 +16,7 @@ import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletContextHandler.*
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.net.BindException
@@ -58,7 +59,7 @@ class JavalinServer {
             }
         }.apply { this.sessionHandler = javalinServlet.config.sessionHandler }
 
-        val webSocketHandler = ServletContextHandler(nullParent, javalinWsServlet.config.contextPath).apply {
+        val webSocketHandler = ServletContextHandler(nullParent, javalinWsServlet.config.contextPath, SESSIONS).apply {
             addServlet(ServletHolder(javalinWsServlet), "/*")
         }
 
