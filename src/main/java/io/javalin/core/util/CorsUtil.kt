@@ -14,15 +14,14 @@ import io.javalin.security.CoreRoles
 
 object CorsUtil {
     @JvmStatic
-    fun enableCorsForOrigin(servlet: JavalinServlet, origins: Array<String>) {
-        if (origins.isEmpty()) throw IllegalArgumentException("Origins cannot be empty.")
+    fun enableCorsForOrigin(servlet: JavalinServlet, origins: List<String>) {
         servlet.addHandler(HandlerType.BEFORE, "*", CorsBeforeHandler(origins), setOf())
         servlet.addHandler(HandlerType.OPTIONS, "*", CorsOptionsHandler(), setOf(CoreRoles.NO_WRAP))
     }
 }
 
 
-class CorsBeforeHandler(private val origins: Array<String>) : Handler {
+class CorsBeforeHandler(private val origins: List<String>) : Handler {
     override fun handle(ctx: Context) {
         (ctx.header(Header.ORIGIN) ?: ctx.header(Header.REFERER))?.let { header ->
             origins.map { it.removeSuffix("/") }.firstOrNull { it == "*" || header.startsWith(it) }?.let {

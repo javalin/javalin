@@ -16,15 +16,15 @@ import org.junit.Test
 
 class TestStaticFiles {
 
-    private val defaultStaticResourceApp = Javalin.create().servlet { it.addStaticFiles("/public") } // classpath
-    private val externalStaticResourceApp = Javalin.create().servlet { it.addStaticFiles("src/test/external/", Location.EXTERNAL) }
-    private val multiLocationStaticResourceApp = Javalin.create().servlet { servlet ->
+    private val defaultStaticResourceApp = Javalin.create().configure { it.addStaticFiles("/public") } // classpath
+    private val externalStaticResourceApp = Javalin.create().configure { it.addStaticFiles("src/test/external/", Location.EXTERNAL) }
+    private val multiLocationStaticResourceApp = Javalin.create().configure { servlet ->
         servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
         servlet.addStaticFiles("/public/immutable")
         servlet.addStaticFiles("/public/protected")
         servlet.addStaticFiles("/public/subdir")
     }
-    private val devLoggingApp = Javalin.create().servlet { it.addStaticFiles("/public") }.enableDevLogging()
+    private val devLoggingApp = Javalin.create().configure { it.addStaticFiles("/public") }.enableDevLogging()
 
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
@@ -103,7 +103,7 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `WebJars available if enabled`() = TestUtil.test(Javalin.create().servlet { it.enableWebjars() }) { _, http ->
+    fun `WebJars available if enabled`() = TestUtil.test(Javalin.create().configure { it.enableWebjars() }) { _, http ->
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status).isEqualTo(200)
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE)).contains("text/css")
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=31622400")

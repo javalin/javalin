@@ -7,7 +7,6 @@
 package io.javalin.core;
 
 import io.javalin.RequestLogger;
-import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.SinglePageHandler;
 import io.javalin.security.AccessManager;
 import io.javalin.security.SecurityUtil;
@@ -15,12 +14,22 @@ import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
 import io.javalin.staticfiles.ResourceHandler;
 import io.javalin.staticfiles.StaticFileConfig;
+import io.javalin.websocket.WsHandler;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 
 // @formatter:off
-public class JavalinServletConfig {
+public class JavalinConfig {
+
+    // ********************************************************************************************
+    // HTTP Servlet
+    // ********************************************************************************************
 
     public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
@@ -28,17 +37,12 @@ public class JavalinServletConfig {
     public String defaultContentType = "text/plain";
     public String contextPath = "/";
     public Long requestCacheSize = 4096L;
+    public List<String> corsOrigins = new ArrayList<>();
     RequestLogger requestLogger;
     ResourceHandler resourceHandler;
     AccessManager accessManager = SecurityUtil::noopAccessManager;
     SinglePageHandler singlePageHandler = new SinglePageHandler();
     SessionHandler sessionHandler;
-
-    private JavalinServlet servlet;
-
-    public JavalinServletConfig(JavalinServlet servlet) {
-        this.servlet = servlet;
-    }
 
     public void enableWebjars() { addStaticFiles("/webjars", Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
@@ -54,7 +58,8 @@ public class JavalinServletConfig {
 
     public void enableCorsForAllOrigins() { enableCorsForOrigins("*"); }
     public void enableCorsForOrigins(@NotNull String... origins) {
-        CorsUtil.enableCorsForOrigin(servlet, origins);
+        if (origins.length == 0) throw new IllegalArgumentException("Origins cannot be empty.");
+        corsOrigins.addAll(Arrays.asList(origins));
     }
 
     public void accessManager(@NotNull AccessManager accessManager) {
@@ -67,6 +72,24 @@ public class JavalinServletConfig {
 
     public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
         this.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
+    }
+
+    // ********************************************************************************************
+    // WebSocket Servlet
+    // ********************************************************************************************
+
+    Consumer<WebSocketServletFactory> wsFactoryConfig;
+    public String wsContextPath ="/";
+    public WsHandler wsLogger;
+
+    public void wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
+        this.wsFactoryConfig = wsFactoryConfig;
+    }
+
+    public void wsLogger(@NotNull Consumer<WsHandler> ws) {
+        WsHandler logger = new WsHandler();
+        ws.accept(logger);
+        wsLogger = logger;
     }
 
 }

@@ -14,7 +14,7 @@ import org.junit.Test
 
 class TestStaticDirectorySlash {
 
-    private val normalJavalin = Javalin.create().servlet { it.addStaticFiles("public") }
+    private val normalJavalin = Javalin.create().configure { it.addStaticFiles("public") }
 
     @Test
     fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { _, http ->

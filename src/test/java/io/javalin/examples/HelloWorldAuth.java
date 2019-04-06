@@ -19,8 +19,8 @@ import static io.javalin.security.SecurityUtil.roles;
 public class HelloWorldAuth {
 
     public static void main(String[] args) {
-        Javalin.create().servlet(servlet -> {
-            servlet.accessManager((handler, ctx, permittedRoles) -> {
+        Javalin.create().configure(config -> {
+            config.accessManager((handler, ctx, permittedRoles) -> {
                 String userRole = ctx.queryParam("role");
                 if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
                     handler.handle(ctx);

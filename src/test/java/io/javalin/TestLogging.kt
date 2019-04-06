@@ -23,8 +23,8 @@ class TestLogging {
     fun `debug logging works`() = runTest(Javalin.create().enableDevLogging())
 
     @Test
-    fun `custom logging works`() = runTest(Javalin.create().servlet { servlet ->
-        servlet.requestLogger { _, executionTimeMs ->
+    fun `custom logging works`() = runTest(Javalin.create().configure {
+        it.requestLogger { _, executionTimeMs ->
             println("That took $executionTimeMs milliseconds")
         }
     })
@@ -44,8 +44,8 @@ class TestLogging {
     }
 
     private val loggerLog = mutableListOf<String?>()
-    private val bodyLoggingJavalin = Javalin.create().servlet { servlet ->
-        servlet.requestLogger { ctx, ms ->
+    private val bodyLoggingJavalin = Javalin.create().configure {
+        it.requestLogger { ctx, ms ->
             loggerLog.add(ctx.resultString())
             loggerLog.add(ctx.resultString())
         }

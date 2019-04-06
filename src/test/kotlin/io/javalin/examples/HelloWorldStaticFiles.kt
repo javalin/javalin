@@ -10,7 +10,7 @@ import io.javalin.Javalin
 
 fun main(args: Array<String>) {
     Javalin.create().apply {
-        servlet { it.addStaticFiles("/public")  }
+        configure { it.addStaticFiles("/public")  }
     }.start(7070)
 }
 

@@ -29,9 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class TestWebSocket {
 
-    private val contextPathJavalin = Javalin.create().wsServlet { it.contextPath = "/websocket" }
-    private val javalinWithWsLogger = Javalin.create().wsServlet { wsServlet ->
-        wsServlet.wsLogger { ws ->
+    private val contextPathJavalin = Javalin.create().configure { it.wsContextPath = "/websocket" }
+    private val javalinWithWsLogger = Javalin.create().configure {
+        it.wsLogger { ws ->
             ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
             ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
         }
@@ -290,8 +290,8 @@ class TestWebSocket {
         val maxTextSize = 1
         val textToSend = "This text is far too long."
         val expectedMessage = "Text message size [${textToSend.length}] exceeds maximum size [$maxTextSize]"
-        val app = Javalin.create().wsServlet { wsServlet ->
-            wsServlet.wsFactoryConfig { wsFactory ->
+        val app = Javalin.create().configure {
+            it.wsFactoryConfig { wsFactory ->
                 wsFactory.policy.maxTextMessageSize = maxTextSize
             }
         }

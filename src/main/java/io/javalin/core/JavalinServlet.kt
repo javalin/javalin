@@ -18,9 +18,7 @@ import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServlet(private val appAttributes: Map<Class<*>, Any>) {
-
-    val config = JavalinServletConfig(this)
+class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: JavalinConfig) {
 
     val matcher = PathMatcher()
     val exceptionMapper = ExceptionMapper()

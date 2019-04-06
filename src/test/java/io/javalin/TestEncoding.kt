@@ -64,13 +64,13 @@ class TestEncoding {
     }
 
     @Test
-    fun `setting a default content-type works`() = TestUtil.test(Javalin.create().servlet { it.defaultContentType = "application/json" }) { app, http ->
+    fun `setting a default content-type works`() = TestUtil.test(Javalin.create().configure { it.defaultContentType = "application/json" }) { app, http ->
         app.get("/default") { ctx -> ctx.result("not json") }
         assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains("application/json")
     }
 
     @Test
-    fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create().servlet { it.defaultContentType = "application/json" }) { app, http ->
+    fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create().configure { it.defaultContentType = "application/json" }) { app, http ->
         app.get("/override") { ctx ->
             ctx.res.characterEncoding = "utf-8"
             ctx.res.contentType = "text/html"

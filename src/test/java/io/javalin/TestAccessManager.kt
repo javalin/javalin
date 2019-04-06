@@ -22,8 +22,8 @@ class TestAccessManager {
 
     enum class MyRoles : Role { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
-    private val managedApp = Javalin.create().servlet { servlet ->
-        servlet.accessManager { handler, ctx, permittedRoles ->
+    private val managedApp = Javalin.create().configure { config ->
+        config.accessManager { handler, ctx, permittedRoles ->
             val userRole = ctx.queryParam("role")
             if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
                 handler.handle(ctx)

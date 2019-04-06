@@ -23,12 +23,12 @@ class TestCors {
 
     @Test(expected = IllegalArgumentException::class)
     fun `enableCorsForOrigin() throws for empty varargs`() {
-        Javalin.create().servlet { it.enableCorsForOrigins() }
+        Javalin.create().configure { it.enableCorsForOrigins() }
     }
 
     @Test
     fun `enableCorsForOrigin() enables cors for specific origins`() {
-        val javalin = Javalin.create().servlet { it.enableCorsForOrigins("origin-1", "referer-1") }
+        val javalin = Javalin.create().configure { it.enableCorsForOrigins("origin-1", "referer-1") }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello") }
             assertThat(Unirest.get(http.origin).asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isNull()
@@ -39,7 +39,7 @@ class TestCors {
 
     @Test
     fun `enableCorsForAllOrigins() enables cors for all origins`() {
-        val javalin = Javalin.create().servlet { it.enableCorsForAllOrigins() }
+        val javalin = Javalin.create().configure { it.enableCorsForAllOrigins() }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello") }
             assertThat(Unirest.get(http.origin).header("Origin", "some-origin").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("some-origin")
@@ -49,9 +49,9 @@ class TestCors {
         }
     }
 
-    private val accessManagedCorsApp = Javalin.create().servlet { servlet ->
-        servlet.enableCorsForAllOrigins()
-        servlet.accessManager { _, ctx, _ ->
+    private val accessManagedCorsApp = Javalin.create().configure {
+        it.enableCorsForAllOrigins()
+        it.accessManager { _, ctx, _ ->
             ctx.status(401).result("Unauthorized")
         }
     }

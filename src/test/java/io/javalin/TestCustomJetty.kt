@@ -106,7 +106,7 @@ class TestCustomJetty {
         val javalin = Javalin.create()
                 .server {
                     newServer
-                }.servlet {
+                }.configure {
                     it.sessionHandler { fileSessionHandler }
                 }.start(0)
         val httpHandler = (((newServer.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
@@ -119,7 +119,7 @@ class TestCustomJetty {
 
     @Test
     fun `default SessionHandler works`() {
-        Javalin.create().servlet { it.sessionHandler { SessionHandler() } }
+        Javalin.create().configure { it.sessionHandler { SessionHandler() } }
     }
 
     @Test
@@ -133,7 +133,7 @@ class TestCustomJetty {
                 }.getSessionDataStore(sessionHandler)
             }
         }
-        Javalin.create().servlet {
+        Javalin.create().configure {
             it.sessionHandler { sqlSessionHandler(driver = "null", url = "null") }
         }
     }

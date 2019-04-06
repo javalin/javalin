@@ -14,7 +14,7 @@ import org.junit.Test
 
 class TestEtags {
 
-    val etagsEnabledApp = Javalin.create().servlet { it.autogenerateEtags = true }
+    val etagsEnabledApp = Javalin.create().configure { it.autogenerateEtags = true }
 
     @Test
     fun `default app does not set etags for GET`() = TestUtil.test { app, http ->

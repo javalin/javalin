@@ -20,13 +20,8 @@ class TestConfiguration {
     }
 
     @Test(expected = IllegalStateException::class)
-    fun `Javalin#servlet() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
-        app.servlet { }
-    }
-
-    @Test(expected = IllegalStateException::class)
-    fun `Javalin#wsServlet() throws if used after Javalin#start()`() = TestUtil.test { app, http ->
-        app.wsServlet { }
+    fun `Javalin#servlet() throws if used after Javalin#configure()`() = TestUtil.test { app, http ->
+        app.configure { }
     }
 
     @Test
@@ -35,7 +30,7 @@ class TestConfiguration {
         app.server {
             Server()
         }
-        app.servlet {
+        app.configure {
             it.addSinglePageRoot("/", "/public/html.html")
             it.addSinglePageRoot("/", "src/test/resources/public/html.html", Location.EXTERNAL)
             it.addStaticFiles("/public")
@@ -51,13 +46,10 @@ class TestConfiguration {
             it.requestLogger { ctx, executionTimeMs ->  }
             it.accessManager { handler, ctx, permittedRoles ->  }
             it.sessionHandler { SessionHandler() }
-        }
-        app.wsServlet {
-            it.contextPath = "/"
+            it.wsContextPath = "/"
             it.wsFactoryConfig {  }
             it.wsLogger {  }
         }
     }
-
 
 }

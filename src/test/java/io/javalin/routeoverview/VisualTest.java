@@ -29,9 +29,9 @@ public class VisualTest {
     public static void main(String[] args) {
         Javalin app = Javalin.create()
             .enableRouteOverview("/route-overview")
-            .servlet((servlet) -> {
-                servlet.contextPath = "/context-path";
-                servlet.enableCorsForAllOrigins();
+            .configure((config) -> {
+                config.contextPath = "/context-path";
+                config.enableCorsForAllOrigins();
             }).start();
 
         app.get("/", ctx -> ctx.redirect("/context-path/route-overview"));

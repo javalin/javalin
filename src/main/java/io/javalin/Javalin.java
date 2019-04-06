@@ -13,10 +13,12 @@ import io.javalin.core.EventAttacher;
 import io.javalin.core.EventManager;
 import io.javalin.core.HandlerMetaInfo;
 import io.javalin.core.HandlerType;
+import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinEvent;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JavalinServlet;
-import io.javalin.core.JavalinServletConfig;
+import io.javalin.core.JavalinWsServlet;
+import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
@@ -24,8 +26,6 @@ import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 import io.javalin.serversentevent.SseClient;
 import io.javalin.serversentevent.SseHandler;
-import io.javalin.websocket.JavalinWsServlet;
-import io.javalin.websocket.JavalinWsServletConfig;
 import io.javalin.websocket.WsHandler;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,9 +46,11 @@ public class Javalin {
 
     protected Map<Class<?>, Object> appAttributes = new HashMap<>();
 
+    protected JavalinConfig config = new JavalinConfig();
+
     protected JavalinServer server = new JavalinServer();
-    protected JavalinServlet servlet = new JavalinServlet(appAttributes);
-    protected JavalinWsServlet wsServlet = new JavalinWsServlet();
+    protected JavalinServlet servlet = new JavalinServlet(appAttributes, config);
+    protected JavalinWsServlet wsServlet = new JavalinWsServlet(config);
 
     protected EventManager eventManager = new EventManager(this);
     public EventAttacher on = eventManager.getEventAttacher();
@@ -163,8 +165,8 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableDevLogging() {
-        this.servlet(servlet -> servlet.requestLogger(LogUtil::requestDevLogger));
-        this.wsServlet(wsServlet -> wsServlet.wsLogger(LogUtil::wsDevLogger));
+        config.requestLogger(LogUtil::requestDevLogger);
+        config.wsLogger(LogUtil::wsDevLogger);
         return this;
     }
 
@@ -552,15 +554,12 @@ public class Javalin {
         return this;
     }
 
-    public Javalin servlet(Consumer<JavalinServletConfig> servletConfig) {
-        if (server.getStarted()) throw new IllegalStateException("Cannot call 'servlet()' after server start");
-        servletConfig.accept(this.servlet.getConfig());
-        return this;
-    }
-
-    public Javalin wsServlet(Consumer<JavalinWsServletConfig> wsServletConfig) {
-        if (server.getStarted()) throw new IllegalStateException("Cannot call 'wsServlet()' after server start");
-        wsServletConfig.accept(this.wsServlet.getConfig());
+    public Javalin configure(Consumer<JavalinConfig> config) {
+        if (server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
+        config.accept(this.config);
+        if (!this.config.corsOrigins.isEmpty()) {
+            CorsUtil.enableCorsForOrigin(this.servlet, this.config.corsOrigins);
+        }
         return this;
     }
 

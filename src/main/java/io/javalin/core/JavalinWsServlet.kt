@@ -4,11 +4,14 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.websocket
+package io.javalin.core
 
 import io.javalin.Javalin
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
+import io.javalin.websocket.WsEntry
+import io.javalin.websocket.WsHandler
+import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
@@ -18,10 +21,9 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinWsServlet : WebSocketServlet() {
+class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
 
-    var config = JavalinWsServletConfig(this)
-    var wsPathMatcher = WsPathMatcher()
+    var wsPathMatcher = WsPathMatcher(config)
 
     override fun configure(factory: WebSocketServletFactory) {
         config.wsFactoryConfig?.accept(factory)

@@ -22,7 +22,7 @@ enum class MyRoles : Role {
 fun main(args: Array<String>) {
 
     val app = Javalin.create().apply {
-        servlet { it.accessManager(::accessManager) }
+        configure { it.accessManager(::accessManager) }
     }.start(7070)
 
     app.routes {
