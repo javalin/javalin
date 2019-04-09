@@ -41,7 +41,7 @@ public class JavalinConfig {
     public List<String> corsOrigins = new ArrayList<>();
     RequestLogger requestLogger;
     ResourceHandler resourceHandler;
-    AccessManager accessManager = SecurityUtil::noopAccessManager;
+    public AccessManager accessManager = SecurityUtil::noopAccessManager;
     SinglePageHandler singlePageHandler = new SinglePageHandler();
     SessionHandler sessionHandler;
 

@@ -537,8 +537,12 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
-        wsServlet.addHandler(path, ws);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(wsServlet.getConfig().contextPath, path), ws, new HashSet<>()));
+        return ws(path, ws, new HashSet<>());
+    }
+
+    public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
+        wsServlet.addHandler(path, ws, permittedRoles);
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(wsServlet.getConfig().contextPath, path), ws, permittedRoles));
         return this;
     }
 

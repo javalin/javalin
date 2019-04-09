@@ -29,17 +29,36 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class TestWebSocket {
 
-    private val contextPathJavalin = Javalin.create().configure { it.wsContextPath = "/websocket" }
-    private val javalinWithWsLogger = Javalin.create().configure {
-        it.wsLogger { ws ->
-            ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
-            ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
+    private val contextPathJavalin: Javalin by lazy { Javalin.create().configure { it.wsContextPath = "/websocket" } }
+    private val javalinWithWsLogger: Javalin by lazy {
+        Javalin.create().configure {
+            it.wsLogger { ws ->
+                ws.onConnect { ctx -> log.add(ctx.pathParam("param") + " connected") }
+                ws.onClose { ctx -> log.add(ctx.pathParam("param") + " disconnected") }
+            }
         }
     }
+    val accessManagedJavalin: Javalin by lazy {
+        Javalin.create().configure {
+            it.accessManager { handler, ctx, permittedRoles ->
+                log.add("handling upgrade request ...")
+                if (ctx.queryParam("allowed") == "true") {
+                    log.add("upgrade request valid!")
+                    handler.handle(ctx)
+                } else {
+                    log.add("upgrade request invalid!")
+                }
+            }
+        }.ws("/*") { ws ->
+            ws.onConnect { log.add("connected with upgrade request") }
+        }
+    }
+
     private var log = mutableListOf<String>()
 
     @Before
     fun resetLog() {
+        Thread.sleep(25)
         log = ArrayList()
     }
 
@@ -309,6 +328,20 @@ class TestWebSocket {
 
         assertThat(err!!.message).isEqualTo(expectedMessage)
         assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
+    }
+
+    @Test
+    fun `accessmanager rejects invalid request`() = TestUtil.test(accessManagedJavalin) { app, _ ->
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/")))
+        assertThat(log.size).isEqualTo(2)
+        assertThat(log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request invalid!")
+    }
+
+    @Test
+    fun `accessmanager accepts valid request`() = TestUtil.test(accessManagedJavalin) { app, _ ->
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/?allowed=true")))
+        assertThat(log.size).isEqualTo(3)
+        assertThat(log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request valid!", "connected with upgrade request")
     }
 
     // ********************************************************************************************
