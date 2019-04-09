@@ -311,6 +311,10 @@ class TestWebSocket {
         assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
     }
 
+    // ********************************************************************************************
+    // Helpers
+    // ********************************************************************************************
+
     internal inner class TestClient : WebSocketClient {
         constructor(serverUri: URI) : super(serverUri)
         constructor(serverUri: URI, headers: Map<String, String>) : super(serverUri, Draft_6455(), headers, 0)
