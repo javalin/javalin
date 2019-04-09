@@ -7,8 +7,6 @@
 package io.javalin.core
 
 import io.javalin.Javalin
-import io.javalin.core.util.Header
-import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerList
@@ -16,15 +14,17 @@ import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import java.io.ByteArrayInputStream
 import java.net.BindException
 import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServer {
+class JavalinServer(val config: JavalinConfig) {
+
+    var serverPort = 7000
 
     private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
 
@@ -32,21 +32,17 @@ class JavalinServer {
         disableJettyLogger()
     }
 
-    lateinit var jettyServer: Server
-    lateinit var jettySessionHandler: SessionHandler
-
-    var jettyPort = 7000
-    var contextPath = "/"
+    var server = config.server
     var started = false
 
     @Throws(BindException::class)
     fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
 
-        if (!::jettyServer.isInitialized) jettyServer = defaultServer()
-        if (!::jettySessionHandler.isInitialized) jettySessionHandler = defaultSessionHandler()
+        config.server = config.server ?: defaultServer()
+        javalinServlet.config.sessionHandler = javalinServlet.config.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
-        val httpHandler = object : ServletContextHandler(nullParent, contextPath, SESSIONS) {
+        val httpHandler = object : ServletContextHandler(nullParent, javalinServlet.config.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 if (request.isWebSocket()) return // don't touch websocket requests
                 try {
@@ -59,42 +55,30 @@ class JavalinServer {
                 }
                 jettyRequest.isHandled = true
             }
-        }.apply {
-            this.sessionHandler = jettySessionHandler
-        }
+        }.apply { this.sessionHandler = javalinServlet.config.sessionHandler }
 
-        val webSocketHandler = ServletContextHandler(nullParent, contextPath).apply {
+        val webSocketHandler = ServletContextHandler(nullParent, javalinWsServlet.config.wsContextPath, SESSIONS).apply {
             addServlet(ServletHolder(javalinWsServlet), "/*")
         }
 
-        val notFoundHandler = object : SessionHandler() {
-            override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                val msg = "Not found. Request is below context-path (context-path: '$contextPath')"
-                response.status = 404
-                ByteArrayInputStream(msg.toByteArray()).copyTo(response.outputStream)
-                response.outputStream.close()
-                Javalin.log.warn("Received a request below context-path (context-path: '$contextPath'). Returned 404.")
-            }
-        }
-
-        jettyServer.apply {
-            handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler, notFoundHandler))
+        config.server.apply {
+            handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
-                this.port = jettyPort
+                this.port = serverPort
             })
         }.start()
 
-        jettyServer.connectors.filterIsInstance<ServerConnector>().forEach {
-            Javalin.log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}$contextPath")
+        config.server.connectors.filterIsInstance<ServerConnector>().forEach {
+            Javalin.log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${javalinServlet.config.contextPath}")
         }
 
-        jettyServer.connectors.filter { it !is ServerConnector }.forEach {
+        config.server.connectors.filter { it !is ServerConnector }.forEach {
             Javalin.log.info("Binding to: $it")
         }
 
         reEnableJettyLogger()
         started = true
-        jettyPort = (jettyServer.connectors[0] as? ServerConnector)?.localPort ?: -1
+        serverPort = (config.server.connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
     private fun disableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(NoopLogger()) // disable logger before server creation
@@ -126,7 +110,6 @@ class JavalinServer {
         else -> throw IllegalStateException("Cannot insert Javalin handlers into a Handler that is not a HandlerCollection or HandlerWrapper")
     }
 
-    private fun HttpServletRequest.isWebSocket(): Boolean = this.getHeader(Header.SEC_WEBSOCKET_KEY) != null
 }
 
 object JettyUtil {

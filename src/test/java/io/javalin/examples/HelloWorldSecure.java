@@ -18,8 +18,8 @@ public class HelloWorldSecure {
     // This is a very basic example, a better one can be found at:
     // https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/examples/embedded/src/main/java/org/eclipse/jetty/embedded/LikeJettyXml.java#L139-L163
     public static void main(String[] args) {
-        Javalin.create()
-            .server(() -> {
+        Javalin.create().configure(config -> {
+            config.server(() -> {
                 Server server = new Server();
                 ServerConnector sslConnector = new ServerConnector(server, getSslContextFactory());
                 sslConnector.setPort(443);
@@ -27,9 +27,8 @@ public class HelloWorldSecure {
                 connector.setPort(80);
                 server.setConnectors(new Connector[]{sslConnector, connector});
                 return server;
-            })
-            .start()
-            .get("/", ctx -> ctx.result("Hello World")); // valid endpoint for both connectors
+            });
+        }).start().get("/", ctx -> ctx.result("Hello World")); // valid endpoint for both connectors
     }
 
     private static SslContextFactory getSslContextFactory() {

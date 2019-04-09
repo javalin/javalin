@@ -74,15 +74,4 @@ class TestFilters {
         assertThat(http.get("/maped").headers.getFirst("X-FILTER")).isEqualTo("After-filter beats before-filter")
     }
 
-    @Test
-    fun `before-handler can add trailing slashes`() = TestUtil.test(Javalin.create().dontIgnoreTrailingSlashes()) { app, http ->
-        app.before { ctx ->
-            if (!ctx.path().endsWith("/")) {
-                ctx.redirect(ctx.path() + "/")
-            }
-        }
-        app.get("/ok/", TestUtil.okHandler)
-        assertThat(http.getBody("/ok")).isEqualTo("OK")
-    }
-
 }

@@ -11,7 +11,7 @@ import io.javalin.Javalin;
 
 public class HelloWorld {
     public static void main(String[] args) {
-        Javalin app = Javalin.create().port(7070).start();
+        Javalin app = Javalin.create().start(7070);
         app.get("/", ctx -> ctx.result("Hello World"));
     }
 }

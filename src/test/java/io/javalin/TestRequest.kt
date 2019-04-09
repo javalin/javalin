@@ -265,7 +265,7 @@ class TestRequest {
     }
 
     @Test
-    fun `contextPath() with value works`() = TestUtil.test(Javalin.create().contextPath("/ctx")) { app, http ->
+    fun `contextPath() with value works`() = TestUtil.test(Javalin.create().configure { it.contextPath = "/ctx" }) { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
         assertThat(http.getBody("/ctx/")).isEqualTo("/ctx")
     }

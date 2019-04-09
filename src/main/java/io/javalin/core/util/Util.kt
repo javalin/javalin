@@ -9,6 +9,7 @@ package io.javalin.core.util
 import io.javalin.InternalServerErrorResponse
 import io.javalin.Javalin
 import io.javalin.core.JavalinServer
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -16,6 +17,7 @@ import java.net.URL
 import java.util.*
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
+import javax.servlet.http.HttpServletResponse
 
 object Util {
 
@@ -110,6 +112,11 @@ object Util {
         return false
     }
 
+    fun writeResponse(response: HttpServletResponse, responseBody: String, status: Int) {
+        response.status = status
+        ByteArrayInputStream(responseBody.toByteArray()).copyTo(response.outputStream)
+        response.outputStream.close()
+    }
 
     @JvmStatic
     fun logWarningIfNotStartedAfterOneSecond(server: JavalinServer) = Thread {

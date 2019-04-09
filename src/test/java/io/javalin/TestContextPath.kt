@@ -39,28 +39,46 @@ class TestContextPath {
     }
 
     @Test
-    fun `router works with context -path`() = TestUtil.test(Javalin.create().contextPath("/context-path")) { app, http ->
-        app.get("/hello") { ctx -> ctx.result("Hello World") }
-        assertThat(http.getBody("/hello")).isEqualTo("Not found. Request is below context-path (context-path: '/context-path')")
-        assertThat(http.getBody("/context-path/hello")).isEqualTo("Hello World")
+    fun `router works with context-path`() {
+        val javalin = Javalin.create().configure { it.contextPath = "/context-path" }
+        TestUtil.test(javalin) { app, http ->
+            app.get("/hello") { ctx -> ctx.result("Hello World") }
+            assertThat(http.getBody("/hello")).isEqualTo("Not found. Request is below context-path")
+            assertThat(http.getBody("/context-path/hello")).isEqualTo("Hello World")
+        }
     }
 
     @Test
-    fun `router works with multi-level context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path/path-context")) { app, http ->
-        app.get("/hello") { ctx -> ctx.result("Hello World") }
-        assertThat(http.get("/context-path/").status).isEqualTo(404)
-        assertThat(http.getBody("/context-path/path-context/hello")).isEqualTo("Hello World")
+    fun `router works with multi-level context-path`() {
+        val javalin = Javalin.create().configure { it.contextPath = "/context-path/path-context" }
+        TestUtil.test(javalin) { app, http ->
+            app.get("/hello") { ctx -> ctx.result("Hello World") }
+            assertThat(http.get("/context-path/").status).isEqualTo(404)
+            assertThat(http.getBody("/context-path/path-context/hello")).isEqualTo("Hello World")
+        }
     }
 
     @Test
-    fun `static-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { _, http ->
-        assertThat(http.get("/script.js").status).isEqualTo(404)
-        assertThat(http.getBody("/context-path/script.js")).contains("JavaScript works")
+    fun `static-files work with context-path`() {
+        val javalin = Javalin.create().configure { servlet ->
+            servlet.addStaticFiles("/public")
+            servlet.contextPath = "/context-path"
+        }
+        TestUtil.test(javalin) { _, http ->
+            assertThat(http.get("/script.js").status).isEqualTo(404)
+            assertThat(http.getBody("/context-path/script.js")).contains("JavaScript works")
+        }
     }
 
     @Test
-    fun `welcome-files work with context-path`() = TestUtil.test(Javalin.create().contextPath("/context-path").enableStaticFiles("/public")) { _, http ->
-        assertThat(http.getBody("/context-path/subdir/")).isEqualTo("<h1>Welcome file</h1>")
+    fun `welcome-files work with context-path`() {
+        val javalin = Javalin.create().configure { servlet ->
+            servlet.addStaticFiles("/public")
+            servlet.contextPath = "/context-path"
+        }
+        TestUtil.test(javalin) { _, http ->
+            assertThat(http.getBody("/context-path/subdir/")).isEqualTo("<h1>Welcome file</h1>")
+        }
     }
 
 }

@@ -12,10 +12,9 @@ import io.javalin.staticfiles.Location;
 public class HelloWorldStaticFiles_external {
 
     public static void main(String[] args) {
-        Javalin.create()
-            .port(7070)
-            .enableStaticFiles("src/test/external/", Location.EXTERNAL)
-            .start();
+        Javalin.create().configure(config -> {
+            config.addStaticFiles("src/test/external/", Location.EXTERNAL);
+        }).start(7070);
     }
 
 }

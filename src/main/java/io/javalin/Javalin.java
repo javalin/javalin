@@ -13,38 +13,28 @@ import io.javalin.core.EventAttacher;
 import io.javalin.core.EventManager;
 import io.javalin.core.HandlerMetaInfo;
 import io.javalin.core.HandlerType;
+import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinEvent;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JavalinServlet;
-import io.javalin.core.JettyUtil;
-import io.javalin.core.util.CorsBeforeHandler;
-import io.javalin.core.util.CorsOptionsHandler;
+import io.javalin.core.JavalinWsServlet;
+import io.javalin.core.util.CorsUtil;
 import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
-import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
 import io.javalin.serversentevent.SseClient;
 import io.javalin.serversentevent.SseHandler;
-import io.javalin.staticfiles.JettyResourceHandler;
-import io.javalin.staticfiles.Location;
-import io.javalin.staticfiles.StaticFileConfig;
-import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsHandler;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static io.javalin.security.SecurityUtil.roles;
 
 public class Javalin {
 
@@ -54,16 +44,18 @@ public class Javalin {
 
     protected Map<Class<?>, Object> appAttributes = new HashMap<>();
 
-    protected JavalinServer server = new JavalinServer();
-    protected JavalinServlet servlet = new JavalinServlet(appAttributes);
-    protected JavalinWsServlet wsServlet = new JavalinWsServlet();
+    protected JavalinConfig config = new JavalinConfig();
+
+    protected JavalinServer server = new JavalinServer(config);
+    protected JavalinServlet servlet = new JavalinServlet(appAttributes, config);
+    protected JavalinWsServlet wsServlet = new JavalinWsServlet(config);
 
     protected EventManager eventManager = new EventManager(this);
     public EventAttacher on = eventManager.getEventAttacher();
 
     protected Javalin() {
         Util.logJavalinBanner(showJavalinBanner);
-        Util.logWarningIfNotStartedAfterOneSecond(this.server);
+        Util.logWarningIfNotStartedAfterOneSecond(server);
     }
 
     /**
@@ -87,7 +79,8 @@ public class Javalin {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        return port(port).start();
+        server.setServerPort(port);
+        return start();
     }
 
     /**
@@ -112,7 +105,7 @@ public class Javalin {
             log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getJettyPort() + " and try again.", e);
+                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getServerPort() + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
                 throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
             }
@@ -130,7 +123,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
         try {
-            server.getJettyServer().stop();
+            server.getServer().stop();
         } catch (Exception e) {
             log.error("Javalin failed to stop gracefully", e);
         }
@@ -140,119 +133,11 @@ public class Javalin {
     }
 
     /**
-     * Configure the instance to return 405 (Method Not Allowed) instead of 404 (Not Found) whenever a request method doesn't exists but there are handlers for other methods on the same requested path.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin prefer405over404() {
-        ensureActionIsPerformedBeforeServerStart("Telling Javalin to return 405 instead of 404 when applicable");
-        servlet.setPrefer405over404(true);
-        return this;
-    }
-
-    /**
      * Configure instance to not show banner in logs.
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin disableStartupBanner() {
-        ensureActionIsPerformedBeforeServerStart("Telling Javalin to not show banner in logs");
         showJavalinBanner = false;
-        return this;
-    }
-
-    /**
-     * Configure instance to treat '/test/' and '/test' as different URLs.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin dontIgnoreTrailingSlashes() {
-        ensureActionIsPerformedBeforeServerStart("Telling Javalin to not ignore slashes");
-        servlet.getMatcher().setIgnoreTrailingSlashes(false);
-        return this;
-    }
-
-    /**
-     * Configure instance to use a custom jetty Server.
-     *
-     * @see <a href="https://javalin.io/documentation#custom-server">Documentation example</a>
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin server(@NotNull Supplier<Server> server) {
-        ensureActionIsPerformedBeforeServerStart("Setting a custom server");
-        this.server.setJettyServer(server.get());
-        return this;
-    }
-
-    /**
-     * Configure instance to use a custom jetty SessionHandler.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin sessionHandler(@NotNull Supplier<SessionHandler> sessionHandler) {
-        ensureActionIsPerformedBeforeServerStart("Setting a custom session handler");
-        server.setJettySessionHandler(JettyUtil.getSessionHandler(sessionHandler));
-        return this;
-    }
-
-    /**
-     * Configure instance to serve static files from path in classpath.
-     * The method can be called multiple times for different locations.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#static-files">Static files in docs</a>
-     */
-    public Javalin enableStaticFiles(@NotNull String classpathPath) {
-        return enableStaticFiles(classpathPath, Location.CLASSPATH);
-    }
-
-    /**
-     * Configure instance to serve static files from path in the specified location.
-     * The method can be called multiple times for different locations.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#static-files">Static files in docs</a>
-     */
-    public Javalin enableStaticFiles(@NotNull String path, @NotNull Location location) {
-        ensureActionIsPerformedBeforeServerStart("Enabling static files");
-        if (servlet.getResourceHandler() == null) {
-            servlet.setResourceHandler(new JettyResourceHandler());
-        }
-        servlet.getResourceHandler().addStaticFileConfig(new StaticFileConfig(path, location));
-        return this;
-    }
-
-    /**
-     * Configure instance to serve WebJars.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableWebJars() {
-        return enableStaticFiles("/webjars", Location.CLASSPATH);
-    }
-
-    /**
-     * Any request that would normally result in a 404 for the path and its subpaths
-     * instead results in a 200 with the file-content from path in classpath as response body.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath) {
-        return enableSinglePageMode(path, filePath, Location.CLASSPATH);
-    }
-
-    /**
-     * Any request that would normally result in a 404 for the path and its subpaths
-     * instead results in a 200 with the file-content as response body.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableSinglePageMode(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
-        ensureActionIsPerformedBeforeServerStart("Enabling single page mode");
-        servlet.getSinglePageHandler().add(path, filePath, location);
-        return this;
-    }
-
-    /**
-     * Configure instance to run on specified context path (common prefix).
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin contextPath(@NotNull String contextPath) {
-        ensureActionIsPerformedBeforeServerStart("Setting the context path");
-        server.setContextPath(Util.normalizeContextPath(contextPath));
         return this;
     }
 
@@ -261,16 +146,15 @@ public class Javalin {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return server.getJettyPort();
+        return server.getServerPort();
     }
 
     /**
-     * Configure instance to run on specified port.
-     * The method must be called before {@link Javalin#start()}.
+     * Set the server port
+     * Mostly useful if you start the instance with port(0) (random port)
      */
     public Javalin port(int port) {
-        ensureActionIsPerformedBeforeServerStart("Setting the port");
-        server.setJettyPort(port);
+        server.setServerPort(port);
         return this;
     }
 
@@ -279,63 +163,8 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableDevLogging() {
-        ensureActionIsPerformedBeforeServerStart("Enabling debug-logging");
-        requestLogger(LogUtil::requestDevLogger);
-        wsLogger(LogUtil::wsDevLogger);
-        return this;
-    }
-
-    /**
-     * Configure instance use specified request-logger
-     * The method must be called before {@link Javalin#start()}.
-     * Will override the default logger of {@link Javalin#enableDevLogging()}.
-     */
-    public Javalin requestLogger(@NotNull RequestLogger requestLogger) {
-        ensureActionIsPerformedBeforeServerStart("Setting a custom request logger");
-        this.servlet.setRequestLogger(requestLogger);
-        return this;
-    }
-
-    /**
-     * Configure instance to accept cross origin requests for specified origins.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableCorsForOrigin(@NotNull String... origin) {
-        ensureActionIsPerformedBeforeServerStart("Enabling CORS");
-        if (origin.length == 0) throw new IllegalArgumentException("Origins cannot be empty.");
-        this.before("*", new CorsBeforeHandler(origin));
-        this.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));
-        return this;
-    }
-
-    /**
-     * Configure instance to accept cross origin requests for all origins.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableCorsForAllOrigins() {
-        return enableCorsForOrigin("*");
-    }
-
-    /**
-     * Configure instance to not gzip dynamic responses.
-     * By default Javalin gzips all responses larger than 1500 bytes.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin disableDynamicGzip() {
-        ensureActionIsPerformedBeforeServerStart("Disabling dynamic GZIP");
-        servlet.setDynamicGzipEnabled(false);
-        return this;
-    }
-
-    /**
-     * Configure instance to automatically add ETags for GET requests.
-     * Static files already have ETags, this will calculate a checksum for
-     * dynamic GET responses and return 304 if the content has not changed.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableAutogeneratedEtags() {
-        ensureActionIsPerformedBeforeServerStart("Enabling autogenerated etags");
-        servlet.setAutogeneratedEtagsEnabled(true);
+        config.requestLogger(LogUtil::requestDevLogger);
+        config.wsLogger(LogUtil::wsDevLogger);
         return this;
     }
 
@@ -354,32 +183,10 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
-        if (this.servlet.getMatcher().hasEntries()) {
+        if (servlet.getMatcher().hasEntries()) {
             throw new IllegalStateException("The route-overview listens for 'onHandlerAdded' events. It must be enabled before adding handlers.");
         }
-        return this.get(path, new RouteOverviewRenderer(this), permittedRoles);
-    }
-
-    /**
-     * Configure instance to use the specified content-type as a default
-     * value for all responses. This can be overridden in any Handler.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin defaultContentType(@NotNull String contentType) {
-        ensureActionIsPerformedBeforeServerStart("Changing default content type");
-        servlet.setDefaultContentType(contentType);
-        return this;
-    }
-
-    /**
-     * Configure instance to stop caching requests larger than the specified body size.
-     * The default value is 4096 bytes.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin maxBodySizeForRequestCache(long bodySizeInBytes) {
-        ensureActionIsPerformedBeforeServerStart("Changing request cache body size");
-        servlet.setMaxRequestCacheBodySize(bodySizeInBytes);
-        return this;
+        return get(path, new RouteOverviewRenderer(this), permittedRoles);
     }
 
     /**
@@ -389,7 +196,6 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin attribute(Class clazz, Object obj) {
-        ensureActionIsPerformedBeforeServerStart("Registering app attributes");
         appAttributes.put(clazz, obj);
         return this;
     }
@@ -403,34 +209,6 @@ public class Javalin {
     @SuppressWarnings("unchecked")
     public <T> T attribute(Class<T> clazz) {
         return (T) appAttributes.get(clazz);
-    }
-
-    /**
-     * Configure instance to not cache any requests.
-     * If you call this method you will not be able to log request-bodies.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin disableRequestCache() {
-        return maxBodySizeForRequestCache(0);
-    }
-
-    private void ensureActionIsPerformedBeforeServerStart(@NotNull String action) {
-        if (server.getStarted()) {
-            throw new IllegalStateException(action + " must be done before starting the server.");
-        }
-    }
-
-    /**
-     * Sets the access manager for the instance. Secured endpoints require one to be set.
-     * The method must be called before {@link Javalin#start()}.
-     *
-     * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
-     * @see AccessManager
-     */
-    public Javalin accessManager(@NotNull AccessManager accessManager) {
-        ensureActionIsPerformedBeforeServerStart("Setting an AccessManager");
-        this.servlet.setAccessManager(accessManager);
-        return this;
     }
 
     /**
@@ -484,12 +262,11 @@ public class Javalin {
      * This is the method that all the verb-methods (get/post/put/etc) call.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         servlet.addHandler(handlerType, path, handler, roles);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(server.getContextPath(), path), handler, roles));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), handler, roles));
         return this;
     }
 
@@ -597,7 +374,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -609,7 +385,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -621,7 +396,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -633,7 +407,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -645,7 +418,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -657,7 +429,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -669,7 +440,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin trace(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -681,7 +451,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin connect(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -693,7 +462,6 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -770,27 +538,20 @@ public class Javalin {
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
         wsServlet.addHandler(path, ws);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(server.getContextPath(), path), ws, new HashSet<>()));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(wsServlet.getConfig().contextPath, path), ws, new HashSet<>()));
         return this;
     }
 
-    /**
-     * Configures a web socket handler to be called after every web socket event
-     * Will override the default logger of {@link Javalin#enableDevLogging()}.
-     */
-    public Javalin wsLogger(@NotNull Consumer<WsHandler> ws) {
-        ensureActionIsPerformedBeforeServerStart("Adding a WebSocket logger");
-        wsServlet.setWsLogger(ws);
-        return this;
-    }
+    // ********************************************************************************************
+    // Configuration
+    // ********************************************************************************************
 
-    /**
-     * Configure the WebSocketServletFactory of the instance
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
-        ensureActionIsPerformedBeforeServerStart("Setting a custom WebSocket factory config");
-        wsServlet.setWsFactoryConfig(wsFactoryConfig);
+    public Javalin configure(Consumer<JavalinConfig> config) {
+        if (this.server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
+        config.accept(this.config);
+        if (!this.config.corsOrigins.isEmpty()) {
+            CorsUtil.enableCorsForOrigin(this.servlet, this.config.corsOrigins);
+        }
         return this;
     }
 

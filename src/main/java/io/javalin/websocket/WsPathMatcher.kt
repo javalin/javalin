@@ -6,6 +6,7 @@
 
 package io.javalin.websocket
 
+import io.javalin.core.JavalinConfig
 import io.javalin.core.PathParser
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.UpgradeRequest
@@ -25,10 +26,9 @@ data class WsEntry(val path: String, val handler: WsHandler) {
  * Session IDs are generated and tracked here, and path-parameters are cached for performance.
  */
 @WebSocket
-class WsPathMatcher {
+class WsPathMatcher(val config: JavalinConfig) {
 
     val wsEntries = mutableListOf<WsEntry>()
-    var wsLogger: WsHandler? = null
     private val sessionIds = ConcurrentHashMap<Session, String>()
     private val sessionPathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
@@ -41,7 +41,7 @@ class WsPathMatcher {
         findEntry(session)?.let {
             val ctx = WsConnectContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path)
             it.handler.connectHandler?.handleConnect(ctx)
-            wsLogger?.connectHandler?.handleConnect(ctx)
+            config.wsLogger?.connectHandler?.handleConnect(ctx)
         }
 
     }
@@ -51,7 +51,7 @@ class WsPathMatcher {
         findEntry(session)?.let {
             val ctx = WsMessageContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path, message)
             it.handler.messageHandler?.handleMessage(ctx)
-            wsLogger?.messageHandler?.handleMessage(ctx)
+            config.wsLogger?.messageHandler?.handleMessage(ctx)
         }
     }
 
@@ -60,7 +60,7 @@ class WsPathMatcher {
         findEntry(session)?.let {
             val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path, buffer.toTypedArray(), offset, length)
             it.handler.binaryMessageHandler?.handleBinaryMessage(ctx)
-            wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
+            config.wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
         }
     }
 
@@ -69,7 +69,7 @@ class WsPathMatcher {
         findEntry(session)?.let {
             val ctx = WsErrorContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path, throwable)
             it.handler.errorHandler?.handleError(ctx)
-            wsLogger?.errorHandler?.handleError(ctx)
+            config.wsLogger?.errorHandler?.handleError(ctx)
         }
     }
 
@@ -78,7 +78,7 @@ class WsPathMatcher {
         findEntry(session)?.let {
             val ctx = WsCloseContext(sessionIds[session]!!, session, sessionPathParams[session]!!, it.path, statusCode, reason)
             it.handler.closeHandler?.handleClose(ctx)
-            wsLogger?.closeHandler?.handleClose(ctx)
+            config.wsLogger?.closeHandler?.handleClose(ctx)
         }
         destroy(session)
     }
