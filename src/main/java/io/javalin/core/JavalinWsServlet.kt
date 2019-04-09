@@ -36,9 +36,8 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
         if (req.isWebSocket()) {
             val entry = wsPathMatcher.findEntry(req.requestURI.removePrefix(req.contextPath)) ?: return res.sendError(404, "WebSocket handler not found")
             try {
-                val randomUuid = UUID.randomUUID().toString()
-                config.accessManager.manage({ it.req.setAttribute("javalin-ws-upgrade-key", randomUuid) }, Context(req, res, mapOf()), entry.permittedRoles)
-                if (req.getAttribute("javalin-ws-upgrade-key") != randomUuid) throw UnauthorizedResponse() // if the keys match, the access manager ran the handler (== valid)
+                config.accessManager.manage({ it.req.setAttribute("javalin-ws-upgrade-allowed", "true") }, Context(req, res, mapOf()), entry.permittedRoles)
+                if (req.getAttribute("javalin-ws-upgrade-allowed") != "true") throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
                 super.service(req, res)
             } catch (e: Exception) {
                 res.sendError(401, "Unauthorized")
