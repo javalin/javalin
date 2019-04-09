@@ -45,6 +45,8 @@ class TestWebSocket {
                 if (ctx.queryParam("allowed") == "true") {
                     log.add("upgrade request valid!")
                     handler.handle(ctx)
+                } else if (ctx.queryParam("exception") == "true") {
+                    throw UnauthorizedResponse()
                 } else {
                     log.add("upgrade request invalid!")
                 }
@@ -342,6 +344,12 @@ class TestWebSocket {
         connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/?allowed=true")))
         assertThat(log.size).isEqualTo(3)
         assertThat(log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request valid!", "connected with upgrade request")
+    }
+
+    @Test
+    fun `accessmanager doesn't crash on exception`() = TestUtil.test(accessManagedJavalin) { app, _ ->
+        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/?exception=true")))
+        assertThat(log.size).isEqualTo(1)
     }
 
     // ********************************************************************************************

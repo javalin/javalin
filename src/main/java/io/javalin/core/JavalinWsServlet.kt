@@ -32,8 +32,12 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
     override fun service(req: HttpServletRequest, res: HttpServletResponse) {
         if (req.isWebSocket()) {
             val entry = wsPathMatcher.findEntry(req.requestURI.removePrefix(req.contextPath)) ?: return res.sendError(404, "WebSocket handler not found")
-            if (wsPathMatcher.authed(req, res, entry)) {
-                super.service(req, res)
+            try {
+                if (wsPathMatcher.authed(req, res, entry)) {
+                    super.service(req, res)
+                }
+            } catch (e: Exception) {
+                res.sendError(401)
             }
         } else { // if not websocket (and not handled by http-handler), this request is below the context path
             Util.writeResponse(res as HttpServletResponse, "Not found. Request is below context-path", 404)
