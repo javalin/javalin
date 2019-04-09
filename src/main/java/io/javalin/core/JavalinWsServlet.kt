@@ -6,7 +6,9 @@
 
 package io.javalin.core
 
+import io.javalin.Context
 import io.javalin.Javalin
+import io.javalin.UnauthorizedResponse
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.security.Role
@@ -16,6 +18,7 @@ import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
+import java.util.*
 import java.util.function.Consumer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -33,7 +36,9 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
         if (req.isWebSocket()) {
             val entry = wsPathMatcher.findEntry(req.requestURI.removePrefix(req.contextPath)) ?: return res.sendError(404, "WebSocket handler not found")
             try {
-                wsPathMatcher.throwIfUnauthorized(req, res, entry)
+                val randomUuid = UUID.randomUUID().toString()
+                config.accessManager.manage({ it.req.setAttribute("javalin-ws-upgrade-key", randomUuid) }, Context(req, res, mapOf()), entry.permittedRoles)
+                if (req.getAttribute("javalin-ws-upgrade-key") != randomUuid) throw UnauthorizedResponse() // if the keys match, the access manager ran the handler (== valid)
                 super.service(req, res)
             } catch (e: Exception) {
                 res.sendError(401, "Unauthorized")

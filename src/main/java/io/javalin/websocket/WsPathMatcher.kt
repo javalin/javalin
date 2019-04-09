@@ -6,11 +6,8 @@
 
 package io.javalin.websocket
 
-import io.javalin.Context
-import io.javalin.UnauthorizedResponse
 import io.javalin.core.JavalinConfig
 import io.javalin.core.PathParser
-import io.javalin.core.util.ContextUtil
 import io.javalin.security.Role
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.UpgradeRequest
@@ -18,8 +15,6 @@ import org.eclipse.jetty.websocket.api.annotations.*
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 data class WsEntry(val path: String, val handler: WsHandler, val permittedRoles: Set<Role>) {
     private val pathParser = PathParser(path)
@@ -104,11 +99,5 @@ class WsPathMatcher(val config: JavalinConfig) {
     }
 
     private fun UpgradeRequest.uriNoContextPath() = this.requestURI.path.removePrefix((this as ServletUpgradeRequest).httpServletRequest.contextPath)
-
-    fun throwIfUnauthorized(req: HttpServletRequest, res: HttpServletResponse, entry: WsEntry) {
-        val randomUuid = UUID.randomUUID().toString()
-        config.accessManager.manage({ it.req.setAttribute("javalin-ws-upgrade-key", randomUuid) }, Context(req, res, mapOf()), entry.permittedRoles)
-        if (req.getAttribute("javalin-ws-upgrade-key") != randomUuid) throw UnauthorizedResponse() // if the keys match, the access manager ran the handler (== valid)
-    }
 
 }
