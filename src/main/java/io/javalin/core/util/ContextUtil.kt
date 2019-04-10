@@ -38,12 +38,6 @@ object ContextUtil {
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
-    fun mapKeysOrReturnNullIfAnyNulls(keys: Array<out String>, f: (s: String) -> String?): List<String>? = try {
-        keys.map { f.invoke(it) }.requireNoNulls().toList()
-    } catch (e: IllegalArgumentException) {
-        null
-    }
-
     fun getBasicAuthCredentials(header: String?): BasicAuthCredentials? = try {
         val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(":")
         BasicAuthCredentials(username, password)
