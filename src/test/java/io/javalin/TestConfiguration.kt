@@ -35,12 +35,12 @@ class TestConfiguration {
             it.prefer405over404 = false
             it.autogenerateEtags = true
             it.requestCacheSize = 8192L
-            it.requestLogger { ctx, executionTimeMs ->  }
-            it.accessManager { handler, ctx, permittedRoles ->  }
+            it.requestLogger { ctx, executionTimeMs -> }
+            it.accessManager { handler, ctx, permittedRoles -> }
             it.sessionHandler { SessionHandler() }
             it.wsContextPath = "/"
-            it.wsFactoryConfig {  }
-            it.wsLogger {  }
+            it.wsFactoryConfig { }
+            it.wsLogger { }
             it.server {
                 Server()
             }

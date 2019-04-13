@@ -13,7 +13,6 @@ import io.javalin.misc.SerializeableObject
 import io.javalin.util.TestUtil
 import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
@@ -97,9 +96,7 @@ class TestWebSocket {
         // 3 clients and a lot of operations should only yield three unique identifiers for the clients
         val uniqueLog = HashSet(app.logger().log)
         assertThat(uniqueLog).hasSize(3)
-        for (id in uniqueLog) {
-            assertThat(uniqueLog.count { it == id }).isEqualTo(1)
-        }
+        uniqueLog.forEach { id -> assertThat(uniqueLog.count { it == id }).isEqualTo(1) }
     }
 
     @Test
@@ -294,21 +291,17 @@ class TestWebSocket {
     fun `queryParamMap does not throw`() = TestUtil.test { app, _ ->
         app.ws("/*") { ws ->
             ws.onConnect { ctx ->
-                try {
-                    ctx.queryParamMap()
-                } catch (e: Exception) {
-                    app.logger().log.add("exception queryParamMap")
-                }
+                ctx.queryParamMap()
+                app.logger().log.add("call succeeded")
             }
         }
 
         TestClient(app, "/path/0").connectAndDisconnect()
-        assertThat(app.logger().log.size).isEqualTo(0)
+        assertThat(app.logger().log).contains("call succeeded")
     }
 
     @Test
     fun `custom WebSocketServletFactory works`() {
-        val newServer = Server()
         var err: Throwable? = Exception("Bang")
         val maxTextSize = 1
         val textToSend = "This text is far too long."
@@ -317,14 +310,11 @@ class TestWebSocket {
             it.wsFactoryConfig { wsFactory ->
                 wsFactory.policy.maxTextMessageSize = maxTextSize
             }
-        }
-        app.ws("/ws") { ws ->
+        }.ws("/ws") { ws ->
             ws.onError { ctx -> err = ctx.error }
-        }.configure {
-            it.server { newServer }
         }.start(0)
-        val testClient = TestClient(app, "/ws")
 
+        val testClient = TestClient(app, "/ws")
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
         doAndSleep { testClient.send(textToSend) }
         doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
@@ -358,16 +348,7 @@ class TestWebSocket {
     // Helpers
     // ********************************************************************************************
 
-    internal inner class TestClient : WebSocketClient {
-        var app: Javalin
-
-        constructor(app: Javalin, path: String) : super(URI.create("ws://localhost:" + app.port() + path)) {
-            this.app = app
-        }
-
-        constructor(app: Javalin, path: String, headers: Map<String, String>) : super(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
-            this.app = app
-        }
+    internal inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
 
         override fun onOpen(serverHandshake: ServerHandshake) {}
         override fun onClose(i: Int, s: String, b: Boolean) {}
@@ -382,10 +363,10 @@ class TestWebSocket {
         }
     }
 
-    private fun doAndSleepWhile(func1: () -> Unit, func2: () -> Boolean) {
+    private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean) {
         val startTime = System.currentTimeMillis()
-        func1.invoke()
-        while (func2.invoke() && System.currentTimeMillis() < startTime + 250) {
+        slowFunction.invoke()
+        while (conditionFunction.invoke() && System.currentTimeMillis() < startTime + 250) {
             Thread.sleep(2)
         }
     }
