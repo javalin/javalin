@@ -42,13 +42,13 @@ class TestWebSocket {
         Javalin.create().configure {
             it.accessManager { handler, ctx, permittedRoles ->
                 log.add("handling upgrade request ...")
-                if (ctx.queryParam("allowed") == "true") {
-                    log.add("upgrade request valid!")
-                    handler.handle(ctx)
-                } else if (ctx.queryParam("exception") == "true") {
-                    throw UnauthorizedResponse()
-                } else {
-                    log.add("upgrade request invalid!")
+                when {
+                    ctx.queryParam("allowed") == "true" -> {
+                        log.add("upgrade request valid!")
+                        handler.handle(ctx)
+                    }
+                    ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
+                    else -> log.add("upgrade request invalid!")
                 }
             }
         }.ws("/*") { ws ->
@@ -79,9 +79,9 @@ class TestWebSocket {
             }
         }
 
-        val testClient1_1 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
-        val testClient1_2 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
-        val testClient2_1 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-2"))
+        val testClient1_1 = TestClient(app, "/websocket/test-websocket-1")
+        val testClient1_2 = TestClient(app, "/websocket/test-websocket-1")
+        val testClient2_1 = TestClient(app, "/websocket/test-websocket-2")
 
         doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
         doAndSleepWhile({ testClient1_2.connect() }, { !testClient1_2.isOpen })
@@ -123,9 +123,9 @@ class TestWebSocket {
             }
         }
 
-        val testClient1_1 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
-        val testClient1_2 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-1"))
-        val testClient2_1 = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/test-websocket-2"))
+        val testClient1_1 = TestClient(app, "/websocket/test-websocket-1")
+        val testClient1_2 = TestClient(app, "/websocket/test-websocket-1")
+        val testClient2_1 = TestClient(app, "/websocket/test-websocket-2")
 
         doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
         doAndSleepWhile({ testClient1_2.connect() }, { !testClient1_2.isOpen })
@@ -169,7 +169,7 @@ class TestWebSocket {
             }
         }
 
-        val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/message"))
+        val testClient = TestClient(app, "/websocket/message")
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
         doAndSleep { testClient.send(clientMessageJson) }
 
@@ -192,7 +192,7 @@ class TestWebSocket {
             }
         }
 
-        val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/binary"))
+        val testClient = TestClient(app, "/websocket/binary")
 
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
         doAndSleep { testClient.send(byteDataToSend1) }
@@ -207,9 +207,9 @@ class TestWebSocket {
         app.ws("/params/:1") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("1")) } }
         app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { _ -> log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/one")))
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/%E2%99%94")))
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/params/another/test/long/path")))
+        TestClient(app, "/websocket/params/one").connectAndDisconnect()
+        TestClient(app, "/websocket/params/%E2%99%94").connectAndDisconnect()
+        TestClient(app, "/websocket/params/another/test/long/path").connectAndDisconnect()
         assertThat(log).containsExactlyInAnyOrder("one", "♔", "another long path")
         assertThat(log).doesNotContain("catchall")
     }
@@ -232,7 +232,7 @@ class TestWebSocket {
             ws.onConnect { ctx -> log.add("Header: " + ctx.header("Test")!!) }
             ws.onClose { ctx -> log.add("Closed connection from: " + ctx.host()!!) }
         }
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket"), mapOf("Test" to "HeaderParameter")))
+        TestClient(app, "/websocket", mapOf("Test" to "HeaderParameter")).connectAndDisconnect()
         assertThat(log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")
     }
 
@@ -250,7 +250,7 @@ class TestWebSocket {
                 queryParams = ctx.queryParams("qps")
             }
         }
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/websocket/channel-one?qp=just-a-qp&qps=1&qps=2")))
+        TestClient(app, "/websocket/channel-one?qp=just-a-qp&qps=1&qps=2").connectAndDisconnect()
         assertThat(matchedPath).isEqualTo("/websocket/:channel")
         assertThat(pathParam).isEqualTo("channel-one")
         assertThat(queryParam).isEqualTo("just-a-qp")
@@ -261,8 +261,8 @@ class TestWebSocket {
     fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
         app.ws("/other-path/:param") { ws -> ws.onConnect { ctx -> log.add(ctx.pathParam("param")) } }
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/PaTh/my-param")))
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/other-path/My-PaRaM")))
+        TestClient(app, "/PaTh/my-param").connectAndDisconnect()
+        TestClient(app, "/other-path/My-PaRaM").connectAndDisconnect()
         assertThat(log).doesNotContain("my-param")
         assertThat(log).contains("My-PaRaM")
     }
@@ -270,8 +270,8 @@ class TestWebSocket {
     @Test
     fun `web socket logging works`() = TestUtil.test(javalinWithWsLogger) { app, _ ->
         app.ws("/path/:param") {}
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/1")))
+        TestClient(app, "/path/0").connectAndDisconnect()
+        TestClient(app, "/path/1").connectAndDisconnect()
         assertThat(log).containsExactlyInAnyOrder(
                 "0 connected",
                 "1 connected",
@@ -283,8 +283,8 @@ class TestWebSocket {
     @Test
     fun `debug logging works for web sockets`() = TestUtil.test(Javalin.create().enableDevLogging()) { app, _ ->
         app.ws("/path/:param") {}
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/1?test=banana&hi=1&hi=2")))
+        TestClient(app, "/path/0").connectAndDisconnect()
+        TestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()
         assertThat(log.size).isEqualTo(0)
     }
 
@@ -300,7 +300,7 @@ class TestWebSocket {
             }
         }
 
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/path/0")))
+        TestClient(app, "/path/0").connectAndDisconnect()
         assertThat(log.size).isEqualTo(0)
     }
 
@@ -321,7 +321,7 @@ class TestWebSocket {
         }.configure {
             it.server { newServer }
         }.start(0)
-        val testClient = TestClient(URI.create("ws://localhost:" + app.port() + "/ws"))
+        val testClient = TestClient(app, "/ws")
 
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
         doAndSleep { testClient.send(textToSend) }
@@ -334,21 +334,21 @@ class TestWebSocket {
 
     @Test
     fun `accessmanager rejects invalid request`() = TestUtil.test(accessManagedJavalin) { app, _ ->
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/")))
+        TestClient(app, "/").connectAndDisconnect()
         assertThat(log.size).isEqualTo(2)
         assertThat(log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request invalid!")
     }
 
     @Test
     fun `accessmanager accepts valid request`() = TestUtil.test(accessManagedJavalin) { app, _ ->
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/?allowed=true")))
+        TestClient(app, "/?allowed=true").connectAndDisconnect()
         assertThat(log.size).isEqualTo(3)
         assertThat(log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request valid!", "connected with upgrade request")
     }
 
     @Test
     fun `accessmanager doesn't crash on exception`() = TestUtil.test(accessManagedJavalin) { app, _ ->
-        connectAndDisconnect(TestClient(URI.create("ws://localhost:" + app.port() + "/?exception=true")))
+        TestClient(app, "/?exception=true").connectAndDisconnect()
         assertThat(log.size).isEqualTo(1)
     }
 
@@ -357,8 +357,8 @@ class TestWebSocket {
     // ********************************************************************************************
 
     internal inner class TestClient : WebSocketClient {
-        constructor(serverUri: URI) : super(serverUri)
-        constructor(serverUri: URI, headers: Map<String, String>) : super(serverUri, Draft_6455(), headers, 0)
+        constructor(app: Javalin, path: String) : super(URI.create("ws://localhost:" + app.port() + path))
+        constructor(app: Javalin, path: String, headers: Map<String, String>) : super(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0)
 
         override fun onMessage(s: String) {
             log.add(s)
@@ -367,24 +367,25 @@ class TestWebSocket {
         override fun onOpen(serverHandshake: ServerHandshake) {}
         override fun onClose(i: Int, s: String, b: Boolean) {}
         override fun onError(e: Exception) {}
-    }
 
-    private fun connectAndDisconnect(testClient: TestClient) {
-        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
-        doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
+        fun connectAndDisconnect() {
+            doAndSleepWhile({ this.connect() }, { !this.isOpen })
+            doAndSleepWhile({ this.close() }, { this.isClosing })
+        }
+
     }
 
     private fun doAndSleepWhile(func1: () -> Unit, func2: () -> Boolean) {
-        val timeMillis = System.currentTimeMillis()
+        val startTime = System.currentTimeMillis()
         func1.invoke()
-        while (func2.invoke() && System.currentTimeMillis() < timeMillis + 1000) {
-            Thread.sleep(25)
+        while (func2.invoke() && System.currentTimeMillis() < startTime + 250) {
+            Thread.sleep(10)
         }
     }
 
     private fun doAndSleep(func: () -> Unit) {
         func.invoke()
-        Thread.sleep(25)
+        Thread.sleep(10)
     }
 
 }
