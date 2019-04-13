@@ -80,7 +80,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -102,7 +101,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void get(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -124,7 +122,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -146,7 +143,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void post(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -168,7 +164,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -190,7 +185,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void put(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -212,7 +206,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -234,7 +227,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void patch(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -256,7 +248,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -278,7 +269,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void delete(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -300,7 +290,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -322,7 +311,6 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see AccessManager
-     * @see Javalin#accessManager(AccessManager)
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void head(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
@@ -379,6 +367,7 @@ public class ApiBuilder {
 
     /**
      * Adds a WebSocket handler on the specified path.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
@@ -387,12 +376,33 @@ public class ApiBuilder {
     }
 
     /**
+     * Adds a WebSocket handler with the given roles for the specified path.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
+     */
+    public static void ws(@NotNull String path, @NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
+        staticInstance().ws(prefixPath(path), ws, permittedRoles);
+    }
+
+    /**
      * Adds a WebSocket handler on the current path.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public static void ws(@NotNull Consumer<WsHandler> ws) {
         staticInstance().ws(prefixPath(""), ws);
+    }
+
+    /**
+     * Adds a WebSocket handler with the given roles for the current path.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
+     */
+    public static void ws(@NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
+        staticInstance().ws(prefixPath(""), ws, permittedRoles);
     }
 
     // ********************************************************************************************

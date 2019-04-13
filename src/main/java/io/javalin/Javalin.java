@@ -540,6 +540,13 @@ public class Javalin {
         return ws(path, ws, new HashSet<>());
     }
 
+    /**
+     * Adds a WebSocket handler on the specified path with the specified roles.
+     * Requires an access manager to be set on the instance.
+     *
+     * @see AccessManager
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
+     */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
         wsServlet.addHandler(path, ws, permittedRoles);
         eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(wsServlet.getConfig().contextPath, path), ws, permittedRoles));
