@@ -283,7 +283,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `debug logging works for web sockets`() = TestUtil.test(Javalin.create().enableDevLogging()) { app, _ ->
+    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create().enableDevLogging()) { app, _ ->
         app.ws("/path/:param") {}
         TestClient(app, "/path/0").connectAndDisconnect()
         TestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()
@@ -390,9 +390,6 @@ class TestWebSocket {
         }
     }
 
-    private fun doAndSleep(func: () -> Unit) {
-        func.invoke()
-        Thread.sleep(25)
-    }
+    private fun doAndSleep(func: () -> Unit) = func.invoke().also { Thread.sleep(50) }
 
 }

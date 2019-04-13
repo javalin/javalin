@@ -32,7 +32,7 @@ class JavalinServer(val config: JavalinConfig) {
         disableJettyLogger()
     }
 
-    var server = config.server
+    fun server() = config.server
     var started = false
 
     @Throws(BindException::class)
