@@ -15,5 +15,5 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface FileRenderer {
-    String render(@NotNull String filePath, @NotNull Map<String, Object> model);
+    String render(@NotNull String filePath, @NotNull Map<String, Object> model) throws Exception;
 }
