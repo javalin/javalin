@@ -12,6 +12,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 object FileUtil {
+
     @JvmStatic
     fun streamToFile(inputStream: InputStream, path: String) {
         val newFile = File(path)
@@ -19,4 +20,11 @@ object FileUtil {
         newFile.createNewFile() // create file if necessary
         Files.copy(inputStream, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
     }
+
+    @JvmStatic
+    fun readResource(path: String) = FileUtil::class.java.getResource(path).readText()
+
+    @JvmStatic
+    fun readFile(path: String) = File(path).readText()
+
 }

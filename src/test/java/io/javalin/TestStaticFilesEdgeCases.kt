@@ -6,7 +6,9 @@
 
 package io.javalin
 
+import io.javalin.core.util.FileUtil
 import io.javalin.staticfiles.Location
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File
 
@@ -32,6 +34,12 @@ class TestStaticFilesEdgeCases {
     fun `server starts for empty external folder`() {
         File("src/test/external/empty").mkdir()
         Javalin.create().configure { it.addStaticFiles("src/test/external/empty", Location.EXTERNAL) }.start(0).stop()
+    }
+
+    @Test
+    fun `test FileUtil`() {
+        assertThat(FileUtil.readFile("src/test/external/html.html")).contains("<h1>HTML works</h1>")
+        assertThat(FileUtil.readResource("/public/html.html")).contains("<h1>HTML works</h1>")
     }
 
 }
