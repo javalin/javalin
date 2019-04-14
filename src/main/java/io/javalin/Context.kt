@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-open class Context(private val servletRequest: HttpServletRequest, private val servletResponse: HttpServletResponse, private val appAttributes: Map<Class<*>, Any>) {
+open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<Class<*>, Any>) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
@@ -35,8 +35,6 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @JvmField val req = servletRequest
-    @JvmField val res = servletResponse
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
@@ -76,7 +74,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     ///////////////////////////////////////////////////////////////
 
     /** Gets the request body as a [String]. */
-    fun body(): String = bodyAsBytes().toString(Charset.forName(servletRequest.characterEncoding ?: "UTF-8"))
+    fun body(): String = bodyAsBytes().toString(Charset.forName(req.characterEncoding ?: "UTF-8"))
 
     /**
      * Maps a JSON body to a Java/Kotlin class using JavalinJson.
@@ -86,7 +84,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
 
     /** Gets the request body as a [ByteArray]. */
-    fun bodyAsBytes(): ByteArray = servletRequest.inputStream.readBytes()
+    fun bodyAsBytes(): ByteArray = req.inputStream.readBytes()
 
     /**
      * Maps a JSON body to a Java/Kotlin class using JavalinJson.
@@ -113,7 +111,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
 
     /** Gets a list of [UploadedFile]s for the specified name, or empty list. */
     fun uploadedFiles(fileName: String): List<UploadedFile> {
-        return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(servletRequest, fileName) else listOf()
+        return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(req, fileName) else listOf()
     }
 
     /**
@@ -139,7 +137,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
 
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> =
-            if (isMultipartFormData()) MultipartUtil.getFieldMap(servletRequest)
+            if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
             else ContextUtil.splitKeyValueStringAndGroupByKey(body())
 
     /**
@@ -177,7 +175,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      *
      * Ex: ctx.register(MyExt.class, myExtInstance())
      */
-    fun register(clazz: Class<*>, value: Any) = servletRequest.setAttribute("ctx-ext-${clazz.canonicalName}", value)
+    fun register(clazz: Class<*>, value: Any) = req.setAttribute("ctx-ext-${clazz.canonicalName}", value)
 
     /**
      * Use an extension stored in the Context.
@@ -186,41 +184,41 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
      * Ex: ctx.use(MyExt.class).myMethod()
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> use(clazz: Class<T>): T = servletRequest.getAttribute("ctx-ext-${clazz.canonicalName}") as T
+    fun <T> use(clazz: Class<T>): T = req.getAttribute("ctx-ext-${clazz.canonicalName}") as T
 
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle */
-    fun attribute(attribute: String, value: Any?) = servletRequest.setAttribute(attribute, value)
+    fun attribute(attribute: String, value: Any?) = req.setAttribute(attribute, value)
 
     /** Gets the specified attribute from the request. */
     @Suppress("UNCHECKED_CAST")
-    fun <T> attribute(attribute: String): T? = servletRequest.getAttribute(attribute) as? T
+    fun <T> attribute(attribute: String): T? = req.getAttribute(attribute) as? T
 
     /** Gets a map with all the attribute keys and values on the request. */
-    fun <T> attributeMap(): Map<String, T?> = servletRequest.attributeNames.asSequence().associate { it to attribute<T>(it) }
+    fun <T> attributeMap(): Map<String, T?> = req.attributeNames.asSequence().associate { it to attribute<T>(it) }
 
     /** Gets the request content length. */
-    fun contentLength(): Int = servletRequest.contentLength
+    fun contentLength(): Int = req.contentLength
 
     /** Gets the request content type, or null. */
-    fun contentType(): String? = servletRequest.contentType
+    fun contentType(): String? = req.contentType
 
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String): String? = servletRequest.cookies?.find { name == it.name }?.value
+    fun cookie(name: String): String? = req.cookies?.find { name == it.name }?.value
 
     /** Gets a map with all the cookie keys and values on the request. */
-    fun cookieMap(): Map<String, String> = servletRequest.cookies?.associate { it.name to it.value } ?: emptyMap()
+    fun cookieMap(): Map<String, String> = req.cookies?.associate { it.name to it.value } ?: emptyMap()
 
     /** Gets a request header by name, or null. */
-    fun header(header: String): String? = servletRequest.getHeader(header)
+    fun header(header: String): String? = req.getHeader(header)
 
     /** Gets a map with all the header keys and values on the request. */
-    fun headerMap(): Map<String, String> = servletRequest.headerNames.asSequence().associate { it to header(it)!! }
+    fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
 
     /** Gets the request host, or null. */
-    fun host(): String? = servletRequest.getHeader(Header.HOST)
+    fun host(): String? = req.getHeader(Header.HOST)
 
     /** Gets the request ip. */
-    fun ip(): String = servletRequest.remoteAddr
+    fun ip(): String = req.remoteAddr
 
     /** Returns true if request is multipart. */
     fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/") == true
@@ -247,16 +245,16 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     }
 
     /** Gets the request method. */
-    fun method(): String = servletRequest.method
+    fun method(): String = req.method
 
     /** Gets the request path. */
-    fun path(): String = servletRequest.requestURI
+    fun path(): String = req.requestURI
 
     /** Gets the request port. */
-    fun port(): Int = servletRequest.serverPort
+    fun port(): Int = req.serverPort
 
     /** Gets the request protocol. */
-    fun protocol(): String = servletRequest.protocol
+    fun protocol(): String = req.protocol
 
     /**
      * Gets a query param if it exists, else a default value (null if not specified explicitly).
@@ -283,29 +281,29 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
 
     /** Gets the request query string, or null. */
-    fun queryString(): String? = servletRequest.queryString
+    fun queryString(): String? = req.queryString
 
     /** Gets the request scheme. */
-    fun scheme(): String = servletRequest.scheme
+    fun scheme(): String = req.scheme
 
     /** Sets an attribute for the user session. */
-    fun sessionAttribute(attribute: String, value: Any?) = servletRequest.session.setAttribute(attribute, value)
+    fun sessionAttribute(attribute: String, value: Any?) = req.session.setAttribute(attribute, value)
 
     /** Gets specified attribute from the user session, or null. */
     @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttribute(attribute: String): T? = servletRequest.session.getAttribute(attribute) as? T
+    fun <T> sessionAttribute(attribute: String): T? = req.session.getAttribute(attribute) as? T
 
     /** Gets a map of all the attributes in the user session. */
-    fun <T> sessionAttributeMap(): Map<String, T?> = servletRequest.session.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
+    fun <T> sessionAttributeMap(): Map<String, T?> = req.session.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
 
     /** Gets the request url. */
-    fun url(): String = servletRequest.requestURL.toString()
+    fun url(): String = req.requestURL.toString()
 
     /** Gets the request context path. */
-    fun contextPath(): String = servletRequest.contextPath
+    fun contextPath(): String = req.contextPath
 
     /** Gets the request user agent, or null. */
-    fun userAgent(): String? = servletRequest.getHeader(Header.USER_AGENT)
+    fun userAgent(): String? = req.getHeader(Header.USER_AGENT)
 
     ///////////////////////////////////////////////////////////////
     // Response-ish methods
@@ -313,7 +311,7 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
 
     /** Gets the current response [Charset]. */
     private fun responseCharset() = try {
-        Charset.forName(servletResponse.characterEncoding)
+        Charset.forName(res.characterEncoding)
     } catch (e: Exception) {
         Charset.defaultCharset()
     }
@@ -360,20 +358,20 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {
-        servletResponse.contentType = contentType
+        res.contentType = contentType
         return this
     }
 
     /** Sets response header by name and value. */
     fun header(headerName: String, headerValue: String): Context {
-        servletResponse.setHeader(headerName, headerValue)
+        res.setHeader(headerName, headerValue)
         return this
     }
 
     /** Sets the response status code and redirects to the specified location. */
     @JvmOverloads
     fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
-        servletResponse.setHeader(Header.LOCATION, location)
+        res.setHeader(Header.LOCATION, location)
         status(httpStatusCode)
         if (handlerType == HandlerType.BEFORE) {
             throw RedirectResponse(httpStatusCode)
@@ -382,12 +380,12 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
 
     /** Sets the response status. */
     fun status(statusCode: Int): Context {
-        servletResponse.status = statusCode
+        res.status = statusCode
         return this
     }
 
     /** Gets the response status. */
-    fun status(): Int = servletResponse.status
+    fun status(): Int = res.status
 
     /** Sets a cookie with name, value, and (overloaded) max-age. */
     @JvmOverloads
@@ -396,14 +394,14 @@ open class Context(private val servletRequest: HttpServletRequest, private val s
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context {
         cookie.path = cookie.path ?: "/"
-        servletResponse.addCookie(cookie)
+        res.addCookie(cookie)
         return this
     }
 
     /** Removes cookie specified by name and path (optional). */
     @JvmOverloads
     fun removeCookie(name: String, path: String? = null): Context {
-        servletResponse.addCookie(Cookie(name, "").apply {
+        res.addCookie(Cookie(name, "").apply {
             this.path = path
             this.maxAge = 0
         })
