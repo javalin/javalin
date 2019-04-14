@@ -37,7 +37,7 @@ class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: 
             matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
             }
-            matcher.findEntries(type, requestUri).forEach { entry ->
+            matcher.findEntries(type, requestUri).firstOrNull()?.let { entry ->
                 entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
                 return@tryWithExceptionMapper // return after first match
             }
