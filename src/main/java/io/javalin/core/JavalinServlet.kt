@@ -99,7 +99,7 @@ class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: 
             config.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
             return // sync lifecycle complete
         } else { // finish request asynchronously
-            val asyncContext = req.startAsync()
+            val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
             ctx.resultFuture()!!.exceptionally { throwable ->
                 if (throwable is Exception) {
                     exceptionMapper.handle(throwable, ctx)

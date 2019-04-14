@@ -38,6 +38,7 @@ public class JavalinConfig {
     public String defaultContentType = "text/plain";
     public String contextPath = "/";
     public Long requestCacheSize = 4096L;
+    public Long asyncRequestTimeout = 0L;
     public List<String> corsOrigins = new ArrayList<>();
     RequestLogger requestLogger;
     ResourceHandler resourceHandler;
