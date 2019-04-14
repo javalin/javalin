@@ -344,6 +344,18 @@ class TestWebSocket {
         assertThat(app.logger().log.size).isEqualTo(1)
     }
 
+    @Test
+    fun `cookies work`() = TestUtil.test { app, _ ->
+        app.ws("/cookies") { ws ->
+            ws.onConnect { ctx ->
+                app.logger().log.add(ctx.cookie("name")!!)
+                app.logger().log.add("cookieMapSize:${ctx.cookieMap().size}")
+            }
+        }
+        TestClient(app, "/cookies", mapOf("Cookie" to "name=value; name2=value2; name3=value3")).connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("value", "cookieMapSize:3")
+    }
+
     // ********************************************************************************************
     // Helpers
     // ********************************************************************************************

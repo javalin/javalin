@@ -39,6 +39,9 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session, 
     fun header(header: String): String? = upgradeReq.getHeader(header)
     fun headerMap(): Map<String, String> = upgradeReq.headers.keys.map { it to upgradeReq.getHeader(it) }.toMap()
 
+    fun cookie(name: String): String? = upgradeReq.cookies?.find { name == it.name }?.value
+    fun cookieMap(): Map<String, String> = upgradeReq.cookies?.associate { it.name to it.value } ?: emptyMap()
+
     override fun equals(other: Any?) = session == (other as WsContext).session
     override fun hashCode() = session.hashCode()
 }
