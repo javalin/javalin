@@ -48,7 +48,7 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
     }
 
     fun addHandler(path: String, ws: Consumer<WsHandler>, permittedRoles: Set<Role>) {
-        wsPathMatcher.add(WsEntry(path, WsHandler().apply { ws.accept(this) }, permittedRoles))
+        wsPathMatcher.wsEntries.add(WsEntry(path, WsHandler().apply { ws.accept(this) }, permittedRoles))
     }
 }
 
