@@ -85,4 +85,14 @@ class TestRouting {
         assertThat(http.getBody("/test/")).isEqualTo("test")
     }
 
+    @Test
+    fun `enforceSsl works`() = TestUtil.test(Javalin.create().configure { it.enforceSsl = true }) { app, http ->
+        app.get("/ssl") {}
+        http.disableUnirestRedirects()
+        assertThat(http.get("/ssl").status).isEqualTo(301)
+        assertThat(http.get("/ssl").headers.getFirst("Location")).startsWith("https").endsWith("/ssl")
+        assertThat(http.get("/ssl?abc=test").headers.getFirst("Location")).startsWith("https").endsWith("/ssl?abc=test")
+        http.enableUnirestRedirects()
+    }
+
 }

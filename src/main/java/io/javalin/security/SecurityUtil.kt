@@ -22,6 +22,14 @@ object SecurityUtil {
         handler.handle(ctx)
     }
 
+    @JvmStatic
+    fun sslRedirect(ctx: Context) {
+        if (ctx.scheme() == "http") {
+            val queryString = if (ctx.queryString() != null) "?" + ctx.queryString() else ""
+            ctx.redirect(ctx.url().replace("http", "https") + queryString, 301)
+        }
+    }
+
 }
 
 internal enum class CoreRoles : Role { NO_WRAP } // used to avoid wrapping CORS options

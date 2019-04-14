@@ -35,6 +35,7 @@ public class JavalinConfig {
     public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
+    public boolean enforceSsl = false;
     public String defaultContentType = "text/plain";
     public String contextPath = "/";
     public Long requestCacheSize = 4096L;

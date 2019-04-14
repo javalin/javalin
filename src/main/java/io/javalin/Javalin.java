@@ -24,6 +24,7 @@ import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
+import io.javalin.security.SecurityUtil;
 import io.javalin.serversentevent.SseClient;
 import io.javalin.serversentevent.SseHandler;
 import io.javalin.websocket.WsHandler;
@@ -559,9 +560,12 @@ public class Javalin {
 
     public Javalin configure(Consumer<JavalinConfig> config) {
         if (this.server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
-        config.accept(this.config);
+        config.accept(this.config); // apply user config
         if (!this.config.corsOrigins.isEmpty()) {
             CorsUtil.enableCorsForOrigin(this.servlet, this.config.corsOrigins);
+        }
+        if (this.config.enforceSsl) {
+            this.before(SecurityUtil::sslRedirect);
         }
         return this;
     }
