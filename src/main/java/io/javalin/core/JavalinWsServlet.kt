@@ -36,7 +36,7 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
             val requestUri = req.requestURI.removePrefix(req.contextPath)
             val entry = wsPathMatcher.findEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
             try {
-                val upgradeContext = Context(req, res, mapOf()).apply {
+                val upgradeContext = Context(req, res).apply {
                     pathParamMap = entry.extractPathParams(requestUri)
                     matchedPath = entry.path
                 }

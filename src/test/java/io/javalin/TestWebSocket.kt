@@ -257,6 +257,30 @@ class TestWebSocket {
     }
 
     @Test
+    fun `extracting path information works in all handlers`() = TestUtil.test { app, _ ->
+        app.ws("/context-life") { ws ->
+            ws.onConnect { app.logger().log.add(it.queryParam("qp")!! + 1) }
+            ws.onMessage { app.logger().log.add(it.queryParam("qp")!! + 2) }
+            ws.onClose { app.logger().log.add(it.queryParam("qp")!! + 3) }
+        }
+        val client = TestClient(app, "/context-life?qp=great")
+        doAndSleepWhile({ client.connect() }, { !client.isOpen })
+        doAndSleep { client.send("not-important") }
+        doAndSleepWhile({ client.close() }, { client.isClosing })
+        assertThat(app.logger().log).containsExactly("great1", "great2", "great3")
+    }
+
+    @Test
+    fun `set attributes works`() = TestUtil.test { app, _ ->
+        app.ws("/attributes") { ws ->
+            ws.onConnect { it.attribute("test", "Success") }
+            ws.onClose { app.logger().log.add(it.attribute("test") ?: "Fail") }
+        }
+        TestClient(app, "/attributes").connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("Success")
+    }
+
+    @Test
     fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
         app.ws("/other-path/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }

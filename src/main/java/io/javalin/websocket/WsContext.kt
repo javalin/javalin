@@ -7,6 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.Context
+import io.javalin.core.util.ContextUtil
 import io.javalin.json.JavalinJson
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
@@ -21,7 +22,7 @@ import java.nio.ByteBuffer
 abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
 
     private val upgradeReq = session.upgradeRequest as ServletUpgradeRequest
-    private val upgradeCtx = upgradeReq.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
+    private val upgradeCtx = ContextUtil.changeBaseRequest(upgradeReq.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context, upgradeReq.httpServletRequest)
 
     fun matchedPath() = upgradeCtx.matchedPath
 
@@ -45,6 +46,10 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     fun cookie(name: String) = upgradeCtx.cookie(name)
     fun cookieMap(): Map<String, String> = upgradeCtx.cookieMap()
+
+    fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
+    fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
+    fun <T> attributeMap(): Map<String, T?> = upgradeCtx.attributeMap()
 
     override fun equals(other: Any?) = session == (other as WsContext).session
     override fun hashCode() = session.hashCode()
