@@ -71,6 +71,21 @@ public class Javalin {
         return new Javalin();
     }
 
+    public static Javalin create(Consumer<JavalinConfig> config) {
+        Javalin app = new Javalin();
+        config.accept(app.config); // apply user config
+        if (app.config._routeOverviewConfig != null) {
+            app.get(app.config._routeOverviewConfig.getPath(), new RouteOverviewRenderer(app), app.config._routeOverviewConfig.getRoles());
+        }
+        if (!app.config._corsOrigins.isEmpty()) {
+            CorsUtil.enableCorsForOrigin(app.servlet, app.config._corsOrigins);
+        }
+        if (app.config.enforceSsl) {
+            app.before(SecurityUtil::sslRedirect);
+        }
+        return app;
+    }
+
     /**
      * Synchronously starts the application instance on the specified port.
      *
@@ -167,27 +182,6 @@ public class Javalin {
         config.requestLogger(LogUtil::requestDevLogger);
         config.wsLogger(LogUtil::wsDevLogger);
         return this;
-    }
-
-    /**
-     * Configure instance to display a visual overview of all its mapped routes
-     * on the specified path.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableRouteOverview(@NotNull String path) {
-        return enableRouteOverview(path, new HashSet<>());
-    }
-
-    /**
-     * Configure instance to display a visual overview of all its mapped routes
-     * on the specified path with the specified roles
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
-        if (servlet.getMatcher().hasEntries()) {
-            throw new IllegalStateException("The route-overview listens for 'onHandlerAdded' events. It must be enabled before adding handlers.");
-        }
-        return get(path, new RouteOverviewRenderer(this), permittedRoles);
     }
 
     /**
@@ -551,22 +545,6 @@ public class Javalin {
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
         wsServlet.addHandler(path, ws, permittedRoles);
         eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(HandlerType.WEBSOCKET, Util.prefixContextPath(wsServlet.getConfig().contextPath, path), ws, permittedRoles));
-        return this;
-    }
-
-    // ********************************************************************************************
-    // Configuration
-    // ********************************************************************************************
-
-    public Javalin configure(Consumer<JavalinConfig> config) {
-        if (this.server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
-        config.accept(this.config); // apply user config
-        if (!this.config.corsOrigins.isEmpty()) {
-            CorsUtil.enableCorsForOrigin(this.servlet, this.config.corsOrigins);
-        }
-        if (this.config.enforceSsl) {
-            this.before(SecurityUtil::sslRedirect);
-        }
         return this;
     }
 

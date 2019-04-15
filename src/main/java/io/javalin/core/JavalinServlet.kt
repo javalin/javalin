@@ -45,8 +45,8 @@ class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: 
                 return@tryWithExceptionMapper // return 200, there is a get handler
             }
             if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
-                if (config.resourceHandler?.handle(req, res) == true) return@tryWithExceptionMapper
-                if (config.singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
+                if (config._resourceHandler?.handle(req, res) == true) return@tryWithExceptionMapper
+                if (config._singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
             }
             val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
             if (config.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
@@ -96,7 +96,7 @@ class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: 
             tryErrorHandlers()
             tryAfterHandlers()
             writeResult(res)
-            config.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
+            config._requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
             return // sync lifecycle complete
         } else { // finish request asynchronously
             val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
@@ -113,7 +113,7 @@ class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: 
                 tryErrorHandlers()
                 tryAfterHandlers()
                 writeResult(asyncContext.response as HttpServletResponse)
-                config.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
+                config._requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
                 asyncContext.complete() // async lifecycle complete
             }
         }
@@ -127,7 +127,7 @@ class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: 
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
         val shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP)
-        val protectedHandler = if (shouldWrap) Handler { ctx -> config.accessManager.manage(handler, ctx, roles) } else handler
+        val protectedHandler = if (shouldWrap) Handler { ctx -> config._accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, protectedHandler, handler))
     }
 }

@@ -23,7 +23,7 @@ class TestUnixSocketConnector {
         val testPath = "/unixsocket"
         val expectedResultString = "hello unixsocket"
 
-        val unixSocketJavalin = Javalin.create().configure {
+        val unixSocketJavalin = Javalin.create {
             it.server {
                 val server = Server()
                 val serverConnector = ServerConnector(server)

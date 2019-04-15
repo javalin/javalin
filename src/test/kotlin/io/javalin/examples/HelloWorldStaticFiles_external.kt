@@ -10,7 +10,7 @@ import io.javalin.Javalin
 import io.javalin.staticfiles.Location
 
 fun main(args: Array<String>) {
-    Javalin.create().apply {
-        configure { it.addStaticFiles("src/test/external/", Location.EXTERNAL) }
+    Javalin.create {
+        it.addStaticFiles("src/test/external/", Location.EXTERNAL)
     }.start(7070)
 }

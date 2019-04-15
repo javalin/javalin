@@ -28,7 +28,7 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
     var wsPathMatcher = WsPathMatcher(config)
 
     override fun configure(factory: WebSocketServletFactory) {
-        config.wsFactoryConfig?.accept(factory)
+        config._wsFactoryConfig?.accept(factory)
         factory.creator = WebSocketCreator { req, res ->
             val preUpgradeContext = req.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
             req.httpServletRequest.setAttribute("javalin-ws-upgrade-context", ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
@@ -45,7 +45,7 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
                     pathParamMap = entry.extractPathParams(requestUri)
                     matchedPath = entry.path
                 }
-                config.accessManager.manage({ ctx -> ctx.req.setAttribute("javalin-ws-upgrade-allowed", "true") }, upgradeContext, entry.permittedRoles)
+                config._accessManager.manage({ ctx -> ctx.req.setAttribute("javalin-ws-upgrade-allowed", "true") }, upgradeContext, entry.permittedRoles)
                 if (req.getAttribute("javalin-ws-upgrade-allowed") != "true") throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
                 req.setAttribute("javalin-ws-upgrade-context", upgradeContext)
                 super.service(req, res)

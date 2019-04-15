@@ -16,8 +16,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 public class HelloWorldServlet {
 
     public static void main(String[] args) {
-        Javalin app = Javalin.create();
-        app.configure(config -> {
+        Javalin app = Javalin.create(config -> {
             config.server(() -> {
                 Server server = new Server();
                 ServletContextHandler context = new ServletContextHandler();

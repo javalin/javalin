@@ -86,7 +86,7 @@ class TestRouting {
     }
 
     @Test
-    fun `enforceSsl works`() = TestUtil.test(Javalin.create().configure { it.enforceSsl = true }) { app, http ->
+    fun `enforceSsl works`() = TestUtil.test(Javalin.create { it.enforceSsl = true }) { app, http ->
         app.get("/ssl") {}
         http.disableUnirestRedirects()
         assertThat(http.get("/ssl").status).isEqualTo(301)

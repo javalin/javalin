@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse
 
 class TestMethodNotAllowed {
 
-    private val preferring405Javalin = Javalin.create().configure { it.prefer405over404 = true }.apply {
+    private val preferring405Javalin = Javalin.create { it.prefer405over404 = true }.apply {
         post("/test") { ctx -> ctx.result("Hello world") }
         put("/test") { ctx -> ctx.result("Hello world") }
         delete("/test") { ctx -> ctx.result("Hello world") }

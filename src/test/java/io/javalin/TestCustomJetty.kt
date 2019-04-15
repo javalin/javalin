@@ -37,7 +37,7 @@ class TestCustomJetty {
     fun `embedded server can have custom jetty Handler`() {
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
-        val javalin = Javalin.create().configure { it.server { newServer } }
+        val javalin = Javalin.create { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 5
@@ -57,7 +57,7 @@ class TestCustomJetty {
         val requestLogHandler = RequestLogHandler().apply { requestLog = RequestLog { _, _ -> logCount.incrementAndGet() } }
         val handlerChain = StatisticsHandler().apply { handler = requestLogHandler }
         val newServer = Server().apply { handler = handlerChain }
-        val javalin = Javalin.create().configure { it.server { newServer } }
+        val javalin = Javalin.create { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 10
@@ -77,7 +77,7 @@ class TestCustomJetty {
         val handlerCollection = HandlerCollection()
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
-        val javalin = Javalin.create().configure { it.server { newServer } }
+        val javalin = Javalin.create { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello World") }
             val requests = 10
@@ -103,8 +103,7 @@ class TestCustomJetty {
                 }
             }
         }
-        val javalin = Javalin.create()
-                .configure {
+        val javalin = Javalin.create {
                     it.sessionHandler { fileSessionHandler }
                     it.server { newServer }
                 }.start(0)
@@ -118,7 +117,7 @@ class TestCustomJetty {
 
     @Test
     fun `default SessionHandler works`() {
-        Javalin.create().configure { it.sessionHandler { SessionHandler() } }
+        Javalin.create { it.sessionHandler { SessionHandler() } }
     }
 
     @Test
@@ -132,7 +131,7 @@ class TestCustomJetty {
                 }.getSessionDataStore(sessionHandler)
             }
         }
-        Javalin.create().configure {
+        Javalin.create {
             it.sessionHandler { sqlSessionHandler(driver = "null", url = "null") }
         }
     }
@@ -152,7 +151,7 @@ class TestCustomJetty {
         }
         newServer.handler = handler
 
-        val javalin = Javalin.create().configure { it.server { newServer } }
+        val javalin = Javalin.create { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/bar") { ctx -> ctx.result("Hello") }
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
@@ -172,7 +171,7 @@ class TestCustomJetty {
                 })
             }
         }
-        val javalin = Javalin.create().configure { it.server { newServer } }
+        val javalin = Javalin.create { it.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello Javalin World!") }
             assertThat(http.getBody("/")).contains("Hello Javalin World!")
