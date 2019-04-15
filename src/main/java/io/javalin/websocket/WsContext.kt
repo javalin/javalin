@@ -7,7 +7,6 @@
 package io.javalin.websocket
 
 import io.javalin.Context
-import io.javalin.core.util.ContextUtil
 import io.javalin.json.JavalinJson
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session

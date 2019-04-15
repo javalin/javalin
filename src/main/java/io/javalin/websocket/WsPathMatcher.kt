@@ -30,11 +30,10 @@ class WsPathMatcher(val config: JavalinConfig) {
 
     val wsEntries = mutableListOf<WsEntry>()
     private val sessionIds = ConcurrentHashMap<Session, String>()
-    private val pathParams = ConcurrentHashMap<Session, Map<String, String>>()
 
     @OnWebSocketConnect
     fun webSocketConnect(session: Session) {
-        val entry = findEntryAndCacheSession(session)
+        val entry = cacheSessionAndFindEntry(session)
         val ctx = WsConnectContext(sessionIds[session]!!, session)
         entry.handler.connectHandler?.handleConnect(ctx)
         config.wsLogger?.connectHandler?.handleConnect(ctx)
@@ -42,7 +41,7 @@ class WsPathMatcher(val config: JavalinConfig) {
 
     @OnWebSocketMessage
     fun webSocketMessage(session: Session, message: String) {
-        val entry = findEntryAndCacheSession(session)
+        val entry = cacheSessionAndFindEntry(session)
         val ctx = WsMessageContext(sessionIds[session]!!, session, message)
         entry.handler.messageHandler?.handleMessage(ctx)
         config.wsLogger?.messageHandler?.handleMessage(ctx)
@@ -50,7 +49,7 @@ class WsPathMatcher(val config: JavalinConfig) {
 
     @OnWebSocketMessage
     fun webSocketBinaryMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        val entry = findEntryAndCacheSession(session)
+        val entry = cacheSessionAndFindEntry(session)
         val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, buffer.toTypedArray(), offset, length)
         entry.handler.binaryMessageHandler?.handleBinaryMessage(ctx)
         config.wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
@@ -58,7 +57,7 @@ class WsPathMatcher(val config: JavalinConfig) {
 
     @OnWebSocketError
     fun webSocketError(session: Session, throwable: Throwable?) {
-        val entry = findEntryAndCacheSession(session)
+        val entry = cacheSessionAndFindEntry(session)
         val ctx = WsErrorContext(sessionIds[session]!!, session, throwable)
         entry.handler.errorHandler?.handleError(ctx)
         config.wsLogger?.errorHandler?.handleError(ctx)
@@ -66,24 +65,18 @@ class WsPathMatcher(val config: JavalinConfig) {
 
     @OnWebSocketClose
     fun webSocketClose(session: Session, statusCode: Int, reason: String?) {
-        val entry = findEntryAndCacheSession(session)
+        val entry = cacheSessionAndFindEntry(session)
         val ctx = WsCloseContext(sessionIds[session]!!, session, statusCode, reason)
         entry.handler.closeHandler?.handleClose(ctx)
         config.wsLogger?.closeHandler?.handleClose(ctx)
-        destroy(session)
+        sessionIds.remove(session)
     }
 
     fun findEntry(uri: String) = wsEntries.find { it.matches(uri) }
 
-    private fun findEntryAndCacheSession(session: Session) =
-            findEntry(session.uriNoContextPath())!!.also { cacheSession(session, it) } // can't be null, has 404 handler in front
-
-    private fun cacheSession(session: Session, wsEntry: WsEntry) {
+    private fun cacheSessionAndFindEntry(session: Session): WsEntry {
         sessionIds.putIfAbsent(session, UUID.randomUUID().toString())
-    }
-
-    private fun destroy(session: Session) {
-        sessionIds.remove(session)
+        return findEntry(session.uriNoContextPath())!! // can't be null, has 404 handler in front
     }
 
 }
