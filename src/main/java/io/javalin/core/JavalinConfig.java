@@ -56,7 +56,7 @@ public class JavalinConfig {
     public void enableWebjars() { addStaticFiles("/webjars", Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String path, @NotNull Location location) {
-        if (_resourceHandler == null) this._resourceHandler = new JettyResourceHandler();
+        if (this._resourceHandler == null) this._resourceHandler = new JettyResourceHandler();
         this._resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
     }
 
