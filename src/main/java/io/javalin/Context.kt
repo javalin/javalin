@@ -299,6 +299,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the request url. */
     fun url(): String = req.requestURL.toString()
 
+    /** Gets the full request url, including query string (if present) */
+    fun fullUrl(): String = url() + if (queryString() != null) "?" + queryString() else ""
+
     /** Gets the request context path. */
     fun contextPath(): String = req.contextPath
 

@@ -25,8 +25,7 @@ object SecurityUtil {
     @JvmStatic
     fun sslRedirect(ctx: Context) {
         if (ctx.scheme() == "http") {
-            val queryString = if (ctx.queryString() != null) "?" + ctx.queryString() else ""
-            ctx.redirect(ctx.url().replace("http", "https") + queryString, 301)
+            ctx.redirect(ctx.fullUrl().replace("http", "https"), 301)
         }
     }
 
