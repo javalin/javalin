@@ -24,7 +24,10 @@ class TestStaticFiles {
         servlet.addStaticFiles("/public/protected")
         servlet.addStaticFiles("/public/subdir")
     }
-    private val devLoggingApp = Javalin.create { it.addStaticFiles("/public") }.enableDevLogging()
+    private val devLoggingApp = Javalin.create {
+        it.addStaticFiles("/public")
+        it.enableDevLogging()
+    }
 
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->

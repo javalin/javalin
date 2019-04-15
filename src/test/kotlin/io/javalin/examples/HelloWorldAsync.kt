@@ -14,7 +14,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
-    val app = Javalin.create().enableDevLogging().start(7070)
+    val app = Javalin.create { it.enableDevLogging() }.start(7070)
 
     app.routes {
         get("/result") { ctx ->

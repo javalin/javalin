@@ -166,25 +166,6 @@ public class Javalin {
     }
 
     /**
-     * Set the server port
-     * Mostly useful if you start the instance with port(0) (random port)
-     */
-    public Javalin port(int port) {
-        server.setServerPort(port);
-        return this;
-    }
-
-    /**
-     * Configure instance to log debug information for each request.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableDevLogging() {
-        config.requestLogger(LogUtil::requestDevLogger);
-        config.wsLogger(LogUtil::wsDevLogger);
-        return this;
-    }
-
-    /**
      * Registers an attribute on the instance.
      * Instance is available on the {@link Context} through {@link Context#appAttribute}.
      * Ex: app.attribute(MyExt.class, myExtInstance())

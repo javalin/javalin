@@ -20,7 +20,7 @@ class TestLogging {
     fun `default logging (no logging) works`() = runTest(Javalin.create())
 
     @Test
-    fun `debug logging works`() = runTest(Javalin.create().enableDevLogging())
+    fun `debug logging works`() = runTest(Javalin.create { it.enableDevLogging() })
 
     @Test
     fun `custom logging works`() = runTest(Javalin.create {

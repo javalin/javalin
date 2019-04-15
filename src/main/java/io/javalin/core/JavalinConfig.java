@@ -7,6 +7,7 @@
 package io.javalin.core;
 
 import io.javalin.RequestLogger;
+import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewConfig;
 import io.javalin.core.util.SinglePageHandler;
 import io.javalin.security.AccessManager;
@@ -31,6 +32,11 @@ import org.jetbrains.annotations.NotNull;
 
 // @formatter:off
 public class JavalinConfig {
+
+    public void enableDevLogging() {
+        requestLogger(LogUtil::requestDevLogger);
+        wsLogger(LogUtil::wsDevLogger);
+    }
 
     // ********************************************************************************************
     // HTTP Servlet
