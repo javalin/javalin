@@ -33,10 +33,16 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) {
         if (req.isWebSocket()) {
-            val entry = wsPathMatcher.findEntry(req.requestURI.removePrefix(req.contextPath)) ?: return res.sendError(404, "WebSocket handler not found")
+            val requestUri = req.requestURI.removePrefix(req.contextPath)
+            val entry = wsPathMatcher.findEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
             try {
-                config.accessManager.manage({ ctx -> ctx.req.setAttribute("javalin-ws-upgrade-allowed", "true") }, Context(req, res, mapOf()), entry.permittedRoles)
+                val upgradeContext = Context(req, res, mapOf()).apply {
+                    pathParamMap = entry.extractPathParams(requestUri)
+                    matchedPath = entry.path
+                }
+                config.accessManager.manage({ ctx -> ctx.req.setAttribute("javalin-ws-upgrade-allowed", "true") }, upgradeContext, entry.permittedRoles)
                 if (req.getAttribute("javalin-ws-upgrade-allowed") != "true") throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
+                req.setAttribute("javalin-ws-upgrade-context", upgradeContext)
                 super.service(req, res)
             } catch (e: Exception) {
                 res.sendError(401, "Unauthorized")
