@@ -380,6 +380,60 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("value", "cookieMapSize:3")
     }
 
+    @Test
+    fun `before handlers work`() = TestUtil.test { app, _ ->
+        app.wsBefore { ws ->
+            ws.onConnect { app.logger().log.add("before handler: onConnect") }
+            ws.onMessage { app.logger().log.add("before handler: onMessage") }
+            ws.onClose { app.logger().log.add("before handler: onClose") }
+        }
+
+        app.ws("/ws") { ws ->
+            ws.onConnect { app.logger().log.add("endpoint handler: onConnect") }
+            ws.onMessage { app.logger().log.add("endpoint handler: onMessage") }
+            ws.onClose { app.logger().log.add("endpoint handler: onClose") }
+        }
+
+        val client = TestClient(app, "/ws")
+
+        doAndSleepWhile({ client.connect() }, { !client.isOpen })
+        doAndSleep { client.send("test") }
+        doAndSleepWhile({ client.close() }, { client.isClosing })
+
+        assertThat(app.logger().log).containsExactly(
+                "before handler: onConnect", "endpoint handler: onConnect",
+                "before handler: onMessage", "endpoint handler: onMessage",
+                "before handler: onClose", "endpoint handler: onClose"
+        )
+    }
+
+    @Test
+    fun `after handlers work`() = TestUtil.test { app, _ ->
+        app.ws("/ws") { ws ->
+            ws.onConnect { app.logger().log.add("endpoint handler: onConnect") }
+            ws.onMessage { app.logger().log.add("endpoint handler: onMessage") }
+            ws.onClose { app.logger().log.add("endpoint handler: onClose") }
+        }
+
+        app.wsAfter { ws ->
+            ws.onConnect { app.logger().log.add("after handler: onConnect") }
+            ws.onMessage { app.logger().log.add("after handler: onMessage") }
+            ws.onClose { app.logger().log.add("after handler: onClose") }
+        }
+
+        val client = TestClient(app, "/ws")
+
+        doAndSleepWhile({ client.connect() }, { !client.isOpen })
+        doAndSleep { client.send("test") }
+        doAndSleepWhile({ client.close() }, { client.isClosing })
+
+        assertThat(app.logger().log).containsExactly(
+                "endpoint handler: onConnect", "after handler: onConnect",
+                "endpoint handler: onMessage", "after handler: onMessage",
+                "endpoint handler: onClose", "after handler: onClose"
+        )
+    }
+
     // ********************************************************************************************
     // Helpers
     // ********************************************************************************************
