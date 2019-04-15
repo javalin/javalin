@@ -7,7 +7,6 @@
 package io.javalin.websocket
 
 import io.javalin.Context
-import io.javalin.core.util.ContextUtil
 import io.javalin.json.JavalinJson
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
@@ -22,7 +21,7 @@ import java.nio.ByteBuffer
 abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
 
     private val upgradeReq = session.upgradeRequest as ServletUpgradeRequest
-    private val upgradeCtx = ContextUtil.changeBaseRequest(upgradeReq.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context, upgradeReq.httpServletRequest)
+    private val upgradeCtx = upgradeReq.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
 
     fun matchedPath() = upgradeCtx.matchedPath
 

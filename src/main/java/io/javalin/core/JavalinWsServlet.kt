@@ -9,6 +9,7 @@ package io.javalin.core
 import io.javalin.Context
 import io.javalin.Javalin
 import io.javalin.UnauthorizedResponse
+import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.security.Role
@@ -28,7 +29,11 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
 
     override fun configure(factory: WebSocketServletFactory) {
         config.wsFactoryConfig?.accept(factory)
-        factory.creator = WebSocketCreator { req, res -> wsPathMatcher } // this is a long-lived object handling multiple connections
+        factory.creator = WebSocketCreator { req, res ->
+            val preUpgradeContext = req.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
+            req.httpServletRequest.setAttribute("javalin-ws-upgrade-context", ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
+            wsPathMatcher // this is a long-lived object handling multiple connections
+        }
     }
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) {
