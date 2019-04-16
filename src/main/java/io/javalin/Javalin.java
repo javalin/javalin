@@ -58,19 +58,23 @@ public class Javalin {
     }
 
     /**
-     * Creates an instance of the application for further configuration.
-     * The server does not run until {@link Javalin#start()} is called.
+     * Creates a new instance without any custom configuration.
      *
-     * @return instance of application for configuration.
-     * @see Javalin#start()
-     * @see Javalin#start(int)
+     * @see Javalin#create(Consumer)
      */
     public static Javalin create() {
-        return create(config -> {
-            // use defaults
+        return create(c -> { // use defaults
         });
     }
 
+    /**
+     * Creates a new instance with the user provided configuration.
+     * The server does not run until {@link Javalin#start()} is called.
+     *
+     * @return application instance.
+     * @see Javalin#start()
+     * @see Javalin#start(int)
+     */
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
         config.accept(app.config); // apply user config
