@@ -1,6 +1,5 @@
 package io.javalin
 
-import io.javalin.util.TestUtil
 import jnr.unixsocket.UnixSocketAddress
 import jnr.unixsocket.UnixSocketChannel
 import org.assertj.core.api.Assertions.assertThat

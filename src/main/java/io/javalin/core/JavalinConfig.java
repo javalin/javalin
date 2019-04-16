@@ -38,6 +38,7 @@ public class JavalinConfig {
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
+    public boolean showJavalinBanner = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
     @NotNull public Long requestCacheSize = 4096L;
@@ -45,7 +46,7 @@ public class JavalinConfig {
     @NotNull public String wsContextPath ="/";
     @NotNull public Inner inner = new Inner();
 
-    // it's not bad if you access this, the main reason it's hidden
+    // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
     public class Inner {
         @NotNull public List<String> corsOrigins = new ArrayList<>();

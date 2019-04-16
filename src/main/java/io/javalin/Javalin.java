@@ -43,8 +43,6 @@ public class Javalin {
 
     public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    protected boolean showJavalinBanner = true;
-
     protected Map<Class<?>, Object> appAttributes = new HashMap<>();
 
     protected JavalinConfig config = new JavalinConfig();
@@ -57,8 +55,6 @@ public class Javalin {
     public EventAttacher on = eventManager.getEventAttacher();
 
     protected Javalin() {
-        Util.logJavalinBanner(showJavalinBanner);
-        Util.logWarningIfNotStartedAfterOneSecond(server);
     }
 
     /**
@@ -70,7 +66,9 @@ public class Javalin {
      * @see Javalin#start(int)
      */
     public static Javalin create() {
-        return new Javalin();
+        return create(config -> {
+            // use defaults
+        });
     }
 
     public static Javalin create(Consumer<JavalinConfig> config) {
@@ -86,6 +84,7 @@ public class Javalin {
         if (app.config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
+        Util.logWarningIfNotStartedAfterOneSecond(app.server);
         return app;
     }
 
@@ -109,6 +108,7 @@ public class Javalin {
      * @see Javalin#create()
      */
     public Javalin start() {
+        Util.logJavalinBanner(this.config.showJavalinBanner);
         long startupTimer = System.currentTimeMillis();
         if (server.getStarted()) {
             throw new IllegalStateException("Cannot call start() again on a started server.");
@@ -148,15 +148,6 @@ public class Javalin {
         }
         log.info("Javalin has stopped");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
-        return this;
-    }
-
-    /**
-     * Configure instance to not show banner in logs.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin disableStartupBanner() {
-        showJavalinBanner = false;
         return this;
     }
 

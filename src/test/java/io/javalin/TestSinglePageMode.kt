@@ -10,7 +10,6 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.staticfiles.Location
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File

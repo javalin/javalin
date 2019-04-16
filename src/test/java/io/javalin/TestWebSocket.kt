@@ -10,7 +10,6 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
-import io.javalin.util.TestUtil
 import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException

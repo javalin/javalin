@@ -8,7 +8,6 @@ package io.javalin
 
 import io.javalin.json.JavalinJackson
 import io.javalin.misc.UploadInfo
-import io.javalin.util.TestUtil
 import okhttp3.*
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat

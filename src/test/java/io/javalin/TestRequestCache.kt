@@ -1,6 +1,5 @@
 package io.javalin
 
-import io.javalin.util.TestUtil
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ByteArrayEntity
 import org.apache.http.impl.client.HttpClients

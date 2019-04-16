@@ -8,7 +8,6 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
-import io.javalin.util.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat

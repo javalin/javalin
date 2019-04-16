@@ -13,7 +13,6 @@ import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.security.Role
 import io.javalin.security.SecurityUtil.roles
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 

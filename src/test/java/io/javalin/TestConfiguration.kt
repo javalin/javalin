@@ -7,7 +7,6 @@
 package io.javalin
 
 import io.javalin.staticfiles.Location
-import io.javalin.util.TestUtil
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.junit.Test

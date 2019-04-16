@@ -7,7 +7,6 @@
 package io.javalin
 
 import io.javalin.core.util.Header
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
 import org.junit.Test
