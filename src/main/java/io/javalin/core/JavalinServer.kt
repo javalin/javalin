@@ -32,17 +32,17 @@ class JavalinServer(val config: JavalinConfig) {
         disableJettyLogger()
     }
 
-    fun server() = config._server
+    fun server() = config.inner.server!!
     var started = false
 
     @Throws(BindException::class)
     fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
 
-        config._server = config._server ?: defaultServer()
-        javalinServlet.config._sessionHandler = javalinServlet.config._sessionHandler ?: defaultSessionHandler()
+        config.inner.server = config.inner.server ?: defaultServer()
+        config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
-        val httpHandler = object : ServletContextHandler(nullParent, javalinServlet.config.contextPath, SESSIONS) {
+        val httpHandler = object : ServletContextHandler(nullParent, config.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 if (request.isWebSocket()) return // don't touch websocket requests
                 try {
@@ -55,30 +55,30 @@ class JavalinServer(val config: JavalinConfig) {
                 }
                 jettyRequest.isHandled = true
             }
-        }.apply { this.sessionHandler = javalinServlet.config._sessionHandler }
+        }.apply { this.sessionHandler = config.inner.sessionHandler }
 
         val webSocketHandler = ServletContextHandler(nullParent, javalinWsServlet.config.wsContextPath, SESSIONS).apply {
             addServlet(ServletHolder(javalinWsServlet), "/*")
         }
 
-        config._server.apply {
+        server().apply {
             handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = serverPort
             })
         }.start()
 
-        config._server.connectors.filterIsInstance<ServerConnector>().forEach {
-            Javalin.log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${javalinServlet.config.contextPath}")
+        server().connectors.filterIsInstance<ServerConnector>().forEach {
+            Javalin.log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
         }
 
-        config._server.connectors.filter { it !is ServerConnector }.forEach {
+        server().connectors.filter { it !is ServerConnector }.forEach {
             Javalin.log.info("Binding to: $it")
         }
 
         reEnableJettyLogger()
         started = true
-        serverPort = (config._server.connectors[0] as? ServerConnector)?.localPort ?: -1
+        serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
     private fun disableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(NoopLogger()) // disable logger before server creation

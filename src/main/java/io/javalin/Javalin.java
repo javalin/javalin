@@ -19,7 +19,6 @@ import io.javalin.core.JavalinServer;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.JavalinWsServlet;
 import io.javalin.core.util.CorsUtil;
-import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
@@ -74,11 +73,11 @@ public class Javalin {
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
         config.accept(app.config); // apply user config
-        if (app.config._routeOverviewConfig != null) {
-            app.get(app.config._routeOverviewConfig.getPath(), new RouteOverviewRenderer(app), app.config._routeOverviewConfig.getRoles());
+        if (app.config.inner.routeOverview != null) {
+            app.get(app.config.inner.routeOverview.getPath(), new RouteOverviewRenderer(app), app.config.inner.routeOverview.getRoles());
         }
-        if (!app.config._corsOrigins.isEmpty()) {
-            CorsUtil.enableCorsForOrigin(app.servlet, app.config._corsOrigins);
+        if (!app.config.inner.corsOrigins.isEmpty()) {
+            CorsUtil.enableCorsForOrigin(app.servlet, app.config.inner.corsOrigins);
         }
         if (app.config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);

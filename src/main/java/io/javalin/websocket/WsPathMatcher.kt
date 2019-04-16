@@ -36,7 +36,7 @@ class WsPathMatcher(val config: JavalinConfig) {
         val entry = cacheSessionAndFindEntry(session)
         val ctx = WsConnectContext(sessionIds[session]!!, session)
         entry.handler.connectHandler?.handleConnect(ctx)
-        config.wsLogger?.connectHandler?.handleConnect(ctx)
+        config.inner.wsLogger?.connectHandler?.handleConnect(ctx)
     }
 
     @OnWebSocketMessage
@@ -44,7 +44,7 @@ class WsPathMatcher(val config: JavalinConfig) {
         val entry = cacheSessionAndFindEntry(session)
         val ctx = WsMessageContext(sessionIds[session]!!, session, message)
         entry.handler.messageHandler?.handleMessage(ctx)
-        config.wsLogger?.messageHandler?.handleMessage(ctx)
+        config.inner.wsLogger?.messageHandler?.handleMessage(ctx)
     }
 
     @OnWebSocketMessage
@@ -52,7 +52,7 @@ class WsPathMatcher(val config: JavalinConfig) {
         val entry = cacheSessionAndFindEntry(session)
         val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, buffer.toTypedArray(), offset, length)
         entry.handler.binaryMessageHandler?.handleBinaryMessage(ctx)
-        config.wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
+        config.inner.wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
     }
 
     @OnWebSocketError
@@ -60,7 +60,7 @@ class WsPathMatcher(val config: JavalinConfig) {
         val entry = cacheSessionAndFindEntry(session)
         val ctx = WsErrorContext(sessionIds[session]!!, session, throwable)
         entry.handler.errorHandler?.handleError(ctx)
-        config.wsLogger?.errorHandler?.handleError(ctx)
+        config.inner.wsLogger?.errorHandler?.handleError(ctx)
     }
 
     @OnWebSocketClose
@@ -68,7 +68,7 @@ class WsPathMatcher(val config: JavalinConfig) {
         val entry = cacheSessionAndFindEntry(session)
         val ctx = WsCloseContext(sessionIds[session]!!, session, statusCode, reason)
         entry.handler.closeHandler?.handleClose(ctx)
-        config.wsLogger?.closeHandler?.handleClose(ctx)
+        config.inner.wsLogger?.closeHandler?.handleClose(ctx)
         sessionIds.remove(session)
     }
 
