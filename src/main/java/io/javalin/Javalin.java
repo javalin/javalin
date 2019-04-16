@@ -18,10 +18,12 @@ import io.javalin.core.JavalinEvent;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JavalinServlet;
 import io.javalin.core.JavalinWsServlet;
-import io.javalin.core.util.CorsUtil;
+import io.javalin.core.util.CorsBeforeHandler;
+import io.javalin.core.util.CorsOptionsHandler;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
+import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
 import io.javalin.security.SecurityUtil;
 import io.javalin.serversentevent.SseClient;
@@ -35,6 +37,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static io.javalin.security.SecurityUtil.roles;
 
 public class Javalin {
 
@@ -77,7 +80,8 @@ public class Javalin {
             app.get(app.config.inner.routeOverview.getPath(), new RouteOverviewRenderer(app), app.config.inner.routeOverview.getRoles());
         }
         if (!app.config.inner.corsOrigins.isEmpty()) {
-            CorsUtil.enableCorsForOrigin(app.servlet, app.config.inner.corsOrigins);
+            app.before(new CorsBeforeHandler(app.config.inner.corsOrigins));
+            app.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));
         }
         if (app.config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
