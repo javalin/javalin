@@ -7,7 +7,6 @@
 package io.javalin
 
 import io.javalin.core.util.Header
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
 import org.junit.Test
@@ -154,7 +153,7 @@ class TestHttpResponseExceptions {
     }
 
     @Test
-    fun `default content type affects http response errors`() = TestUtil.test(Javalin.create().configure { it.defaultContentType = "application/json" }) { app, http ->
+    fun `default content type affects http response errors`() = TestUtil.test(Javalin.create { it.defaultContentType = "application/json" }) { app, http ->
         app.get("/content-type") { throw ForbiddenResponse() }
         val response = http.get("/content-type")
         assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN_403)

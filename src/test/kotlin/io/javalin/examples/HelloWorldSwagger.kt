@@ -16,8 +16,7 @@ import io.javalin.Javalin
 import io.javalin.core.util.SwaggerRenderer
 
 fun main(args: Array<String>) {
-    Javalin.create().apply {
-        configure { it.enableWebjars() }
+    Javalin.create { it.enableWebjars() }.apply {
         get("/my-docs", SwaggerRenderer("exampleApiSpec.yaml"))
     }.start(0)
 }

@@ -7,22 +7,15 @@
 package io.javalin
 
 import io.javalin.staticfiles.Location
-import io.javalin.util.TestUtil
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.junit.Test
 
 class TestConfiguration {
 
-    @Test(expected = IllegalStateException::class)
-    fun `Javalin#servlet() throws if used after Javalin#configure()`() = TestUtil.test { app, http ->
-        app.configure { }
-    }
-
     @Test
     fun `test all config options`() {
-        val app = Javalin.create()
-        app.configure {
+        val app = Javalin.create {
             it.addSinglePageRoot("/", "/public/html.html")
             it.addSinglePageRoot("/", "src/test/resources/public/html.html", Location.EXTERNAL)
             it.addStaticFiles("/public")

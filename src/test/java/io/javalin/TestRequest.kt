@@ -8,7 +8,6 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
@@ -265,7 +264,7 @@ class TestRequest {
     }
 
     @Test
-    fun `contextPath() with value works`() = TestUtil.test(Javalin.create().configure { it.contextPath = "/ctx" }) { app, http ->
+    fun `contextPath() with value works`() = TestUtil.test(Javalin.create { it.contextPath = "/ctx" }) { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
         assertThat(http.getBody("/ctx/")).isEqualTo("/ctx")
     }
