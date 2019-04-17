@@ -9,7 +9,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>2.8.1-SNAPSHOT</version>
+    <version>3.0.0.ALPHA0-SNAPSHOT</version>
 
     <name>Javalin</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -40,11 +40,11 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <jetty.version>9.4.15.v20190215</jetty.version>
+        <jetty.version>9.4.16.v20190411</jetty.version>
         <slf4j.version>1.7.26</slf4j.version>
         <jackson.version>2.9.8</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.2.71</kotlin.version> <!-- This is 1.2.71 on purpose, don't bump -->
+        <kotlin.version>1.3.30</kotlin.version>
         <kotlin.compiler.jvmTarget>1.6</kotlin.compiler.jvmTarget> <!-- This is 1.6 on purpose, don't bump -->
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
@@ -234,6 +234,10 @@
                             <goal>compile</goal>
                         </goals>
                         <configuration>
+                            <args>
+                                <!-- Workaround for bug in Kotlin compiler: https://youtrack.jetbrains.com/issue/KT-29475 -->
+                                <arg>-Xsanitize-parentheses</arg>
+                            </args>
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/main/java</sourceDir>
                             </sourceDirs>
@@ -245,6 +249,10 @@
                             <goal>test-compile</goal>
                         </goals>
                         <configuration>
+                            <args>
+                                <!-- Workaround for bug in Kotlin compiler: https://youtrack.jetbrains.com/issue/KT-29475 -->
+                                <arg>-Xsanitize-parentheses</arg>
+                            </args>
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
                                 <sourceDir>${project.basedir}/src/test/java</sourceDir>
