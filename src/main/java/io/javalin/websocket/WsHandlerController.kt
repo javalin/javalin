@@ -6,7 +6,6 @@
 
 package io.javalin.websocket
 
-import io.javalin.core.JavalinConfig
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.*
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
@@ -18,7 +17,9 @@ import java.util.concurrent.ConcurrentHashMap
  * matching custom handlers.
  */
 @WebSocket
-class WsHandlerController(private val matcher: WsPathMatcher, private val config: JavalinConfig) {
+class WsHandlerController(private val matcher: WsPathMatcher,
+                          private val exceptionMapper: WsExceptionMapper,
+                          private val wsLogger: WsHandler?) {
 
     private val sessionIds = ConcurrentHashMap<Session, String>()
 
@@ -31,34 +32,24 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
         val requestUri = session.uriNoContextPath()
         val ctx = WsConnectContext(sessionId, session)
 
-        // Invoke before handlers (if any)
-        matcher.findBeforeHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.connectHandler?.handleConnect(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
-        }
+        try {
+            // Invoke before handlers (if any)
+            matcher.findBeforeHandlerEntries(requestUri).forEach { it.handler.connectHandler?.handleConnect(ctx) }
 
-        // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
-        matcher.findEndpointHandlerEntry(requestUri)!!.let { entry ->
-            try {
-                entry.handler.connectHandler?.handleConnect(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+            // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
+            matcher.findEndpointHandlerEntry(requestUri)!!.let { it.handler.connectHandler?.handleConnect(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
         // Invoke after handlers (if any)
-        matcher.findAfterHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.connectHandler?.handleConnect(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+        try {
+            matcher.findAfterHandlerEntries(requestUri).forEach { it.handler.connectHandler?.handleConnect(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
-        config.inner.wsLogger?.connectHandler?.handleConnect(ctx)
+        wsLogger?.connectHandler?.handleConnect(ctx)
     }
 
     @OnWebSocketMessage
@@ -66,34 +57,24 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
         val requestUri = session.uriNoContextPath()
         val ctx = WsMessageContext(sessionIds[session]!!, session, message)
 
-        // Invoke before handlers (if any)
-        matcher.findBeforeHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.messageHandler?.handleMessage(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
-        }
+        try {
+            // Invoke before handlers (if any)
+            matcher.findBeforeHandlerEntries(requestUri).forEach { it.handler.messageHandler?.handleMessage(ctx) }
 
-        // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
-        matcher.findEndpointHandlerEntry(requestUri)!!.let { entry ->
-            try {
-                entry.handler.messageHandler?.handleMessage(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+            // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
+            matcher.findEndpointHandlerEntry(requestUri)!!.let { it.handler.messageHandler?.handleMessage(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
         // Invoke after handlers (if any)
-        matcher.findAfterHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.messageHandler?.handleMessage(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+        try {
+            matcher.findAfterHandlerEntries(requestUri).forEach { it.handler.messageHandler?.handleMessage(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
-        config.inner.wsLogger?.messageHandler?.handleMessage(ctx)
+        wsLogger?.messageHandler?.handleMessage(ctx)
     }
 
     @OnWebSocketMessage
@@ -101,34 +82,24 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
         val requestUri = session.uriNoContextPath()
         val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, buffer.toTypedArray(), offset, length)
 
-        // Invoke before handlers (if any)
-        matcher.findBeforeHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.binaryMessageHandler?.handleBinaryMessage(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
-        }
+        try {
+            // Invoke before handlers (if any)
+            matcher.findBeforeHandlerEntries(requestUri).forEach { it.handler.binaryMessageHandler?.handleBinaryMessage(ctx) }
 
-        // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
-        matcher.findEndpointHandlerEntry(requestUri)!!.let { entry ->
-            try {
-                entry.handler.binaryMessageHandler?.handleBinaryMessage(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+            // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
+            matcher.findEndpointHandlerEntry(requestUri)!!.let { it.handler.binaryMessageHandler?.handleBinaryMessage(ctx) }
+        } catch (e: java.lang.Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
         // Invoke after handlers (if any)
-        matcher.findAfterHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.binaryMessageHandler?.handleBinaryMessage(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+        try {
+            matcher.findAfterHandlerEntries(requestUri).forEach { it.handler.binaryMessageHandler?.handleBinaryMessage(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
-        config.inner.wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
+        wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
     }
 
     @OnWebSocketClose
@@ -136,34 +107,24 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
         val requestUri = session.uriNoContextPath()
         val ctx = WsCloseContext(sessionIds[session]!!, session, statusCode, reason)
 
-        // Invoke before handlers (if any)
-        matcher.findBeforeHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.closeHandler?.handleClose(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
-        }
+        try {
+            // Invoke before handlers (if any)
+            matcher.findBeforeHandlerEntries(requestUri).forEach { it.handler.closeHandler?.handleClose(ctx) }
 
-        // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
-        matcher.findEndpointHandlerEntry(requestUri)!!.let { entry ->
-            try {
-                entry.handler.closeHandler?.handleClose(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+            // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
+            matcher.findEndpointHandlerEntry(requestUri)!!.let { it.handler.closeHandler?.handleClose(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
         // Invoke after handlers (if any)
-        matcher.findAfterHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.closeHandler?.handleClose(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+        try {
+            matcher.findAfterHandlerEntries(requestUri).forEach { it.handler.closeHandler?.handleClose(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
-        config.inner.wsLogger?.closeHandler?.handleClose(ctx)
+        wsLogger?.closeHandler?.handleClose(ctx)
 
         // The socket has been closed, we no longer need to keep track of the session ID
         sessionIds.remove(session)
@@ -174,34 +135,24 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
         val requestUri = session.uriNoContextPath()
         val ctx = WsErrorContext(sessionIds[session]!!, session, throwable)
 
-        // Invoke before handlers (if any)
-        matcher.findBeforeHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.errorHandler?.handleError(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
-        }
+        try {
+            // Invoke before handlers (if any)
+            matcher.findBeforeHandlerEntries(requestUri).forEach { it.handler.errorHandler?.handleError(ctx) }
 
-        // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
-        matcher.findEndpointHandlerEntry(requestUri)!!.let { entry ->
-            try {
-                entry.handler.errorHandler?.handleError(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+            // Invoke endpoint handler (can't be null, otherwise the ws servlet would not have invoked the controller)
+            matcher.findEndpointHandlerEntry(requestUri)!!.let { it.handler.errorHandler?.handleError(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
         // Invoke after handlers (if any)
-        matcher.findAfterHandlerEntries(requestUri).forEach { entry ->
-            try {
-                entry.handler.errorHandler?.handleError(ctx)
-            } catch (e: Exception) {
-                // TODO: wsExceptionMapper
-            }
+        try {
+            matcher.findAfterHandlerEntries(requestUri).forEach { it.handler.errorHandler?.handleError(ctx) }
+        } catch (e: Exception) {
+            exceptionMapper.handle(e, ctx)
         }
 
-        config.inner.wsLogger?.errorHandler?.handleError(ctx)
+        wsLogger?.errorHandler?.handleError(ctx)
     }
 }
 

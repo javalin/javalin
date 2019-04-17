@@ -31,6 +31,7 @@ import io.javalin.security.SecurityUtil;
 import static io.javalin.security.SecurityUtil.roles;
 import io.javalin.serversentevent.SseClient;
 import io.javalin.serversentevent.SseHandler;
+import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandler;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -195,6 +196,14 @@ public class Javalin {
      */
     public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
         servlet.getExceptionMapper().getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        return this;
+    }
+
+    /**
+     * Adds a WebSocket exception mapper to the instance.
+     */
+    public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
+        wsServlet.getWsExceptionMapper().addHandler(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 

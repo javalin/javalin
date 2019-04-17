@@ -13,10 +13,7 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.security.Role
-import io.javalin.websocket.WsEntry
-import io.javalin.websocket.WsHandler
-import io.javalin.websocket.WsHandlerController
-import io.javalin.websocket.WsPathMatcher
+import io.javalin.websocket.*
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
@@ -26,6 +23,8 @@ import javax.servlet.http.HttpServletResponse
 
 class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
 
+    val wsExceptionMapper = WsExceptionMapper()
+
     private val wsPathMatcher = WsPathMatcher()
 
     override fun configure(factory: WebSocketServletFactory) {
@@ -34,7 +33,7 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
             val preUpgradeContext = req.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
             req.httpServletRequest.setAttribute("javalin-ws-upgrade-context", ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
 
-            WsHandlerController(wsPathMatcher, config)
+            WsHandlerController(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         }
     }
 

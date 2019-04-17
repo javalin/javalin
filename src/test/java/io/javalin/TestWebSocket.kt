@@ -10,7 +10,9 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
+import io.javalin.misc.TypedException
 import io.javalin.websocket.WsContext
+import io.javalin.websocket.WsExceptionMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.java_websocket.client.WebSocketClient
@@ -430,11 +432,51 @@ class TestWebSocket {
         )
     }
 
+    @Test
+    fun `unmapped exceptions are caught by default handler`() = TestUtil.test { app, _ ->
+        val exception = Exception("Error message")
+
+        app.ws("/ws") { it.onConnect { throw exception } }
+
+        val client = object : TestClient(app, "/ws") {
+            override fun onClose(i: Int, s: String, b: Boolean) {
+                assertThat(i).isEqualTo(WsExceptionMapper.INTERNAL_ERROR_STATUS_CODE)
+                assertThat(s).isEqualTo(exception.message)
+            }
+        }
+
+        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+    }
+
+    @Test
+    fun `mapped exceptions are handled`() = TestUtil.test { app, _ ->
+        app.ws("/ws") { it.onConnect { throw Exception() } }
+                .wsException(Exception::class.java) { _, _ ->
+                    app.logger().log.add("Exception handler called") }
+
+        TestClient(app, "/ws").connectAndDisconnect()
+
+        assertThat(app.logger().log).containsExactly("Exception handler called")
+    }
+
+    @Test
+    fun `most specific exception handler handles exception`() = TestUtil.test { app, _ ->
+        app.ws("/ws") { it.onConnect { throw TypedException() } }
+                .wsException(Exception::class.java) { _, _ ->
+                    app.logger().log.add("Exception handler called") }
+                .wsException(TypedException::class.java) { _, _ ->
+                    app.logger().log.add("TypedException handler called") }
+
+        TestClient(app, "/ws").connectAndDisconnect()
+
+        assertThat(app.logger().log).containsExactly("TypedException handler called")
+    }
+
     // ********************************************************************************************
     // Helpers
     // ********************************************************************************************
 
-    internal inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
+    internal open inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
 
         override fun onOpen(serverHandshake: ServerHandshake) {}
         override fun onClose(i: Int, s: String, b: Boolean) {}
