@@ -1,6 +1,5 @@
 package io.javalin
 
-import io.javalin.util.TestUtil
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ByteArrayEntity
 import org.apache.http.impl.client.HttpClients
@@ -24,7 +23,7 @@ class TestRequestCache {
     }
 
     @Test
-    fun `disabling request-caching works`() = TestUtil.test(Javalin.create().configure { it.requestCacheSize = 0 }) { app, http ->
+    fun `disabling request-caching works`() = TestUtil.test(Javalin.create { it.requestCacheSize = 0 }) { app, http ->
         app.post("/disabled-cache") { ctx ->
             if (ctx.req.inputStream.javaClass.simpleName == "CachedServletInputStream") {
                 throw IllegalStateException("Cache should be disabled.")

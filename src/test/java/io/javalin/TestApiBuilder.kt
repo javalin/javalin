@@ -12,8 +12,7 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.apibuilder.CrudHandler
-import io.javalin.util.TestUtil
-import io.javalin.util.TestUtil.okHandler
+import io.javalin.TestUtil.okHandler
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 

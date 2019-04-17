@@ -7,7 +7,6 @@
 package io.javalin
 
 import io.javalin.core.util.Util
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.function.BiFunction
@@ -40,7 +39,7 @@ class TestContextPath {
 
     @Test
     fun `router works with context-path`() {
-        val javalin = Javalin.create().configure { it.contextPath = "/context-path" }
+        val javalin = Javalin.create { it.contextPath = "/context-path" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { ctx -> ctx.result("Hello World") }
             assertThat(http.getBody("/hello")).isEqualTo("Not found. Request is below context-path")
@@ -50,7 +49,7 @@ class TestContextPath {
 
     @Test
     fun `router works with multi-level context-path`() {
-        val javalin = Javalin.create().configure { it.contextPath = "/context-path/path-context" }
+        val javalin = Javalin.create { it.contextPath = "/context-path/path-context" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { ctx -> ctx.result("Hello World") }
             assertThat(http.get("/context-path/").status).isEqualTo(404)
@@ -60,7 +59,7 @@ class TestContextPath {
 
     @Test
     fun `static-files work with context-path`() {
-        val javalin = Javalin.create().configure { servlet ->
+        val javalin = Javalin.create { servlet ->
             servlet.addStaticFiles("/public")
             servlet.contextPath = "/context-path"
         }
@@ -72,7 +71,7 @@ class TestContextPath {
 
     @Test
     fun `welcome-files work with context-path`() {
-        val javalin = Javalin.create().configure { servlet ->
+        val javalin = Javalin.create { servlet ->
             servlet.addStaticFiles("/public")
             servlet.contextPath = "/context-path"
         }

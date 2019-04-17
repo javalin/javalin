@@ -8,13 +8,12 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestEtags {
 
-    val etagsEnabledApp = Javalin.create().configure { it.autogenerateEtags = true }
+    val etagsEnabledApp = Javalin.create { it.autogenerateEtags = true }
 
     @Test
     fun `default app does not set etags for GET`() = TestUtil.test { app, http ->

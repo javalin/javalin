@@ -7,8 +7,11 @@
 package io.javalin.core;
 
 import io.javalin.RequestLogger;
+import io.javalin.core.util.LogUtil;
+import io.javalin.core.util.RouteOverviewConfig;
 import io.javalin.core.util.SinglePageHandler;
 import io.javalin.security.AccessManager;
+import io.javalin.security.Role;
 import io.javalin.security.SecurityUtil;
 import io.javalin.staticfiles.JettyResourceHandler;
 import io.javalin.staticfiles.Location;
@@ -17,92 +20,99 @@ import io.javalin.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 // @formatter:off
 public class JavalinConfig {
-
-    // ********************************************************************************************
-    // HTTP Servlet
-    // ********************************************************************************************
 
     public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
-    public String defaultContentType = "text/plain";
-    public String contextPath = "/";
-    public Long requestCacheSize = 4096L;
-    public Long asyncRequestTimeout = 0L;
-    public List<String> corsOrigins = new ArrayList<>();
-    RequestLogger requestLogger;
-    ResourceHandler resourceHandler;
-    public AccessManager accessManager = SecurityUtil::noopAccessManager;
-    SinglePageHandler singlePageHandler = new SinglePageHandler();
-    SessionHandler sessionHandler;
+    public boolean showJavalinBanner = true;
+    @NotNull public String defaultContentType = "text/plain";
+    @NotNull public String contextPath = "/";
+    @NotNull public Long requestCacheSize = 4096L;
+    @NotNull public Long asyncRequestTimeout = 0L;
+    @NotNull public String wsContextPath ="/";
+    @NotNull public Inner inner = new Inner();
+
+    // it's not bad to access this, the main reason it's hidden
+    // is to provide a cleaner API with dedicated setters
+    public class Inner {
+        @NotNull public List<String> corsOrigins = new ArrayList<>();
+        @Nullable public RouteOverviewConfig routeOverview;
+        @Nullable public RequestLogger requestLogger;
+        @Nullable public ResourceHandler resourceHandler;
+        @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
+        @NotNull public SinglePageHandler singlePageHandler = new SinglePageHandler();
+        @Nullable public SessionHandler sessionHandler;
+        @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig;
+        @Nullable public WsHandler wsLogger;
+        @Nullable public Server server;
+    }
+
+     public void enableDevLogging() {
+        requestLogger(LogUtil::requestDevLogger);
+        wsLogger(LogUtil::wsDevLogger);
+    }
 
     public void enableWebjars() { addStaticFiles("/webjars", Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String path, @NotNull Location location) {
-        if (resourceHandler == null) this.resourceHandler = new JettyResourceHandler();
-        this.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
+        if (inner.resourceHandler == null) inner.resourceHandler = new JettyResourceHandler();
+        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
     }
 
     public void addSinglePageRoot(@NotNull String path, @NotNull String filePath) { addSinglePageRoot(path, filePath, Location.CLASSPATH); }
     public void addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
-        this.singlePageHandler.add(path, filePath, location);
+        inner.singlePageHandler.add(path, filePath, location);
     }
 
     public void enableCorsForAllOrigins() { enableCorsForOrigin("*"); }
     public void enableCorsForOrigin(@NotNull String... origins) {
         if (origins.length == 0) throw new IllegalArgumentException("Origins cannot be empty.");
-        this.corsOrigins = Arrays.asList(origins);
+        inner.corsOrigins = Arrays.asList(origins);
+    }
+
+    public void enableRouteOverview(@NotNull String path) { enableRouteOverview(path, new HashSet<>()); }
+    public void enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
+        inner.routeOverview = new RouteOverviewConfig(path, permittedRoles);
     }
 
     public void accessManager(@NotNull AccessManager accessManager) {
-        this.accessManager = accessManager;
+        inner.accessManager = accessManager;
     }
 
     public void requestLogger(@NotNull RequestLogger requestLogger) {
-        this.requestLogger = requestLogger;
+        inner.requestLogger = requestLogger;
     }
 
     public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
-        this.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
+        inner.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
     }
 
-    // ********************************************************************************************
-    // WebSocket Servlet
-    // ********************************************************************************************
-
-    Consumer<WebSocketServletFactory> wsFactoryConfig;
-    public String wsContextPath ="/";
-    public WsHandler wsLogger;
-
     public void wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
-        this.wsFactoryConfig = wsFactoryConfig;
+        inner.wsFactoryConfig = wsFactoryConfig;
     }
 
     public void wsLogger(@NotNull Consumer<WsHandler> ws) {
         WsHandler logger = new WsHandler();
         ws.accept(logger);
-        this.wsLogger = logger;
+        inner.wsLogger = logger;
     }
 
-    // ********************************************************************************************
-    // Server
-    // ********************************************************************************************
-
-    Server server;
-
     public void server(Supplier<Server> server) {
-        this.server = server.get();
+        inner.server = server.get();
     }
 
 }

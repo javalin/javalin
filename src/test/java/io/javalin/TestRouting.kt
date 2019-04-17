@@ -9,7 +9,6 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
-import io.javalin.util.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
@@ -86,7 +85,7 @@ class TestRouting {
     }
 
     @Test
-    fun `enforceSsl works`() = TestUtil.test(Javalin.create().configure { it.enforceSsl = true }) { app, http ->
+    fun `enforceSsl works`() = TestUtil.test(Javalin.create { it.enforceSsl = true }) { app, http ->
         app.get("/ssl") {}
         http.disableUnirestRedirects()
         assertThat(http.get("/ssl").status).isEqualTo(301)

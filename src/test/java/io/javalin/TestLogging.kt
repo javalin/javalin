@@ -7,7 +7,6 @@
 package io.javalin
 
 import io.javalin.util.HttpUtil
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.concurrent.CompletableFuture
@@ -20,10 +19,10 @@ class TestLogging {
     fun `default logging (no logging) works`() = runTest(Javalin.create())
 
     @Test
-    fun `debug logging works`() = runTest(Javalin.create().enableDevLogging())
+    fun `debug logging works`() = runTest(Javalin.create { it.enableDevLogging() })
 
     @Test
-    fun `custom logging works`() = runTest(Javalin.create().configure {
+    fun `custom logging works`() = runTest(Javalin.create {
         it.requestLogger { _, executionTimeMs ->
             println("That took $executionTimeMs milliseconds")
         }
@@ -44,7 +43,7 @@ class TestLogging {
     }
 
     private val loggerLog = mutableListOf<String?>()
-    private val bodyLoggingJavalin = Javalin.create().configure {
+    private val bodyLoggingJavalin = Javalin.create {
         it.requestLogger { ctx, ms ->
             loggerLog.add(ctx.resultString())
             loggerLog.add(ctx.resultString())

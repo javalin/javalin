@@ -15,7 +15,6 @@ import io.javalin.json.ToJsonMapper
 import io.javalin.misc.CustomMapper
 import io.javalin.misc.NonSerializableObject
 import io.javalin.misc.SerializeableObject
-import io.javalin.util.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test

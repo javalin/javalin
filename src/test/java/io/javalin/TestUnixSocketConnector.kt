@@ -1,6 +1,5 @@
 package io.javalin
 
-import io.javalin.util.TestUtil
 import jnr.unixsocket.UnixSocketAddress
 import jnr.unixsocket.UnixSocketChannel
 import org.assertj.core.api.Assertions.assertThat
@@ -23,7 +22,7 @@ class TestUnixSocketConnector {
         val testPath = "/unixsocket"
         val expectedResultString = "hello unixsocket"
 
-        val unixSocketJavalin = Javalin.create().configure {
+        val unixSocketJavalin = Javalin.create {
             it.server {
                 val server = Server()
                 val serverConnector = ServerConnector(server)

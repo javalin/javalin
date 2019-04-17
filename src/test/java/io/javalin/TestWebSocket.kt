@@ -10,7 +10,6 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
-import io.javalin.util.TestUtil
 import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
@@ -36,31 +35,28 @@ class TestWebSocket {
         return this.attribute(TestLogger::class.java)
     }
 
-    fun contextPathJavalin() = Javalin.create().configure { it.wsContextPath = "/websocket" }
+    fun contextPathJavalin() = Javalin.create { it.wsContextPath = "/websocket" }
 
     fun javalinWithWsLogger() = Javalin.create().apply {
-        this.configure { config ->
-            config.wsLogger { ws ->
-                ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
-                ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
-            }
+        this.config.wsLogger { ws ->
+            ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
+            ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
         }
     }
 
     fun accessManagedJavalin() = Javalin.create().apply {
-        this.configure {
-            it.accessManager { handler, ctx, permittedRoles ->
-                this.logger().log.add("handling upgrade request ...")
-                when {
-                    ctx.queryParam("allowed") == "true" -> {
-                        this.logger().log.add("upgrade request valid!")
-                        handler.handle(ctx)
-                    }
-                    ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
-                    else -> this.logger().log.add("upgrade request invalid!")
+        this.config.accessManager { handler, ctx, permittedRoles ->
+            this.logger().log.add("handling upgrade request ...")
+            when {
+                ctx.queryParam("allowed") == "true" -> {
+                    this.logger().log.add("upgrade request valid!")
+                    handler.handle(ctx)
                 }
+                ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
+                else -> this.logger().log.add("upgrade request invalid!")
             }
-        }.ws("/*") { ws ->
+        }
+        this.ws("/*") { ws ->
             ws.onConnect { this.logger().log.add("connected with upgrade request") }
         }
     }
@@ -304,7 +300,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create().enableDevLogging()) { app, _ ->
+    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.enableDevLogging() }) { app, _ ->
         app.ws("/path/:param") {}
         TestClient(app, "/path/0").connectAndDisconnect()
         TestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()
@@ -330,7 +326,7 @@ class TestWebSocket {
         val maxTextSize = 1
         val textToSend = "This text is far too long."
         val expectedMessage = "Text message size [${textToSend.length}] exceeds maximum size [$maxTextSize]"
-        val app = Javalin.create().configure {
+        val app = Javalin.create {
             it.wsFactoryConfig { wsFactory ->
                 wsFactory.policy.maxTextMessageSize = maxTextSize
             }

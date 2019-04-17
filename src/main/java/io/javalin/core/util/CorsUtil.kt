@@ -8,18 +8,6 @@ package io.javalin.core.util
 
 import io.javalin.Context
 import io.javalin.Handler
-import io.javalin.core.HandlerType
-import io.javalin.core.JavalinServlet
-import io.javalin.security.CoreRoles
-
-object CorsUtil {
-    @JvmStatic
-    fun enableCorsForOrigin(servlet: JavalinServlet, origins: List<String>) {
-        servlet.addHandler(HandlerType.BEFORE, "*", CorsBeforeHandler(origins), setOf())
-        servlet.addHandler(HandlerType.OPTIONS, "*", CorsOptionsHandler(), setOf(CoreRoles.NO_WRAP))
-    }
-}
-
 
 class CorsBeforeHandler(private val origins: List<String>) : Handler {
     override fun handle(ctx: Context) {

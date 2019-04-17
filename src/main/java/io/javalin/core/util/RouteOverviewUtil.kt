@@ -10,6 +10,9 @@ import io.javalin.Context
 import io.javalin.Handler
 import io.javalin.Javalin
 import io.javalin.core.HandlerMetaInfo
+import io.javalin.security.Role
+
+data class RouteOverviewConfig(val path: String, val roles: Set<Role>)
 
 class RouteOverviewRenderer(val app: Javalin) : Handler {
 

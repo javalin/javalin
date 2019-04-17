@@ -9,7 +9,7 @@ package io.javalin.validation
 import io.javalin.BadRequestResponse
 import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
-import io.javalin.util.TestUtil
+import io.javalin.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
 import org.junit.Test

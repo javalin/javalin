@@ -11,9 +11,7 @@ import io.javalin.apibuilder.ApiBuilder.*
 
 fun main(args: Array<String>) {
 
-    val corsApp = Javalin.create().apply {
-        configure { it.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002") }
-    }.start(7070)
+    val corsApp = Javalin.create { it.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002") }.start(7070)
 
     corsApp.routes {
         get { ctx -> ctx.json("Hello Get") }

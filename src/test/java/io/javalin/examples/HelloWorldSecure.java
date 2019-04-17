@@ -18,7 +18,7 @@ public class HelloWorldSecure {
     // This is a very basic example, a better one can be found at:
     // https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/examples/embedded/src/main/java/org/eclipse/jetty/embedded/LikeJettyXml.java#L139-L163
     public static void main(String[] args) {
-        Javalin.create().configure(config -> {
+        Javalin.create(config -> {
             config.server(() -> {
                 Server server = new Server();
                 ServerConnector sslConnector = new ServerConnector(server, getSslContextFactory());

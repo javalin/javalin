@@ -58,7 +58,7 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
             }
         }
 
-        config.wsLogger?.connectHandler?.handleConnect(ctx)
+        config.inner.wsLogger?.connectHandler?.handleConnect(ctx)
     }
 
     @OnWebSocketMessage
@@ -93,7 +93,7 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
             }
         }
 
-        config.wsLogger?.messageHandler?.handleMessage(ctx)
+        config.inner.wsLogger?.messageHandler?.handleMessage(ctx)
     }
 
     @OnWebSocketMessage
@@ -128,7 +128,7 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
             }
         }
 
-        config.wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
+        config.inner.wsLogger?.binaryMessageHandler?.handleBinaryMessage(ctx)
     }
 
     @OnWebSocketClose
@@ -163,7 +163,7 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
             }
         }
 
-        config.wsLogger?.closeHandler?.handleClose(ctx)
+        config.inner.wsLogger?.closeHandler?.handleClose(ctx)
 
         // The socket has been closed, we no longer need to keep track of the session ID
         sessionIds.remove(session)
@@ -201,7 +201,7 @@ class WsHandlerController(private val matcher: WsPathMatcher, private val config
             }
         }
 
-        config.wsLogger?.errorHandler?.handleError(ctx)
+        config.inner.wsLogger?.errorHandler?.handleError(ctx)
     }
 }
 

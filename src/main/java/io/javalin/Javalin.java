@@ -20,17 +20,18 @@ import io.javalin.core.JavalinServlet;
 import io.javalin.core.JavalinWsServlet;
 import io.javalin.core.WsHandlerMetaInfo;
 import io.javalin.core.WsHandlerType;
-import io.javalin.core.util.CorsUtil;
-import io.javalin.core.util.LogUtil;
+import io.javalin.core.util.CorsBeforeHandler;
+import io.javalin.core.util.CorsOptionsHandler;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
 import io.javalin.security.AccessManager;
+import io.javalin.security.CoreRoles;
 import io.javalin.security.Role;
 import io.javalin.security.SecurityUtil;
+import static io.javalin.security.SecurityUtil.roles;
 import io.javalin.serversentevent.SseClient;
 import io.javalin.serversentevent.SseHandler;
 import io.javalin.websocket.WsHandler;
-import io.javalin.websocket.WsHandlerController;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -44,8 +45,6 @@ public class Javalin {
 
     public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    protected boolean showJavalinBanner = true;
-
     protected Map<Class<?>, Object> appAttributes = new HashMap<>();
 
     protected JavalinConfig config = new JavalinConfig();
@@ -58,20 +57,41 @@ public class Javalin {
     public EventAttacher on = eventManager.getEventAttacher();
 
     protected Javalin() {
-        Util.logJavalinBanner(showJavalinBanner);
-        Util.logWarningIfNotStartedAfterOneSecond(server);
     }
 
     /**
-     * Creates an instance of the application for further configuration.
+     * Creates a new instance without any custom configuration.
+     *
+     * @see Javalin#create(Consumer)
+     */
+    public static Javalin create() {
+        return create(c -> { // use defaults
+        });
+    }
+
+    /**
+     * Creates a new instance with the user provided configuration.
      * The server does not run until {@link Javalin#start()} is called.
      *
-     * @return instance of application for configuration.
+     * @return application instance.
      * @see Javalin#start()
      * @see Javalin#start(int)
      */
-    public static Javalin create() {
-        return new Javalin();
+    public static Javalin create(Consumer<JavalinConfig> config) {
+        Javalin app = new Javalin();
+        config.accept(app.config); // apply user config
+        if (app.config.inner.routeOverview != null) {
+            app.get(app.config.inner.routeOverview.getPath(), new RouteOverviewRenderer(app), app.config.inner.routeOverview.getRoles());
+        }
+        if (!app.config.inner.corsOrigins.isEmpty()) {
+            app.before(new CorsBeforeHandler(app.config.inner.corsOrigins));
+            app.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));
+        }
+        if (app.config.enforceSsl) {
+            app.before(SecurityUtil::sslRedirect);
+        }
+        Util.logWarningIfNotStartedAfterOneSecond(app.server);
+        return app;
     }
 
     /**
@@ -94,6 +114,7 @@ public class Javalin {
      * @see Javalin#create()
      */
     public Javalin start() {
+        Util.logJavalinBanner(this.config.showJavalinBanner);
         long startupTimer = System.currentTimeMillis();
         if (server.getStarted()) {
             throw new IllegalStateException("Cannot call start() again on a started server.");
@@ -137,60 +158,11 @@ public class Javalin {
     }
 
     /**
-     * Configure instance to not show banner in logs.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin disableStartupBanner() {
-        showJavalinBanner = false;
-        return this;
-    }
-
-    /**
      * Get which port instance is running on
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
         return server.getServerPort();
-    }
-
-    /**
-     * Set the server port
-     * Mostly useful if you start the instance with port(0) (random port)
-     */
-    public Javalin port(int port) {
-        server.setServerPort(port);
-        return this;
-    }
-
-    /**
-     * Configure instance to log debug information for each request.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableDevLogging() {
-        config.requestLogger(LogUtil::requestDevLogger);
-        config.wsLogger(LogUtil::wsDevLogger);
-        return this;
-    }
-
-    /**
-     * Configure instance to display a visual overview of all its mapped routes
-     * on the specified path.
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableRouteOverview(@NotNull String path) {
-        return enableRouteOverview(path, new HashSet<>());
-    }
-
-    /**
-     * Configure instance to display a visual overview of all its mapped routes
-     * on the specified path with the specified roles
-     * The method must be called before {@link Javalin#start()}.
-     */
-    public Javalin enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
-        if (servlet.getMatcher().hasEntries()) {
-            throw new IllegalStateException("The route-overview listens for 'onHandlerAdded' events. It must be enabled before adding handlers.");
-        }
-        return get(path, new RouteOverviewRenderer(this), permittedRoles);
     }
 
     /**
@@ -588,22 +560,6 @@ public class Javalin {
     /** Adds a WebSocket after handler for all routes in the instance. */
     public Javalin wsAfter(@NotNull Consumer<WsHandler> wsHandler) {
         return wsAfter("*", wsHandler);
-    }
-
-    // ********************************************************************************************
-    // Configuration
-    // ********************************************************************************************
-
-    public Javalin configure(Consumer<JavalinConfig> config) {
-        if (this.server.getStarted()) throw new IllegalStateException("Cannot call 'configure()' after server start");
-        config.accept(this.config); // apply user config
-        if (!this.config.corsOrigins.isEmpty()) {
-            CorsUtil.enableCorsForOrigin(this.servlet, this.config.corsOrigins);
-        }
-        if (this.config.enforceSsl) {
-            this.before(SecurityUtil::sslRedirect);
-        }
-        return this;
     }
 
 }

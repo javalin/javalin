@@ -5,7 +5,6 @@
  */
 package io.javalin;
 
-import io.javalin.util.TestUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;

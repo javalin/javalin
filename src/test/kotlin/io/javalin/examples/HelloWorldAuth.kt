@@ -21,9 +21,7 @@ enum class MyRoles : Role {
 
 fun main(args: Array<String>) {
 
-    val app = Javalin.create().apply {
-        configure { it.accessManager(::accessManager) }
-    }.start(7070)
+    val app = Javalin.create { it.accessManager(::accessManager) }.start(7070)
 
     app.routes {
         get("/hello", { ctx -> ctx.result("Hello World 1") }, roles(ROLE_ONE))

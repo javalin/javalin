@@ -17,7 +17,7 @@ object SecurityUtil {
     @JvmStatic
     fun noopAccessManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
         if (permittedRoles.isNotEmpty()) {
-            throw IllegalStateException("No access manager configured. Add an access manager using 'app.configure(c -> c.accessManager(...))'.")
+            throw IllegalStateException("No access manager configured. Add an access manager using 'Javalin.create(c -> c.accessManager(...))'.")
         }
         handler.handle(ctx)
     }
