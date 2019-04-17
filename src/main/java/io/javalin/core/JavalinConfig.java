@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 // @formatter:off
 public class JavalinConfig {
 
+    public boolean autoLowercaseUrl = false;
     public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;

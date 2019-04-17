@@ -94,4 +94,11 @@ class TestRouting {
         http.enableUnirestRedirects()
     }
 
+    @Test
+    fun `autoLowercaseUrl works`() = TestUtil.test(Javalin.create { it.autoLowercaseUrl = true }) { app, http ->
+        app.get("/lowercasetest") {}
+        assertThat(http.get("/LOWERCASETEST").status).isEqualTo(200)
+        assertThat(http.get("/lOWercaSETEst").status).isEqualTo(200)
+        assertThat(http.get("/lowercasetest").status).isEqualTo(200)
+    }
 }

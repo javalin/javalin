@@ -50,6 +50,7 @@ class TestConfiguration {
             // Misc
             it.accessManager { handler, ctx, permittedRoles -> }
             it.showJavalinBanner = false
+            it.autoLowercaseUrl = true
         }.start()
         assertThat(app.server.started).isTrue()
         app.stop()
