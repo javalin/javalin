@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static io.javalin.security.SecurityUtil.roles;
 
+@SuppressWarnings("unchecked")
 public class Javalin {
 
     public static Logger log = LoggerFactory.getLogger(Javalin.class);
@@ -188,40 +189,8 @@ public class Javalin {
      * Ex: app.attribute(MyExt.class).myMethod()
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
-    @SuppressWarnings("unchecked")
     public <T> T attribute(Class<T> clazz) {
         return (T) appAttributes.get(clazz);
-    }
-
-    /**
-     * Adds an exception mapper to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
-     */
-    public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
-        servlet.getExceptionMapper().getHandlers().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
-        return this;
-    }
-
-    /**
-     * Adds a WebSocket exception mapper to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
-     */
-    public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
-        wsServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
-        return this;
-    }
-
-    /**
-     * Adds an error mapper to the instance.
-     * Useful for turning error-codes (404, 500) into standardized messages/pages
-     *
-     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
-     */
-    public Javalin error(int statusCode, @NotNull ErrorHandler errorHandler) {
-        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, errorHandler);
-        return this;
     }
 
     /**
@@ -247,6 +216,31 @@ public class Javalin {
         return this;
     }
 
+    // ********************************************************************************************
+    // HTTP
+    // ********************************************************************************************
+
+    /**
+     * Adds an exception mapper to the instance.
+     *
+     * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
+     */
+    public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
+        servlet.getExceptionMapper().getHandlers().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        return this;
+    }
+
+    /**
+     * Adds an error mapper to the instance.
+     * Useful for turning error-codes (404, 500) into standardized messages/pages
+     *
+     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
+     */
+    public Javalin error(int statusCode, @NotNull ErrorHandler errorHandler) {
+        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, errorHandler);
+        return this;
+    }
+
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
      * Requires an access manager to be set on the instance.
@@ -255,7 +249,7 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
+    private Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         servlet.addHandler(handlerType, path, handler, roles);
         eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), handler, roles));
         return this;
@@ -267,30 +261,9 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
+    private Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
         return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone with default access manager)
     }
-
-    /**
-     * Adds a specific WebSocket handler for the given path to the instance.
-     * Requires an access manager to be set on the instance.
-     */
-    public Javalin addHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsHandler> wsHandler, @NotNull Set<Role> roles) {
-        wsServlet.addHandler(handlerType, path, wsHandler, roles);
-        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsHandler, roles));
-        return this;
-    }
-
-    /**
-     * Adds a specific WebSocket handler for the given path to the instance.
-     */
-    public Javalin addHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
-        return addHandler(handlerType, path, wsHandler, new HashSet<>());
-    }
-
-    // ********************************************************************************************
-    // HTTP verbs
-    // ********************************************************************************************
 
     /**
      * Adds a GET request handler for the specified path to the instance.
@@ -540,6 +513,33 @@ public class Javalin {
     // ********************************************************************************************
 
     /**
+     * Adds a WebSocket exception mapper to the instance.
+     *
+     * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
+     */
+    public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
+        wsServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
+        return this;
+    }
+
+    /**
+     * Adds a specific WebSocket handler for the given path to the instance.
+     * Requires an access manager to be set on the instance.
+     */
+    private Javalin addHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsHandler> wsHandler, @NotNull Set<Role> roles) {
+        wsServlet.addHandler(handlerType, path, wsHandler, roles);
+        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsHandler, roles));
+        return this;
+    }
+
+    /**
+     * Adds a specific WebSocket handler for the given path to the instance.
+     */
+    private Javalin addHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
+        return addHandler(handlerType, path, wsHandler, new HashSet<>());
+    }
+
+    /**
      * Adds a WebSocket handler on the specified path.
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
@@ -563,7 +563,7 @@ public class Javalin {
      * Adds a WebSocket before handler for the specified path to the instance.
      */
     public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
-        return addHandler(WsHandlerType.WEBSOKET_BEFORE, path, wsHandler);
+        return addHandler(WsHandlerType.WS_BEFORE, path, wsHandler);
     }
 
     /**
@@ -577,7 +577,7 @@ public class Javalin {
      * Adds a WebSocket after handler for the specified path to the instance.
      */
     public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
-        return addHandler(WsHandlerType.WEBSOCKET_AFTER, path, wsHandler);
+        return addHandler(WsHandlerType.WS_AFTER, path, wsHandler);
     }
 
     /**

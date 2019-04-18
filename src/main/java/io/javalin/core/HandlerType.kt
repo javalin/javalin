@@ -10,6 +10,7 @@ import io.javalin.core.util.Header
 import javax.servlet.http.HttpServletRequest
 
 enum class HandlerType {
+
     GET, POST, PUT, PATCH, DELETE, HEAD, TRACE, CONNECT, OPTIONS, BEFORE, AFTER, INVALID;
 
     fun isHttpMethod() = when (this) {
@@ -18,7 +19,7 @@ enum class HandlerType {
     }
 
     companion object {
-        private val methodMap = HandlerType.values().map { it.toString() to it }.toMap()
+        private val methodMap = values().map { it.toString() to it }.toMap()
         fun fromServletRequest(httpRequest: HttpServletRequest): HandlerType {
             val key = httpRequest.getHeader(Header.X_HTTP_METHOD_OVERRIDE) ?: httpRequest.method
             return methodMap[key.toUpperCase()] ?: INVALID

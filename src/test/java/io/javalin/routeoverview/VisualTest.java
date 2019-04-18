@@ -33,25 +33,31 @@ public class VisualTest {
             config.enableRouteOverview("/route-overview");
         }).start();
 
-        app.get("/", ctx -> ctx.redirect("/context-path/route-overview"));
-        app.get("/just-some-path", new HandlerImplementation());
-        app.post("/test/:hmm/", VisualTest::methodReference);
-        app.put("/user/*", ctx -> ctx.result(""), roles(ROLE_ONE));
-        app.get("/nonsense-paths/:test", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_THREE));
-        app.delete("/just-words", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
-        app.before("*", VisualTest.lambdaField);
-        app.after("*", VisualTest.lambdaField);
-        app.head("/check/the/head", VisualTest::methodReference);
-        app.get("/:path1/:path2", VisualTest.lambdaField);
-        app.post("/user/create", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO));
-        app.put("/user/:user-id", VisualTest.lambdaField);
-        app.patch("/patchy-mcpatchface", new ImplementingClass(), roles(ROLE_ONE, ROLE_TWO));
-        app.delete("/users/:user-id", new HandlerImplementation());
-        app.options("/what/:are/*/my-options", new HandlerImplementation());
-        app.trace("/tracer", new HandlerImplementation());
-        app.ws("/websocket", VisualTest::wsMethodRef);
-        app.sse("/sse", sse -> {
-        });
+        app.get("/", ctx -> ctx.redirect("/context-path/route-overview"))
+            .get("/just-some-path", new HandlerImplementation())
+            .post("/test/:hmm/", VisualTest::methodReference)
+            .put("/user/*", ctx -> ctx.result(""), roles(ROLE_ONE))
+            .get("/nonsense-paths/:test", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_THREE))
+            .delete("/just-words", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO))
+            .before("*", VisualTest.lambdaField)
+            .after("*", VisualTest.lambdaField)
+            .head("/check/the/head", VisualTest::methodReference)
+            .get("/:path1/:path2", VisualTest.lambdaField)
+            .post("/user/create", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO))
+            .put("/user/:user-id", VisualTest.lambdaField)
+            .patch("/patchy-mcpatchface", new ImplementingClass(), roles(ROLE_ONE, ROLE_TWO))
+            .delete("/users/:user-id", new HandlerImplementation())
+            .connect("/test", VisualTest.lambdaField)
+            .options("/what/:are/*/my-options", new HandlerImplementation())
+            .trace("/tracer", new HandlerImplementation())
+            .connect("/test2", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_TWO))
+            .options("/what/:are/*/my-options2", new HandlerImplementation(), roles(ROLE_ONE, ROLE_TWO))
+            .trace("/tracer2", new HandlerImplementation(), roles(ROLE_ONE, ROLE_TWO))
+            .wsBefore(VisualTest::wsMethodRef)
+            .ws("/websocket", VisualTest::wsMethodRef)
+            .wsAfter("/my-path", VisualTest::wsMethodRef)
+            .sse("/sse", sse -> {
+            });
         app.routes(() -> {
             path("users", () -> {
                 get(new HandlerImplementation());

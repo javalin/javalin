@@ -10,5 +10,5 @@ package io.javalin.core
  * The available WebSocket handler types.
  */
 enum class WsHandlerType {
-    WEBSOKET_BEFORE, WEBSOCKET, WEBSOCKET_AFTER
+    WS_BEFORE, WEBSOCKET, WS_AFTER
 }

@@ -36,13 +36,13 @@ class WsPathMatcher {
     }
 
     /** Returns all the before handlers that match the given [path]. */
-    fun findBeforeHandlerEntries(path: String) = findEntries(WsHandlerType.WEBSOKET_BEFORE, path)
+    fun findBeforeHandlerEntries(path: String) = findEntries(WsHandlerType.WS_BEFORE, path)
 
     /** Returns the first endpoint handler that match the given [path], or `null`. */
     fun findEndpointHandlerEntry(path: String) = findEntries(WsHandlerType.WEBSOCKET, path).firstOrNull()
 
     /** Returns all the after handlers that match the given [path]. */
-    fun findAfterHandlerEntries(path: String) = findEntries(WsHandlerType.WEBSOCKET_AFTER, path)
+    fun findAfterHandlerEntries(path: String) = findEntries(WsHandlerType.WS_AFTER, path)
 
     /** Returns all the handlers of type [handlerType] that match the given [path]. */
     private fun findEntries(handlerType: WsHandlerType, path: String) =

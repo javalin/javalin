@@ -10,6 +10,7 @@ import io.javalin.Context
 import io.javalin.Handler
 import io.javalin.Javalin
 import io.javalin.core.HandlerMetaInfo
+import io.javalin.core.WsHandlerMetaInfo
 import io.javalin.security.Role
 
 data class RouteOverviewConfig(val path: String, val roles: Set<Role>)
@@ -17,20 +18,22 @@ data class RouteOverviewConfig(val path: String, val roles: Set<Role>)
 class RouteOverviewRenderer(val app: Javalin) : Handler {
 
     val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
+    val wsHandlerMetaInfoList = mutableListOf<WsHandlerMetaInfo>()
 
     init {
-        app.subscribe { it.handlerAdded { handlerMetaInfo -> handlerMetaInfoList.add(handlerMetaInfo) } }
+        app.subscribe { it.handlerAdded { handlerInfo -> handlerMetaInfoList.add(handlerInfo) } }
+        app.subscribe { it.wsHandlerAdded { handlerInfo -> wsHandlerMetaInfoList.add(handlerInfo) } }
     }
 
     override fun handle(ctx: Context) {
-        ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfoList))
+        ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
     }
 }
 
 object RouteOverviewUtil {
 
     @JvmStatic
-    fun createHtmlOverview(handlerInfo: List<HandlerMetaInfo>): String {
+    fun createHtmlOverview(handlerInfo: List<HandlerMetaInfo>, wsHandlerInfo: List<WsHandlerMetaInfo>): String {
         return """
         <meta name='viewport' content='width=device-width, initial-scale=1'>
         <style>
@@ -104,17 +107,15 @@ object RouteOverviewUtil {
             .DELETE {
                 background: #e44848;
             }
-            .HEAD, .TRACE, .OPTIONS  {
+            .HEAD, .TRACE, .OPTIONS, .CONNECT  {
                 background: #00b9b9;
             }
             .BEFORE, .AFTER {
                 background: #777;
             }
-
-            .WEBSOCKET {
+            .WEBSOCKET, .WS_BEFORE, .WS_AFTER {
                 background: #546E7A;
             }
-
         </style>
         <body>
             <table>
@@ -126,10 +127,20 @@ object RouteOverviewUtil {
                         <td>Roles</td>
                     </tr>
                 </thead>
-                ${handlerInfo.map { (httpMethod, path, handler, roles) ->
+                ${handlerInfo.map { (handlerType, path, handler, roles) ->
             """
-                    <tr class="method $httpMethod">
-                        <td>$httpMethod</span></td>
+                    <tr class="method $handlerType">
+                        <td>$handlerType</span></td>
+                        <td>$path</td>
+                        <td><b>${handler.metaInfo}</b></td>
+                        <td>$roles</td>
+                    </tr>
+                    """
+        }.joinToString("")}
+                ${wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
+            """
+                    <tr class="method $wsHandlerType">
+                        <td>$wsHandlerType</span></td>
                         <td>$path</td>
                         <td><b>${handler.metaInfo}</b></td>
                         <td>$roles</td>
@@ -139,7 +150,7 @@ object RouteOverviewUtil {
             </table>
             <script>
                 const cachedRows = Array.from(document.querySelectorAll("tbody tr"));
-                const verbOrder = ["BEFORE", "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "HEAD", "AFTER", "WEBSOCKET"];
+                const verbOrder = ["BEFORE", "GET", "POST", "PUT", "PATCH", "DELETE", "CONNECT", "OPTIONS", "TRACE", "HEAD", "AFTER", "WS_BEFORE", "WEBSOCKET", "WS_AFTER"];
                 document.querySelector("thead").addEventListener("click", function (e) {
                     cachedRows.map(function (el) {
                         return {key: el.children[e.target.cellIndex].textContent, row: el};
