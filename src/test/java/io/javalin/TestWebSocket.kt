@@ -419,6 +419,24 @@ class TestWebSocket {
     }
 
     @Test
+    fun `throw in wsBefore short circuits endpoint handler`() = TestUtil.test { app, _ ->
+        app.wsBefore { it.onConnect { throw UnauthorizedResponse() } }
+        app.ws("/ws") { it.onConnect { app.logger().log.add("This should not be added") } }
+        app.wsException(Exception::class.java) { e, _ -> app.logger().log.add(e.message!!) }
+        TestClient(app, "/ws").connectAndDisconnect()
+        assertThat(app.logger().log).contains("Unauthorized")
+        assertThat(app.logger().log).doesNotContain("This should not be added")
+    }
+
+    @Test
+    fun `wsBefore with path works`() = TestUtil.test { app, _ ->
+        app.wsBefore("/ws/*") { it.onConnect { app.logger().log.add("Before!") } }
+        app.ws("/ws/test") { it.onConnect { app.logger().log.add("Endpoint!") } }
+        TestClient(app, "/ws/test").connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("Before!", "Endpoint!")
+    }
+
+    @Test
     fun `after handlers work`() = TestUtil.test { app, _ ->
         app.ws("/ws") { ws ->
             ws.onConnect { app.logger().log.add("endpoint handler: onConnect") }

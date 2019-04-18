@@ -10,6 +10,9 @@ package io.javalin
 import io.javalin.misc.TypedException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import java.lang.IllegalArgumentException
+import java.lang.NumberFormatException
+import kotlin.reflect.full.allSuperclasses
 
 class TestExceptionMapper {
 
@@ -72,6 +75,13 @@ class TestExceptionMapper {
         app.exception(Exception::class.java) { _, ctx -> ctx.status(500) }
         app.get("/") { throw BadRequestResponse() }
         assertThat(http.get("/").status).isEqualTo(400)
+    }
+
+    @Test
+    fun `exceptions can have a lot of superclasses`() = TestUtil.test { app, http ->
+        app.exception(Exception::class.java) { e, ctx -> ctx.result(e.javaClass.kotlin.allSuperclasses.size.toString()) }
+        app.get("/") { throw NumberFormatException() }
+        assertThat(http.get("/").body).isEqualTo("6")
     }
 
 }
