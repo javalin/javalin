@@ -35,4 +35,13 @@ class TestLifecycleEvents {
         assertThat(log).isEqualTo("/test-path/test-path")
     }
 
+    @Test
+    fun `wsHandlerAdded event works`() = TestUtil.test { app, http ->
+        var log = ""
+        app.on.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
+        app.on.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
+        app.ws("/test-path-ws") {}
+        assertThat(log).isEqualTo("/test-path-ws/test-path-ws")
+    }
+
 }
