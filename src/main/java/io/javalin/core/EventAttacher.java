@@ -31,6 +31,12 @@ public class EventAttacher {
         return eventManager.getParentJavalin();
     }
 
+    public Javalin wsHandlerAdded(@NotNull Consumer<WsHandlerMetaInfo> callback) {
+        eventManager.getWsHandlerAddedCallbacks().add(callback);
+
+        return eventManager.getParentJavalin();
+    }
+
     private Javalin addLifecycleEvent(@NotNull JavalinEvent event, @NotNull Runnable callback) {
         eventManager.getCallbackMap().get(event).add(callback);
         return eventManager.getParentJavalin();

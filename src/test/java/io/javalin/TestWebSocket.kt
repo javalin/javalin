@@ -10,15 +10,19 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
+import io.javalin.misc.TypedException
 import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
+import org.eclipse.jetty.websocket.api.StatusCode
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
 import org.junit.Test
 import java.net.URI
+import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -280,8 +284,13 @@ class TestWebSocket {
     fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
         app.ws("/other-path/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
-        TestClient(app, "/PaTh/my-param").connectAndDisconnect()
+
+        val client = TestClient(app, "/PaTh/my-param")
+
+        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+
         TestClient(app, "/other-path/My-PaRaM").connectAndDisconnect()
+
         assertThat(app.logger().log).doesNotContain("my-param")
         assertThat(app.logger().log).contains("My-PaRaM")
     }
@@ -346,7 +355,10 @@ class TestWebSocket {
 
     @Test
     fun `accessmanager rejects invalid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
-        TestClient(app, "/").connectAndDisconnect()
+        val client = TestClient(app, "/")
+
+        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+
         assertThat(app.logger().log.size).isEqualTo(2)
         assertThat(app.logger().log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request invalid!")
     }
@@ -360,7 +372,10 @@ class TestWebSocket {
 
     @Test
     fun `accessmanager doesn't crash on exception`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
-        TestClient(app, "/?exception=true").connectAndDisconnect()
+        val client = TestClient(app, "/?exception=true")
+
+        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+
         assertThat(app.logger().log.size).isEqualTo(1)
     }
 
@@ -376,11 +391,110 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("value", "cookieMapSize:3")
     }
 
+    @Test
+    fun `before handlers work`() = TestUtil.test { app, _ ->
+        app.wsBefore { ws ->
+            ws.onConnect { app.logger().log.add("before handler: onConnect") }
+            ws.onMessage { app.logger().log.add("before handler: onMessage") }
+            ws.onClose { app.logger().log.add("before handler: onClose") }
+        }
+
+        app.ws("/ws") { ws ->
+            ws.onConnect { app.logger().log.add("endpoint handler: onConnect") }
+            ws.onMessage { app.logger().log.add("endpoint handler: onMessage") }
+            ws.onClose { app.logger().log.add("endpoint handler: onClose") }
+        }
+
+        val client = TestClient(app, "/ws")
+
+        doAndSleepWhile({ client.connect() }, { !client.isOpen })
+        doAndSleep { client.send("test") }
+        doAndSleepWhile({ client.close() }, { client.isClosing })
+
+        assertThat(app.logger().log).containsExactly(
+                "before handler: onConnect", "endpoint handler: onConnect",
+                "before handler: onMessage", "endpoint handler: onMessage",
+                "before handler: onClose", "endpoint handler: onClose"
+        )
+    }
+
+    @Test
+    fun `after handlers work`() = TestUtil.test { app, _ ->
+        app.ws("/ws") { ws ->
+            ws.onConnect { app.logger().log.add("endpoint handler: onConnect") }
+            ws.onMessage { app.logger().log.add("endpoint handler: onMessage") }
+            ws.onClose { app.logger().log.add("endpoint handler: onClose") }
+        }
+
+        app.wsAfter { ws ->
+            ws.onConnect { app.logger().log.add("after handler: onConnect") }
+            ws.onMessage { app.logger().log.add("after handler: onMessage") }
+            ws.onClose { app.logger().log.add("after handler: onClose") }
+        }
+
+        val client = TestClient(app, "/ws")
+
+        doAndSleepWhile({ client.connect() }, { !client.isOpen })
+        doAndSleep { client.send("test") }
+        doAndSleepWhile({ client.close() }, { client.isClosing })
+
+        assertThat(app.logger().log).containsExactly(
+                "endpoint handler: onConnect", "after handler: onConnect",
+                "endpoint handler: onMessage", "after handler: onMessage",
+                "endpoint handler: onClose", "after handler: onClose"
+        )
+    }
+
+    @Test
+    fun `unmapped exceptions are caught by default handler`() = TestUtil.test { app, _ ->
+        val exception = Exception("Error message")
+
+        app.ws("/ws") { it.onConnect { throw exception } }
+
+        val client = object : TestClient(app, "/ws") {
+            override fun onClose(i: Int, s: String, b: Boolean) {
+                this.app.logger().log.add("Status code: $i")
+                this.app.logger().log.add("Reason: $s")
+            }
+        }
+
+        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+
+        assertThat(client.app.logger().log).containsExactly(
+                "Status code: ${StatusCode.SERVER_ERROR}",
+                "Reason: ${exception.message}"
+        )
+    }
+
+    @Test
+    fun `mapped exceptions are handled`() = TestUtil.test { app, _ ->
+        app.ws("/ws") { it.onConnect { throw Exception() } }
+                .wsException(Exception::class.java) { _, _ ->
+                    app.logger().log.add("Exception handler called") }
+
+        TestClient(app, "/ws").connectAndDisconnect()
+
+        assertThat(app.logger().log).containsExactly("Exception handler called")
+    }
+
+    @Test
+    fun `most specific exception handler handles exception`() = TestUtil.test { app, _ ->
+        app.ws("/ws") { it.onConnect { throw TypedException() } }
+                .wsException(Exception::class.java) { _, _ ->
+                    app.logger().log.add("Exception handler called") }
+                .wsException(TypedException::class.java) { _, _ ->
+                    app.logger().log.add("TypedException handler called") }
+
+        TestClient(app, "/ws").connectAndDisconnect()
+
+        assertThat(app.logger().log).containsExactly("TypedException handler called")
+    }
+
     // ********************************************************************************************
     // Helpers
     // ********************************************************************************************
 
-    internal inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
+    internal open inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
 
         override fun onOpen(serverHandshake: ServerHandshake) {}
         override fun onClose(i: Int, s: String, b: Boolean) {}
@@ -390,15 +504,22 @@ class TestWebSocket {
         }
 
         fun connectAndDisconnect() {
-            doAndSleepWhile({ this.connect() }, { !this.isOpen })
-            doAndSleepWhile({ this.close() }, { this.isClosing })
+            doAndSleepWhile({ connect() }, { !isOpen })
+            doAndSleepWhile({ close() }, { !isClosed })
         }
     }
 
-    private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean) {
+    private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(5)) {
         val startTime = System.currentTimeMillis()
+        val limitTime = startTime + timeout.toMillis();
+
         slowFunction.invoke()
-        while (conditionFunction.invoke() && System.currentTimeMillis() < startTime + 250) {
+
+        while (conditionFunction.invoke()) {
+            if (System.currentTimeMillis() > limitTime) {
+                throw TimeoutException("Wait for condition has timed out")
+            }
+
             Thread.sleep(2)
         }
     }

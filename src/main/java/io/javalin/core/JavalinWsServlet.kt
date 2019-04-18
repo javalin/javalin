@@ -13,9 +13,7 @@ import io.javalin.core.util.ContextUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.security.Role
-import io.javalin.websocket.WsEntry
-import io.javalin.websocket.WsHandler
-import io.javalin.websocket.WsPathMatcher
+import io.javalin.websocket.*
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
@@ -25,21 +23,24 @@ import javax.servlet.http.HttpServletResponse
 
 class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
 
-    var wsPathMatcher = WsPathMatcher(config)
+    val wsExceptionMapper = WsExceptionMapper()
+
+    private val wsPathMatcher = WsPathMatcher()
 
     override fun configure(factory: WebSocketServletFactory) {
         config.inner.wsFactoryConfig?.accept(factory)
         factory.creator = WebSocketCreator { req, res ->
             val preUpgradeContext = req.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
             req.httpServletRequest.setAttribute("javalin-ws-upgrade-context", ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
-            wsPathMatcher // this is a long-lived object handling multiple connections
+
+            WsHandlerController(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         }
     }
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) {
         if (req.isWebSocket()) {
             val requestUri = req.requestURI.removePrefix(req.contextPath)
-            val entry = wsPathMatcher.findEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
+            val entry = wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
             try {
                 val upgradeContext = Context(req, res).apply {
                     pathParamMap = entry.extractPathParams(requestUri)
@@ -58,8 +59,8 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
         }
     }
 
-    fun addHandler(path: String, ws: Consumer<WsHandler>, permittedRoles: Set<Role>) {
-        wsPathMatcher.wsEntries.add(WsEntry(path, WsHandler().apply { ws.accept(this) }, permittedRoles))
+    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsHandler>, permittedRoles: Set<Role>) {
+        wsPathMatcher.add(WsEntry(handlerType, path, WsHandler().apply { ws.accept(this) }, permittedRoles))
     }
 }
 

@@ -8,6 +8,7 @@ package io.javalin.apibuilder;
 
 import io.javalin.Handler;
 import io.javalin.Javalin;
+import io.javalin.core.WsHandlerType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 import io.javalin.serversentevent.SseClient;
@@ -403,6 +404,38 @@ public class ApiBuilder {
      */
     public static void ws(@NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
         staticInstance().ws(prefixPath(""), ws, permittedRoles);
+    }
+
+    /**
+     * Adds a WebSocket before handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     */
+    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
+        return staticInstance().wsBefore(prefixPath(path), wsHandler);
+    }
+
+    /**
+     * Adds a WebSocket before handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     */
+    public Javalin wsBefore(@NotNull Consumer<WsHandler> wsHandler) {
+        return staticInstance().wsBefore(prefixPath("/*"), wsHandler);
+    }
+
+    /**
+     * Adds a WebSocket after handler for the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     */
+    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
+        return staticInstance().wsAfter(prefixPath(path), wsHandler);
+    }
+
+    /**
+     * Adds a WebSocket after handler for the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     */
+    public Javalin wsAfter(@NotNull Consumer<WsHandler> wsHandler) {
+        return staticInstance().wsAfter(prefixPath("/*"), wsHandler);
     }
 
     // ********************************************************************************************
