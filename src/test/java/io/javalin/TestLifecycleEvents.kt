@@ -15,13 +15,13 @@ class TestLifecycleEvents {
     @Test
     fun `life cycle events work`() {
         var log = ""
-        Javalin.create().apply {
-            on.serverStarting { log += "Starting" }
-            on.serverStarted { log += "Started" }
-            on.serverStopping { log += "Stopping" }
-            on.serverStopping { log += "Stopping" }
-            on.serverStopping { log += "Stopping" }
-            on.serverStopped { log += "Stopped" }
+        Javalin.create().subscribe { event ->
+            event.serverStarting { log += "Starting" }
+            event.serverStarted { log += "Started" }
+            event.serverStopping { log += "Stopping" }
+            event.serverStopping { log += "Stopping" }
+            event.serverStopping { log += "Stopping" }
+            event.serverStopped { log += "Stopped" }
         }.start(0).stop()
         assertThat(log).isEqualTo("StartingStartedStoppingStoppingStoppingStopped")
     }
@@ -29,8 +29,8 @@ class TestLifecycleEvents {
     @Test
     fun `handlerAdded event works`() = TestUtil.test { app, http ->
         var log = ""
-        app.on.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
-        app.on.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
+        app.subscribe { it.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
+        app.subscribe { it.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
         app.get("/test-path") {}
         assertThat(log).isEqualTo("/test-path/test-path")
     }
@@ -38,8 +38,8 @@ class TestLifecycleEvents {
     @Test
     fun `wsHandlerAdded event works`() = TestUtil.test { app, http ->
         var log = ""
-        app.on.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
-        app.on.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path }
+        app.subscribe { it.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
+        app.subscribe { it.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
         app.ws("/test-path-ws") {}
         assertThat(log).isEqualTo("/test-path-ws/test-path-ws")
     }

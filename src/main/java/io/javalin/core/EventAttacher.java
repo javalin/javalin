@@ -6,7 +6,6 @@
 
 package io.javalin.core;
 
-import io.javalin.Javalin;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,27 +18,23 @@ public class EventAttacher {
     }
 
     // @formatter:off
-    public Javalin serverStarting(@NotNull Runnable callback)    { return addLifecycleEvent(JavalinEvent.SERVER_STARTING,     callback); }
-    public Javalin serverStarted(@NotNull Runnable callback)     { return addLifecycleEvent(JavalinEvent.SERVER_STARTED,      callback); }
-    public Javalin serverStartFailed(@NotNull Runnable callback) { return addLifecycleEvent(JavalinEvent.SERVER_START_FAILED, callback); }
-    public Javalin serverStopping(@NotNull Runnable callback)    { return addLifecycleEvent(JavalinEvent.SERVER_STOPPING,     callback); }
-    public Javalin serverStopped(@NotNull Runnable callback)     { return addLifecycleEvent(JavalinEvent.SERVER_STOPPED,      callback); }
+    public void serverStarting(@NotNull Runnable callback)    {  addLifecycleEvent(JavalinEvent.SERVER_STARTING,     callback); }
+    public void serverStarted(@NotNull Runnable callback)     {  addLifecycleEvent(JavalinEvent.SERVER_STARTED,      callback); }
+    public void serverStartFailed(@NotNull Runnable callback) {  addLifecycleEvent(JavalinEvent.SERVER_START_FAILED, callback); }
+    public void serverStopping(@NotNull Runnable callback)    {  addLifecycleEvent(JavalinEvent.SERVER_STOPPING,     callback); }
+    public void serverStopped(@NotNull Runnable callback)     {  addLifecycleEvent(JavalinEvent.SERVER_STOPPED,      callback); }
     // @formatter:on
 
-    public Javalin handlerAdded(@NotNull Consumer<HandlerMetaInfo> callback) {
+    public void handlerAdded(@NotNull Consumer<HandlerMetaInfo> callback) {
         this.eventManager.getHandlerAddedCallbacks().add(callback);
-        return eventManager.getParentJavalin();
     }
 
-    public Javalin wsHandlerAdded(@NotNull Consumer<WsHandlerMetaInfo> callback) {
+    public void wsHandlerAdded(@NotNull Consumer<WsHandlerMetaInfo> callback) {
         eventManager.getWsHandlerAddedCallbacks().add(callback);
-
-        return eventManager.getParentJavalin();
     }
 
-    private Javalin addLifecycleEvent(@NotNull JavalinEvent event, @NotNull Runnable callback) {
+    private void addLifecycleEvent(@NotNull JavalinEvent event, @NotNull Runnable callback) {
         eventManager.getCallbackMap().get(event).add(callback);
-        return eventManager.getParentJavalin();
     }
 
 }

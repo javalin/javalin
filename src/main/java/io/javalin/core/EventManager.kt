@@ -6,13 +6,11 @@
 
 package io.javalin.core
 
-import io.javalin.Javalin
 import io.javalin.security.Role
 import java.util.*
 import java.util.function.Consumer
 
-class EventManager(val parentJavalin: Javalin) {
-    val eventAttacher = EventAttacher(this)
+class EventManager {
     val callbackMap = JavalinEvent.values().associate { it to HashSet<Runnable>() }
     fun fireEvent(javalinEvent: JavalinEvent) = callbackMap[javalinEvent]!!.forEach { callback -> callback.run() }
     var handlerAddedCallbacks = mutableSetOf<Consumer<HandlerMetaInfo>>()

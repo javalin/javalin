@@ -54,8 +54,7 @@ public class Javalin {
     protected JavalinServlet servlet = new JavalinServlet(appAttributes, config);
     protected JavalinWsServlet wsServlet = new JavalinWsServlet(config);
 
-    protected EventManager eventManager = new EventManager(this);
-    public EventAttacher on = eventManager.getEventAttacher();
+    protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
     }
@@ -155,6 +154,12 @@ public class Javalin {
         }
         log.info("Javalin has stopped");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
+        return this;
+    }
+
+    public Javalin subscribe(Consumer<EventAttacher> eventAttacher) {
+        EventAttacher attacher = new EventAttacher(this.eventManager);
+        eventAttacher.accept(attacher);
         return this;
     }
 

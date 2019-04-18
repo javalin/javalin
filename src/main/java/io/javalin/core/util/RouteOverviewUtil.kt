@@ -16,14 +16,14 @@ data class RouteOverviewConfig(val path: String, val roles: Set<Role>)
 
 class RouteOverviewRenderer(val app: Javalin) : Handler {
 
-    val handlerMetaInfo = mutableListOf<HandlerMetaInfo>()
+    val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
 
     init {
-        app.on.handlerAdded { handlerMetaInfo.add(it) }
+        app.subscribe { it.handlerAdded { handlerMetaInfo -> handlerMetaInfoList.add(handlerMetaInfo) } }
     }
 
     override fun handle(ctx: Context) {
-        ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfo))
+        ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfoList))
     }
 }
 
