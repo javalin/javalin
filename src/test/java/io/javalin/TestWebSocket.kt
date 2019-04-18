@@ -487,27 +487,17 @@ class TestWebSocket {
     @Test
     fun `mapped exceptions are handled`() = TestUtil.test { app, _ ->
         app.ws("/ws") { it.onConnect { throw Exception() } }
-                .wsException(Exception::class.java) { _, _ ->
-                    app.logger().log.add("Exception handler called")
-                }
-
+        app.wsException(Exception::class.java) { _, _ -> app.logger().log.add("Exception handler called") }
         TestClient(app, "/ws").connectAndDisconnect()
-
         assertThat(app.logger().log).containsExactly("Exception handler called")
     }
 
     @Test
     fun `most specific exception handler handles exception`() = TestUtil.test { app, _ ->
         app.ws("/ws") { it.onConnect { throw TypedException() } }
-                .wsException(Exception::class.java) { _, _ ->
-                    app.logger().log.add("Exception handler called")
-                }
-                .wsException(TypedException::class.java) { _, _ ->
-                    app.logger().log.add("TypedException handler called")
-                }
-
+        app.wsException(Exception::class.java) { _, _ -> app.logger().log.add("Exception handler called") }
+        app.wsException(TypedException::class.java) { _, _ -> app.logger().log.add("TypedException handler called") }
         TestClient(app, "/ws").connectAndDisconnect()
-
         assertThat(app.logger().log).containsExactly("TypedException handler called")
     }
 
