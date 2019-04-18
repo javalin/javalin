@@ -52,7 +52,7 @@ class WsHandlerController(val matcher: WsPathMatcher, val exceptionMapper: WsExc
         tryBeforeAndEndpointHandlers(ctx) { it.handler.closeHandler?.handleClose(ctx) }
         tryAfterHandlers(ctx) { it.handler.closeHandler?.handleClose(ctx) }
         wsLogger?.closeHandler?.handleClose(ctx)
-        sessionIds.remove(session)
+        sessionIds.remove(session) // the socket has been closed, we no longer need to keep track of the session ID
     }
 
     @OnWebSocketError
