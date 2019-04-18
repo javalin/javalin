@@ -8,18 +8,18 @@ package io.javalin.core
 
 import io.javalin.*
 import io.javalin.core.util.HttpResponseExceptionMapper
-import java.util.*
+import io.javalin.core.util.Util
 
 class ExceptionMapper {
 
-    val exceptionMap = HashMap<Class<out Exception>, ExceptionHandler<Exception>?>()
+    val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
         ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
         if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
             HttpResponseExceptionMapper.handle(exception, ctx)
         } else {
-            val exceptionHandler = this.getHandler(exception.javaClass)
+            val exceptionHandler = Util.findByClass(handlers, exception.javaClass)
             if (exceptionHandler != null) {
                 exceptionHandler.handle(exception, ctx)
             } else {
@@ -36,20 +36,6 @@ class ExceptionMapper {
         handle(e, ctx)
     }
 
-    private fun getHandler(exceptionClass: Class<out Exception>): ExceptionHandler<Exception>? {
-        if (this.exceptionMap.containsKey(exceptionClass)) {
-            return this.exceptionMap[exceptionClass]
-        }
-        var superclass = exceptionClass.superclass
-        while (superclass != null) {
-            if (this.exceptionMap.containsKey(superclass)) {
-                return exceptionMap[superclass]
-            }
-            superclass = superclass.superclass
-        }
-        return null
-    }
-
     private fun noUserHandler(e: Exception) =
-            this.exceptionMap[e::class.java] == null && this.exceptionMap[HttpResponseException::class.java] == null
+            this.handlers[e::class.java] == null && this.handlers[HttpResponseException::class.java] == null
 }

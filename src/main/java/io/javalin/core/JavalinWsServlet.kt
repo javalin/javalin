@@ -32,7 +32,6 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
         factory.creator = WebSocketCreator { req, res ->
             val preUpgradeContext = req.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
             req.httpServletRequest.setAttribute("javalin-ws-upgrade-context", ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
-
             WsHandlerController(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         }
     }

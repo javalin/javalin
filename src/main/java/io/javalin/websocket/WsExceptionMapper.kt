@@ -7,27 +7,22 @@
 package io.javalin.websocket
 
 import io.javalin.Javalin
+import io.javalin.core.util.Util
 import org.eclipse.jetty.websocket.api.StatusCode
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.reflect.full.superclasses
 
 /**
  * Maps exception types to exception handlers.
  */
 class WsExceptionMapper {
 
-    private val handlers = ConcurrentHashMap<Class<out Exception>, WsExceptionHandler<Exception>?>()
-
-    /** Associates an [exceptionHandler] with the specific [exceptionClass]. */
-    fun addHandler(exceptionClass: Class<out Exception>, exceptionHandler: WsExceptionHandler<Exception>?) =
-            handlers.put(exceptionClass, exceptionHandler)
+    val handlers = mutableMapOf<Class<out Exception>, WsExceptionHandler<Exception>?>()
 
     /**
      * Handles the specific [exception]. If no handler is associated with the exception, then the
      * socket is closed with a status code that indicates internal error.
      */
     fun handle(exception: Exception, ctx: WsContext) {
-        val handler: WsExceptionHandler<Exception>? = findHandler(exception.javaClass)
+        val handler = Util.findByClass(handlers, exception.javaClass)
         if (handler != null) {
             handler.handle(exception, ctx)
         } else {
@@ -36,11 +31,4 @@ class WsExceptionMapper {
         }
     }
 
-    private fun findHandler(exceptionClass: Class<out Exception>): WsExceptionHandler<Exception>? {
-        return handlers.getOrElse(exceptionClass) {
-            exceptionClass.kotlin.superclasses
-                    .firstOrNull { superclass -> handlers.containsKey(superclass.java) }
-                    ?.let { superclass -> handlers[superclass.java] }
-        }
-    }
 }

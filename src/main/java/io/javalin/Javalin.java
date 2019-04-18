@@ -195,20 +195,21 @@ public class Javalin {
 
     /**
      * Adds an exception mapper to the instance.
-     * Useful for turning exceptions into standardized errors/messages/pages
      *
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
-        servlet.getExceptionMapper().getExceptionMap().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        servlet.getExceptionMapper().getHandlers().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
     /**
      * Adds a WebSocket exception mapper to the instance.
+     *
+     * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
-        wsServlet.getWsExceptionMapper().addHandler(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
+        wsServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 

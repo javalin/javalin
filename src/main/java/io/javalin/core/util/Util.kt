@@ -18,6 +18,7 @@ import java.util.*
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 import javax.servlet.http.HttpServletResponse
+import kotlin.reflect.full.superclasses
 
 object Util {
 
@@ -127,5 +128,13 @@ object Util {
             Javalin.log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
         }
     }.start()
+
+    fun <T : Any?> findByClass(map: Map<Class<out Exception>, T>, exceptionClass: Class<out Exception>): T? {
+        return map.getOrElse(exceptionClass) {
+            exceptionClass.kotlin.superclasses
+                    .firstOrNull { superclass -> map.containsKey(superclass.java) }
+                    ?.let { superclass -> map[superclass.java] }
+        }
+    }
 
 }
