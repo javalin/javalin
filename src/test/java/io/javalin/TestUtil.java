@@ -7,8 +7,6 @@
 package io.javalin;
 
 import com.mashape.unirest.http.HttpMethod;
-import io.javalin.Handler;
-import io.javalin.Javalin;
 import io.javalin.json.JavalinJackson;
 import io.javalin.json.JavalinJson;
 import io.javalin.util.HttpUtil;

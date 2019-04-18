@@ -470,7 +470,8 @@ class TestWebSocket {
     fun `mapped exceptions are handled`() = TestUtil.test { app, _ ->
         app.ws("/ws") { it.onConnect { throw Exception() } }
                 .wsException(Exception::class.java) { _, _ ->
-                    app.logger().log.add("Exception handler called") }
+                    app.logger().log.add("Exception handler called")
+                }
 
         TestClient(app, "/ws").connectAndDisconnect()
 
@@ -481,9 +482,11 @@ class TestWebSocket {
     fun `most specific exception handler handles exception`() = TestUtil.test { app, _ ->
         app.ws("/ws") { it.onConnect { throw TypedException() } }
                 .wsException(Exception::class.java) { _, _ ->
-                    app.logger().log.add("Exception handler called") }
+                    app.logger().log.add("Exception handler called")
+                }
                 .wsException(TypedException::class.java) { _, _ ->
-                    app.logger().log.add("TypedException handler called") }
+                    app.logger().log.add("TypedException handler called")
+                }
 
         TestClient(app, "/ws").connectAndDisconnect()
 

@@ -103,9 +103,9 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-                    it.sessionHandler { fileSessionHandler }
-                    it.server { newServer }
-                }.start(0)
+            it.sessionHandler { fileSessionHandler }
+            it.server { newServer }
+        }.start(0)
         val httpHandler = (((newServer.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
         javalin.stop()

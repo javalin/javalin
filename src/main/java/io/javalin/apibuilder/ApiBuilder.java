@@ -8,7 +8,6 @@ package io.javalin.apibuilder;
 
 import io.javalin.Handler;
 import io.javalin.Javalin;
-import io.javalin.core.WsHandlerType;
 import io.javalin.security.AccessManager;
 import io.javalin.security.Role;
 import io.javalin.serversentevent.SseClient;
