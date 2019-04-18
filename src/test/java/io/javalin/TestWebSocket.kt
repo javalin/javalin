@@ -437,6 +437,17 @@ class TestWebSocket {
     }
 
     @Test
+    fun `multiple before and after handlers can be called`() = TestUtil.test { app, _ ->
+        app.wsBefore { it.onConnect { app.logger().log.add("Before 1") } }
+        app.wsBefore("/ws/*") { it.onConnect { app.logger().log.add("Before 2") } }
+        app.wsAfter { it.onConnect { app.logger().log.add("After 1") } }
+        app.wsAfter("/ws/*") { it.onConnect { app.logger().log.add("After 2") } }
+        app.ws("/ws/test") { it.onConnect { app.logger().log.add("Endpoint") } }
+        TestClient(app, "/ws/test").connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("Before 1", "Before 2", "Endpoint", "After 1", "After 2")
+    }
+
+    @Test
     fun `after handlers work`() = TestUtil.test { app, _ ->
         app.ws("/ws") { ws ->
             ws.onConnect { app.logger().log.add("endpoint handler: onConnect") }
