@@ -9,6 +9,7 @@ package io.javalin.routeoverview;
 import io.javalin.Context;
 import io.javalin.Handler;
 import io.javalin.Javalin;
+import io.javalin.core.HandlerType;
 import io.javalin.misc.HandlerImplementation;
 import io.javalin.websocket.WsHandler;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
@@ -47,15 +48,15 @@ public class VisualTest {
             .put("/user/:user-id", VisualTest.lambdaField)
             .patch("/patchy-mcpatchface", new ImplementingClass(), roles(ROLE_ONE, ROLE_TWO))
             .delete("/users/:user-id", new HandlerImplementation())
-            .connect("/test", VisualTest.lambdaField)
             .options("/what/:are/*/my-options", new HandlerImplementation())
-            .trace("/tracer", new HandlerImplementation())
-            .connect("/test2", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_TWO))
             .options("/what/:are/*/my-options2", new HandlerImplementation(), roles(ROLE_ONE, ROLE_TWO))
-            .trace("/tracer2", new HandlerImplementation(), roles(ROLE_ONE, ROLE_TWO))
             .wsBefore(VisualTest::wsMethodRef)
             .ws("/websocket", VisualTest::wsMethodRef)
             .wsAfter("/my-path", VisualTest::wsMethodRef)
+            .addHandler(HandlerType.CONNECT, "/test", VisualTest.lambdaField)
+            .addHandler(HandlerType.TRACE, "/tracer", new HandlerImplementation())
+            .addHandler(HandlerType.CONNECT, "/test2", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_TWO))
+            .addHandler(HandlerType.TRACE, "/tracer2", new HandlerImplementation(), roles(ROLE_ONE, ROLE_TWO))
             .sse("/sse", sse -> {
             });
         app.routes(() -> {
