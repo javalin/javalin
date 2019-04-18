@@ -187,11 +187,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> use(clazz: Class<T>): T = req.getAttribute("ctx-ext-${clazz.canonicalName}") as T
 
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle */
-    fun attribute(attribute: String, value: Any?) = req.setAttribute(attribute, value)
+    fun attribute(key: String, value: Any?) = req.setAttribute(key, value)
 
     /** Gets the specified attribute from the request. */
     @Suppress("UNCHECKED_CAST")
-    fun <T> attribute(attribute: String): T? = req.getAttribute(attribute) as? T
+    fun <T> attribute(key: String): T? = req.getAttribute(key) as? T
 
     /** Gets a map with all the attribute keys and values on the request. */
     fun <T> attributeMap(): Map<String, T?> = req.attributeNames.asSequence().associate { it to attribute<T>(it) }
@@ -287,11 +287,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun scheme(): String = req.scheme
 
     /** Sets an attribute for the user session. */
-    fun sessionAttribute(attribute: String, value: Any?) = req.session.setAttribute(attribute, value)
+    fun sessionAttribute(key: String, value: Any?) = req.session.setAttribute(key, value)
 
     /** Gets specified attribute from the user session, or null. */
     @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttribute(attribute: String): T? = req.session.getAttribute(attribute) as? T
+    fun <T> sessionAttribute(key: String): T? = req.session.getAttribute(key) as? T
 
     /** Gets a map of all the attributes in the user session. */
     fun <T> sessionAttributeMap(): Map<String, T?> = req.session.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
@@ -366,8 +366,8 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Sets response header by name and value. */
-    fun header(headerName: String, headerValue: String): Context {
-        res.setHeader(headerName, headerValue)
+    fun header(name: String, value: String): Context {
+        res.setHeader(name, value)
         return this
     }
 

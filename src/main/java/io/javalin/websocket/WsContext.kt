@@ -32,11 +32,14 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun queryString(): String? = upgradeCtx.queryString()
     fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
     fun queryParams(key: String): List<String> = upgradeCtx.queryParams(key)
-    fun queryParam(key: String): String? = upgradeCtx.queryParam(key)
-    fun queryParam(key: String, default: String) = upgradeCtx.queryParam(key, default)
+    fun queryParam(key: String, default: String? = null): String? = upgradeCtx.queryParam(key, default)
+    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = upgradeCtx.queryParam(key, clazz, default)
+    inline fun <reified T : Any> queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)
 
     fun pathParamMap(): Map<String, String> = upgradeCtx.pathParamMap()
     fun pathParam(key: String): String = upgradeCtx.pathParam(key)
+    fun <T> pathParam(key: String, clazz: Class<T>) = upgradeCtx.pathParam(key, clazz)
+    inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)
 
     fun host() = upgradeReq.host // why can't we get this from upgradeCtx?
 
