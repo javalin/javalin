@@ -12,15 +12,17 @@ import io.javalin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
 import io.javalin.misc.TypedException
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.WsExceptionMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
+import org.eclipse.jetty.websocket.api.StatusCode
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
 import org.junit.Test
 import java.net.URI
+import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -282,8 +284,13 @@ class TestWebSocket {
     fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
         app.ws("/other-path/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
-        TestClient(app, "/PaTh/my-param").connectAndDisconnect()
+
+        val client = TestClient(app, "/PaTh/my-param")
+
+        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+
         TestClient(app, "/other-path/My-PaRaM").connectAndDisconnect()
+
         assertThat(app.logger().log).doesNotContain("my-param")
         assertThat(app.logger().log).contains("My-PaRaM")
     }
@@ -348,7 +355,10 @@ class TestWebSocket {
 
     @Test
     fun `accessmanager rejects invalid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
-        TestClient(app, "/").connectAndDisconnect()
+        val client = TestClient(app, "/")
+
+        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+
         assertThat(app.logger().log.size).isEqualTo(2)
         assertThat(app.logger().log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request invalid!")
     }
@@ -362,7 +372,10 @@ class TestWebSocket {
 
     @Test
     fun `accessmanager doesn't crash on exception`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
-        TestClient(app, "/?exception=true").connectAndDisconnect()
+        val client = TestClient(app, "/?exception=true")
+
+        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+
         assertThat(app.logger().log.size).isEqualTo(1)
     }
 
@@ -440,12 +453,17 @@ class TestWebSocket {
 
         val client = object : TestClient(app, "/ws") {
             override fun onClose(i: Int, s: String, b: Boolean) {
-                assertThat(i).isEqualTo(WsExceptionMapper.INTERNAL_ERROR_STATUS_CODE)
-                assertThat(s).isEqualTo(exception.message)
+                this.app.logger().log.add("Status code: $i")
+                this.app.logger().log.add("Reason: $s")
             }
         }
 
         doAndSleepWhile({ client.connect() }, { !client.isClosed })
+
+        assertThat(client.app.logger().log).containsExactly(
+                "Status code: ${StatusCode.SERVER_ERROR}",
+                "Reason: ${exception.message}"
+        )
     }
 
     @Test
@@ -486,15 +504,22 @@ class TestWebSocket {
         }
 
         fun connectAndDisconnect() {
-            doAndSleepWhile({ this.connect() }, { !this.isOpen })
-            doAndSleepWhile({ this.close() }, { this.isClosing })
+            doAndSleepWhile({ connect() }, { !isOpen })
+            doAndSleepWhile({ close() }, { !isClosed })
         }
     }
 
-    private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean) {
+    private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(5)) {
         val startTime = System.currentTimeMillis()
+        val limitTime = startTime + timeout.toMillis();
+
         slowFunction.invoke()
-        while (conditionFunction.invoke() && System.currentTimeMillis() < startTime + 250) {
+
+        while (conditionFunction.invoke()) {
+            if (System.currentTimeMillis() > limitTime) {
+                throw TimeoutException("Wait for condition has timed out")
+            }
+
             Thread.sleep(2)
         }
     }

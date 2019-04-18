@@ -7,6 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.Javalin
+import org.eclipse.jetty.websocket.api.StatusCode
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.full.superclasses
 
@@ -15,16 +16,11 @@ import kotlin.reflect.full.superclasses
  */
 class WsExceptionMapper {
 
-    companion object {
-        const val INTERNAL_ERROR_STATUS_CODE = 1011
-    }
-
     private val handlers = ConcurrentHashMap<Class<out Exception>, WsExceptionHandler<Exception>?>()
 
     /** Associates an [exceptionHandler] with the specific [exceptionClass]. */
     fun addHandler(exceptionClass: Class<out Exception>, exceptionHandler: WsExceptionHandler<Exception>?) =
             handlers.put(exceptionClass, exceptionHandler)
-
 
     /**
      * Handles the specific [exception]. If no handler is associated with the exception, then the
@@ -35,8 +31,8 @@ class WsExceptionMapper {
         if (handler != null) {
             handler.handle(exception, ctx)
         } else {
-            Javalin.log.warn("Uncaught exception", exception)
-            ctx.session.close(INTERNAL_ERROR_STATUS_CODE, exception.message)
+            Javalin.log.warn("Uncaught exception in WebSocket handler", exception)
+            ctx.session.close(StatusCode.SERVER_ERROR, exception.message)
         }
     }
 
