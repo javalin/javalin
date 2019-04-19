@@ -20,7 +20,7 @@ import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: JavalinConfig) {
+class JavalinServlet(val config: JavalinConfig) {
 
     val matcher = PathMatcher()
     val exceptionMapper = ExceptionMapper()
@@ -31,7 +31,7 @@ class JavalinServlet(private val appAttributes: Map<Class<*>, Any>, val config: 
         val req = CachedRequestWrapper(servletRequest, config.requestCacheSize) // cached for reading multiple times
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.removePrefix(req.contextPath)
-        val ctx = Context(req, res, appAttributes)
+        val ctx = Context(req, res, config.inner.appAttributes)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 

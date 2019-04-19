@@ -21,8 +21,10 @@ import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -50,6 +52,7 @@ public class JavalinConfig {
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
     public class Inner {
+        @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
         @NotNull public List<String> corsOrigins = new ArrayList<>();
         @Nullable public RouteOverviewConfig routeOverview;
         @Nullable public RequestLogger requestLogger;

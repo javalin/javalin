@@ -23,8 +23,6 @@ import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
 import io.javalin.http.Context;
-import io.javalin.http.util.CorsBeforeHandler;
-import io.javalin.http.util.CorsOptionsHandler;
 import io.javalin.http.ErrorHandler;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
@@ -32,13 +30,13 @@ import io.javalin.http.HandlerType;
 import io.javalin.http.JavalinServlet;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
+import io.javalin.http.util.CorsBeforeHandler;
+import io.javalin.http.util.CorsOptionsHandler;
 import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsHandlerType;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -51,12 +49,10 @@ public class Javalin {
 
     public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    protected Map<Class<?>, Object> appAttributes = new HashMap<>();
-
     protected JavalinConfig config = new JavalinConfig();
 
     protected JavalinServer server = new JavalinServer(config);
-    protected JavalinServlet servlet = new JavalinServlet(appAttributes, config);
+    protected JavalinServlet servlet = new JavalinServlet(config);
     protected JavalinWsServlet wsServlet = new JavalinWsServlet(config);
 
     protected EventManager eventManager = new EventManager();
@@ -183,7 +179,7 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin attribute(Class clazz, Object obj) {
-        appAttributes.put(clazz, obj);
+        config.inner.appAttributes.put(clazz, obj);
         return this;
     }
 
@@ -194,7 +190,7 @@ public class Javalin {
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
     public <T> T attribute(Class<T> clazz) {
-        return (T) appAttributes.get(clazz);
+        return (T) config.inner.appAttributes.get(clazz);
     }
 
     /**

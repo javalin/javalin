@@ -12,8 +12,8 @@ import io.javalin.core.security.Role
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.Context
-import io.javalin.http.util.ContextUtil
 import io.javalin.http.UnauthorizedResponse
+import io.javalin.http.util.ContextUtil
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
