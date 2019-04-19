@@ -88,13 +88,14 @@ class JavalinServer(val config: JavalinConfig) {
     private fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(jettyDefaultLogger)
 
     private fun defaultServer() = Server(QueuedThreadPool(250, 8, 60_000)).apply {
-        server.addBean(LowResourceMonitor(this))
-        server.insertHandler(StatisticsHandler())
+        addBean(LowResourceMonitor(this))
+        insertHandler(StatisticsHandler())
+        setAttribute("is-default-server", true)
     }
 
     private fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
 
-    private val ServerConnector.protocol get() = if (this.protocols.contains("ssl")) "https" else "http"
+    private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
 
     private fun attachJavalinHandlers(userHandler: Handler?, javalinHandlers: HandlerList) = when (userHandler) {
         null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom Handler set, wrap Javalin handlers in a HandlerWrapper

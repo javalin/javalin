@@ -133,6 +133,12 @@ public class Javalin {
         } catch (Exception e) {
             log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
+
+            // only stop if Javalin instantiated default server; otherwise, the caller is responsible to stop
+            Object isDefaultServer = server.server().getAttribute("is-default-server");
+            if (isDefaultServer != null && Boolean.parseBoolean(isDefaultServer.toString())) {
+                stop();
+            }
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
                 throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getServerPort() + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
