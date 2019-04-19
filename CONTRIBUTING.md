@@ -25,36 +25,38 @@ Every PR will be considered.
 
 ## Project overview
 
-Javalin is a fairly small project (less than 4k LoC, including comments).
-
 ### Package overview
 
 The following ASCII file structure diagram shows the most important packages and files, with comments.
 
 ```
 io.javalin
-├── apibuilder/               // Convenience methods for when you're creating applications with a lot of routes
-├── core/
-│   ├── util/
-│   │   ├── JettyServerUtil   // Responsible for setting up the Jetty Server
-│   ├── JavalinServlet.kt     // Responsible for the request lifecycle (writes the response to the client)
-│   └── PathMatcher.kt        // Responsible for matching requests and parsing URLs
-├── json/                     // JSON mapping (functional interfaces + optional Jackson implementation)
-├── rendering/                // Template engines and markdown renderer
-├── security/                 // All functionality related to access management for routes
-├── staticfiles/              // All functionality related to static files
-├── websocket/
-│   ├── WsSession.kt          // Similar to Context.kt, but for WebSockets
-│   └── WsPathMatcher.kt      // Similar to PathMatcher.kt, but for WebSockets
-├── Context.kt                // Wrapper class for request/reponse, contains everything needed to fulfill a request
-└── Javalin.java              // Main public API, responsible for setting up and configuring the server
+├── apibuilder/                 // Convenience methods for when declaring large APIs
+├── core/                       // Things that concern both HTTP and WebSockets
+│   ├── security/               // AccessManager, Role interface, security utils
+│   ├── util/                   // Misc utils - if you don't know where to place something, this is the place...
+│   └── validation/             // Validation for parameters
+├── http/                       // Everything related to http requests
+│   ├── sse/                    // Server-sent events
+│   ├── staticfiles/            // Static file handling
+│   ├── util/                   // Misc utils for HTTP, mainly for Context
+│   ├── Context.kt              // Wrapper class for request/response, contains everything needed to fulfill a request
+│   └── JavalinServlet.kt       // Responsible for the request lifecycle (writes the response to the client)
+├── plugin/                     // All plugins (functionality that requires optional dependencies)
+│   ├── json/                   // Interfaces for JSON, as well as a Jackson based implementation
+│   ├── metrics/                // Metric plugins
+│   └── rendering/              // Interface for file rendering, and several template engine implementations
+├── websocket/                  // Everything related to WebSockets
+│   ├── WsContext.kt            // Wrapper class for WebSockets
+│   ├── JavalinWsServlet.kt     // Responsible for WebSocket upgrade
+│   └── WsHandlerController.kt  // Responsible for Websocket request lifecycle (before, endpoint, after, logging)
+└── Javalin.java                // Main public API, responsible for setting up and configuring the server
 ```
 
-Most of the codebase is Kotlin (~2.5k lines), and the rest is Java (~1k lines). 
 Any public API which takes a `@FunctionalInterface` as a parameter has to be Java 
 to achieve the best interoperability between Java and Kotlin. 
 Every `@FunctionalInterface` is also Java for the same reasons. 
-All tests are written in Kotlin.
+Almost all tests are written in Kotlin, but it's okay to contribute a Java test.
 
 ### Test setup
 
