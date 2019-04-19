@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin;
+package io.javalin.core;
 
 import io.javalin.core.JettyUtil;
 import io.javalin.core.security.AccessManager;

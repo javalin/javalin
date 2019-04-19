@@ -13,6 +13,7 @@ import io.javalin.core.EventAttacher;
 import io.javalin.core.EventManager;
 import io.javalin.core.Extension;
 import io.javalin.core.HandlerMetaInfo;
+import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinEvent;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.WsHandlerMetaInfo;

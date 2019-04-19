@@ -7,7 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.Javalin
-import io.javalin.JavalinConfig
+import io.javalin.core.JavalinConfig
 import io.javalin.core.security.Role
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
