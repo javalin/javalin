@@ -63,9 +63,9 @@ object LogUtil {
     fun wsDevLogger(ws: WsHandler) {
         ws.onConnect { ctx -> ctx.logEvent("onConnect") }
         ws.onMessage { ctx -> ctx.logEvent("onMessage", "Message (next line):\n${ctx.message()}") }
-        ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Offset: ${ctx.offset}, Length: ${ctx.length}\nMessage (next line):\n${ctx.data}") }
-        ws.onClose { ctx -> ctx.logEvent("onClose", "StatusCode: ${ctx.statusCode}\nReason: ${ctx.reason ?: "No reason was provided"}") }
-        ws.onError { ctx -> ctx.logEvent("onError", "Throwable:  ${ctx.error ?: "No throwable was provided"}") }
+        ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Offset: ${ctx.offset()}, Length: ${ctx.length()}\nMessage (next line):\n${ctx.data()}") }
+        ws.onClose { ctx -> ctx.logEvent("onClose", "StatusCode: ${ctx.status()}\nReason: ${ctx.reason() ?: "No reason was provided"}") }
+        ws.onError { ctx -> ctx.logEvent("onError", "Throwable:  ${ctx.error() ?: "No throwable was provided"}") }
     }
 
     private fun WsContext.logEvent(event: String, additionalInfo: String = "") {

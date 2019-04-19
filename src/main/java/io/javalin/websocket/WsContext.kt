@@ -58,9 +58,22 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 }
 
 class WsConnectContext(sessionId: String, session: Session) : WsContext(sessionId, session)
-class WsErrorContext(sessionId: String, session: Session, val error: Throwable?) : WsContext(sessionId, session)
-class WsCloseContext(sessionId: String, session: Session, val statusCode: Int, val reason: String?) : WsContext(sessionId, session)
-class WsBinaryMessageContext(sessionId: String, session: Session, val data: Array<Byte>, val offset: Int, val length: Int) : WsContext(sessionId, session)
+
+class WsErrorContext(sessionId: String, session: Session, private val error: Throwable?) : WsContext(sessionId, session) {
+    fun error() = error
+}
+
+class WsCloseContext(sessionId: String, session: Session, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session) {
+    fun status() = statusCode
+    fun reason() = reason
+}
+
+class WsBinaryMessageContext(sessionId: String, session: Session, private val data: Array<Byte>, private val offset: Int, private val length: Int) : WsContext(sessionId, session) {
+    fun data() = data
+    fun offset() = offset
+    fun length() = length
+}
+
 class WsMessageContext(sessionId: String, session: Session, private val message: String) : WsContext(sessionId, session) {
     fun message(): String = message
     fun <T> message(clazz: Class<T>): T = JavalinJson.fromJson(message, clazz)

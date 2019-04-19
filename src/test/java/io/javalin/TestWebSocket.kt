@@ -188,7 +188,7 @@ class TestWebSocket {
         val receivedBinaryData = mutableListOf<ByteArray>()
         app.ws("/binary") { ws ->
             ws.onBinaryMessage { ctx ->
-                receivedBinaryData.add(ctx.data.toByteArray())
+                receivedBinaryData.add(ctx.data().toByteArray())
             }
         }
 
@@ -341,7 +341,7 @@ class TestWebSocket {
                 wsFactory.policy.maxTextMessageSize = maxTextSize
             }
         }.ws("/ws") { ws ->
-            ws.onError { ctx -> err = ctx.error }
+            ws.onError { ctx -> err = ctx.error() }
         }.start(0)
 
         val testClient = TestClient(app, "/ws")
