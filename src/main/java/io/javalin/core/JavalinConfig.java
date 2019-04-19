@@ -39,6 +39,7 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
+    public boolean showWarningIfNotStartedAfterOneSecond = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
     @NotNull public Long requestCacheSize = 4096L;
