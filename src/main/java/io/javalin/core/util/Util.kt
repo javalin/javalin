@@ -6,9 +6,9 @@
 
 package io.javalin.core.util
 
-import io.javalin.InternalServerErrorResponse
 import io.javalin.Javalin
 import io.javalin.core.JavalinServer
+import io.javalin.http.InternalServerErrorResponse
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File

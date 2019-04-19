@@ -8,6 +8,7 @@ package io.javalin;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.javalin.http.Context;
 import io.javalin.misc.SerializeableObject;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -9,12 +9,12 @@ package io.javalin
 
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.ClasspathLoader
-import io.javalin.rendering.FileRenderer
-import io.javalin.rendering.JavalinRenderer
-import io.javalin.rendering.template.JavalinJtwig
-import io.javalin.rendering.template.JavalinPebble
-import io.javalin.rendering.template.JavalinVelocity
-import io.javalin.rendering.template.TemplateUtil.model
+import io.javalin.plugin.rendering.FileRenderer
+import io.javalin.plugin.rendering.JavalinRenderer
+import io.javalin.plugin.rendering.template.JavalinJtwig
+import io.javalin.plugin.rendering.template.JavalinPebble
+import io.javalin.plugin.rendering.template.JavalinVelocity
+import io.javalin.plugin.rendering.template.TemplateUtil.model
 import org.apache.velocity.app.VelocityEngine
 import org.assertj.core.api.Assertions.assertThat
 import org.jtwig.environment.EnvironmentConfigurationBuilder

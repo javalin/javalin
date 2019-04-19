@@ -10,7 +10,7 @@ import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.carrotsearch.junitbenchmarks.Clock;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.Context;
+import io.javalin.http.Context;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.CrudHandler;
 import org.junit.AfterClass;

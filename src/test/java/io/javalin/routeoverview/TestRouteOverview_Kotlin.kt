@@ -6,8 +6,8 @@
 
 package io.javalin.routeoverview
 
-import io.javalin.Context
-import io.javalin.Handler
+import io.javalin.http.Context
+import io.javalin.http.Handler
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test

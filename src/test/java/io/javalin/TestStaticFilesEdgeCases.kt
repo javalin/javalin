@@ -7,7 +7,7 @@
 package io.javalin
 
 import io.javalin.core.util.FileUtil
-import io.javalin.staticfiles.Location
+import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File

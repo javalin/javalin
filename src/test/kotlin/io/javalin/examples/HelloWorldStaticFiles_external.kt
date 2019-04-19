@@ -7,7 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.staticfiles.Location
+import io.javalin.http.staticfiles.Location
 
 fun main(args: Array<String>) {
     Javalin.create {

@@ -7,6 +7,10 @@
 package io.javalin
 
 import io.javalin.core.util.Header
+import io.javalin.http.BadRequestResponse
+import io.javalin.http.ForbiddenResponse
+import io.javalin.http.HttpResponseException
+import io.javalin.http.UnauthorizedResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
 import org.junit.Test

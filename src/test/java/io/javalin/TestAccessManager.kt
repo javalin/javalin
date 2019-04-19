@@ -11,8 +11,8 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.security.Role
-import io.javalin.security.SecurityUtil.roles
+import io.javalin.core.security.Role
+import io.javalin.core.security.SecurityUtil.roles
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 

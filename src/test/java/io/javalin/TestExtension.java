@@ -5,6 +5,9 @@
  */
 package io.javalin;
 
+import io.javalin.core.Extension;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.UnauthorizedResponse;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;

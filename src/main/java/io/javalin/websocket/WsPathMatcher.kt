@@ -7,8 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.core.PathParser
-import io.javalin.core.WsHandlerType
-import io.javalin.security.Role
+import io.javalin.core.security.Role
 import java.util.*
 
 data class WsEntry(val type: WsHandlerType, val path: String, val handler: WsHandler, val permittedRoles: Set<Role>) {

@@ -7,8 +7,9 @@
 package io.javalin;
 
 import com.mashape.unirest.http.HttpMethod;
-import io.javalin.json.JavalinJackson;
-import io.javalin.json.JavalinJson;
+import io.javalin.http.Handler;
+import io.javalin.plugin.json.JavalinJackson;
+import io.javalin.plugin.json.JavalinJson;
 import io.javalin.util.HttpUtil;
 import io.javalin.util.ThrowingBiConsumer;
 

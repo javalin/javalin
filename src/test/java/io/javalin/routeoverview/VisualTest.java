@@ -6,10 +6,10 @@
 
 package io.javalin.routeoverview;
 
-import io.javalin.Context;
-import io.javalin.Handler;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 import io.javalin.Javalin;
-import io.javalin.core.HandlerType;
+import io.javalin.http.HandlerType;
 import io.javalin.misc.HandlerImplementation;
 import io.javalin.websocket.WsHandler;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
@@ -20,7 +20,7 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.patch;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.apibuilder.ApiBuilder.post;
-import static io.javalin.security.SecurityUtil.roles;
+import static io.javalin.core.security.SecurityUtil.roles;
 
 public class VisualTest {
 

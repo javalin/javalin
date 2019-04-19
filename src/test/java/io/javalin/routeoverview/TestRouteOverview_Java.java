@@ -6,8 +6,8 @@
 
 package io.javalin.routeoverview;
 
-import io.javalin.Context;
-import io.javalin.Handler;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.misc.HandlerImplementation;
 import org.junit.Ignore;

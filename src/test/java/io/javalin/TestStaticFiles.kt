@@ -9,7 +9,8 @@ package io.javalin
 
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
-import io.javalin.staticfiles.Location
+import io.javalin.http.UnauthorizedResponse
+import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 

@@ -6,8 +6,8 @@
 
 package io.javalin.misc;
 
-import io.javalin.Context;
-import io.javalin.Handler;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 
 public class HandlerImplementation implements Handler {
     @Override

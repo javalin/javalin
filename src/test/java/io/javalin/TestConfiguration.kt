@@ -6,8 +6,8 @@
 
 package io.javalin
 
-import io.javalin.security.SecurityUtil.roles
-import io.javalin.staticfiles.Location
+import io.javalin.core.security.SecurityUtil.roles
+import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler

@@ -1,7 +1,7 @@
 package io.javalin;
 
 import com.mashape.unirest.http.Headers;
-import io.javalin.serversentevent.SseClient;
+import io.javalin.http.sse.SseClient;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;

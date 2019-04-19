@@ -7,6 +7,10 @@
 package io.javalin.core
 
 import io.javalin.Javalin
+import io.javalin.JavalinConfig
+import io.javalin.http.JavalinServlet
+import io.javalin.websocket.JavalinWsServlet
+import io.javalin.websocket.isWebSocket
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerList

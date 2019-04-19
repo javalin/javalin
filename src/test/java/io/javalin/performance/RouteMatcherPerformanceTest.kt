@@ -3,10 +3,10 @@ package io.javalin.performance
 import com.carrotsearch.junitbenchmarks.BenchmarkOptions
 import com.carrotsearch.junitbenchmarks.BenchmarkRule
 import com.carrotsearch.junitbenchmarks.Clock
-import io.javalin.Handler
-import io.javalin.core.HandlerEntry
-import io.javalin.core.HandlerType
-import io.javalin.core.util.ContextUtil.urlDecode
+import io.javalin.http.Handler
+import io.javalin.http.HandlerEntry
+import io.javalin.http.HandlerType
+import io.javalin.http.util.ContextUtil.urlDecode
 import io.javalin.core.util.Util
 import org.junit.Ignore
 import org.junit.Rule
