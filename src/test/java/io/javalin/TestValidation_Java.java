@@ -4,8 +4,10 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core.validation;
+package io.javalin;
 
+import io.javalin.core.validation.JavalinValidation;
+import io.javalin.core.validation.Validator;
 import java.time.Instant;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -7,7 +7,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.util.TestServlet;
+import io.javalin.misc.TestServlet;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;

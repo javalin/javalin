@@ -10,8 +10,8 @@ import com.mashape.unirest.http.HttpMethod;
 import io.javalin.http.Handler;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JavalinJson;
-import io.javalin.util.HttpUtil;
-import io.javalin.util.ThrowingBiConsumer;
+import io.javalin.misc.HttpUtil;
+import io.javalin.misc.ThrowingBiConsumer;
 
 public class TestUtil {
 

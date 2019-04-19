@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.util.HttpUtil
+import io.javalin.misc.HttpUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.concurrent.CompletableFuture

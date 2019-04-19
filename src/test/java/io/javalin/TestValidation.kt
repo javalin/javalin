@@ -4,10 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core.validation
+package io.javalin
 
 import io.javalin.http.BadRequestResponse
-import io.javalin.TestUtil
+import io.javalin.core.validation.JavalinValidation
+import io.javalin.core.validation.Validator
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
 import org.assertj.core.api.Assertions.assertThat

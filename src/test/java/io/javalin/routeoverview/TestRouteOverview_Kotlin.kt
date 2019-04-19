@@ -60,8 +60,3 @@ class ClassHandlers {
     val lambdaField = Handler {}
     fun methodReference(ctx: Context) {}
 }
-
-class HandlerImplementation : Handler {
-    override fun handle(ctx: Context) {
-    }
-}

@@ -9,7 +9,6 @@ package io.javalin.routeoverview;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.core.util.RouteOverviewUtil;
-import io.javalin.misc.HandlerImplementation;
 import org.junit.Ignore;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
@@ -30,8 +29,8 @@ public class TestRouteOverview_Java {
 
     @Test
     public void class_works() {
-        assertThat(RouteOverviewUtil.getMetaInfo(new ImplementingClass()), is("io.javalin.routeoverview.TestRouteOverview_Java$ImplementingClass.class"));
-        assertThat(RouteOverviewUtil.getMetaInfo(new HandlerImplementation()), is("io.javalin.misc.HandlerImplementation.class"));
+        assertThat(RouteOverviewUtil.getMetaInfo(new InnerHandlerImplementation()), is("io.javalin.routeoverview.TestRouteOverview_Java$InnerHandlerImplementation.class"));
+        assertThat(RouteOverviewUtil.getMetaInfo(new HandlerImplementation()), is("io.javalin.routeoverview.HandlerImplementation.class"));
     }
 
     @Test
@@ -45,7 +44,7 @@ public class TestRouteOverview_Java {
         assertThat(RouteOverviewUtil.getMetaInfo((Handler) (ctx -> ctx.result(""))), is("io.javalin.routeoverview.TestRouteOverview_Java::??? (anonymous lambda)"));
     }
 
-    private static class ImplementingClass implements Handler {
+    private static class InnerHandlerImplementation implements Handler {
         @Override
         public void handle(Context context) {
         }
