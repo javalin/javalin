@@ -123,6 +123,7 @@ public class Javalin {
         if (server.getStarted()) {
             throw new IllegalStateException("Cannot call start() again on a started server.");
         }
+        server.setStarted(true);
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
@@ -133,11 +134,8 @@ public class Javalin {
         } catch (Exception e) {
             log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
-
-            // only stop if Javalin instantiated default server; otherwise, the caller is responsible to stop
-            Object isDefaultServer = server.server().getAttribute("is-default-server");
-            if (isDefaultServer != null && Boolean.parseBoolean(isDefaultServer.toString())) {
-                stop();
+            if (Boolean.TRUE.equals(server.server().getAttribute("is-default-server"))) {
+                stop();// stop if server is default server; otherwise, the caller is responsible to stop
             }
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
                 throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getServerPort() + " and try again.", e);

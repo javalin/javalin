@@ -80,7 +80,6 @@ class JavalinServer(val config: JavalinConfig) {
         }
 
         reEnableJettyLogger()
-        started = true
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
