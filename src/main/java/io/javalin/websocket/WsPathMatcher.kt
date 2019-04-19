@@ -31,7 +31,6 @@ class WsPathMatcher {
         if (wsHandlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
             throw IllegalArgumentException("Handler with type='${entry.type}' and path='${entry.path}' already exists.")
         }
-
         wsHandlerEntries[entry.type]!!.add(entry)
     }
 

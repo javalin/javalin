@@ -20,7 +20,7 @@ object JavalinJtwig : FileRenderer {
 
     @JvmStatic
     fun configure(staticConfiguration: EnvironmentConfiguration) {
-        JavalinJtwig.configuration = staticConfiguration
+        configuration = staticConfiguration
     }
 
     override fun render(filePath: String, model: Map<String, Any?>): String {
