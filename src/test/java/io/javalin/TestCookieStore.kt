@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.rendering.template.TemplateUtil
+import io.javalin.plugin.rendering.template.TemplateUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.*

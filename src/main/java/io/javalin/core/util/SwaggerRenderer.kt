@@ -6,10 +6,10 @@
 
 package io.javalin.core.util
 
-import io.javalin.Context
-import io.javalin.Handler
-import io.javalin.InternalServerErrorResponse
 import io.javalin.Javalin
+import io.javalin.http.Context
+import io.javalin.http.Handler
+import io.javalin.http.InternalServerErrorResponse
 
 class SwaggerRenderer(val filePath: String) : Handler {
 

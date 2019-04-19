@@ -6,7 +6,9 @@
 
 package io.javalin.core
 
-import io.javalin.security.Role
+import io.javalin.core.security.Role
+import io.javalin.http.HandlerType
+import io.javalin.websocket.WsHandlerType
 import java.util.*
 import java.util.function.Consumer
 

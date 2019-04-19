@@ -6,18 +6,26 @@
 
 package io.javalin
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.gson.GsonBuilder
 import com.mashape.unirest.http.Unirest
-import io.javalin.json.FromJsonMapper
-import io.javalin.json.JavalinJackson
-import io.javalin.json.JavalinJson
-import io.javalin.json.ToJsonMapper
-import io.javalin.misc.CustomMapper
+import io.javalin.plugin.json.FromJsonMapper
+import io.javalin.plugin.json.JavalinJackson
+import io.javalin.plugin.json.JavalinJson
+import io.javalin.plugin.json.ToJsonMapper
 import io.javalin.misc.NonSerializableObject
 import io.javalin.misc.SerializeableObject
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
+
+class CustomMapper : ObjectMapper() {
+    init {
+        this.enable(SerializationFeature.INDENT_OUTPUT)
+        this.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+    }
+}
 
 class TestJson {
 

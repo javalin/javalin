@@ -8,13 +8,13 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.security.Role;
+import io.javalin.core.security.Role;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO;
-import static io.javalin.security.SecurityUtil.roles;
+import static io.javalin.core.security.SecurityUtil.roles;
 
 public class HelloWorldAuth {
 

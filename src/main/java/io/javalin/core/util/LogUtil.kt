@@ -6,10 +6,10 @@
 
 package io.javalin.core.util
 
-import io.javalin.Context
 import io.javalin.Javalin
-import io.javalin.core.HandlerType
-import io.javalin.core.PathMatcher
+import io.javalin.http.Context
+import io.javalin.http.HandlerType
+import io.javalin.http.PathMatcher
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsHandler
 import java.util.*

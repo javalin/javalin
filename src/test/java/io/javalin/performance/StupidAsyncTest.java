@@ -7,7 +7,7 @@
 package io.javalin.performance;
 
 import io.javalin.Javalin;
-import io.javalin.util.HttpUtil;
+import io.javalin.misc.HttpUtil;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;

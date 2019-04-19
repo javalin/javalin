@@ -13,6 +13,8 @@ import io.javalin.TestUtil.okHandler
 import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.apibuilder.CrudHandler
+import io.javalin.http.Context
+import io.javalin.http.Handler
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 

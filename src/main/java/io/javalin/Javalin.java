@@ -11,48 +11,49 @@ import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.core.EventAttacher;
 import io.javalin.core.EventManager;
+import io.javalin.core.Extension;
 import io.javalin.core.HandlerMetaInfo;
-import io.javalin.core.HandlerType;
 import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinEvent;
 import io.javalin.core.JavalinServer;
-import io.javalin.core.JavalinServlet;
-import io.javalin.core.JavalinWsServlet;
 import io.javalin.core.WsHandlerMetaInfo;
-import io.javalin.core.WsHandlerType;
-import io.javalin.core.util.CorsBeforeHandler;
-import io.javalin.core.util.CorsOptionsHandler;
+import io.javalin.core.security.AccessManager;
+import io.javalin.core.security.CoreRoles;
+import io.javalin.core.security.Role;
+import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
-import io.javalin.security.AccessManager;
-import io.javalin.security.CoreRoles;
-import io.javalin.security.Role;
-import io.javalin.security.SecurityUtil;
-import io.javalin.serversentevent.SseClient;
-import io.javalin.serversentevent.SseHandler;
+import io.javalin.http.Context;
+import io.javalin.http.ErrorHandler;
+import io.javalin.http.ExceptionHandler;
+import io.javalin.http.Handler;
+import io.javalin.http.HandlerType;
+import io.javalin.http.JavalinServlet;
+import io.javalin.http.sse.SseClient;
+import io.javalin.http.sse.SseHandler;
+import io.javalin.http.util.CorsBeforeHandler;
+import io.javalin.http.util.CorsOptionsHandler;
+import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandler;
-import java.util.HashMap;
+import io.javalin.websocket.WsHandlerType;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static io.javalin.security.SecurityUtil.roles;
+import static io.javalin.core.security.SecurityUtil.roles;
 
 @SuppressWarnings("unchecked")
 public class Javalin {
 
     public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    protected Map<Class<?>, Object> appAttributes = new HashMap<>();
-
     protected JavalinConfig config = new JavalinConfig();
 
     protected JavalinServer server = new JavalinServer(config);
-    protected JavalinServlet servlet = new JavalinServlet(appAttributes, config);
+    protected JavalinServlet servlet = new JavalinServlet(config);
     protected JavalinWsServlet wsServlet = new JavalinWsServlet(config);
 
     protected EventManager eventManager = new EventManager();
@@ -179,7 +180,7 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin attribute(Class clazz, Object obj) {
-        appAttributes.put(clazz, obj);
+        config.inner.appAttributes.put(clazz, obj);
         return this;
     }
 
@@ -190,7 +191,7 @@ public class Javalin {
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
     public <T> T attribute(Class<T> clazz) {
-        return (T) appAttributes.get(clazz);
+        return (T) config.inner.appAttributes.get(clazz);
     }
 
     /**

@@ -6,22 +6,25 @@
 
 package io.javalin.core;
 
-import io.javalin.RequestLogger;
+import io.javalin.core.JettyUtil;
+import io.javalin.core.security.AccessManager;
+import io.javalin.core.security.Role;
+import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewConfig;
-import io.javalin.core.util.SinglePageHandler;
-import io.javalin.security.AccessManager;
-import io.javalin.security.Role;
-import io.javalin.security.SecurityUtil;
-import io.javalin.staticfiles.JettyResourceHandler;
-import io.javalin.staticfiles.Location;
-import io.javalin.staticfiles.ResourceHandler;
-import io.javalin.staticfiles.StaticFileConfig;
+import io.javalin.http.RequestLogger;
+import io.javalin.http.SinglePageHandler;
+import io.javalin.http.staticfiles.JettyResourceHandler;
+import io.javalin.http.staticfiles.Location;
+import io.javalin.http.staticfiles.ResourceHandler;
+import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -49,6 +52,7 @@ public class JavalinConfig {
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
     public class Inner {
+        @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
         @NotNull public List<String> corsOrigins = new ArrayList<>();
         @Nullable public RouteOverviewConfig routeOverview;
         @Nullable public RequestLogger requestLogger;

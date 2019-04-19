@@ -7,10 +7,12 @@
 
 package io.javalin
 
+import io.javalin.http.BadRequestResponse
+import io.javalin.http.HttpResponseException
+import io.javalin.http.NotFoundResponse
 import io.javalin.misc.TypedException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import java.lang.IllegalArgumentException
 import java.lang.NumberFormatException
 import kotlin.reflect.full.allSuperclasses
 

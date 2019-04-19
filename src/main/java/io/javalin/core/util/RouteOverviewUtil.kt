@@ -6,12 +6,12 @@
 
 package io.javalin.core.util
 
-import io.javalin.Context
-import io.javalin.Handler
 import io.javalin.Javalin
 import io.javalin.core.HandlerMetaInfo
 import io.javalin.core.WsHandlerMetaInfo
-import io.javalin.security.Role
+import io.javalin.core.security.Role
+import io.javalin.http.Context
+import io.javalin.http.Handler
 
 data class RouteOverviewConfig(val path: String, val roles: Set<Role>)
 

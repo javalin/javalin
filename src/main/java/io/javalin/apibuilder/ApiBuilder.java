@@ -6,11 +6,11 @@
 
 package io.javalin.apibuilder;
 
-import io.javalin.Handler;
 import io.javalin.Javalin;
-import io.javalin.security.AccessManager;
-import io.javalin.security.Role;
-import io.javalin.serversentevent.SseClient;
+import io.javalin.core.security.AccessManager;
+import io.javalin.core.security.Role;
+import io.javalin.http.Handler;
+import io.javalin.http.sse.SseClient;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayDeque;
 import java.util.Deque;
