@@ -326,7 +326,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
 
     /** Gets the current context result as a [String] (if set). */
-    fun resultString() = resultStream?.apply { reset() }?.readBytes()?.toString(responseCharset())
+    fun resultString() = resultStream?.apply { reset() }?.readBytes()?.toString(responseCharset()).also { resultStream?.reset() }
 
     /**
      * Sets context result to the specified [InputStream].
