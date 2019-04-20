@@ -119,4 +119,17 @@ class TestResponse {
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Max-Age=7")
     }
 
+    // Fix for https://github.com/tipsy/javalin/issues/543
+    @Test
+    fun `reading the result string resets the stream`() = TestUtil.test { app, http ->
+        val result = "Hello World"
+
+        app.get("/test") { context ->
+            context.result(result)
+            context.resultString()
+        }
+
+        assertThat(http.getBody("/test")).isEqualTo(result)
+    }
+
 }
