@@ -35,6 +35,7 @@ class TestConfiguration {
             it.enableRouteOverview("/test", roles())
             it.enableWebjars()
             it.enforceSsl = true
+            it.logIfServerNotStarted = false
             it.prefer405over404 = false
             it.requestCacheSize = 8192L
             it.requestLogger { ctx, executionTimeMs -> }
