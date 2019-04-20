@@ -92,8 +92,8 @@ public class Javalin {
         if (app.config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
-        if (app.config.showWarningIfNotStartedAfterOneSecond) {
-            Util.logWarningIfNotStartedAfterOneSecond(app.server);
+        if (app.config.logIfServerNotStarted) {
+            Util.logIfServerNotStarted(app.server);
         }
         return app;
     }

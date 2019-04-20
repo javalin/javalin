@@ -119,7 +119,7 @@ object Util {
     }
 
     @JvmStatic
-    fun logWarningIfNotStartedAfterOneSecond(server: JavalinServer) = Thread {
+    fun logIfServerNotStarted(server: JavalinServer) = Thread {
         Thread.sleep(2000)
         if (!server.started) {
             Javalin.log.info("It looks like you created a Javalin instance, but you never started it.")
