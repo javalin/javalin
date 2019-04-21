@@ -21,8 +21,8 @@ class RouteOverviewRenderer(val app: Javalin) : Handler {
     val wsHandlerMetaInfoList = mutableListOf<WsHandlerMetaInfo>()
 
     init {
-        app.subscribe { it.handlerAdded { handlerInfo -> handlerMetaInfoList.add(handlerInfo) } }
-        app.subscribe { it.wsHandlerAdded { handlerInfo -> wsHandlerMetaInfoList.add(handlerInfo) } }
+        app.events { it.handlerAdded { handlerInfo -> handlerMetaInfoList.add(handlerInfo) } }
+        app.events { it.wsHandlerAdded { handlerInfo -> wsHandlerMetaInfoList.add(handlerInfo) } }
     }
 
     override fun handle(ctx: Context) {

@@ -13,14 +13,12 @@ import java.util.*
 import java.util.function.Consumer
 
 class EventManager {
-    val callbackMap = JavalinEvent.values().associate { it to HashSet<Runnable>() }
-    fun fireEvent(javalinEvent: JavalinEvent) = callbackMap[javalinEvent]!!.forEach { callback -> callback.run() }
-    var handlerAddedCallbacks = mutableSetOf<Consumer<HandlerMetaInfo>>()
-    fun fireHandlerAddedEvent(handlerMetaInfo: HandlerMetaInfo) = handlerAddedCallbacks.apply { this.forEach { it.accept(handlerMetaInfo) } }
-
-    val wsHandlerAddedCallbacks = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
-    fun fireWsHandlerAddedEvent(wsHandlerMetaInfo: WsHandlerMetaInfo) =
-            wsHandlerAddedCallbacks.apply { this.forEach { it.accept(wsHandlerMetaInfo) } }
+    val lifecycleHandlers = JavalinEvent.values().associate { it to HashSet<Runnable>() }
+    var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
+    val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
+    fun fireEvent(javalinEvent: JavalinEvent) = lifecycleHandlers[javalinEvent]?.forEach { callback -> callback.run() }
+    fun fireHandlerAddedEvent(metaInfo: HandlerMetaInfo) = handlerAddedHandlers.apply { this.forEach { it.accept(metaInfo) } }
+    fun fireWsHandlerAddedEvent(metaInfo: WsHandlerMetaInfo) = wsHandlerAddedHandlers.apply { this.forEach { it.accept(metaInfo) } }
 }
 
 enum class JavalinEvent { SERVER_STARTING, SERVER_STARTED, SERVER_START_FAILED, SERVER_STOPPING, SERVER_STOPPED }

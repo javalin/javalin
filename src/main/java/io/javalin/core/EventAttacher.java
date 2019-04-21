@@ -26,15 +26,15 @@ public class EventAttacher {
     // @formatter:on
 
     public void handlerAdded(@NotNull Consumer<HandlerMetaInfo> callback) {
-        this.eventManager.getHandlerAddedCallbacks().add(callback);
+        this.eventManager.getHandlerAddedHandlers().add(callback);
     }
 
     public void wsHandlerAdded(@NotNull Consumer<WsHandlerMetaInfo> callback) {
-        eventManager.getWsHandlerAddedCallbacks().add(callback);
+        eventManager.getWsHandlerAddedHandlers().add(callback);
     }
 
     private void addLifecycleEvent(@NotNull JavalinEvent event, @NotNull Runnable callback) {
-        eventManager.getCallbackMap().get(event).add(callback);
+        eventManager.getLifecycleHandlers().get(event).add(callback);
     }
 
 }

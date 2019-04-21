@@ -165,7 +165,7 @@ public class Javalin {
         return this;
     }
 
-    public Javalin subscribe(Consumer<EventAttacher> eventAttacher) {
+    public Javalin events(Consumer<EventAttacher> eventAttacher) {
         EventAttacher attacher = new EventAttacher(this.eventManager);
         eventAttacher.accept(attacher);
         return this;
