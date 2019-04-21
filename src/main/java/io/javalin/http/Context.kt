@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
+@Suppress("UNCHECKED_CAST")
 open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<Class<*>, Any> = mapOf()) {
 
     // @formatter:off
@@ -40,6 +41,22 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
+
+    /**
+     * Registers an extension to the Context, which can be used later in the request-lifecycle.
+     * This method is mainly useful when calling from Java, as Kotlin has native extension methods.
+     *
+     * Ex: ctx.register(MyExt.class, myExtInstance())
+     */
+    fun register(clazz: Class<*>, value: Any) = req.setAttribute("ctx-ext-${clazz.canonicalName}", value)
+
+    /**
+     * Use an extension stored in the Context.
+     * This method is mainly useful when calling from Java as Kotlin has native extension methods.
+     *
+     * Ex: ctx.use(MyExt.class).myMethod()
+     */
+    fun <T> use(clazz: Class<T>): T = req.getAttribute("ctx-ext-${clazz.canonicalName}") as T
 
     /** Gets an attribute from the Javalin instance serving the request */
     fun <T> appAttribute(clazz: Class<T>): T = appAttributes[clazz] as T
@@ -67,6 +84,20 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun clearCookieStore() {
         cookieStore.clear()
         removeCookie(CookieStore.COOKIE_NAME)
+    }
+
+    /**
+     * Gets the path that was used to match request (also includes before/after paths)
+     */
+    fun matchedPath() = matchedPath
+
+    /**
+     * Gets the endpoint path that was used to match request (null in before, available in endpoint/after)
+     */
+    fun endpointHandlerPath() = if (handlerType != HandlerType.BEFORE) {
+        endpointHandlerPath
+    } else {
+        throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
     }
 
     ///////////////////////////////////////////////////////////////
@@ -169,28 +200,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun basicAuthCredentials(): BasicAuthCredentials? = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
-    /**
-     * Registers an extension to the Context, which can be used later in the request-lifecycle.
-     * This method is mainly useful when calling from Java, as Kotlin has native extension methods.
-     *
-     * Ex: ctx.register(MyExt.class, myExtInstance())
-     */
-    fun register(clazz: Class<*>, value: Any) = req.setAttribute("ctx-ext-${clazz.canonicalName}", value)
-
-    /**
-     * Use an extension stored in the Context.
-     * This method is mainly useful when calling from Java as Kotlin has native extension methods.
-     *
-     * Ex: ctx.use(MyExt.class).myMethod()
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> use(clazz: Class<T>): T = req.getAttribute("ctx-ext-${clazz.canonicalName}") as T
-
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle */
     fun attribute(key: String, value: Any?) = req.setAttribute(key, value)
 
     /** Gets the specified attribute from the request. */
-    @Suppress("UNCHECKED_CAST")
     fun <T> attribute(key: String): T? = req.getAttribute(key) as? T
 
     /** Gets a map with all the attribute keys and values on the request. */
@@ -225,24 +238,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Returns true if request is multipart/form-data. */
     fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/form-data") == true
-
-    /**
-     * Gets the path that Javalin used to match the request.
-     *
-     * Ex: If the handler path is /users/:user-id,
-     * and a browser GETs /users/123,
-     * matchedPath() will return /users/:user-id
-     */
-    fun matchedPath() = matchedPath
-
-    /**
-     * Gets the path that Javalin used to match this request (excluding any AFTER handlers)
-     */
-    fun endpointHandlerPath() = if (handlerType != HandlerType.BEFORE) {
-        endpointHandlerPath
-    } else {
-        throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
-    }
 
     /** Gets the request method. */
     fun method(): String = req.method
@@ -290,7 +285,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun sessionAttribute(key: String, value: Any?) = req.session.setAttribute(key, value)
 
     /** Gets specified attribute from the user session, or null. */
-    @Suppress("UNCHECKED_CAST")
     fun <T> sessionAttribute(key: String): T? = req.session.getAttribute(key) as? T
 
     /** Gets a map of all the attributes in the user session. */
