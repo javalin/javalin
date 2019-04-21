@@ -7,7 +7,6 @@
 package io.javalin.http
 
 import io.javalin.core.JavalinConfig
-import io.javalin.core.CachedRequestWrapper
 import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role
 import io.javalin.core.util.Header

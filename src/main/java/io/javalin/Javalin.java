@@ -9,14 +9,14 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
-import io.javalin.core.EventAttacher;
-import io.javalin.core.EventManager;
+import io.javalin.core.event.EventListener;
+import io.javalin.core.event.EventManager;
 import io.javalin.core.Extension;
-import io.javalin.core.HandlerMetaInfo;
+import io.javalin.core.event.HandlerMetaInfo;
 import io.javalin.core.JavalinConfig;
-import io.javalin.core.JavalinEvent;
+import io.javalin.core.event.JavalinEvent;
 import io.javalin.core.JavalinServer;
-import io.javalin.core.WsHandlerMetaInfo;
+import io.javalin.core.event.WsHandlerMetaInfo;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.CoreRoles;
 import io.javalin.core.security.Role;
@@ -165,9 +165,9 @@ public class Javalin {
         return this;
     }
 
-    public Javalin events(Consumer<EventAttacher> eventAttacher) {
-        EventAttacher attacher = new EventAttacher(this.eventManager);
-        eventAttacher.accept(attacher);
+    public Javalin events(Consumer<EventListener> listener) {
+        EventListener eventListener = new EventListener(this.eventManager);
+        listener.accept(eventListener);
         return this;
     }
 

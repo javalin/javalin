@@ -4,16 +4,16 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core;
+package io.javalin.core.event;
 
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
-public class EventAttacher {
+public class EventListener {
 
     private EventManager eventManager;
 
-    public EventAttacher(EventManager eventManager) {
+    public EventListener(EventManager eventManager) {
         this.eventManager = eventManager;
     }
 

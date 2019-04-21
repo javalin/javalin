@@ -7,8 +7,8 @@
 package io.javalin.core.util
 
 import io.javalin.Javalin
-import io.javalin.core.HandlerMetaInfo
-import io.javalin.core.WsHandlerMetaInfo
+import io.javalin.core.event.HandlerMetaInfo
+import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.http.Handler

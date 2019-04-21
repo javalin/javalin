@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core
+package io.javalin.core.event
 
 import io.javalin.core.security.Role
 import io.javalin.http.HandlerType
