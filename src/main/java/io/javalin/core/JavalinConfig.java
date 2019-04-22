@@ -6,18 +6,22 @@
 
 package io.javalin.core;
 
-import io.javalin.core.JettyUtil;
+import io.javalin.Javalin;
 import io.javalin.core.security.AccessManager;
+import io.javalin.core.security.CoreRoles;
 import io.javalin.core.security.Role;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.LogUtil;
 import io.javalin.core.util.RouteOverviewConfig;
+import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
 import io.javalin.http.staticfiles.JettyResourceHandler;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
+import io.javalin.http.util.CorsBeforeHandler;
+import io.javalin.http.util.CorsOptionsHandler;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +37,7 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import static io.javalin.core.security.SecurityUtil.roles;
 
 // @formatter:off
 public class JavalinConfig {
@@ -118,6 +123,20 @@ public class JavalinConfig {
 
     public void server(Supplier<Server> server) {
         inner.server = server.get();
+    }
+
+    public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
+        userConfig.accept(config); // apply user config to the default config
+        if (config.inner.routeOverview != null) {
+            app.get(config.inner.routeOverview.getPath(), new RouteOverviewRenderer(app), config.inner.routeOverview.getRoles());
+        }
+        if (!config.inner.corsOrigins.isEmpty()) {
+            app.before(new CorsBeforeHandler(config.inner.corsOrigins));
+            app.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));
+        }
+        if (config.enforceSsl) {
+            app.before(SecurityUtil::sslRedirect);
+        }
     }
 
 }

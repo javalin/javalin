@@ -9,19 +9,16 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
+import io.javalin.core.Extension;
+import io.javalin.core.JavalinConfig;
+import io.javalin.core.JavalinServer;
 import io.javalin.core.event.EventListener;
 import io.javalin.core.event.EventManager;
-import io.javalin.core.Extension;
 import io.javalin.core.event.HandlerMetaInfo;
-import io.javalin.core.JavalinConfig;
 import io.javalin.core.event.JavalinEvent;
-import io.javalin.core.JavalinServer;
 import io.javalin.core.event.WsHandlerMetaInfo;
 import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.CoreRoles;
 import io.javalin.core.security.Role;
-import io.javalin.core.security.SecurityUtil;
-import io.javalin.core.util.RouteOverviewRenderer;
 import io.javalin.core.util.Util;
 import io.javalin.http.Context;
 import io.javalin.http.ErrorHandler;
@@ -31,8 +28,6 @@ import io.javalin.http.HandlerType;
 import io.javalin.http.JavalinServlet;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
-import io.javalin.http.util.CorsBeforeHandler;
-import io.javalin.http.util.CorsOptionsHandler;
 import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandler;
@@ -43,7 +38,6 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static io.javalin.core.security.SecurityUtil.roles;
 
 @SuppressWarnings("unchecked")
 public class Javalin {
@@ -81,17 +75,7 @@ public class Javalin {
      */
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
-        config.accept(app.config); // apply user config
-        if (app.config.inner.routeOverview != null) {
-            app.get(app.config.inner.routeOverview.getPath(), new RouteOverviewRenderer(app), app.config.inner.routeOverview.getRoles());
-        }
-        if (!app.config.inner.corsOrigins.isEmpty()) {
-            app.before(new CorsBeforeHandler(app.config.inner.corsOrigins));
-            app.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));
-        }
-        if (app.config.enforceSsl) {
-            app.before(SecurityUtil::sslRedirect);
-        }
+        JavalinConfig.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
         if (app.config.logIfServerNotStarted) {
             Util.logIfServerNotStarted(app.server);
         }
