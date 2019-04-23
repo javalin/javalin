@@ -29,12 +29,6 @@ class JavalinServer(val config: JavalinConfig) {
 
     var serverPort = 7000
 
-    private val jettyDefaultLogger = org.eclipse.jetty.util.log.Log.getLog()
-
-    init {
-        disableJettyLogger()
-    }
-
     fun server() = config.inner.server!!
     var started = false
 
@@ -79,12 +73,9 @@ class JavalinServer(val config: JavalinConfig) {
             Javalin.log.info("Binding to: $it")
         }
 
-        reEnableJettyLogger()
+        JettyUtil.reEnableJettyLogger()
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
     }
-
-    private fun disableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(NoopLogger()) // disable logger before server creation
-    private fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(jettyDefaultLogger)
 
     private fun defaultServer() = Server(QueuedThreadPool(250, 8, 60_000)).apply {
         addBean(LowResourceMonitor(this))
@@ -117,6 +108,16 @@ class JavalinServer(val config: JavalinConfig) {
 
 object JettyUtil {
 
+    private var defaultLogger: org.eclipse.jetty.util.log.Logger? = null
+
+    @JvmStatic
+    fun disableJettyLogger() {
+        defaultLogger = defaultLogger ?: org.eclipse.jetty.util.log.Log.getLog()
+        org.eclipse.jetty.util.log.Log.setLog(NoopLogger())
+    }
+
+    fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(defaultLogger)
+
     @JvmStatic
     fun getSessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
         val sessionHandler = sessionHandlerSupplier.get()
@@ -128,7 +129,6 @@ object JettyUtil {
         }
         return sessionHandler
     }
-
 }
 
 class NoopLogger : org.eclipse.jetty.util.log.Logger {
