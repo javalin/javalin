@@ -42,6 +42,8 @@ import static io.javalin.core.security.SecurityUtil.roles;
 // @formatter:off
 public class JavalinConfig {
 
+    public static Consumer<JavalinConfig> noopConfig = JavalinConfig -> {}; // no change from default
+
     public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
@@ -60,15 +62,15 @@ public class JavalinConfig {
     public class Inner {
         @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
         @NotNull public List<String> corsOrigins = new ArrayList<>();
-        @Nullable public RouteOverviewConfig routeOverview;
-        @Nullable public RequestLogger requestLogger;
-        @Nullable public ResourceHandler resourceHandler;
+        @Nullable public RouteOverviewConfig routeOverview = null;
+        @Nullable public RequestLogger requestLogger = null;
+        @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
         @NotNull public SinglePageHandler singlePageHandler = new SinglePageHandler();
-        @Nullable public SessionHandler sessionHandler;
-        @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig;
-        @Nullable public WsHandler wsLogger;
-        @Nullable public Server server;
+        @Nullable public SessionHandler sessionHandler = null;
+        @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig = null;
+        @Nullable public WsHandler wsLogger = null;
+        @Nullable public Server server = null;
     }
 
      public void enableDevLogging() {
@@ -79,6 +81,7 @@ public class JavalinConfig {
     public void enableWebjars() { addStaticFiles("/webjars", Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
     public void addStaticFiles(@NotNull String path, @NotNull Location location) {
+        JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null) inner.resourceHandler = new JettyResourceHandler();
         inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
     }
@@ -108,6 +111,7 @@ public class JavalinConfig {
     }
 
     public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
+        JettyUtil.disableJettyLogger();
         inner.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
     }
 

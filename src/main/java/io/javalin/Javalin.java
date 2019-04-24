@@ -12,6 +12,7 @@ import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.core.Extension;
 import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinServer;
+import io.javalin.core.JettyUtil;
 import io.javalin.core.event.EventListener;
 import io.javalin.core.event.EventManager;
 import io.javalin.core.event.HandlerMetaInfo;
@@ -46,13 +47,20 @@ public class Javalin {
 
     protected JavalinConfig config = new JavalinConfig();
 
-    protected JavalinServer server = new JavalinServer(config);
+    protected JavalinServer server; // null in standalone-mode
+    protected JavalinWsServlet wsServlet; // null in standalone-mode
     protected JavalinServlet servlet = new JavalinServlet(config);
-    protected JavalinWsServlet wsServlet = new JavalinWsServlet(config);
 
     protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
+        this.server = new JavalinServer(config);
+        this.wsServlet = new JavalinWsServlet(config);
+    }
+
+    public Javalin(JavalinServer server, JavalinWsServlet wsServlet) {
+        this.server = server;
+        this.wsServlet = wsServlet;
     }
 
     /**
@@ -61,8 +69,7 @@ public class Javalin {
      * @see Javalin#create(Consumer)
      */
     public static Javalin create() {
-        return create(c -> { // use defaults
-        });
+        return create(JavalinConfig.noopConfig);
     }
 
     /**
@@ -80,6 +87,23 @@ public class Javalin {
             Util.logIfServerNotStarted(app.server);
         }
         return app;
+    }
+
+    // Create a standalone (non-jetty dependent) Javalin with the supplied config
+    public static Javalin createStandalone(Consumer<JavalinConfig> config) {
+        Javalin app = new Javalin(null, null);
+        JavalinConfig.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
+        return app;
+    }
+
+    // Create a standalone (non-jetty dependent) Javalin
+    public static Javalin createStandalone() {
+        return createStandalone(JavalinConfig.noopConfig);
+    }
+
+    // Get JavalinServlet (for use in standalone mode)
+    public JavalinServlet servlet() {
+        return this.servlet;
     }
 
     /**
@@ -103,6 +127,7 @@ public class Javalin {
      */
     public Javalin start() {
         Util.logJavalinBanner(this.config.showJavalinBanner);
+        JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
         if (server.getStarted()) {
             throw new IllegalStateException("Cannot call start() again on a started server.");
