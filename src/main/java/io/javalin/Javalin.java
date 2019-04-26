@@ -13,32 +13,25 @@ import io.javalin.core.Extension;
 import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JettyUtil;
-import io.javalin.core.event.EventListener;
-import io.javalin.core.event.EventManager;
-import io.javalin.core.event.HandlerMetaInfo;
-import io.javalin.core.event.JavalinEvent;
-import io.javalin.core.event.WsHandlerMetaInfo;
+import io.javalin.core.event.*;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.core.util.Util;
-import io.javalin.http.Context;
-import io.javalin.http.ErrorHandler;
-import io.javalin.http.ExceptionHandler;
-import io.javalin.http.Handler;
-import io.javalin.http.HandlerType;
-import io.javalin.http.JavalinServlet;
+import io.javalin.http.*;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsHandlerType;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Consumer;
+import io.swagger.v3.oas.models.OpenAPI;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unchecked")
 public class Javalin {
@@ -104,6 +97,17 @@ public class Javalin {
     // Get JavalinServlet (for use in standalone mode)
     public JavalinServlet servlet() {
         return this.servlet;
+    }
+
+    /**
+     * Create the OpenApi Schema of this instance. Call this method after all the handler are registered.
+     * This requires that the "enableOpenApi" option is enabled otherwise an IllegalStateException is thrown.
+     */
+    public OpenAPI createOpenAPISchema() {
+        if (this.config.inner.openApiHandler == null) {
+            throw new IllegalStateException("You need to activate the \"enableOpenApi\" option before you can create the OpenAPI schema");
+        }
+        return this.config.inner.openApiHandler.createOpenAPISchema();
     }
 
     /**

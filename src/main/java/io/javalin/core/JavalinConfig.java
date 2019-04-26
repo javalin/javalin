@@ -24,21 +24,22 @@ import io.javalin.http.util.CorsBeforeHandler;
 import io.javalin.http.util.CorsOptionsHandler;
 import io.javalin.plugin.metrics.JavalinMicrometer;
 import io.javalin.plugin.metrics.MetricsProvider;
+import io.javalin.plugin.openapi.CreateBaseConfiguration;
+import io.javalin.plugin.openapi.OpenApiHandler;
+import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.websocket.WsHandler;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import static io.javalin.core.security.SecurityUtil.roles;
 
 // @formatter:off
@@ -66,6 +67,8 @@ public class JavalinConfig {
         @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
         @NotNull public List<String> corsOrigins = new ArrayList<>();
         @Nullable public RouteOverviewConfig routeOverview = null;
+        @Nullable public OpenApiOptions openApiOptions = null;
+        @Nullable public OpenApiHandler openApiHandler = null;
         @Nullable public RequestLogger requestLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
@@ -105,6 +108,44 @@ public class JavalinConfig {
         inner.routeOverview = new RouteOverviewConfig(path, permittedRoles);
     }
 
+    /**
+     * Enable the automatic generation of an open api schema.
+     * The schema can be extracted with {@link Javalin#createOpenAPISchema()}.
+     */
+    public void enableOpenApi(@NotNull Info info) {
+        inner.openApiOptions = new OpenApiOptions(() -> new OpenAPI().info(info));
+    }
+
+    /** @see JavalinConfig#enableOpenApi(Info) */
+    public void enableOpenApi(@NotNull CreateBaseConfiguration createBaseConfiguration) {
+        inner.openApiOptions = new OpenApiOptions(null, new HashSet<>(), createBaseConfiguration);
+    }
+
+    /**
+     * Enable the automatic generation of an open api schema.
+     * The schema can be extracted with {@link Javalin#createOpenAPISchema()}.
+     *
+     * @param path Creates a GET route to get the schema as a json
+     */
+    public void enableOpenApi(@NotNull String path, @NotNull Info info) {
+        enableOpenApi(path, new HashSet<>(), info);
+    }
+
+    /** @see JavalinConfig#enableOpenApi(String, Info) */
+    public void enableOpenApi(@NotNull String path, @NotNull CreateBaseConfiguration createBaseConfiguration) {
+        enableOpenApi(path, new HashSet<>(), createBaseConfiguration);
+    }
+
+    /** @see JavalinConfig#enableOpenApi(String, Info) */
+    public void enableOpenApi(@NotNull String path, @NotNull Set<Role> permittedRoles, @NotNull Info info) {
+        inner.openApiOptions = new OpenApiOptions(path, permittedRoles, () -> new OpenAPI().info(info));
+    }
+
+    /** @see JavalinConfig#enableOpenApi(String, Info) */
+    public void enableOpenApi(@NotNull String path, @NotNull Set<Role> permittedRoles, @NotNull CreateBaseConfiguration createBaseConfiguration) {
+        inner.openApiOptions = new OpenApiOptions(path, permittedRoles, createBaseConfiguration);
+    }
+
     public void accessManager(@NotNull AccessManager accessManager) {
         inner.accessManager = accessManager;
     }
@@ -134,9 +175,26 @@ public class JavalinConfig {
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
+
+        // The following handlers need to be initialized before any handler is added
+        // Otherwise the handlers that are added before the initialization would be missing
+        RouteOverviewRenderer routeOverviewRenderer = null;
         if (config.inner.routeOverview != null) {
-            app.get(config.inner.routeOverview.getPath(), new RouteOverviewRenderer(app), config.inner.routeOverview.getRoles());
+            routeOverviewRenderer = new RouteOverviewRenderer(app);
         }
+        OpenApiHandler openApiHandler = null;
+        if (config.inner.openApiOptions != null) {
+            openApiHandler = new OpenApiHandler(app, config.inner.openApiOptions);
+            config.inner.openApiHandler = openApiHandler;
+        }
+
+        if (routeOverviewRenderer != null) {
+            app.get(config.inner.routeOverview.getPath(), routeOverviewRenderer, config.inner.routeOverview.getRoles());
+        }
+        if (openApiHandler != null && config.inner.openApiOptions.getPath() != null) {
+            app.get(config.inner.openApiOptions.getPath(), openApiHandler, config.inner.openApiOptions.getRoles());
+        }
+
         if (!config.inner.corsOrigins.isEmpty()) {
             app.before(new CorsBeforeHandler(config.inner.corsOrigins));
             app.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));

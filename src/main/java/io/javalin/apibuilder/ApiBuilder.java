@@ -11,13 +11,14 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
+import io.javalin.plugin.openapi.dsl.DocumentedCrudHandler;
+import io.javalin.plugin.openapi.dsl.OpenApiBuilder;
+import io.javalin.plugin.openapi.dsl.OpenApiCrudHandlerDocumentation;
 import io.javalin.websocket.WsHandler;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Static methods for route declarations in Javalin
@@ -486,11 +487,53 @@ public class ApiBuilder {
         String SEPARATOR = "/:";
         String resourceBase = path.substring(0, path.lastIndexOf(SEPARATOR));
         String resourceId = path.substring(path.lastIndexOf(SEPARATOR) + SEPARATOR.length());
-        staticInstance().get(prefixPath(path), ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), permittedRoles);
-        staticInstance().get(prefixPath(resourceBase), crudHandler::getAll, permittedRoles);
-        staticInstance().post(prefixPath(resourceBase), crudHandler::create, permittedRoles);
-        staticInstance().patch(prefixPath(path), ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), permittedRoles);
-        staticInstance().delete(prefixPath(path), ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), permittedRoles);
+        Handler getOneHandler = ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId));
+        Handler updateHandler = ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId));
+        Handler deleteHandler = ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId));
+
+        if (crudHandler instanceof DocumentedCrudHandler) {
+            OpenApiCrudHandlerDocumentation documentation = ((DocumentedCrudHandler) crudHandler).getCrudHandlerDocumentation();
+            applyCrudHandler(
+                path,
+                resourceBase,
+                permittedRoles,
+                OpenApiBuilder.documented(documentation.getGetOneDocumentation(), getOneHandler),
+                OpenApiBuilder.documented(documentation.getGetAllDocumentation(), crudHandler::getAll),
+                OpenApiBuilder.documented(documentation.getCreateDocumentation(), crudHandler::create),
+                OpenApiBuilder.documented(documentation.getUpdateDocumentation(), updateHandler),
+                OpenApiBuilder.documented(documentation.getDeleteDocumentation(), deleteHandler)
+            );
+        } else {
+            Class<? extends CrudHandler> crudHandlerClass = crudHandler.getClass();
+
+            applyCrudHandler(
+                path,
+                resourceBase,
+                permittedRoles,
+                OpenApiBuilder.moveDocumentationFromAnnotationToHandler(crudHandlerClass, "getOne", getOneHandler),
+                OpenApiBuilder.moveDocumentationFromAnnotationToHandler(crudHandlerClass, "getAll", crudHandler::getAll),
+                OpenApiBuilder.moveDocumentationFromAnnotationToHandler(crudHandlerClass, "create", crudHandler::create),
+                OpenApiBuilder.moveDocumentationFromAnnotationToHandler(crudHandlerClass, "update", updateHandler),
+                OpenApiBuilder.moveDocumentationFromAnnotationToHandler(crudHandlerClass, "delete", deleteHandler)
+            );
+        }
+    }
+
+    private static void applyCrudHandler(
+        @NotNull String path,
+        @NotNull String resourceBase,
+        @NotNull Set<Role> permittedRoles,
+        @NotNull Handler getOneHandler,
+        @NotNull Handler getAllHandler,
+        @NotNull Handler createHandler,
+        @NotNull Handler updateHandler,
+        @NotNull Handler deleteHandler
+    ) {
+        staticInstance().get(prefixPath(path), getOneHandler, permittedRoles);
+        staticInstance().get(prefixPath(resourceBase), getAllHandler, permittedRoles);
+        staticInstance().post(prefixPath(resourceBase), createHandler, permittedRoles);
+        staticInstance().patch(prefixPath(path), updateHandler, permittedRoles);
+        staticInstance().delete(prefixPath(path), deleteHandler, permittedRoles);
     }
 
 }
