@@ -22,6 +22,8 @@ import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.http.util.CorsBeforeHandler;
 import io.javalin.http.util.CorsOptionsHandler;
+import io.javalin.plugin.metrics.JavalinMicrometer;
+import io.javalin.plugin.metrics.MetricsProvider;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,6 +58,7 @@ public class JavalinConfig {
     @NotNull public Long asyncRequestTimeout = 0L;
     @NotNull public String wsContextPath ="/";
     @NotNull public Inner inner = new Inner();
+    @NotNull public MetricsProvider metricsProvider = MetricsProvider.NONE;
 
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
@@ -140,6 +143,10 @@ public class JavalinConfig {
         }
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
+        }
+        if (config.metricsProvider == MetricsProvider.MICROMETER) { // only have one at the moment
+            config.inner.server = JettyUtil.getOrDefault(config.inner.server);
+            JavalinMicrometer.init(config.inner.server);
         }
     }
 

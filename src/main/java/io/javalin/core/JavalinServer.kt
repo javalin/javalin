@@ -35,7 +35,7 @@ class JavalinServer(val config: JavalinConfig) {
     @Throws(BindException::class)
     fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
 
-        config.inner.server = config.inner.server ?: defaultServer()
+        config.inner.server = JettyUtil.getOrDefault(config.inner.server)
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
@@ -77,12 +77,6 @@ class JavalinServer(val config: JavalinConfig) {
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
-    private fun defaultServer() = Server(QueuedThreadPool(250, 8, 60_000)).apply {
-        addBean(LowResourceMonitor(this))
-        insertHandler(StatisticsHandler())
-        setAttribute("is-default-server", true)
-    }
-
     private fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
 
     private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
@@ -109,6 +103,13 @@ class JavalinServer(val config: JavalinConfig) {
 object JettyUtil {
 
     private var defaultLogger: org.eclipse.jetty.util.log.Logger? = null
+
+    @JvmStatic
+    fun getOrDefault(server: Server?) = server ?: Server(QueuedThreadPool(250, 8, 60_000)).apply {
+        addBean(LowResourceMonitor(this))
+        insertHandler(StatisticsHandler())
+        setAttribute("is-default-server", true)
+    }
 
     @JvmStatic
     fun disableJettyLogger() {
