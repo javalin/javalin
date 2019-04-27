@@ -122,7 +122,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * JavalinJson can be configured to use any mapping library.
      * @return The mapped object
      */
-    fun <T> bodyAsClass(clazz: Class<T>): T = JavalinJson.fromJson(body(), clazz)
+    fun <T> bodyAsClass(clazz: Class<T>): T = bodyValidator(clazz).get()
 
     /**
      * Creates a [Validator] for the body() value, with the prefix "Request body as $clazz"

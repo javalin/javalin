@@ -69,10 +69,10 @@ class TestJson {
     }
 
     @Test
-    fun `json-mapper throws when mapping json to unmappable object`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.json(ctx.body<NonSerializableObject>().javaClass.simpleName) }
-        assertThat(http.get("/hello").status).isEqualTo(500)
-        assertThat(http.getBody("/hello")).isEqualTo("Internal server error")
+    fun `invalid json is mapped to BadRequestResponse`() = TestUtil.test { app, http ->
+        app.get("/hello") { it.body<NonSerializableObject>() }
+        assertThat(http.get("/hello").status).isEqualTo(400)
+        assertThat(http.getBody("/hello")).isEqualTo("Couldn't deserialize body to NonSerializableObject")
     }
 
     @Test
