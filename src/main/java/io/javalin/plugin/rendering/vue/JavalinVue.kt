@@ -17,18 +17,17 @@ object JavalinVue {
     private val cachedTemplate: String by lazy { createLayout(localhost = false) }
 
     fun render(component: String) = Handler { ctx ->
-        var view = if (ContextUtil.isLocalhost(ctx)) createLayout(localhost = true) else cachedTemplate
-        view = view.replace("@routeParams", getParams(ctx)) // insert path params and query params
-        ctx.html(view.replace("@routeComponent", component)) // insert current route component
+        val view = if (ContextUtil.isLocalhost(ctx)) createLayout(localhost = true) else cachedTemplate
+        ctx.html(view.replace("@routeParams", getParams(ctx)).replace("@routeComponent", component)) // insert current route component
     }
 
-    private fun createLayout(localhost: Boolean): String {
+    fun createLayout(localhost: Boolean): String {
         val vueFolder = if (localhost) "src/main/resources/vue" else this.javaClass.classLoader.getResource("vue").path
         val headContent = File(vueFolder).walkTopDown().filter { it.extension == "vue" }.joinToString("") { it.readText() } // // find and concat .vue files
         return File("$vueFolder/layout.html").readText().replace("@componentRegistration", "@routeParams$headContent") // inject variable for route-params
     }
 
-    private fun getParams(ctx: Context) = """<script>
+    fun getParams(ctx: Context) = """<script>
           Vue.prototype.${"$"}javalin = {
           pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
           queryParams: ${JavalinJson.toJson(ctx.queryParamMap())}
