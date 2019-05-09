@@ -13,7 +13,7 @@ import org.junit.Test
 class TestJavalinVue {
 
     @Test
-    fun `hello future world`() = TestUtil.test { app, http ->
+    fun `hello vue world`() = TestUtil.test { app, http ->
         app.get("/vue/:my-param") {
             it.html(JavalinVue.createLayout(localhost = false) // need to use classpath for test
                     .replace("@routeParams", JavalinVue.getParams(it))
