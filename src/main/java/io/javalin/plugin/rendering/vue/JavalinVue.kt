@@ -14,12 +14,7 @@ import java.io.File
 
 object JavalinVue {
 
-    private val cachedTemplate: String by lazy { createLayout(localhost = false) }
-
-    fun render(component: String) = Handler { ctx ->
-        val view = if (ContextUtil.isLocalhost(ctx)) createLayout(localhost = true) else cachedTemplate
-        ctx.html(view.replace("@routeParams", getParams(ctx)).replace("@routeComponent", component)) // insert current route component
-    }
+    val cachedTemplate: String by lazy { createLayout(localhost = false) }
 
     fun createLayout(localhost: Boolean): String {
         val vueFolder = if (localhost) "src/main/resources/vue" else this.javaClass.classLoader.getResource("vue").path
@@ -33,4 +28,11 @@ object JavalinVue {
           queryParams: ${JavalinJson.toJson(ctx.queryParamMap())}
       }</script>"""
 
+}
+
+class VueComponent(private val component: String) : Handler {
+    override fun handle(ctx: Context) {
+        val view = if (ContextUtil.isLocalhost(ctx)) JavalinVue.createLayout(localhost = true) else JavalinVue.cachedTemplate
+        ctx.html(view.replace("@routeParams", JavalinVue.getParams(ctx)).replace("@routeComponent", component)) // insert current route component
+    }
 }
