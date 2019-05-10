@@ -8,30 +8,62 @@ package io.javalin.core
 
 import io.javalin.http.util.ContextUtil
 
-class PathParser(
-        path: String,
-        private val pathParamNames: List<String> = path.split("/")
-                .filter { it.startsWith(":") }
-                .map { it.replace(":", "") },
-        private val matchRegex: Regex = pathParamNames
-                .fold(path) { p, name -> p.replace(":$name", "[^/]+?") } // Replace path param names with wildcards (accepting everything except slash)
-                .replace("//", "/") // Replace double slash occurrences
-                .replace("/*/", "/.*?/") // Replace star between slashes with wildcard
-                .replace("^\\*".toRegex(), ".*?") // Replace star in the beginning of path with wildcard (allow paths like (*/path/)
-                .replace("/*", "/.*?") // Replace star in the end of string with wildcard
-                .replace("/$".toRegex(), "/?") // Replace trailing slash with optional one
-                .run { if (!endsWith("/?")) this + "/?" else this } // Add slash if doesn't have one
-                .run { "^" + this + "$" } // Let the matcher know that it is the whole path
-                .toRegex(),
-        private val pathParamRegex: Regex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex(RegexOption.IGNORE_CASE)) {
+class PathParser(path: String) {
+    val parsedPath = ParsedPath.fromPath(path)
 
-    fun matches(url: String) = url matches matchRegex
+    fun matches(url: String): Boolean = url matches parsedPath.matchRegex
 
-    fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
-        name to ContextUtil.urlDecode(value)
-    }.toMap()
+    fun extractPathParams(url: String) = parsedPath.pathParamNames
+            .zip(values(parsedPath.pathParamRegex, url)) { name, value ->
+                name to ContextUtil.urlDecode(value)
+            }.toMap()
 
     // Match and group values, then drop first element (the input string)
     private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
+}
 
+data class ParsedPath(val segments: List<PathSegment>) {
+    companion object {
+        fun fromPath(path: String): ParsedPath {
+            val segments = path.split("/")
+                    .filter { it.isNotEmpty() }
+                    .map {
+                        when {
+                            it.startsWith(":") -> PathSegment.Parameter(it.removePrefix(":"))
+                            it == "*" -> PathSegment.Wildcard
+                            else -> PathSegment.Normal(it)
+                        }
+                    }
+            return ParsedPath(segments)
+        }
+    }
+
+    internal val matchRegex: Regex = "^/${segments.joinToString("/") { it.asRegexString() }}/?$".toRegex()
+
+    internal val pathParamRegex: Regex = matchRegex.pattern
+            .replace("[^/]+?", "([^/]+?)")
+            .toRegex()
+
+    internal val pathParamNames: List<String>
+        get() = segments
+                .filterIsInstance<PathSegment.Parameter>()
+                .map { it.name }
+
+
+}
+
+sealed class PathSegment {
+    class Normal(val content: String) : PathSegment() {
+        override fun asRegexString(): String = content
+    }
+
+    class Parameter(val name: String) : PathSegment() {
+        override fun asRegexString(): String = "[^/]+?" // Accepting everything except slash
+    }
+
+    object Wildcard : PathSegment() {
+        override fun asRegexString(): String = ".*?" // Accept everything
+    }
+
+    internal abstract fun asRegexString(): String
 }
