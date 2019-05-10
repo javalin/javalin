@@ -6,6 +6,7 @@
 
 package io.javalin;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpMethod;
 import io.javalin.http.Handler;
 import io.javalin.plugin.json.JavalinJackson;
@@ -25,6 +26,7 @@ public class TestUtil {
         javalin.delete("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
         http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
         javalin.stop();
+        JavalinJackson.configure(new ObjectMapper());
         JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE::toJson);
         JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE::fromJson);
     }
