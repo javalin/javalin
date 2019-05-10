@@ -10,9 +10,9 @@ import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.carrotsearch.junitbenchmarks.Clock;
 import com.mashape.unirest.http.Unirest;
-import io.javalin.http.Context;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.CrudHandler;
+import io.javalin.http.Context;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -25,34 +25,32 @@ import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 
-@BenchmarkOptions(benchmarkRounds = 40000, warmupRounds = 5000, concurrency = 4, clock = Clock.NANO_TIME)
+@BenchmarkOptions(benchmarkRounds = 35000, warmupRounds = 5000, concurrency = 4, clock = Clock.NANO_TIME)
 public class StupidPerformanceTest {
-
-    private static Javalin app;
-    private static String origin;
 
     @Rule
     public TestRule benchmarkRun = new BenchmarkRule();
 
-    @AfterClass
-    public static void tearDown() {
-        app.stop();
-    }
+    private static String origin;
+    private static Javalin app = Javalin.create(
+        config -> config.showJavalinBanner = false
+    ).routes(() -> {
+        before(ctx -> ctx.header("X-BEFORE", "Before"));
+        before(ctx -> ctx.status(200));
+        get("/my-path/:param/*", ctx -> ctx.result(ctx.pathParam("param")));
+        get("/1234/:1/:2/:3/:4", ctx -> ctx.result(ctx.pathParamMap().toString()));
+        get("/health", ctx -> ctx.result("OK"));
+        crud("/users/:user-id", new GenericController());
+        path("/nested/path", () -> {
+            crud("/messages/:message-id", new GenericController());
+        });
+        after(ctx -> ctx.header("X-AFTER", "After"));
+    });
 
     @BeforeClass
     public static void setup() {
         // Thread.sleep(7500) // uncomment if running with VisualVM
-        app = Javalin.create()
-            .routes(() -> {
-                before(ctx -> ctx.header("X-BEFORE", "Before"));
-                before(ctx -> ctx.status(200));
-                get("/health", ctx -> ctx.result("OK"));
-                crud("/users/:user-id", new GenericController());
-                path("/nested/path", () -> {
-                    crud("/messages/:message-id", new GenericController());
-                });
-                after(ctx -> ctx.header("X-AFTER", "After"));
-            }).start(0);
+        app.start(0);
         origin = "http://localhost:" + app.port();
     }
 
@@ -61,7 +59,9 @@ public class StupidPerformanceTest {
     public void testPerformanceMaybe() throws Exception {
 
         Unirest.get(origin + "/health").asString();
-        Unirest.get(origin + "/health").asString();
+
+        Unirest.get(origin + "/my-path/my-param/123").asString();
+        Unirest.get(origin + "/1234/1/2/3/4").asString();
 
         Unirest.get(origin + "/users").asString();
         Unirest.post(origin + "/users").asString();
@@ -75,8 +75,13 @@ public class StupidPerformanceTest {
         Unirest.patch(origin + "/nested/path/messages/1").asString();
         Unirest.delete(origin + "/nested/path/messages/1").asString();
 
-        Unirest.get(origin + "/not-found").asString(); // slow because WebJars
+        Unirest.get(origin + "/not-found").asString();
 
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        app.stop();
     }
 
     static class GenericController implements CrudHandler {
