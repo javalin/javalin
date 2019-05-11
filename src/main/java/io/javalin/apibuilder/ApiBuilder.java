@@ -11,10 +11,12 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
+import io.javalin.plugin.openapi.dsl.OpenApiBuilder;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -486,11 +488,14 @@ public class ApiBuilder {
         String SEPARATOR = "/:";
         String resourceBase = path.substring(0, path.lastIndexOf(SEPARATOR));
         String resourceId = path.substring(path.lastIndexOf(SEPARATOR) + SEPARATOR.length());
-        staticInstance().get(prefixPath(path), ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), permittedRoles);
-        staticInstance().get(prefixPath(resourceBase), crudHandler::getAll, permittedRoles);
-        staticInstance().post(prefixPath(resourceBase), crudHandler::create, permittedRoles);
-        staticInstance().patch(prefixPath(path), ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), permittedRoles);
-        staticInstance().delete(prefixPath(path), ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), permittedRoles);
-    }
 
+        Map<CrudHandlerLambdaKey, Handler> lambdas = CrudHandlerKt.getLambdas(crudHandler, resourceId);
+        lambdas = OpenApiBuilder.documented(crudHandler, lambdas);
+
+        staticInstance().get(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.GET_ONE), permittedRoles);
+        staticInstance().get(prefixPath(resourceBase), lambdas.get(CrudHandlerLambdaKey.GET_ALL), permittedRoles);
+        staticInstance().post(prefixPath(resourceBase), lambdas.get(CrudHandlerLambdaKey.CREATE), permittedRoles);
+        staticInstance().patch(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.UPDATE), permittedRoles);
+        staticInstance().delete(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.DELETE), permittedRoles);
+    }
 }

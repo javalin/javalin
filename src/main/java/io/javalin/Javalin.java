@@ -45,7 +45,7 @@ public class Javalin {
 
     public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
-    protected JavalinConfig config = new JavalinConfig();
+    public JavalinConfig config = new JavalinConfig();
 
     protected JavalinServer server; // null in standalone-mode
     protected JavalinWsServlet wsServlet; // null in standalone-mode
