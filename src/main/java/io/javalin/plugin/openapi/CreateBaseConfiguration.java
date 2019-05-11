@@ -9,5 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface CreateBaseConfiguration {
-    @NotNull OpenAPI create();
+    @NotNull
+    OpenAPI create();
 }

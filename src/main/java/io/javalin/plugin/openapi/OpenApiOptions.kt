@@ -26,7 +26,8 @@ class OpenApiOptions @JvmOverloads constructor(
             createBaseConfiguration: () -> OpenAPI
     ) : this(path, roles, CreateBaseConfiguration(createBaseConfiguration))
 
-    @JvmOverloads constructor(
+    @JvmOverloads
+    constructor(
             path: String? = null,
             info: Info
     ) : this(path, setOf(), {
