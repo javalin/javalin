@@ -43,11 +43,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import static io.javalin.core.security.SecurityUtil.roles;
 
-// @formatter:off
 public class JavalinConfig {
-
+    // @formatter:off
     public static Consumer<JavalinConfig> noopConfig = JavalinConfig -> {}; // no change from default
-
     public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
@@ -79,32 +77,48 @@ public class JavalinConfig {
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
     }
+    // @formatter:on
 
-     public void enableDevLogging() {
+    public void enableDevLogging() {
         requestLogger(LogUtil::requestDevLogger);
         wsLogger(LogUtil::wsDevLogger);
     }
 
-    public void enableWebjars() { addStaticFiles("/webjars", Location.CLASSPATH); }
-    public void addStaticFiles(@NotNull String classpathPath) { addStaticFiles(classpathPath, Location.CLASSPATH); }
+    public void enableWebjars() {
+        addStaticFiles("/webjars", Location.CLASSPATH);
+    }
+
+    public void addStaticFiles(@NotNull String classpathPath) {
+        addStaticFiles(classpathPath, Location.CLASSPATH);
+    }
+
     public void addStaticFiles(@NotNull String path, @NotNull Location location) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null) inner.resourceHandler = new JettyResourceHandler();
         inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
     }
 
-    public void addSinglePageRoot(@NotNull String path, @NotNull String filePath) { addSinglePageRoot(path, filePath, Location.CLASSPATH); }
+    public void addSinglePageRoot(@NotNull String path, @NotNull String filePath) {
+        addSinglePageRoot(path, filePath, Location.CLASSPATH);
+    }
+
     public void addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
         inner.singlePageHandler.add(path, filePath, location);
     }
 
-    public void enableCorsForAllOrigins() { enableCorsForOrigin("*"); }
+    public void enableCorsForAllOrigins() {
+        enableCorsForOrigin("*");
+    }
+
     public void enableCorsForOrigin(@NotNull String... origins) {
         if (origins.length == 0) throw new IllegalArgumentException("Origins cannot be empty.");
         inner.corsOrigins = Arrays.asList(origins);
     }
 
-    public void enableRouteOverview(@NotNull String path) { enableRouteOverview(path, new HashSet<>()); }
+    public void enableRouteOverview(@NotNull String path) {
+        enableRouteOverview(path, new HashSet<>());
+    }
+
     public void enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
         inner.routeOverview = new RouteOverviewConfig(path, permittedRoles);
     }
@@ -180,4 +194,3 @@ public class JavalinConfig {
     }
 
 }
-// @formatter:on
