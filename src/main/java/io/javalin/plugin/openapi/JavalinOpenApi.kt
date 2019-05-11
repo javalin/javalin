@@ -22,12 +22,14 @@ class CreateSchemaOptions(
 )
 
 object JavalinOpenApi {
+    @JvmStatic
     fun createSchema(javalin: Javalin): OpenAPI {
         val handler = javalin.config.inner.openApiHandler
         return handler?.createOpenAPISchema()
                 ?: throw IllegalStateException("You need to activate the \"enableOpenApi\" option before you can create the OpenAPI schema");
     }
 
+    @JvmStatic
     fun createSchema(options: CreateSchemaOptions): OpenAPI {
         val baseConfiguration = options.createBaseConfiguration.create()
         return runWithObjectMapper(options.objectMapper) {
