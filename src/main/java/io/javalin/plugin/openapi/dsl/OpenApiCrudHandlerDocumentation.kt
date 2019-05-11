@@ -7,23 +7,9 @@ data class OpenApiCrudHandlerDocumentation(
         var updateDocumentation: OpenApiDocumentation = OpenApiDocumentation(),
         var deleteDocumentation: OpenApiDocumentation = OpenApiDocumentation()
 ) {
-    fun getAll(doc: OpenApiDocumentation) = apply {
-        this.getAllDocumentation = doc
-    }
-
-    fun getOne(doc: OpenApiDocumentation) = apply {
-        this.getOneDocumentation = doc
-    }
-
-    fun create(doc: OpenApiDocumentation) = apply {
-        this.createDocumentation = doc
-    }
-
-    fun update(doc: OpenApiDocumentation) = apply {
-        this.updateDocumentation = doc
-    }
-
-    fun delete(doc: OpenApiDocumentation) = apply {
-        this.deleteDocumentation = doc
-    }
+    fun getAll(doc: OpenApiDocumentation) = apply { this.getAllDocumentation = doc }
+    fun getOne(doc: OpenApiDocumentation) = apply { this.getOneDocumentation = doc }
+    fun create(doc: OpenApiDocumentation) = apply { this.createDocumentation = doc }
+    fun update(doc: OpenApiDocumentation) = apply { this.updateDocumentation = doc }
+    fun delete(doc: OpenApiDocumentation) = apply { this.deleteDocumentation = doc }
 }
