@@ -24,6 +24,8 @@ import io.javalin.http.util.CorsBeforeHandler;
 import io.javalin.http.util.CorsOptionsHandler;
 import io.javalin.plugin.metrics.JavalinMicrometer;
 import io.javalin.plugin.metrics.MetricsProvider;
+import io.javalin.plugin.openapi.OpenApiHandler;
+import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,6 +68,8 @@ public class JavalinConfig {
         @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
         @NotNull public List<String> corsOrigins = new ArrayList<>();
         @Nullable public RouteOverviewConfig routeOverview = null;
+        @Nullable public OpenApiOptions openApiOptions = null;
+        @Nullable public OpenApiHandler openApiHandler = null;
         @Nullable public RequestLogger requestLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
@@ -105,6 +109,15 @@ public class JavalinConfig {
         inner.routeOverview = new RouteOverviewConfig(path, permittedRoles);
     }
 
+    /**
+     * Enable the automatic generation of an open api schema.
+     * The schema can be extracted with {@link io.javalin.plugin.openapi.JavalinOpenApi#createSchema(Javalin)}.
+     */
+    public void enableOpenApi(OpenApiOptions options) {
+        inner.openApiOptions = options;
+    }
+
+
     public void accessManager(@NotNull AccessManager accessManager) {
         inner.accessManager = accessManager;
     }
@@ -134,9 +147,25 @@ public class JavalinConfig {
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
+
+        // The following handlers need to be initialized before any handler is added
+        RouteOverviewRenderer routeOverviewRenderer = null;
         if (config.inner.routeOverview != null) {
-            app.get(config.inner.routeOverview.getPath(), new RouteOverviewRenderer(app), config.inner.routeOverview.getRoles());
+            routeOverviewRenderer = new RouteOverviewRenderer(app);
         }
+        OpenApiHandler openApiHandler = null;
+        if (config.inner.openApiOptions != null) {
+            openApiHandler = new OpenApiHandler(app, config.inner.openApiOptions);
+            config.inner.openApiHandler = openApiHandler;
+        }
+
+        if (routeOverviewRenderer != null) {
+            app.get(config.inner.routeOverview.getPath(), routeOverviewRenderer, config.inner.routeOverview.getRoles());
+        }
+        if (openApiHandler != null && config.inner.openApiOptions.getPath() != null) {
+            app.get(config.inner.openApiOptions.getPath(), openApiHandler, config.inner.openApiOptions.getRoles());
+        }
+
         if (!config.inner.corsOrigins.isEmpty()) {
             app.before(new CorsBeforeHandler(config.inner.corsOrigins));
             app.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));
