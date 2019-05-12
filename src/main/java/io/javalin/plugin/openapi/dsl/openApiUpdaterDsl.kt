@@ -3,12 +3,7 @@
  */
 package io.javalin.plugin.openapi.dsl
 
-import com.reprezen.kaizen.oasparser.model3.Response
-import io.swagger.v3.oas.models.Components
-import io.swagger.v3.oas.models.OpenAPI
-import io.swagger.v3.oas.models.Operation
-import io.swagger.v3.oas.models.PathItem
-import io.swagger.v3.oas.models.Paths
+import io.swagger.v3.oas.models.*
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody

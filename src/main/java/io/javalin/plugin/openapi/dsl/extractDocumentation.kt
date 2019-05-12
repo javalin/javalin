@@ -3,7 +3,6 @@ package io.javalin.plugin.openapi.dsl
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.asOpenApiDocumentation
-import java.lang.NullPointerException
 import java.util.logging.Logger
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod

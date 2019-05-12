@@ -28,23 +28,17 @@ data class User(val id: Int, val name: String, val age: Int, val role: UserRole)
 
 object UserRepository {
     private val users = mutableListOf<User>()
-
     fun getUsers() = users.toList()
-
     fun getUser(id: Int) = users.find { it.id == id }
-
     fun addUser(user: User) = users.add(user)
 }
 
-
-val getUsersDocs = document()
-        .jsonArray<User>("200")  { it.description = "Returns all users" }
+val getUsersDocs = document().jsonArray<User>("200") { it.description = "Returns all users" }
 
 fun getUsersHandler(ctx: Context) {
     val users = UserRepository.getUsers()
     ctx.json(users)
 }
-
 
 val getUserDocs = document()
         .pathParam<Int>("id")
