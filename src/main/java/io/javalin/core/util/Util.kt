@@ -111,7 +111,7 @@ object Util {
         try {
             getWebjarResourceUrl(dependency)
         } catch (e: ResourceNotFoundException) {
-            e.printStackTrace()
+            Javalin.log.warn(missingDependencyMessage(dependency))
         }
     }
 

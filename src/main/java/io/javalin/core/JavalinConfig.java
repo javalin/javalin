@@ -12,8 +12,10 @@ import io.javalin.core.security.CoreRoles;
 import io.javalin.core.security.Role;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.LogUtil;
+import io.javalin.core.util.OptionalDependency;
 import io.javalin.core.util.RouteOverviewConfig;
 import io.javalin.core.util.RouteOverviewRenderer;
+import io.javalin.core.util.Util;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
 import io.javalin.http.staticfiles.JettyResourceHandler;
@@ -26,9 +28,7 @@ import io.javalin.plugin.metrics.JavalinMicrometer;
 import io.javalin.plugin.metrics.MetricsProvider;
 import io.javalin.plugin.openapi.OpenApiHandler;
 import io.javalin.plugin.openapi.OpenApiOptions;
-import io.javalin.plugin.openapi.ui.ReDocOptions;
 import io.javalin.plugin.openapi.ui.ReDocRenderer;
-import io.javalin.plugin.openapi.ui.SwaggerOptions;
 import io.javalin.plugin.openapi.ui.SwaggerRenderer;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
@@ -181,6 +181,9 @@ public class JavalinConfig {
         }
 
         if (openApiHandler != null && config.inner.openApiOptions.getPath() != null) {
+
+            Util.INSTANCE.ensureDependencyPresent(OptionalDependency.SWAGGER_CORE);
+            Util.INSTANCE.ensureDependencyPresent(OptionalDependency.OPENAPI_KOTLIN_DSL);
 
             app.get(config.inner.openApiOptions.getPath(), openApiHandler, config.inner.openApiOptions.getRoles());
 

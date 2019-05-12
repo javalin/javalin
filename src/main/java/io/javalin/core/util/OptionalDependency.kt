@@ -17,8 +17,11 @@ enum class OptionalDependency(val displayName: String, val testClass: String, va
     PEBBLE("Pebble", "com.mitchellbosecke.pebble.PebbleEngine", "com.mitchellbosecke", "pebble", "2.4.0"),
     COMMONMARK("Commonmark", "org.commonmark.renderer.html.HtmlRenderer", "com.atlassian.commonmark", "commonmark", "0.11.0"),
     SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "1.7.26"),
+    MICROMETER("Micrometer", "io.micrometer.core.instrument.Metrics", "io.micrometer", "micrometer-core", "1.1.3"),
     SWAGGERUI("Swagger UI", "STATIC-FILES", "org.webjars", "swagger-ui", "3.17.6"),
     REDOC("ReDoc", "STATIC-FILES", "org.webjars.npm", "redoc", "2.0.0-rc.2"),
-    MICROMETER("Micrometer", "io.micrometer.core.instrument.Metrics", "io.micrometer", "micrometer-core", "1.1.3"),
+    SWAGGER_CORE("Swagger Core", "io.swagger.v3.oas.models.OpenAPI", "io.swagger.core.v3", "swagger-models", "2.0.7"),
+    OPENAPI_KOTLIN_DSL("OpenAPI Kotlin DSL", "cc.vileda.openapi.dsl.OpenApiDslKt", "cc.vileda", "kotlin-openapi3-dsl", "0.20.1"),
+
 }
 
