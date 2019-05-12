@@ -4,7 +4,6 @@
  */
 package io.javalin.plugin.openapi.dsl
 
-import cc.vileda.openapi.dsl.requestBody
 import io.javalin.core.PathParser
 import io.javalin.core.PathSegment
 import io.javalin.core.event.HandlerMetaInfo

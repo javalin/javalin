@@ -37,7 +37,7 @@ val userOpenApiSchema = """
 val complexExampleUsersGetResponsesJson = """
 {
   "200": {
-    "description": "",
+    "description": "OK",
     "content": {
       "application/json": {
         "schema": {
@@ -67,7 +67,7 @@ val provideRouteExampleJson = """
           "operationId": "getDocsSwagger.json",
           "responses" : {
             "200" : {
-              "description" : ""
+              "description" : "OK"
             }
           }
         }
@@ -242,7 +242,7 @@ val complexExampleJson = """
         "operationId": "getString",
         "responses": {
           "200": {
-            "description": "",
+            "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
@@ -327,7 +327,7 @@ val complexExampleJson = """
         "operationId": "getResourcesWithWildcard",
         "responses": {
           "200": {
-            "description": ""
+            "description": "OK"
           }
         }
       }
@@ -372,7 +372,7 @@ val crudExampleJson = """
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -418,7 +418,7 @@ val crudExampleJson = """
         "operationId": "getUsers",
         "responses": {
           "200": {
-            "description": "",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -464,7 +464,7 @@ val defaultOperationExampleJson = """
             "description": "Server Error"
           },
           "200": {
-            "description": "",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
