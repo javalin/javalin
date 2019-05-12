@@ -60,7 +60,7 @@ public class JavalinConfig {
     @NotNull public String contextPath = "/";
     @NotNull public Long requestCacheSize = 4096L;
     @NotNull public Long asyncRequestTimeout = 0L;
-    @NotNull public String wsContextPath ="/";
+    @NotNull public String wsContextPath = "/";
     @NotNull public Inner inner = new Inner();
     @NotNull public MetricsProvider metricsProvider = MetricsProvider.NONE;
 
@@ -135,7 +135,6 @@ public class JavalinConfig {
         inner.openApiOptions = options;
     }
 
-
     public void accessManager(@NotNull AccessManager accessManager) {
         inner.accessManager = accessManager;
     }
@@ -180,19 +179,23 @@ public class JavalinConfig {
         if (routeOverviewRenderer != null) {
             app.get(config.inner.routeOverview.getPath(), routeOverviewRenderer, config.inner.routeOverview.getRoles());
         }
+
         if (openApiHandler != null && config.inner.openApiOptions.getPath() != null) {
+
             app.get(config.inner.openApiOptions.getPath(), openApiHandler, config.inner.openApiOptions.getRoles());
 
             OpenApiOptions options = openApiHandler.getOptions();
 
-            SwaggerOptions swaggerOptions = options.getSwagger();
-            if (swaggerOptions != null) {
-                app.get(swaggerOptions.getPath(), new SwaggerRenderer(options));
+            if (options.getSwagger() != null) {
+                app.get(options.getSwagger().getPath(), new SwaggerRenderer(options));
             }
 
-            ReDocOptions reDocOptions = options.getReDoc();
-            if (reDocOptions != null) {
-                app.get(reDocOptions.getPath(), new ReDocRenderer(options));
+            if (options.getReDoc() != null) {
+                app.get(options.getReDoc().getPath(), new ReDocRenderer(options));
+            }
+
+            if (options.getSwagger() != null || options.getReDoc() != null) {
+                config.enableWebjars();
             }
         }
 

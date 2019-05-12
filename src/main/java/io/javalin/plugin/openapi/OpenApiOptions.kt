@@ -9,9 +9,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.info.Info
 
-class OpenApiOptions constructor(
-        val createBaseConfiguration: CreateBaseConfiguration
-) {
+class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfiguration) {
     /** If not null, creates a GET route to get the schema as a json */
     var path: String? = null
     var roles: Set<Role> = setOf()

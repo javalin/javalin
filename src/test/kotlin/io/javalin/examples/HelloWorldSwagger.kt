@@ -68,14 +68,9 @@ fun addUserHandler(ctx: Context) {
 
 
 fun main() {
-    JavalinJackson.configure(
-            jacksonObjectMapper()
-                    .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-    )
+    JavalinJackson.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
     val app = Javalin.create {
-        it.enableWebjars()
-
         val openApiOptions = OpenApiOptions(Info().version("1.0").description("My Application"))
                 .path("/swagger-docs")
                 .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
@@ -85,7 +80,6 @@ fun main() {
                         response("500") { description = "Server Error" }
                     }
                 }
-
         it.enableOpenApi(openApiOptions)
     }
 
