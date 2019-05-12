@@ -4,7 +4,6 @@
  */
 package io.javalin.plugin.openapi.dsl
 
-import cc.vileda.openapi.dsl.parameter
 import cc.vileda.openapi.dsl.requestBody
 import cc.vileda.openapi.dsl.response
 import cc.vileda.openapi.dsl.responses
@@ -68,7 +67,7 @@ fun Operation.applyMetaInfo(path: PathParser, metaInfo: HandlerMetaInfo) {
     summary = metaInfo.createDefaultSummary(path)
     if (path.pathParamNames.isNotEmpty()) {
         path.pathParamNames.forEach { pathParamName ->
-            parameter {
+            updateParameter {
                 name = pathParamName
                 `in` = "path"
                 required = true
@@ -81,9 +80,7 @@ fun Operation.applyMetaInfo(path: PathParser, metaInfo: HandlerMetaInfo) {
         documentation.parameterUpdaterListMapping
                 .values
                 .forEach { updaters ->
-                    parameter {
-                        updaters.applyAllUpdates(this)
-                    }
+                    updateParameter { updaters.applyAllUpdates(this) }
                 }
 
         if (documentation.hasRequestBodies()) {
@@ -135,18 +132,18 @@ private fun PathParser.asReadableWords(): List<String> {
     val words = mutableListOf<String>()
     segments.forEach { segment ->
         when (segment) {
-            is PathSegment.Normal -> words.add(segment.content)
+            is PathSegment.Normal -> words.add(segment.content.dashCaseToCamelCase())
             is PathSegment.Wildcard -> words.addAll(arrayOf("with", "wildcard"))
             is PathSegment.Parameter -> {
                 words.add("with")
-                words.add(segment.name
-                        .split("-")
-                        .map { it.toLowerCase() }
-                        .mapIndexed { index, s -> if (index > 0) s.capitalize() else s }
-                        .joinToString("")
-                )
+                words.add(segment.name.dashCaseToCamelCase())
             }
         }
     }
     return words
 }
+
+private fun String.dashCaseToCamelCase() = split("-")
+        .map { it.toLowerCase() }
+        .mapIndexed { index, s -> if (index > 0) s.capitalize() else s }
+        .joinToString("")

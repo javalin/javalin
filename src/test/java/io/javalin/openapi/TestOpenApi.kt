@@ -120,7 +120,7 @@ class TestOpenApi {
                 .header<String>("x-my-header") {
                     it.description = "My header"
                 }
-                .pathParam<String>("my-path-param") {
+                .pathParam<Int>("my-path-param") {
                     it.description = "My path param"
                 }
                 .queryParam<String>("name") {
@@ -131,7 +131,7 @@ class TestOpenApi {
                 }
                 .queryParam<Int>("age")
                 .jsonArray<User>("200")
-        app.get("/users", documented(getUsersDocumentation) {
+        app.get("/users/:my-path-param", documented(getUsersDocumentation) {
             val myCookie = it.cookie("my-cookie")
             val myHeader = it.cookie("x-my-header")
             val nameFilter = it.queryParam("name")
@@ -262,12 +262,11 @@ class TestOpenApi {
     fun `enableOpenApi() provide get route if path is given`() {
         TestUtil.test(Javalin.create {
             it.enableOpenApi(OpenApiOptions(
-                    "/docs/swagger.json",
                     Info().apply {
                         title = "Example"
                         version = "1.0.0"
                     }
-            ))
+            ).path("/docs/swagger.json"))
         }) { app, http ->
             app.get("/test") {}
 
@@ -280,12 +279,12 @@ class TestOpenApi {
     @Test
     fun `enableOpenApi() provide get route if path is given with baseConfiguration`() {
         TestUtil.test(Javalin.create {
-            it.enableOpenApi(OpenApiOptions("/docs/swagger.json") {
+            it.enableOpenApi(OpenApiOptions {
                 OpenAPI().info(Info().apply {
                     title = "Example"
                     version = "1.0.0"
                 })
-            })
+            }.path("/docs/swagger.json"))
         }) { app, http ->
             app.get("/test") {}
 

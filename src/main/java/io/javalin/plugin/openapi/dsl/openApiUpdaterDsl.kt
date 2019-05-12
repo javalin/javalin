@@ -5,9 +5,11 @@ package io.javalin.plugin.openapi.dsl
 
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.Paths
 import io.swagger.v3.oas.models.media.Content
+import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 
@@ -36,4 +38,17 @@ internal fun RequestBody.updateContent(apply: Content.() -> Unit) {
 internal fun ApiResponse.updateContent(apply: Content.() -> Unit) {
     content = content ?: Content()
     content.apply(apply)
+}
+
+internal fun Operation.updateParameter(apply: Parameter.() -> Unit) {
+    val parameterWithUpdatesApplied = Parameter().also { apply(it) }
+    if (parameters == null) {
+        parameters = mutableListOf()
+    }
+    val oldParameter = parameters.find { it.`in` == parameterWithUpdatesApplied.`in` && it.name == parameterWithUpdatesApplied.name }
+    if (oldParameter == null) {
+        parameters.add(Parameter().apply(apply))
+    } else {
+        oldParameter.apply(apply)
+    }
 }

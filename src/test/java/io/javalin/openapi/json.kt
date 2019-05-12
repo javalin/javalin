@@ -64,7 +64,12 @@ val provideRouteExampleJson = """
       "/docs/swagger.json": {
         "get": {
           "summary": "Get docs swagger.json",
-          "operationId": "getDocsSwagger.json"
+          "operationId": "getDocsSwagger.json",
+          "responses" : {
+            "200" : {
+              "description" : ""
+            }
+          }
         }
       },
       "/test": {
@@ -168,12 +173,22 @@ val complexExampleJson = """
         }
       }
     },
-    "/users": {
+    "/users/{my-path-param}": {
       "get": {
         "tags": ["user"],
-        "summary": "Get users",
-        "operationId": "getUsers",
+        "summary": "Get users with myPathParam",
+        "operationId": "getUsersWithMyPathParam",
         "parameters": [
+          {
+            "name": "my-path-param",
+            "in": "path",
+            "description": "My path param",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
           {
             "name": "my-cookie",
             "in": "cookie",
@@ -186,15 +201,6 @@ val complexExampleJson = """
             "name": "x-my-header",
             "in": "header",
             "description": "My header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "my-path-param",
-            "in": "path",
-            "description": "My path param",
-            "required": true,
             "schema": {
               "type": "string"
             }

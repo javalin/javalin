@@ -26,6 +26,10 @@ import io.javalin.plugin.metrics.JavalinMicrometer;
 import io.javalin.plugin.metrics.MetricsProvider;
 import io.javalin.plugin.openapi.OpenApiHandler;
 import io.javalin.plugin.openapi.OpenApiOptions;
+import io.javalin.plugin.openapi.ui.ReDocOptions;
+import io.javalin.plugin.openapi.ui.ReDocRenderer;
+import io.javalin.plugin.openapi.ui.SwaggerRenderer;
+import io.javalin.plugin.openapi.ui.SwaggerOptions;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -178,6 +182,18 @@ public class JavalinConfig {
         }
         if (openApiHandler != null && config.inner.openApiOptions.getPath() != null) {
             app.get(config.inner.openApiOptions.getPath(), openApiHandler, config.inner.openApiOptions.getRoles());
+
+            OpenApiOptions options = openApiHandler.getOptions();
+
+            SwaggerOptions swaggerOptions = options.getSwagger();
+            if (swaggerOptions != null) {
+                app.get(swaggerOptions.getPath(), new SwaggerRenderer(options));
+            }
+
+            ReDocOptions reDocOptions = options.getReDoc();
+            if (reDocOptions != null) {
+                app.get(reDocOptions.getPath(), new ReDocRenderer(options));
+            }
         }
 
         if (!config.inner.corsOrigins.isEmpty()) {

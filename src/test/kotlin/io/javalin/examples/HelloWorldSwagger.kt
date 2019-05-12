@@ -3,20 +3,94 @@
  * Copyright 2017 David Åse
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
-
-/*
- * Javalin - https://javalin.io
- * Copyright 2017 David Åse
- * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
- */
-
 package io.javalin.examples
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.Javalin
-import io.javalin.core.util.SwaggerRenderer
+import io.javalin.http.Context
+import io.javalin.plugin.json.JavalinJackson
+import io.javalin.plugin.openapi.OpenApiOptions
+import io.javalin.plugin.openapi.dsl.document
+import io.javalin.plugin.openapi.dsl.documented
+import io.javalin.plugin.openapi.ui.ReDocOptions
+import io.javalin.plugin.openapi.ui.SwaggerOptions
+import io.swagger.v3.oas.models.info.Info
 
-fun main(args: Array<String>) {
-    Javalin.create { it.enableWebjars() }.apply {
-        get("/my-docs", SwaggerRenderer("exampleApiSpec.yaml"))
-    }.start(0)
+enum class UserRole {
+    CUSTOMER,
+    ADMIN
+}
+
+data class User(val id: Int, val name: String, val age: Int, val role: UserRole)
+
+object UserRepository {
+    private val users = mutableListOf<User>()
+
+    fun getUsers() = users.toList()
+
+    fun getUser(id: Int) = users.find { it.id == id }
+
+    fun addUser(user: User) = users.add(user)
+}
+
+
+val getUsersDocs = document()
+        .jsonArray<User>("200")
+
+fun getUsersHandler(ctx: Context) {
+    val users = UserRepository.getUsers()
+    ctx.json(users)
+}
+
+
+val getUserDocs = document()
+        .pathParam<Int>("id")
+        .json<User>("200")
+        .result<Unit>("404")
+
+fun getUserHandler(ctx: Context) {
+    val userId = ctx.pathParam<Int>("id").get()
+    val user = UserRepository.getUser(userId)
+    if (user == null) {
+        ctx.status(404)
+    } else {
+        ctx.json(user)
+    }
+}
+
+val addUserDocs = document()
+        .body<User>()
+        .result<Unit>("400")
+        .result<Unit>("204")
+
+fun addUserHandler(ctx: Context) {
+    val user = ctx.body<User>()
+    UserRepository.addUser(user)
+    ctx.status(204)
+}
+
+
+fun main() {
+    JavalinJackson.configure(
+            jacksonObjectMapper()
+                    .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    )
+
+    val app = Javalin.create {
+        val openApiOptions = OpenApiOptions(Info().version("1.0").description("My Application"))
+                .path("/swagger-docs")
+                .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
+                .reDoc(ReDocOptions("/redoc").title("My ReDoc Documentation"))
+
+        it.enableOpenApi(openApiOptions)
+    }
+
+    with(app) {
+        get("/users", documented(getUsersDocs, ::getUsersHandler))
+        get("/users/:id", documented(getUserDocs, ::getUserHandler))
+        post("/users", documented(addUserDocs, ::addUserHandler))
+    }
+
+    app.start()
 }
