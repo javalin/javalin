@@ -8,7 +8,9 @@ package io.javalin.core.util
 
 import io.javalin.Javalin
 import io.javalin.core.JavalinServer
+import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
+import org.apache.velocity.exception.ResourceNotFoundException
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -95,7 +97,29 @@ object Util {
         return cis.checksum.value.toString()
     }
 
+    @JvmStatic
     fun getResourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
+
+    @JvmStatic
+    fun getWebjarPublicPath(ctx: Context, dependency: OptionalDependency): String {
+        assertWebjarInstalled(dependency)
+        return "${ctx.contextPath()}/webjars/${dependency.artifactId}/${dependency.version}"
+    }
+
+    @JvmStatic
+    fun assertWebjarInstalled(dependency: OptionalDependency) {
+        try {
+            getWebjarResourceUrl(dependency)
+        } catch (e: ResourceNotFoundException) {
+            e.printStackTrace()
+        }
+    }
+
+    @JvmStatic
+    fun getWebjarResourceUrl(dependency: OptionalDependency): URL? {
+        val webjarBaseUrl = "META-INF/resources/webjars"
+        return getResourceUrl("$webjarBaseUrl/${dependency.artifactId}/${dependency.version}")
+    }
 
     fun getFileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
 

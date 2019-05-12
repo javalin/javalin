@@ -1,5 +1,7 @@
 package io.javalin.plugin.openapi.ui
 
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.OpenApiOptions
@@ -21,11 +23,13 @@ internal class SwaggerRenderer(private val openApiOptions: OpenApiOptions) : Han
     override fun handle(ctx: Context) {
         val swaggerUiOptions = openApiOptions.swagger!!
         val docsPath = openApiOptions.getFullDocumentationUrl(ctx)
-        ctx.html(createSwaggerUiHtml(docsPath, swaggerUiOptions))
+        ctx.html(createSwaggerUiHtml(ctx, docsPath, swaggerUiOptions))
     }
 }
 
-private fun createSwaggerUiHtml(docsPath: String, options: SwaggerOptions): String {
+private fun createSwaggerUiHtml(ctx: Context, docsPath: String, options: SwaggerOptions): String {
+    val publicBasePath = Util.getWebjarPublicPath(ctx, OptionalDependency.SWAGGERUI)
+
     @Language("html")
     val html = """
 <!-- HTML for static distribution bundle build -->
@@ -34,8 +38,9 @@ private fun createSwaggerUiHtml(docsPath: String, options: SwaggerOptions): Stri
 <head>
   <meta charset="UTF-8">
   <title>${options.createTitle()}</title>
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.22.1/swagger-ui.css" >
+  <link rel="stylesheet" type="text/css" href="$publicBasePath/swagger-ui.css" >
+  <link rel="icon" type="image/png" href="$publicBasePath/favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="$publicBasePath/favicon-16x16.png" sizes="16x16" />
   <style>
     html
     {
@@ -60,12 +65,13 @@ private fun createSwaggerUiHtml(docsPath: String, options: SwaggerOptions): Stri
 <body>
 <div id="swagger-ui"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.22.1/swagger-ui-bundle.js"> </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.22.1/swagger-ui-standalone-preset.js"> </script>
+<script src="$publicBasePath/swagger-ui-bundle.js"> </script>
+<script src="$publicBasePath/swagger-ui-standalone-preset.js"> </script>
 <script>
 window.onload = function() {
   window.ui = SwaggerUIBundle({
-        "dom_id": "#swagger-ui",
+        url: "$docsPath",
+        dom_id: "#swagger-ui",
         deepLinking: true,
         presets: [
           SwaggerUIBundle.presets.apis,
@@ -74,9 +80,7 @@ window.onload = function() {
         plugins: [
           SwaggerUIBundle.plugins.DownloadUrl
         ],
-        layout: "StandaloneLayout",
-        validatorUrl: "https://validator.swagger.io/validator",
-        url: "$docsPath"
+        layout: "StandaloneLayout"
       })
 }
 </script>

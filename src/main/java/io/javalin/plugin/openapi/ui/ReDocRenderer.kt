@@ -1,5 +1,7 @@
 package io.javalin.plugin.openapi.ui
 
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.OpenApiOptions
@@ -21,11 +23,13 @@ internal class ReDocRenderer(private val openApiOptions: OpenApiOptions) : Handl
     override fun handle(ctx: Context) {
         val reDocOptions = openApiOptions.reDoc!!
         val docsPath = openApiOptions.getFullDocumentationUrl(ctx)
-        ctx.html(createReDocHtml(docsPath, reDocOptions))
+        ctx.html(createReDocHtml(ctx, docsPath, reDocOptions))
     }
 }
 
-private fun createReDocHtml(docsPath: String, options: ReDocOptions): String {
+private fun createReDocHtml(ctx: Context, docsPath: String, options: ReDocOptions): String {
+    val publicBasePath = Util.getWebjarPublicPath(ctx, OptionalDependency.REDOC)
+
     @Language("html")
     val html = """
 <!DOCTYPE html>
@@ -49,7 +53,7 @@ private fun createReDocHtml(docsPath: String, options: ReDocOptions): String {
   </head>
   <body>
     <redoc spec-url="$docsPath"></redoc>
-    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
+    <script src="$publicBasePath/bundles/redoc.standalone.js"> </script>
   </body>
 </html>
     """.trimIndent()

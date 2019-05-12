@@ -80,6 +80,8 @@ fun main() {
     )
 
     val app = Javalin.create {
+        it.enableWebjars()
+
         val openApiOptions = OpenApiOptions(Info().version("1.0").description("My Application"))
                 .path("/swagger-docs")
                 .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
