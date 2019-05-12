@@ -12,6 +12,8 @@ import cc.vileda.openapi.dsl.info
 import cc.vileda.openapi.dsl.openapiDsl
 import cc.vileda.openapi.dsl.path
 import cc.vileda.openapi.dsl.paths
+import cc.vileda.openapi.dsl.response
+import cc.vileda.openapi.dsl.responses
 import cc.vileda.openapi.dsl.security
 import cc.vileda.openapi.dsl.securityScheme
 import cc.vileda.openapi.dsl.server
@@ -256,6 +258,33 @@ class TestOpenApi {
                     JavalinOpenApi.createSchema(app)
                 }
                 .withMessage("You need to activate the \"enableOpenApi\" option before you can create the OpenAPI schema")
+    }
+
+    @Test
+    fun `createSchema() work with default operation`() {
+        val openApiOptions = OpenApiOptions(
+                Info().title("Example").version("1.0.0")
+        )
+                .defaultOperation { operation, _ ->
+                    operation.responses {
+                        response("500") { description = "Server Error" }
+                    }
+                }
+        val app = Javalin.create {
+            it.enableOpenApi(openApiOptions)
+        }
+
+        val route2Documentation = document()
+                .json<User>("200")
+
+        with(app) {
+            get("/route1", documented(route2Documentation) {})
+            get("/route2") {}
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.asJsonString()).isEqualTo(defaultOperationExampleJson)
     }
 
     @Test

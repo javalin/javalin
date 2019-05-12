@@ -5,6 +5,8 @@
  */
 package io.javalin.examples
 
+import cc.vileda.openapi.dsl.response
+import cc.vileda.openapi.dsl.responses
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.Javalin
@@ -36,7 +38,7 @@ object UserRepository {
 
 
 val getUsersDocs = document()
-        .jsonArray<User>("200")
+        .jsonArray<User>("200")  { it.description = "Returns all users" }
 
 fun getUsersHandler(ctx: Context) {
     val users = UserRepository.getUsers()
@@ -46,7 +48,7 @@ fun getUsersHandler(ctx: Context) {
 
 val getUserDocs = document()
         .pathParam<Int>("id")
-        .json<User>("200")
+        .json<User>("200") { it.description = "Returns user with id" }
         .result<Unit>("404")
 
 fun getUserHandler(ctx: Context) {
@@ -82,6 +84,11 @@ fun main() {
                 .path("/swagger-docs")
                 .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
                 .reDoc(ReDocOptions("/redoc").title("My ReDoc Documentation"))
+                .defaultOperation { operation, _ ->
+                    operation.responses {
+                        response("500") { description = "Server Error" }
+                    }
+                }
 
         it.enableOpenApi(openApiOptions)
     }

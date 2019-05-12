@@ -347,7 +347,6 @@ val complexExampleJson = """
 }
 """.formatJson()
 
-
 @Language("JSON")
 val crudExampleJson = """
 {
@@ -436,6 +435,56 @@ val crudExampleJson = """
       "post": {
         "summary": "Post users",
         "operationId": "postUsers"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": $userOpenApiSchema
+    }
+  }
+}
+""".formatJson()
+
+@Language("JSON")
+val defaultOperationExampleJson = """
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Example",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/route1": {
+      "get": {
+        "summary": "Get route1",
+        "operationId": "getRoute1",
+        "responses": {
+          "500": {
+            "description": "Server Error"
+          },
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/route2": {
+      "get": {
+        "summary": "Get route2",
+        "operationId": "getRoute2",
+        "responses": {
+          "500": {
+            "description": "Server Error"
+          }
+        }
       }
     }
   },

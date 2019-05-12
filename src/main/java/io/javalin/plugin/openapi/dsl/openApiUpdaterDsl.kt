@@ -3,6 +3,7 @@
  */
 package io.javalin.plugin.openapi.dsl
 
+import com.reprezen.kaizen.oasparser.model3.Response
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
+import io.swagger.v3.oas.models.responses.ApiResponses
 
 internal fun OpenAPI.updateComponents(apply: Components.() -> Unit) {
     components = components ?: Components()
@@ -50,5 +52,28 @@ internal fun Operation.updateParameter(apply: Parameter.() -> Unit) {
         parameters.add(Parameter().apply(apply))
     } else {
         oldParameter.apply(apply)
+    }
+}
+
+fun Operation.updateRequestBody(apply: RequestBody.() -> Unit) {
+    if (requestBody == null) {
+        requestBody = RequestBody()
+    }
+    requestBody.apply(apply)
+}
+
+internal fun Operation.updateResponses(apply: ApiResponses.() -> Unit) {
+    if (responses == null) {
+        responses = ApiResponses()
+    }
+    responses.apply(apply)
+}
+
+internal fun ApiResponses.updateResponse(name: String, apply: ApiResponse.() -> Unit) {
+    val response = get(name)
+    if (response == null) {
+        addApiResponse(name, ApiResponse().apply(apply))
+    } else {
+        response.apply(apply)
     }
 }

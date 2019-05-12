@@ -18,7 +18,9 @@ class CreateSchemaOptions(
          * Create the base open api configuration.
          * This function will be called before the creation of every schema.
          */
-        val createBaseConfiguration: CreateBaseConfiguration
+        val createBaseConfiguration: CreateBaseConfiguration,
+
+        val defaultOperation: ApplyDefaultOperation?
 )
 
 object JavalinOpenApi {
@@ -38,7 +40,7 @@ object JavalinOpenApi {
                     applyMetaInfoList(options.handlerMetaInfoList)
                 }
                 updatePaths {
-                    applyMetaInfoList(options.handlerMetaInfoList)
+                    applyMetaInfoList(options.defaultOperation, options.handlerMetaInfoList)
                 }
             }
         }

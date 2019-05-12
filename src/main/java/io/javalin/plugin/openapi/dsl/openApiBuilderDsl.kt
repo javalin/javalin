@@ -5,12 +5,11 @@
 package io.javalin.plugin.openapi.dsl
 
 import cc.vileda.openapi.dsl.requestBody
-import cc.vileda.openapi.dsl.response
-import cc.vileda.openapi.dsl.responses
 import io.javalin.core.PathParser
 import io.javalin.core.PathSegment
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.http.HandlerType
+import io.javalin.plugin.openapi.ApplyDefaultOperation
 import io.javalin.plugin.openapi.external.schema
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.Operation
@@ -24,13 +23,13 @@ fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>) {
             .applyAllUpdates(this)
 }
 
-fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>) {
+fun Paths.applyMetaInfoList(defaultOperation: ApplyDefaultOperation?, handlerMetaInfoList: List<HandlerMetaInfo>) {
     handlerMetaInfoList
             .groupBy { it.path }
             .forEach { (url, metaInfos) ->
                 val pathParser = PathParser(url)
                 updatePath(pathParser.getOpenApiUrl()) {
-                    applyMetaInfoList(pathParser, metaInfos)
+                    applyMetaInfoList(defaultOperation, pathParser, metaInfos)
                 }
             }
 }
@@ -51,18 +50,21 @@ fun PathParser.getOpenApiUrl(): String {
     return "/$segmentsString"
 }
 
-fun PathItem.applyMetaInfoList(path: PathParser, handlerMetaInfoList: List<HandlerMetaInfo>) {
+fun PathItem.applyMetaInfoList(defaultOperation: ApplyDefaultOperation?, path: PathParser, handlerMetaInfoList: List<HandlerMetaInfo>) {
     handlerMetaInfoList
             .forEach { metaInfo ->
                 val pathItemHttpMethod = metaInfo.httpMethod.asPathItemHttpMethod() ?: return@forEach
                 operation(pathItemHttpMethod, Operation().apply {
-                    applyMetaInfo(path, metaInfo)
+                    applyMetaInfo(defaultOperation, path, metaInfo)
                 })
             }
 }
 
 
-fun Operation.applyMetaInfo(path: PathParser, metaInfo: HandlerMetaInfo) {
+fun Operation.applyMetaInfo(defaultOperation: ApplyDefaultOperation?, path: PathParser, metaInfo: HandlerMetaInfo) {
+    val documentation = metaInfo.extractDocumentation()
+    defaultOperation?.setup(this, documentation)
+
     operationId = metaInfo.createDefaultOperationId(path)
     summary = metaInfo.createDefaultSummary(path)
     if (path.pathParamNames.isNotEmpty()) {
@@ -76,7 +78,7 @@ fun Operation.applyMetaInfo(path: PathParser, metaInfo: HandlerMetaInfo) {
         }
     }
 
-    metaInfo.extractDocumentation()?.let { documentation ->
+    documentation?.let {
         documentation.parameterUpdaterListMapping
                 .values
                 .forEach { updaters ->
@@ -84,16 +86,16 @@ fun Operation.applyMetaInfo(path: PathParser, metaInfo: HandlerMetaInfo) {
                 }
 
         if (documentation.hasRequestBodies()) {
-            requestBody {
+            updateRequestBody {
                 documentation.requestBodyList.applyAllUpdates(this)
             }
         }
 
         if (documentation.hasResponses()) {
-            responses {
+            updateResponses {
                 documentation.responseUpdaterListMapping
                         .forEach { name, updater ->
-                            response(name) {
+                            updateResponse(name) {
                                 updater.applyAllUpdates(this)
                             }
                         }
