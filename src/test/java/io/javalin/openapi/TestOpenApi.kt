@@ -12,6 +12,8 @@ import cc.vileda.openapi.dsl.info
 import cc.vileda.openapi.dsl.openapiDsl
 import cc.vileda.openapi.dsl.path
 import cc.vileda.openapi.dsl.paths
+import cc.vileda.openapi.dsl.response
+import cc.vileda.openapi.dsl.responses
 import cc.vileda.openapi.dsl.security
 import cc.vileda.openapi.dsl.securityScheme
 import cc.vileda.openapi.dsl.server
@@ -120,7 +122,7 @@ class TestOpenApi {
                 .header<String>("x-my-header") {
                     it.description = "My header"
                 }
-                .pathParam<String>("my-path-param") {
+                .pathParam<Int>("my-path-param") {
                     it.description = "My path param"
                 }
                 .queryParam<String>("name") {
@@ -131,7 +133,7 @@ class TestOpenApi {
                 }
                 .queryParam<Int>("age")
                 .jsonArray<User>("200")
-        app.get("/users", documented(getUsersDocumentation) {
+        app.get("/users/:my-path-param", documented(getUsersDocumentation) {
             val myCookie = it.cookie("my-cookie")
             val myHeader = it.cookie("x-my-header")
             val nameFilter = it.queryParam("name")
@@ -259,15 +261,41 @@ class TestOpenApi {
     }
 
     @Test
+    fun `createSchema() work with default operation`() {
+        val openApiOptions = OpenApiOptions(
+                Info().title("Example").version("1.0.0")
+        )
+                .defaultOperation { operation, _ ->
+                    operation.responses {
+                        response("500") { description = "Server Error" }
+                    }
+                }
+        val app = Javalin.create {
+            it.enableOpenApi(openApiOptions)
+        }
+
+        val route2Documentation = document()
+                .json<User>("200")
+
+        with(app) {
+            get("/route1", documented(route2Documentation) {})
+            get("/route2") {}
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.asJsonString()).isEqualTo(defaultOperationExampleJson)
+    }
+
+    @Test
     fun `enableOpenApi() provide get route if path is given`() {
         TestUtil.test(Javalin.create {
             it.enableOpenApi(OpenApiOptions(
-                    "/docs/swagger.json",
                     Info().apply {
                         title = "Example"
                         version = "1.0.0"
                     }
-            ))
+            ).path("/docs/swagger.json"))
         }) { app, http ->
             app.get("/test") {}
 
@@ -280,12 +308,12 @@ class TestOpenApi {
     @Test
     fun `enableOpenApi() provide get route if path is given with baseConfiguration`() {
         TestUtil.test(Javalin.create {
-            it.enableOpenApi(OpenApiOptions("/docs/swagger.json") {
+            it.enableOpenApi(OpenApiOptions {
                 OpenAPI().info(Info().apply {
                     title = "Example"
                     version = "1.0.0"
                 })
-            })
+            }.path("/docs/swagger.json"))
         }) { app, http ->
             app.get("/test") {}
 

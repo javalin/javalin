@@ -37,7 +37,7 @@ val userOpenApiSchema = """
 val complexExampleUsersGetResponsesJson = """
 {
   "200": {
-    "description": "",
+    "description": "OK",
     "content": {
       "application/json": {
         "schema": {
@@ -64,7 +64,12 @@ val provideRouteExampleJson = """
       "/docs/swagger.json": {
         "get": {
           "summary": "Get docs swagger.json",
-          "operationId": "getDocsSwagger.json"
+          "operationId": "getDocsSwagger.json",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
         }
       },
       "/test": {
@@ -168,12 +173,22 @@ val complexExampleJson = """
         }
       }
     },
-    "/users": {
+    "/users/{my-path-param}": {
       "get": {
         "tags": ["user"],
-        "summary": "Get users",
-        "operationId": "getUsers",
+        "summary": "Get users with myPathParam",
+        "operationId": "getUsersWithMyPathParam",
         "parameters": [
+          {
+            "name": "my-path-param",
+            "in": "path",
+            "description": "My path param",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
           {
             "name": "my-cookie",
             "in": "cookie",
@@ -186,15 +201,6 @@ val complexExampleJson = """
             "name": "x-my-header",
             "in": "header",
             "description": "My header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "my-path-param",
-            "in": "path",
-            "description": "My path param",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -236,7 +242,7 @@ val complexExampleJson = """
         "operationId": "getString",
         "responses": {
           "200": {
-            "description": "",
+            "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
@@ -321,7 +327,7 @@ val complexExampleJson = """
         "operationId": "getResourcesWithWildcard",
         "responses": {
           "200": {
-            "description": ""
+            "description": "OK"
           }
         }
       }
@@ -340,7 +346,6 @@ val complexExampleJson = """
   }
 }
 """.formatJson()
-
 
 @Language("JSON")
 val crudExampleJson = """
@@ -367,7 +372,7 @@ val crudExampleJson = """
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -413,7 +418,7 @@ val crudExampleJson = """
         "operationId": "getUsers",
         "responses": {
           "200": {
-            "description": "",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
@@ -430,6 +435,56 @@ val crudExampleJson = """
       "post": {
         "summary": "Post users",
         "operationId": "postUsers"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": $userOpenApiSchema
+    }
+  }
+}
+""".formatJson()
+
+@Language("JSON")
+val defaultOperationExampleJson = """
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Example",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/route1": {
+      "get": {
+        "summary": "Get route1",
+        "operationId": "getRoute1",
+        "responses": {
+          "500": {
+            "description": "Server Error"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/route2": {
+      "get": {
+        "summary": "Get route2",
+        "operationId": "getRoute2",
+        "responses": {
+          "500": {
+            "description": "Server Error"
+          }
+        }
       }
     }
   },

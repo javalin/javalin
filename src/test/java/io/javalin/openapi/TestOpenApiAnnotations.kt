@@ -44,7 +44,7 @@ fun getUserHandler(ctx: Context) {
             OpenApiParam(name = "x-my-header", type = String::class, description = "My header")
         ],
         pathParams = [
-            OpenApiParam(name = "my-path-param", type = String::class, description = "My path param")
+            OpenApiParam(name = "my-path-param", type = Int::class, description = "My path param")
         ],
         queryParams = [
             OpenApiParam(
@@ -143,7 +143,7 @@ class TestOpenApiAnnotations {
         }
 
         app.get("/user", ::getUserHandler)
-        app.get("/users", ::getUsersHandler)
+        app.get("/users/:my-path-param", ::getUsersHandler)
         app.get("/users2", ::getUsers2Handler)
         app.put("/user", ::putUserHandler)
         app.get("/string", ::getStringHandler)
