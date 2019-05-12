@@ -1,10 +1,7 @@
 package io.javalin
 
-import com.sun.xml.internal.ws.util.CompletedFuture
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.ComparisonFailure
 import org.junit.Test
-import java.lang.UnsupportedOperationException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -102,7 +99,7 @@ class TestFuture {
 
 
     private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {
-        return CompletableFuture.supplyAsync({throw failure})
+        return CompletableFuture.supplyAsync({ throw failure })
     }
 
 }
