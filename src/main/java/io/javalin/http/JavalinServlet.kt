@@ -105,7 +105,7 @@ class JavalinServlet(val config: JavalinConfig) {
             ctx.resultFuture()!!.exceptionally { throwable ->
                 if (throwable is Exception) {
                     if (throwable is CompletionException && throwable.cause is Exception) {
-                            exceptionMapper.handle(throwable.cause as Exception, ctx)
+                        exceptionMapper.handle(throwable.cause as Exception, ctx)
                     } else {
                         exceptionMapper.handle(throwable, ctx)
                     }

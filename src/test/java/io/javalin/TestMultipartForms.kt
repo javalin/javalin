@@ -6,8 +6,8 @@
 
 package io.javalin
 
-import io.javalin.plugin.json.JavalinJackson
 import io.javalin.misc.UploadInfo
+import io.javalin.plugin.json.JavalinJackson
 import okhttp3.*
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat

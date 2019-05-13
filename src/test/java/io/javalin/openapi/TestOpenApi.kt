@@ -5,19 +5,7 @@
  */
 package io.javalin.openapi
 
-import cc.vileda.openapi.dsl.components
-import cc.vileda.openapi.dsl.externalDocs
-import cc.vileda.openapi.dsl.get
-import cc.vileda.openapi.dsl.info
-import cc.vileda.openapi.dsl.openapiDsl
-import cc.vileda.openapi.dsl.path
-import cc.vileda.openapi.dsl.paths
-import cc.vileda.openapi.dsl.response
-import cc.vileda.openapi.dsl.responses
-import cc.vileda.openapi.dsl.security
-import cc.vileda.openapi.dsl.securityScheme
-import cc.vileda.openapi.dsl.server
-import cc.vileda.openapi.dsl.tag
+import cc.vileda.openapi.dsl.*
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

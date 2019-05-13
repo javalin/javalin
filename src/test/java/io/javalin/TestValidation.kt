@@ -6,11 +6,11 @@
 
 package io.javalin
 
-import io.javalin.http.BadRequestResponse
 import io.javalin.core.validation.JavalinValidation
 import io.javalin.core.validation.Validator
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.http.BadRequestResponse
 import io.javalin.misc.SerializeableObject
+import io.javalin.plugin.json.JavalinJson
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
 import org.junit.Test

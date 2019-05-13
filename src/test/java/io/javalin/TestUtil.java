@@ -9,10 +9,10 @@ package io.javalin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpMethod;
 import io.javalin.http.Handler;
-import io.javalin.plugin.json.JavalinJackson;
-import io.javalin.plugin.json.JavalinJson;
 import io.javalin.misc.HttpUtil;
 import io.javalin.misc.ThrowingBiConsumer;
+import io.javalin.plugin.json.JavalinJackson;
+import io.javalin.plugin.json.JavalinJson;
 
 public class TestUtil {
 

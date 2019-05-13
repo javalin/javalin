@@ -17,7 +17,6 @@ import io.swagger.v3.oas.models.info.Info;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
-
 import static com.fasterxml.jackson.module.kotlin.ExtensionsKt.jacksonObjectMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,7 +26,8 @@ class JavaCrudHandler implements CrudHandler {
             @OpenApiResponse(status = "200", returnType = User.class, isArray = true)
         }
     )
-    @Override public void getAll(@NotNull Context ctx) {
+    @Override
+    public void getAll(@NotNull Context ctx) {
     }
 
     @OpenApi(
@@ -35,19 +35,23 @@ class JavaCrudHandler implements CrudHandler {
             @OpenApiResponse(status = "200", returnType = User.class)
         }
     )
-    @Override public void getOne(@NotNull Context ctx, @NotNull String resourceId) {
+    @Override
+    public void getOne(@NotNull Context ctx, @NotNull String resourceId) {
 
     }
 
-    @Override public void create(@NotNull Context ctx) {
+    @Override
+    public void create(@NotNull Context ctx) {
 
     }
 
-    @Override public void update(@NotNull Context ctx, @NotNull String resourceId) {
+    @Override
+    public void update(@NotNull Context ctx, @NotNull String resourceId) {
 
     }
 
-    @Override public void delete(@NotNull Context ctx, @NotNull String resourceId) {
+    @Override
+    public void delete(@NotNull Context ctx, @NotNull String resourceId) {
 
     }
 }
@@ -58,7 +62,9 @@ class GetAllHandler implements Handler {
             @OpenApiResponse(status = "200", returnType = User.class, isArray = true)
         }
     )
-    @Override public void handle(@NotNull Context ctx) throws Exception {}
+    @Override
+    public void handle(@NotNull Context ctx) throws Exception {
+    }
 }
 
 class GetOneHandler implements Handler {
@@ -67,19 +73,27 @@ class GetOneHandler implements Handler {
             @OpenApiResponse(status = "200", returnType = User.class)
         }
     )
-    @Override public void handle(@NotNull Context ctx) throws Exception {}
+    @Override
+    public void handle(@NotNull Context ctx) throws Exception {
+    }
 }
 
 class CreateHandler implements Handler {
-    @Override public void handle(@NotNull Context ctx) throws Exception {}
+    @Override
+    public void handle(@NotNull Context ctx) throws Exception {
+    }
 }
 
 class UpdateHandler implements Handler {
-    @Override public void handle(@NotNull Context ctx) throws Exception {}
+    @Override
+    public void handle(@NotNull Context ctx) throws Exception {
+    }
 }
 
 class DeleteHandler implements Handler {
-    @Override public void handle(@NotNull Context ctx) throws Exception {}
+    @Override
+    public void handle(@NotNull Context ctx) throws Exception {
+    }
 }
 
 public class TestOpenApiAnnotations_Java {

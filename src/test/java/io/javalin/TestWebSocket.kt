@@ -9,9 +9,9 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.http.UnauthorizedResponse
-import io.javalin.plugin.json.JavalinJson
 import io.javalin.misc.SerializeableObject
 import io.javalin.misc.TypedException
+import io.javalin.plugin.json.JavalinJson
 import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException

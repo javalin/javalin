@@ -6,9 +6,9 @@
 
 package io.javalin.routeoverview;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.Javalin;
 import io.javalin.http.HandlerType;
 import io.javalin.websocket.WsHandler;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
