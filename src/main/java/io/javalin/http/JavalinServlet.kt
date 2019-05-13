@@ -15,6 +15,7 @@ import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import java.io.InputStream
+import java.util.concurrent.CompletionException
 import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -103,7 +104,11 @@ class JavalinServlet(val config: JavalinConfig) {
             val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
             ctx.resultFuture()!!.exceptionally { throwable ->
                 if (throwable is Exception) {
-                    exceptionMapper.handle(throwable, ctx)
+                    if (throwable is CompletionException && throwable.cause is Exception) {
+                            exceptionMapper.handle(throwable.cause as Exception, ctx)
+                    } else {
+                        exceptionMapper.handle(throwable, ctx)
+                    }
                 }
                 null
             }.thenAccept {

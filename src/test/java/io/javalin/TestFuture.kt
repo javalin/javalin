@@ -49,9 +49,22 @@ class TestFuture {
     }
 
     @Test
+    fun `future throws`() = TestUtil.test { app, http ->
+        app.get("/test-future") { ctx -> ctx.result(getFuture(null)) }
+        assertThat(http.getBody("/test-future")).isEqualTo("Internal server error")
+    }
+
+    @Test
     fun `unresolved futures are handled by exception-mapper`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx -> ctx.result(getFuture(null)) }
         app.exception(CancellationException::class.java) { _, ctx -> ctx.result("Handled") }
+        assertThat(http.getBody("/test-future")).isEqualTo("Handled")
+    }
+
+    @Test
+    fun `futures failures are handled by exception-mapper`() = TestUtil.test { app, http ->
+        app.get("/test-future") { ctx -> ctx.json(getFailingFuture(UnsupportedOperationException())) }
+        app.exception(UnsupportedOperationException::class.java) { _, ctx -> ctx.result("Handled") }
         assertThat(http.getBody("/test-future")).isEqualTo("Handled")
     }
 
@@ -84,4 +97,10 @@ class TestFuture {
         return future
     }
 
+
+    private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {
+        return CompletableFuture.supplyAsync({ throw failure })
+    }
+
 }
+

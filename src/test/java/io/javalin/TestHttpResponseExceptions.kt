@@ -143,20 +143,6 @@ class TestHttpResponseExceptions {
     }
 
     @Test
-    fun `throwing unexpected exception in future works`() = TestUtil.test { app, http ->
-        app.get("/throwing-future-route") { ctx -> ctx.result(getUnexpectedThrowingFuture()) }
-        app.exception(CompletionException::class.java) { exception, ctx -> ctx.result(exception.cause?.message!!) }
-        assertThat(http.get("/throwing-future-route").body).isEqualTo("Unexpected message")
-    }
-
-    private fun getUnexpectedThrowingFuture() = CompletableFuture.supplyAsync {
-        if (true) {
-            throw IllegalStateException("Unexpected message")
-        }
-        "Result"
-    }
-
-    @Test
     fun `default content type affects http response errors`() = TestUtil.test(Javalin.create { it.defaultContentType = "application/json" }) { app, http ->
         app.get("/content-type") { throw ForbiddenResponse() }
         val response = http.get("/content-type")
