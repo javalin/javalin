@@ -7,10 +7,8 @@ package io.javalin.examples
 
 import cc.vileda.openapi.dsl.response
 import cc.vileda.openapi.dsl.responses
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.javalin.Javalin
 import io.javalin.http.Context
-import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documented
@@ -67,9 +65,6 @@ fun addUserHandler(ctx: Context) {
 
 
 fun main() {
-
-    JavalinJackson.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
-
     val app = Javalin.create {
         val openApiOptions = OpenApiOptions(Info().version("1.0").description("My Application"))
                 .path("/swagger-docs")

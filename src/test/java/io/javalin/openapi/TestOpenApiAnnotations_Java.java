@@ -1,13 +1,10 @@
 package io.javalin.openapi;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.openapi.JavalinOpenApi;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.annotations.OpenApi;
@@ -15,9 +12,8 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
 import org.junit.Test;
-import static com.fasterxml.jackson.module.kotlin.ExtensionsKt.jacksonObjectMapper;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JavaCrudHandler implements CrudHandler {
@@ -97,15 +93,6 @@ class DeleteHandler implements Handler {
 }
 
 public class TestOpenApiAnnotations_Java {
-    @Before
-    public void setup() {
-        JavalinJackson.configure(
-            jacksonObjectMapper()
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        );
-    }
-
     @Test
     public void testWithSimpleExample() {
         OpenApiOptions openApiOptions = new OpenApiOptions(

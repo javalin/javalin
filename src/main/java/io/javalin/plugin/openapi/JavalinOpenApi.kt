@@ -1,17 +1,16 @@
 package io.javalin.plugin.openapi
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.plugin.openapi.dsl.applyMetaInfoList
 import io.javalin.plugin.openapi.dsl.updateComponents
 import io.javalin.plugin.openapi.dsl.updatePaths
+import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
+import io.swagger.v3.core.converter.ModelConverter
 import io.swagger.v3.core.converter.ModelConverters
-import io.swagger.v3.core.jackson.ModelResolver
 import io.swagger.v3.oas.models.OpenAPI
 
 class CreateSchemaOptions(
-        val objectMapper: ObjectMapper,
         val handlerMetaInfoList: List<HandlerMetaInfo>,
 
         /**
@@ -20,7 +19,9 @@ class CreateSchemaOptions(
          */
         val createBaseConfiguration: CreateBaseConfiguration,
 
-        val defaultOperation: ApplyDefaultOperation?
+        val defaultOperation: ApplyDefaultOperation?,
+
+        val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory
 )
 
 object JavalinOpenApi {
@@ -34,7 +35,8 @@ object JavalinOpenApi {
     @JvmStatic
     fun createSchema(options: CreateSchemaOptions): OpenAPI {
         val baseConfiguration = options.createBaseConfiguration.create()
-        return runWithObjectMapper(options.objectMapper) {
+        val modelConverter = options.modelConverterFactory.create()
+        return runWithModelConverter(modelConverter) {
             baseConfiguration.apply {
                 updateComponents {
                     applyMetaInfoList(options.handlerMetaInfoList)
@@ -48,13 +50,12 @@ object JavalinOpenApi {
 }
 
 /**
- * This function temporary sets the ModelResolve to the given object mapper.
- * This is required, so the classes are correctly parse to OpenAPI schemas
+ * This function temporary sets the ModelConverter.
+ * This influences how the classes are converted to the open api schema.
  */
-private fun <T> runWithObjectMapper(objectMapper: ObjectMapper, run: () -> T): T {
-    val modelResolver = ModelResolver(objectMapper)
-    ModelConverters.getInstance().addConverter(modelResolver)
+private fun <T> runWithModelConverter(modelConverter: ModelConverter, run: () -> T): T {
+    ModelConverters.getInstance().addConverter(modelConverter)
     val result = run()
-    ModelConverters.getInstance().removeConverter(modelResolver)
+    ModelConverters.getInstance().removeConverter(modelConverter)
     return result
 }

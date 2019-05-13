@@ -5,20 +5,20 @@
  */
 package io.javalin.openapi
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
-import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
+import io.javalin.plugin.openapi.annotations.OpenApiParam
+import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
+import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import io.swagger.v3.oas.models.info.Info
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
@@ -127,15 +127,6 @@ fun getResources(ctx: Context) {
 // endregion complexExampleWithAnnotationsHandler
 
 class TestOpenApiAnnotations {
-    @Before
-    fun resetObjectMapper() {
-        JavalinJackson.configure(
-                jacksonObjectMapper()
-                        .enable(SerializationFeature.INDENT_OUTPUT)
-                        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        )
-    }
-
     @Test
     fun `createOpenApiSchema() work with complexExample and annotations`() {
         val app = Javalin.create {
