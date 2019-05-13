@@ -4,16 +4,24 @@
 package io.javalin.openapi
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.SerializationFeature
 import io.javalin.plugin.json.JavalinJackson
+import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.swagger.v3.oas.models.OpenAPI
 import org.intellij.lang.annotations.Language
 
-fun String.formatJson(): String {
-    val node = JavalinJackson.fromJson(this, JsonNode::class.java)
-    return JavalinJackson.toJson(node)
+fun configureJacksonToJsonMapper() {
+    JacksonToJsonMapper.objectMapper
+            .enable(SerializationFeature.INDENT_OUTPUT)
 }
 
-fun OpenAPI.asJsonString(): String = JavalinJackson.toJson(this)
+fun String.formatJson(): String {
+    configureJacksonToJsonMapper()
+    val node = JavalinJackson.fromJson(this, JsonNode::class.java)
+    return JacksonToJsonMapper.map(node)
+}
+
+fun OpenAPI.asJsonString(): String = JacksonToJsonMapper.map(this)
 
 // This variable is needed for the jsons. That's how I can avoid the ugly """${"$"}""".
 val ref = "\$ref"

@@ -5,16 +5,24 @@
  */
 package io.javalin.openapi
 
-import cc.vileda.openapi.dsl.*
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import cc.vileda.openapi.dsl.components
+import cc.vileda.openapi.dsl.externalDocs
+import cc.vileda.openapi.dsl.get
+import cc.vileda.openapi.dsl.info
+import cc.vileda.openapi.dsl.openapiDsl
+import cc.vileda.openapi.dsl.path
+import cc.vileda.openapi.dsl.paths
+import cc.vileda.openapi.dsl.response
+import cc.vileda.openapi.dsl.responses
+import cc.vileda.openapi.dsl.security
+import cc.vileda.openapi.dsl.securityScheme
+import cc.vileda.openapi.dsl.server
+import cc.vileda.openapi.dsl.tag
 import io.javalin.Javalin
 import io.javalin.TestUtil
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
-import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
@@ -26,7 +34,6 @@ import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityScheme
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
-import org.junit.Before
 import org.junit.Test
 
 class User(val name: String)
@@ -70,15 +77,6 @@ fun createComplexExampleBaseConfiguration() = openapiDsl {
 }
 
 class TestOpenApi {
-    @Before
-    fun resetObjectMapper() {
-        JavalinJackson.configure(
-                jacksonObjectMapper()
-                        .enable(SerializationFeature.INDENT_OUTPUT)
-                        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        )
-    }
-
     @Test
     fun `createSchema() work with complexExample and dsl`() {
         val app = Javalin.create {

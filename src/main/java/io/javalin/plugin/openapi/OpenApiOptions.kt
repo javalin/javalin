@@ -2,7 +2,10 @@ package io.javalin.plugin.openapi
 
 import io.javalin.core.security.Role
 import io.javalin.http.Context
+import io.javalin.plugin.json.ToJsonMapper
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
+import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
+import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.OpenAPI
@@ -28,6 +31,16 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
      * You can use this to set defaults (like a 500 response).
      */
     var defaultOperation: ApplyDefaultOperation? = null
+    /**
+     * Creates a model converter, which converts a class to an open api schema.
+     * Defaults to the jackson converter.
+     */
+    var modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory
+    /**
+     * The json mapper for creating the object api schema json. This is separated from
+     * the default JavalinJson mappers.
+     */
+    var toJsonMapper: ToJsonMapper = JacksonToJsonMapper
 
     constructor(createBaseConfiguration: () -> OpenAPI) : this(CreateBaseConfiguration(createBaseConfiguration))
     constructor(info: Info) : this({ OpenAPI().info(info) })
@@ -42,6 +55,8 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
             override fun setup(operation: Operation, documentation: OpenApiDocumentation?) = setup(operation, documentation)
         }
     }
+    fun modelConverterFactory(value: ModelConverterFactory) = apply { modelConverterFactory = value }
+    fun toJsonMapper(value: ToJsonMapper) = apply { toJsonMapper = value }
 
     fun getFullDocumentationUrl(ctx: Context) = "${ctx.contextPath()}${path!!}"
 }

@@ -4,7 +4,6 @@ import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
@@ -19,9 +18,9 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
 
     fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(CreateSchemaOptions(
             handlerMetaInfoList = handlerMetaInfoList,
-            objectMapper = JavalinJackson.getObjectMapper(),
             createBaseConfiguration = options.createBaseConfiguration,
-            defaultOperation = options.defaultOperation
+            defaultOperation = options.defaultOperation,
+            modelConverterFactory = options.modelConverterFactory
     ))
 
     @OpenApi(
@@ -30,6 +29,7 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
             ]
     )
     override fun handle(ctx: Context) {
-        ctx.json(createOpenAPISchema())
+        ctx.contentType(ContentType.JSON)
+        ctx.result(options.toJsonMapper.map(createOpenAPISchema()))
     }
 }
