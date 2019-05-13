@@ -103,12 +103,10 @@ class JavalinServlet(val config: JavalinConfig) {
         } else { // finish request asynchronously
             val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
             ctx.resultFuture()!!.exceptionally { throwable ->
-                if (throwable is Exception) {
-                    if (throwable is CompletionException && throwable.cause is Exception) {
-                        exceptionMapper.handle(throwable.cause as Exception, ctx)
-                    } else {
-                        exceptionMapper.handle(throwable, ctx)
-                    }
+                if (throwable is CompletionException && throwable.cause is Exception) {
+                    exceptionMapper.handle(throwable.cause as Exception, ctx)
+                } else if (throwable is Exception) {
+                    exceptionMapper.handle(throwable, ctx)
                 }
                 null
             }.thenAccept {
