@@ -71,8 +71,7 @@ class JavalinServlet(val config: JavalinConfig) {
             if (res.isCommitted || ctx.resultStream() == null) return // nothing to write
             val resultStream = ctx.resultStream()!!
             if (res.getHeader(Header.ETAG) != null || (config.autogenerateEtags && type == HandlerType.GET)) {
-                val serverEtag = res.getHeader(Header.ETAG)
-                        ?: Util.getChecksumAndReset(resultStream) // calculate if not set
+                val serverEtag = res.getHeader(Header.ETAG) ?: Util.getChecksumAndReset(resultStream) // calculate if not set
                 res.setHeader(Header.ETAG, serverEtag)
                 if (serverEtag == req.getHeader(Header.IF_NONE_MATCH)) {
                     res.status = 304
@@ -105,10 +104,8 @@ class JavalinServlet(val config: JavalinConfig) {
             val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
             ctx.resultFuture()!!.exceptionally { throwable ->
                 if (throwable is Exception) {
-                    if (throwable is CompletionException) {
-                        if (throwable.cause is Exception) {
-                            exceptionMapper.handle(throwable.cause as Exception, ctx);
-                        }
+                    if (throwable is CompletionException && throwable.cause is Exception) {
+                            exceptionMapper.handle(throwable.cause as Exception, ctx)
                     } else {
                         exceptionMapper.handle(throwable, ctx)
                     }
