@@ -7,11 +7,14 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.plugin.openapi.JavalinOpenApi;
 import io.javalin.plugin.openapi.OpenApiOptions;
+import io.javalin.plugin.openapi.annotations.HttpMethod;
 import io.javalin.plugin.openapi.annotations.OpenApi;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -92,6 +95,24 @@ class DeleteHandler implements Handler {
     }
 }
 
+class JavaMethodReference {
+    @OpenApi(
+        path = "/test",
+        method = HttpMethod.GET,
+        responses = {@OpenApiResponse(status = "200")}
+    )
+    public void create(Context ctx) {
+    }
+}
+
+class JavaFieldReference {
+    @OpenApi(responses = {@OpenApiResponse(status = "200")})
+    public static Handler handler = new Handler() {
+        @Override public void handle(@NotNull Context ctx) throws Exception { }
+    };
+
+}
+
 public class TestOpenApiAnnotations_Java {
     @Test
     public void testWithSimpleExample() {
@@ -122,5 +143,24 @@ public class TestOpenApiAnnotations_Java {
 
         OpenAPI actual = JavalinOpenApi.createSchema(app);
         assertThat(JsonKt.asJsonString(actual)).isEqualTo(JsonKt.getCrudExampleJson());
+    }
+
+    @Test
+    @Ignore("Only works in jdk 8<=")
+    public void testWithJavaMethodReference() {
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test", new JavaMethodReference()::create);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithJavaFieldReference() {
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test", JavaFieldReference.handler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
     }
 }

@@ -61,6 +61,31 @@ val complexExampleUsersGetResponsesJson = """
 """.formatJson()
 
 @Language("JSON")
+val simpleExample = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/test": {
+        "get": {
+          "summary": "Get test",
+          "operationId": "getTest",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+@Language("JSON")
 val provideRouteExampleJson = """
   {
     "openapi": "3.0.1",
