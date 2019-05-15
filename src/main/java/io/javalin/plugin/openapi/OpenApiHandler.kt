@@ -20,7 +20,8 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
             handlerMetaInfoList = handlerMetaInfoList,
             createBaseConfiguration = options.createBaseConfiguration,
             defaultOperation = options.defaultOperation,
-            modelConverterFactory = options.modelConverterFactory
+            modelConverterFactory = options.modelConverterFactory,
+            packagePrefixesToScan = options.packagePrefixesToScan
     ))
 
     @OpenApi(

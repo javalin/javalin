@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 /**
  * Provide metadata for the generation of the open api documentation to the annotated Handler.
  */
-@Target(AnnotationTarget.FUNCTION)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.FIELD)
 annotation class OpenApi(
         val summary: String = NULL_STRING,
         val description: String = NULL_STRING,
@@ -18,7 +18,17 @@ annotation class OpenApi(
         val queryParams: Array<OpenApiParam> = [],
         val requestBodies: Array<OpenApiRequestBody> = [],
         val fileUploads: Array<OpenApiFileUpload> = [],
-        val responses: Array<OpenApiResponse> = []
+        val responses: Array<OpenApiResponse> = [],
+        /**
+         * The path of the endpoint. This will only be used if class scanning is activated and the annotation
+         * couldn't be found via reflection.
+         */
+        val path: String = NULL_STRING,
+        /**
+         * The method of the endpoint. This will only be used if class scanning is activated and the annotation
+         * couldn't be found via annotation.
+         */
+        val method: HttpMethod = HttpMethod.GET
 )
 
 @Target()
@@ -69,3 +79,18 @@ object ContentType {
     const val HTML = "text/html"
     const val AUTODETECT = "AUTODETECT - Will be replaced later"
 }
+
+enum class HttpMethod {
+    POST,
+    GET,
+    PUT,
+    PATCH,
+    DELETE,
+    HEAD,
+    OPTIONS,
+    TRACE;
+}
+
+data class PathInfo(val path: String, val method: HttpMethod)
+val OpenApi.pathInfo get() = PathInfo(path, method)
+

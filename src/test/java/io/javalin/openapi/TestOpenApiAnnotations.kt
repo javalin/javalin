@@ -9,6 +9,7 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
+import io.javalin.http.Handler
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.annotations.ContentType
@@ -17,8 +18,6 @@ import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import io.swagger.v3.oas.models.info.Info
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
@@ -125,6 +124,23 @@ fun getUploadsHandler(ctx: Context) {
 fun getResources(ctx: Context) {
 }
 // endregion complexExampleWithAnnotationsHandler
+// region handler types
+class ClassHandler : Handler {
+    @OpenApi(responses = [OpenApiResponse(status = "200")])
+    override fun handle(ctx: Context) {
+    }
+}
+
+@OpenApi(responses = [OpenApiResponse(status = "200")])
+fun kotlinFunctionHandler(ctx: Context) {
+}
+
+object KotlinFieldHandlers {
+    @OpenApi(responses = [OpenApiResponse(status = "200")])
+    var kotlinFieldHandler = Handler { ctx -> }
+}
+
+// endregion handler types
 
 class TestOpenApiAnnotations {
     @Test
@@ -145,15 +161,11 @@ class TestOpenApiAnnotations {
 
         val actual = JavalinOpenApi.createSchema(app)
 
-        assertThat(actual.asJsonString()).isEqualTo(complexExampleJson)
+        actual.assertEqualTo(complexExampleJson)
     }
 
     @Test
     fun `createOpenApiSchema() work with crudHandler and annotations`() {
-        val app = Javalin.create {
-            it.enableOpenApi(OpenApiOptions(Info().title("Example").version("1.0.0")))
-        }
-
         class UserCrudHandlerWithAnnotations : CrudHandler {
             @OpenApi(
                     responses = [
@@ -181,12 +193,31 @@ class TestOpenApiAnnotations {
             }
         }
 
-        app.routes {
-            crud("users/:user-id", UserCrudHandlerWithAnnotations())
+        val actual = extractSchemaForTest { app ->
+            app.routes { crud("users/:user-id", UserCrudHandlerWithAnnotations()) }
         }
 
-        val actual = JavalinOpenApi.createSchema(app)
+        actual.assertEqualTo(crudExampleJson)
+    }
 
-        assertThat(actual.asJsonString()).isEqualTo(crudExampleJson)
+    @Test
+    fun `createOpenApiSchema() with class`() {
+        extractSchemaForTest {
+            it.get("/test", ClassHandler())
+        }.assertEqualTo(simpleExample)
+    }
+
+    @Test
+    fun `createOpenApiSchema() with kotlin function`() {
+        extractSchemaForTest {
+            it.get("/test", ::kotlinFunctionHandler)
+        }.assertEqualTo(simpleExample)
+    }
+
+    @Test
+    fun `createOpenApiSchema() with kotlin field`() {
+        extractSchemaForTest {
+            it.get("/test", KotlinFieldHandlers.kotlinFieldHandler)
+        }.assertEqualTo(simpleExample)
     }
 }

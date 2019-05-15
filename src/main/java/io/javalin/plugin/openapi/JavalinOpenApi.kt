@@ -21,7 +21,9 @@ class CreateSchemaOptions(
 
         val defaultOperation: ApplyDefaultOperation?,
 
-        val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory
+        val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory,
+
+        val packagePrefixesToScan: Set<String>
 )
 
 object JavalinOpenApi {
@@ -42,7 +44,7 @@ object JavalinOpenApi {
                     applyMetaInfoList(options.handlerMetaInfoList)
                 }
                 updatePaths {
-                    applyMetaInfoList(options.defaultOperation, options.handlerMetaInfoList)
+                    applyMetaInfoList(options.handlerMetaInfoList, options)
                 }
             }
         }

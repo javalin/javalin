@@ -1,29 +1,25 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.core.event.HandlerMetaInfo
+import io.javalin.core.util.lambdaField
+import io.javalin.core.util.lambdaMethod
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.asOpenApiDocumentation
 import java.util.logging.Logger
-import kotlin.reflect.KFunction
-import kotlin.reflect.jvm.javaMethod
 
 fun HandlerMetaInfo.extractDocumentation(): OpenApiDocumentation? {
     return if (handler is DocumentedHandler) {
         handler.documentation
     } else {
-        val openApiAnnotation: OpenApi? = getOpenApiAnnotationFromKotlin() ?: getOpenApiAnnotationFromJava()
+        val openApiAnnotation: OpenApi? = getOpenApiAnnotationFromReference() ?: getOpenApiAnnotationFromHandler()
         openApiAnnotation?.asOpenApiDocumentation()
     }
 }
 
-private fun HandlerMetaInfo.getOpenApiAnnotationFromKotlin(): OpenApi? {
+private fun HandlerMetaInfo.getOpenApiAnnotationFromReference(): OpenApi? {
     return try {
-        // It is required to work access private fields, because kotlin wraps
-        // the lambda into a "SAM" class and we need to access the original lambda
-        // with the annotations
-        val functionValue = getFieldValue(handler, "function") as KFunction<*>
-        val javaMethod = functionValue.javaMethod!!
-        javaMethod.getAnnotation(OpenApi::class.java)
+        handler.lambdaMethod?.getAnnotation(OpenApi::class.java)
+                ?: handler.lambdaField?.getAnnotation(OpenApi::class.java)
     } catch (e: NoSuchFieldException) {
         null
     } catch (e: Error) {
@@ -38,17 +34,11 @@ private fun HandlerMetaInfo.getOpenApiAnnotationFromKotlin(): OpenApi? {
     }
 }
 
-private fun HandlerMetaInfo.getOpenApiAnnotationFromJava(): OpenApi? {
+private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): OpenApi? {
     return try {
         val method = handler::class.java.declaredMethods.find { it.name == "handle" }!!
         method.getAnnotation(OpenApi::class.java)
     } catch (e: NullPointerException) {
         null
     }
-}
-
-private fun getFieldValue(obj: Any, fieldName: String): Any {
-    val field = obj::class.java.getDeclaredField(fieldName)
-    field.isAccessible = true
-    return field.get(obj)
 }
