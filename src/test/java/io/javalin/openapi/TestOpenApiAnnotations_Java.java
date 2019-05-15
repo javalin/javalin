@@ -14,7 +14,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -101,7 +100,7 @@ class JavaMethodReference {
         method = HttpMethod.GET,
         responses = {@OpenApiResponse(status = "200")}
     )
-    public void create(Context ctx) {
+    public void createHandler(Context ctx) {
     }
 }
 
@@ -146,10 +145,13 @@ public class TestOpenApiAnnotations_Java {
     }
 
     @Test
-    @Ignore("Only works in jdk 8<=")
     public void testWithJavaMethodReference() {
-        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
-            app.get("/test", new JavaMethodReference()::create);
+        Info info = new Info().title("Example").version("1.0.0");
+        OpenApiOptions options = new OpenApiOptions(info)
+            .activateAnnotationScanningFor("io.javalin.openapi");
+
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(options, app -> {
+            app.get("/test", new JavaMethodReference()::createHandler);
             return Unit.INSTANCE;
         });
         OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());

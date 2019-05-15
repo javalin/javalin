@@ -8,7 +8,10 @@ import io.javalin.core.PathParser
 import io.javalin.core.PathSegment
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.http.HandlerType
-import io.javalin.plugin.openapi.ApplyDefaultOperation
+import io.javalin.plugin.openapi.CreateSchemaOptions
+import io.javalin.plugin.openapi.annotations.HttpMethod
+import io.javalin.plugin.openapi.annotations.PathInfo
+import io.javalin.plugin.openapi.annotations.scanForAnnotations
 import io.javalin.plugin.openapi.external.schema
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.Operation
@@ -22,13 +25,13 @@ fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>) {
             .applyAllUpdates(this)
 }
 
-fun Paths.applyMetaInfoList(defaultOperation: ApplyDefaultOperation?, handlerMetaInfoList: List<HandlerMetaInfo>) {
+fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
             .groupBy { it.path }
             .forEach { (url, metaInfos) ->
                 val pathParser = PathParser(url)
                 updatePath(pathParser.getOpenApiUrl()) {
-                    applyMetaInfoList(defaultOperation, pathParser, metaInfos)
+                    applyMetaInfoList(options, pathParser, metaInfos)
                 }
             }
 }
@@ -49,20 +52,28 @@ fun PathParser.getOpenApiUrl(): String {
     return "/$segmentsString"
 }
 
-fun PathItem.applyMetaInfoList(defaultOperation: ApplyDefaultOperation?, path: PathParser, handlerMetaInfoList: List<HandlerMetaInfo>) {
+fun PathItem.applyMetaInfoList(options: CreateSchemaOptions, path: PathParser, handlerMetaInfoList: List<HandlerMetaInfo>) {
     handlerMetaInfoList
             .forEach { metaInfo ->
                 val pathItemHttpMethod = metaInfo.httpMethod.asPathItemHttpMethod() ?: return@forEach
                 operation(pathItemHttpMethod, Operation().apply {
-                    applyMetaInfo(defaultOperation, path, metaInfo)
+                    applyMetaInfo(options, path, metaInfo)
                 })
             }
 }
 
 
-fun Operation.applyMetaInfo(defaultOperation: ApplyDefaultOperation?, path: PathParser, metaInfo: HandlerMetaInfo) {
-    val documentation = metaInfo.extractDocumentation()
-    defaultOperation?.setup(this, documentation)
+fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, metaInfo: HandlerMetaInfo) {
+    var documentation = metaInfo.extractDocumentation()
+    options.defaultOperation?.setup(this, documentation)
+
+    // Use path scanning to get the documentation if activated
+    if (documentation == null && options.packagePrefixesToScan.isNotEmpty()) {
+        metaInfo.getPathInfo()?.let { pathInfo ->
+            val documentationFromScan = scanForAnnotations(options.packagePrefixesToScan)
+            documentation = documentationFromScan[pathInfo]
+        }
+    }
 
     operationId = metaInfo.createDefaultOperationId(path)
     summary = metaInfo.createDefaultSummary(path)
@@ -77,7 +88,7 @@ fun Operation.applyMetaInfo(defaultOperation: ApplyDefaultOperation?, path: Path
         }
     }
 
-    documentation?.let {
+    documentation?.let { documentation ->
         documentation.parameterUpdaterListMapping
                 .values
                 .forEach { updaters ->
@@ -102,6 +113,22 @@ fun Operation.applyMetaInfo(defaultOperation: ApplyDefaultOperation?, path: Path
         }
         documentation.operationUpdaterList.applyAllUpdates(this)
     }
+}
+
+fun HandlerMetaInfo.getPathInfo(): PathInfo? = httpMethod.asAnnotationHttpMethod()?.let {
+    method -> PathInfo(path, method)
+}
+
+fun HandlerType.asAnnotationHttpMethod(): HttpMethod? = when (this) {
+     HandlerType.GET -> HttpMethod.GET
+    HandlerType.PUT -> HttpMethod.PUT
+    HandlerType.POST -> HttpMethod.POST
+    HandlerType.DELETE -> HttpMethod.DELETE
+    HandlerType.OPTIONS -> HttpMethod.OPTIONS
+    HandlerType.HEAD -> HttpMethod.HEAD
+    HandlerType.PATCH -> HttpMethod.PATCH
+    HandlerType.TRACE -> HttpMethod.TRACE
+    else -> null
 }
 
 fun HandlerType.asPathItemHttpMethod(): PathItem.HttpMethod? = when (this) {

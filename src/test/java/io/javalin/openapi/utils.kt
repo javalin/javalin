@@ -10,12 +10,16 @@ import io.swagger.v3.oas.models.info.Info
 import org.assertj.core.api.Assertions.assertThat
 
 fun extractSchemaForTest(initSchema: (app: Javalin) -> Unit): OpenAPI {
-    val app = Javalin.create {
-        it.enableOpenApi(OpenApiOptions(Info().title("Example").version("1.0.0")))
-    }
+    val options = OpenApiOptions(Info().title("Example").version("1.0.0"))
+    return extractSchemaForTest(options, initSchema)
+}
+
+fun extractSchemaForTest(options: OpenApiOptions, initSchema: (app: Javalin) -> Unit): OpenAPI {
+    val app = Javalin.create { it.enableOpenApi(options) }
     initSchema(app)
     return JavalinOpenApi.createSchema(app)
 }
+
 
 fun OpenAPI.assertEqualTo(expectedSchemaJson: String) {
     assertThat(this.asJsonString()).isEqualTo(expectedSchemaJson.formatJson())
