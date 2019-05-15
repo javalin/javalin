@@ -7,6 +7,8 @@ package io.javalin.plugin.openapi.dsl
 import io.javalin.core.PathParser
 import io.javalin.core.PathSegment
 import io.javalin.core.event.HandlerMetaInfo
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.CreateSchemaOptions
 import io.javalin.plugin.openapi.annotations.HttpMethod
@@ -69,6 +71,7 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
 
     // Use path scanning to get the documentation if activated
     if (documentation == null && options.packagePrefixesToScan.isNotEmpty()) {
+        Util.ensureDependencyPresent(OptionalDependency.CLASS_GRAPH)
         metaInfo.getPathInfo()?.let { pathInfo ->
             val documentationFromScan = scanForAnnotations(options.packagePrefixesToScan)
             documentation = documentationFromScan[pathInfo]

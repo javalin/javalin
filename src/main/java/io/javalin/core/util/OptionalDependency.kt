@@ -22,6 +22,6 @@ enum class OptionalDependency(val displayName: String, val testClass: String, va
     REDOC("ReDoc", "STATIC-FILES", "org.webjars.npm", "redoc", "2.0.0-rc.2"),
     SWAGGER_CORE("Swagger Core", "io.swagger.v3.oas.models.OpenAPI", "io.swagger.core.v3", "swagger-models", "2.0.7"),
     OPENAPI_KOTLIN_DSL("OpenAPI Kotlin DSL", "cc.vileda.openapi.dsl.OpenApiDslKt", "cc.vileda", "kotlin-openapi3-dsl", "0.20.1"),
-    CLASS_GRAPH("ClassGraph", "io.github.classgraph.classgraph.ClassGraph", "io.github.classgraph", "classgraph", "4.8.34"),
+    CLASS_GRAPH("ClassGraph", "io.github.classgraph.ClassGraph", "io.github.classgraph", "classgraph", "4.8.34"),
 }
 
