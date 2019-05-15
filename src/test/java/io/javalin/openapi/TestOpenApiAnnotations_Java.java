@@ -96,11 +96,19 @@ class DeleteHandler implements Handler {
 
 class JavaMethodReference {
     @OpenApi(
+        responses = {@OpenApiResponse(status = "200")}
+    )
+    public void createHandler(Context ctx) {
+    }
+}
+
+class JavaStaticMethodReference {
+    @OpenApi(
         path = "/test",
         method = HttpMethod.GET,
         responses = {@OpenApiResponse(status = "200")}
     )
-    public void createHandler(Context ctx) {
+    public static void createStaticHandler(Context ctx) {
     }
 }
 
@@ -147,11 +155,23 @@ public class TestOpenApiAnnotations_Java {
     @Test
     public void testWithJavaMethodReference() {
         Info info = new Info().title("Example").version("1.0.0");
+        OpenApiOptions options = new OpenApiOptions(info);
+
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(options, app -> {
+            app.get("/test", new JavaMethodReference()::createHandler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithJavaStaticMethodReference() {
+        Info info = new Info().title("Example").version("1.0.0");
         OpenApiOptions options = new OpenApiOptions(info)
             .activateAnnotationScanningFor("io.javalin.openapi");
 
         OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(options, app -> {
-            app.get("/test", new JavaMethodReference()::createHandler);
+            app.get("/test", JavaStaticMethodReference::createStaticHandler);
             return Unit.INSTANCE;
         });
         OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());

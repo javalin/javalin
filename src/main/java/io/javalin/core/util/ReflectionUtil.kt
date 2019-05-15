@@ -46,7 +46,9 @@ internal val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.n
 
 internal val Any.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
 
-internal val Any.isJavaMethodReference: Boolean get() = this.methodName != null
+internal val Any.hasMethodName: Boolean get() = methodName != null
+
+internal val Any.isJavaNonStaticMethodReference: Boolean get() = javaClass.declaredMethods.any { it.name == methodReferenceReflectionMethodName }
 
 internal val Any.isJavaField: Boolean get() = this.javaFieldName != null
 
@@ -59,15 +61,15 @@ internal val Any.lambdaMethod: Method?
             val functionValue = this.getFieldValue("function") as KFunction<*>
             functionValue.javaMethod
         }
-        isKotlinAnonymousLambda -> null // No solution yet
-        isJavaMethodReference -> parentClass.getDeclaredMethodByName(methodName!!)
-        isJavaAnonymousLambda -> null
+        isKotlinAnonymousLambda -> null // Cannot be parsed
+        isJavaNonStaticMethodReference -> this.resolveMethodReference()
+        isJavaAnonymousLambda -> null // Cannot be parsed
         else -> null
     }
 
 internal val Any.lambdaField: Field?
     get() = when {
-        isKotlinField -> parentClass.getDeclaredFieldByName(kotlinFieldName!!)
+        isKotlinField -> parentClass.getDeclaredFieldByName(kotlinFieldName)
         isJavaField -> parentClass.getDeclaredFieldByName(javaFieldName!!)
         else -> null
     }
@@ -83,3 +85,13 @@ internal fun Class<*>.getDeclaredMethodByName(methodName: String): Method? = dec
 
 internal fun Class<*>.getDeclaredFieldByName(methodName: String): Field? = declaredFields
         .find { it.name == methodName }
+
+internal fun Any.resolveMethodReference(): Method? {
+    val javaMethodReference = javaClass
+            .getDeclaredMethodByName(methodReferenceReflectionMethodName)
+            ?.parameters?.get(0)
+            ?.parameterizedType as Class<*>?
+    return javaMethodReference?.declaredMethods?.get(0)
+}
+
+private const val methodReferenceReflectionMethodName = "get\$Lambda"

@@ -21,7 +21,7 @@ annotation class OpenApi(
         val responses: Array<OpenApiResponse> = [],
         /**
          * The path of the endpoint. This will only be used if class scanning is activated and the annotation
-         * couldn't be found via annotation.
+         * couldn't be found via reflection.
          */
         val path: String = NULL_STRING,
         /**

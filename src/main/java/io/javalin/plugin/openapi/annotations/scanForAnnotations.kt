@@ -11,7 +11,6 @@ internal fun scanForAnnotations(packagePrefixes: Set<String>): Map<PathInfo, Ope
 
     val graph = ClassGraph()
             .enableAnnotationInfo()
-            .enableClassInfo()
             .enableMethodInfo()
             .ignoreClassVisibility()
             .whitelistPackages(*packagePrefixes.toTypedArray())
