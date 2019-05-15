@@ -9,7 +9,6 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
-import io.javalin.core.Extension;
 import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JettyUtil;
@@ -207,15 +206,6 @@ public class Javalin {
      */
     public <T> T attribute(Class<T> clazz) {
         return (T) config.inner.appAttributes.get(clazz);
-    }
-
-    /**
-     * Registers an {@link Extension} with the instance.
-     * You're free to implement the extension as a class or a lambda expression
-     */
-    public Javalin register(Extension extension) {
-        extension.registerOnJavalin(this);
-        return this;
     }
 
     /**

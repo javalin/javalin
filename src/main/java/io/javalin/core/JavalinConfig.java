@@ -7,6 +7,13 @@
 package io.javalin.core;
 
 import io.javalin.Javalin;
+import io.javalin.core.event.HandlerMetaInfo;
+import io.javalin.core.event.WsHandlerMetaInfo;
+import io.javalin.core.plugin.Plugin;
+import io.javalin.core.plugin.PluginAlreadyRegisteredException;
+import io.javalin.core.plugin.PluginInitLifecycleViolationException;
+import io.javalin.core.plugin.PluginLifecycleInit;
+import io.javalin.core.plugin.PluginNotFoundException;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.CoreRoles;
 import io.javalin.core.security.Role;
@@ -33,6 +40,7 @@ import io.javalin.plugin.openapi.ui.SwaggerRenderer;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,6 +53,7 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import static io.javalin.core.security.SecurityUtil.roles;
 
 public class JavalinConfig {
@@ -67,6 +76,7 @@ public class JavalinConfig {
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
     public class Inner {
+        @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new HashMap<>();
         @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
         @NotNull public List<String> corsOrigins = new ArrayList<>();
         @Nullable public RouteOverviewConfig routeOverview = null;
@@ -82,6 +92,27 @@ public class JavalinConfig {
         @Nullable public Server server = null;
     }
     // @formatter:on
+
+    /**
+     * Register a new plugin.
+     */
+    public void registerPlugin(@NotNull Plugin plugin) {
+        if (inner.plugins.containsKey(plugin.getClass())) {
+            throw new PluginAlreadyRegisteredException(plugin.getClass());
+        }
+        inner.plugins.put(plugin.getClass(), plugin);
+    }
+
+    /**
+     * Get a registered plugin
+     */
+    public <T extends Plugin> T getPlugin(@NotNull Class<T> pluginClass) {
+        T result = (T) inner.plugins.get(pluginClass);
+        if (result == null) {
+            throw new PluginNotFoundException(pluginClass);
+        }
+        return result;
+    }
 
     public void enableDevLogging() {
         requestLogger(LogUtil::requestDevLogger);
@@ -164,6 +195,24 @@ public class JavalinConfig {
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
+        Collection<Plugin> plugins = config.inner.plugins.values();
+
+        List<HandlerMetaInfo> registeredHandler = new ArrayList<>();
+        List<WsHandlerMetaInfo> registeredWsHandler = new ArrayList<>();
+        app.events(listener -> {
+            listener.handlerAdded(registeredHandler::add);
+            listener.wsHandlerAdded(registeredWsHandler::add);
+        });
+
+        plugins
+            .stream()
+            .filter(plugin -> plugin instanceof PluginLifecycleInit)
+            .forEach(plugin -> {
+                ((PluginLifecycleInit) plugin).init(app);
+                if (!registeredHandler.isEmpty() || !registeredWsHandler.isEmpty()) {
+                    throw new PluginInitLifecycleViolationException(plugin.getClass());
+                }
+            });
 
         // The following handlers need to be initialized before any handler is added
         RouteOverviewRenderer routeOverviewRenderer = null;
@@ -179,6 +228,8 @@ public class JavalinConfig {
         if (routeOverviewRenderer != null) {
             app.get(config.inner.routeOverview.getPath(), routeOverviewRenderer, config.inner.routeOverview.getRoles());
         }
+
+        plugins.forEach(plugin -> plugin.apply(app));
 
         if (openApiHandler != null && config.inner.openApiOptions.getPath() != null) {
 
