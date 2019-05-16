@@ -97,7 +97,7 @@ class TestPlugins {
     }
 
     @Test
-    fun `"init" should throw error if handler are registered in init`() {
+    fun `init should throw error if handler is registered in init`() {
         class BadPlugin : Plugin, PluginLifecycleInit {
             override fun apply(app: Javalin) {}
 
