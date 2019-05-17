@@ -10,7 +10,6 @@ import io.javalin.Javalin
 import io.javalin.core.JavalinServer
 import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
-import org.apache.velocity.exception.ResourceNotFoundException
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -107,12 +106,10 @@ object Util {
     }
 
     @JvmStatic
-    fun assertWebjarInstalled(dependency: OptionalDependency) {
-        try {
-            getWebjarResourceUrl(dependency)
-        } catch (e: ResourceNotFoundException) {
-            Javalin.log.warn(missingDependencyMessage(dependency))
-        }
+    fun assertWebjarInstalled(dependency: OptionalDependency) = try {
+        getWebjarResourceUrl(dependency)
+    } catch (e: Exception) {
+        Javalin.log.warn(missingDependencyMessage(dependency))
     }
 
     @JvmStatic
