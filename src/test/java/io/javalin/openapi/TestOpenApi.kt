@@ -25,6 +25,7 @@ import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
+import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documentCrud
@@ -80,7 +81,7 @@ class TestOpenApi {
     @Test
     fun `createSchema() work with complexExample and dsl`() {
         val app = Javalin.create {
-            it.enableOpenApi(OpenApiOptions(::createComplexExampleBaseConfiguration))
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration)))
         }
 
         val getUserDocumentation = document()
@@ -196,7 +197,7 @@ class TestOpenApi {
     @Test
     fun `createSchema() work with crudHandler and dsl`() {
         val app = Javalin.create {
-            it.enableOpenApi(OpenApiOptions { OpenAPI().info(Info().title("Example").version("1.0.0")) })
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions { OpenAPI().info(Info().title("Example").version("1.0.0")) }))
         }
 
         val userCrudHandlerDocumentation = documentCrud()
@@ -243,7 +244,7 @@ class TestOpenApi {
                 .isThrownBy {
                     JavalinOpenApi.createSchema(app)
                 }
-                .withMessage("You need to activate the \"enableOpenApi\" option before you can create the OpenAPI schema")
+                .withMessage("You need to register the \"OpenApiPlugin\" before you can create the OpenAPI schema")
     }
 
     @Test
@@ -257,7 +258,7 @@ class TestOpenApi {
                     }
                 }
         val app = Javalin.create {
-            it.enableOpenApi(openApiOptions)
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
 
         val route2Documentation = document()
@@ -276,12 +277,12 @@ class TestOpenApi {
     @Test
     fun `enableOpenApi() provide get route if path is given`() {
         TestUtil.test(Javalin.create {
-            it.enableOpenApi(OpenApiOptions(
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions(
                     Info().apply {
                         title = "Example"
                         version = "1.0.0"
                     }
-            ).path("/docs/swagger.json"))
+            ).path("/docs/swagger.json")))
         }) { app, http ->
             app.get("/test") {}
 
@@ -294,12 +295,12 @@ class TestOpenApi {
     @Test
     fun `enableOpenApi() provide get route if path is given with baseConfiguration`() {
         TestUtil.test(Javalin.create {
-            it.enableOpenApi(OpenApiOptions {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions {
                 OpenAPI().info(Info().apply {
                     title = "Example"
                     version = "1.0.0"
                 })
-            }.path("/docs/swagger.json"))
+            }.path("/docs/swagger.json")))
         }) { app, http ->
             app.get("/test") {}
 

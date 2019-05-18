@@ -11,6 +11,7 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.openapi.OpenApiOptions;
+import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.annotations.HttpMethod;
 import io.javalin.plugin.openapi.annotations.OpenApi;
 import io.javalin.plugin.openapi.annotations.OpenApiParam;
@@ -31,7 +32,7 @@ public class HelloWorldSwagger {
             .swagger(new SwaggerOptions("/swagger").title("My Swagger Documentation"))
             .reDoc(new ReDocOptions("/redoc").title("My ReDoc Documentation"));
 
-        Javalin app = Javalin.create(config -> config.enableOpenApi(openApiOptions)).start(7070);
+        Javalin app = Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions))).start(7070);
 
         app.post("/users", ExampleController::create);
 

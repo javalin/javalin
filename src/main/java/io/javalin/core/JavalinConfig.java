@@ -15,37 +15,23 @@ import io.javalin.core.plugin.PluginInitLifecycleViolationException;
 import io.javalin.core.plugin.PluginLifecycleInit;
 import io.javalin.core.plugin.PluginNotFoundException;
 import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.CoreRoles;
-import io.javalin.core.security.Role;
 import io.javalin.core.security.SecurityUtil;
+import io.javalin.core.util.CorsPlugin;
 import io.javalin.core.util.LogUtil;
-import io.javalin.core.util.OptionalDependency;
-import io.javalin.core.util.RouteOverviewConfig;
-import io.javalin.core.util.RouteOverviewRenderer;
-import io.javalin.core.util.Util;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
 import io.javalin.http.staticfiles.JettyResourceHandler;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
-import io.javalin.http.util.CorsBeforeHandler;
-import io.javalin.http.util.CorsOptionsHandler;
 import io.javalin.plugin.metrics.JavalinMicrometer;
 import io.javalin.plugin.metrics.MetricsProvider;
-import io.javalin.plugin.openapi.OpenApiHandler;
-import io.javalin.plugin.openapi.OpenApiOptions;
-import io.javalin.plugin.openapi.ui.ReDocRenderer;
-import io.javalin.plugin.openapi.ui.SwaggerRenderer;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
@@ -53,8 +39,6 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static io.javalin.core.security.SecurityUtil.roles;
 
 public class JavalinConfig {
     // @formatter:off
@@ -78,10 +62,6 @@ public class JavalinConfig {
     public class Inner {
         @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new HashMap<>();
         @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
-        @NotNull public List<String> corsOrigins = new ArrayList<>();
-        @Nullable public RouteOverviewConfig routeOverview = null;
-        @Nullable public OpenApiOptions openApiOptions = null;
-        @Nullable public OpenApiHandler openApiHandler = null;
         @Nullable public RequestLogger requestLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
@@ -142,28 +122,11 @@ public class JavalinConfig {
     }
 
     public void enableCorsForAllOrigins() {
-        enableCorsForOrigin("*");
+        registerPlugin(CorsPlugin.forAllOrigins());
     }
 
     public void enableCorsForOrigin(@NotNull String... origins) {
-        if (origins.length == 0) throw new IllegalArgumentException("Origins cannot be empty.");
-        inner.corsOrigins = Arrays.asList(origins);
-    }
-
-    public void enableRouteOverview(@NotNull String path) {
-        enableRouteOverview(path, new HashSet<>());
-    }
-
-    public void enableRouteOverview(@NotNull String path, @NotNull Set<Role> permittedRoles) {
-        inner.routeOverview = new RouteOverviewConfig(path, permittedRoles);
-    }
-
-    /**
-     * Enable the automatic generation of an open api schema.
-     * The schema can be extracted with {@link io.javalin.plugin.openapi.JavalinOpenApi#createSchema(Javalin)}.
-     */
-    public void enableOpenApi(OpenApiOptions options) {
-        inner.openApiOptions = options;
+        registerPlugin(CorsPlugin.forOrigins(origins));
     }
 
     public void accessManager(@NotNull AccessManager accessManager) {
@@ -214,49 +177,8 @@ public class JavalinConfig {
                 }
             });
 
-        // The following handlers need to be initialized before any handler is added
-        RouteOverviewRenderer routeOverviewRenderer = null;
-        if (config.inner.routeOverview != null) {
-            routeOverviewRenderer = new RouteOverviewRenderer(app);
-        }
-        OpenApiHandler openApiHandler = null;
-        if (config.inner.openApiOptions != null) {
-            openApiHandler = new OpenApiHandler(app, config.inner.openApiOptions);
-            config.inner.openApiHandler = openApiHandler;
-        }
-
-        if (routeOverviewRenderer != null) {
-            app.get(config.inner.routeOverview.getPath(), routeOverviewRenderer, config.inner.routeOverview.getRoles());
-        }
-
         plugins.forEach(plugin -> plugin.apply(app));
 
-        if (openApiHandler != null && config.inner.openApiOptions.getPath() != null) {
-
-            Util.INSTANCE.ensureDependencyPresent(OptionalDependency.SWAGGER_CORE);
-            Util.INSTANCE.ensureDependencyPresent(OptionalDependency.OPENAPI_KOTLIN_DSL);
-
-            app.get(config.inner.openApiOptions.getPath(), openApiHandler, config.inner.openApiOptions.getRoles());
-
-            OpenApiOptions options = openApiHandler.getOptions();
-
-            if (options.getSwagger() != null) {
-                app.get(options.getSwagger().getPath(), new SwaggerRenderer(options));
-            }
-
-            if (options.getReDoc() != null) {
-                app.get(options.getReDoc().getPath(), new ReDocRenderer(options));
-            }
-
-            if (options.getSwagger() != null || options.getReDoc() != null) {
-                config.enableWebjars();
-            }
-        }
-
-        if (!config.inner.corsOrigins.isEmpty()) {
-            app.before(new CorsBeforeHandler(config.inner.corsOrigins));
-            app.options("*", new CorsOptionsHandler(), roles(CoreRoles.NO_WRAP));
-        }
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
