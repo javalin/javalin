@@ -5,9 +5,7 @@ import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
 import io.javalin.core.security.Role
 
-class RouteOverviewPlugin(
-        val config: RouteOverviewConfig
-) : Plugin, PluginLifecycleInit {
+class RouteOverviewPlugin(val config: RouteOverviewConfig) : Plugin, PluginLifecycleInit {
     @JvmOverloads
     constructor(path: String, roles: Set<Role> = setOf()) : this(RouteOverviewConfig(path, roles))
 

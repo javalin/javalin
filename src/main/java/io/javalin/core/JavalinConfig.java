@@ -7,8 +7,6 @@
 package io.javalin.core;
 
 import io.javalin.Javalin;
-import io.javalin.core.event.HandlerMetaInfo;
-import io.javalin.core.event.WsHandlerMetaInfo;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginInitLifecycleViolationException;
@@ -27,11 +25,10 @@ import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.plugin.metrics.JavalinMicrometer;
 import io.javalin.plugin.metrics.MetricsProvider;
 import io.javalin.websocket.WsHandler;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.eclipse.jetty.server.Server;
@@ -158,26 +155,24 @@ public class JavalinConfig {
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
-        Collection<Plugin> plugins = config.inner.plugins.values();
 
-        List<HandlerMetaInfo> registeredHandler = new ArrayList<>();
-        List<WsHandlerMetaInfo> registeredWsHandler = new ArrayList<>();
+        AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);
         app.events(listener -> {
-            listener.handlerAdded(registeredHandler::add);
-            listener.wsHandlerAdded(registeredWsHandler::add);
+            listener.handlerAdded(x -> anyHandlerAdded.set(true));
+            listener.wsHandlerAdded(x -> anyHandlerAdded.set(true));
         });
 
-        plugins
+        config.inner.plugins.values()
             .stream()
             .filter(plugin -> plugin instanceof PluginLifecycleInit)
             .forEach(plugin -> {
                 ((PluginLifecycleInit) plugin).init(app);
-                if (!registeredHandler.isEmpty() || !registeredWsHandler.isEmpty()) {
+                if (anyHandlerAdded.get()) { // check if any "init" added a handler
                     throw new PluginInitLifecycleViolationException(plugin.getClass());
                 }
             });
 
-        plugins.forEach(plugin -> plugin.apply(app));
+        config.inner.plugins.values().forEach(plugin -> plugin.apply(app));
 
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);

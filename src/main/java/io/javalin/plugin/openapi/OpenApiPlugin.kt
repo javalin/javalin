@@ -12,9 +12,8 @@ import io.javalin.plugin.openapi.ui.SwaggerRenderer
  * Plugin for the the automatic generation of an open api schema.
  * The schema can be extracted with [JavalinOpenApi.createSchema].
  */
-class OpenApiPlugin(
-        private val options: OpenApiOptions
-) : Plugin, PluginLifecycleInit {
+class OpenApiPlugin(private val options: OpenApiOptions) : Plugin, PluginLifecycleInit {
+
     lateinit var openApiHandler: OpenApiHandler
 
     override fun init(app: Javalin) {

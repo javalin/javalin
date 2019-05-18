@@ -8,6 +8,7 @@ import io.javalin.http.util.CorsBeforeHandler
 import io.javalin.http.util.CorsOptionsHandler
 
 class CorsPlugin(private val origins: List<String>) : Plugin {
+
     init {
         if (origins.isEmpty()) {
             throw IllegalArgumentException("Origins cannot be empty.")
@@ -23,11 +24,8 @@ class CorsPlugin(private val origins: List<String>) : Plugin {
     }
 
     override fun apply(app: Javalin) {
-        if (origins.isEmpty()) {
-            return
-        }
-
         app.before(CorsBeforeHandler(origins))
         app.options("*", CorsOptionsHandler(), roles(CoreRoles.NO_WRAP))
     }
+
 }
