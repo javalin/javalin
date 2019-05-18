@@ -5,6 +5,7 @@ package io.javalin.openapi;
 import io.javalin.Javalin
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
+import io.javalin.plugin.openapi.OpenApiPlugin
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import org.assertj.core.api.Assertions.assertThat
@@ -15,7 +16,7 @@ fun extractSchemaForTest(initSchema: (app: Javalin) -> Unit): OpenAPI {
 }
 
 fun extractSchemaForTest(options: OpenApiOptions, initSchema: (app: Javalin) -> Unit): OpenAPI {
-    val app = Javalin.create { it.enableOpenApi(options) }
+    val app = Javalin.create { it.registerPlugin(OpenApiPlugin(options)) }
     initSchema(app)
     return JavalinOpenApi.createSchema(app)
 }

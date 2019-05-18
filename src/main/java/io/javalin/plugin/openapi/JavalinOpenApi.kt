@@ -2,6 +2,7 @@ package io.javalin.plugin.openapi
 
 import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
+import io.javalin.core.plugin.PluginNotFoundException
 import io.javalin.plugin.openapi.dsl.applyMetaInfoList
 import io.javalin.plugin.openapi.dsl.updateComponents
 import io.javalin.plugin.openapi.dsl.updatePaths
@@ -29,9 +30,12 @@ class CreateSchemaOptions(
 object JavalinOpenApi {
     @JvmStatic
     fun createSchema(javalin: Javalin): OpenAPI {
-        val handler = javalin.config.inner.openApiHandler
-        return handler?.createOpenAPISchema()
-                ?: throw IllegalStateException("You need to activate the \"enableOpenApi\" option before you can create the OpenAPI schema");
+        val handler = try {
+            javalin.config.getPlugin(OpenApiPlugin::class.java).openApiHandler
+        } catch (e: PluginNotFoundException) {
+            throw IllegalStateException("You need to register the \"OpenApiPlugin\" before you can create the OpenAPI schema")
+        }
+        return handler.createOpenAPISchema()
     }
 
     @JvmStatic

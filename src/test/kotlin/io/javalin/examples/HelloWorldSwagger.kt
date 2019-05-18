@@ -10,6 +10,7 @@ import cc.vileda.openapi.dsl.responses
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.OpenApiOptions
+import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.ui.ReDocOptions
@@ -75,7 +76,7 @@ fun main() {
                         response("500") { description = "Server Error" }
                     }
                 }
-        it.enableOpenApi(openApiOptions)
+        it.registerPlugin(OpenApiPlugin(openApiOptions))
     }
 
     with(app) {

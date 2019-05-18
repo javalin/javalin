@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.core.security.SecurityUtil.roles
+import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.metrics.MetricsProvider
 import org.assertj.core.api.Assertions.assertThat
@@ -30,10 +31,8 @@ class TestConfiguration {
             it.defaultContentType = "text/plain"
             it.dynamicGzip = true
             it.enableCorsForAllOrigins()
-            it.enableCorsForOrigin("*", "my-origin")
             it.enableDevLogging()
-            it.enableRouteOverview("/test")
-            it.enableRouteOverview("/test", roles())
+            it.registerPlugin(RouteOverviewPlugin("/test", roles()))
             it.enableWebjars()
             it.enforceSsl = true
             it.logIfServerNotStarted = false

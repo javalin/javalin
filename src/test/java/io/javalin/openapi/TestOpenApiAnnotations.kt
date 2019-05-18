@@ -12,6 +12,7 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
+import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
@@ -146,7 +147,7 @@ class TestOpenApiAnnotations {
     @Test
     fun `createOpenApiSchema() work with complexExample and annotations`() {
         val app = Javalin.create {
-            it.enableOpenApi(OpenApiOptions(::createComplexExampleBaseConfiguration))
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration)))
         }
 
         app.get("/user", ::getUserHandler)
