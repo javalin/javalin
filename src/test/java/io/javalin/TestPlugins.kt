@@ -28,7 +28,6 @@ open class TestPlugin : Plugin, PluginLifecycleInit {
     override fun apply(app: Javalin) {
         calls.add(Calls.APPLY)
     }
-
 }
 
 private interface PluginWithAllLifecycles : Plugin, PluginLifecycleInit

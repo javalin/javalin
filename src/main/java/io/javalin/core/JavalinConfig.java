@@ -22,15 +22,13 @@ import io.javalin.http.staticfiles.JettyResourceHandler;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
-import io.javalin.plugin.metrics.JavalinMicrometer;
-import io.javalin.plugin.metrics.MetricsProvider;
 import io.javalin.websocket.WsHandler;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
@@ -52,7 +50,6 @@ public class JavalinConfig {
     @NotNull public Long asyncRequestTimeout = 0L;
     @NotNull public String wsContextPath = "/";
     @NotNull public Inner inner = new Inner();
-    @NotNull public MetricsProvider metricsProvider = MetricsProvider.NONE;
 
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
@@ -156,19 +153,19 @@ public class JavalinConfig {
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
 
+        config.inner.server = JettyUtil.getOrDefault(config.inner.server);
+
         AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);
         app.events(listener -> {
             listener.handlerAdded(x -> anyHandlerAdded.set(true));
             listener.wsHandlerAdded(x -> anyHandlerAdded.set(true));
         });
 
-        config.inner.plugins.values()
-            .stream()
-            .filter(plugin -> plugin instanceof PluginLifecycleInit)
+        config.getPluginsExtending(PluginLifecycleInit.class)
             .forEach(plugin -> {
-                ((PluginLifecycleInit) plugin).init(app);
+                plugin.init(app);
                 if (anyHandlerAdded.get()) { // check if any "init" added a handler
-                    throw new PluginInitLifecycleViolationException(plugin.getClass());
+                    throw new PluginInitLifecycleViolationException(((Plugin) plugin).getClass());
                 }
             });
 
@@ -177,10 +174,12 @@ public class JavalinConfig {
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
-        if (config.metricsProvider == MetricsProvider.MICROMETER) { // only have one at the moment
-            config.inner.server = JettyUtil.getOrDefault(config.inner.server);
-            JavalinMicrometer.init(config.inner.server);
-        }
     }
 
+    private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {
+        return inner.plugins.values()
+            .stream()
+            .filter(clazz::isInstance)
+            .map(plugin -> (T) plugin);
+    }
 }

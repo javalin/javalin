@@ -9,7 +9,7 @@ package io.javalin
 import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.metrics.MetricsProvider
+import io.javalin.plugin.metrics.MicrometerPlugin
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
@@ -48,7 +48,7 @@ class TestConfiguration {
             it.server {
                 Server()
             }
-            it.metricsProvider = MetricsProvider.MICROMETER
+            it.registerPlugin(MicrometerPlugin())
             // Misc
             it.accessManager { handler, ctx, permittedRoles -> }
             it.showJavalinBanner = false
