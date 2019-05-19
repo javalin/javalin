@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +104,11 @@ public class Javalin {
     // Get JavalinServlet (for use in standalone mode)
     public JavalinServlet servlet() {
         return this.servlet;
+    }
+
+    /** Get the JavalinServer */
+    public @Nullable JavalinServer server() {
+        return this.server;
     }
 
     /**
