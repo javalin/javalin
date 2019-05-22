@@ -9,6 +9,7 @@ package io.javalin.http.staticfiles
 import io.javalin.Javalin
 import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
@@ -28,8 +29,15 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 isEtags = true
                 Javalin.log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
-            start()
         })
+    }
+
+    fun startHandlers(server: Server) {
+        handlers.forEach {
+            it.server = server
+            it.handler.server = server
+            it.start()
+        }
     }
 
     inner class WebjarHandler : ResourceHandler() {
