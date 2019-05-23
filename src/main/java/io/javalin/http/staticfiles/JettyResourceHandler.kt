@@ -9,6 +9,7 @@ package io.javalin.http.staticfiles
 import io.javalin.Javalin
 import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
@@ -20,6 +21,9 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<GzipHandler>()
 
+    // It would work without a server, but if none is set jetty will log a warning.
+    private val dummyServer = Server()
+
     override fun addStaticFileConfig(config: StaticFileConfig) {
         handlers.add(GzipHandler().apply {
             handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
@@ -28,6 +32,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 isEtags = true
                 Javalin.log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
+            server = dummyServer
             start()
         })
     }
