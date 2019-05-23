@@ -85,4 +85,10 @@ class TestExceptionMapper {
         assertThat(http.get("/").body).isEqualTo("6")
     }
 
+    @Test
+    fun `exception title can contain quotes`() = TestUtil.test { app, http ->
+        app.get("/") { throw BadRequestResponse("""MY MESSAGE WITH "QUOTES"""") }
+        assertThat(http.jsonGet("/").body).contains("""MY MESSAGE WITH \"QUOTES\"""")
+    }
+
 }

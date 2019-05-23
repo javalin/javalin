@@ -17,10 +17,10 @@ object HttpResponseExceptionMapper {
         val e = unwrap(exception)
         if (ctx.header(Header.ACCEPT)?.contains("application/json") == true || ctx.res.contentType == "application/json") {
             ctx.status(e.status).result("""{
-                |    "title": "${e.message}",
+                |    "title": "${e.message?.jsonEscape()}",
                 |    "status": ${e.status},
                 |    "type": "${getTypeUrl(e).toLowerCase()}",
-                |    "details": ${e.details.map { """{"${it.key}": "${it.value}"}""" }}
+                |    "details": ${e.details.map { """{"${it.key}": "${it.value.jsonEscape()}"}""" }}
                 |}""".trimMargin()
             ).contentType("application/json")
         } else {
@@ -57,5 +57,7 @@ object HttpResponseExceptionMapper {
         is GatewayTimeoutResponse -> classUrl(e)
         else -> docsUrl + "error-responses"
     }
+
+    private fun String.jsonEscape() = this.replace("\"", "\\\"")
 
 }

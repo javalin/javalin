@@ -8,7 +8,7 @@ package io.javalin.http
 
 import org.eclipse.jetty.http.HttpStatus
 
-open class HttpResponseException(val status: Int, @Deprecated("Use 'message' instead") val msg: String, val details: Map<String, String> = mapOf()) : RuntimeException(msg)
+open class HttpResponseException(val status: Int, message: String, val details: Map<String, String> = mapOf()) : RuntimeException(message)
 
 class RedirectResponse(status: Int = HttpStatus.FOUND_302, msg: String = "Redirected") : HttpResponseException(status, msg)
 
