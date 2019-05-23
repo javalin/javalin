@@ -18,10 +18,12 @@ object MultipartUtil {
     fun getUploadedFiles(servletRequest: HttpServletRequest, partName: String): List<UploadedFile> {
         servletRequest.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")))
         return servletRequest.parts.filter { isFile(it) && it.name == partName }.map { filePart ->
+            val bytes = filePart.inputStream.readBytes()
             UploadedFile(
+                    content = ByteArrayInputStream(bytes),
                     contentType = filePart.contentType,
-                    content = ByteArrayInputStream(filePart.inputStream.readBytes()),
-                    name = filePart.submittedFileName,
+                    contentLength = bytes.size,
+                    filename = filePart.submittedFileName,
                     extension = filePart.submittedFileName.replaceBeforeLast(".", "")
             )
         }

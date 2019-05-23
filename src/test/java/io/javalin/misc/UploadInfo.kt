@@ -6,4 +6,4 @@
 
 package io.javalin.misc
 
-class UploadInfo(val filename: String = "", val contentLength: Long = 0, val contentType: String = "", val extension: String = "")
+class UploadInfo(val filename: String = "", val contentLength: Int = 0, val contentType: String = "", val extension: String = "")

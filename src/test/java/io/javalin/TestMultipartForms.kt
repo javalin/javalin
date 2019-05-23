@@ -36,7 +36,7 @@ class TestMultipartForms {
     fun `mp3s are uploaded correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")!!
-            ctx.json(UploadInfo(uf.name, uf.content.available().toLong(), uf.contentType, uf.extension))
+            ctx.json(UploadInfo(uf.filename, uf.contentLength, uf.contentType, uf.extension))
         }
         val uploadFile = File("src/test/resources/upload-test/sound.mp3")
         val response = http.post("/test-upload")
@@ -53,7 +53,7 @@ class TestMultipartForms {
     fun `pngs are uploaded correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")
-            ctx.json(UploadInfo(uf!!.name, uf.content.available().toLong(), uf.contentType, uf.extension))
+            ctx.json(UploadInfo(uf!!.filename, uf.contentLength, uf.contentType, uf.extension))
         }
         val uploadFile = File("src/test/resources/upload-test/image.png")
         val response = http.post("/test-upload")
@@ -64,6 +64,7 @@ class TestMultipartForms {
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo("image/png")
         assertThat(uploadInfo.extension).isEqualTo(".png")
+        assertThat(uploadInfo.contentLength).isEqualTo(6690)
     }
 
     @Test
@@ -88,7 +89,7 @@ class TestMultipartForms {
 
     @Test
     fun `mixing files and text fields works`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload")!!.name) }
+        app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload")!!.filename) }
         val response = http.post("/test-upload")
                 .field("upload", File("src/test/resources/upload-test/image.png"))
                 .field("field", "text-value")
@@ -109,7 +110,7 @@ class TestMultipartForms {
 
     @Test
     fun `unicode text-fields work`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload")!!.name) }
+        app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload")!!.filename) }
         val response = http.post("/test-upload")
                 .field("upload", File("src/test/resources/upload-test/text.txt"))
                 .field("field", "♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
