@@ -153,8 +153,6 @@ public class JavalinConfig {
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
 
-        config.inner.server = JettyUtil.getOrDefault(config.inner.server);
-
         AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);
         app.events(listener -> {
             listener.handlerAdded(x -> anyHandlerAdded.set(true));
