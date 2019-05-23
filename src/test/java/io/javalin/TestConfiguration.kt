@@ -14,6 +14,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.junit.Test
+import javax.servlet.http.HttpSessionEvent
+import javax.servlet.http.HttpSessionListener
 
 class TestConfiguration {
 
@@ -52,6 +54,12 @@ class TestConfiguration {
             // Misc
             it.accessManager { handler, ctx, permittedRoles -> }
             it.showJavalinBanner = false
+            it.addListener(object : HttpSessionListener {
+                override fun sessionCreated(e: HttpSessionEvent?) {
+                }
+                override fun sessionDestroyed(e: HttpSessionEvent?) {
+                }
+            })
         }.start(0)
         assertThat(app.server.started).isTrue()
         app.stop()

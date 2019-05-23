@@ -23,7 +23,10 @@ import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
+import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -64,6 +67,7 @@ public class JavalinConfig {
         @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig = null;
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
+        @NotNull public List<EventListener> listeners = new ArrayList<>();
     }
     // @formatter:on
 
@@ -148,6 +152,10 @@ public class JavalinConfig {
 
     public void server(Supplier<Server> server) {
         inner.server = server.get();
+    }
+
+    public void addListener(@NotNull EventListener listener) {
+        inner.listeners.add(listener);
     }
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
