@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletResponse
 class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<GzipHandler>()
+
+    // It would work without a server, but if none is set jetty will log a warning.
     private val dummyServer = Server()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
