@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse
 class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<GzipHandler>()
+    private val dummyServer = Server()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
         handlers.add(GzipHandler().apply {
@@ -29,15 +30,9 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 isEtags = true
                 Javalin.log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
+            server = dummyServer
+            start()
         })
-    }
-
-    fun startHandlers(server: Server) {
-        handlers.forEach {
-            it.server = server
-            it.handler.server = server
-            it.start()
-        }
     }
 
     inner class WebjarHandler : ResourceHandler() {

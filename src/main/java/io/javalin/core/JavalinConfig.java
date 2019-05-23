@@ -155,10 +155,6 @@ public class JavalinConfig {
 
         config.inner.server = JettyUtil.getOrDefault(config.inner.server);
 
-       if (config.inner.resourceHandler instanceof JettyResourceHandler) {
-            ((JettyResourceHandler)config.inner.resourceHandler).startHandlers(config.inner.server);
-       }
-
         AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);
         app.events(listener -> {
             listener.handlerAdded(x -> anyHandlerAdded.set(true));
