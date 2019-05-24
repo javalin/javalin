@@ -23,10 +23,7 @@ import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
-import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -34,6 +31,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,7 +65,7 @@ public class JavalinConfig {
         @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig = null;
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
-        @NotNull public List<EventListener> listeners = new ArrayList<>();
+        @Nullable public Consumer<ServletContextHandler> handlerConsumer = null;
     }
     // @formatter:on
 
@@ -154,8 +152,8 @@ public class JavalinConfig {
         inner.server = server.get();
     }
 
-    public void addListener(@NotNull EventListener listener) {
-        inner.listeners.add(listener);
+    public void configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
+        inner.handlerConsumer = consumer;
     }
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {

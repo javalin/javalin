@@ -54,12 +54,14 @@ class TestConfiguration {
             // Misc
             it.accessManager { handler, ctx, permittedRoles -> }
             it.showJavalinBanner = false
-            it.addListener(object : HttpSessionListener {
-                override fun sessionCreated(e: HttpSessionEvent?) {
-                }
-                override fun sessionDestroyed(e: HttpSessionEvent?) {
-                }
-            })
+            it.configureServletContextHandler { handler ->
+                handler.addEventListener(object : HttpSessionListener {
+                    override fun sessionCreated(e: HttpSessionEvent?) {
+                    }
+                    override fun sessionDestroyed(e: HttpSessionEvent?) {
+                    }
+                })
+            }
         }.start(0)
         assertThat(app.server.started).isTrue()
         app.stop()

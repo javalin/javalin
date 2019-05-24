@@ -13,10 +13,10 @@ import org.junit.Test
 import javax.servlet.ServletContextEvent
 import javax.servlet.ServletContextListener
 
-class TestEventListener {
+class TestConfigureServletContextHandler {
 
     @Test
-    fun `Adding a listener works and listener gets called`() {
+    fun `Adding an event listener to the ServletContextHandler works`() {
         val listener = object : ServletContextListener {
             var called = false
             override fun contextInitialized(ev: ServletContextEvent?) {
@@ -28,7 +28,9 @@ class TestEventListener {
         }
 
         val app = Javalin.create {
-            it.addListener(listener)
+            it.configureServletContextHandler {
+                it.addEventListener(listener)
+            }
         }.start()
 
         val http = HttpUtil(app)
