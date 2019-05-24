@@ -28,8 +28,8 @@ class TestConfigureServletContextHandler {
         }
 
         val app = Javalin.create {
-            it.configureServletContextHandler {
-                it.addEventListener(listener)
+            it.configureServletContextHandler { handler ->
+                handler.addEventListener(listener)
             }
         }.start()
 
