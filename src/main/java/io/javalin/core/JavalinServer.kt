@@ -54,7 +54,7 @@ class JavalinServer(val config: JavalinConfig) {
             }
         }.apply {
             this.sessionHandler = config.inner.sessionHandler
-            config.inner.handlerConsumer?.accept(this)
+            config.inner.servletContextHandlerConsumer?.accept(this)
         }
 
         val webSocketHandler = ServletContextHandler(nullParent, javalinWsServlet.config.wsContextPath, SESSIONS).apply {

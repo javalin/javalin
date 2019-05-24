@@ -65,7 +65,7 @@ public class JavalinConfig {
         @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig = null;
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
-        @Nullable public Consumer<ServletContextHandler> handlerConsumer = null;
+        @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
     }
     // @formatter:on
 
@@ -153,7 +153,7 @@ public class JavalinConfig {
     }
 
     public void configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
-        inner.handlerConsumer = consumer;
+        inner.servletContextHandlerConsumer  = consumer;
     }
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
