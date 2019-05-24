@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +65,7 @@ public class JavalinConfig {
         @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig = null;
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
+        @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
     }
     // @formatter:on
 
@@ -148,6 +150,10 @@ public class JavalinConfig {
 
     public void server(Supplier<Server> server) {
         inner.server = server.get();
+    }
+
+    public void configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
+        inner.servletContextHandlerConsumer  = consumer;
     }
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {

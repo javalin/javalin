@@ -52,7 +52,10 @@ class JavalinServer(val config: JavalinConfig) {
                 }
                 jettyRequest.isHandled = true
             }
-        }.apply { this.sessionHandler = config.inner.sessionHandler }
+        }.apply {
+            this.sessionHandler = config.inner.sessionHandler
+            config.inner.servletContextHandlerConsumer?.accept(this)
+        }
 
         val webSocketHandler = ServletContextHandler(nullParent, javalinWsServlet.config.wsContextPath, SESSIONS).apply {
             addServlet(ServletHolder(javalinWsServlet), "/*")
