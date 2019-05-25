@@ -138,7 +138,7 @@ class TestTemplates {
 
     @Test
     fun `registering custom renderer works`() = TestUtil.test { app, http ->
-        JavalinRenderer.register(FileRenderer { _, _ -> "Hah." }, ".lol")
+        JavalinRenderer.register(FileRenderer { _, _, _ -> "Hah." }, ".lol")
         app.get("/hello") { ctx -> ctx.render("/markdown/test.lol") }
         assertThat(http.getBody("/hello")).isEqualTo("Hah.")
     }
