@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role
@@ -17,16 +18,17 @@ import io.javalin.http.util.MethodNotAllowedUtil
 import java.io.InputStream
 import java.util.concurrent.CompletionException
 import java.util.zip.GZIPOutputStream
+import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServlet(val config: JavalinConfig) {
+class JavalinServlet(val config: JavalinConfig): HttpServlet() {
 
     val matcher = PathMatcher()
     val exceptionMapper = ExceptionMapper()
     val errorMapper = ErrorMapper()
 
-    fun service(servletRequest: HttpServletRequest, res: HttpServletResponse) {
+    override fun service(servletRequest: HttpServletRequest, res: HttpServletResponse) = try {
 
         val req = CachedRequestWrapper(servletRequest, config.requestCacheSize) // cached for reading multiple times
         val type = HandlerType.fromServletRequest(req)
@@ -99,7 +101,6 @@ class JavalinServlet(val config: JavalinConfig) {
             tryAfterHandlers()
             writeResult(res)
             config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
-            return // sync lifecycle complete
         } else { // finish request asynchronously
             val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
             ctx.resultFuture()!!.exceptionally { throwable ->
@@ -121,6 +122,10 @@ class JavalinServlet(val config: JavalinConfig) {
                 asyncContext.complete() // async lifecycle complete
             }
         }
+        Unit // return void
+    } catch (t: Throwable) {
+        res.status = 500
+        Javalin.log.error("Exception occurred while servicing http-request", t)
     }
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
@@ -134,4 +139,5 @@ class JavalinServlet(val config: JavalinConfig) {
         val protectedHandler = if (shouldWrap) Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, protectedHandler, handler))
     }
+
 }
