@@ -22,6 +22,7 @@ import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.net.BindException
 import java.util.function.Supplier
+import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -42,19 +43,14 @@ class JavalinServer(val config: JavalinConfig) {
         val httpHandler = object : ServletContextHandler(nullParent, config.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 if (request.isWebSocket()) return // don't touch websocket requests
-                try {
-                    request.setAttribute("jetty-target", target)
-                    request.setAttribute("jetty-request", jettyRequest)
-                    javalinServlet.service(request, response)
-                } catch (t: Throwable) {
-                    response.status = 500
-                    Javalin.log.error("Exception occurred while servicing http-request", t)
-                }
-                jettyRequest.isHandled = true
+                request.setAttribute("jetty-target", target) // used in JettyResourceHandler
+                request.setAttribute("jetty-request", jettyRequest)
+                nextHandle(target, jettyRequest, request, response)
             }
         }.apply {
             this.sessionHandler = config.inner.sessionHandler
             config.inner.servletContextHandlerConsumer?.accept(this)
+            addServlet(ServletHolder(javalinServlet), "/*")
         }
 
         val webSocketHandler = ServletContextHandler(nullParent, javalinWsServlet.config.wsContextPath, SESSIONS).apply {
