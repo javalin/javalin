@@ -37,7 +37,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
 
-class User(val name: String)
+class Address(val street: String, val number: Int)
+
+class User(val name: String, val address: Address? = null)
 
 fun createComplexExampleBaseConfiguration() = openapiDsl {
     info {

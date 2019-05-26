@@ -36,6 +36,29 @@ val userOpenApiSchema = """
    "properties":{
       "name":{
          "type":"string"
+      },
+      "address":{
+          "$ref": "#/components/schemas/Address"
+      }
+   }
+}
+""".formatJson()
+
+@Language("JSON")
+val addressOpenApiSchema = """
+{
+   "required": [
+      "number",
+      "street"
+   ],
+   "type":"object",
+   "properties": {
+      "street": {
+         "type": "string"
+      },
+      "number": {
+         "type": "integer",
+         "format": "int32"
       }
    }
 }
@@ -368,6 +391,7 @@ val complexExampleJson = """
   },
   "components": {
     "schemas": {
+      "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     },
     "securitySchemes": {
@@ -473,6 +497,7 @@ val crudExampleJson = """
   },
   "components": {
     "schemas": {
+      "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     }
   }
@@ -523,6 +548,7 @@ val defaultOperationExampleJson = """
   },
   "components": {
     "schemas": {
+      "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     }
   }

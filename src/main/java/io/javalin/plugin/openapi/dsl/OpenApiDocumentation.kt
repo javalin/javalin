@@ -94,7 +94,7 @@ class OpenApiDocumentation {
     fun uploadedFile(name: String, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
         val schema = ObjectSchema().apply {
             properties = mapOf(
-                    name to findSchema(ByteArray::class.java)
+                    name to findSchema(ByteArray::class.java)?.main
             )
         }
         body(schema, "multipart/form-data", openApiUpdater)
@@ -109,7 +109,7 @@ class OpenApiDocumentation {
     fun uploadedFiles(name: String, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
         val schema = ObjectSchema().apply {
             properties = mapOf(
-                    name to ArraySchema().items(findSchema(ByteArray::class.java))
+                    name to ArraySchema().items(findSchema(ByteArray::class.java)?.main)
             )
         }
         body(schema, "multipart/form-data", openApiUpdater)
