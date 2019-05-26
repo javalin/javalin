@@ -21,6 +21,13 @@ class OpenApiPlugin(private val options: OpenApiOptions) : Plugin, PluginLifecyc
     }
 
     override fun apply(app: Javalin) {
+        if (options.path == null && (options.swagger != null || options.reDoc != null)) {
+            throw IllegalStateException("""
+                Swagger or ReDoc is enabled, but there is no endpoint available for the OpenApi schema.
+                Please use the `path` option of the OpenApiPlugin to set a schema endpoint.
+            """.trimIndent().replace("\n", " "))
+        }
+
         options.path?.let { path ->
             app.get(path, openApiHandler, options.roles)
 
