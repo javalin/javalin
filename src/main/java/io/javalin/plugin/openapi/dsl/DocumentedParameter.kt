@@ -12,5 +12,5 @@ class DocumentedParameter(
 fun Parameter.applyDocumentedParameter(documentedParameter: DocumentedParameter) {
     `in` = documentedParameter.`in`
     name = documentedParameter.name
-    schema = findSchema(documentedParameter.type)
+    schema = findSchema(documentedParameter.type)?.main
 }

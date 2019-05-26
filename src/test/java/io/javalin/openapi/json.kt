@@ -36,6 +36,29 @@ val userOpenApiSchema = """
    "properties":{
       "name":{
          "type":"string"
+      },
+      "address":{
+          "$ref": "#/components/schemas/Address"
+      }
+   }
+}
+""".formatJson()
+
+@Language("JSON")
+val addressOpenApiSchema = """
+{
+   "required": [
+      "number",
+      "street"
+   ],
+   "type":"object",
+   "properties": {
+      "street": {
+         "type": "string"
+      },
+      "number": {
+         "type": "integer",
+         "format": "int32"
       }
    }
 }
@@ -94,17 +117,6 @@ val provideRouteExampleJson = """
       "version": "1.0.0"
     },
     "paths": {
-      "/docs/swagger.json": {
-        "get": {
-          "summary": "Get docs swagger.json",
-          "operationId": "getDocsSwagger.json",
-          "responses" : {
-            "200" : {
-              "description" : "OK"
-            }
-          }
-        }
-      },
       "/test": {
         "get": {
           "summary": "Get test",
@@ -368,6 +380,7 @@ val complexExampleJson = """
   },
   "components": {
     "schemas": {
+      "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     },
     "securitySchemes": {
@@ -473,6 +486,7 @@ val crudExampleJson = """
   },
   "components": {
     "schemas": {
+      "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     }
   }
@@ -523,6 +537,7 @@ val defaultOperationExampleJson = """
   },
   "components": {
     "schemas": {
+      "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     }
   }

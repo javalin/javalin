@@ -29,6 +29,7 @@ fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>) {
 
 fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
+            .filter { it.extractDocumentation()?.let { !it.isIgnored } ?: true }
             .groupBy { it.path }
             .forEach { (url, metaInfos) ->
                 val pathParser = PathParser(url)

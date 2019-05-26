@@ -124,6 +124,10 @@ fun getUploadsHandler(ctx: Context) {
 )
 fun getResources(ctx: Context) {
 }
+
+@OpenApi(ignore = true)
+fun getIgnore(ctx: Context) {
+}
 // endregion complexExampleWithAnnotationsHandler
 // region handler types
 class ClassHandler : Handler {
@@ -159,6 +163,7 @@ class TestOpenApiAnnotations {
         app.get("/upload", ::getUploadHandler)
         app.get("/uploads", ::getUploadsHandler)
         app.get("/resources/*", ::getResources)
+        app.get("/ignore", ::getIgnore)
 
         val actual = JavalinOpenApi.createSchema(app)
 

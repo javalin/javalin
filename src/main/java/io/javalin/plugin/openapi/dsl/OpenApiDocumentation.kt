@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 
 class OpenApiDocumentation {
+    var isIgnored: Boolean = false
     val operationUpdaterList = mutableListOf<OpenApiUpdater<Operation>>()
     val requestBodyList = mutableListOf<OpenApiUpdater<RequestBody>>()
     val parameterUpdaterListMapping = mutableMapOf<String, MutableList<OpenApiUpdater<Parameter>>>()
@@ -19,6 +20,9 @@ class OpenApiDocumentation {
 
     fun hasRequestBodies(): Boolean = requestBodyList.isNotEmpty()
     fun hasResponses(): Boolean = responseUpdaterListMapping.values.flatten().isNotEmpty()
+
+    /** Hide the endpoint in the documentation */
+    fun ignore() = apply { isIgnored = true }
 
     // --- OPERATION ---
     fun operation(applyUpdates: ApplyUpdates<Operation>) = apply {
@@ -94,7 +98,7 @@ class OpenApiDocumentation {
     fun uploadedFile(name: String, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
         val schema = ObjectSchema().apply {
             properties = mapOf(
-                    name to findSchema(ByteArray::class.java)
+                    name to findSchema(ByteArray::class.java)?.main
             )
         }
         body(schema, "multipart/form-data", openApiUpdater)
@@ -109,7 +113,7 @@ class OpenApiDocumentation {
     fun uploadedFiles(name: String, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
         val schema = ObjectSchema().apply {
             properties = mapOf(
-                    name to ArraySchema().items(findSchema(ByteArray::class.java))
+                    name to ArraySchema().items(findSchema(ByteArray::class.java)?.main)
             )
         }
         body(schema, "multipart/form-data", openApiUpdater)

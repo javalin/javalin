@@ -5,9 +5,7 @@ import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.OpenApiOptions
-import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.intellij.lang.annotations.Language
 
 class ReDocOptions(path: String) : OpenApiUiOptions<ReDocOptions>(path) {
@@ -15,11 +13,7 @@ class ReDocOptions(path: String) : OpenApiUiOptions<ReDocOptions>(path) {
 }
 
 internal class ReDocRenderer(private val openApiOptions: OpenApiOptions) : Handler {
-    @OpenApi(
-            responses = [
-                OpenApiResponse("200", contentType = ContentType.HTML)
-            ]
-    )
+    @OpenApi(ignore = true)
     override fun handle(ctx: Context) {
         val reDocOptions = openApiOptions.reDoc!!
         val docsPath = openApiOptions.getFullDocumentationUrl(ctx)
