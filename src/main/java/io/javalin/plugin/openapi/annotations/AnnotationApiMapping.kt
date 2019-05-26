@@ -12,6 +12,8 @@ fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
     val documentation = OpenApiDocumentation()
     val annotation = this
 
+    documentation.isIgnored = annotation.ignore
+
     documentation.operation { it.applyAnnotation(annotation) }
 
     annotation.cookies.forEach { documentation.applyParamAnnotation("cookie", it) }

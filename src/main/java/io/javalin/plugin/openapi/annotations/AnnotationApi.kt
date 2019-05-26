@@ -7,6 +7,8 @@ import kotlin.reflect.KClass
  */
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.FIELD)
 annotation class OpenApi(
+        /** Ignore the endpoint in the open api documentation */
+        val ignore: Boolean = false,
         val summary: String = NULL_STRING,
         val description: String = NULL_STRING,
         val operationId: String = NULL_STRING,

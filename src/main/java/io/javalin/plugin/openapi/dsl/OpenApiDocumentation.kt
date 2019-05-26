@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 
 class OpenApiDocumentation {
+    var isIgnored: Boolean = false
     val operationUpdaterList = mutableListOf<OpenApiUpdater<Operation>>()
     val requestBodyList = mutableListOf<OpenApiUpdater<RequestBody>>()
     val parameterUpdaterListMapping = mutableMapOf<String, MutableList<OpenApiUpdater<Parameter>>>()
@@ -19,6 +20,9 @@ class OpenApiDocumentation {
 
     fun hasRequestBodies(): Boolean = requestBodyList.isNotEmpty()
     fun hasResponses(): Boolean = responseUpdaterListMapping.values.flatten().isNotEmpty()
+
+    /** Hide the endpoint in the documentation */
+    fun ignore() = apply { isIgnored = true }
 
     // --- OPERATION ---
     fun operation(applyUpdates: ApplyUpdates<Operation>) = apply {

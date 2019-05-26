@@ -191,6 +191,8 @@ class TestOpenApi {
                 .result<Unit>("200")
         app.get("/resources/*", documented(getResourcesDocumentation) {})
 
+        app.get("/ignored", documented(document().ignore()) {})
+
         val actual = JavalinOpenApi.createSchema(app)
 
         assertThat(actual.asJsonString()).isEqualTo(complexExampleJson)
