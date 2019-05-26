@@ -117,17 +117,6 @@ val provideRouteExampleJson = """
       "version": "1.0.0"
     },
     "paths": {
-      "/docs/swagger.json": {
-        "get": {
-          "summary": "Get docs swagger.json",
-          "operationId": "getDocsSwagger.json",
-          "responses" : {
-            "200" : {
-              "description" : "OK"
-            }
-          }
-        }
-      },
       "/test": {
         "get": {
           "summary": "Get test",
