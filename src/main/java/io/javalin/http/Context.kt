@@ -31,21 +31,11 @@ import javax.servlet.http.HttpServletResponse
 open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<Class<*>, Any> = mapOf()) {
 
     // @formatter:off
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var inExceptionHandler = false
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var matchedPath = ""
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var endpointHandlerPath = ""
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var pathParamMap = mapOf<String, String>()
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var handlerType = HandlerType.BEFORE
+    @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
+    @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
+    @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
+    @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
+    @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
