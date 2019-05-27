@@ -7,6 +7,7 @@
 package io.javalin.plugin.rendering
 
 import io.javalin.Javalin
+import io.javalin.http.Context
 import io.javalin.plugin.rendering.markdown.JavalinCommonmark
 import io.javalin.plugin.rendering.template.*
 
@@ -24,12 +25,12 @@ object JavalinRenderer {
         register(JavalinCommonmark, ".md", ".markdown")
     }
 
-    fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>): String {
+    fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         val extension = if (filePath.hasTwoDots) filePath.doubleExtension else filePath.extension
         val renderer = extensions[extension]
                 ?: extensions[filePath.extension] // fallback to a non-double extension
                 ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
-        return renderer.render(filePath, model)
+        return renderer.render(filePath, model, ctx)
     }
 
     @JvmStatic

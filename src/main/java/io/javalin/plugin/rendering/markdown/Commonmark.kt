@@ -8,6 +8,7 @@ package io.javalin.plugin.rendering.markdown
 
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
+import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
@@ -23,7 +24,7 @@ object JavalinCommonmark : FileRenderer {
         parser = staticMarkdownParser
     }
 
-    override fun render(filePath: String, model: Map<String, Any?>): String {
+    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.COMMONMARK)
         renderer = renderer ?: HtmlRenderer.builder().build()
         parser = parser ?: Parser.builder().build()

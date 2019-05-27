@@ -437,7 +437,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     @JvmOverloads
     fun render(filePath: String, model: Map<String, Any?> = emptyMap()): Context {
-        return html(JavalinRenderer.renderBasedOnExtension(filePath, model))
+        return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
     }
 
 }
