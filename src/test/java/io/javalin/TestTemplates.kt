@@ -79,6 +79,12 @@ class TestTemplates {
     }
 
     @Test
+    fun `thymeleaf url syntax work`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/thymeleaf/testUrls.html", model("linkParam2", "val2")) }
+        assertThat(http.getBody("/hello")).isEqualTo("<a href=\"/test-link?param1=val1&amp;param2=val2\">Link text</a>")
+    }
+
+    @Test
     fun `mustache templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/mustache/test.mustache", model("message", "Hello Mustache!")) }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Mustache!</h1>")
