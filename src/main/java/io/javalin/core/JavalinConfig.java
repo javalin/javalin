@@ -168,7 +168,7 @@ public class JavalinConfig {
     }
 
     public JavalinConfig configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
-        inner.servletContextHandlerConsumer  = consumer;
+        inner.servletContextHandlerConsumer = consumer;
         return this;
     }
 

@@ -106,8 +106,11 @@ public class Javalin {
         return this.servlet;
     }
 
-    /** Get the JavalinServer */
-    public @Nullable JavalinServer server() {
+    /**
+     * Get the JavalinServer
+     */
+    public @Nullable
+    JavalinServer server() {
         return this.server;
     }
 
