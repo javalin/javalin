@@ -10,6 +10,7 @@ import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.annotations.HttpMethod;
 import io.javalin.plugin.openapi.annotations.OpenApi;
+import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JavaCrudHandler implements CrudHandler {
     @OpenApi(
         responses = {
-            @OpenApiResponse(status = "200", returnType = User.class, isArray = true)
+            @OpenApiResponse(status = "200", content = @OpenApiContent(from = User.class, isArray = true))
         }
     )
     @Override
@@ -31,7 +32,7 @@ class JavaCrudHandler implements CrudHandler {
 
     @OpenApi(
         responses = {
-            @OpenApiResponse(status = "200", returnType = User.class)
+            @OpenApiResponse(status = "200", content = @OpenApiContent(from = User.class))
         }
     )
     @Override
@@ -58,7 +59,7 @@ class JavaCrudHandler implements CrudHandler {
 class GetAllHandler implements Handler {
     @OpenApi(
         responses = {
-            @OpenApiResponse(status = "200", returnType = User.class, isArray = true)
+            @OpenApiResponse(status = "200", content = @OpenApiContent(from = User.class, isArray = true))
         }
     )
     @Override
@@ -69,7 +70,7 @@ class GetAllHandler implements Handler {
 class GetOneHandler implements Handler {
     @OpenApi(
         responses = {
-            @OpenApiResponse(status = "200", returnType = User.class)
+            @OpenApiResponse(status = "200", content = @OpenApiContent(from = User.class))
         }
     )
     @Override

@@ -4,15 +4,17 @@ import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.parameters.RequestBody
 
 class DocumentedRequestBody(
-        val content: DocumentedContent
+        val content: List<DocumentedContent>
 )
 
 fun RequestBody.applyDocumentedRequestBody(documentedRequestBody: DocumentedRequestBody) {
-    updateContent {
-        applyDocumentedContent(documentedRequestBody.content)
+    if (documentedRequestBody.content.isNotEmpty()) {
+        updateContent {
+            documentedRequestBody.content.forEach { applyDocumentedContent(it) }
+        }
     }
 }
 
 fun Components.applyDocumentedRequestBody(documentedRequestBody: DocumentedRequestBody) {
-    applyDocumentedContent(documentedRequestBody.content)
+    documentedRequestBody.content.forEach { applyDocumentedContent(it) }
 }

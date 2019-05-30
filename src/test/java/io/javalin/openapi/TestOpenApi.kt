@@ -30,6 +30,7 @@ import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documentCrud
 import io.javalin.plugin.openapi.dsl.documented
+import io.javalin.plugin.openapi.dsl.documentedContent
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityScheme
@@ -97,6 +98,7 @@ class TestOpenApi {
                 .json<User>("200") {
                     it.description = "Request successful"
                 }
+                .result("200", documentedContent<User>("application/xml"))
         app.get("/user", documented(getUserDocumentation) {
             it.json(User(name = "Jim"))
         })
@@ -145,7 +147,8 @@ class TestOpenApi {
                     it.description = "body description"
                     it.required = true
                 }
-                .body<User>()
+                .body<User>("application/json")
+                .body<User>("application/xml")
                 .bodyAsBytes()
                 .bodyAsBytes("image/png")
         app.put("/user", documented(putUserDocumentation) {
