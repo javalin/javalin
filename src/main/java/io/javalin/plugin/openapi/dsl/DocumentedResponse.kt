@@ -6,22 +6,20 @@ import org.eclipse.jetty.http.HttpStatus
 
 class DocumentedResponse(
         val status: String,
-        val content: DocumentedContent?
+        val content: List<DocumentedContent>
 )
 
 fun DocumentedResponse.getStatusMessage() = status.toIntOrNull()?.let { HttpStatus.getMessage(it) } ?: ""
 
 fun ApiResponse.applyDocumentedResponse(documentedResponse: DocumentedResponse) {
-    description = documentedResponse.getStatusMessage()
-    if (documentedResponse.content != null) {
+    description = description ?: documentedResponse.getStatusMessage()
+    if (documentedResponse.content.isNotEmpty()) {
         updateContent {
-            applyDocumentedContent(documentedResponse.content)
+            documentedResponse.content.forEach { applyDocumentedContent(it) }
         }
     }
 }
 
 fun Components.applyDocumentedResponse(documentedResponse: DocumentedResponse) {
-    if (documentedResponse.content != null) {
-        applyDocumentedContent(documentedResponse.content)
-    }
+    documentedResponse.content.forEach { applyDocumentedContent(it) }
 }

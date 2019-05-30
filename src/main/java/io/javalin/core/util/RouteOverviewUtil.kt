@@ -14,6 +14,7 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 data class RouteOverviewConfig(val path: String, val roles: Set<Role>)
@@ -31,7 +32,7 @@ class RouteOverviewRenderer(val app: Javalin) : Handler {
     @OpenApi(
             summary = "Get an overview of all the routes in the application",
             responses = [
-                OpenApiResponse("200", contentType = ContentType.HTML)
+                OpenApiResponse("200", content = [OpenApiContent(type = ContentType.HTML)])
             ]
     )
     override fun handle(ctx: Context) {

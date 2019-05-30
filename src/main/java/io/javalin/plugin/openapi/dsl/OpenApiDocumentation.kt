@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.external.findSchema
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.Operation
@@ -130,15 +131,19 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun body(returnType: Class<*>, contentType: String? = null, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        val documentedContent = DocumentedContent(returnType, false, contentType)
-        val documentedBody = DocumentedRequestBody(documentedContent)
-        body(documentedBody, openApiUpdater)
+        val documentedContent = listOf(DocumentedContent(returnType, false, contentType))
+        body(documentedContent, openApiUpdater)
     }
 
     @JvmOverloads
     fun body(schema: Schema<*>, contentType: String, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        val documentedContent = DocumentedContent(schema, contentType)
-        val documentedBody = DocumentedRequestBody(documentedContent)
+        val documentedContent = listOf(DocumentedContent(schema, contentType))
+        body(documentedContent, openApiUpdater)
+    }
+
+    @JvmOverloads
+    fun body(content: List<DocumentedContent>, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
+        val documentedBody = DocumentedRequestBody(content)
         body(documentedBody, openApiUpdater)
     }
 
@@ -167,8 +172,8 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun jsonArray(status: String, returnType: Class<*>, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val documentedContent = DocumentedContent(returnType, true, "application/json")
-        val documentedResponse = DocumentedResponse(status, documentedContent)
+        val content = listOf(DocumentedContent(returnType, true, "application/json"))
+        val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }
 
@@ -179,8 +184,8 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun json(status: String, returnType: Class<*>, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val documentedContent = DocumentedContent(returnType, false, "application/json")
-        val documentedResponse = DocumentedResponse(status, documentedContent)
+        val content = listOf(DocumentedContent(returnType, false, "application/json"))
+        val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }
 
@@ -191,8 +196,8 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun html(status: String, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val documentedContent = DocumentedContent(String::class.java, false, "text/html")
-        val documentedResponse = DocumentedResponse(status, documentedContent)
+        val content = listOf(DocumentedContent(String::class.java, false, "text/html"))
+        val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }
 
@@ -204,12 +209,11 @@ class OpenApiDocumentation {
     @JvmOverloads
     fun result(status: String, returnType: Class<*>? = null, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
         val documentedContent = if (returnType == null || returnType == Unit::class.java) {
-            null
+            listOf()
         } else {
-            DocumentedContent(returnType, false)
+            listOf(DocumentedContent(returnType, false))
         }
-        val documentedResponse = DocumentedResponse(status, documentedContent)
-        result(documentedResponse, openApiUpdater)
+        result(status, documentedContent, openApiUpdater)
     }
 
     inline fun <reified T> result(status: String, contentType: String?, noinline applyUpdates: ApplyUpdates<ApiResponse>? = null) = apply {
@@ -219,16 +223,24 @@ class OpenApiDocumentation {
     @JvmOverloads
     fun result(status: String, returnType: Class<*>?, contentType: String?, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
         val documentedContent = if (returnType == null || returnType == Unit::class.java) {
-            null
+            listOf()
         } else {
-            DocumentedContent(returnType, false, contentType)
+            listOf(DocumentedContent(returnType, false, contentType))
         }
-        val documentedResponse = DocumentedResponse(status, documentedContent)
-        result(documentedResponse, openApiUpdater)
+        result(status, documentedContent, openApiUpdater)
     }
 
     fun result(documentedResponse: DocumentedResponse, applyUpdates: ApplyUpdates<ApiResponse>? = null) = apply {
         result(documentedResponse, createUpdaterIfNotNull(applyUpdates))
+    }
+
+    fun result(status: String, content: DocumentedContent, updater: OpenApiUpdater<ApiResponse>? = null) = apply {
+        result(status, listOf(content), updater)
+    }
+
+    fun result(status: String, content: List<DocumentedContent> = listOf(), updater: OpenApiUpdater<ApiResponse>? = null) = apply {
+        val documentedResponse = DocumentedResponse(status, content)
+        result(documentedResponse, updater)
     }
 
     @JvmOverloads
@@ -258,3 +270,7 @@ private fun <K, T> MutableMap<K, T>.getOrSetDefault(key: K, default: T): T {
     }
     return value
 }
+
+private fun List<String>.withContentTypeDefaults() =
+        if (this.isEmpty()) listOf(ContentType.AUTODETECT)
+        else this

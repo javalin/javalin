@@ -178,6 +178,11 @@ val complexExampleJson = """
                 "schema": {
                   "$ref": "#/components/schemas/User"
                 }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
               }
             }
           }
@@ -197,6 +202,11 @@ val complexExampleJson = """
               }
             },
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            },
+            "application/xml": {
               "schema": {
                 "$ref": "#/components/schemas/User"
               }

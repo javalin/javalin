@@ -4,6 +4,7 @@ import io.javalin.plugin.openapi.dsl.DocumentedContent
 import io.javalin.plugin.openapi.dsl.DocumentedParameter
 import io.javalin.plugin.openapi.dsl.DocumentedResponse
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
+import io.javalin.plugin.openapi.dsl.createUpdater
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.parameters.RequestBody
 import kotlin.reflect.KClass
@@ -21,9 +22,7 @@ fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
     annotation.pathParams.forEach { documentation.applyParamAnnotation("path", it) }
     annotation.queryParams.forEach { documentation.applyParamAnnotation("query", it) }
 
-    annotation.requestBodies.forEach { requestBody ->
-        documentation.body(requestBody.type.java, requestBody.contentType.correctNullValue()) { it.applyAnnotation(requestBody) }
-    }
+    documentation.applyRequestBodyAnnotation(annotation.requestBody)
 
     annotation.fileUploads.forEach { fileUpload ->
         if (fileUpload.isArray) {
@@ -38,8 +37,8 @@ fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
     return documentation
 }
 
-private fun resolveNullValueFromContentType(returnType: KClass<*>, contentType: String): KClass<out Any> {
-    return if (returnType == NULL_CLASS::class) {
+private fun resolveNullValueFromContentType(fromType: KClass<*>, contentType: String): KClass<out Any> {
+    return if (fromType == NULL_CLASS::class) {
         if (contentType.startsWith("text/")) {
             // Default for text/html, etc is string
             String::class
@@ -48,7 +47,7 @@ private fun resolveNullValueFromContentType(returnType: KClass<*>, contentType: 
             Unit::class
         }
     } else {
-        returnType
+        fromType
     }
 }
 
@@ -86,18 +85,28 @@ private fun RequestBody.applyAnnotation(annotation: OpenApiFileUpload) {
     }
 }
 
+private fun OpenApiContent.asDocumentedContent(): DocumentedContent {
+    val content = this
+    val from = resolveNullValueFromContentType(content.from, content.type)
+    return DocumentedContent(
+            from = from.java,
+            isArray = content.isArray,
+            contentType = content.type
+    )
+}
+
+private fun OpenApiDocumentation.applyRequestBodyAnnotation(requestBody: OpenApiRequestBody) {
+    if (requestBody.content.isNotEmpty()) {
+        this.body(requestBody.content.map { it.asDocumentedContent() }, createUpdater { it.applyAnnotation(requestBody) })
+    }
+}
+
 private fun OpenApiDocumentation.applyResponseAnnotation(it: OpenApiResponse) {
     val documentation = this
-    val returnType = resolveNullValueFromContentType(it.returnType, it.contentType)
-    val returnTypeIsUnit = returnType == Unit::class
     documentation.result(
             documentedResponse = DocumentedResponse(
                     status = it.status,
-                    content = if (returnTypeIsUnit) null else DocumentedContent(
-                            returnType = returnType.java,
-                            isArray = it.isArray,
-                            contentType = it.contentType
-                    )
+                    content = it.content.map { it.asDocumentedContent() }
             ),
             applyUpdates = { responseDocumentation ->
                 if (it.description.isNotNullString()) {
