@@ -517,15 +517,22 @@ val defaultOperationExampleJson = """
         "summary": "Get route1",
         "operationId": "getRoute1",
         "responses": {
-          "500": {
-            "description": "Server Error"
-          },
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MyError"
                 }
               }
             }
@@ -539,7 +546,14 @@ val defaultOperationExampleJson = """
         "operationId": "getRoute2",
         "responses": {
           "500": {
-            "description": "Server Error"
+            "description": "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MyError"
+                }
+              }
+            }
           }
         }
       }
@@ -548,7 +562,16 @@ val defaultOperationExampleJson = """
   "components": {
     "schemas": {
       "Address": $addressOpenApiSchema,
-      "User": $userOpenApiSchema
+      "User": $userOpenApiSchema,
+      "MyError" : {
+        "required" : [ "message" ],
+        "type" : "object",
+        "properties" : {
+          "message" : {
+            "type" : "string"
+          }
+        }
+      }
     }
   }
 }

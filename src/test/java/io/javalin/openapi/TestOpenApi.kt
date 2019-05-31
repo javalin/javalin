@@ -12,8 +12,6 @@ import cc.vileda.openapi.dsl.info
 import cc.vileda.openapi.dsl.openapiDsl
 import cc.vileda.openapi.dsl.path
 import cc.vileda.openapi.dsl.paths
-import cc.vileda.openapi.dsl.response
-import cc.vileda.openapi.dsl.responses
 import cc.vileda.openapi.dsl.security
 import cc.vileda.openapi.dsl.securityScheme
 import cc.vileda.openapi.dsl.server
@@ -79,6 +77,8 @@ fun createComplexExampleBaseConfiguration() = openapiDsl {
         url = "https://external-documentation.info"
     }
 }
+
+data class MyError( val message: String )
 
 class TestOpenApi {
     @Test
@@ -259,9 +259,9 @@ class TestOpenApi {
         val openApiOptions = OpenApiOptions(
                 Info().title("Example").version("1.0.0")
         )
-                .defaultOperation { operation, _ ->
-                    operation.responses {
-                        response("500") { description = "Server Error" }
+                .default { documentation ->
+                    documentation.result<MyError>("500") {
+                         it.description = "Server Error"
                     }
                 }
         val app = Javalin.create {

@@ -5,10 +5,9 @@
  */
 package io.javalin.examples
 
-import cc.vileda.openapi.dsl.response
-import cc.vileda.openapi.dsl.responses
 import io.javalin.Javalin
 import io.javalin.http.Context
+import io.javalin.http.InternalServerErrorResponse
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.dsl.document
@@ -71,11 +70,7 @@ fun main() {
                 .path("/swagger-docs")
                 .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
                 .reDoc(ReDocOptions("/redoc").title("My ReDoc Documentation"))
-                .defaultOperation { operation, _ ->
-                    operation.responses {
-                        response("500") { description = "Server Error" }
-                    }
-                }
+                .default { documentation -> documentation.json<InternalServerErrorResponse>("500") }
         it.registerPlugin(OpenApiPlugin(openApiOptions))
     }
 

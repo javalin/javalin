@@ -7,29 +7,27 @@ package io.javalin.plugin.openapi.dsl
 import io.javalin.core.PathParser
 import io.javalin.core.PathSegment
 import io.javalin.core.event.HandlerMetaInfo
-import io.javalin.core.util.OptionalDependency
-import io.javalin.core.util.Util
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.CreateSchemaOptions
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.annotations.PathInfo
-import io.javalin.plugin.openapi.annotations.scanForAnnotations
 import io.javalin.plugin.openapi.external.schema
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.Paths
 
-fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>) {
+fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
-            .mapNotNull { it.extractDocumentation() }
+            .map { it.extractDocumentation(options) }
+            .filter { !it.isIgnored }
             .flatMap { it.componentsUpdaterList }
             .applyAllUpdates(this)
 }
 
 fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
-            .filter { it.extractDocumentation()?.let { !it.isIgnored } ?: true }
+            .filter { !it.extractDocumentation(options).isIgnored }
             .groupBy { it.path }
             .forEach { (url, metaInfos) ->
                 val pathParser = PathParser(url)
@@ -67,17 +65,7 @@ fun PathItem.applyMetaInfoList(options: CreateSchemaOptions, path: PathParser, h
 
 
 fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, metaInfo: HandlerMetaInfo) {
-    var documentation = metaInfo.extractDocumentation()
-    options.defaultOperation?.setup(this, documentation)
-
-    // Use path scanning to get the documentation if activated
-    if (documentation == null && options.packagePrefixesToScan.isNotEmpty()) {
-        Util.ensureDependencyPresent(OptionalDependency.CLASS_GRAPH)
-        metaInfo.getPathInfo()?.let { pathInfo ->
-            val documentationFromScan = scanForAnnotations(options.packagePrefixesToScan)
-            documentation = documentationFromScan[pathInfo]
-        }
-    }
+    val documentation = metaInfo.extractDocumentation(options)
 
     operationId = metaInfo.createDefaultOperationId(path)
     summary = metaInfo.createDefaultSummary(path)
@@ -92,31 +80,29 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
         }
     }
 
-    documentation?.let { documentation ->
-        documentation.parameterUpdaterListMapping
-                .values
-                .forEach { updaters ->
-                    updateParameter { updaters.applyAllUpdates(this) }
-                }
-
-        if (documentation.hasRequestBodies()) {
-            updateRequestBody {
-                documentation.requestBodyList.applyAllUpdates(this)
+    documentation.parameterUpdaterListMapping
+            .values
+            .forEach { updaters ->
+                updateParameter { updaters.applyAllUpdates(this) }
             }
-        }
 
-        if (documentation.hasResponses()) {
-            updateResponses {
-                documentation.responseUpdaterListMapping
-                        .forEach { name, updater ->
-                            updateResponse(name) {
-                                updater.applyAllUpdates(this)
-                            }
-                        }
-            }
+    if (documentation.hasRequestBodies()) {
+        updateRequestBody {
+            documentation.requestBodyList.applyAllUpdates(this)
         }
-        documentation.operationUpdaterList.applyAllUpdates(this)
     }
+
+    if (documentation.hasResponses()) {
+        updateResponses {
+            documentation.responseUpdaterListMapping
+                    .forEach { name, updater ->
+                        updateResponse(name) {
+                            updater.applyAllUpdates(this)
+                        }
+                    }
+        }
+    }
+    documentation.operationUpdaterList.applyAllUpdates(this)
 }
 
 fun HandlerMetaInfo.getPathInfo(): PathInfo? = httpMethod.asAnnotationHttpMethod()?.let { method ->
