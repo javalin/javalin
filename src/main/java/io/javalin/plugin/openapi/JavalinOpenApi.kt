@@ -20,7 +20,7 @@ class CreateSchemaOptions(
          */
         val createBaseConfiguration: CreateBaseConfiguration,
 
-        val defaultOperation: ApplyDefaultOperation?,
+        val default: DefaultDocumentation?,
 
         val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory,
 
@@ -45,7 +45,7 @@ object JavalinOpenApi {
         return runWithModelConverter(modelConverter) {
             baseConfiguration.apply {
                 updateComponents {
-                    applyMetaInfoList(options.handlerMetaInfoList)
+                    applyMetaInfoList(options.handlerMetaInfoList, options)
                 }
                 updatePaths {
                     applyMetaInfoList(options.handlerMetaInfoList, options)

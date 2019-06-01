@@ -9,7 +9,6 @@ import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.OpenAPI
-import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.info.Info
 
 class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfiguration) {
@@ -30,7 +29,7 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
      * Function that is applied to every new operation.
      * You can use this to set defaults (like a 500 response).
      */
-    var defaultOperation: ApplyDefaultOperation? = null
+    var default: DefaultDocumentation? = null
     /**
      * Creates a model converter, which converts a class to an open api schema.
      * Defaults to the jackson converter.
@@ -57,10 +56,10 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
 
     fun roles(value: Set<Role>) = apply { roles = value }
 
-    fun defaultOperation(value: ApplyDefaultOperation) = apply { defaultOperation = value }
-    fun defaultOperation(setup: (operation: Operation, documentation: OpenApiDocumentation?) -> Unit) = apply {
-        defaultOperation = object : ApplyDefaultOperation {
-            override fun setup(operation: Operation, documentation: OpenApiDocumentation?) = setup(operation, documentation)
+    fun default(value: DefaultDocumentation) = apply { default = value }
+    fun default(apply: (documentation: OpenApiDocumentation) -> Unit) = apply {
+        default = object : DefaultDocumentation {
+            override fun apply(documentation: OpenApiDocumentation) = apply(documentation)
         }
     }
 
@@ -83,6 +82,6 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
 }
 
 @FunctionalInterface
-interface ApplyDefaultOperation {
-    fun setup(operation: Operation, documentation: OpenApiDocumentation?)
+interface DefaultDocumentation {
+    fun apply(documentation: OpenApiDocumentation)
 }
