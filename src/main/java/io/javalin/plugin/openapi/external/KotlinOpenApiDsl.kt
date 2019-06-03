@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.DateSchema
 import io.swagger.v3.oas.models.media.DateTimeSchema
 import io.swagger.v3.oas.models.media.IntegerSchema
+import io.swagger.v3.oas.models.media.MapSchema
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.StringSchema
@@ -112,6 +113,7 @@ internal fun <T> findSchema(clazz: Class<T>): FindSchemaResponse? {
         Int::class.java -> FindSchemaResponse(IntegerSchema())
         Integer::class.java -> FindSchemaResponse(IntegerSchema())
         List::class.java -> FindSchemaResponse(ArraySchema())
+        Map::class.java -> FindSchemaResponse(MapSchema())
         Long::class.java -> FindSchemaResponse(IntegerSchema().format("int64"))
         BigDecimal::class.java -> FindSchemaResponse(IntegerSchema().format(""))
         Date::class.java -> FindSchemaResponse(DateSchema())
