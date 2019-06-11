@@ -105,9 +105,9 @@ app.after { ctx -> ... } // runs after all requests
 app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
 app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
 
-app.wsBefore("/some-path/*") { ctx ->  ... } // runs before ws events on /some-path/*
-app.wsBefore { ctx -> ... } // runs before all ws events
-app.wsAfter { ctx -> ... } // runs after all ws events
+app.wsBefore("/some-path/*") { ws ->  ... } // runs before ws events on /some-path/*
+app.wsBefore { ws -> ... } // runs before all ws events
+app.wsAfter { ws -> ... } // runs after all ws events
 app.wsException(Exception.class) { e, ctx -> ... } // runs if uncaught Exception in ws handler
 ```
 
