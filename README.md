@@ -27,11 +27,11 @@ General information:
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>2.8.0</version>
+    <version>3.0.0</version>
 </dependency>
 
 // or gradle, if you must
-compile 'io.javalin:javalin:2.8.0'
+compile 'io.javalin:javalin:3.0.0'
 ```
 
 ### Start programming (Java)
@@ -63,13 +63,14 @@ All examples are in Kotlin, but you can find them in Java in the documentation (
 
 ### Api structure and server config
 ```kotlin
-val app = Javalin.create().apply {
-    enableCorsForAllOrigins()
-    enableStaticFiles("/public")
-    enableStaticFiles("uploads", Location.EXTERNAL)
-}.start(port)
-
-app.routes {
+val app = Javalin.create { config ->
+    config.defaultContentType = "application/json"
+    config.autogenerateEtags = true
+    config.addStaticFiles("/public")
+    config.asyncRequestTimeout = 10_000L
+    config.dynamicGzip = true
+    config.enforceSsl = true
+}.routes {
     path("users") {
         get(UserController::getAll)
         post(UserController::create)
@@ -78,20 +79,21 @@ app.routes {
             patch(UserController::update)
             delete(UserController::delete)
         }
+        ws("events", userController::webSocketEvents)
     }
-}
+}.start(port)
 ```
 
 ### WebSockets
 ```kotlin
-app.ws("/websocket") { ws ->
-    ws.onConnect { session -> println("Connected") }
-    ws.onMessage { session, message ->
-        println("Received: " + message)
-        session.remote.sendString("Echo: " + message)
+app.ws("/websocket/:path") { ws ->
+    ws.onConnect { ctx -> println("Connected") }
+    ws.onMessage { ctx ->
+        val user = ctx.message<User>(); // convert from json string to object
+        ctx.send(user); // convert to json string and send back
     }
-    ws.onClose { session, statusCode, reason -> println("Closed") }
-    ws.onError { session, throwable -> println("Errored") }
+    ws.onClose { ctx -> println("Closed") }
+    ws.onError { ctx -> println("Errored") }
 }
 ```
 
@@ -102,6 +104,11 @@ app.before { ctx -> ... } // runs before all requests
 app.after { ctx -> ... } // runs after all requests
 app.exception(Exception.class) { e, ctx -> ... } // runs if uncaught Exception
 app.error(404) { ctx -> ... } // runs if status is 404 (after all other handlers)
+
+app.wsBefore("/some-path/*") { ctx ->  ... } // runs before ws events on /some-path/*
+app.wsBefore { ctx -> ... } // runs before all ws events
+app.wsAfter { ctx -> ... } // runs after all ws events
+app.wsException(Exception.class) { e, ctx -> ... } // runs if uncaught Exception in ws handler
 ```
 
 ### JSON-mapping
@@ -124,6 +131,11 @@ app.post("/upload") { ctx ->
     }
 }
 ```
+
+### OpenAPI (Swagger)
+
+Javalin has an OpenAPI (Swagger) plugin. Documentation can be enabled both through a DSL and through annotations,
+and Javalin can render docs using both SwaggerUI and ReDoc. Read more at https://javalin.io/plugins/openapi.
 
 ## Special thanks
 * Blake Mizerany, for creating [Sinatra](http://www.sinatrarb.com/)
