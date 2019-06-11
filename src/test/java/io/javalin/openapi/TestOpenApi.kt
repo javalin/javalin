@@ -259,7 +259,7 @@ class TestOpenApi {
         val openApiOptions = OpenApiOptions(
                 Info().title("Example").version("1.0.0")
         )
-                .default { documentation ->
+                .defaultDocumentation { documentation ->
                     documentation.result<MyError>("500") {
                          it.description = "Server Error"
                     }
