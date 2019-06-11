@@ -84,3 +84,5 @@ class OpenApiOptions constructor(val createBaseConfiguration: () -> OpenAPI) {
 interface DefaultDocumentation {
     fun apply(documentation: OpenApiDocumentation)
 }
+
+typealias CreateBaseConfiguration = () -> OpenAPI
