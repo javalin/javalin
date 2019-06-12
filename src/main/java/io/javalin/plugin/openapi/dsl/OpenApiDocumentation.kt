@@ -121,12 +121,20 @@ class OpenApiDocumentation {
     }
 
     // --- BODY ---
+    inline fun <reified T> body(noinline applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
+        body(T::class.java, null, applyUpdates)
+    }
+
     inline fun <reified T> body(contentType: String? = null, noinline applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
         body(T::class.java, contentType, applyUpdates)
     }
 
     fun body(returnType: Class<*>, contentType: String? = null, applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
         body(returnType, contentType, createUpdaterIfNotNull(applyUpdates))
+    }
+
+    fun body(returnType: Class<*>, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
+        body(returnType, null, openApiUpdater)
     }
 
     @JvmOverloads

@@ -70,7 +70,7 @@ fun main() {
                 .path("/swagger-docs")
                 .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
                 .reDoc(ReDocOptions("/redoc").title("My ReDoc Documentation"))
-                .default { documentation -> documentation.json<InternalServerErrorResponse>("500") }
+                .defaultDocumentation { documentation -> documentation.json<InternalServerErrorResponse>("500") }
         it.registerPlugin(OpenApiPlugin(openApiOptions))
     }
 

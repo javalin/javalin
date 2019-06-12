@@ -11,7 +11,7 @@ import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 
-class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfiguration) {
+class OpenApiOptions constructor(val createBaseConfiguration: () -> OpenAPI) {
     /** If not null, creates a GET route to get the schema as a json */
     var path: String? = null
     var roles: Set<Role> = setOf()
@@ -45,7 +45,6 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
      */
     var packagePrefixesToScan = mutableSetOf<String>()
 
-    constructor(createBaseConfiguration: () -> OpenAPI) : this(CreateBaseConfiguration(createBaseConfiguration))
     constructor(info: Info) : this({ OpenAPI().info(info) })
 
     fun path(value: String) = apply { path = value }
@@ -56,8 +55,8 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
 
     fun roles(value: Set<Role>) = apply { roles = value }
 
-    fun default(value: DefaultDocumentation) = apply { default = value }
-    fun default(apply: (documentation: OpenApiDocumentation) -> Unit) = apply {
+    fun defaultDocumentation(value: DefaultDocumentation) = apply { default = value }
+    fun defaultDocumentation(apply: (documentation: OpenApiDocumentation) -> Unit) = apply {
         default = object : DefaultDocumentation {
             override fun apply(documentation: OpenApiDocumentation) = apply(documentation)
         }
@@ -85,3 +84,5 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
 interface DefaultDocumentation {
     fun apply(documentation: OpenApiDocumentation)
 }
+
+typealias CreateBaseConfiguration = () -> OpenAPI
