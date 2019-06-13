@@ -17,7 +17,7 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
 
     fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(CreateSchemaOptions(
             handlerMetaInfoList = handlerMetaInfoList,
-            createBaseConfiguration = options.createBaseConfiguration,
+            initialConfigurationCreator = options.initialConfigurationCreator,
             default = options.default,
             modelConverterFactory = options.modelConverterFactory,
             packagePrefixesToScan = options.packagePrefixesToScan
