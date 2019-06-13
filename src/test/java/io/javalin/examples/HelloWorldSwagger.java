@@ -14,6 +14,7 @@ import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.annotations.HttpMethod;
 import io.javalin.plugin.openapi.annotations.OpenApi;
+import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import io.javalin.plugin.openapi.ui.ReDocOptions;
@@ -49,7 +50,7 @@ class ExampleController {
             @OpenApiParam(name = "my-query-param")
         },
         responses = {
-            @OpenApiResponse(status = "201", returnType = String.class)
+            @OpenApiResponse(status = "201", content = @OpenApiContent(from = String.class))
         }
     )
     public static void create(Context ctx) {

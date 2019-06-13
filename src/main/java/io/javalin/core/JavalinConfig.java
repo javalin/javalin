@@ -72,11 +72,12 @@ public class JavalinConfig {
     /**
      * Register a new plugin.
      */
-    public void registerPlugin(@NotNull Plugin plugin) {
+    public JavalinConfig registerPlugin(@NotNull Plugin plugin) {
         if (inner.plugins.containsKey(plugin.getClass())) {
             throw new PluginAlreadyRegisteredException(plugin.getClass());
         }
         inner.plugins.put(plugin.getClass(), plugin);
+        return this;
     }
 
     /**
@@ -90,70 +91,85 @@ public class JavalinConfig {
         return result;
     }
 
-    public void enableDevLogging() {
+    public JavalinConfig enableDevLogging() {
         requestLogger(LogUtil::requestDevLogger);
         wsLogger(LogUtil::wsDevLogger);
+        return this;
     }
 
-    public void enableWebjars() {
+    public JavalinConfig enableWebjars() {
         addStaticFiles("/webjars", Location.CLASSPATH);
+        return this;
     }
 
-    public void addStaticFiles(@NotNull String classpathPath) {
+    public JavalinConfig addStaticFiles(@NotNull String classpathPath) {
         addStaticFiles(classpathPath, Location.CLASSPATH);
+        return this;
     }
 
-    public void addStaticFiles(@NotNull String path, @NotNull Location location) {
+    public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null) inner.resourceHandler = new JettyResourceHandler();
         inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
+        return this;
     }
 
-    public void addSinglePageRoot(@NotNull String path, @NotNull String filePath) {
+    public JavalinConfig addSinglePageRoot(@NotNull String path, @NotNull String filePath) {
         addSinglePageRoot(path, filePath, Location.CLASSPATH);
+        return this;
     }
 
-    public void addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
+    public JavalinConfig addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
         inner.singlePageHandler.add(path, filePath, location);
+        return this;
     }
 
-    public void enableCorsForAllOrigins() {
+    public JavalinConfig enableCorsForAllOrigins() {
         registerPlugin(CorsPlugin.forAllOrigins());
+        return this;
     }
 
-    public void enableCorsForOrigin(@NotNull String... origins) {
+    public JavalinConfig enableCorsForOrigin(@NotNull String... origins) {
         registerPlugin(CorsPlugin.forOrigins(origins));
+        return this;
     }
 
-    public void accessManager(@NotNull AccessManager accessManager) {
+    public JavalinConfig accessManager(@NotNull AccessManager accessManager) {
         inner.accessManager = accessManager;
+        return this;
     }
 
-    public void requestLogger(@NotNull RequestLogger requestLogger) {
+    public JavalinConfig requestLogger(@NotNull RequestLogger requestLogger) {
         inner.requestLogger = requestLogger;
+        return this;
     }
 
-    public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
+    public JavalinConfig sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
         JettyUtil.disableJettyLogger();
         inner.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
+        return this;
     }
 
-    public void wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
+    public JavalinConfig wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
         inner.wsFactoryConfig = wsFactoryConfig;
+        return this;
     }
 
-    public void wsLogger(@NotNull Consumer<WsHandler> ws) {
+    public JavalinConfig wsLogger(@NotNull Consumer<WsHandler> ws) {
         WsHandler logger = new WsHandler();
         ws.accept(logger);
         inner.wsLogger = logger;
+        return this;
     }
 
-    public void server(Supplier<Server> server) {
+    public JavalinConfig server(Supplier<Server> server) {
         inner.server = server.get();
+        return this;
     }
 
-    public void configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
-        inner.servletContextHandlerConsumer  = consumer;
+    public JavalinConfig configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
+        inner.servletContextHandlerConsumer = consumer;
+        return this;
     }
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {

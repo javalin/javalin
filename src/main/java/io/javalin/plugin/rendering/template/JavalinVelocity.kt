@@ -8,6 +8,7 @@ package io.javalin.plugin.rendering.template
 
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
+import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
 import org.apache.velocity.VelocityContext
 import org.apache.velocity.app.VelocityEngine
@@ -23,7 +24,7 @@ object JavalinVelocity : FileRenderer {
         velocityEngine = staticVelocityEngine
     }
 
-    override fun render(filePath: String, model: Map<String, Any?>): String {
+    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
         velocityEngine = velocityEngine ?: defaultVelocityEngine()
         val stringWriter = StringWriter()

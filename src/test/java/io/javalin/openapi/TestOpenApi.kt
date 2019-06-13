@@ -12,8 +12,6 @@ import cc.vileda.openapi.dsl.info
 import cc.vileda.openapi.dsl.openapiDsl
 import cc.vileda.openapi.dsl.path
 import cc.vileda.openapi.dsl.paths
-import cc.vileda.openapi.dsl.response
-import cc.vileda.openapi.dsl.responses
 import cc.vileda.openapi.dsl.security
 import cc.vileda.openapi.dsl.securityScheme
 import cc.vileda.openapi.dsl.server
@@ -30,6 +28,7 @@ import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documentCrud
 import io.javalin.plugin.openapi.dsl.documented
+import io.javalin.plugin.openapi.dsl.documentedContent
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityScheme
@@ -37,7 +36,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
 
-class User(val name: String)
+class Address(val street: String, val number: Int)
+
+class User(val name: String, val address: Address? = null)
 
 fun createComplexExampleBaseConfiguration() = openapiDsl {
     info {
@@ -77,6 +78,8 @@ fun createComplexExampleBaseConfiguration() = openapiDsl {
     }
 }
 
+data class MyError( val message: String )
+
 class TestOpenApi {
     @Test
     fun `createSchema() work with complexExample and dsl`() {
@@ -95,6 +98,7 @@ class TestOpenApi {
                 .json<User>("200") {
                     it.description = "Request successful"
                 }
+                .result("200", documentedContent<User>("application/xml"))
         app.get("/user", documented(getUserDocumentation) {
             it.json(User(name = "Jim"))
         })
@@ -143,7 +147,8 @@ class TestOpenApi {
                     it.description = "body description"
                     it.required = true
                 }
-                .body<User>()
+                .body<User>("application/json")
+                .body<User>("application/xml")
                 .bodyAsBytes()
                 .bodyAsBytes("image/png")
         app.put("/user", documented(putUserDocumentation) {
@@ -188,6 +193,8 @@ class TestOpenApi {
         val getResourcesDocumentation = OpenApiDocumentation()
                 .result<Unit>("200")
         app.get("/resources/*", documented(getResourcesDocumentation) {})
+
+        app.get("/ignored", documented(document().ignore()) {})
 
         val actual = JavalinOpenApi.createSchema(app)
 
@@ -252,9 +259,9 @@ class TestOpenApi {
         val openApiOptions = OpenApiOptions(
                 Info().title("Example").version("1.0.0")
         )
-                .defaultOperation { operation, _ ->
-                    operation.responses {
-                        response("500") { description = "Server Error" }
+                .defaultDocumentation { documentation ->
+                    documentation.result<MyError>("500") {
+                         it.description = "Server Error"
                     }
                 }
         val app = Javalin.create {

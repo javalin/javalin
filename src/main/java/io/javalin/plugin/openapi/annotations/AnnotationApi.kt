@@ -7,6 +7,8 @@ import kotlin.reflect.KClass
  */
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.FIELD)
 annotation class OpenApi(
+        /** Ignore the endpoint in the open api documentation */
+        val ignore: Boolean = false,
         val summary: String = NULL_STRING,
         val description: String = NULL_STRING,
         val operationId: String = NULL_STRING,
@@ -16,7 +18,7 @@ annotation class OpenApi(
         val headers: Array<OpenApiParam> = [],
         val pathParams: Array<OpenApiParam> = [],
         val queryParams: Array<OpenApiParam> = [],
-        val requestBodies: Array<OpenApiRequestBody> = [],
+        val requestBody: OpenApiRequestBody = OpenApiRequestBody([]),
         val fileUploads: Array<OpenApiFileUpload> = [],
         val responses: Array<OpenApiResponse> = [],
         /**
@@ -34,10 +36,7 @@ annotation class OpenApi(
 @Target()
 annotation class OpenApiResponse(
         val status: String,
-        val returnType: KClass<*> = NULL_CLASS::class,
-        val contentType: String = ContentType.AUTODETECT,
-        /** Whenever the returnType should be wrapped in an array */
-        val isArray: Boolean = false,
+        val content: Array<OpenApiContent> = [],
         val description: String = NULL_STRING
 )
 
@@ -53,8 +52,7 @@ annotation class OpenApiParam(
 
 @Target()
 annotation class OpenApiRequestBody(
-        val type: KClass<*>,
-        val contentType: String = ContentType.AUTODETECT,
+        val content: Array<OpenApiContent>,
         val required: Boolean = false,
         val description: String = NULL_STRING
 )
@@ -67,6 +65,13 @@ annotation class OpenApiFileUpload(
         val required: Boolean = false
 )
 
+@Target()
+annotation class OpenApiContent(
+        val from: KClass<*> = NULL_CLASS::class,
+        /** Whenever the schema should be wrapped in an array */
+        val isArray: Boolean = false,
+        val type: String = ContentType.AUTODETECT
+)
 
 /** Null string because annotations do not support null values */
 const val NULL_STRING = "-- This string represents a null value and shouldn't be used --"
@@ -92,5 +97,6 @@ enum class HttpMethod {
 }
 
 data class PathInfo(val path: String, val method: HttpMethod)
+
 val OpenApi.pathInfo get() = PathInfo(path, method)
 

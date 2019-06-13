@@ -1,7 +1,11 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.plugin.openapi.annotations.ContentType
-import io.javalin.plugin.openapi.external.*
+import io.javalin.plugin.openapi.external.mediaType
+import io.javalin.plugin.openapi.external.mediaTypeArrayOf
+import io.javalin.plugin.openapi.external.mediaTypeArrayOfRef
+import io.javalin.plugin.openapi.external.mediaTypeRef
+import io.javalin.plugin.openapi.external.schema
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
@@ -11,38 +15,50 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-class DocumentedContent(
-        returnType: Class<*>,
-        isArray: Boolean,
+/** Kotlin factory for documented content */
+inline fun <reified T> documentedContent(
+        contentType: String? = ContentType.AUTODETECT,
+        isArray: Boolean = false
+): DocumentedContent {
+    return DocumentedContent(
+            T::class.java,
+            contentType = contentType,
+            isArray = isArray
+    )
+}
+
+class DocumentedContent @JvmOverloads constructor(
+        from: Class<*>,
+        isArray: Boolean = false,
         contentType: String? = null,
         val schema: Schema<*>? = null
 ) {
     val contentType: String = if (contentType == null || contentType == ContentType.AUTODETECT) {
-        returnType.guessContentType()
+        from.guessContentType()
     } else {
         contentType
     }
 
-    private val returnTypeIsArray = returnType.isArray
+    private val fromTypeIsArray = from.isArray
 
     private val isNotByteArray = if (schema == null) {
-        returnType != ByteArray::class.java
+        from != ByteArray::class.java
     } else {
         schema.type == "string" && schema.format == "application/octet-stream"
     }
 
-    val returnType = when {
-        returnTypeIsArray && isNotByteArray -> returnType.componentType!!
-        else -> returnType
+    val fromType = when {
+        fromTypeIsArray && isNotByteArray -> from.componentType!!
+        else -> from
     }
 
     val isArray = if (schema == null) {
-        returnTypeIsArray && isNotByteArray || isArray
+        fromTypeIsArray && isNotByteArray || isArray
     } else {
         schema.type == "array"
     }
 
-    /** This constructor overrides the schema directly. The returnType won't be used anymore */
+    /** This constructor overrides the schema directly. The `from` class won't be used anymore */
     constructor(schema: Schema<*>, contentType: String) : this(
             Object::class.java,
             schema.type == "array",
@@ -51,7 +67,7 @@ class DocumentedContent(
     )
 
     fun isNonRefType(): Boolean = if (schema == null) {
-        returnType in nonRefTypes
+        fromType in nonRefTypes
     } else {
         true
     }
@@ -91,18 +107,18 @@ fun Content.applyDocumentedContent(documentedContent: DocumentedContent) {
                 MediaType().apply { schema = documentedContent.schema }
         )
         documentedContent.isNonRefType() -> when {
-            documentedContent.isArray -> mediaTypeArrayOf(documentedContent.returnType, documentedContent.contentType)
-            else -> mediaType(documentedContent.returnType, documentedContent.contentType)
+            documentedContent.isArray -> mediaTypeArrayOf(documentedContent.fromType, documentedContent.contentType)
+            else -> mediaType(documentedContent.fromType, documentedContent.contentType)
         }
         else -> when {
-            documentedContent.isArray -> mediaTypeArrayOfRef(documentedContent.returnType, documentedContent.contentType)
-            else -> mediaTypeRef(documentedContent.returnType, documentedContent.contentType)
+            documentedContent.isArray -> mediaTypeArrayOfRef(documentedContent.fromType, documentedContent.contentType)
+            else -> mediaTypeRef(documentedContent.fromType, documentedContent.contentType)
         }
     }
 }
 
 fun Components.applyDocumentedContent(documentedResponse: DocumentedContent) {
     if (!documentedResponse.isNonRefType()) {
-        schema(documentedResponse.returnType)
+        schema(documentedResponse.fromType)
     }
 }

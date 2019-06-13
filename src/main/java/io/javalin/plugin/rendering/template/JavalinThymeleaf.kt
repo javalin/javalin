@@ -8,9 +8,10 @@ package io.javalin.plugin.rendering.template
 
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
+import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
 import org.thymeleaf.TemplateEngine
-import org.thymeleaf.context.Context
+import org.thymeleaf.context.WebContext
 import org.thymeleaf.templatemode.TemplateMode
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
@@ -23,10 +24,10 @@ object JavalinThymeleaf : FileRenderer {
         templateEngine = staticTemplateEngine
     }
 
-    override fun render(filePath: String, model: Map<String, Any?>): String {
+    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.THYMELEAF)
         templateEngine = templateEngine ?: defaultThymeLeafEngine()
-        val context = Context()
+        val context = WebContext(ctx.req, ctx.res, ctx.req.servletContext)
         context.setVariables(model)
         return templateEngine!!.process(filePath, context)
     }

@@ -8,6 +8,7 @@ package io.javalin.plugin.rendering.template
 
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
+import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
 import org.jtwig.JtwigModel
 import org.jtwig.JtwigTemplate
@@ -23,7 +24,7 @@ object JavalinJtwig : FileRenderer {
         configuration = staticConfiguration
     }
 
-    override fun render(filePath: String, model: Map<String, Any?>): String {
+    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.JTWIG)
         val configuration = configuration ?: DefaultEnvironmentConfiguration()
         val template = JtwigTemplate.classpathTemplate(filePath, configuration)

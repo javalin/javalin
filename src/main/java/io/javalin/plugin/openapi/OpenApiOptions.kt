@@ -8,11 +8,11 @@ import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
+import io.javalin.plugin.openapi.utils.LazyDefaultValue
 import io.swagger.v3.oas.models.OpenAPI
-import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.info.Info
 
-class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfiguration) {
+class OpenApiOptions constructor(val createBaseConfiguration: () -> OpenAPI) {
     /** If not null, creates a GET route to get the schema as a json */
     var path: String? = null
     var roles: Set<Role> = setOf()
@@ -30,23 +30,22 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
      * Function that is applied to every new operation.
      * You can use this to set defaults (like a 500 response).
      */
-    var defaultOperation: ApplyDefaultOperation? = null
+    var default: DefaultDocumentation? = null
     /**
      * Creates a model converter, which converts a class to an open api schema.
      * Defaults to the jackson converter.
      */
-    var modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory
+    var modelConverterFactory: ModelConverterFactory by LazyDefaultValue { JacksonModelConverterFactory }
     /**
      * The json mapper for creating the object api schema json. This is separated from
      * the default JavalinJson mappers.
      */
-    var toJsonMapper: ToJsonMapper = JacksonToJsonMapper
+    var toJsonMapper: ToJsonMapper by LazyDefaultValue { JacksonToJsonMapper }
     /**
      * A list of package prefixes to scan for annotations.
      */
     var packagePrefixesToScan = mutableSetOf<String>()
 
-    constructor(createBaseConfiguration: () -> OpenAPI) : this(CreateBaseConfiguration(createBaseConfiguration))
     constructor(info: Info) : this({ OpenAPI().info(info) })
 
     fun path(value: String) = apply { path = value }
@@ -57,10 +56,10 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
 
     fun roles(value: Set<Role>) = apply { roles = value }
 
-    fun defaultOperation(value: ApplyDefaultOperation) = apply { defaultOperation = value }
-    fun defaultOperation(setup: (operation: Operation, documentation: OpenApiDocumentation?) -> Unit) = apply {
-        defaultOperation = object : ApplyDefaultOperation {
-            override fun setup(operation: Operation, documentation: OpenApiDocumentation?) = setup(operation, documentation)
+    fun defaultDocumentation(value: DefaultDocumentation) = apply { default = value }
+    fun defaultDocumentation(apply: (documentation: OpenApiDocumentation) -> Unit) = apply {
+        default = object : DefaultDocumentation {
+            override fun apply(documentation: OpenApiDocumentation) = apply(documentation)
         }
     }
 
@@ -83,6 +82,8 @@ class OpenApiOptions constructor(val createBaseConfiguration: CreateBaseConfigur
 }
 
 @FunctionalInterface
-interface ApplyDefaultOperation {
-    fun setup(operation: Operation, documentation: OpenApiDocumentation?)
+interface DefaultDocumentation {
+    fun apply(documentation: OpenApiDocumentation)
 }
+
+typealias CreateBaseConfiguration = () -> OpenAPI

@@ -12,6 +12,10 @@ import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
+import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 data class RouteOverviewConfig(val path: String, val roles: Set<Role>)
 
@@ -25,6 +29,12 @@ class RouteOverviewRenderer(val app: Javalin) : Handler {
         app.events { it.wsHandlerAdded { handlerInfo -> wsHandlerMetaInfoList.add(handlerInfo) } }
     }
 
+    @OpenApi(
+            summary = "Get an overview of all the routes in the application",
+            responses = [
+                OpenApiResponse("200", content = [OpenApiContent(type = ContentType.HTML)])
+            ]
+    )
     override fun handle(ctx: Context) {
         ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
     }

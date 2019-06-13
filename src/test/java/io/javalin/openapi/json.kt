@@ -36,6 +36,29 @@ val userOpenApiSchema = """
    "properties":{
       "name":{
          "type":"string"
+      },
+      "address":{
+          "$ref": "#/components/schemas/Address"
+      }
+   }
+}
+""".formatJson()
+
+@Language("JSON")
+val addressOpenApiSchema = """
+{
+   "required": [
+      "number",
+      "street"
+   ],
+   "type":"object",
+   "properties": {
+      "street": {
+         "type": "string"
+      },
+      "number": {
+         "type": "integer",
+         "format": "int32"
       }
    }
 }
@@ -94,17 +117,6 @@ val provideRouteExampleJson = """
       "version": "1.0.0"
     },
     "paths": {
-      "/docs/swagger.json": {
-        "get": {
-          "summary": "Get docs swagger.json",
-          "operationId": "getDocsSwagger.json",
-          "responses" : {
-            "200" : {
-              "description" : "OK"
-            }
-          }
-        }
-      },
       "/test": {
         "get": {
           "summary": "Get test",
@@ -166,6 +178,11 @@ val complexExampleJson = """
                 "schema": {
                   "$ref": "#/components/schemas/User"
                 }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
               }
             }
           }
@@ -185,6 +202,11 @@ val complexExampleJson = """
               }
             },
             "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            },
+            "application/xml": {
               "schema": {
                 "$ref": "#/components/schemas/User"
               }
@@ -368,6 +390,7 @@ val complexExampleJson = """
   },
   "components": {
     "schemas": {
+      "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     },
     "securitySchemes": {
@@ -473,6 +496,7 @@ val crudExampleJson = """
   },
   "components": {
     "schemas": {
+      "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     }
   }
@@ -493,15 +517,22 @@ val defaultOperationExampleJson = """
         "summary": "Get route1",
         "operationId": "getRoute1",
         "responses": {
-          "500": {
-            "description": "Server Error"
-          },
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MyError"
                 }
               }
             }
@@ -515,7 +546,14 @@ val defaultOperationExampleJson = """
         "operationId": "getRoute2",
         "responses": {
           "500": {
-            "description": "Server Error"
+            "description": "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MyError"
+                }
+              }
+            }
           }
         }
       }
@@ -523,7 +561,17 @@ val defaultOperationExampleJson = """
   },
   "components": {
     "schemas": {
-      "User": $userOpenApiSchema
+      "Address": $addressOpenApiSchema,
+      "User": $userOpenApiSchema,
+      "MyError" : {
+        "required" : [ "message" ],
+        "type" : "object",
+        "properties" : {
+          "message" : {
+            "type" : "string"
+          }
+        }
+      }
     }
   }
 }

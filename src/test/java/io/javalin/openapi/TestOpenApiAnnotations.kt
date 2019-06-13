@@ -15,6 +15,7 @@ import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
@@ -29,7 +30,13 @@ import org.junit.Test
         deprecated = true,
         tags = ["user"],
         responses = [
-            OpenApiResponse(status = "200", returnType = User::class, description = "Request successful")
+            OpenApiResponse(
+                    status = "200",
+                    content = [
+                        OpenApiContent(User::class),
+                        OpenApiContent(User::class, type = "application/xml")
+                    ],
+                    description = "Request successful")
         ]
 )
 fun getUserHandler(ctx: Context) {
@@ -58,7 +65,7 @@ fun getUserHandler(ctx: Context) {
             OpenApiParam(name = "age", type = Int::class)
         ],
         responses = [
-            OpenApiResponse(status = "200", returnType = User::class, isArray = true)
+            OpenApiResponse(status = "200", content = [OpenApiContent(User::class, isArray = true)])
         ]
 )
 fun getUsersHandler(ctx: Context) {
@@ -67,7 +74,7 @@ fun getUsersHandler(ctx: Context) {
 @OpenApi(
         tags = ["user"],
         responses = [
-            OpenApiResponse(status = "200", returnType = Array<User>::class)
+            OpenApiResponse(status = "200", content = [OpenApiContent(Array<User>::class)])
         ]
 )
 fun getUsers2Handler(ctx: Context) {
@@ -75,19 +82,24 @@ fun getUsers2Handler(ctx: Context) {
 
 @OpenApi(
         tags = ["user"],
-        requestBodies = [
-            OpenApiRequestBody(type = String::class, required = true, description = "body description"),
-            OpenApiRequestBody(type = User::class),
-            OpenApiRequestBody(type = ByteArray::class),
-            OpenApiRequestBody(type = ByteArray::class, contentType = "image/png")
-        ]
+        requestBody = OpenApiRequestBody(
+                required = true,
+                description = "body description",
+                content = [
+                    OpenApiContent(String::class),
+                    OpenApiContent(User::class),
+                    OpenApiContent(User::class, type = "application/xml"),
+                    OpenApiContent(ByteArray::class),
+                    OpenApiContent(ByteArray::class, type = "image/png")
+                ]
+        )
 )
 fun putUserHandler(ctx: Context) {
 }
 
 @OpenApi(
         responses = [
-            OpenApiResponse(status = "200", returnType = String::class)
+            OpenApiResponse(status = "200", content = [OpenApiContent(String::class)])
         ]
 )
 fun getStringHandler(ctx: Context) {
@@ -95,7 +107,7 @@ fun getStringHandler(ctx: Context) {
 
 @OpenApi(
         responses = [
-            OpenApiResponse(status = "200", contentType = ContentType.HTML, description = "My Homepage")
+            OpenApiResponse(status = "200", content = [OpenApiContent(type = ContentType.HTML)], description = "My Homepage")
         ]
 )
 fun getHomepageHandler(ctx: Context) {
@@ -124,6 +136,11 @@ fun getUploadsHandler(ctx: Context) {
 )
 fun getResources(ctx: Context) {
 }
+
+@OpenApi(ignore = true)
+fun getIgnore(ctx: Context) {
+}
+
 // endregion complexExampleWithAnnotationsHandler
 // region handler types
 class ClassHandler : Handler {
@@ -159,6 +176,7 @@ class TestOpenApiAnnotations {
         app.get("/upload", ::getUploadHandler)
         app.get("/uploads", ::getUploadsHandler)
         app.get("/resources/*", ::getResources)
+        app.get("/ignore", ::getIgnore)
 
         val actual = JavalinOpenApi.createSchema(app)
 
@@ -170,7 +188,7 @@ class TestOpenApiAnnotations {
         class UserCrudHandlerWithAnnotations : CrudHandler {
             @OpenApi(
                     responses = [
-                        OpenApiResponse("200", returnType = User::class, isArray = true)
+                        OpenApiResponse("200", content = [OpenApiContent(User::class, isArray = true)])
                     ]
             )
             override fun getAll(ctx: Context) {
@@ -178,7 +196,7 @@ class TestOpenApiAnnotations {
 
             @OpenApi(
                     responses = [
-                        OpenApiResponse("200", returnType = User::class)
+                        OpenApiResponse("200", content = [OpenApiContent(User::class)])
                     ]
             )
             override fun getOne(ctx: Context, resourceId: String) {
