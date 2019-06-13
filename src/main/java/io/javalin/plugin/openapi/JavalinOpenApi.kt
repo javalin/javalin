@@ -18,7 +18,7 @@ class CreateSchemaOptions(
          * Create the base open api configuration.
          * This function will be called before the creation of every schema.
          */
-        val createBaseConfiguration: CreateBaseConfiguration,
+        val initialConfigurationCreator: InitialConfigurationCreator,
 
         val default: DefaultDocumentation?,
 
@@ -40,7 +40,7 @@ object JavalinOpenApi {
 
     @JvmStatic
     fun createSchema(options: CreateSchemaOptions): OpenAPI {
-        val baseConfiguration = options.createBaseConfiguration()
+        val baseConfiguration = options.initialConfigurationCreator.create()
         val modelConverter = options.modelConverterFactory.create()
         return runWithModelConverter(modelConverter) {
             baseConfiguration.apply {
