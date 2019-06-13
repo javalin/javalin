@@ -10,6 +10,7 @@ import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
+import java.util.function.Supplier
 
 class OpenApiOptions constructor(val createBaseConfiguration: () -> OpenAPI) {
     /** If not null, creates a GET route to get the schema as a json */
@@ -45,6 +46,7 @@ class OpenApiOptions constructor(val createBaseConfiguration: () -> OpenAPI) {
      */
     var packagePrefixesToScan = mutableSetOf<String>()
 
+    constructor(createBaseConfiguration: Supplier<OpenAPI>) : this(createBaseConfiguration::get)
     constructor(info: Info) : this({ OpenAPI().info(info) })
 
     fun path(value: String) = apply { path = value }
