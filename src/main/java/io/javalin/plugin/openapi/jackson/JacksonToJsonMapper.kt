@@ -9,8 +9,7 @@ import io.javalin.plugin.json.ToJsonMapper
  * This enables some of the options that are required to work with the uis.
  */
 object JacksonToJsonMapper : ToJsonMapper {
-    val objectMapper = jacksonObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    val objectMapper by lazy { jacksonObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL) }
 
     override fun map(obj: Any): String = objectMapper.writeValueAsString(obj)
 }

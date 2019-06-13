@@ -8,6 +8,7 @@ import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
+import io.javalin.plugin.openapi.utils.LazyDefaultValue
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 
@@ -34,12 +35,12 @@ class OpenApiOptions constructor(val createBaseConfiguration: () -> OpenAPI) {
      * Creates a model converter, which converts a class to an open api schema.
      * Defaults to the jackson converter.
      */
-    var modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory
+    var modelConverterFactory: ModelConverterFactory by LazyDefaultValue { JacksonModelConverterFactory }
     /**
      * The json mapper for creating the object api schema json. This is separated from
      * the default JavalinJson mappers.
      */
-    var toJsonMapper: ToJsonMapper = JacksonToJsonMapper
+    var toJsonMapper: ToJsonMapper by LazyDefaultValue { JacksonToJsonMapper }
     /**
      * A list of package prefixes to scan for annotations.
      */
