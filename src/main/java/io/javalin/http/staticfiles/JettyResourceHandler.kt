@@ -66,6 +66,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || resourceHandler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
+                    httpResponse.contentType = null
                     gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
                     return true
