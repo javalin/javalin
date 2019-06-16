@@ -9,6 +9,9 @@ package io.javalin
 import io.javalin.misc.HttpUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -58,4 +61,41 @@ class TestLogging {
         assertThat(loggerLog[1]).isEqualTo("Hello")
     }
 
+    @Test
+    fun `debug logging works with binary stream`() {
+        val log = captureStdOut {
+            TestUtil.test(Javalin.create {
+                it.enableDevLogging()
+            }) { app, http ->
+                app.get("/") {
+                    val imagePath = this::class.java.classLoader.getResource("upload-test/image.png")
+                    val stream = File(imagePath.toURI()).inputStream()
+                    it.result(stream)
+                }
+                http.get("/") // trigger log
+            }
+        }
+        assertThat(log).contains("Body is binary (not logged)")
+    }
+
+}
+
+fun captureStdOut(run: () -> Unit): String {
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    val printStream = PrintStream(byteArrayOutputStream)
+    val oldOut = System.out
+    val oldErr = System.err
+    System.setOut(printStream)
+    System.setErr(printStream)
+
+    try {
+        run()
+    } finally {
+        System.out.flush()
+        System.setOut(oldOut)
+        System.setErr(oldErr)
+        println("Captured output:\n$byteArrayOutputStream")
+    }
+
+    return byteArrayOutputStream.toString()
 }
