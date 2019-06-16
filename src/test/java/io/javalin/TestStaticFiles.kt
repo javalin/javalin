@@ -12,7 +12,11 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.server.ServletResponseHttpWrapper
+import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.Test
+import java.util.*
+import javax.servlet.*
 
 class TestStaticFiles {
 
@@ -27,6 +31,22 @@ class TestStaticFiles {
     private val devLoggingApp = Javalin.create {
         it.addStaticFiles("/public")
         it.enableDevLogging()
+    }
+
+    private val customFilterStaticResourceApp = Javalin.create {
+        val filter = object : Filter {
+            override fun init(config: FilterConfig?) {
+            }
+            override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
+                chain?.doFilter(request, ServletResponseHttpWrapper(response))
+            }
+            override fun destroy() {
+            }
+        }
+        it.addStaticFiles("/public")
+        it.configureServletContextHandler { handler ->
+            handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
+        }
     }
 
     @Test
@@ -115,6 +135,12 @@ class TestStaticFiles {
     @Test
     fun `WebJars not available if not enabled`() = TestUtil.test { _, http ->
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status).isEqualTo(404)
+    }
+
+    @Test
+    fun `Correct content type is returned when a custom filter with a response wrapper is added`() = TestUtil.test(customFilterStaticResourceApp) { _, http ->
+        assertThat(http.get("/html.html").status).isEqualTo(200)
+        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
     }
 
 }
