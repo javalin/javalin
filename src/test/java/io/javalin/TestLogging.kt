@@ -19,17 +19,30 @@ import java.util.concurrent.TimeUnit
 class TestLogging {
 
     @Test
-    fun `default logging (no logging) works`() = runTest(Javalin.create())
+    fun `default logging (no logging) works`() {
+        val log = captureStdOut { runTest(Javalin.create()) }
+        println(log) // hard to test for absence ...
+    }
 
     @Test
-    fun `debug logging works`() = runTest(Javalin.create { it.enableDevLogging() })
+    fun `dev logging works`() {
+        val log = captureStdOut { runTest(Javalin.create { it.enableDevLogging() }) }
+        assertThat(log).contains("JAVALIN REQUEST DEBUG LOG")
+        assertThat(log).contains("Hello Blocking World!")
+        assertThat(log).contains("Hello Async World!")
+    }
 
     @Test
-    fun `custom logging works`() = runTest(Javalin.create {
-        it.requestLogger { _, executionTimeMs ->
-            println("That took $executionTimeMs milliseconds")
+    fun `custom logging works`() {
+        val log = captureStdOut {
+            runTest(Javalin.create {
+                it.requestLogger { _, executionTimeMs ->
+                    Javalin.log.info("Custom log message")
+                }
+            })
         }
-    })
+        assertThat(log).contains("Custom log message")
+    }
 
     private fun runTest(app: Javalin) {
         app.get("/blocking") { ctx -> ctx.result("Hello Blocking World!") }
@@ -94,7 +107,6 @@ fun captureStdOut(run: () -> Unit): String {
         System.out.flush()
         System.setOut(oldOut)
         System.setErr(oldErr)
-        println("Captured output:\n$byteArrayOutputStream")
     }
 
     return byteArrayOutputStream.toString()
