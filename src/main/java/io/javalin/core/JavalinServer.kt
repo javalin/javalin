@@ -29,13 +29,16 @@ class JavalinServer(val config: JavalinConfig) {
 
     var serverPort = 7000
 
-    fun server() = config.inner.server!!
+    fun server(): Server {
+        config.inner.server = config.inner.server ?: JettyUtil.getOrDefault(config.inner.server)
+        return config.inner.server!!
+    }
+
     var started = false
 
     @Throws(BindException::class)
     fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
 
-        config.inner.server = JettyUtil.getOrDefault(config.inner.server)
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
