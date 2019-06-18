@@ -18,11 +18,11 @@ public class EventListener {
     }
 
     // @formatter:off
-    public void serverStarting(@NotNull Runnable callback)    {  addLifecycleEvent(JavalinEvent.SERVER_STARTING,     callback); }
-    public void serverStarted(@NotNull Runnable callback)     {  addLifecycleEvent(JavalinEvent.SERVER_STARTED,      callback); }
-    public void serverStartFailed(@NotNull Runnable callback) {  addLifecycleEvent(JavalinEvent.SERVER_START_FAILED, callback); }
-    public void serverStopping(@NotNull Runnable callback)    {  addLifecycleEvent(JavalinEvent.SERVER_STOPPING,     callback); }
-    public void serverStopped(@NotNull Runnable callback)     {  addLifecycleEvent(JavalinEvent.SERVER_STOPPED,      callback); }
+    public void serverStarting(@NotNull EventHandler eventHandler)    {  addLifecycleEvent(JavalinEvent.SERVER_STARTING,     eventHandler); }
+    public void serverStarted(@NotNull EventHandler eventHandler)     {  addLifecycleEvent(JavalinEvent.SERVER_STARTED,      eventHandler); }
+    public void serverStartFailed(@NotNull EventHandler eventHandler) {  addLifecycleEvent(JavalinEvent.SERVER_START_FAILED, eventHandler); }
+    public void serverStopping(@NotNull EventHandler eventHandler)    {  addLifecycleEvent(JavalinEvent.SERVER_STOPPING,     eventHandler); }
+    public void serverStopped(@NotNull EventHandler eventHandler)     {  addLifecycleEvent(JavalinEvent.SERVER_STOPPED,      eventHandler); }
     // @formatter:on
 
     public void handlerAdded(@NotNull Consumer<HandlerMetaInfo> callback) {
@@ -33,8 +33,8 @@ public class EventListener {
         eventManager.getWsHandlerAddedHandlers().add(callback);
     }
 
-    private void addLifecycleEvent(@NotNull JavalinEvent event, @NotNull Runnable callback) {
-        eventManager.getLifecycleHandlers().get(event).add(callback);
+    private void addLifecycleEvent(@NotNull JavalinEvent event, @NotNull EventHandler eventHandler) {
+        eventManager.getLifecycleHandlers().get(event).add(eventHandler);
     }
 
 }
