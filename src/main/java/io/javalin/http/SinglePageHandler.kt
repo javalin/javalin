@@ -9,7 +9,7 @@ package io.javalin.http
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.staticfiles.Location
-import io.javalin.http.util.ContextUtil
+import io.javalin.http.util.ContextUtil.isLocalhost
 import java.net.URL
 
 /**
@@ -35,7 +35,7 @@ class SinglePageHandler {
         if (accepts.contains("text/html") || accepts == "*/*" || accepts == "") {
             for (path in pathPageMap.keys) {
                 if (ctx.path().startsWith(path)) {
-                    ctx.html(when (ContextUtil.isLocalhost(ctx)) {
+                    ctx.html(when (ctx.isLocalhost()) {
                         true -> pathUrlMap[path]!!.readText() // is localhost, read file again
                         false -> pathPageMap[path]!! // not localhost, use cached content
                     })

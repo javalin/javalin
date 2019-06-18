@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.plugin.rendering.vue.JavalinVue
+import io.javalin.plugin.rendering.vue.VueComponent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
@@ -14,12 +15,8 @@ class TestJavalinVue {
 
     @Test
     fun `hello vue world`() = TestUtil.test { app, http ->
-        app.get("/vue/:my-param") {
-            it.html(JavalinVue.createLayout(localhost = false) // need to use classpath for test
-                    .replace("@routeParams", JavalinVue.getParams(it))
-                    .replace("@routeComponent", "<test-component></test-component>")
-            )
-        }
+        JavalinVue.localPath = "src/test/resources/vue"
+        app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
         val response = http.getBody("/vue/test-path-param?qp=test-query-param")
         assertThat(response).contains("""pathParams: {"my-param":"test-path-param"}""")
         assertThat(response).contains("""queryParams: {"qp":["test-query-param"]}""")
@@ -28,4 +25,3 @@ class TestJavalinVue {
     }
 
 }
-
