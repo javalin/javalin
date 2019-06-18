@@ -13,10 +13,10 @@ import java.util.*
 import java.util.function.Consumer
 
 class EventManager {
-    val lifecycleHandlers = JavalinEvent.values().associate { it to HashSet<Runnable>() }
+    val lifecycleHandlers = JavalinEvent.values().associate { it to HashSet<EventHandler>() }
     var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
     val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
-    fun fireEvent(javalinEvent: JavalinEvent) = lifecycleHandlers[javalinEvent]?.forEach { callback -> callback.run() }
+    fun fireEvent(javalinEvent: JavalinEvent) = lifecycleHandlers[javalinEvent]?.forEach { eventHandler -> eventHandler.handleEvent() }
     fun fireHandlerAddedEvent(metaInfo: HandlerMetaInfo) = handlerAddedHandlers.apply { this.forEach { it.accept(metaInfo) } }
     fun fireWsHandlerAddedEvent(metaInfo: WsHandlerMetaInfo) = wsHandlerAddedHandlers.apply { this.forEach { it.accept(metaInfo) } }
 }
