@@ -20,8 +20,22 @@ import java.util.stream.Collectors
 object JavalinVue {
 
     var localPath = "src/main/resources/vue"
+    var paths = setOf<Path>()
 
-    private val paths by lazy {
+    val cachedLayout by lazy { createLayout() }
+    val cachedPaths by lazy { walkPaths() }
+
+    fun createLayout() = layout().replace("@componentRegistration", "@routeParams${components()}") // add params anchor for later
+    private fun layout() = paths.find { it.endsWith("vue/layout.html") }!!.readText()
+    private fun components() = paths.filter { it.toString().endsWith(".vue") }.joinToString("") { it.readText() }
+
+    fun getParams(ctx: Context) = """<script>
+            Vue.prototype.${"$"}javalin = {
+            pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
+            queryParams: ${JavalinJson.toJson(ctx.queryParamMap())}
+        }</script>"""
+
+    fun walkPaths(): Set<Path> {
         val uri = JavalinVue::class.java.getResource("/vue").toURI()
         val path = if (uri.scheme == "jar") {
             val fileSystem = FileSystems.newFileSystem(uri, emptyMap<String, Any>())
@@ -29,19 +43,8 @@ object JavalinVue {
         } else {
             Paths.get(localPath)
         }
-        Files.walk(path, 10).collect(Collectors.toSet())
+        return Files.walk(path, 10).collect(Collectors.toSet())
     }
-
-    val cachedLayout by lazy { createLayout() }
-    fun createLayout() = layout().replace("@componentRegistration", "@routeParams${components()}") // add params anchor for later
-    private fun layout() = paths.find { it.endsWith("vue/layout.html") }!!.readText()
-    private fun components() = paths.filter { it.toString().endsWith(".vue") }.joinToString("") { it.readText() }
-
-    fun getParams(ctx: Context) = """<script>
-          Vue.prototype.${"$"}javalin = {
-          pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
-          queryParams: ${JavalinJson.toJson(ctx.queryParamMap())}
-      }</script>"""
 
     private fun Path.readText(): String {
         val s = Scanner(Files.newInputStream(this)).useDelimiter("\\A")
@@ -52,6 +55,7 @@ object JavalinVue {
 
 class VueComponent(private val component: String) : Handler {
     override fun handle(ctx: Context) {
+        JavalinVue.paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
         val view = if (ctx.isLocalhost()) JavalinVue.createLayout() else JavalinVue.cachedLayout
         ctx.html(view.replace("@routeParams", JavalinVue.getParams(ctx)).replace("@routeComponent", component)) // insert current route component
     }
