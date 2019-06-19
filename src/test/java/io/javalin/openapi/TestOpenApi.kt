@@ -316,4 +316,23 @@ class TestOpenApi {
             assertThat(actual).isEqualTo(provideRouteExampleJson)
         }
     }
+
+    @Test
+    fun `enableOpenApi() provide get route that allows cross-origin GET request`() {
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions {
+                OpenAPI().info(Info().apply {
+                    title = "Example"
+                    version = "1.0.0"
+                })
+            }.path("/docs/swagger.json")))
+        }) { app, http ->
+            app.get("/test") {}
+
+            val actualHeaders = http.jsonGet("/docs/swagger.json").headers
+
+            assertThat(actualHeaders.getFirst("Access-Control-Allow-Origin")).isEqualTo("*")
+            assertThat(actualHeaders.getFirst("Access-Control-Allow-Methods")).isEqualTo("GET")
+        }
+    }
 }
