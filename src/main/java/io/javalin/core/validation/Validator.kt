@@ -8,7 +8,7 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
-open class Validator<T>(val value: T, val messagePrefix: String = "Value") {
+open class Validator<T>(val value: T?, val messagePrefix: String = "Value") {
 
     data class Rule<T>(val test: (T) -> Boolean, val invalidMessage: String)
 
@@ -20,16 +20,24 @@ open class Validator<T>(val value: T, val messagePrefix: String = "Value") {
         return this
     }
 
-    fun get(): T = rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
+    fun get(): T = orElseNull() ?: throw BadRequestResponse("$messagePrefix cannot be null or empty")
+
+    fun orElseNull(): T? = rules
+            .find { value == null || !it.test.invoke(value) }
+            ?.let { throw BadRequestResponse(it.invalidMessage) }
+            ?: value
 
     companion object {
         @JvmStatic
         @JvmOverloads
         fun <T> create(clazz: Class<T>, value: String?, messagePrefix: String = "Value"): Validator<T> {
-            if (value == null || value.isEmpty()) throw BadRequestResponse("$messagePrefix cannot be null or empty")
             return Validator(try {
                 val converter = JavalinValidation.converters[clazz] ?: throw MissingConverterException(clazz.simpleName)
-                converter.invoke(value) ?: throw NullPointerException()
+                if (value != null && value.isNotEmpty()) {
+                    converter.invoke(value) ?: throw NullPointerException()
+                } else {
+                    null
+                }
             } catch (e: Exception) {
                 if (e is MissingConverterException) throw e
                 throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
