@@ -143,7 +143,7 @@ class TestValidation {
     @Test
     fun `test optional query param value`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myInt: Int? = ctx.queryParam<Int>("my-qp").orElseNull()
+            val myInt: Int? = ctx.queryParam<Int>("my-qp").getOrNull()
             assertThat(myInt).isEqualTo(null)
         }
 
