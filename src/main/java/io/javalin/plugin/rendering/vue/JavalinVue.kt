@@ -24,27 +24,20 @@ object JavalinVue {
 
     val cachedLayout by lazy { createLayout() }
     val cachedPaths by lazy { walkPaths() }
+    val vueRootUri by lazy { JavalinVue::class.java.getResource("/vue").toURI() }
+    val vueRootPath by lazy { if (vueRootUri.scheme == "jar") fileSystem.getPath("/vue") else Paths.get(localPath) }
+    val fileSystem by lazy { FileSystems.newFileSystem(vueRootUri, emptyMap<String, Any>()) }
 
     fun createLayout() = layout().replace("@componentRegistration", "@routeParams${components()}") // add params anchor for later
-    private fun layout() = paths.find { it.endsWith("vue/layout.html") }!!.readText()
-    private fun components() = paths.filter { it.toString().endsWith(".vue") }.joinToString("") { it.readText() }
+    fun layout() = paths.find { it.endsWith("vue/layout.html") }!!.readText()
+    fun components() = paths.filter { it.toString().endsWith(".vue") }.joinToString("") { it.readText() }
+    fun walkPaths() = Files.walk(vueRootPath, 10).collect(Collectors.toSet())
 
     fun getParams(ctx: Context) = """<script>
             Vue.prototype.${"$"}javalin = {
             pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
             queryParams: ${JavalinJson.toJson(ctx.queryParamMap())}
         }</script>"""
-
-    fun walkPaths(): Set<Path> {
-        val uri = JavalinVue::class.java.getResource("/vue").toURI()
-        val path = if (uri.scheme == "jar") {
-            val fileSystem = FileSystems.newFileSystem(uri, emptyMap<String, Any>())
-            fileSystem.getPath("/vue")
-        } else {
-            Paths.get(localPath)
-        }
-        return Files.walk(path, 10).collect(Collectors.toSet())
-    }
 
     private fun Path.readText(): String {
         val s = Scanner(Files.newInputStream(this)).useDelimiter("\\A")
