@@ -21,6 +21,7 @@ import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import org.meteogroup.jbrotli.Brotli
 
 class JavalinServlet(val config: JavalinConfig): HttpServlet() {
 
@@ -80,7 +81,13 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
                     return // don't write body
                 }
             }
-            if (gzipShouldBeDone(ctx)) {
+            if (brotliShouldBeDone(ctx)) {
+                //Do Brotli Compression here
+
+                resultStream.close()
+                return
+            }
+            else if (gzipShouldBeDone(ctx)) {
                 GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
                     res.setHeader(Header.CONTENT_ENCODING, "gzip")
                     resultStream.copyTo(gzippedStream)
@@ -130,9 +137,18 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
 
+    private fun resultExceedsMTU(ctx: Context) = ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
+
+    private fun acceptsEncoding(ctx: Context, encoding: String) =
+            (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains(encoding, ignoreCase = true)
+
     private fun gzipShouldBeDone(ctx: Context) = config.dynamicGzip
-            && ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
-            && (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains("gzip", ignoreCase = true)
+            && resultExceedsMTU(ctx)
+            && acceptsEncoding(ctx, "gzip")
+
+    private fun brotliShouldBeDone(ctx: Context) = config.dynamicBrotli
+            && resultExceedsMTU(ctx)
+            && acceptsEncoding(ctx, "brotli")
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
         val shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP)
