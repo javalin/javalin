@@ -331,15 +331,34 @@
             <plugin>
                 <groupId>org.jetbrains.dokka</groupId>
                 <artifactId>dokka-maven-plugin</artifactId>
-                <version>0.9.17</version>
+                <version>0.9.18</version>
                 <executions>
                     <execution>
                         <phase>pre-site</phase>
                         <goals>
                             <goal>dokka</goal>
+                            <goal>javadoc</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <sourceDirectories>
+                        <dir>src/main/java/io/javalin</dir>
+                    </sourceDirectories>
+                    <perPackageOptions>
+                        <packageOptions>
+                            <!-- Will match kotlin and all sub-packages of it -->
+                            <prefix>javalin</prefix>
+
+                            <!-- All options are optional, default values are below: -->
+                            <skipDeprecated>false</skipDeprecated>
+                            <!-- Emit warnings about not documented members  -->
+                            <reportUndocumented>true</reportUndocumented>
+                            <includeNonPublic>false</includeNonPublic>
+                        </packageOptions>
+                    </perPackageOptions>
+                </configuration>
+
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
