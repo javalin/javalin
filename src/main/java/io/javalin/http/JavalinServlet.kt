@@ -15,6 +15,8 @@ import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
+import org.meteogroup.jbrotli.Brotli
+import org.meteogroup.jbrotli.BrotliStreamCompressor
 import org.meteogroup.jbrotli.io.BrotliOutputStream
 import java.io.InputStream
 import java.util.concurrent.CompletionException
@@ -84,9 +86,11 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
             if (brotliShouldBeDone(ctx)) {
                 //Do Brotli Compression here
                 BrotliOutputStream(res.outputStream).use { brotliStream ->
-                    res.setHeader(Header.CONTENT_ENCODING, "brotli")
+                    res.setHeader(Header.CONTENT_ENCODING, "br")
                     resultStream.copyTo(brotliStream)
                 }
+                var compressor = BrotliStreamCompressor(Brotli.DEFAULT_PARAMETER)
+                //var compd = compressor.compressArray(res.outputStream, true)
                 resultStream.close()
                 return
             }
@@ -151,7 +155,7 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
 
     private fun brotliShouldBeDone(ctx: Context) = config.dynamicBrotli
             && resultExceedsMTU(ctx)
-            && supportsEncoding(ctx, "brotli")
+            && supportsEncoding(ctx, "br")
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
         val shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP)
