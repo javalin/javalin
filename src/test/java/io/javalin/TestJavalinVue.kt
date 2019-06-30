@@ -16,18 +16,21 @@ class TestJavalinVue {
     data class User(val name: String, val email: String)
     data class Role(val name: String)
     data class State(val user: User, val role: Role)
+
     private val state = State(User("tipsy", "tipsy@tipsy.tipsy"), Role("Maintainer"))
 
     @Test
     fun `hello vue world`() = TestUtil.test { app, http ->
         JavalinVue.localPath = "src/test/resources/vue"
-        app.get("/vue/:my-param", VueComponent("<test-component></test-component>", state))
+        JavalinVue.stateFunction = { ctx -> state }
+        app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
         val stateResponse = http.getBody("/vue/test-path-param?qp=test-query-param")
         assertThat(stateResponse).contains("""pathParams: {"my-param":"test-path-param"}""")
         assertThat(stateResponse).contains("""queryParams: {"qp":["test-query-param"]}""")
         assertThat(stateResponse).contains("""Vue.component("test-component", {template: "#test-component"});""")
         assertThat(stateResponse).contains("""state: {"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}""")
         assertThat(stateResponse).contains("<body><test-component></test-component></body>")
+        JavalinVue.stateFunction = { ctx -> mapOf<String, String>() }
         app.get("/no-state", VueComponent("<test-component></test-component>"))
         val noStateResponse = http.getBody("/no-state")
         assertThat(noStateResponse).contains("""pathParams: {}""")
