@@ -20,22 +20,31 @@ class TestJavalinVue {
     private val state = State(User("tipsy", "tipsy@tipsy.tipsy"), Role("Maintainer"))
 
     @Test
-    fun `hello vue world`() = TestUtil.test { app, http ->
+    fun `vue component with state`() = TestUtil.test { app, http ->
         JavalinVue.localPath = "src/test/resources/vue"
         JavalinVue.stateFunction = { ctx -> state }
         app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
-        val stateResponse = http.getBody("/vue/test-path-param?qp=test-query-param")
-        assertThat(stateResponse).contains("""pathParams: {"my-param":"test-path-param"}""")
-        assertThat(stateResponse).contains("""queryParams: {"qp":["test-query-param"]}""")
-        assertThat(stateResponse).contains("""Vue.component("test-component", {template: "#test-component"});""")
-        assertThat(stateResponse).contains("""state: {"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}""")
-        assertThat(stateResponse).contains("<body><test-component></test-component></body>")
+        val res = http.getBody("/vue/test-path-param?qp=test-query-param")
+        assertThat(res).contains("""
+                |    Vue.prototype.${"$"}javalin = {
+                |        pathParams: {"my-param":"test-path-param"},
+                |        queryParams: {"qp":["test-query-param"]},
+                |        state: {"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}
+                |    }""".trimMargin())
+        assertThat(res).contains("""Vue.component("test-component", {template: "#test-component"});""")
+        assertThat(res).contains("<body><test-component></test-component></body>")
+    }
+
+    @Test
+    fun `vue component without state`() = TestUtil.test { app, http ->
+        JavalinVue.localPath = "src/test/resources/vue"
         JavalinVue.stateFunction = { ctx -> mapOf<String, String>() }
-        app.get("/no-state", VueComponent("<test-component></test-component>"))
-        val noStateResponse = http.getBody("/no-state")
-        assertThat(noStateResponse).contains("""pathParams: {}""")
-        assertThat(noStateResponse).contains("""queryParams: {}""")
-        assertThat(noStateResponse).contains("""state: {}""")
+        app.get("/no-state", VueComponent("<other-component></other-component>"))
+        val res = http.getBody("/no-state")
+        assertThat(res).contains("""pathParams: {}""")
+        assertThat(res).contains("""queryParams: {}""")
+        assertThat(res).contains("""state: {}""")
+        assertThat(res).contains("<body><other-component></other-component></body>")
     }
 
 }
