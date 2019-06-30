@@ -33,11 +33,12 @@ object JavalinVue {
     fun components() = paths.filter { it.toString().endsWith(".vue") }.joinToString("") { it.readText() }
     fun walkPaths() = Files.walk(vueRootPath, 10).collect(Collectors.toSet())
 
-    fun getParams(ctx: Context) = """<script>
-            Vue.prototype.${"$"}javalin = {
-            pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
-            queryParams: ${JavalinJson.toJson(ctx.queryParamMap())}
-        }</script>"""
+    fun getParams(ctx: Context, state: Any) = "\n<script>\n" + """
+        |    Vue.prototype.${"$"}javalin = {
+        |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
+        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap())},
+        |        state: ${JavalinJson.toJson(state)}
+        |    }""".trimMargin() + "\n</script>\n"
 
     private fun Path.readText(): String {
         val s = Scanner(Files.newInputStream(this)).useDelimiter("\\A")
@@ -46,10 +47,10 @@ object JavalinVue {
 
 }
 
-class VueComponent(private val component: String) : Handler {
+class VueComponent(val component: String, val state: Any = mapOf<String, String>()) : Handler {
     override fun handle(ctx: Context) {
         JavalinVue.paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
         val view = if (ctx.isLocalhost()) JavalinVue.createLayout() else JavalinVue.cachedLayout
-        ctx.html(view.replace("@routeParams", JavalinVue.getParams(ctx)).replace("@routeComponent", component)) // insert current route component
+        ctx.html(view.replace("@routeParams", JavalinVue.getParams(ctx, state)).replace("@routeComponent", component)) // insert current route component
     }
 }
