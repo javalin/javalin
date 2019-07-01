@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.wrapper.BrotliWrapper
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.CoreRoles
@@ -15,9 +16,6 @@ import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
-import org.meteogroup.jbrotli.Brotli
-import org.meteogroup.jbrotli.BrotliStreamCompressor
-import org.meteogroup.jbrotli.io.BrotliOutputStream
 import java.io.InputStream
 import java.util.concurrent.CompletionException
 import java.util.zip.GZIPOutputStream
@@ -85,12 +83,13 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
             }
             if (brotliShouldBeDone(ctx)) {
                 //Do Brotli Compression here
-                BrotliOutputStream(res.outputStream).use { brotliStream ->
-                    res.setHeader(Header.CONTENT_ENCODING, "br")
-                    resultStream.copyTo(brotliStream)
-                }
-                var compressor = BrotliStreamCompressor(Brotli.DEFAULT_PARAMETER)
-                //var compd = compressor.compressArray(res.outputStream, true)
+                res.setHeader(Header.CONTENT_ENCODING, "br")
+                val originalBytes = resultStream.readBytes()
+                val compressedBytes = BrotliWrapper.compress(String(originalBytes), 4) as ByteArray
+                //File("test").writeText(compressedBytes.toString())
+                //val outBytes = compressedBytes.toString().toByteArray()
+                //val outBytes = compressedBytes.toString().toByteArray(Charsets.UTF_8)
+                res.outputStream.write(compressedBytes)
                 resultStream.close()
                 return
             }
@@ -144,18 +143,21 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
 
-    private fun resultExceedsMTU(ctx: Context) = ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
+    private fun resultExceedsMTU(ctx: Context): Boolean {
+        return ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
+    }
 
-    private fun supportsEncoding(ctx: Context, encoding: String)
-            = (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains(encoding, ignoreCase = true)
+    private fun supportsEncoding(ctx: Context, encoding: String): Boolean {
+        return (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains(encoding, ignoreCase = true)
+    }
 
-    private fun gzipShouldBeDone(ctx: Context) = config.dynamicGzip
-            && resultExceedsMTU(ctx)
-            && supportsEncoding(ctx, "gzip")
+    private fun gzipShouldBeDone(ctx: Context): Boolean {
+        return config.dynamicGzip && resultExceedsMTU(ctx) && supportsEncoding(ctx, "gzip")
+    }
 
-    private fun brotliShouldBeDone(ctx: Context) = config.dynamicBrotli
-            && resultExceedsMTU(ctx)
-            && supportsEncoding(ctx, "br")
+    private fun brotliShouldBeDone(ctx: Context): Boolean {
+        return config.dynamicBrotli && resultExceedsMTU(ctx) && supportsEncoding(ctx, "br")
+    }
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
         val shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP)
