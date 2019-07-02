@@ -87,12 +87,12 @@ class TestCompression {
     }
 
     @Test
-    fun `doesn't gzip when brotli enabled and supported`() = TestUtil.test(app) { _, http ->
+    fun `does brotli when both brotli and gzip enabled and supported`() = TestUtil.test(app) { _, http ->
         assertThat(getResponse(http.origin, "/huge", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
     }
 
     @Test
-    fun `does gzip when brotli disabled and supported`() = TestUtil.test(brotliDisabledApp) { _, http ->
+    fun `does gzip when brotli disabled and both supported`() = TestUtil.test(brotliDisabledApp) { _, http ->
         assertThat(getResponse(http.origin, "/huge", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
     }
 

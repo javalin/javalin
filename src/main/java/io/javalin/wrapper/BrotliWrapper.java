@@ -12,7 +12,6 @@ public class BrotliWrapper {
 
     private static Brotli brotli() {
         if(_brotli == null) _brotli = new Brotli(EmptyObject.EMPTY);
-        //if(_brotli == null) _brotli = new Brotli("dictionary.txt");
         return _brotli;
     }
 

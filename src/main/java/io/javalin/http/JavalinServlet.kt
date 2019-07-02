@@ -86,9 +86,6 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
                 res.setHeader(Header.CONTENT_ENCODING, "br")
                 val originalBytes = resultStream.readBytes()
                 val compressedBytes = BrotliWrapper.compress(String(originalBytes), 4) as ByteArray
-                //File("test").writeText(compressedBytes.toString())
-                //val outBytes = compressedBytes.toString().toByteArray()
-                //val outBytes = compressedBytes.toString().toByteArray(Charsets.UTF_8)
                 res.outputStream.write(compressedBytes)
                 resultStream.close()
                 return
