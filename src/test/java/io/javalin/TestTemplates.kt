@@ -97,6 +97,12 @@ class TestTemplates {
     }
 
     @Test
+    fun `pebble empty context map work`() = TestUtil.test { app, http ->
+        app.get("/hello2") { ctx -> ctx.render("templates/pebble/test-empty-context-map.peb") }
+        assertThat(http.getBody("/hello2")).isNotEqualTo("Internal server error")
+    }
+
+    @Test
     fun `pebble custom engines work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("templates/pebble/test.peb") }
         assertThat(http.getBody("/hello")).isEqualTo("<h1></h1>")
