@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServlet(val config: JavalinConfig): HttpServlet() {
+class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
     val matcher = PathMatcher()
     val exceptionMapper = ExceptionMapper()
