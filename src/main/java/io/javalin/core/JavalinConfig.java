@@ -40,6 +40,7 @@ public class JavalinConfig {
     // @formatter:off
     public static Consumer<JavalinConfig> noopConfig = JavalinConfig -> {}; // no change from default
     public boolean dynamicGzip = true;
+    public boolean dynamicBrotli = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;

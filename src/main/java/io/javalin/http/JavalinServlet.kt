@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.wrapper.BrotliWrapper
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.CoreRoles
@@ -80,7 +81,14 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
                     return // don't write body
                 }
             }
-            if (gzipShouldBeDone(ctx)) {
+            if (brotliShouldBeDone(ctx)) {
+                //Do Brotli Compression here
+                res.setHeader(Header.CONTENT_ENCODING, "br")
+                res.outputStream.write(BrotliWrapper.compressArray(resultStream.readBytes(), 4))
+                resultStream.close()
+                return
+            }
+            else if (gzipShouldBeDone(ctx)) {
                 GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
                     res.setHeader(Header.CONTENT_ENCODING, "gzip")
                     resultStream.copyTo(gzippedStream)
@@ -88,7 +96,7 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
                 resultStream.close()
                 return
             }
-            resultStream.copyTo(res.outputStream) // no gzip
+            resultStream.copyTo(res.outputStream) // no compression
             resultStream.close()
         }
 
@@ -130,9 +138,21 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
 
-    private fun gzipShouldBeDone(ctx: Context) = config.dynamicGzip
-            && ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
-            && (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains("gzip", ignoreCase = true)
+    private fun resultExceedsMTU(ctx: Context): Boolean {
+        return ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
+    }
+
+    private fun supportsEncoding(ctx: Context, encoding: String): Boolean {
+        return (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains(encoding, ignoreCase = true)
+    }
+
+    private fun gzipShouldBeDone(ctx: Context): Boolean {
+        return config.dynamicGzip && resultExceedsMTU(ctx) && supportsEncoding(ctx, "gzip")
+    }
+
+    private fun brotliShouldBeDone(ctx: Context): Boolean {
+        return config.dynamicBrotli && resultExceedsMTU(ctx) && supportsEncoding(ctx, "br")
+    }
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
         val shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP)
