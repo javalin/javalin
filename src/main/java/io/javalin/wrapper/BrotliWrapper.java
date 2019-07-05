@@ -1,27 +1,30 @@
 package io.javalin.wrapper;
 
-import haxe.lang.EmptyObject;
-import haxe.root.Brotli;
+import org.meteogroup.jbrotli.Brotli;
+import org.meteogroup.jbrotli.BrotliCompressor;
+import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader;
+
+import java.util.Arrays;
 
 public class BrotliWrapper {
 
-    private static Brotli _brotli;
+    private static BrotliCompressor _brotli;
 
     private BrotliWrapper() {
     }
 
-    private static Brotli brotli() {
-        if(_brotli == null) _brotli = new Brotli(EmptyObject.EMPTY);
+    private static BrotliCompressor brotli() {
+        if(_brotli == null) {
+            BrotliLibraryLoader.loadBrotli();
+            _brotli = new BrotliCompressor();
+        }
         return _brotli;
     }
 
-    /*
-    public static String compress(String input, int quality) {
-        return (String)brotli().compress(input, quality);
-    }
-    */
-
-    public static byte[] compressArray(byte[] input, int quality) {
-        return brotli().compressArray(input, quality);
+    public static byte[] compress(byte[] input, int quality) {
+        byte[] outBuff = new byte[8192];
+        int len = brotli().compress(Brotli.DEFAULT_PARAMETER, input, outBuff);
+        byte[] output = Arrays.copyOfRange(outBuff, 0, len);
+        return output;
     }
 }
