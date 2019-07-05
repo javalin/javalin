@@ -84,7 +84,8 @@ class JavalinServlet(val config: JavalinConfig): HttpServlet() {
             if (brotliShouldBeDone(ctx)) {
                 //Do Brotli Compression here
                 res.setHeader(Header.CONTENT_ENCODING, "br")
-                res.outputStream.write(BrotliWrapper.compress(resultStream.readBytes(), 4))
+                //res.outputStream.write(BrotliWrapper.compress(resultStream.readBytes(), 4))
+                res.outputStream.write(BrotliWrapper.compressStream(resultStream.readBytes(), 4))
                 resultStream.close()
                 return
             }
