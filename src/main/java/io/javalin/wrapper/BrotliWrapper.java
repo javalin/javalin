@@ -1,27 +1,37 @@
 package io.javalin.wrapper;
 
-import haxe.lang.EmptyObject;
-import haxe.root.Brotli;
+import org.meteogroup.jbrotli.Brotli;
+import org.meteogroup.jbrotli.BrotliCompressor;
+import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader;
+
+import java.util.Arrays;
 
 public class BrotliWrapper {
 
-    private static Brotli _brotli;
+    private static BrotliCompressor _brotli_compressor;
 
-    private BrotliWrapper() {
+    private static final int MY_QUALITY = 4;
+    private static final Brotli.Parameter MY_BROTLI_PARAMETER = new Brotli.Parameter(
+        Brotli.DEFAULT_MODE,
+        MY_QUALITY,
+        Brotli.DEFAULT_LGWIN,
+        Brotli.DEFAULT_LGBLOCK
+    );
+
+    //Being used as a static class, we don't want to initialize instances
+    private BrotliWrapper() {}
+
+    private static BrotliCompressor brotliCompressor() {
+        if(_brotli_compressor == null) {
+            BrotliLibraryLoader.loadBrotli();
+            _brotli_compressor = new BrotliCompressor();
+        }
+        return _brotli_compressor;
     }
 
-    private static Brotli brotli() {
-        if(_brotli == null) _brotli = new Brotli(EmptyObject.EMPTY);
-        return _brotli;
-    }
-
-    /*
-    public static String compress(String input, int quality) {
-        return (String)brotli().compress(input, quality);
-    }
-    */
-
-    public static byte[] compressArray(byte[] input, int quality) {
-        return brotli().compressArray(input, quality);
+    public static byte[] compressBytes(byte[] input) {
+        byte[] output = new byte[input.length];
+        int compressedLength = brotliCompressor().compress(MY_BROTLI_PARAMETER, input, output);
+        return Arrays.copyOfRange(output, 0, compressedLength);
     }
 }

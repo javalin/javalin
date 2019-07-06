@@ -73,7 +73,7 @@ class TestCompression {
     fun `does brotli when size is big and Accept header is set`() = TestUtil.test(app) { _, http ->
         assertThat(Unirest.get(http.origin + "/huge").asString().body.length).isEqualTo(hugeLength)
         assertThat(getResponse(http.origin, "/huge", "br").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
-        assertThat(getResponse(http.origin, "/huge", "br").body()!!.contentLength()).isEqualTo(2232L) // hardcoded because lazy
+        assertThat(getResponse(http.origin, "/huge", "br").body()!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
     }
 
     @Test
