@@ -31,12 +31,7 @@ public class BrotliWrapper {
 
     public static byte[] compressBytes(byte[] input) {
         byte[] output = new byte[input.length];
-
-        long start = System.nanoTime();
         int compressedLength = brotliCompressor().compress(MY_BROTLI_PARAMETER, input, output);
-        long stop = System.nanoTime();
-        System.out.println("Time for COMPRESS was " + (stop - start)/1000000 + " miliseconds.");
-
         return Arrays.copyOfRange(output, 0, compressedLength);
     }
 }
