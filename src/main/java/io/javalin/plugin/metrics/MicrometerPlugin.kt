@@ -4,14 +4,14 @@ import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag
 import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
 import io.micrometer.core.instrument.binder.jetty.JettyStatisticsMetrics
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.eclipse.jetty.server.handler.StatisticsHandler
 
-class MicrometerPlugin @JvmOverloads constructor(val registry: CompositeMeterRegistry = Metrics.globalRegistry) : Plugin {
+class MicrometerPlugin @JvmOverloads constructor(val registry: MeterRegistry = Metrics.globalRegistry) : Plugin {
     override fun apply(app: Javalin) {
         app.server()?.server()?.let { server ->
             Util.ensureDependencyPresent(OptionalDependency.MICROMETER)
