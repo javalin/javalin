@@ -108,7 +108,7 @@ class TestResponse {
     fun `setting a cookie works`() = TestUtil.test { app, http ->
         app.get("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
         app.get("/get-cookie") { ctx -> ctx.result(ctx.cookie("Test")!!) }
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).isEqualTo("Test=Tast;Path=/")
+        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).isEqualTo("Test=Tast; Path=/")
         assertThat(http.getBody("/get-cookie")).isEqualTo("Tast")
     }
 

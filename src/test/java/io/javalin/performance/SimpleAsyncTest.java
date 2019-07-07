@@ -22,9 +22,9 @@ import org.slf4j.LoggerFactory;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class StupidAsyncTest {
+public class SimpleAsyncTest {
 
-    private static Logger log = LoggerFactory.getLogger(StupidAsyncTest.class);
+    private static Logger log = LoggerFactory.getLogger(SimpleAsyncTest.class);
 
     @Test
     @Ignore("For running manually")

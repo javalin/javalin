@@ -9,7 +9,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.1.1-SNAPSHOT</version>
 
     <name>Javalin</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -40,7 +40,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <jetty.version>9.4.17.v20190418</jetty.version>
+        <jetty.version>9.4.19.v20190610</jetty.version>
         <slf4j.version>1.7.26</slf4j.version>
         <jackson.version>2.9.9</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
