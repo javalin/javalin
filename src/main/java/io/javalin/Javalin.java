@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.meteogroup.jbrotli.Brotli;
+import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +87,9 @@ public class Javalin {
         JavalinConfig.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
         if (app.config.logIfServerNotStarted) {
             Util.logIfServerNotStarted(app.server);
+        }
+        if(app.config.dynamicBrotli) {
+            BrotliLibraryLoader.loadBrotli();
         }
         return app;
     }

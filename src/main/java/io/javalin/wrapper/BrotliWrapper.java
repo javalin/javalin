@@ -2,36 +2,59 @@ package io.javalin.wrapper;
 
 import org.meteogroup.jbrotli.Brotli;
 import org.meteogroup.jbrotli.BrotliCompressor;
-import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader;
 
 import java.util.Arrays;
 
 public class BrotliWrapper {
 
-    private static BrotliCompressor _brotli_compressor;
+    //DEFAULTS
+    public static final Brotli.Mode DEFAULT_MODE = Brotli.DEFAULT_MODE;
+    public static final int DEFAULT_LEVEL = 4;
+    public static final int DEFAULT_LGWIN = Brotli.DEFAULT_LGWIN;
+    public static final int DEFAULT_LGBLOCK = Brotli.DEFAULT_LGBLOCK;
 
-    private static final int MY_QUALITY = 4;
-    private static final Brotli.Parameter MY_BROTLI_PARAMETER = new Brotli.Parameter(
-        Brotli.DEFAULT_MODE,
-        MY_QUALITY,
-        Brotli.DEFAULT_LGWIN,
-        Brotli.DEFAULT_LGBLOCK
-    );
 
-    //Being used as a static class, we don't want to initialize instances
-    private BrotliWrapper() {}
+    //FIELDS
+    private BrotliCompressor _brotliCompressor = new BrotliCompressor();
+    private Brotli.Parameter _brotliParameter;
 
-    private static BrotliCompressor brotliCompressor() {
-        if(_brotli_compressor == null) {
-            BrotliLibraryLoader.loadBrotli();
-            _brotli_compressor = new BrotliCompressor();
-        }
-        return _brotli_compressor;
+
+    //CONSTRUCTORS
+    public BrotliWrapper() {
+        _brotliParameter = createParameter();
     }
 
-    public static byte[] compressBytes(byte[] input) {
+    public BrotliWrapper(int level) {
+        _brotliParameter = createParameter(level);
+    }
+
+    public BrotliWrapper(Brotli.Mode mode, int level, int lgWin, int lgBlock) {
+        _brotliParameter = createParameter(mode, level, lgWin, lgBlock);
+    }
+
+
+    //GETTERS
+    public Brotli.Parameter getParameter() {
+        return _brotliParameter;
+    }
+
+
+    //METHODS
+    protected Brotli.Parameter createParameter() {
+        return createParameter(DEFAULT_MODE, DEFAULT_LEVEL, DEFAULT_LGWIN, DEFAULT_LGBLOCK);
+    }
+
+    protected Brotli.Parameter createParameter(int level) {
+        return createParameter(DEFAULT_MODE, level, DEFAULT_LGWIN, DEFAULT_LGBLOCK);
+    }
+
+    protected Brotli.Parameter createParameter(Brotli.Mode mode, int level, int lgWin, int lgBlock) {
+        return new Brotli.Parameter(mode, level, lgWin, lgBlock);
+    }
+
+    public byte[] compressBytes(byte[] input) {
         byte[] output = new byte[input.length];
-        int compressedLength = brotliCompressor().compress(MY_BROTLI_PARAMETER, input, output);
+        int compressedLength = _brotliCompressor.compress(_brotliParameter, input, output);
         return Arrays.copyOfRange(output, 0, compressedLength);
     }
 }
