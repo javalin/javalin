@@ -87,6 +87,13 @@
             <version>${jetty.version}</version>
         </dependency>
 
+        <!-- JBrotli -->
+        <dependency>
+            <groupId>org.meteogroup.jbrotli</groupId>
+            <artifactId>jbrotli</artifactId>
+            <version>0.5.0</version>
+        </dependency>
+
         <!-- BEGIN Optional dependencies -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -176,12 +183,6 @@
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
             <version>4.8.34</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.meteogroup.jbrotli</groupId>
-            <artifactId>jbrotli</artifactId>
-            <version>0.5.0</version>
             <optional>true</optional>
         </dependency>
 
