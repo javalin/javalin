@@ -1,4 +1,4 @@
-package io.javalin.wrapper;
+package io.javalin.core;
 
 import org.meteogroup.jbrotli.Brotli;
 import org.meteogroup.jbrotli.BrotliCompressor;

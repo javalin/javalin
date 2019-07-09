@@ -88,9 +88,7 @@ public class Javalin {
         if (app.config.logIfServerNotStarted) {
             Util.logIfServerNotStarted(app.server);
         }
-        if(app.config.dynamicBrotli) {
-            BrotliLibraryLoader.loadBrotli();
-        }
+        BrotliLibraryLoader.loadBrotli();
         return app;
     }
 
