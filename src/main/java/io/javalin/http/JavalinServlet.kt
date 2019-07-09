@@ -6,8 +6,8 @@
 
 package io.javalin.http
 
-import io.javalin.wrapper.BrotliWrapper
 import io.javalin.Javalin
+import io.javalin.core.DynamicCompressionHandler
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role
@@ -18,7 +18,6 @@ import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import java.io.InputStream
 import java.util.concurrent.CompletionException
-import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -35,6 +34,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val ctx = Context(req, res, config.inner.appAttributes)
+        val dynamicCompressionHandler = DynamicCompressionHandler(ctx, res, config)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
@@ -81,23 +81,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     return // don't write body
                 }
             }
-            if (brotliShouldBeDone(ctx)) {
-                //Do Brotli Compression here
-                res.setHeader(Header.CONTENT_ENCODING, "br")
-                val brotliWrapper = BrotliWrapper()
-                res.outputStream.write(brotliWrapper.compressBytes(resultStream.readBytes()))
-                resultStream.close()
-                return
-            }
-            else if (gzipShouldBeDone(ctx)) {
-                GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
-                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                    resultStream.copyTo(gzippedStream)
-                }
-                resultStream.close()
-                return
-            }
-            resultStream.copyTo(res.outputStream) // no compression
+            dynamicCompressionHandler.compressResponse()
             resultStream.close()
         }
 
@@ -138,22 +122,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     }
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
-
-    private fun resultExceedsMTU(ctx: Context): Boolean {
-        return ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
-    }
-
-    private fun supportsEncoding(ctx: Context, encoding: String): Boolean {
-        return (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains(encoding, ignoreCase = true)
-    }
-
-    private fun gzipShouldBeDone(ctx: Context): Boolean {
-        return config.dynamicGzip && resultExceedsMTU(ctx) && supportsEncoding(ctx, "gzip")
-    }
-
-    private fun brotliShouldBeDone(ctx: Context): Boolean {
-        return config.dynamicBrotli && resultExceedsMTU(ctx) && supportsEncoding(ctx, "br")
-    }
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
         val shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP)

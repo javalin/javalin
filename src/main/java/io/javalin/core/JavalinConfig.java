@@ -40,7 +40,6 @@ public class JavalinConfig {
     // @formatter:off
     public static Consumer<JavalinConfig> noopConfig = JavalinConfig -> {}; // no change from default
     public boolean dynamicGzip = true;
-    public boolean dynamicBrotli = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
@@ -67,6 +66,7 @@ public class JavalinConfig {
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
+        @Nullable public DynamicCompressionStrategy dynamicCompressionStrategy = null;
     }
     // @formatter:on
 
@@ -170,6 +170,11 @@ public class JavalinConfig {
 
     public JavalinConfig configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
         inner.servletContextHandlerConsumer = consumer;
+        return this;
+    }
+
+    public JavalinConfig configureDynamicCompressionStrategy(DynamicCompressionStrategy strategy) {
+        inner.dynamicCompressionStrategy = strategy;
         return this;
     }
 
