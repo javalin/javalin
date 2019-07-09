@@ -4,11 +4,11 @@ import io.javalin.core.util.Header
 import io.javalin.http.Context
 import javax.servlet.http.HttpServletResponse
 
-class DynamicCompressionHandler(val ctx: Context, val res: HttpServletResponse, val config: JavalinConfig) {
+class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
 
     val compressionStrategy = config.inner.dynamicCompressionStrategy
 
-    fun compressResponse() {
+    fun compressResponse(res: HttpServletResponse) {
         val resultStream = ctx.resultStream()!!
         if (brotliShouldBeDone(ctx)) {
             res.setHeader(Header.CONTENT_ENCODING, "br")

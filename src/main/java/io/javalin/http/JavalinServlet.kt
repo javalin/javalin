@@ -34,7 +34,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val ctx = Context(req, res, config.inner.appAttributes)
-        val dynamicCompressionHandler = DynamicCompressionHandler(ctx, res, config)
+        val dynamicCompressionHandler = DynamicCompressionHandler(ctx, config)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
@@ -81,7 +81,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     return // don't write body
                 }
             }
-            dynamicCompressionHandler.compressResponse()
+            dynamicCompressionHandler.compressResponse(res)
             resultStream.close()
         }
 
