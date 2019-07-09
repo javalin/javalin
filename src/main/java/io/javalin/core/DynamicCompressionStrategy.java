@@ -26,7 +26,7 @@ public class DynamicCompressionStrategy {
 
 
     public DynamicCompressionStrategy setGzipLevel(int gzipLevel) {
-        if(gzipLevel < 1) gzipLevel = 1;
+        if(gzipLevel < 0) gzipLevel = 0;
         if(gzipLevel > 9) gzipLevel = 9;
         this._gzipLevel = gzipLevel;
         return this;
