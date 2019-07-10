@@ -11,13 +11,13 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
     fun compressResponse(res: HttpServletResponse) {
         val resultStream = ctx.resultStream()!!
         if (brotliShouldBeDone(ctx)) {
-            res.setHeader(Header.CONTENT_ENCODING, "br")
             val level = compressionStrategy?.brotliLevel ?: DynamicCompressionStrategy.BROTLI_DEFAULT_LEVEL
-            val brotliWrapper = BrotliWrapper(level)
-            res.outputStream.write(brotliWrapper.compressBytes(resultStream.readBytes()))
+            BrotliWrapper(level).use { brWrappwer ->
+                res.setHeader(Header.CONTENT_ENCODING, "br")
+                res.outputStream.write(brWrappwer.compressByteArray(resultStream.readBytes()))
+            }
             return
-        }
-        else if (gzipShouldBeDone(ctx)) {
+        } else if (gzipShouldBeDone(ctx)) {
             val level = compressionStrategy?.gzipLevel ?: DynamicCompressionStrategy.GZIP_DEFAULT_LEVEL
             GZIPWrapper(res.outputStream, true).setLevel(level).use { gzippedStream ->
                 res.setHeader(Header.CONTENT_ENCODING, "gzip")

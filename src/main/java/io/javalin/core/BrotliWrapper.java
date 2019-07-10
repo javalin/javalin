@@ -3,9 +3,11 @@ package io.javalin.core;
 import org.meteogroup.jbrotli.Brotli;
 import org.meteogroup.jbrotli.BrotliCompressor;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Arrays;
 
-public class BrotliWrapper {
+public class BrotliWrapper implements Closeable {
 
     //DEFAULTS
     public static final Brotli.Mode DEFAULT_MODE = Brotli.DEFAULT_MODE;
@@ -52,9 +54,14 @@ public class BrotliWrapper {
         return new Brotli.Parameter(mode, level, lgWin, lgBlock);
     }
 
-    public byte[] compressBytes(byte[] input) {
+    public byte[] compressByteArray(byte[] input) {
         byte[] output = new byte[input.length];
         int compressedLength = _brotliCompressor.compress(_brotliParameter, input, output);
         return Arrays.copyOfRange(output, 0, compressedLength);
+    }
+
+    @Override
+    public void close() throws IOException {
+
     }
 }
