@@ -10,8 +10,11 @@ import java.util.Arrays;
 
 /**
  * This class acts as a middleman between JBrotli and Javalin.
+ *
+ * Intentionally left without public modifier, as we want Javalin API users implementing compression via
+ * @see DynamicCompressionStrategy, rather than accessing this class directly.
  */
-public class BrotliWrapper implements Closeable {
+class BrotliWrapper implements Closeable {
 
     public static final Brotli.Mode DEFAULT_MODE = Brotli.DEFAULT_MODE;
     public static final int DEFAULT_LEVEL = 4;
@@ -44,14 +47,12 @@ public class BrotliWrapper implements Closeable {
         _brotliParameter = createParameter(mode, level, lgWin, lgBlock);
     }
 
-
-    //GETTERS
     public Brotli.Parameter getParameter() {
         return _brotliParameter;
     }
 
 
-    //METHODS
+    //PROTECTED methods
     protected Brotli.Parameter createParameter() {
         return createParameter(DEFAULT_MODE, DEFAULT_LEVEL, DEFAULT_LGWIN, DEFAULT_LGBLOCK);
     }

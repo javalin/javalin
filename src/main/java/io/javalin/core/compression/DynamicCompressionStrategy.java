@@ -1,5 +1,9 @@
 package io.javalin.core.compression;
 
+import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader;
+
+import static io.javalin.Javalin.log;
+
 /**
  * This class is a settings container for Javalin's dynamic content compression.
  *
@@ -46,7 +50,7 @@ public class DynamicCompressionStrategy {
     public DynamicCompressionStrategy setGzipLevel(int gzipLevel) {
         if(gzipLevel < 0) gzipLevel = 0;
         if(gzipLevel > 9) gzipLevel = 9;
-        this._gzipLevel = gzipLevel;
+        _gzipLevel = gzipLevel;
         return this;
     }
 
@@ -56,17 +60,37 @@ public class DynamicCompressionStrategy {
     public DynamicCompressionStrategy setBrotliLevel(int brotliLevel) {
         if(brotliLevel < 0) brotliLevel = 0;
         if(brotliLevel > 11) brotliLevel = 11;
-        this._brotliLevel = brotliLevel;
+        _brotliLevel = brotliLevel;
         return this;
     }
 
     public DynamicCompressionStrategy setGzipEnabled(boolean gzipEnabled) {
-        this._gzipEnabled = gzipEnabled;
+        _gzipEnabled = gzipEnabled;
         return this;
     }
 
+    /**
+     * When enabling Brotli, we try loading the JBrotli native library first.
+     * If this fails, we keep Brotli disabled and warn the user.
+     */
     public DynamicCompressionStrategy setBrotliEnabled(boolean brotliEnabled) {
-        this._brotliEnabled = brotliEnabled;
+        if(!_brotliEnabled && brotliEnabled == true) {
+            if(tryLoadBrotli()) {
+                _brotliEnabled = true;
+            } else {
+                log.warn("Failed to enable Brotli compression, because we couldn't load the JBrotli native library.");
+                log.warn("Brotli is currently only supported on Windows, Linux and Mac OSX.");
+                log.warn("If you are running Javalin on a supported system, but are still getting this error,");
+                log.warn("try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,");
+                log.warn("please report the issue at https://github.com/tipsy/javalin/");
+                log.warn("---------------------------------------------------------------");
+                log.warn("If you still want dynamic compression, please ensure GZIP is enabled!");
+                log.warn("---------------------------------------------------------------");
+                log.warn("");
+            }
+        } else {
+            _brotliEnabled = brotliEnabled;
+        }
         return this;
     }
 
@@ -84,5 +108,16 @@ public class DynamicCompressionStrategy {
 
     public boolean isGzipEnabled() {
         return _gzipEnabled;
+    }
+
+
+    //PRIVATE methods
+    private boolean tryLoadBrotli() {
+        try {
+            BrotliLibraryLoader.loadBrotli();
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 }

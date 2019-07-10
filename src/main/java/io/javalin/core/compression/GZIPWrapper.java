@@ -7,8 +7,11 @@ import java.util.zip.GZIPOutputStream;
 
 /**
  * This class acts as a middleman between GZIP and Javalin.
+ *
+ * Intentionally left without public modifier, as we want Javalin API users implementing compression via
+ * @see DynamicCompressionStrategy, rather than accessing this class directly.
  */
-public class GZIPWrapper extends GZIPOutputStream {
+class GZIPWrapper extends GZIPOutputStream {
 
     public GZIPWrapper(OutputStream out) throws IOException {
         super(out);

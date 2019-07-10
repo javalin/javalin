@@ -6,9 +6,11 @@ import io.javalin.http.Context
 import javax.servlet.http.HttpServletResponse
 
 /**
- * Self-contained logic for Javalin's dynamic content compression.
+ * Class designed to handle dynamic content compression for Javalin.
  *
- * Uses Javalin config to determine what type and level of compression should be applied, if any
+ * Uses DynamicCompressionStrategy within JavalinConfig to determine the type and level of compression to be applied.
+ *
+ * @see DynamicCompressionStrategy
  */
 class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
 
@@ -37,6 +39,7 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
         resultStream.copyTo(res.outputStream) //No compression
     }
 
+    //PRIVATE methods
     private fun resultExceedsMTU(ctx: Context): Boolean {
         return ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
     }
@@ -47,13 +50,13 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
 
     private fun gzipShouldBeDone(ctx: Context): Boolean {
         //If compressionStrategy is null, we check the old dynamicGzip boolean. This is important for backwards compatibility
-        return compressionStrategy?.isGzipEnabled ?: config.dynamicGzip
+        return  compressionStrategy?.isGzipEnabled ?: config.dynamicGzip
                 && resultExceedsMTU(ctx)
                 && supportsEncoding(ctx, "gzip")
     }
 
     private fun brotliShouldBeDone(ctx: Context): Boolean {
-        return compressionStrategy?.isBrotliEnabled ?: false
+        return  compressionStrategy?.isBrotliEnabled ?: false
                 && resultExceedsMTU(ctx)
                 && supportsEncoding(ctx, "br")
     }
