@@ -7,6 +7,7 @@
 package io.javalin.core;
 
 import io.javalin.Javalin;
+import io.javalin.core.compression.DynamicCompressionStrategy;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginInitLifecycleViolationException;

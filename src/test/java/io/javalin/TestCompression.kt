@@ -7,7 +7,7 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
-import io.javalin.core.DynamicCompressionStrategy
+import io.javalin.core.compression.DynamicCompressionStrategy
 import io.javalin.core.util.Header
 import okhttp3.OkHttpClient
 import okhttp3.Request

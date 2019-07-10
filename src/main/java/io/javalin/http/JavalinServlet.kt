@@ -7,7 +7,7 @@
 package io.javalin.http
 
 import io.javalin.Javalin
-import io.javalin.core.DynamicCompressionHandler
+import io.javalin.core.compression.DynamicCompressionHandler
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role

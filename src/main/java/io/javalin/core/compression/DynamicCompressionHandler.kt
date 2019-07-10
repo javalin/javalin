@@ -1,23 +1,32 @@
-package io.javalin.core
+package io.javalin.core.compression
 
+import io.javalin.core.JavalinConfig
 import io.javalin.core.util.Header
 import io.javalin.http.Context
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * Self-contained logic for Javalin's dynamic content compression.
+ *
+ * Uses Javalin config to determine what type and level of compression should be applied, if any
+ */
 class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
 
     val compressionStrategy = config.inner.dynamicCompressionStrategy
 
+    /**
+     * @param res The response that we wish to encode
+     */
     fun compressResponse(res: HttpServletResponse) {
         val resultStream = ctx.resultStream()!!
-        if (brotliShouldBeDone(ctx)) {
+        if (brotliShouldBeDone(ctx)) { //Do Brotli
             val level = compressionStrategy?.brotliLevel ?: DynamicCompressionStrategy.BROTLI_DEFAULT_LEVEL
             BrotliWrapper(level).use { brWrappwer ->
                 res.setHeader(Header.CONTENT_ENCODING, "br")
                 res.outputStream.write(brWrappwer.compressByteArray(resultStream.readBytes()))
             }
             return
-        } else if (gzipShouldBeDone(ctx)) {
+        } else if (gzipShouldBeDone(ctx)) { //Do GZIP
             val level = compressionStrategy?.gzipLevel ?: DynamicCompressionStrategy.GZIP_DEFAULT_LEVEL
             GZIPWrapper(res.outputStream, true).setLevel(level).use { gzippedStream ->
                 res.setHeader(Header.CONTENT_ENCODING, "gzip")
@@ -25,7 +34,7 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
             }
             return
         }
-        resultStream.copyTo(res.outputStream) // no compression
+        resultStream.copyTo(res.outputStream) //No compression
     }
 
     private fun resultExceedsMTU(ctx: Context): Boolean {
