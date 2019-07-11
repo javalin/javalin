@@ -49,8 +49,15 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
 
-    <dependencies>
+    <repositories>
+        <repository>
+            <id>bintray-nitram509-jbrotli</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/nitram509/jbrotli</url>
+        </repository>
+    </repositories>
 
+    <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
@@ -185,11 +192,9 @@
             <version>4.8.34</version>
             <optional>true</optional>
         </dependency>
-
         <!-- END Optional dependencies -->
 
         <!-- BEGIN Test dependencies -->
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -260,15 +265,7 @@
         </pluginRepository>
     </pluginRepositories>
 
-    <repositories>
-        <repository>
-            <id>bintray-nitram509-jbrotli</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/nitram509/jbrotli</url>
-        </repository>
-    </repositories>
-
-    <build>
+<build>
         <plugins>
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>

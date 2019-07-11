@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse
  */
 class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
 
-    val compressionStrategy = config.inner.dynamicCompressionStrategy
+    private val compressionStrategy = config.inner.dynamicCompressionStrategy
 
     /**
      * @param res The response that we wish to encode
@@ -22,15 +22,15 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
     fun compressResponse(res: HttpServletResponse) {
         val resultStream = ctx.resultStream()!!
         if (brotliShouldBeDone(ctx)) { //Do Brotli
-            val level = compressionStrategy?.brotliLevel ?: DynamicCompressionStrategy.BROTLI_DEFAULT_LEVEL
-            BrotliWrapper(level).use { brWrappwer ->
+            val level = compressionStrategy.brotliLevel
+            BrotliWrapper(level).use { brWrapper ->
                 res.setHeader(Header.CONTENT_ENCODING, "br")
-                res.outputStream.write(brWrappwer.compressByteArray(resultStream.readBytes()))
+                res.outputStream.write(brWrapper.compressByteArray(resultStream.readBytes()))
             }
             return
         } else if (gzipShouldBeDone(ctx)) { //Do GZIP
-            val level = compressionStrategy?.gzipLevel ?: DynamicCompressionStrategy.GZIP_DEFAULT_LEVEL
-            GZIPWrapper(res.outputStream, true).setLevel(level).use { gzippedStream ->
+            val level = compressionStrategy.gzipLevel
+            GzipWrapper(res.outputStream, true, level).use { gzippedStream ->
                 res.setHeader(Header.CONTENT_ENCODING, "gzip")
                 resultStream.copyTo(gzippedStream)
             }
@@ -40,7 +40,7 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
     }
 
     //PRIVATE methods
-    private fun resultExceedsMTU(ctx: Context): Boolean {
+    private fun resultExceedsMtu(ctx: Context): Boolean {
         return ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
     }
 
@@ -49,15 +49,14 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
     }
 
     private fun gzipShouldBeDone(ctx: Context): Boolean {
-        //If compressionStrategy is null, we check the old dynamicGzip boolean. This is important for backwards compatibility
-        return  compressionStrategy?.isGzipEnabled ?: config.dynamicGzip
-                && resultExceedsMTU(ctx)
+        return  compressionStrategy.gzipEnabled
+                && resultExceedsMtu(ctx)
                 && supportsEncoding(ctx, "gzip")
     }
 
     private fun brotliShouldBeDone(ctx: Context): Boolean {
-        return  compressionStrategy?.isBrotliEnabled ?: false
-                && resultExceedsMTU(ctx)
+        return  compressionStrategy.brotliEnabled
+                && resultExceedsMtu(ctx)
                 && supportsEncoding(ctx, "br")
     }
 }

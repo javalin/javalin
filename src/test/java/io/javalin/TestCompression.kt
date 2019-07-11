@@ -14,7 +14,6 @@ import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
-
 class TestCompression {
 
     private data class SillyObject(var fieldOne: String, var fieldTwo: String, var fieldThree: String)
