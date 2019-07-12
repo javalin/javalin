@@ -39,7 +39,6 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
         resultStream.copyTo(res.outputStream) //No compression
     }
 
-    //PRIVATE methods
     private fun resultExceedsMtu(ctx: Context): Boolean {
         return ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
     }
