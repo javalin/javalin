@@ -8,7 +8,7 @@ private fun getSomeObjects(numberOfObjects: Int) = (1..numberOfObjects).map { i 
 
 fun main(args: Array<String>) {
     val app = Javalin.create {config ->
-        config.inner.dynamicCompressionStrategy = DynamicCompressionStrategy(brotliEnabled = true, gzipEnabled = true)
+        config.inner.dynamicCompressionStrategy = DynamicCompressionStrategy(brotliEnabled = true, gzipEnabled = true, brotliLevel =  0, gzipLevel =  0)
     }.start(7071)
     app.get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
     app.get("/medium") { ctx -> ctx.result(getSomeObjects(200).toString()) }

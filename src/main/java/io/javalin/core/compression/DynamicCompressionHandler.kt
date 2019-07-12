@@ -21,22 +21,27 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
      */
     fun compressResponse(res: HttpServletResponse) {
         val resultStream = ctx.resultStream()!!
-        if (brotliShouldBeDone(ctx)) { //Do Brotli
-            val level = compressionStrategy.brotliLevel
-            BrotliWrapper(level).use { brWrapper ->
-                res.setHeader(Header.CONTENT_ENCODING, "br")
-                res.outputStream.write(brWrapper.compressByteArray(resultStream.readBytes()))
+        when {
+            brotliShouldBeDone(ctx) -> { //Do Brotli
+                val level = compressionStrategy.brotliLevel
+                BrotliWrapper(level).use { brWrapper ->
+                    res.setHeader(Header.CONTENT_ENCODING, "br")
+                    res.outputStream.write(brWrapper.compressByteArray(resultStream.readBytes()))
+                }
+                return
             }
-            return
-        } else if (gzipShouldBeDone(ctx)) { //Do GZIP
-            val level = compressionStrategy.gzipLevel
-            GzipWrapper(res.outputStream, true, level).use { gzippedStream ->
-                res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                resultStream.copyTo(gzippedStream)
+            gzipShouldBeDone(ctx) -> { //Do GZIP
+                val level = compressionStrategy.gzipLevel
+                GzipWrapper(res.outputStream, true, level).use { gzippedStream ->
+                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
+                    resultStream.copyTo(gzippedStream)
+                }
+                return
             }
-            return
+            else -> {
+                resultStream.copyTo(res.outputStream) //No compression
+            }
         }
-        resultStream.copyTo(res.outputStream) //No compression
     }
 
     //PRIVATE methods
