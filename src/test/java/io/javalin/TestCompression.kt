@@ -24,15 +24,15 @@ class TestCompression {
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val fullCompressionApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy().setBrotliEnabled(true).setGzipEnabled(true)) }
+    val fullCompressionApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy(brotliEnabled = true, gzipEnabled = true)) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val gzipDisabledApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy().setBrotliEnabled(true).setGzipEnabled(false)) }
+    val gzipDisabledApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy(brotliEnabled = true, gzipEnabled = false)) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val brotliDisabledApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy().setBrotliEnabled(false).setGzipEnabled(true)) }
+    val brotliDisabledApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy(brotliEnabled = false, gzipEnabled = true)) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
