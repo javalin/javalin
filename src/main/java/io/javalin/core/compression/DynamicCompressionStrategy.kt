@@ -43,7 +43,7 @@ class DynamicCompressionStrategy @JvmOverloads constructor(
         }
 
         //Enabling brotli requires special handling since jbrotli libs are platform dependent
-        this.brotliEnabled = tryEnableBrotli(brotliEnabled)
+        this.brotliEnabled = if (brotliEnabled) tryLoadBrotli() else false
 
         this.gzipEnabled = gzipEnabled
         this.brotliLevel = brotliLevel
