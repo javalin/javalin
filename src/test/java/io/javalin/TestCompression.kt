@@ -7,7 +7,9 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
+import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.DynamicCompressionStrategy
+import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -24,15 +26,15 @@ class TestCompression {
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val fullCompressionApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy(brotliEnabled = true, gzipEnabled = true)) }
+    val fullCompressionApp = Javalin.create { it.inner.dynamicCompressionStrategy = (DynamicCompressionStrategy(Brotli(), Gzip())) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val gzipDisabledApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy(brotliEnabled = true, gzipEnabled = false)) }
+    val gzipDisabledApp = Javalin.create { it.inner.dynamicCompressionStrategy = (DynamicCompressionStrategy(Brotli(), null)) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val brotliDisabledApp = Javalin.create { it.configureDynamicCompressionStrategy(DynamicCompressionStrategy(brotliEnabled = false, gzipEnabled = true)) }
+    val brotliDisabledApp = Javalin.create { it.inner.dynamicCompressionStrategy = (DynamicCompressionStrategy(null, Gzip())) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 

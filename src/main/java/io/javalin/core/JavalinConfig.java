@@ -68,7 +68,7 @@ public class JavalinConfig {
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
-        @NotNull public DynamicCompressionStrategy dynamicCompressionStrategy = DynamicCompressionStrategy.NONE;
+        @NotNull public DynamicCompressionStrategy dynamicCompressionStrategy = DynamicCompressionStrategy.GZIP;
     }
     // @formatter:on
 
@@ -183,9 +183,9 @@ public class JavalinConfig {
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
 
-        //If compression strategy wasn't defined by user, create one based on the old dynamicGzip flag
-        if(config.inner.dynamicCompressionStrategy == DynamicCompressionStrategy.NONE) {
-            config.inner.dynamicCompressionStrategy = new DynamicCompressionStrategy(false, config.dynamicGzip);
+        //Backwards compatibility. If deprecated dynamicGzip flag is set to false, disable compression.
+        if(!config.dynamicGzip) {
+            config.inner.dynamicCompressionStrategy = DynamicCompressionStrategy.NONE;
         }
 
         AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);

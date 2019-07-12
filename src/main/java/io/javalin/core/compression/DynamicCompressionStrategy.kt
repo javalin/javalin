@@ -2,6 +2,8 @@ package io.javalin.core.compression
 
 import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
 import io.javalin.Javalin.log
+import io.micrometer.core.lang.Nullable
+import javax.validation.constraints.Null
 
 /**
  * This class is a settings container for Javalin's dynamic content compression.
@@ -11,52 +13,35 @@ import io.javalin.Javalin.log
  *
  * @see DynamicCompressionHandler
  *
- * @param brotliEnabled Default: false
- * @param gzipEnabled   Default: true
- * @param brotliLevel   Brotli compression level. Higher means better (but slower) compression.
- *                      Range 0..11, Default: 4
- * @param gzipLevel     Gzip compression level. Higher means better (but slower) compression.
- *                      Range 0..9, Default: 6
+ * @param brotli instance of Brotli handler, default = null
+ * @param gzip   instance of Gzip handler, default = null
  */
-class DynamicCompressionStrategy @JvmOverloads constructor(
-        brotliEnabled: Boolean = false,
-        gzipEnabled: Boolean = true,
-        brotliLevel: Int = 4,
-        gzipLevel: Int = 6) {
+class DynamicCompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
 
-    val brotliEnabled: Boolean
-    val gzipEnabled: Boolean
-    val brotliLevel: Int
-    val gzipLevel: Int
+    val brotli: Brotli?
+    val gzip: Gzip?
 
     companion object {
-        //Used to init the corresponding object in JavalinConfig
-        @JvmField val NONE = DynamicCompressionStrategy(false, false)
+        @JvmField val NONE = DynamicCompressionStrategy()
+        @JvmField val GZIP = DynamicCompressionStrategy(null, Gzip())
+
+        @Deprecated("WARNING: Brotli compression is an experimental feature!")
+        @JvmField val BROTLI = DynamicCompressionStrategy(Brotli(), Gzip())
     }
 
     init {
-        require(brotliLevel in 0..11) {
-            "Valid range for parameter brotliLevel is 0 to 11"
-        }
-        require(gzipLevel in 0..9) {
-            "Valid range for parameter gzipLevel is 0 to 9"
-        }
-
         //Enabling brotli requires special handling since jbrotli libs are platform dependent
-        this.brotliEnabled = if (brotliEnabled) tryLoadBrotli() else false
-
-        this.gzipEnabled = gzipEnabled
-        this.brotliLevel = brotliLevel
-        this.gzipLevel = gzipLevel
+        this.brotli = if (brotli != null) tryLoadBrotli(brotli) else null
+        this.gzip = gzip
     }
 
     /**
      * When enabling Brotli, we try loading the jbrotli native library first.
      * If this fails, we keep Brotli disabled and warn the user.
      */
-    private fun tryLoadBrotli() = try {
+    private fun tryLoadBrotli(brotli: Brotli) = try {
         BrotliLibraryLoader.loadBrotli()
-        true
+        brotli
     } catch (t: Throwable) {
         log.warn("""
         |Failed to enable Brotli compression, because we couldn't load the JBrotli native library
@@ -68,6 +53,6 @@ class DynamicCompressionStrategy @JvmOverloads constructor(
         |If you still want dynamic compression, please ensure GZIP is enabled!
         |---------------------------------------------------------------
     """).toString().trimMargin()
-        false
+        null
     }
 }
