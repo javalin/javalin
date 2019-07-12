@@ -18,8 +18,8 @@ class BrotliWrapper(val level: Int = 4): Closeable {
     private val brotliParameter: Brotli.Parameter
 
     init {
-        require(level in 0..9) {
-            "Valid range for parameter level is 0 to 9"
+        require(level in 0..11) {
+            "Valid range for parameter level is 0 to 11"
         }
         brotliCompressor = BrotliCompressor()
         brotliParameter = Brotli.Parameter(Brotli.DEFAULT_MODE, level, Brotli.DEFAULT_LGWIN, Brotli.DEFAULT_LGBLOCK)
