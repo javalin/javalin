@@ -3,13 +3,12 @@ package io.javalin.core.compression
 import org.meteogroup.jbrotli.Brotli
 import org.meteogroup.jbrotli.BrotliCompressor
 
-import java.io.Closeable
 import java.io.OutputStream
 
 /**
  * Kotlin wrapper for jbrotli library.
- * DynamicCompressionHandler uses this to perform Brotli compression
- * @see DynamicCompressionHandler
+ * CompressionHandler uses this to perform Brotli compression
+ * @see CompressionHandler
  *
  * @param level Compression level. Higher yields better (but slower) compression. Range 0..11, default = 4
  */

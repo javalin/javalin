@@ -7,7 +7,7 @@
 package io.javalin.core;
 
 import io.javalin.Javalin;
-import io.javalin.core.compression.DynamicCompressionStrategy;
+import io.javalin.core.compression.CompressionStrategy;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginInitLifecycleViolationException;
@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 public class JavalinConfig {
     // @formatter:off
     public static Consumer<JavalinConfig> noopConfig = JavalinConfig -> {}; // no change from default
-    //Left here for backwards compatibility only. Please use DynamicCompressionStrategy instead
+    //Left here for backwards compatibility only. Please use CompressionStrategy instead
     @Deprecated public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
@@ -68,7 +68,7 @@ public class JavalinConfig {
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
-        @NotNull public DynamicCompressionStrategy dynamicCompressionStrategy = DynamicCompressionStrategy.GZIP;
+        @NotNull public CompressionStrategy compressionStrategy = CompressionStrategy.GZIP;
     }
     // @formatter:on
 
@@ -175,8 +175,8 @@ public class JavalinConfig {
         return this;
     }
 
-    public JavalinConfig compressionStrategy(@NotNull DynamicCompressionStrategy strategy) {
-        inner.dynamicCompressionStrategy = strategy;
+    public JavalinConfig compressionStrategy(@NotNull CompressionStrategy strategy) {
+        inner.compressionStrategy = strategy;
         return this;
     }
 
@@ -185,7 +185,7 @@ public class JavalinConfig {
 
         //Backwards compatibility. If deprecated dynamicGzip flag is set to false, disable compression.
         if(!config.dynamicGzip) {
-            config.inner.dynamicCompressionStrategy = DynamicCompressionStrategy.NONE;
+            config.inner.compressionStrategy = CompressionStrategy.NONE;
         }
 
         AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);

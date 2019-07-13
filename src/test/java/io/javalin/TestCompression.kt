@@ -8,7 +8,7 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.compression.Brotli
-import io.javalin.core.compression.DynamicCompressionStrategy
+import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
 import okhttp3.OkHttpClient
@@ -28,15 +28,15 @@ class TestCompression {
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val fullCompressionApp = Javalin.create { it.compressionStrategy ( (DynamicCompressionStrategy(Brotli(), Gzip())) ) }
+    val fullCompressionApp = Javalin.create { it.compressionStrategy ( (CompressionStrategy(Brotli(), Gzip())) ) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val gzipDisabledApp = Javalin.create { it.compressionStrategy ( (DynamicCompressionStrategy(Brotli(), null)) ) }
+    val gzipDisabledApp = Javalin.create { it.compressionStrategy ( (CompressionStrategy(Brotli(), null)) ) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val brotliDisabledApp = Javalin.create { it.compressionStrategy( (DynamicCompressionStrategy(null, Gzip())) ) }
+    val brotliDisabledApp = Javalin.create { it.compressionStrategy( (CompressionStrategy(null, Gzip())) ) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
@@ -104,7 +104,7 @@ class TestCompression {
     }
 
     /* Test for backwards compatibility. Ensures that the old dynamicGzip boolean is respected
-       when a DynamicCompressionStrategy is not set */
+       when a CompressionStrategy is not set */
     @Test
     fun `does gzip when CompressionStrategy not set`() = TestUtil.test(defaultApp) { _, http ->
         assertThat(getResponse(http.origin, "/huge", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")

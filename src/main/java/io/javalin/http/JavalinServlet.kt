@@ -7,7 +7,7 @@
 package io.javalin.http
 
 import io.javalin.Javalin
-import io.javalin.core.compression.DynamicCompressionHandler
+import io.javalin.core.compression.CompressionHandler
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role
@@ -34,7 +34,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val ctx = Context(req, res, config.inner.appAttributes)
-        val dynamicCompressionHandler = DynamicCompressionHandler(ctx, config)
+        val compressionHandler = CompressionHandler(ctx, config)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
@@ -81,7 +81,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     return // don't write body
                 }
             }
-            dynamicCompressionHandler.compressResponse(res)
+            compressionHandler.compressResponse(res)
             resultStream.close()
         }
 

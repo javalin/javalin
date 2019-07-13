@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.core.compression.DynamicCompressionStrategy
+import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.core.util.RouteOverviewPlugin
@@ -72,24 +72,24 @@ class TestConfiguration {
     @Test
     fun `compression strategy with default config is correct`() {
         val app = Javalin.create()
-        assertThat(app.config.inner.dynamicCompressionStrategy).isEqualTo(DynamicCompressionStrategy.GZIP)
+        assertThat(app.config.inner.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
     }
 
     @Test
     fun `compression strategy can be customized by user`() {
         val app = Javalin.create {
-            it.compressionStrategy( DynamicCompressionStrategy(null, Gzip(2)) )
+            it.compressionStrategy( CompressionStrategy(null, Gzip(2)) )
         }
-        assertThat(app.config.inner.dynamicCompressionStrategy.gzip?.level).isEqualTo(2)
-        assertThat(app.config.inner.dynamicCompressionStrategy.brotli).isNull()
+        assertThat(app.config.inner.compressionStrategy.gzip?.level).isEqualTo(2)
+        assertThat(app.config.inner.compressionStrategy.brotli).isNull()
     }
 
     @Test
     fun `compression strategy gets disabled when dynamicGzip is set to false`() {
         val app = Javalin.create {
             it.dynamicGzip = false
-            it.compressionStrategy( DynamicCompressionStrategy(null, Gzip(8)) )
+            it.compressionStrategy( CompressionStrategy(null, Gzip(8)) )
         }
-        assertThat(app.config.inner.dynamicCompressionStrategy).isEqualTo(DynamicCompressionStrategy.NONE)
+        assertThat(app.config.inner.compressionStrategy).isEqualTo(CompressionStrategy.NONE)
     }
 }

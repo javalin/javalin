@@ -8,13 +8,13 @@ import javax.servlet.http.HttpServletResponse
 /**
  * Class designed to handle dynamic content compression for Javalin.
  *
- * Uses DynamicCompressionStrategy within JavalinConfig to determine the type and level of compression to be applied.
+ * Uses CompressionStrategy within JavalinConfig to determine the type and level of compression to be applied.
  *
- * @see DynamicCompressionStrategy
+ * @see CompressionStrategy
  */
-class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
+class CompressionHandler(val ctx: Context, val config: JavalinConfig) {
 
-    private val compressionStrategy = config.inner.dynamicCompressionStrategy
+    private val compressionStrategy = config.inner.compressionStrategy
 
     /**
      * @param res The response that we wish to encode

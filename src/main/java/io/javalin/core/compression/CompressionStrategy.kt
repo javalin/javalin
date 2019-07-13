@@ -2,28 +2,26 @@ package io.javalin.core.compression
 
 import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
 import io.javalin.Javalin.log
-import io.micrometer.core.lang.Nullable
-import javax.validation.constraints.Null
 
 /**
  * This class is a settings container for Javalin's dynamic content compression.
  *
- * It is used by DynamicCompressionHandler to determine the encoding and parameters that should be used
+ * It is used by CompressionHandler to determine the encoding and parameters that should be used
  * when encoding a dynamic response from the server.
  *
- * @see DynamicCompressionHandler
+ * @see CompressionHandler
  *
  * @param brotli instance of Brotli handler, default = null
  * @param gzip   instance of Gzip handler, default = null
  */
-class DynamicCompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
+class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
 
     val brotli: Brotli?
     val gzip: Gzip?
 
     companion object {
-        @JvmField val NONE = DynamicCompressionStrategy()
-        @JvmField val GZIP = DynamicCompressionStrategy(null, Gzip())
+        @JvmField val NONE = CompressionStrategy()
+        @JvmField val GZIP = CompressionStrategy(null, Gzip())
     }
 
     init {
