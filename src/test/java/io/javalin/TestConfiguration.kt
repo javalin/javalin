@@ -92,13 +92,4 @@ class TestConfiguration {
         }
         assertThat(app.config.inner.dynamicCompressionStrategy).isEqualTo(DynamicCompressionStrategy.NONE)
     }
-
-    @Test
-    fun `compression strategy cannot be changed once server is started`() {
-        val app = Javalin.create()
-        assertThat(app.config.inner.dynamicCompressionStrategy).isEqualTo(DynamicCompressionStrategy.GZIP)
-        app.start(7070)
-        app.config.compressionStrategy( DynamicCompressionStrategy.NONE )
-        assertThat(app.config.inner.dynamicCompressionStrategy.gzip).isNotNull
-    }
 }
