@@ -14,7 +14,10 @@ import io.javalin.core.util.Header
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assume.assumeTrue
+import org.junit.Rule
 import org.junit.Test
+import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
 
 class TestCompression {
 
@@ -74,6 +77,7 @@ class TestCompression {
 
     @Test
     fun `does brotli when size is big and Accept header is set`() = TestUtil.test(fullCompressionApp) { _, http ->
+        assumeTrue(tryLoadBrotli())
         assertThat(Unirest.get(http.origin + "/huge").asString().body.length).isEqualTo(hugeLength)
         assertThat(getResponse(http.origin, "/huge", "br").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
         assertThat(getResponse(http.origin, "/huge", "br").body()!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
@@ -91,6 +95,7 @@ class TestCompression {
 
     @Test
     fun `does brotli when both brotli and gzip enabled and supported`() = TestUtil.test(fullCompressionApp) { _, http ->
+        assumeTrue(tryLoadBrotli())
         assertThat(getResponse(http.origin, "/huge", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
     }
 
@@ -113,4 +118,11 @@ class TestCompression {
                     .header(Header.ACCEPT_ENCODING, encoding)
                     .build())
             .execute()
+
+    private fun tryLoadBrotli() = try {
+        BrotliLibraryLoader.loadBrotli()
+        true
+    } catch (t: Throwable) {
+        false
+    }
 }
