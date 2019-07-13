@@ -49,8 +49,15 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
 
-    <dependencies>
+    <repositories>
+        <repository>
+            <id>bintray-nitram509-jbrotli</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/nitram509/jbrotli</url>
+        </repository>
+    </repositories>
 
+    <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
@@ -85,6 +92,13 @@
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-server</artifactId>
             <version>${jetty.version}</version>
+        </dependency>
+
+        <!-- JBrotli -->
+        <dependency>
+            <groupId>org.meteogroup.jbrotli</groupId>
+            <artifactId>jbrotli</artifactId>
+            <version>0.5.0</version>
         </dependency>
 
         <!-- BEGIN Optional dependencies -->
@@ -181,7 +195,6 @@
         <!-- END Optional dependencies -->
 
         <!-- BEGIN Test dependencies -->
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

@@ -7,6 +7,7 @@
 package io.javalin.http
 
 import io.javalin.Javalin
+import io.javalin.core.compression.CompressionHandler
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role
@@ -17,7 +18,6 @@ import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import java.io.InputStream
 import java.util.concurrent.CompletionException
-import java.util.zip.GZIPOutputStream
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -34,6 +34,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val ctx = Context(req, res, config.inner.appAttributes)
+        val compressionHandler = CompressionHandler(ctx, config)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
@@ -80,15 +81,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     return // don't write body
                 }
             }
-            if (gzipShouldBeDone(ctx)) {
-                GZIPOutputStream(res.outputStream, true).use { gzippedStream ->
-                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                    resultStream.copyTo(gzippedStream)
-                }
-                resultStream.close()
-                return
-            }
-            resultStream.copyTo(res.outputStream) // no gzip
+            compressionHandler.compressResponse(res)
             resultStream.close()
         }
 
@@ -129,10 +122,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     }
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
-
-    private fun gzipShouldBeDone(ctx: Context) = config.dynamicGzip
-            && ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
-            && (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains("gzip", ignoreCase = true)
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
         val shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP)
