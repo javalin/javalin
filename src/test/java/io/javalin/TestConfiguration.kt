@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.DynamicCompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.security.SecurityUtil.roles
@@ -79,7 +78,7 @@ class TestConfiguration {
     @Test
     fun `compression strategy can be customized by user`() {
         val app = Javalin.create {
-            it.setCompressionStrategy( DynamicCompressionStrategy(null, Gzip(2)) )
+            it.compressionStrategy( DynamicCompressionStrategy(null, Gzip(2)) )
         }
         assertThat(app.config.inner.dynamicCompressionStrategy.gzip?.level).isEqualTo(2)
         assertThat(app.config.inner.dynamicCompressionStrategy.brotli).isNull()
@@ -89,7 +88,7 @@ class TestConfiguration {
     fun `compression strategy gets disabled when dynamicGzip is set to false`() {
         val app = Javalin.create {
             it.dynamicGzip = false
-            it.setCompressionStrategy( DynamicCompressionStrategy(null, Gzip(8)) )
+            it.compressionStrategy( DynamicCompressionStrategy(null, Gzip(8)) )
         }
         assertThat(app.config.inner.dynamicCompressionStrategy).isEqualTo(DynamicCompressionStrategy.NONE)
     }
@@ -99,7 +98,7 @@ class TestConfiguration {
         val app = Javalin.create()
         assertThat(app.config.inner.dynamicCompressionStrategy).isEqualTo(DynamicCompressionStrategy.GZIP)
         app.start(7070)
-        app.config.setCompressionStrategy( DynamicCompressionStrategy.NONE )
+        app.config.compressionStrategy( DynamicCompressionStrategy.NONE )
         assertThat(app.config.inner.dynamicCompressionStrategy.gzip).isNotNull
     }
 }
