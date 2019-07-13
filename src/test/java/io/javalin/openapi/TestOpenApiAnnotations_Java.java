@@ -17,7 +17,6 @@ import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JavaCrudHandler implements CrudHandler {
@@ -117,7 +116,9 @@ class JavaStaticMethodReference {
 class JavaFieldReference {
     @OpenApi(responses = {@OpenApiResponse(status = "200")})
     public static Handler handler = new Handler() {
-        @Override public void handle(@NotNull Context ctx) throws Exception { }
+        @Override
+        public void handle(@NotNull Context ctx) throws Exception {
+        }
     };
 
 }

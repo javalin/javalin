@@ -60,6 +60,7 @@ class TestConfiguration {
                 handler.addEventListener(object : HttpSessionListener {
                     override fun sessionCreated(e: HttpSessionEvent?) {
                     }
+
                     override fun sessionDestroyed(e: HttpSessionEvent?) {
                     }
                 })
@@ -78,7 +79,7 @@ class TestConfiguration {
     @Test
     fun `compression strategy can be customized by user`() {
         val app = Javalin.create {
-            it.compressionStrategy( CompressionStrategy(null, Gzip(2)) )
+            it.compressionStrategy(CompressionStrategy(null, Gzip(2)))
         }
         assertThat(app.config.inner.compressionStrategy.gzip?.level).isEqualTo(2)
         assertThat(app.config.inner.compressionStrategy.brotli).isNull()
@@ -88,7 +89,7 @@ class TestConfiguration {
     fun `compression strategy gets disabled when dynamicGzip is set to false`() {
         val app = Javalin.create {
             it.dynamicGzip = false
-            it.compressionStrategy( CompressionStrategy(null, Gzip(8)) )
+            it.compressionStrategy(CompressionStrategy(null, Gzip(8)))
         }
         assertThat(app.config.inner.compressionStrategy).isEqualTo(CompressionStrategy.NONE)
     }

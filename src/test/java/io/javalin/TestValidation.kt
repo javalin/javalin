@@ -154,7 +154,7 @@ class TestValidation {
     fun `test optional query param value with check`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val id: Int? = ctx.queryParam<Int>("id")
-                    .check( { it > 10 }, "id was not greater than 10")
+                    .check({ it > 10 }, "id was not greater than 10")
                     .getOrNull()
 
             if (id != null) {

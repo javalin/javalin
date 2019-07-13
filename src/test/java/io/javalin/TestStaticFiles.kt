@@ -37,9 +37,11 @@ class TestStaticFiles {
         val filter = object : Filter {
             override fun init(config: FilterConfig?) {
             }
+
             override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
                 chain?.doFilter(request, ServletResponseHttpWrapper(response))
             }
+
             override fun destroy() {
             }
         }

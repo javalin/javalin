@@ -13,13 +13,7 @@ import io.javalin.http.Handler
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
-import io.javalin.plugin.openapi.annotations.ContentType
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.plugin.openapi.annotations.*
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler

@@ -9,7 +9,6 @@ package io.javalin
 
 import io.javalin.misc.HttpUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.Test
 import java.util.*

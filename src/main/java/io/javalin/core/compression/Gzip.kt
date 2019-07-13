@@ -12,9 +12,7 @@ import java.util.zip.GZIPOutputStream
 class Gzip(val level: Int = 6) {
 
     init {
-        require(level in 0..9) {
-            "Valid range for parameter level is 0 to 9"
-        }
+        require(level in 0..9) { "Valid range for parameter level is 0 to 9" }
     }
 
     /**
@@ -28,8 +26,6 @@ class Gzip(val level: Int = 6) {
                 this.def.setLevel(level)
             }
         }
-        wrapper.use {
-            it.write(data)
-        }
+        wrapper.use { it.write(data) }
     }
 }

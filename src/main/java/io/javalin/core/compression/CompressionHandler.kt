@@ -32,9 +32,7 @@ class CompressionHandler(val ctx: Context, val config: JavalinConfig) {
                 compressionStrategy.gzip?.write(res.outputStream, resultStream.readBytes())
                 return
             }
-            else -> {
-                resultStream.copyTo(res.outputStream) //No compression
-            }
+            else -> resultStream.copyTo(res.outputStream) //No compression
         }
     }
 

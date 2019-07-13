@@ -184,7 +184,7 @@ public class JavalinConfig {
         userConfig.accept(config); // apply user config to the default config
 
         //Backwards compatibility. If deprecated dynamicGzip flag is set to false, disable compression.
-        if(!config.dynamicGzip) {
+        if (!config.dynamicGzip) {
             config.inner.compressionStrategy = CompressionStrategy.NONE;
         }
 

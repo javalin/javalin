@@ -1,7 +1,7 @@
 package io.javalin.core.compression
 
-import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
 import io.javalin.Javalin.log
+import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
 
 /**
  * This class is a settings container for Javalin's dynamic content compression.
@@ -20,8 +20,10 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
     val gzip: Gzip?
 
     companion object {
-        @JvmField val NONE = CompressionStrategy()
-        @JvmField val GZIP = CompressionStrategy(null, Gzip())
+        @JvmField
+        val NONE = CompressionStrategy()
+        @JvmField
+        val GZIP = CompressionStrategy(null, Gzip())
     }
 
     init {

@@ -7,8 +7,8 @@
 package io.javalin.http
 
 import io.javalin.Javalin
-import io.javalin.core.compression.CompressionHandler
 import io.javalin.core.JavalinConfig
+import io.javalin.core.compression.CompressionHandler
 import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role
 import io.javalin.core.util.Header
@@ -34,7 +34,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val ctx = Context(req, res, config.inner.appAttributes)
-        val compressionHandler = CompressionHandler(ctx, config)
+        val compressionHandler = CompressionHandler(ctx, config) // TODO: Consider if this should be a util
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 

@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import kotlin.collections.HashMap
 
 /**
  * Provides access to functions for handling the request and response

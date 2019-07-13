@@ -1,11 +1,7 @@
 package io.javalin
 
 import io.javalin.core.getPlugin
-import io.javalin.core.plugin.Plugin
-import io.javalin.core.plugin.PluginAlreadyRegisteredException
-import io.javalin.core.plugin.PluginInitLifecycleViolationException
-import io.javalin.core.plugin.PluginLifecycleInit
-import io.javalin.core.plugin.PluginNotFoundException
+import io.javalin.core.plugin.*
 import io.mockk.spyk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat

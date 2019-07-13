@@ -28,15 +28,15 @@ class TestCompression {
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val fullCompressionApp = Javalin.create { it.compressionStrategy ( (CompressionStrategy(Brotli(), Gzip())) ) }
+    val fullCompressionApp = Javalin.create { it.compressionStrategy((CompressionStrategy(Brotli(), Gzip()))) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val gzipDisabledApp = Javalin.create { it.compressionStrategy ( (CompressionStrategy(Brotli(), null)) ) }
+    val gzipDisabledApp = Javalin.create { it.compressionStrategy((CompressionStrategy(Brotli(), null))) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val brotliDisabledApp = Javalin.create { it.compressionStrategy( (CompressionStrategy(null, Gzip())) ) }
+    val brotliDisabledApp = Javalin.create { it.compressionStrategy((CompressionStrategy(null, Gzip()))) }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
