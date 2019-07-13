@@ -22,21 +22,14 @@ class Gzip(val level: Int = 6) {
      * @param data data to compress
      */
     fun write(out: OutputStream, data: ByteArray) {
-        GzipWrapper(out, level).use {
+        //object is required so we can set level, because def is a protected field
+        val wrapper = object : GZIPOutputStream(out, true) {
+            init {
+                this.def.setLevel(level)
+            }
+        }
+        wrapper.use {
             it.write(data)
         }
-    }
-}
-
-/**
- * Kotlin wrapper for Java's GZIPOutputStream. Required so we can set gzip compression level
- */
-class GzipWrapper(out: OutputStream, level: Int = 6): GZIPOutputStream(out, true) {
-
-    init {
-        require(level in 0..9) {
-            "Valid range for parameter level is 0 to 9"
-        }
-        this.def.setLevel(level)
     }
 }

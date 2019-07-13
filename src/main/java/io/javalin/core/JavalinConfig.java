@@ -175,7 +175,12 @@ public class JavalinConfig {
         return this;
     }
 
-    public JavalinConfig configureDynamicCompressionStrategy(DynamicCompressionStrategy strategy) {
+    public JavalinConfig setCompressionStrategy(@NotNull DynamicCompressionStrategy strategy) {
+        if(this.inner.server != null) {
+            if(this.inner.server.isRunning()) {
+                return this;
+            }
+        }
         inner.dynamicCompressionStrategy = strategy;
         return this;
     }

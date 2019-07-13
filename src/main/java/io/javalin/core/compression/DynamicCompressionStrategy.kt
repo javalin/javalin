@@ -24,9 +24,6 @@ class DynamicCompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
     companion object {
         @JvmField val NONE = DynamicCompressionStrategy()
         @JvmField val GZIP = DynamicCompressionStrategy(null, Gzip())
-
-        @Deprecated("WARNING: Brotli compression is an experimental feature!")
-        @JvmField val BROTLI = DynamicCompressionStrategy(Brotli(), Gzip())
     }
 
     init {
@@ -44,15 +41,15 @@ class DynamicCompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         brotli
     } catch (t: Throwable) {
         log.warn("""
-        |Failed to enable Brotli compression, because we couldn't load the JBrotli native library
-        |Brotli is currently only supported on Windows, Linux and Mac OSX.
-        |If you are running Javalin on a supported system, but are still getting this error,
-        |try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
-        |please report the issue at https://github.com/tipsy/javalin/
-        |---------------------------------------------------------------
-        |If you still want dynamic compression, please ensure GZIP is enabled!
-        |---------------------------------------------------------------
-    """).toString().trimMargin()
+            |Failed to enable Brotli compression, because we couldn't load the JBrotli native library
+            |Brotli is currently only supported on Windows, Linux and Mac OSX.
+            |If you are running Javalin on a supported system, but are still getting this error,
+            |try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
+            |please report the issue at https://github.com/tipsy/javalin/
+            |---------------------------------------------------------------
+            |If you still want dynamic compression, please ensure GZIP is enabled!
+            |---------------------------------------------------------------
+        """.trimIndent())
         null
     }
 }

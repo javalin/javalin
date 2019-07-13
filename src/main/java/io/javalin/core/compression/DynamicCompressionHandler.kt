@@ -38,23 +38,16 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
         }
     }
 
-    private fun resultExceedsMtu(): Boolean {
-        return ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
-    }
+    private fun resultExceedsMtu(): Boolean =
+            ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
 
-    private fun supportsEncoding(encoding: String): Boolean {
-        return (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains(encoding, ignoreCase = true)
-    }
+    private fun supportsEncoding(encoding: String): Boolean =
+            (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains(encoding, ignoreCase = true)
 
-    private fun gzipShouldBeDone(): Boolean {
-        return  compressionStrategy.gzip != null
-                && resultExceedsMtu()
-                && supportsEncoding("gzip")
-    }
+    private fun gzipShouldBeDone(): Boolean =
+            compressionStrategy.gzip != null && resultExceedsMtu() && supportsEncoding("gzip")
 
-    private fun brotliShouldBeDone(): Boolean {
-        return  compressionStrategy.brotli != null
-                && resultExceedsMtu()
-                && supportsEncoding("br")
-    }
+    private fun brotliShouldBeDone(): Boolean =
+            compressionStrategy.brotli != null && resultExceedsMtu() && supportsEncoding("br")
+
 }
