@@ -22,20 +22,14 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
     fun compressResponse(res: HttpServletResponse) {
         val resultStream = ctx.resultStream()!!
         when {
-            brotliShouldBeDone(ctx) -> { //Do Brotli
-                val level = compressionStrategy.brotliLevel
-                BrotliWrapper(level).use { brWrapper ->
-                    res.setHeader(Header.CONTENT_ENCODING, "br")
-                    res.outputStream.write(brWrapper.compressByteArray(resultStream.readBytes()))
-                }
+            brotliShouldBeDone() -> { //Do Brotli
+                res.setHeader(Header.CONTENT_ENCODING, "br")
+                compressionStrategy.brotli?.write(res.outputStream, resultStream.readBytes())
                 return
             }
-            gzipShouldBeDone(ctx) -> { //Do GZIP
-                val level = compressionStrategy.gzipLevel
-                GzipWrapper(res.outputStream, true, level).use { gzippedStream ->
-                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                    resultStream.copyTo(gzippedStream)
-                }
+            gzipShouldBeDone() -> { //Do GZIP
+                res.setHeader(Header.CONTENT_ENCODING, "gzip")
+                compressionStrategy.gzip?.write(res.outputStream, resultStream.readBytes())
                 return
             }
             else -> {
@@ -44,23 +38,23 @@ class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
         }
     }
 
-    private fun resultExceedsMtu(ctx: Context): Boolean {
+    private fun resultExceedsMtu(): Boolean {
         return ctx.resultStream()?.available() ?: 0 > 1500 // mtu is apparently ~1500 bytes
     }
 
-    private fun supportsEncoding(ctx: Context, encoding: String): Boolean {
+    private fun supportsEncoding(encoding: String): Boolean {
         return (ctx.header(Header.ACCEPT_ENCODING) ?: "").contains(encoding, ignoreCase = true)
     }
 
-    private fun gzipShouldBeDone(ctx: Context): Boolean {
-        return  compressionStrategy.gzipEnabled
-                && resultExceedsMtu(ctx)
-                && supportsEncoding(ctx, "gzip")
+    private fun gzipShouldBeDone(): Boolean {
+        return  compressionStrategy.gzip != null
+                && resultExceedsMtu()
+                && supportsEncoding("gzip")
     }
 
-    private fun brotliShouldBeDone(ctx: Context): Boolean {
-        return  compressionStrategy.brotliEnabled
-                && resultExceedsMtu(ctx)
-                && supportsEncoding(ctx, "br")
+    private fun brotliShouldBeDone(): Boolean {
+        return  compressionStrategy.brotli != null
+                && resultExceedsMtu()
+                && supportsEncoding("br")
     }
 }

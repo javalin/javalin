@@ -1,17 +1,17 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+import io.javalin.core.compression.Brotli;
 import io.javalin.core.compression.DynamicCompressionStrategy;
+import io.javalin.core.compression.Gzip;
+
 import java.util.*;
 
 public class HelloWorldCompression {
 
     public static void main(String[] args) {
-        boolean brotliEnabled = true;
-        boolean gzipEnabled = true;
-
         Javalin app = Javalin.create(config -> {
-            config.inner.dynamicCompressionStrategy = new DynamicCompressionStrategy(brotliEnabled, gzipEnabled);
+            config.inner.dynamicCompressionStrategy = new DynamicCompressionStrategy(new Brotli(), new Gzip());
         }).start(7070);
         app.get("/huge", ctx -> ctx.result(getSomeObjects(1000).toString()));
         app.get("/medium", ctx -> ctx.result(getSomeObjects(200).toString()));
