@@ -109,6 +109,81 @@ val simpleExample = """
 """.formatJson()
 
 @Language("JSON")
+val simpleExampleWithMultipleGets = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/test1": {
+        "get": {
+          "summary": "Get test1",
+          "description": "Test1",
+          "operationId": "getTest1",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        }
+      },
+      "/test2": {
+        "get": {
+          "summary": "Get test2",
+          "description": "Test2",
+          "operationId": "getTest2",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+
+@Language("JSON")
+val simpleExampleWithMultipleHttpMethods = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/test": {
+        "get": {
+          "summary": "Get test",
+          "description": "Test1",
+          "operationId": "getTest",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        },
+        "post": {
+          "summary": "Post test",
+          "description": "Test2",
+          "operationId": "postTest",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+@Language("JSON")
 val provideRouteExampleJson = """
   {
     "openapi": "3.0.1",
