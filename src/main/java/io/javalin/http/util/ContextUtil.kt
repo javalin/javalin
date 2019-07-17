@@ -40,7 +40,7 @@ object ContextUtil {
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
     fun getBasicAuthCredentials(header: String?): BasicAuthCredentials? = try {
-        val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(":", 2)
+        val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(':', limit = 2)
         BasicAuthCredentials(username, password)
     } catch (e: Exception) {
         null
