@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.core.util.Header
+import io.javalin.http.util.CookieStore
 import io.javalin.plugin.rendering.template.TemplateUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -86,6 +87,14 @@ class TestCookieStore {
     fun `cookie store path is root`() = TestUtil.test { app, http ->
         app.get("/") { it.cookieStore("s", "Hello world!") }
         assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).endsWith("; Path=/")
+    }
+
+    @Test
+    fun `rename cookie store works`() = TestUtil.test { app, http ->
+        app.get("/") { it.cookieStore("s", "Hello world!") }
+        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).startsWith(CookieStore.COOKIE_NAME)
+        CookieStore.COOKIE_NAME = "another-name"
+        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).startsWith(CookieStore.COOKIE_NAME)
     }
 
 }

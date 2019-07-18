@@ -14,7 +14,7 @@ import javax.servlet.http.Cookie
 class CookieStore(cookie: String?) {
 
     companion object {
-        const val COOKIE_NAME = "javalin-cookie-store"
+        var COOKIE_NAME = "javalin-cookie-store"
     }
 
     private val cookieMap = deserialize(cookie)
