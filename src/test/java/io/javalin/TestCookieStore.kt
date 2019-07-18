@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import io.javalin.core.util.Header
 import io.javalin.plugin.rendering.template.TemplateUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -79,6 +80,12 @@ class TestCookieStore {
         }
         http.getBody("/cookie-storer")
         assertThat(http.getBody("/cookie-reader")).isEqualTo("Hello world! 42 42.0 [One, Two, Three] {K1=V, K2=1000.0, K3=[One, Two, Three]}")
+    }
+
+    @Test
+    fun `cookie store path is root`() = TestUtil.test { app, http ->
+        app.get("/") { it.cookieStore("s", "Hello world!") }
+        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).endsWith("; Path=/")
     }
 
 }
