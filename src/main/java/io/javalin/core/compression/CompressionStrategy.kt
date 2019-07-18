@@ -6,10 +6,10 @@ import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
 /**
  * This class is a settings container for Javalin's dynamic content compression.
  *
- * It is used by CompressionHandler to determine the encoding and parameters that should be used
+ * It is used by DynamicCompressionHandler to determine the encoding and parameters that should be used
  * when encoding a dynamic response from the server.
  *
- * @see CompressionHandler
+ * @see DynamicCompressionHandler
  *
  * @param brotli instance of Brotli handler, default = null
  * @param gzip   instance of Gzip handler, default = null

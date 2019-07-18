@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see CompressionStrategy
  */
-class CompressionHandler(val ctx: Context, val config: JavalinConfig) {
+class DynamicCompressionHandler(val ctx: Context, val config: JavalinConfig) {
 
     private val compressionStrategy = config.inner.compressionStrategy
 

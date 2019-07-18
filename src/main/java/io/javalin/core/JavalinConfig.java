@@ -8,6 +8,7 @@ package io.javalin.core;
 
 import io.javalin.Javalin;
 import io.javalin.core.compression.CompressionStrategy;
+import io.javalin.core.compression.StaticCompressionHandler;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginInitLifecycleViolationException;
@@ -25,6 +26,7 @@ import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -186,6 +188,20 @@ public class JavalinConfig {
         //Backwards compatibility. If deprecated dynamicGzip flag is set to false, disable compression.
         if (!config.dynamicGzip) {
             config.inner.compressionStrategy = CompressionStrategy.NONE;
+        }
+
+        //Apply compression strategy to all static file handlers, then start the handlers
+        if(config.inner.resourceHandler != null) {
+            ResourceHandler rh = config.inner.resourceHandler;
+            List<StaticCompressionHandler> handlerList = ((JettyResourceHandler) rh).getHandlers();
+            for(StaticCompressionHandler handler : handlerList) {
+                handler.setCompressionStrategy(config.inner.compressionStrategy);
+                try {
+                    handler.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);

@@ -4,8 +4,8 @@ import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 
 /**
- * CompressionHandler uses this to perform Gzip compression
- * @see CompressionHandler
+ * DynamicCompressionHandler uses this to perform Gzip compression
+ * @see DynamicCompressionHandler
  *
  * @param level Compression level. Higher yields better (but slower) compression. Range 0..9, default = 6
  */

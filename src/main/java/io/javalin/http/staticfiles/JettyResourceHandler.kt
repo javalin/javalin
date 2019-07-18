@@ -7,11 +7,11 @@
 package io.javalin.http.staticfiles
 
 import io.javalin.Javalin
+import io.javalin.core.compression.StaticCompressionHandler
 import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
-import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import javax.servlet.http.HttpServletRequest
@@ -19,13 +19,13 @@ import javax.servlet.http.HttpServletResponse
 
 class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
-    val handlers = mutableListOf<GzipHandler>()
+    val handlers = mutableListOf<StaticCompressionHandler>()
 
     // It would work without a server, but if none is set jetty will log a warning.
     private val dummyServer = Server()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
-        handlers.add(GzipHandler().apply {
+        handlers.add(StaticCompressionHandler().apply {
             handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
                 resourceBase = getResourcePath(config)
                 isDirAllowed = false
@@ -33,7 +33,8 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 Javalin.log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
             }
             server = dummyServer
-            start()
+            //Now being started under JavalinConfig#applyUserConfig instead of here
+            //start()
         })
     }
 
@@ -59,9 +60,9 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
-        for (gzipHandler in handlers) {
+        for (compressionHandler in handlers) {
             try {
-                val resourceHandler = (gzipHandler.handler as ResourceHandler)
+                val resourceHandler = (compressionHandler.handler as ResourceHandler)
                 val resource = resourceHandler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || resourceHandler is WebjarHandler) 31622400 else 0
@@ -69,7 +70,13 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
                     httpResponse.contentType = null
-                    gzipHandler.handle(target, baseRequest, httpRequest, httpResponse)
+
+
+                    //Line spacing is temporary, just to highlight this is where the new
+                    //StaticCompressionHandler is called from. This is where GzipHandler used to be
+                    compressionHandler.handle(target, baseRequest, httpRequest, httpResponse)
+
+
                     httpRequest.setAttribute("handled-as-static-file", true)
                     return true
                 }
@@ -77,6 +84,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 Javalin.log.error("Exception occurred while handling static resource", e)
             }
         }
+
         return false
     }
 
