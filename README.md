@@ -18,6 +18,7 @@ General information:
 * Documentation: [javalin.io/documentation](https://javalin.io/documentation)
 * Chat: https://gitter.im/javalin-io/general
 * Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javalin/blob/master/CONTRIBUTING.md)
+* License summary: https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)
 
 ## Quickstart
 
