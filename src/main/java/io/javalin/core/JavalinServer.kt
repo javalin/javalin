@@ -120,17 +120,6 @@ object JettyUtil {
 
     fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(defaultLogger)
 
-    @JvmStatic
-    fun getSessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
-        val sessionHandler = sessionHandlerSupplier.get()
-        try {
-            sessionHandler.sessionCache?.sessionDataStore?.exists("id-that-does-not-exist")
-        } catch (e: Exception) {
-            // TODO: This should throw... Find a way to check this that doesn't fail for valid SessionHandlers.
-            Javalin.log.warn("Failed to look up ID in sessionDataStore. SessionHandler might be misconfigured.")
-        }
-        return sessionHandler
-    }
 }
 
 class NoopLogger : org.eclipse.jetty.util.log.Logger {

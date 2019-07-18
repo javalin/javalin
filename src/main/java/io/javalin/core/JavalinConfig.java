@@ -149,7 +149,7 @@ public class JavalinConfig {
 
     public JavalinConfig sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
         JettyUtil.disableJettyLogger();
-        inner.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
+        inner.sessionHandler = sessionHandlerSupplier.get();
         return this;
     }
 

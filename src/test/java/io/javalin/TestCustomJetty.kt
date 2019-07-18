@@ -118,27 +118,6 @@ class TestCustomJetty {
     }
 
     @Test
-    fun `default SessionHandler works`() {
-        Javalin.create { it.sessionHandler { SessionHandler() } }
-    }
-
-    @Test
-    fun `broken SessionHandler logs`() {
-        fun sqlSessionHandler(driver: String, url: String) = SessionHandler().apply {
-            sessionCache = DefaultSessionCache(this).apply {
-                sessionDataStore = JDBCSessionDataStoreFactory().apply {
-                    setDatabaseAdaptor(DatabaseAdaptor().apply {
-                        setDriverInfo(driver, url)
-                    })
-                }.getSessionDataStore(sessionHandler)
-            }
-        }
-        Javalin.create {
-            it.sessionHandler { sqlSessionHandler(driver = "null", url = "null") }
-        }
-    }
-
-    @Test
     fun `custom ContextHandlerCollection works`() {
         val newServer = Server()
         val handler = ContextHandlerCollection().apply {
