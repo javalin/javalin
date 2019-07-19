@@ -7,8 +7,6 @@ import java.io.OutputStream
 
 /**
  * Kotlin wrapper for jbrotli library.
- * CompressionHandler uses this to perform Brotli compression
- * @see CompressionHandler
  *
  * @param level Compression level. Higher yields better (but slower) compression. Range 0..11, default = 4
  */
@@ -29,7 +27,8 @@ class Brotli(val level: Int = 4) {
      * @param data data to compress
      */
     fun write(out: OutputStream, data: ByteArray) {
-        val output = ByteArray(data.size)
+        val size = if (data.size >= 8192) data.size else 8192
+        val output = ByteArray(size)
         val compressedLength = brotliCompressor.compress(brotliParameter, data, output)
         out.write(output.copyOfRange(0, compressedLength))
     }

@@ -8,7 +8,7 @@ package io.javalin.http
 
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
-import io.javalin.core.compression.CompressionHandler
+import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role
 import io.javalin.core.util.Header
@@ -18,9 +18,12 @@ import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import java.io.InputStream
 import java.util.concurrent.CompletionException
+import javax.servlet.ServletOutputStream
+import javax.servlet.WriteListener
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpServletResponseWrapper
 
 class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
@@ -34,7 +37,8 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         val type = HandlerType.fromServletRequest(req)
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val ctx = Context(req, res, config.inner.appAttributes)
-        val compressionHandler = CompressionHandler(ctx, config) // TODO: Consider if this should be a util
+        //val compressionHandler = CompressionHandler(ctx, config) // TODO: Consider if this should be a util
+        val res = ResponseHandler(res, ctx, config.inner.compressionStrategy)
 
         fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
@@ -70,7 +74,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             }
         }
 
-        fun writeResult(res: HttpServletResponse) { // can be sync or async
+        fun writeResult(res: ResponseHandler) { // can be sync or async
             if (res.isCommitted || ctx.resultStream() == null) return // nothing to write
             val resultStream = ctx.resultStream()!!
             if (res.getHeader(Header.ETAG) != null || (config.autogenerateEtags && type == HandlerType.GET)) {
@@ -81,7 +85,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     return // don't write body
                 }
             }
-            compressionHandler.compressResponse(res)
+            res.outputStream.write(resultStream.readBytes())
             resultStream.close()
         }
 
@@ -110,7 +114,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 }
                 tryErrorHandlers()
                 tryAfterHandlers()
-                writeResult(asyncContext.response as HttpServletResponse)
+                writeResult(asyncContext.response as ResponseHandler)
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
                 asyncContext.complete() // async lifecycle complete
             }
