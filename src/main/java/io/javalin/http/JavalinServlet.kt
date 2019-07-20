@@ -109,7 +109,8 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 }
                 tryErrorHandlers()
                 tryAfterHandlers()
-                writeResult(asyncContext.response as ResponseHandler)
+                val handler = ResponseHandler(asyncContext.response as HttpServletResponse, ctx, config.inner.compressionStrategy)
+                writeResult(handler)
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
                 asyncContext.complete() // async lifecycle complete
             }
