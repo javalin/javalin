@@ -21,7 +21,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.net.BindException
-import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
