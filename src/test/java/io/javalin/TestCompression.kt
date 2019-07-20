@@ -23,19 +23,28 @@ class TestCompression {
 
     private fun getSomeObjects(numberOfObjects: Int) = (1..numberOfObjects).map { i -> SillyObject("f$i", "f$i", "f$i") }.toList()
 
-    val defaultApp = Javalin.create {}
+    val defaultApp = Javalin.create { it.addStaticFiles("/public") }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val fullCompressionApp = Javalin.create { it.compressionStrategy(Brotli(), Gzip()) }
+    val fullCompressionApp = Javalin.create {
+                it.compressionStrategy(Brotli(), Gzip())
+                it.addStaticFiles("/public")
+            }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val gzipDisabledApp = Javalin.create { it.compressionStrategy(Brotli(), null) }
+    val gzipDisabledApp = Javalin.create {
+                it.compressionStrategy(Brotli(), null)
+                it.addStaticFiles("/public")
+            }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
-    val brotliDisabledApp = Javalin.create { it.compressionStrategy(null, Gzip()) }
+    val brotliDisabledApp = Javalin.create {
+                it.compressionStrategy(null, Gzip())
+                it.addStaticFiles("/public")
+            }
             .get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
             .get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
 
@@ -43,27 +52,21 @@ class TestCompression {
     private val hugeLength = getSomeObjects(1000).toString().length
 
     @Test
-    fun `doesn't gzip when Accepts is not set`() = TestUtil.test(fullCompressionApp) { _, http ->
+    fun `doesn't compress when Accepts is not set`() = TestUtil.test(fullCompressionApp) { _, http ->
         assertThat(Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "null").asString().body.length).isEqualTo(hugeLength)
         assertThat(getResponse(http.origin, "/huge", "null").headers().get(Header.CONTENT_ENCODING)).isNull()
+
+        assertThat(Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "null").asString().body.length).isEqualTo(290)
+        assertThat(getResponse(http.origin, "/html.html", "null").headers().get(Header.CONTENT_ENCODING)).isNull()
     }
 
     @Test
-    fun `doesn't brotli when Accepts is not set`() = TestUtil.test(fullCompressionApp) { _, http ->
-        assertThat(Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "null").asString().body.length).isEqualTo(hugeLength)
-        assertThat(getResponse(http.origin, "/huge", "null").headers().get(Header.CONTENT_ENCODING)).isNull()
-    }
-
-    @Test
-    fun `doesn't gzip when response is too small`() = TestUtil.test(fullCompressionApp) { _, http ->
+    fun `doesn't compress when response is too small`() = TestUtil.test(fullCompressionApp) { _, http ->
         assertThat(Unirest.get(http.origin + "/tiny").asString().body.length).isEqualTo(tinyLength)
-        assertThat(getResponse(http.origin, "/tiny", "gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
-    }
+        assertThat(getResponse(http.origin, "/tiny", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
 
-    @Test
-    fun `doesn't brotli when response is too small`() = TestUtil.test(fullCompressionApp) { _, http ->
-        assertThat(Unirest.get(http.origin + "/tiny").asString().body.length).isEqualTo(tinyLength)
-        assertThat(getResponse(http.origin, "/tiny", "br").headers().get(Header.CONTENT_ENCODING)).isNull()
+        assertThat(Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "br, gzip").asString().body.length).isEqualTo(290)
+        assertThat(getResponse(http.origin, "/html.html", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
     }
 
     @Test
@@ -71,6 +74,9 @@ class TestCompression {
         assertThat(Unirest.get(http.origin + "/huge").asString().body.length).isEqualTo(hugeLength)
         assertThat(getResponse(http.origin, "/huge", "gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         assertThat(getResponse(http.origin, "/huge", "gzip").body()!!.contentLength()).isEqualTo(7740L) // hardcoded because lazy
+
+        assertThat(Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "gzip").asString().body.length).isEqualTo(290)
+        assertThat(getResponse(http.origin, "/html.html", "gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
     }
 
     @Test
@@ -92,13 +98,13 @@ class TestCompression {
     }
 
     @Test
-    fun `does brotli when both brotli and gzip enabled and supported`() = TestUtil.test(fullCompressionApp) { _, http ->
+    fun `does brotli when both enabled and supported`() = TestUtil.test(fullCompressionApp) { _, http ->
         assumeTrue(tryLoadBrotli())
         assertThat(getResponse(http.origin, "/huge", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
     }
 
     @Test
-    fun `does gzip when brotli disabled and both supported`() = TestUtil.test(brotliDisabledApp) { _, http ->
+    fun `does gzip when brotli disabled, but both supported`() = TestUtil.test(brotliDisabledApp) { _, http ->
         assertThat(getResponse(http.origin, "/huge", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
     }
 
