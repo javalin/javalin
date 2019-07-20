@@ -14,7 +14,7 @@ private fun getSomeObjects(numberOfObjects: Int) = (1..numberOfObjects).map { i 
  */
 fun main(args: Array<String>) {
     val app = Javalin.create {config ->
-        config.compressionStrategy( CompressionStrategy(null, Gzip()) )
+        config.compressionStrategy(null, Gzip())
         //config.compressionStrategy( CompressionStrategy(null, null) )
         config.addStaticFiles("/public")
     }.start(7070)

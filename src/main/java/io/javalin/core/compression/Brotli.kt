@@ -27,6 +27,7 @@ class Brotli(val level: Int = 4) {
      * @param data data to compress
      */
     fun write(out: OutputStream, data: ByteArray) {
+        //Needed because compressing small data sets sometimes yields a bigger output than the original
         val size = if (data.size >= 8192) data.size else 8192
         val output = ByteArray(size)
         val compressedLength = brotliCompressor.compress(brotliParameter, data, output)
