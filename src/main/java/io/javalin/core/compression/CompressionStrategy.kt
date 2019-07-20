@@ -17,7 +17,6 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
 
     val brotli: Brotli?
     val gzip: Gzip?
-    val minSize = 100
 
     companion object {
         @JvmField
