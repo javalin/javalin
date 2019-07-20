@@ -59,16 +59,16 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
-        for (resourceHandler in handlers) {
+        for (handler in handlers) {
             try {
-                val resource = resourceHandler.getResource(target)
-                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(resourceHandler, target)) {
-                    val maxAge = if (target.startsWith("/immutable/") || resourceHandler is WebjarHandler) 31622400 else 0
+                val resource = handler.getResource(target)
+                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
+                    val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
                     httpResponse.contentType = null
-                    resourceHandler.handle(target, baseRequest, httpRequest, httpResponse)
+                    handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
                     return true
                 }
