@@ -32,11 +32,12 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
 
     override fun write(b: ByteArray, off: Int, len: Int) {
         when {
-            brotliShouldBeDone(len) -> {
+            len < minSize -> super.write(b, off, len) // no compression
+            rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null -> {
                 res.setHeader(Header.CONTENT_ENCODING, "br")
                 rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, b)
             }
-            gzipShouldBeDone(len) -> {
+            rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
                 res.setHeader(Header.CONTENT_ENCODING, "gzip")
                 rwc.config.inner.compressionStrategy.gzip?.write(res.outputStream, b)
             }
@@ -56,14 +57,6 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         write(resultStream.readBytes())
         resultStream.close()
     }
-
-    private fun resultExceedsMtu(length: Int): Boolean = length >= minSize // mtu is apparently ~1500 bytes
-
-    private fun gzipShouldBeDone(length: Int): Boolean =
-            rwc.compressionStrategy.gzip != null && resultExceedsMtu(length) && rwc.accepts.contains("gzip", ignoreCase = true)
-
-    private fun brotliShouldBeDone(length: Int): Boolean =
-            rwc.compressionStrategy.brotli != null && resultExceedsMtu(length) && rwc.accepts.contains("br", ignoreCase = true)
 
     override fun isReady(): Boolean = res.outputStream.isReady
     override fun setWriteListener(writeListener: WriteListener?) = res.outputStream.setWriteListener(writeListener)
