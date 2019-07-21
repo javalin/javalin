@@ -54,9 +54,11 @@ object LogUtil {
         }
 
         val gzipped = ctx.res.getHeader(Header.CONTENT_ENCODING) == "gzip"
+        val brotlied = ctx.res.getHeader(Header.CONTENT_ENCODING) == "br"
         val resBody = ctx.resultString()!!
         return when {
             gzipped -> "Body is gzipped (${resBody.length} bytes, not logged)"
+            brotlied -> "Body is brotlied (${resBody.length} bytes, not logged)"
             else -> "Body is ${resBody.length} bytes (starts on next line):\n    $resBody"
         }
     }
