@@ -17,6 +17,7 @@ fun main(args: Array<String>) {
         config.compressionStrategy(null, Gzip())
         //config.compressionStrategy( CompressionStrategy(null, null) )
         config.addStaticFiles("/public")
+        config.autogenerateEtags = true
     }.start(7070)
     app.get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
     app.get("/medium") { ctx -> ctx.result(getSomeObjects(200).toString()) }
