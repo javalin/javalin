@@ -39,15 +39,15 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         BrotliLibraryLoader.loadBrotli()
         brotli
     } catch (t: Throwable) {
-        log.warn("""
-            |Failed to enable Brotli compression, because we couldn't load the JBrotli native library
-            |Brotli is currently only supported on Windows, Linux and Mac OSX.
-            |If you are running Javalin on a supported system, but are still getting this error,
-            |try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
-            |please report the issue at https://github.com/tipsy/javalin/
-            |---------------------------------------------------------------
-            |If you still want dynamic compression, please ensure GZIP is enabled!
-            |---------------------------------------------------------------
+        log.warn("""${"\n"}
+            Failed to enable Brotli compression, because the JBrotli native library couldn't be loaded.
+            Brotli is currently only supported on Windows, Linux and Mac OSX.
+            If you are running Javalin on a supported system, but are still getting this error,
+            try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
+            please create an issue at https://github.com/tipsy/javalin/
+            ---------------------------------------------------------------
+            If you still want compression, please ensure GZIP is enabled!
+            ---------------------------------------------------------------
         """.trimIndent())
         null
     }
