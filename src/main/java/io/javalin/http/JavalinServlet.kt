@@ -26,83 +26,85 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     val exceptionMapper = ExceptionMapper()
     val errorMapper = ErrorMapper()
 
-    override fun service(rawReq: HttpServletRequest, rawRes: HttpServletResponse) = try {
-        val wrappedReq = CachedRequestWrapper(rawReq, config.requestCacheSize) // cached for reading multiple times
-        val type = HandlerType.fromServletRequest(wrappedReq)
-        val rwc = ResponseWrapperContext(rawReq, config)
-        val wrappedRes = JavalinResponseWrapper(rawRes, rwc)
-        val requestUri = wrappedReq.requestURI.removePrefix(wrappedReq.contextPath)
-        val ctx = Context(wrappedReq, rawRes, config.inner.appAttributes)
+    override fun service(rawReq: HttpServletRequest, rawRes: HttpServletResponse) {
+        try {
+            val wrappedReq = CachedRequestWrapper(rawReq, config.requestCacheSize) // cached for reading multiple times
+            val type = HandlerType.fromServletRequest(wrappedReq)
+            val rwc = ResponseWrapperContext(rawReq, config)
+            val wrappedRes = JavalinResponseWrapper(rawRes, rwc)
+            val requestUri = wrappedReq.requestURI.removePrefix(wrappedReq.contextPath)
+            val ctx = Context(wrappedReq, rawRes, config.inner.appAttributes)
 
-        fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
+            fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
-        fun tryBeforeAndEndpointHandlers() = tryWithExceptionMapper {
-            matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
-                entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
-            }
-            matcher.findEntries(type, requestUri).firstOrNull()?.let { entry ->
-                entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
-                return@tryWithExceptionMapper // return after first match
-            }
-            if (type == HandlerType.HEAD && hasGetHandlerMapped(requestUri)) {
-                return@tryWithExceptionMapper // return 200, there is a get handler
-            }
-            if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
-                if (config.inner.resourceHandler?.handle(wrappedReq, wrappedRes) == true) return@tryWithExceptionMapper
-                if (config.inner.singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
-            }
-            val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
-            if (config.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
-                throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
-            }
-            throw NotFoundResponse()
-        }
-
-        fun tryErrorHandlers() = tryWithExceptionMapper {
-            errorMapper.handle(ctx.status(), ctx)
-        }
-
-        fun tryAfterHandlers() = tryWithExceptionMapper {
-            matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-                entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
-            }
-        }
-
-        LogUtil.setup(ctx, matcher) // start request lifecycle
-        ctx.header(Header.SERVER, "Javalin")
-        ctx.contentType(config.defaultContentType)
-        tryBeforeAndEndpointHandlers()
-        if (ctx.resultFuture() == null) { // finish request synchronously
-            tryErrorHandlers()
-            tryAfterHandlers()
-            wrappedRes.write(ctx.resultStream())
-            config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
-        } else { // finish request asynchronously
-            val asyncContext = wrappedReq.startAsync().apply { timeout = config.asyncRequestTimeout }
-            ctx.resultFuture()!!.exceptionally { throwable ->
-                if (throwable is CompletionException && throwable.cause is Exception) {
-                    exceptionMapper.handle(throwable.cause as Exception, ctx)
-                } else if (throwable is Exception) {
-                    exceptionMapper.handle(throwable, ctx)
+            fun tryBeforeAndEndpointHandlers() = tryWithExceptionMapper {
+                matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
+                    entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
                 }
-                null
-            }.thenAccept {
-                when (it) {
-                    is InputStream -> ctx.result(it)
-                    is String -> ctx.result(it)
+                matcher.findEntries(type, requestUri).firstOrNull()?.let { entry ->
+                    entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+                    return@tryWithExceptionMapper // return after first match
                 }
+                if (type == HandlerType.HEAD && hasGetHandlerMapped(requestUri)) {
+                    return@tryWithExceptionMapper // return 200, there is a get handler
+                }
+                if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
+                    if (config.inner.resourceHandler?.handle(wrappedReq, wrappedRes) == true) return@tryWithExceptionMapper
+                    if (config.inner.singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
+                }
+                val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
+                if (config.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
+                    throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
+                }
+                throw NotFoundResponse()
+            }
+
+            fun tryErrorHandlers() = tryWithExceptionMapper {
+                errorMapper.handle(ctx.status(), ctx)
+            }
+
+            fun tryAfterHandlers() = tryWithExceptionMapper {
+                matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+                    entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+                }
+            }
+
+            LogUtil.setup(ctx, matcher) // start request lifecycle
+            ctx.header(Header.SERVER, "Javalin")
+            ctx.contentType(config.defaultContentType)
+            tryBeforeAndEndpointHandlers()
+            if (ctx.resultFuture() == null) { // finish request synchronously
                 tryErrorHandlers()
                 tryAfterHandlers()
-                val wrappedAsyncRes = JavalinResponseWrapper(asyncContext.response as HttpServletResponse, rwc)
-                wrappedAsyncRes.write(ctx.resultStream())
+                wrappedRes.write(ctx.resultStream())
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
-                asyncContext.complete() // async lifecycle complete
+            } else { // finish request asynchronously
+                val asyncContext = wrappedReq.startAsync().apply { timeout = config.asyncRequestTimeout }
+                ctx.resultFuture()!!.exceptionally { throwable ->
+                    if (throwable is CompletionException && throwable.cause is Exception) {
+                        exceptionMapper.handle(throwable.cause as Exception, ctx)
+                    } else if (throwable is Exception) {
+                        exceptionMapper.handle(throwable, ctx)
+                    }
+                    null
+                }.thenAccept {
+                    when (it) {
+                        is InputStream -> ctx.result(it)
+                        is String -> ctx.result(it)
+                    }
+                    tryErrorHandlers()
+                    tryAfterHandlers()
+                    val wrappedAsyncRes = JavalinResponseWrapper(asyncContext.response as HttpServletResponse, rwc)
+                    wrappedAsyncRes.write(ctx.resultStream())
+                    config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
+                    asyncContext.complete() // async lifecycle complete
+                }
             }
+            Unit // return void
+        } catch (t: Throwable) {
+            rawRes.status = 500
+            Javalin.log.error("Exception occurred while servicing http-request", t)
         }
-        Unit // return void
-    } catch (t: Throwable) {
-        rawRes.status = 500
-        Javalin.log.error("Exception occurred while servicing http-request", t)
     }
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
