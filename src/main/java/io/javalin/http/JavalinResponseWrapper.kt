@@ -27,7 +27,8 @@ class ResponseWrapperContext(request: HttpServletRequest, val config: JavalinCon
 class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : ServletOutputStream() {
 
     companion object {
-        @JvmStatic var minSize = 1500
+        @JvmStatic
+        var minSize = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
     }
 
     override fun write(b: ByteArray, off: Int, len: Int) {

@@ -11,7 +11,6 @@ import io.javalin.core.util.Header
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
-import org.eclipse.jetty.server.handler.gzip.GzipHandler
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import javax.servlet.http.HttpServletRequest

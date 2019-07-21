@@ -205,16 +205,15 @@ class TestCompression {
 
     // allows passing of multiple headers via string pairs
     private fun getResponseWithMultipleHeaders(origin: String, url: String, vararg headers: Pair<String, String>): Response {
-        var headBuilder = Headers.Builder()
-        for(headerPair in headers) {
+        val headBuilder = Headers.Builder()
+        for (headerPair in headers) {
             headBuilder.add(headerPair.first, headerPair.second)
         }
         val finalHeaders = headBuilder.build()
-        return OkHttpClient().
-                newCall(Request.Builder()
-                    .url(origin + url)
-                    .headers(finalHeaders)
-                    .build())
+        return OkHttpClient().newCall(Request.Builder()
+                .url(origin + url)
+                .headers(finalHeaders)
+                .build())
                 .execute()
     }
 

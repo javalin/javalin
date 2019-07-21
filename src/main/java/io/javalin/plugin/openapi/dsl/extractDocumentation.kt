@@ -1,17 +1,7 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.core.event.HandlerMetaInfo
-import io.javalin.core.util.OptionalDependency
-import io.javalin.core.util.Util
-import io.javalin.core.util.getDeclaredMethodByName
-import io.javalin.core.util.getFieldValue
-import io.javalin.core.util.isClass
-import io.javalin.core.util.isJavaAnonymousLambda
-import io.javalin.core.util.isJavaNonStaticMethodReference
-import io.javalin.core.util.isKotlinAnonymousLambda
-import io.javalin.core.util.isKotlinMethodReference
-import io.javalin.core.util.lambdaField
-import io.javalin.core.util.methodReferenceReflectionMethodName
+import io.javalin.core.util.*
 import io.javalin.plugin.openapi.CreateSchemaOptions
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.asOpenApiDocumentation
