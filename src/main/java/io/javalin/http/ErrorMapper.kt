@@ -6,9 +6,16 @@
 
 package io.javalin.http
 
+import io.javalin.core.util.Header
 import java.util.*
 
 class ErrorMapper {
     val errorHandlerMap = HashMap<Int, ErrorHandler>()
     fun handle(statusCode: Int, ctx: Context) = errorHandlerMap[statusCode]?.handle(ctx)
+}
+
+fun contentTypeWrap(contentType: String, errorHandler: ErrorHandler) = ErrorHandler { ctx ->
+    if (ctx.header(Header.ACCEPT)?.contains(contentType, ignoreCase = true) == true) {
+        errorHandler.handle(ctx)
+    }
 }

@@ -44,4 +44,14 @@ class TestErrorMapper {
         assertThat(http.getBody("/exception")).isEqualTo("Exception handled!")
     }
 
+    @Test
+    fun `error-mapper with content-type respects content-type`() = TestUtil.test { app, http ->
+        app.get("/html") { it.status(500).result("Error!") }.error(500, "html") { it.result("HTML error page") }
+        assertThat(http.htmlGet("/html").body).isEqualTo("HTML error page")
+        assertThat(http.jsonGet("/html").body).isEqualTo("Error!")
+        app.get("/json") { it.status(500).result("Error!") }.error(500, "json") { it.result("JSON error") }
+        assertThat(http.htmlGet("/json").body).isEqualTo("Error!")
+        assertThat(http.jsonGet("/json").body).isEqualTo("JSON error")
+    }
+
 }
