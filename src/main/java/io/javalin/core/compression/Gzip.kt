@@ -1,5 +1,6 @@
 package io.javalin.core.compression
 
+import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 
@@ -18,13 +19,24 @@ class Gzip(val level: Int = 6) {
      * @param out The target output stream
      * @param data data to compress
      */
-    fun write(out: OutputStream, data: ByteArray) {
+    fun compress(data: ByteArrayOutputStream) : ByteArray {
+        val dummyOut = object : OutputStream() {
+            val interceptedDataStream = ByteArrayOutputStream()
+            override fun write(b: ByteArray) {
+                interceptedDataStream.write(b)
+            }
+            override fun write(b: Int) {
+                interceptedDataStream.write(b)
+            }
+        }
+
         //object is required so we can set level, because def is a protected field
-        val wrapper = object : GZIPOutputStream(out, true) {
+        val wrapper = object : GZIPOutputStream(dummyOut, true) {
             init {
                 this.def.setLevel(level)
             }
         }
-        wrapper.use { it.write(data) }
+        wrapper.use { it.write(data.toByteArray()) }
+        return dummyOut.interceptedDataStream.toByteArray()
     }
 }

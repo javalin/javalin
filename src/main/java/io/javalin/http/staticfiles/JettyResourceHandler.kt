@@ -8,6 +8,7 @@ package io.javalin.http.staticfiles
 
 import io.javalin.Javalin
 import io.javalin.core.util.Header
+import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -69,6 +70,9 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                     httpResponse.contentType = null
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
+                    if(httpResponse is JavalinResponseWrapper ) {
+                        httpResponse.outputStream.finalizeWrite()
+                    }
                     return true
                 }
             } catch (e: Exception) { // it's fine

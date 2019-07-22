@@ -3,6 +3,7 @@ package io.javalin.http
 import io.javalin.core.JavalinConfig
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import javax.servlet.ServletOutputStream
 import javax.servlet.WriteListener
@@ -24,26 +25,46 @@ class ResponseWrapperContext(request: HttpServletRequest, val config: JavalinCon
     val compressionStrategy = config.inner.compressionStrategy
 }
 
+/**
+ * Class has been changed to fix a bug introduced in Javalin 3.2.0, where file resources remained partly compressed
+ * after being received by the client. See the full write-up at
+ *
+ * The bug was first discovered when including (and responding with) large webjars (e.g. Buefy). It was caused at line 688
+ * in ResourceService.java, where jetty writes content via a buffer method rather than the usual single-pass write on line 686.
+ *
+ * This resulted in multiple calls to our overriden write method, and as a result, each chunk of data was
+ * being compressed separately.
+ */
 class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : ServletOutputStream() {
+    val interceptedDataStream = ByteArrayOutputStream() //Dummy output stream
 
     companion object {
         @JvmStatic
         var minSize = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
     }
 
-    override fun write(b: ByteArray, off: Int, len: Int) {
+    fun finalizeWrite() {
+        res.outputStream.write(processOutput())
+    }
+
+    fun processOutput() : ByteArray {
+        val len = interceptedDataStream.size()
+        var interceptedData: ByteArray?
+
         when {
-            len < minSize -> super.write(b, off, len) // no compression
+            len < minSize -> interceptedData = interceptedDataStream.toByteArray()
             rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null -> {
                 res.setHeader(Header.CONTENT_ENCODING, "br")
-                rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, b)
+                interceptedData = rwc.config.inner.compressionStrategy.brotli?.compress(interceptedDataStream)
             }
             rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
                 res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                rwc.config.inner.compressionStrategy.gzip?.write(res.outputStream, b)
+                interceptedData = rwc.config.inner.compressionStrategy.gzip?.compress(interceptedDataStream)
             }
-            else -> super.write(b, off, len)
+            else -> interceptedData = interceptedDataStream.toByteArray()
         }
+
+        return interceptedData ?: ByteArray(0)
     }
 
     fun write(resultStream: InputStream) {
@@ -55,13 +76,18 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
                 return // don't write body
             }
         }
-        write(resultStream.readBytes())
+        write(resultStream.readBytes()) //just calls write(ByteArray, int, int) in the background
         resultStream.close()
+        finalizeWrite()
+    }
+
+    override fun write(b: ByteArray, off: Int, len: Int) {
+        interceptedDataStream.write(b, off, len)
     }
 
     override fun isReady(): Boolean = res.outputStream.isReady
     override fun setWriteListener(writeListener: WriteListener?) = res.outputStream.setWriteListener(writeListener)
     override fun write(b: Int) {
-        res.outputStream.write(b)
+        interceptedDataStream.write(b)
     }
 }
