@@ -25,16 +25,6 @@ class ResponseWrapperContext(request: HttpServletRequest, val config: JavalinCon
     val compressionStrategy = config.inner.compressionStrategy
 }
 
-/**
- * Class has been changed to fix a bug introduced in Javalin 3.2.0, where file resources remained partly compressed
- * after being received by the client. See the full write-up at
- *
- * The bug was first discovered when including (and responding with) large webjars (e.g. Buefy). It was caused at line 688
- * in ResourceService.java, where jetty writes content via a buffer method rather than the usual single-pass write on line 686.
- *
- * This resulted in multiple calls to our overriden write method, and as a result, each chunk of data was
- * being compressed separately.
- */
 class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : ServletOutputStream() {
     val interceptedDataStream = ByteArrayOutputStream() //Dummy output stream
 
