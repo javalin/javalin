@@ -21,7 +21,6 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.core.util.Util;
 import io.javalin.http.Context;
-import io.javalin.http.ErrorHandler;
 import io.javalin.http.ErrorMapperKt;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;

@@ -14,7 +14,7 @@ class ErrorMapper {
     fun handle(statusCode: Int, ctx: Context) = errorHandlerMap[statusCode]?.handle(ctx)
 }
 
-fun contentTypeWrap(contentType: String, errorHandler: Handler) = ErrorHandler { ctx ->
+fun contentTypeWrap(contentType: String, errorHandler: Handler) = Handler { ctx ->
     if (ctx.header(Header.ACCEPT)?.contains(contentType, ignoreCase = true) == true) {
         errorHandler.handle(ctx)
     }
