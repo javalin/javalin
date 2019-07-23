@@ -47,4 +47,14 @@ class TestJavalinVue {
         assertThat(res).contains("<body><other-component></other-component></body>")
     }
 
+    @Test
+    fun `vue component works Javalin#error`() = TestUtil.test { app, http ->
+        JavalinVue.localPath = "src/test/resources/vue"
+        JavalinVue.stateFunction = { ctx -> mapOf<String, String>() }
+        app.get("/") { it.status(404) }
+        app.error(400, VueComponent("<bad-request></bad-request>"))
+        app.error(404, "html", VueComponent("<not-found></not-found>"))
+        assertThat(http.htmlGet("/").body).contains("<body><not-found></not-found></body>")
+    }
+
 }
