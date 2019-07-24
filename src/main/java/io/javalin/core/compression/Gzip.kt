@@ -1,6 +1,7 @@
 package io.javalin.core.compression
 
 import sun.security.util.Length
+import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 
@@ -36,11 +37,13 @@ class Gzip(val level: Int = 6) {
      */
     fun write(data: ByteArray, off: Int, len: Int) {
         compressor.write(data, off, len)
-        //compressor.flush()
+    }
+
+    fun write(data: ByteArrayOutputStream) {
+        write(data.toByteArray(), 0, data.size())
     }
 
     fun finish() {
         compressor.finish()
-        //compressor.close()
     }
 }
