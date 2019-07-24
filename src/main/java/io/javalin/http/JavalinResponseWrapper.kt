@@ -5,6 +5,8 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.io.OutputStream
+import java.util.zip.GZIPOutputStream
 import javax.servlet.ServletOutputStream
 import javax.servlet.WriteListener
 import javax.servlet.http.HttpServletRequest
@@ -29,6 +31,8 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
 
     val streamBuffer = ByteArrayOutputStream()
     var sizeLimitExceeded = false
+
+    var gzipCompressor: MyGzipOutputStream? = null
 
     companion object {
         @JvmStatic
@@ -57,7 +61,8 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
 
         val enc = res.getHeader(Header.CONTENT_ENCODING) ?: ""
         if (enc.contains("gzip", ignoreCase = true)) {
-            rwc.config.inner.compressionStrategy.gzip?.finish() // Finalize gzip stream. This must be done with either write method
+            //rwc.config.inner.compressionStrategy.gzip?.finish() // Finalize gzip stream. This must be done with either write method
+            gzipCompressor?.finish()
         }
     }
 
@@ -81,9 +86,11 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
             rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
                 if (!res.containsHeader(Header.CONTENT_ENCODING)) {
                     res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                    rwc.config.inner.compressionStrategy.gzip?.create(res.outputStream) // First write, so create new gzip stream
+                    if(gzipCompressor == null) {
+                        gzipCompressor = MyGzipOutputStream(res.outputStream, rwc.compressionStrategy.gzip?.level)
+                    }
                 }
-                rwc.config.inner.compressionStrategy.gzip?.write(b, off, len)
+                gzipCompressor?.write(b, off, len)
             }
             else -> super.write(b, off, len) // no compression
         }
@@ -101,9 +108,11 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
             rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
                 if (!res.containsHeader(Header.CONTENT_ENCODING)) {
                     res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                    rwc.config.inner.compressionStrategy.gzip?.create(res.outputStream) // first write, so create new gzip stream
+                    if(gzipCompressor == null) {
+                        gzipCompressor = MyGzipOutputStream(res.outputStream, rwc.compressionStrategy.gzip?.level)
+                    }
                 }
-                rwc.config.inner.compressionStrategy.gzip?.write(streamBuffer)
+                gzipCompressor?.write(streamBuffer)
             }
             else -> super.write(streamBuffer.toByteArray(), 0, streamBuffer.size()) // no compression
         }
@@ -113,5 +122,15 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     override fun setWriteListener(writeListener: WriteListener?) = res.outputStream.setWriteListener(writeListener)
     override fun write(b: Int) {
         res.outputStream.write(b)
+    }
+}
+
+class MyGzipOutputStream(out: OutputStream, level: Int) : GZIPOutputStream(out) {
+    init {
+        this.def.setLevel(level)
+    }
+
+    fun write(data: ByteArrayOutputStream) {
+        super.write(data.toByteArray(), 0, data.size())
     }
 }
