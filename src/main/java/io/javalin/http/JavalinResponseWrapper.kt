@@ -54,6 +54,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
     }
 
+
     fun finalize() {
         if(!sizeLimitExceeded) { // Write buffer to output stream
             writeToOutput()
@@ -75,7 +76,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
                 return // don't write body
             }
         }
-        write(resultStream.readBytes())
+        resultStream.copyTo(this)
         resultStream.close()
         finalize()
     }

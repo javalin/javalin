@@ -209,7 +209,8 @@ class TestCompression {
             it.enableWebjars()
         }
         TestUtil.test(gzipWebjars) { _, http ->
-            val uncompressedResponse = http.get(path).body
+            val uncompressedResponse = String(getResponse(http.origin, path, "null").body()?.bytes() ?: ByteArray(0))
+            //val uncompressedResponse = http.get(path).body
             val response = getResponse(http.origin, path, "br, gzip")
             val gzipDecoder = GZIPContentDecoder(1024)
 
