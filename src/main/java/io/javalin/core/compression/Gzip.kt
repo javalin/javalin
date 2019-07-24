@@ -1,5 +1,6 @@
 package io.javalin.core.compression
 
+import sun.security.util.Length
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 
@@ -10,21 +11,36 @@ import java.util.zip.GZIPOutputStream
  */
 class Gzip(val level: Int = 6) {
 
+    lateinit var compressor: GZIPOutputStream
+
     init {
         require(level in 0..9) { "Valid range for parameter level is 0 to 9" }
+    }
+
+    fun create(out: OutputStream) {
+        compressor = GZIPOutputStream(out, false)
+
+        /*
+        //object is required so we can set level, because def is a protected field
+        compressor = object : GZIPOutputStream(out, true) {
+            init {
+                this.def.setLevel(level)
+            }
+        }
+        */
     }
 
     /**
      * @param out The target output stream
      * @param data data to compress
      */
-    fun write(out: OutputStream, data: ByteArray) {
-        //object is required so we can set level, because def is a protected field
-        val wrapper = object : GZIPOutputStream(out, true) {
-            init {
-                this.def.setLevel(level)
-            }
-        }
-        wrapper.use { it.write(data) }
+    fun write(data: ByteArray, off: Int, len: Int) {
+        compressor.write(data, off, len)
+        //compressor.flush()
+    }
+
+    fun finish() {
+        compressor.finish()
+        //compressor.close()
     }
 }

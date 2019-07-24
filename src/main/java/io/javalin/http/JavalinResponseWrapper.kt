@@ -25,7 +25,6 @@ class ResponseWrapperContext(request: HttpServletRequest, val config: JavalinCon
 }
 
 class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : ServletOutputStream() {
-
     companion object {
         @JvmStatic
         var minSize = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
@@ -33,17 +32,36 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
 
     override fun write(b: ByteArray, off: Int, len: Int) {
         when {
-            len < minSize -> super.write(b, off, len) // no compression
+            len < minSize ->
+                super.write(b, off, len) // no compression
             rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null -> {
-                res.setHeader(Header.CONTENT_ENCODING, "br")
+                if (!res.containsHeader(Header.CONTENT_ENCODING)) {
+                    res.setHeader(Header.CONTENT_ENCODING, "br")
+                }
                 rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, b)
             }
             rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
-                res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                rwc.config.inner.compressionStrategy.gzip?.write(res.outputStream, b)
+                if (!res.containsHeader(Header.CONTENT_ENCODING)) {
+                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
+                    rwc.config.inner.compressionStrategy.gzip?.create(res.outputStream) //First write, so create new gzip stream
+                }
+                rwc.config.inner.compressionStrategy.gzip?.write(b, off, len)
             }
-            else -> super.write(b, off, len)
+            else ->
+                super.write(b, off, len)
         }
+    }
+
+    fun finalize() {
+        val enc = res.getHeader(Header.CONTENT_ENCODING) ?: ""
+        if (enc.contains("gzip", ignoreCase = true)) {
+            rwc.config.inner.compressionStrategy.gzip?.finish()
+        }
+        /*
+        else if (enc.contains("br", ignoreCase = true)) {
+            rwc.config.inner.compressionStrategy.brotli?.finish(res.outputStream)
+        }
+        */
     }
 
     fun write(resultStream: InputStream) {
@@ -57,6 +75,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
         write(resultStream.readBytes())
         resultStream.close()
+        finalize()
     }
 
     override fun isReady(): Boolean = res.outputStream.isReady
