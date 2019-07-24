@@ -18,23 +18,16 @@ class Gzip(val level: Int = 6) {
         require(level in 0..9) { "Valid range for parameter level is 0 to 9" }
     }
 
-    fun create(out: OutputStream) {
-        compressor = GZIPOutputStream(out, false)
-
-        /*
-        //object is required so we can set level, because def is a protected field
+    fun create(out: OutputStream) { // create new instance based on current output stream
+        // object is required so we can set level, because def is a protected field
         compressor = object : GZIPOutputStream(out, true) {
             init {
                 this.def.setLevel(level)
             }
         }
-        */
+
     }
 
-    /**
-     * @param out The target output stream
-     * @param data data to compress
-     */
     fun write(data: ByteArray, off: Int, len: Int) {
         compressor.write(data, off, len)
     }
@@ -43,7 +36,7 @@ class Gzip(val level: Int = 6) {
         write(data.toByteArray(), 0, data.size())
     }
 
-    fun finish() {
+    fun finish() { // this is important so the compressor can write the gzip "tail", indicating end of stream
         compressor.finish()
     }
 }

@@ -28,58 +28,25 @@ class ResponseWrapperContext(request: HttpServletRequest, val config: JavalinCon
 class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : ServletOutputStream() {
 
     val streamBuffer = ByteArrayOutputStream()
-    val sizeLimit = 1000000 // 1 MB
     var sizeLimitExceeded = false
 
     companion object {
         @JvmStatic
         var minSize = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
+        @JvmStatic
+        var sizeLimit = 1000000 // Size limit in bytes, after which the stream buffer is flushed and any further writing is streamed
     }
 
     override fun write(b: ByteArray, off: Int, len: Int) {
-        if(!sizeLimitExceeded) {
+        if(!sizeLimitExceeded) { // size limit not exceeded, so we write all output to the stream buffer
             streamBuffer.write(b, off, len)
             if(streamBuffer.size() > sizeLimit) {
-                sizeLimitExceeded = true // Size limit has just been exceeded, further writes will be handled differently
-                streamToOutput(streamBuffer.toByteArray(), 0, streamBuffer.size())
+                sizeLimitExceeded = true // Size limit has just been exceeded, future writes will be handled differently
+                streamToOutput(streamBuffer.toByteArray(), 0, streamBuffer.size()) // flush buffer to output
                 streamBuffer.reset()
             }
-        } else {
+        } else { // size limit has already been exceeded. Means this is a big piece of content, so we switch to streaming
             streamToOutput(b, off, len)
-        }
-    }
-
-    private fun streamToOutput(b: ByteArray, off: Int, len: Int) { // We call this when buffer size limit has been exceeded
-        when {
-            // Gzip only for now while streaming, as Brotli stream compression currently doesn't work
-            rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
-                if (!res.containsHeader(Header.CONTENT_ENCODING)) {
-                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                    rwc.config.inner.compressionStrategy.gzip?.create(res.outputStream) // First write, so create new gzip stream
-                }
-                rwc.config.inner.compressionStrategy.gzip?.write(b, off, len)
-            }
-            else -> super.write(b, off, len) // no compression
-        }
-    }
-
-    private fun writeToOutput() {
-        when {
-            streamBuffer.size() < minSize -> super.write(streamBuffer.toByteArray(), 0, streamBuffer.size()) // no compression
-            rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null -> {
-                if (!res.containsHeader(Header.CONTENT_ENCODING)) {
-                    res.setHeader(Header.CONTENT_ENCODING, "br")
-                }
-                rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, streamBuffer)
-            }
-            rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
-                if (!res.containsHeader(Header.CONTENT_ENCODING)) {
-                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                    rwc.config.inner.compressionStrategy.gzip?.create(res.outputStream) // first write, so create new gzip stream
-                }
-                rwc.config.inner.compressionStrategy.gzip?.write(streamBuffer)
-            }
-            else -> super.write(streamBuffer.toByteArray(), 0, streamBuffer.size()) // no compression
         }
     }
 
@@ -106,6 +73,40 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         write(resultStream.readBytes())
         resultStream.close()
         finalize()
+    }
+
+    private fun streamToOutput(b: ByteArray, off: Int, len: Int) {
+        when {
+            // Gzip only for now while streaming, as Brotli stream compression currently doesn't work
+            rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
+                if (!res.containsHeader(Header.CONTENT_ENCODING)) {
+                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
+                    rwc.config.inner.compressionStrategy.gzip?.create(res.outputStream) // First write, so create new gzip stream
+                }
+                rwc.config.inner.compressionStrategy.gzip?.write(b, off, len)
+            }
+            else -> super.write(b, off, len) // no compression
+        }
+    }
+
+    private fun writeToOutput() {
+        when {
+            streamBuffer.size() < minSize -> super.write(streamBuffer.toByteArray(), 0, streamBuffer.size()) // data set too small
+            rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null -> {
+                if (!res.containsHeader(Header.CONTENT_ENCODING)) {
+                    res.setHeader(Header.CONTENT_ENCODING, "br")
+                }
+                rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, streamBuffer)
+            }
+            rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null -> {
+                if (!res.containsHeader(Header.CONTENT_ENCODING)) {
+                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
+                    rwc.config.inner.compressionStrategy.gzip?.create(res.outputStream) // first write, so create new gzip stream
+                }
+                rwc.config.inner.compressionStrategy.gzip?.write(streamBuffer)
+            }
+            else -> super.write(streamBuffer.toByteArray(), 0, streamBuffer.size()) // no compression
+        }
     }
 
     override fun isReady(): Boolean = res.outputStream.isReady
