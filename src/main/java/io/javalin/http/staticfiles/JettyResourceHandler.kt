@@ -70,9 +70,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                     httpResponse.contentType = null
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
-                    if(httpResponse is JavalinResponseWrapper) {
-                        httpResponse.outputStream.finalize()
-                    }
+                    (httpResponse as JavalinResponseWrapper).outputStream.finalize()
                     return true
                 }
             } catch (e: Exception) { // it's fine

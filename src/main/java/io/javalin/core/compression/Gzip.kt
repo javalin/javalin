@@ -1,6 +1,5 @@
 package io.javalin.core.compression
 
-import sun.security.util.Length
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
@@ -25,7 +24,6 @@ class Gzip(val level: Int = 6) {
                 this.def.setLevel(level)
             }
         }
-
     }
 
     fun write(data: ByteArray, off: Int, len: Int) {
