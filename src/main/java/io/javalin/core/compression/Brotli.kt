@@ -1,5 +1,7 @@
 package io.javalin.core.compression
 
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
 import org.meteogroup.jbrotli.Brotli
 import org.meteogroup.jbrotli.BrotliCompressor
 
@@ -18,6 +20,7 @@ class Brotli(val level: Int = 4) {
 
     init {
         require(level in 0..11) { "Valid range for parameter level is 0 to 11" }
+        Util.ensureDependencyPresent(OptionalDependency.JBROTLI)
         brotliCompressor = BrotliCompressor()
         brotliParameter = Brotli.Parameter(Brotli.DEFAULT_MODE, level, Brotli.DEFAULT_LGWIN, Brotli.DEFAULT_LGBLOCK)
     }

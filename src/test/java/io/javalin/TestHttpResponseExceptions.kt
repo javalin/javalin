@@ -155,4 +155,18 @@ class TestHttpResponseExceptions {
                 |}""".trimMargin()
         )
     }
+
+    @Test
+    fun `default exceptions work well with custom content-typed errors`() = TestUtil.test { app, http ->
+        app.get("/") { throw ForbiddenResponse("Off limits!") }
+        app.error(403, "html") { it.result("Only mapped for HTML") }
+        assertThat(http.jsonGet("/").body).isEqualTo("""{
+                |    "title": "Off limits!",
+                |    "status": 403,
+                |    "type": "https://javalin.io/documentation#forbiddenresponse",
+                |    "details": []
+                |}""".trimMargin()
+        )
+        assertThat(http.htmlGet("/").body).isEqualTo("Only mapped for HTML")
+    }
 }

@@ -21,7 +21,7 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.core.util.Util;
 import io.javalin.http.Context;
-import io.javalin.http.ErrorHandler;
+import io.javalin.http.ErrorMapperKt;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
@@ -251,9 +251,19 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
-    public Javalin error(int statusCode, @NotNull ErrorHandler errorHandler) {
-        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, errorHandler);
+    public Javalin error(int statusCode, @NotNull Handler handler) {
+        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, handler);
         return this;
+    }
+
+    /**
+     * Adds an error mapper for the specified content-type to the instance.
+     * Useful for turning error-codes (404, 500) into standardized messages/pages
+     *
+     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
+     */
+    public Javalin error(int statusCode, @NotNull String contentType, @NotNull Handler handler) {
+        return error(statusCode, ErrorMapperKt.contentTypeWrap(contentType, handler));
     }
 
     /**
