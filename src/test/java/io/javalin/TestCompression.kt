@@ -103,7 +103,7 @@ class TestCompression {
         assumeTrue(tryLoadBrotli())
         assertThat(Unirest.get(http.origin + "/huge").asString().body.length).isEqualTo(hugeLength)
         assertThat(getResponse(http.origin, "/huge", "br").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
-        assertThat(getResponse(http.origin, "/huge", "br").body()!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
+        assertThat(getResponse(http.origin, "/huge", "br").body()!!.contentLength()).isEqualTo(2511L) // hardcoded because lazy
 
         assertThat(Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "null").asString().body.length).isEqualTo(testDocument.length)
         assertThat(getResponse(http.origin, "/html.html", "br").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
@@ -232,29 +232,12 @@ class TestCompression {
     }
 
     @Test
-    fun `compression fails over to gzip for large static files`() {
-        assumeTrue(tryLoadBrotli())
-        val path = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js"
-        val compressedWebJars = Javalin.create {
-            it.compressionStrategy(Brotli(4), Gzip(6)) // brotli must be enabled to test failover
-            it.enableWebjars()
-        }
-        TestUtil.test(compressedWebJars) { _, http ->
-            OutputStreamWrapper.maxBufferSize = 50000 // Set buffer size limit lower than the file we're getting, to test failover to gzip
-            assertValidGzipResponse(http.origin, path)
-        }
-    }
-
-    @Test
     fun `brotli works for dynamic responses of different sizes`() {
         val repeats = listOf(10, 100, 1000, 10_000, 100_000)
         val brotliApp = Javalin.create { it.compressionStrategy(Brotli(4), Gzip(6)) }
         repeats.forEach { n -> brotliApp.get("/$n") { it.result(testDocument.repeat(n)) } }
         TestUtil.test(brotliApp) { _, http ->
-            repeats.partition { it < 10_000 }.apply {
-                first.forEach { n -> assertValidBrotliResponse(http.origin, "/$n") }
-                second.forEach { n -> assertValidGzipResponse(http.origin, "/$n") } // larger than 1mb, fail over to gzip
-            }
+            repeats.forEach { n -> assertValidBrotliResponse(http.origin, "/$n") }
         }
     }
 

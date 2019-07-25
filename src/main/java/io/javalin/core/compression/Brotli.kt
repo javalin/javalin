@@ -17,7 +17,7 @@ import java.io.OutputStream
 class Brotli(val level: Int = 4) {
 
     private val brotliCompressor: BrotliCompressor
-    private val brotliParameter: Brotli.Parameter
+    val brotliParameter: Brotli.Parameter
 
     init {
         require(level in 0..11) { "Valid range for parameter level is 0 to 11" }
