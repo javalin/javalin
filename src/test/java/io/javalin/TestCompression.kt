@@ -40,6 +40,11 @@ class TestCompression {
         OutputStreamWrapper.minSize = testDocumentSize
     }
 
+    @Before
+    fun setSizeLimit() {
+        OutputStreamWrapper.sizeLimit = 1000000
+    }
+
     val defaultApp = Javalin.create {
         it.addStaticFiles("/public")
     }.addTestEndpoints()
@@ -210,7 +215,6 @@ class TestCompression {
         }
         TestUtil.test(gzipWebjars) { _, http ->
             val uncompressedResponse = String(getResponse(http.origin, path, "null").body()?.bytes() ?: ByteArray(0))
-            //val uncompressedResponse = http.get(path).body
             val response = getResponse(http.origin, path, "br, gzip")
             val gzipDecoder = GZIPContentDecoder(1024)
 
@@ -222,38 +226,43 @@ class TestCompression {
     }
 
     @Test
-    fun `compression fails over to gzip for large files`() { // Previous test has gzip only, this one enables Brotli as well
-        assumeTrue(tryLoadBrotli())
+    fun `brotli works for large files`() {
         val path = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js"
-        val compressedWebJars = Javalin.create {
+        val compressedWebjars = Javalin.create {
             it.compressionStrategy(Brotli(4), Gzip(6))
             it.enableWebjars()
         }
-        TestUtil.test(compressedWebJars) { _, http ->
-            val uncompressedResponse = http.get(path).body
-            val brotliResponse = getResponse(http.origin, path, "br, gzip")
-
-            // should be brotli by default, since the file is small enough to be "buffered"
-            assertThat(brotliResponse.header(Header.CONTENT_ENCODING)).isEqualTo("br")
-
+        TestUtil.test(compressedWebjars) { _, http ->
+            val response = getResponse(http.origin, path, "br, gzip")
             //WITHOUT THIS, WE GET A TIMEOUT ERROR FROM JETTY. Consuming the body avoids the timeout. Unsure why
-            val brotliBody = brotliResponse.body()?.bytes()
-
-            // Set size limit lower than the file we're getting, to test failover to streaming and gzip
-            OutputStreamWrapper.sizeLimit = 50000
-            val gzipResponse = getResponse(http.origin, path, "br, gzip") //Same request as above
-            OutputStreamWrapper.sizeLimit = 1000000
-            assertThat(gzipResponse.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-
-            val gzipDecoder = GZIPContentDecoder(1024)
-            val decoded = gzipDecoder.decode(ByteBuffer.wrap(gzipResponse.body()?.bytes()))
-            val decodedStr = String(decoded.array())
-            assertThat(decodedStr).isEqualTo(uncompressedResponse)
+            val brotliBody = response.body()?.bytes()
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
 
             /*  currently, we cannot test if the brotli response matches the uncompressed,
                 so we only check the encoding header. This is because the jbrotli decompressor is broken
                 and doesn't decode the response correctly. However, performing this test in Chrome and
                 manually comparing the response diff shows that they do match */
+        }
+    }
+
+    @Test
+    fun `compression fails over to gzip for large files`() {
+        assumeTrue(tryLoadBrotli())
+        val path = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js"
+        val compressedWebJars = Javalin.create {
+            it.compressionStrategy(Brotli(4), Gzip(6)) // brotli must be enabled to test failover
+            it.enableWebjars()
+        }
+        TestUtil.test(compressedWebJars) { _, http ->
+            val uncompressedResponse = http.get(path).body
+            OutputStreamWrapper.sizeLimit = 50000 // Set buffer size limit lower than the file we're getting, to test failover to gzip
+            val response = getResponse(http.origin, path, "br, gzip")
+            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+
+            val gzipDecoder = GZIPContentDecoder(1024)
+            val decoded = gzipDecoder.decode(ByteBuffer.wrap(response.body()?.bytes()))
+            val decodedStr = String(decoded.array())
+            assertThat(decodedStr).isEqualTo(uncompressedResponse)
         }
     }
 
