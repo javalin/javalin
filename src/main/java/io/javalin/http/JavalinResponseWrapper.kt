@@ -71,8 +71,6 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
     }
 
-
-
     fun finalize() {
         if(!sizeLimitExceeded && brotliEnabled) { // compress and output the buffer
             writeBrotliToOutput()
