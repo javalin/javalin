@@ -13,78 +13,21 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpServletResponseWrapper
 
-class JavalinResponseWrapper(res: HttpServletResponse, rwc: ResponseWrapperContext) : HttpServletResponseWrapper(res) {
-    private val outputStreamWrapper by lazy { OutputStreamWrapper(res, rwc) }
-    override fun getOutputStream() = outputStreamWrapper
-    fun write(resultStream: InputStream?) = if (resultStream != null) outputStreamWrapper.write(resultStream) else Unit
-}
-
 class ResponseWrapperContext(request: HttpServletRequest, val config: JavalinConfig) {
     val accepts = request.getHeader(Header.ACCEPT_ENCODING) ?: ""
     val clientEtag = request.getHeader(Header.IF_NONE_MATCH) ?: ""
     val type = HandlerType.fromServletRequest(request)
-    val autogenerateEtags = config.autogenerateEtags
     val compressionStrategy = config.inner.compressionStrategy
 }
 
-class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : ServletOutputStream() {
+class JavalinResponseWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : HttpServletResponseWrapper(res) {
 
-    private val streamBuffer = ByteArrayOutputStream()
-    private lateinit var compressorOutputStream: OutputStream
+    private val outputStreamWrapper by lazy { OutputStreamWrapper(res, rwc) }
+    override fun getOutputStream() = outputStreamWrapper
 
-    private var sizeLimitExceeded = false
-    private var isFirstWrite = true
-    private var brotliEnabled = false
-    private var gzipEnabled = false
-
-    companion object {
-        @JvmStatic
-        var minSize = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
-        @JvmStatic
-        var sizeLimit = 1000000 // Size limit in bytes, after which the stream buffer is flushed and any further writing is streamed
-    }
-
-    /**
-     * buffering is a temp workaround for brotli, because jbrotli stream compression is currently broken
-     * the idea is we buffer the response (up to 1 MB max by default), then compress it and send it to output.
-     * If the total content size exceeds this limit, we switch to streaming and fail over to gzip (if enabled)
-     *
-     * This should allow brotli to work for most responses, as not many will exceed 1 MB in size.
-     * Code will be refactored to full streaming once the brotli issue is fixed
-     *
-     * Buffering only happens if brotli is enabled in compression strategy. Gzip (or uncompressed) go directly to streaming
-    */
-    override fun write(b: ByteArray, off: Int, len: Int) {
-        if(isFirstWrite) {
-            setAvailableCompressors(len)
-            isFirstWrite = false
-        }
-
-        if(!sizeLimitExceeded && brotliEnabled) { // size limit not exceeded, so we write all output to the stream buffer
-            streamBuffer.write(b, off, len)
-            if(streamBuffer.size() > sizeLimit) {
-                sizeLimitExceeded = true // Size limit has just been exceeded, flush the buffer and switch to streaming
-                streamToOutput(streamBuffer.toByteArray(), 0, streamBuffer.size())
-            }
-        } else {
-            streamToOutput(b, off, len)
-        }
-    }
-
-    fun finalize() {
-        if(!sizeLimitExceeded && brotliEnabled) { // compress and output the buffer
-            writeBrotliToOutput()
-            return
-        }
-
-        // did we gzip? If so, finalize the gzip stream
-        if (res.getHeader(Header.CONTENT_ENCODING) == "gzip") {
-            (compressorOutputStream as LeveledGzipStream).finish()
-        }
-    }
-
-    fun write(resultStream: InputStream) {
-        if (res.getHeader(Header.ETAG) != null || (rwc.autogenerateEtags && rwc.type == HandlerType.GET)) {
+    fun write(resultStream: InputStream?) {
+        if (resultStream == null) return
+        if (res.getHeader(Header.ETAG) != null || (rwc.config.autogenerateEtags && rwc.type == HandlerType.GET)) {
             val serverEtag = res.getHeader(Header.ETAG) ?: Util.getChecksumAndReset(resultStream) // calculate if not set
             res.setHeader(Header.ETAG, serverEtag)
             if (serverEtag == rwc.clientEtag) {
@@ -92,9 +35,51 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
                 return // don't write body
             }
         }
-        resultStream.copyTo(this)
+        resultStream.copyTo(outputStreamWrapper)
         resultStream.close()
-        finalize()
+        outputStreamWrapper.finalize()
+    }
+
+}
+
+class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : ServletOutputStream() {
+
+    private val buffer = ByteArrayOutputStream()
+    private lateinit var compressorOutputStream: OutputStream
+
+    private var brotliEnabled = false
+    private var gzipEnabled = false
+
+    companion object {
+        @JvmStatic
+        var minSizeForCompression = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
+        @JvmStatic
+        var maxBufferSize = 1000000 // Size limit in bytes, after which the stream buffer is flushed and any further writing is streamed
+    }
+
+    /**
+     * Buffering is a temporary workaround for brotli, because jbrotli stream compression is currently broken.
+     * The idea is we buffer the response (up to 1 MB max by default), then compress it and send it to output.
+     * If the total content size exceeds this limit, we switch to streaming and fail over to gzip (if enabled).
+     *
+     * This should allow brotli to work for most responses, as not many will exceed 1 MB in size.
+     * Code will be refactored to full streaming once the brotli issue is fixed.
+     *
+     * Buffering only happens if brotli is enabled in compression strategy. Gzip (or uncompressed) go directly to streaming.
+     */
+    override fun write(b: ByteArray, off: Int, len: Int) {
+        if (buffer.size() == 0) { // first write
+            setAvailableCompressors(len)
+        }
+        if (buffer.size() <= maxBufferSize && brotliEnabled) { // size limit not exceeded, so we write all output to the stream buffer
+            buffer.write(b, off, len)
+            if (buffer.size() > maxBufferSize) {
+                // Size limit has just been exceeded, flush the buffer and switch to streaming
+                streamToOutput(buffer.toByteArray(), 0, buffer.size())
+            }
+        } else {
+            streamToOutput(b, off, len)
+        }
     }
 
     private fun streamToOutput(b: ByteArray, off: Int, len: Int) {
@@ -110,15 +95,27 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
     }
 
+    fun finalize() {
+        if (buffer.size() < maxBufferSize && brotliEnabled) { // compress and output the buffer
+            writeBrotliToOutput()
+            return
+        }
+
+        // did we gzip? If so, finalize the gzip stream
+        if (res.getHeader(Header.CONTENT_ENCODING) == "gzip") {
+            (compressorOutputStream as LeveledGzipStream).finish()
+        }
+    }
+
     private fun writeBrotliToOutput() {
         if (res.getHeader(Header.CONTENT_ENCODING) != "br") {
             res.setHeader(Header.CONTENT_ENCODING, "br")
         }
-        rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, streamBuffer)
+        rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, buffer)
     }
 
     private fun setAvailableCompressors(len: Int) {
-        if (len >= minSize) { // enable compression based on length of first write, since full response size is unknown
+        if (len >= minSizeForCompression) { // enable compression based on length of first write, since full response size is unknown
             brotliEnabled = rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null
             gzipEnabled = rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null
         }
