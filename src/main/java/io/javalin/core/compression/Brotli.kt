@@ -4,6 +4,7 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import org.meteogroup.jbrotli.Brotli
 import org.meteogroup.jbrotli.BrotliCompressor
+import java.io.ByteArrayOutputStream
 
 import java.io.OutputStream
 
@@ -29,11 +30,15 @@ class Brotli(val level: Int = 4) {
      * @param out The target output stream
      * @param data data to compress
      */
-    fun write(out: OutputStream, data: ByteArray) {
+    fun write(out: OutputStream, data: ByteArray, off: Int, len: Int) {
         //Needed because compressing small data sets sometimes yields a bigger output than the original
-        val size = if (data.size >= 8192) data.size else 8192
+        val size = if (len >= 8192) len else 8192
         val output = ByteArray(size)
-        val compressedLength = brotliCompressor.compress(brotliParameter, data, output)
+        val compressedLength = brotliCompressor.compress(brotliParameter, data, off, len, output, 0, size)
         out.write(output.copyOfRange(0, compressedLength))
+    }
+
+    fun write(out: OutputStream, data: ByteArrayOutputStream) {
+        write(out, data.toByteArray(), 0, data.size())
     }
 }
