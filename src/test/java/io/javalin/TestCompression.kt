@@ -228,6 +228,8 @@ class TestCompression {
         }
         TestUtil.test(compressedWebjars) { _, http ->
             val response = getResponse(http.origin, path, "br, gzip")
+            // Jetty times out in SOME environments if body is not consumed, need to find out why
+            val brotliBody = response.body()?.bytes()
             assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
             // currently, we cannot test if the brotli response matches the uncompressed,
             // so we only check the encoding header. This is because the jbrotli decompressor is broken
