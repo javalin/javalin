@@ -33,7 +33,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     private lateinit var compressorOutputStream: OutputStream
 
     private var sizeLimitExceeded = false
-    private var firstWriteCompleted = false
+    private var isFirstWrite = true
     private var brotliEnabled = false
     private var gzipEnabled = false
 
@@ -55,8 +55,9 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
      * Buffering only happens if brotli is enabled in compression strategy. Gzip (or uncompressed) go directly to streaming
     */
     override fun write(b: ByteArray, off: Int, len: Int) {
-        if(!firstWriteCompleted) {
-            onFirstWrite(len)
+        if(isFirstWrite) {
+            setAvailableCompressors(len)
+            isFirstWrite = false
         }
 
         if(!sizeLimitExceeded && brotliEnabled) { // size limit not exceeded, so we write all output to the stream buffer
@@ -118,12 +119,11 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, streamBuffer)
     }
 
-    private fun onFirstWrite(len: Int) {
+    private fun setAvailableCompressors(len: Int) {
         if (len >= minSize) { // enable compression based on length of first write, since full response size is unknown
             brotliEnabled = rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null
             gzipEnabled = rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null
         }
-        firstWriteCompleted = true
     }
 
     override fun isReady(): Boolean = res.outputStream.isReady

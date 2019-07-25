@@ -36,38 +36,37 @@ class TestCompression {
     private val testDocumentSize = FileUtil.readResource("/public/html.html").length
 
     @Before
-    fun setMinSize() {
+    fun reset() {
         OutputStreamWrapper.minSize = testDocumentSize
-    }
-
-    @Before
-    fun setSizeLimit() {
         OutputStreamWrapper.sizeLimit = 1000000
     }
 
-    val defaultApp = Javalin.create {
-        it.addStaticFiles("/public")
-    }.addTestEndpoints()
+    val defaultApp by lazy {
+        Javalin.create {
+            it.addStaticFiles("/public")
+        }.addTestEndpoints()
+    }
 
-    val fullCompressionApp = Javalin.create {
-        it.compressionStrategy(Brotli(), Gzip())
-        it.addStaticFiles("/public")
-    }.addTestEndpoints()
+    val fullCompressionApp by lazy {
+        Javalin.create {
+            it.compressionStrategy(Brotli(), Gzip())
+            it.addStaticFiles("/public")
+        }.addTestEndpoints()
+    }
 
-    val gzipDisabledApp = Javalin.create {
-        it.compressionStrategy(Brotli(), null)
-        it.addStaticFiles("/public")
-    }.addTestEndpoints()
+    val brotliDisabledApp by lazy {
+        Javalin.create {
+            it.compressionStrategy(null, Gzip())
+            it.addStaticFiles("/public")
+        }.addTestEndpoints()
+    }
 
-    val brotliDisabledApp = Javalin.create {
-        it.compressionStrategy(null, Gzip())
-        it.addStaticFiles("/public")
-    }.addTestEndpoints()
-
-    val etagApp = Javalin.create {
-        it.addStaticFiles("/public")
-        it.autogenerateEtags = true
-    }.addTestEndpoints()
+    val etagApp by lazy {
+        Javalin.create {
+            it.addStaticFiles("/public")
+            it.autogenerateEtags = true
+        }.addTestEndpoints()
+    }
 
     fun Javalin.addTestEndpoints() = this.apply {
         get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
@@ -119,11 +118,17 @@ class TestCompression {
     }
 
     @Test
-    fun `doesn't gzip when gzip is disabled`() = TestUtil.test(gzipDisabledApp) { _, http ->
-        assertThat(getResponse(http.origin, "/huge", "gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
+    fun `doesn't gzip when gzip is disabled`() {
+        val gzipDisabledApp = Javalin.create {
+            it.compressionStrategy(Brotli(), null)
+            it.addStaticFiles("/public")
+        }.addTestEndpoints()
+        TestUtil.test(gzipDisabledApp) { _, http ->
+            assertThat(getResponse(http.origin, "/huge", "gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
 
-        assertThat(Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "gzip").asString().body.length).isEqualTo(testDocumentSize)
-        assertThat(getResponse(http.origin, "/html.html", "gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
+            assertThat(Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "gzip").asString().body.length).isEqualTo(testDocumentSize)
+            assertThat(getResponse(http.origin, "/html.html", "gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
+        }
     }
 
     @Test

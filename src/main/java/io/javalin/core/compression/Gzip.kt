@@ -1,8 +1,6 @@
 package io.javalin.core.compression
 
 /**
- * Kotlin wrapper for Java's GZIPOutputStream
- *
  * @param level Compression level. Higher yields better (but slower) compression. Range 0..9, default = 6
  */
 class Gzip(val level: Int = 6) {
