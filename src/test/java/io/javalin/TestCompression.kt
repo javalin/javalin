@@ -18,12 +18,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.http.GZIPContentDecoder
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
+import org.meteogroup.jbrotli.io.BrotliInputStream
 import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
-import java.nio.ByteBuffer
+import java.util.zip.GZIPInputStream
 
 class TestCompression {
 
@@ -227,43 +227,7 @@ class TestCompression {
             it.enableWebjars()
         }
         TestUtil.test(compressedWebjars) { _, http ->
-            val response = getResponse(http.origin, path, "br, gzip")
-            // Jetty times out in SOME environments if body is not consumed, need to find out why
-            val brotliBody = response.body()?.bytes()
-            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
-            // currently, we cannot test if the brotli response matches the uncompressed,
-            // so we only check the encoding header. This is because the jbrotli decompressor is broken
-            // and doesn't decode the response correctly. However, performing this test in Chrome and
-            // manually comparing the response diff shows that they do match
-        }
-    }
-
-    @Test
-    fun `brotli works for large dynamic responses (with failover)`() {
-        val brotliEnabled = Javalin.create {
-            it.compressionStrategy(Brotli(4), Gzip(6))
-        }.get("/just-right") {
-            val numRepeats = 1_000_000 / testDocument.length
-            it.result(testDocument.repeat(numRepeats))
-        }.get("/too-big") {
-            val numRepeats = 1_000_000 / testDocument.length
-            it.result(testDocument.repeat(numRepeats + 1))
-        }
-        TestUtil.test(brotliEnabled) { _, http ->
-            val response = getResponse(http.origin, "/just-right", "br, gzip")
-            assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
-            val response2 = getResponse(http.origin, "/too-big", "br, gzip")
-            assertThat(response2.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-        }
-    }
-
-    @Test
-    fun `gzip works for dynamic responses of different sizes`() {
-        val repeats = listOf(10, 100, 1000, 10000, 100000)
-        val gzipApp = Javalin.create { it.compressionStrategy(null, Gzip(6)) }
-        repeats.forEach { n -> gzipApp.get("/$n") { it.result(testDocument.repeat(n)) } }
-        TestUtil.test(gzipApp) { _, http ->
-            repeats.forEach { n -> assertValidGzipResponse(http.origin, "/$n") }
+            assertValidBrotliResponse(http.origin, path)
         }
     }
 
@@ -281,13 +245,45 @@ class TestCompression {
         }
     }
 
+    @Test
+    fun `brotli works for dynamic responses of different sizes`() {
+        val repeats = listOf(10, 100, 1000, 10_000, 100_000)
+        val brotliApp = Javalin.create { it.compressionStrategy(Brotli(4), Gzip(6)) }
+        repeats.forEach { n -> brotliApp.get("/$n") { it.result(testDocument.repeat(n)) } }
+        TestUtil.test(brotliApp) { _, http ->
+            repeats.partition { it < 10_000 }.apply {
+                first.forEach { n -> assertValidBrotliResponse(http.origin, "/$n") }
+                second.forEach { n -> assertValidGzipResponse(http.origin, "/$n") } // larger than 1mb, fail over to gzip
+            }
+        }
+    }
+
+    @Test
+    fun `gzip works for dynamic responses of different sizes`() {
+        val repeats = listOf(10, 100, 1000, 10_000, 100_000)
+        val gzipApp = Javalin.create { it.compressionStrategy(null, Gzip(6)) }
+        repeats.forEach { n -> gzipApp.get("/$n") { it.result(testDocument.repeat(n)) } }
+        TestUtil.test(gzipApp) { _, http ->
+            repeats.forEach { n -> assertValidGzipResponse(http.origin, "/$n") }
+        }
+    }
+
+    private fun assertValidBrotliResponse(origin: String, url: String) {
+        val response = getResponse(origin, url, "br")
+        assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
+        val brotliInputStream = BrotliInputStream(response.body()!!.byteStream())
+        val decompressed = String(brotliInputStream.readBytes())
+        val uncompressedResponse = getResponse(origin, url, "null").body()!!.string()
+        assertThat(decompressed).isEqualTo(uncompressedResponse)
+    }
+
     private fun assertValidGzipResponse(origin: String, url: String) {
-        val response = getResponse(origin, url, "br, gzip")
+        val response = getResponse(origin, url, "gzip")
         assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
-        val gzipDecoder = GZIPContentDecoder(1024)
-        val decoded = gzipDecoder.decode(ByteBuffer.wrap(response.body()?.bytes()))
-        val uncompressedResponse = String(getResponse(origin, url, "null").body()?.bytes() ?: ByteArray(0))
-        assertThat(String(decoded.array())).isEqualTo(uncompressedResponse)
+        val gzipInputStream = GZIPInputStream(response.body()!!.byteStream())
+        val decompressed = String(gzipInputStream.readBytes())
+        val uncompressedResponse = getResponse(origin, url, "null").body()!!.string()
+        assertThat(decompressed).isEqualTo(uncompressedResponse)
     }
 
     // we need to use okhttp, because unirest omits the content-encoding header
