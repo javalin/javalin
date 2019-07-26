@@ -66,11 +66,11 @@ class JavalinServer(val config: JavalinConfig) {
         }.start()
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
-            Javalin.log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
+            Javalin.log?.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
         }
 
         server().connectors.filter { it !is ServerConnector }.forEach {
-            Javalin.log.info("Binding to: $it")
+            Javalin.log?.info("Binding to: $it")
         }
 
         JettyUtil.reEnableJettyLogger()

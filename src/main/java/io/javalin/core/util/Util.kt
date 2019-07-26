@@ -43,7 +43,7 @@ object Util {
         }
         if (!classExists(dependency.testClass)) {
             val message = missingDependencyMessage(dependency)
-            Javalin.log.warn(message)
+            Javalin.log?.warn(message)
             throw InternalServerErrorResponse(message)
         }
         dependencyCheckCache[dependency.testClass] = true
@@ -77,7 +77,7 @@ object Util {
 
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
-        if (showBanner) Javalin.log.info("\n" + """
+        if (showBanner) Javalin.log?.info("\n" + """
           |           __                      __ _
           |          / /____ _ _   __ ____ _ / /(_)____
           |     __  / // __ `/| | / // __ `// // // __ \
@@ -109,7 +109,7 @@ object Util {
     fun assertWebjarInstalled(dependency: OptionalDependency) = try {
         getWebjarResourceUrl(dependency)
     } catch (e: Exception) {
-        Javalin.log.warn(missingDependencyMessage(dependency))
+        Javalin.log?.warn(missingDependencyMessage(dependency))
     }
 
     @JvmStatic
@@ -139,13 +139,15 @@ object Util {
         response.outputStream.close()
     }
 
+    var logIfNotStarted = true
+
     @JvmStatic
     fun logIfServerNotStarted(server: JavalinServer) = Thread {
         Thread.sleep(5000)
-        if (!server.started) {
-            Javalin.log.info("It looks like you created a Javalin instance, but you never started it.")
-            Javalin.log.info("Try: Javalin app = Javalin.create().start();")
-            Javalin.log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+        if (!server.started && logIfNotStarted) {
+            Javalin.log?.info("It looks like you created a Javalin instance, but you never started it.")
+            Javalin.log?.info("Try: Javalin app = Javalin.create().start();")
+            Javalin.log?.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
         }
     }.start()
 

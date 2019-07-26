@@ -1,6 +1,6 @@
 package io.javalin.core.compression
 
-import io.javalin.Javalin.log
+import io.javalin.Javalin
 import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
 
 /**
@@ -39,7 +39,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         BrotliLibraryLoader.loadBrotli()
         brotli
     } catch (t: Throwable) {
-        log.warn("""${"\n"}
+        Javalin.log?.warn("""${"\n"}
             Failed to enable Brotli compression, because the JBrotli native library couldn't be loaded.
             Brotli is currently only supported on Windows, Linux and Mac OSX.
             If you are running Javalin on a supported system, but are still getting this error,

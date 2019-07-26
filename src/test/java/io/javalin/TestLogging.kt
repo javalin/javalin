@@ -9,12 +9,14 @@ package io.javalin
 import io.javalin.misc.HttpUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.logging.Logger
 
 class TestLogging {
 
@@ -37,7 +39,7 @@ class TestLogging {
         val log = captureStdOut {
             runTest(Javalin.create {
                 it.requestLogger { _, executionTimeMs ->
-                    Javalin.log.info("Custom log message")
+                    Logger.getLogger("MyLogger").info("Custom log message")
                 }
             })
         }
@@ -80,6 +82,7 @@ class TestLogging {
             TestUtil.test(Javalin.create {
                 it.enableDevLogging()
             }) { app, http ->
+                Javalin.log = LoggerFactory.getLogger(Javalin::class.java) // logger is usually disabled for tests
                 app.get("/") {
                     val imagePath = this::class.java.classLoader.getResource("upload-test/image.png")
                     val stream = File(imagePath.toURI()).inputStream()
