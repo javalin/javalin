@@ -29,7 +29,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
             resourceBase = getResourcePath(config)
             isDirAllowed = false
             isEtags = true
-            Javalin.log.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
+            Javalin.log?.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
         }
         handlers.add(handler.apply {
             server = dummyServer
@@ -74,7 +74,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                     return true
                 }
             } catch (e: Exception) { // it's fine
-                Javalin.log.error("Exception occurred while handling static resource", e)
+                Javalin.log?.error("Exception occurred while handling static resource", e)
             }
         }
         return false

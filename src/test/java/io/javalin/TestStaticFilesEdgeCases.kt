@@ -8,26 +8,37 @@ package io.javalin
 
 import io.javalin.core.util.FileUtil
 import io.javalin.http.staticfiles.Location
+import io.javalin.plugin.openapi.JavalinOpenApi
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
 import java.io.File
 
 class TestStaticFilesEdgeCases {
 
-    @Test(expected = RuntimeException::class)
+    @Test
     fun `server doesn't start for non-existent classpath folder`() {
-        Javalin.create { it.addStaticFiles("some-fake-folder") }.start()
+        assertThatExceptionOfType(RuntimeException::class.java)
+                .isThrownBy { Javalin.create { it.addStaticFiles("classpath-fake-folder") }.start() }
+                .withMessageStartingWith("Static resource directory with path: 'classpath-fake-folder' does not exist.")
     }
 
-    @Test(expected = RuntimeException::class)
+    @Test
     fun `server doesn't start for non-existent external folder`() {
-        Javalin.create { it.addStaticFiles("some-fake-folder", Location.EXTERNAL) }.start()
+        assertThatExceptionOfType(RuntimeException::class.java)
+                .isThrownBy { Javalin.create { it.addStaticFiles("external-fake-folder", Location.EXTERNAL) }.start() }
+                .withMessageStartingWith("Static resource directory with path: 'external-fake-folder' does not exist.")
     }
 
-    @Test(expected = RuntimeException::class)
+    @Test
     fun `server doesn't start for empty classpath folder`() {
-        File("src/test/external/empty").mkdir()
-        Javalin.create { it.addStaticFiles("src/test/external/empty", Location.CLASSPATH) }.start()
+        assertThatExceptionOfType(RuntimeException::class.java)
+                .isThrownBy {
+                    File("src/test/external/empty").mkdir()
+                    Javalin.create { it.addStaticFiles("src/test/external/empty", Location.CLASSPATH) }.start()
+                }
+                .withMessageStartingWith("Static resource directory with path: 'src/test/external/empty' does not exist.")
     }
 
     @Test

@@ -103,7 +103,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             Unit // return void
         } catch (t: Throwable) {
             rawRes.status = 500
-            Javalin.log.error("Exception occurred while servicing http-request", t)
+            Javalin.log?.error("Exception occurred while servicing http-request", t)
         }
     }
 

@@ -24,7 +24,7 @@ object LogUtil {
             val matcher = ctx.attribute<PathMatcher>("javalin-request-log-matcher")!!
             val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) + matcher.findEntries(type, requestUri) + matcher.findEntries(HandlerType.AFTER, requestUri)).map { it.type.name + "=" + it.path }
             val resHeaders = res.headerNames.asSequence().map { it to res.getHeader(it) }.toMap()
-            Javalin.log.info("""JAVALIN REQUEST DEBUG LOG:
+            Javalin.log?.info("""JAVALIN REQUEST DEBUG LOG:
                         |Request: ${method()} [${path()}]
                         |    Matching endpoint-handlers: $allMatching
                         |    Headers: ${headerMap()}
@@ -39,7 +39,7 @@ object LogUtil {
                         |----------------------------------------------------------------------------------""".trimMargin())
         }
     } catch (e: Exception) {
-        Javalin.log.info("An exception occurred while logging debug-info", e)
+        Javalin.log?.info("An exception occurred while logging debug-info", e)
     }
 
     private fun resBody(ctx: Context): String {
@@ -80,7 +80,7 @@ object LogUtil {
     }
 
     private fun WsContext.logEvent(event: String, additionalInfo: String = "") {
-        Javalin.log.info("""JAVALIN WEBSOCKET DEBUG LOG
+        Javalin.log?.info("""JAVALIN WEBSOCKET DEBUG LOG
                 |WebSocket Event: $event
                 |Session Id: ${this.sessionId}
                 |Host: ${this.host()}

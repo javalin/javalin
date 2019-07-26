@@ -22,7 +22,7 @@ class ExceptionMapper {
             if (exceptionHandler != null) {
                 exceptionHandler.handle(exception, ctx)
             } else {
-                Javalin.log.warn("Uncaught exception", exception)
+                Javalin.log?.warn("Uncaught exception", exception)
                 HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
             }
         }

@@ -54,7 +54,7 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
             }
         } else { // if not websocket (and not handled by http-handler), this request is below the context path
             Util.writeResponse(res, "Not found. Request is below context-path", 404)
-            Javalin.log.warn("Received a request below context-path. Returned 404.")
+            Javalin.log?.warn("Received a request below context-path. Returned 404.")
         }
     }
 
