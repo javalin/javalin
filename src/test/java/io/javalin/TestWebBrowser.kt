@@ -15,7 +15,7 @@ import org.openqa.selenium.WebDriver
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 
-class ChromeTest {
+class TestWebBrowser {
 
     companion object {
         @BeforeClass
@@ -50,9 +50,7 @@ class ChromeTest {
             it.enableDevLogging()
         }.start(0)
         app.get("/hello") { ctx -> ctx.result(payload) }
-        val logResult = captureStdOut {
-            driver.get("http://localhost:" + app.port() + "/hello")
-        }
+        val logResult = captureStdOut { driver.get("http://localhost:" + app.port() + "/hello") }
         assertThat(driver.pageSource).contains(payload)
         assertThat(logResult).contains("Content-Encoding=br")
         assertThat(logResult).contains("Body is brotlied (${payload.length} bytes, not logged)")

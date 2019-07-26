@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import com.mashape.unirest.http.Unirest
 import io.javalin.misc.HttpUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -36,13 +37,13 @@ class TestLogging {
 
     @Test
     fun `custom logging works`() {
-        val log = captureStdOut {
-            runTest(Javalin.create {
-                it.requestLogger { _, executionTimeMs ->
-                    Logger.getLogger("MyLogger").info("Custom log message")
-                }
-            })
+        val app = Javalin.create {
+            it.requestLogger { _, executionTimeMs ->
+                Javalin.log = LoggerFactory.getLogger(Javalin::class.java)
+                Javalin.log.info("Custom log message")
+            }
         }
+        val log = captureStdOut { runTest(app) }
         assertThat(log).contains("Custom log message")
     }
 
@@ -54,43 +55,37 @@ class TestLogging {
             ctx.result(future)
         }
         app.start(0)
-        val http = HttpUtil(app)
-        assertThat(http.getBody("/async")).isEqualTo("Hello Async World!")
-        assertThat(http.getBody("/blocking")).isEqualTo("Hello Blocking World!")
+        assertThat(HttpUtil(app).getBody("/async")).isEqualTo("Hello Async World!")
+        assertThat(HttpUtil(app).getBody("/blocking")).isEqualTo("Hello Blocking World!")
         app.stop()
     }
 
-    private val loggerLog = mutableListOf<String?>()
-    private val bodyLoggingJavalin = Javalin.create {
-        it.requestLogger { ctx, ms ->
-            loggerLog.add(ctx.resultString())
-            loggerLog.add(ctx.resultString())
-        }
-    }
-
     @Test
-    fun `resultString is available in logger and can be read twice`() = TestUtil.test(bodyLoggingJavalin) { app, http ->
-        app.get("/") { it.result("Hello") }
-        http.get("/") // trigger log
-        assertThat(loggerLog[0]).isEqualTo("Hello")
-        assertThat(loggerLog[1]).isEqualTo("Hello")
+    fun `resultString is available in request logger and can be read twice`() {
+        val loggerLog = mutableListOf<String?>()
+        val bodyLoggingJavalin = Javalin.create {
+            it.requestLogger { ctx, ms ->
+                loggerLog.add(ctx.resultString())
+                loggerLog.add(ctx.resultString())
+            }
+        }
+        TestUtil.test(bodyLoggingJavalin) { app, http ->
+            app.get("/") { it.result("Hello") }
+            http.get("/") // trigger log
+            assertThat(loggerLog[0]).isEqualTo("Hello")
+            assertThat(loggerLog[1]).isEqualTo("Hello")
+        }
     }
 
     @Test
     fun `debug logging works with binary stream`() {
-        val log = captureStdOut {
-            TestUtil.test(Javalin.create {
-                it.enableDevLogging()
-            }) { app, http ->
-                Javalin.log = LoggerFactory.getLogger(Javalin::class.java) // logger is usually disabled for tests
-                app.get("/") {
-                    val imagePath = this::class.java.classLoader.getResource("upload-test/image.png")
-                    val stream = File(imagePath.toURI()).inputStream()
-                    it.result(stream)
-                }
-                http.get("/") // trigger log
-            }
+        val app = Javalin.create { it.enableDevLogging() }.start(0)
+        app.get("/") {
+            val imagePath = this::class.java.classLoader.getResource("upload-test/image.png")
+            val stream = File(imagePath.toURI()).inputStream()
+            it.result(stream)
         }
+        val log = captureStdOut { Unirest.get("http://localhost:" + app.port() + "/").asString() }
         assertThat(log).contains("Body is binary (not logged)")
     }
 
