@@ -9,6 +9,7 @@ package io.javalin
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
+import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
 import org.openqa.selenium.WebDriver
@@ -18,24 +19,26 @@ import org.openqa.selenium.chrome.ChromeOptions
 class TestWebBrowser {
 
     companion object {
+        
+        lateinit var driver: WebDriver
+
         @BeforeClass
         @JvmStatic
         fun setupClass() {
             WebDriverManager.chromedriver().setup()
+            driver = ChromeDriver(ChromeOptions().apply {
+                addArguments("--headless")
+                addArguments("--disable-gpu")
+            })
         }
-    }
 
-    private fun runTest(test: (WebDriver) -> Unit) {
-        val driver = ChromeDriver(ChromeOptions().apply {
-            addArguments("--headless")
-            addArguments("--disable-gpu")
-        })
-        test(driver)
-        driver.quit()
+        @AfterClass
+        @JvmStatic
+        fun teardownClass() = driver.quit()
     }
 
     @Test
-    fun `hello world works in chrome`() = runTest { driver ->
+    fun `hello world works in chrome`() {
         val app = Javalin.create().start(0)
         app.get("/hello") { ctx -> ctx.result("Hello, Selenium!") }
         driver.get("http://localhost:" + app.port() + "/hello")
@@ -43,7 +46,7 @@ class TestWebBrowser {
     }
 
     @Test
-    fun `brotli works in chrome`() = runTest { driver ->
+    fun `brotli works in chrome`() {
         val payload = "Hello, Selenium!".repeat(150)
         val app = Javalin.create {
             it.compressionStrategy(Brotli(4), null)

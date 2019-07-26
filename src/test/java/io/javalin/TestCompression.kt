@@ -247,7 +247,7 @@ class TestCompression {
 
     @Test
     fun `brotli works for dynamic responses of different sizes`() {
-        val repeats = listOf(10, 100, 1000, 10_000, 100_000)
+        val repeats = listOf(10, 100, 1000, 10_000)
         val brotliApp = Javalin.create { it.compressionStrategy(Brotli(4), Gzip(6)) }
         repeats.forEach { n -> brotliApp.get("/$n") { it.result(testDocument.repeat(n)) } }
         TestUtil.test(brotliApp) { _, http ->
@@ -260,7 +260,7 @@ class TestCompression {
 
     @Test
     fun `gzip works for dynamic responses of different sizes`() {
-        val repeats = listOf(10, 100, 1000, 10_000, 100_000)
+        val repeats = listOf(10, 100, 1000, 10_000)
         val gzipApp = Javalin.create { it.compressionStrategy(null, Gzip(6)) }
         repeats.forEach { n -> gzipApp.get("/$n") { it.result(testDocument.repeat(n)) } }
         TestUtil.test(gzipApp) { _, http ->
