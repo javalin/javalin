@@ -127,20 +127,14 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
 
     private fun setAvailableCompressors(len: Int) {
         // enable compression based on length of first write and mime type
-        if (len >= minSizeForCompression && isCompressableMimeType(res.contentType)) {
+        if (len >= minSizeForCompression && !excludedMimeType(res.contentType ?: "")) {
             brotliEnabled = rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null
             gzipEnabled = rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null
         }
     }
 
-    private fun isCompressableMimeType(mimeType: String?): Boolean {
-        val mimeType = mimeType ?: "" // We compress content with null mime type. Jetty does the same
-        for(excludedMimeType in excludedMimeTypes) {
-            if(mimeType.contains(excludedMimeType)) {
-                return false
-            }
-        }
-        return true
+    private fun excludedMimeType(mimeType: String): Boolean {
+        return excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
     }
 
     override fun isReady(): Boolean = res.outputStream.isReady
