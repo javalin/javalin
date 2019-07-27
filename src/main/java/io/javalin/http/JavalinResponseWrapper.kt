@@ -137,6 +137,9 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     }
 
     private fun excludedMimeType(mimeType: String): Boolean {
+        if (mimeType.isEmpty()) {
+            return false
+        }
         return excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
     }
 
