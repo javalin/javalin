@@ -3,8 +3,6 @@ package io.javalin.http
 import io.javalin.core.JavalinConfig
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
-import org.eclipse.jetty.http.MimeTypes
-import org.eclipse.jetty.util.IncludeExclude
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -59,26 +57,17 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         @JvmStatic
         var maxBufferSize = 1000000 // Size limit in bytes, after which the stream buffer is flushed and any further writing is streamed
         @JvmStatic
-        val mimeTypes = IncludeExclude<String>()
-
-        // Populate excluded mime types
-        init {
-            for (type in MimeTypes.getKnownMimeTypes()) {
-                if (type.startsWith("image/") ||
-                    type.startsWith("audio/") ||
-                    type.startsWith("video/"))
-                {
-                    mimeTypes.exclude(type)
-                }
-            }
-            mimeTypes.exclude("application/compress")
-            mimeTypes.exclude("application/zip")
-            mimeTypes.exclude("application/gzip")
-            mimeTypes.exclude("application/bzip2")
-            mimeTypes.exclude("application/brotli")
-            mimeTypes.exclude("application/x-xz")
-            mimeTypes.exclude("application/x-rar-compressed")
-        }
+        val excludedMimeTypes = setOf(
+                "image/",
+                "audio/",
+                "video/",
+                "application/compress",
+                "application/zip",
+                "application/gzip",
+                "application/bzip2",
+                "application/brotli",
+                "application/x-xz",
+                "application/x-rar-compressed")
     }
 
     /**
@@ -144,8 +133,14 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
     }
 
-    private fun isCompressableMimeType(mimetype: String?): Boolean {
-        return mimeTypes.test(mimetype ?: "") // If mime type is not given, we try to compress anyway. Jetty does it the same way
+    private fun isCompressableMimeType(mimeType: String?): Boolean {
+        for(excludedMimeType in excludedMimeTypes) {
+            val mimeType = mimeType ?: ""
+            if(mimeType.contains(excludedMimeType)) {
+                return false
+            }
+        }
+        return true
     }
 
     override fun isReady(): Boolean = res.outputStream.isReady
