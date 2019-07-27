@@ -134,8 +134,8 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     }
 
     private fun isCompressableMimeType(mimeType: String?): Boolean {
+        val mimeType = mimeType ?: "" // We compress content with null mime type. Jetty does the same
         for(excludedMimeType in excludedMimeTypes) {
-            val mimeType = mimeType ?: "" // We compress content with null mime type. Jetty does the same
             if(mimeType.contains(excludedMimeType)) {
                 return false
             }
