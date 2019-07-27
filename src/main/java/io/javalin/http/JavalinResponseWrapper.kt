@@ -3,6 +3,8 @@ package io.javalin.http
 import io.javalin.core.JavalinConfig
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
+import org.eclipse.jetty.http.MimeTypes
+import org.eclipse.jetty.util.IncludeExclude
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -47,6 +49,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     private val buffer = ByteArrayOutputStream()
     private lateinit var compressorOutputStream: OutputStream
 
+    private var isFirstWrite = true
     private var brotliEnabled = false
     private var gzipEnabled = false
 
@@ -55,6 +58,27 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         var minSizeForCompression = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
         @JvmStatic
         var maxBufferSize = 1000000 // Size limit in bytes, after which the stream buffer is flushed and any further writing is streamed
+        @JvmStatic
+        val mimeTypes = IncludeExclude<String>()
+
+        // Populate excluded mime types
+        init {
+            for (type in MimeTypes.getKnownMimeTypes()) {
+                if (type.startsWith("image/") ||
+                    type.startsWith("audio/") ||
+                    type.startsWith("video/"))
+                {
+                    mimeTypes.exclude(type)
+                }
+            }
+            mimeTypes.exclude("application/compress")
+            mimeTypes.exclude("application/zip")
+            mimeTypes.exclude("application/gzip")
+            mimeTypes.exclude("application/bzip2")
+            mimeTypes.exclude("application/brotli")
+            mimeTypes.exclude("application/x-xz")
+            mimeTypes.exclude("application/x-rar-compressed")
+        }
     }
 
     /**
@@ -68,8 +92,9 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
      * Buffering only happens if brotli is enabled in compression strategy. Gzip (or uncompressed) go directly to streaming.
      */
     override fun write(b: ByteArray, off: Int, len: Int) {
-        if (buffer.size() == 0) { // first write
+        if (isFirstWrite) { // first write
             setAvailableCompressors(len)
+            isFirstWrite = false
         }
         if (buffer.size() <= maxBufferSize && brotliEnabled) { // size limit not exceeded, so we write all output to the stream buffer
             buffer.write(b, off, len)
@@ -108,17 +133,19 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     }
 
     private fun writeBrotliToOutput() {
-        if (res.getHeader(Header.CONTENT_ENCODING) != "br") {
-            res.setHeader(Header.CONTENT_ENCODING, "br")
-        }
-        rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, buffer)
+        rwc.config.inner.compressionStrategy.brotli?.write(res, buffer)
     }
 
     private fun setAvailableCompressors(len: Int) {
-        if (len >= minSizeForCompression) { // enable compression based on length of first write, since full response size is unknown
+        // enable compression based on length of first write and mime type
+        if (len >= minSizeForCompression && isCompressableMimeType(res.contentType)) {
             brotliEnabled = rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null
             gzipEnabled = rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null
         }
+    }
+
+    private fun isCompressableMimeType(mimetype: String?): Boolean {
+        return mimeTypes.test(mimetype ?: "") // If mime type is not given, we try to compress anyway. Jetty does it the same way
     }
 
     override fun isReady(): Boolean = res.outputStream.isReady
