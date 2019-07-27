@@ -10,14 +10,12 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.misc.HttpUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.logging.Logger
 
 class TestLogging {
 
@@ -36,15 +34,12 @@ class TestLogging {
     }
 
     @Test
-    fun `custom logging works`() {
-        val app = Javalin.create {
-            it.requestLogger { _, executionTimeMs ->
-                Javalin.log = LoggerFactory.getLogger(Javalin::class.java)
-                Javalin.log.info("Custom log message")
-            }
-        }
-        val log = captureStdOut { runTest(app) }
-        assertThat(log).contains("Custom log message")
+    fun `custom requestlogger is called`() {
+        var loggerCalled = false
+        runTest(Javalin.create {
+            it.requestLogger { _, _ -> loggerCalled = true }
+        })
+        assertThat(loggerCalled).isTrue()
     }
 
     private fun runTest(app: Javalin) {
