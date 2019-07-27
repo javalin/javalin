@@ -23,6 +23,7 @@ public class TestUtil {
     public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
         Util.INSTANCE.setLogIfNotStarted(false);
         javalin.config.showJavalinBanner = false;
+        Javalin.log = LoggerFactory.getLogger(Javalin.class);
         javalin.start(0);
         Javalin.log = null;
         HttpUtil http = new HttpUtil(javalin);
