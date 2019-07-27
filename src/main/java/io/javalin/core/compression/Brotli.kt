@@ -1,13 +1,12 @@
 package io.javalin.core.compression
 
-import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import org.meteogroup.jbrotli.Brotli
 import org.meteogroup.jbrotli.BrotliCompressor
 import java.io.ByteArrayOutputStream
 
-import javax.servlet.http.HttpServletResponse
+import java.io.OutputStream
 
 /**
  * Kotlin wrapper for jbrotli library.
@@ -31,22 +30,15 @@ class Brotli(val level: Int = 4) {
      * @param out The target output stream
      * @param data data to compress
      */
-    fun write(res: HttpServletResponse, data: ByteArray, off: Int, len: Int) {
-        //We need a padded buffer, because compression sometimes yields a bigger output than the original
-        val paddedBufferSize = if (len >= 1024) len*2 else 2048
-        val output = ByteArray(paddedBufferSize)
-        val compressedLength = brotliCompressor.compress(brotliParameter, data, off, len, output, 0, paddedBufferSize)
-
-        if(compressedLength >= len) { //If compressed length is same or bigger, there's no point, let's just write the original
-            res.setHeader(Header.CONTENT_ENCODING, "null")
-            res.outputStream.write(data, off, len)
-        } else {
-            res.setHeader(Header.CONTENT_ENCODING, "br")
-            res.outputStream.write(output.copyOfRange(0, compressedLength))
-        }
+    fun write(out: OutputStream, data: ByteArray, off: Int, len: Int) {
+        //Needed because compressing small data sets sometimes yields a bigger output than the original
+        val size = if (len >= 8192) len else 8192
+        val output = ByteArray(size)
+        val compressedLength = brotliCompressor.compress(brotliParameter, data, off, len, output, 0, size)
+        out.write(output.copyOfRange(0, compressedLength))
     }
 
-    fun write(res: HttpServletResponse, data: ByteArrayOutputStream) {
-        write(res, data.toByteArray(), 0, data.size())
+    fun write(out: OutputStream, data: ByteArrayOutputStream) {
+        write(out, data.toByteArray(), 0, data.size())
     }
 }
