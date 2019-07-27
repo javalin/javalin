@@ -144,12 +144,12 @@ public class Javalin {
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
-            log.info("Starting Javalin ...");
+            Javalin.log.info("Starting Javalin ...");
             server.start(servlet, wsServlet);
-            log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
+            Javalin.log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
-            log.error("Failed to start Javalin");
+            Javalin.log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (Boolean.TRUE.equals(server.server().getAttribute("is-default-server"))) {
                 stop();// stop if server is default server; otherwise, the caller is responsible to stop
