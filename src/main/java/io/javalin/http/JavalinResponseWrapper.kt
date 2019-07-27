@@ -108,10 +108,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     }
 
     private fun writeBrotliToOutput() {
-        if (res.getHeader(Header.CONTENT_ENCODING) != "br") {
-            res.setHeader(Header.CONTENT_ENCODING, "br")
-        }
-        rwc.config.inner.compressionStrategy.brotli?.write(res.outputStream, buffer)
+        rwc.config.inner.compressionStrategy.brotli?.write(res, buffer)
     }
 
     private fun setAvailableCompressors(len: Int) {
