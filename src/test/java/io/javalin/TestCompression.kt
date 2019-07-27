@@ -268,6 +268,39 @@ class TestCompression {
         }
     }
 
+    @Test
+    fun `doesn't compress media files` () {
+        val mediaTestApp = Javalin.create {
+            it.compressionStrategy(null, Gzip())
+            it.addStaticFiles("/upload-test")
+        }
+        TestUtil.test(mediaTestApp) { _, http ->
+            assertUncompressedResponse(http.origin, "/image.png")
+            assertUncompressedResponse(http.origin, "/sound.mp3")
+        }
+    }
+
+    @Test
+    fun `doesn't compress pre-compressed files` () {
+        val preCompressedTestApp = Javalin.create {
+            it.compressionStrategy(null, Gzip())
+            it.addStaticFiles("/public")
+            it.enableWebjars()
+        }
+        TestUtil.test(preCompressedTestApp) { _, http ->
+            assertUncompressedResponse(http.origin, "/webjars/swagger-ui/3.22.2/swagger-ui.js.gz")
+            assertUncompressedResponse(http.origin, "/readme.md.br")
+        }
+    }
+
+    private fun assertUncompressedResponse(origin: String, url: String) {
+        val response = getResponse(origin, url, "br, gzip")
+        assertThat(response.code()).isLessThan(400)
+        assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
+        val uncompressedResponse = getResponse(origin, url, "null").body()!!.string()
+        assertThat(response.body()!!.string()).isEqualTo(uncompressedResponse)
+    }
+
     private fun assertValidBrotliResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br")
         assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")

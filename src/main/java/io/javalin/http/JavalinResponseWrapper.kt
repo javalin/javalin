@@ -47,6 +47,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     private val buffer = ByteArrayOutputStream()
     private lateinit var compressorOutputStream: OutputStream
 
+    private var isFirstWrite = true
     private var brotliEnabled = false
     private var gzipEnabled = false
 
@@ -55,6 +56,18 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         var minSizeForCompression = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
         @JvmStatic
         var maxBufferSize = 1000000 // Size limit in bytes, after which the stream buffer is flushed and any further writing is streamed
+        @JvmStatic
+        val excludedMimeTypes = setOf(
+                "image/",
+                "audio/",
+                "video/",
+                "application/compress",
+                "application/zip",
+                "application/gzip",
+                "application/bzip2",
+                "application/brotli",
+                "application/x-xz",
+                "application/x-rar-compressed")
     }
 
     /**
@@ -68,8 +81,9 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
      * Buffering only happens if brotli is enabled in compression strategy. Gzip (or uncompressed) go directly to streaming.
      */
     override fun write(b: ByteArray, off: Int, len: Int) {
-        if (buffer.size() == 0) { // first write
+        if (isFirstWrite) { // first write
             setAvailableCompressors(len)
+            isFirstWrite = false
         }
         if (buffer.size() <= maxBufferSize && brotliEnabled) { // size limit not exceeded, so we write all output to the stream buffer
             buffer.write(b, off, len)
@@ -112,10 +126,18 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     }
 
     private fun setAvailableCompressors(len: Int) {
-        if (len >= minSizeForCompression) { // enable compression based on length of first write, since full response size is unknown
+        // enable compression based on length of first write and mime type
+        if (len >= minSizeForCompression && !excludedMimeType(res.contentType ?: "")) {
             brotliEnabled = rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null
             gzipEnabled = rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null
         }
+    }
+
+    private fun excludedMimeType(mimeType: String): Boolean {
+        if (mimeType.isEmpty()) {
+            return false
+        }
+        return excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
     }
 
     override fun isReady(): Boolean = res.outputStream.isReady
