@@ -12,6 +12,7 @@ import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.Role
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
+import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import java.io.InputStream
@@ -102,8 +103,10 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             }
             Unit // return void
         } catch (t: Throwable) {
-            rawRes.status = 500
-            Javalin.log?.error("Exception occurred while servicing http-request", t)
+            if (!Util.isClientAbortException(t)) {
+                rawRes.status = 500
+                Javalin.log?.error("Exception occurred while servicing http-request", t)
+            }
         }
     }
 

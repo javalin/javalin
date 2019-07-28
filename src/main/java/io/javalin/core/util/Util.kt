@@ -162,4 +162,7 @@ object Util {
         return null
     }
 
+    // jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
+    fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
+
 }

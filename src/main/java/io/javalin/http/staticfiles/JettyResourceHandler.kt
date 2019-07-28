@@ -8,6 +8,7 @@ package io.javalin.http.staticfiles
 
 import io.javalin.Javalin
 import io.javalin.core.util.Header
+import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -74,7 +75,9 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                     return true
                 }
             } catch (e: Exception) { // it's fine
-                Javalin.log?.error("Exception occurred while handling static resource", e)
+                if (!Util.isClientAbortException(e)) {
+                    Javalin.log?.error("Exception occurred while handling static resource", e)
+                }
             }
         }
         return false
