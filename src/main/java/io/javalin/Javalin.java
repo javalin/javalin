@@ -128,6 +128,21 @@ public class Javalin {
     }
 
     /**
+     * Synchronously starts the application instance on the specified host and port.
+     *
+     * @param host to run on, overriding the default "localhost"
+     * @param port to run on
+     * @return running application instance.
+     * @see Javalin#create()
+     * @see Javalin#start()
+     */
+    public Javalin start(String host, int port) {
+        server.setServerHost(host);
+        server.setServerPort(port);
+        return start();
+    }
+
+    /**
      * Synchronously starts the application instance.
      *
      * @return running application instance.
@@ -194,6 +209,13 @@ public class Javalin {
      */
     public int port() {
         return server.getServerPort();
+    }
+
+    /**
+     * Get which host instance is running on
+     */
+    public String host() {
+        return server.getServerHost();
     }
 
     /**
