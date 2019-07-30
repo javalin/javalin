@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse
 class JavalinServer(val config: JavalinConfig) {
 
     var serverPort = 7000
-    var serverHost = "localhost"
+    var serverHost = null
 
     fun server(): Server {
         config.inner.server = config.inner.server ?: JettyUtil.getOrDefault(config.inner.server)
@@ -77,7 +77,7 @@ class JavalinServer(val config: JavalinConfig) {
 
         JettyUtil.reEnableJettyLogger()
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
-        serverHost = (server().connectors[0] as? ServerConnector)?.host ?: ""
+        serverHost = (server().connectors[0] as? ServerConnector)?.host ?: null
     }
 
     private fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
