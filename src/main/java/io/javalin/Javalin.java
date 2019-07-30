@@ -130,7 +130,7 @@ public class Javalin {
     /**
      * Synchronously starts the application instance on the specified host and port.
      *
-     * @param host to run on, overriding the default "localhost"
+     * @param host to run on, overriding the default "0.0.0.0"
      * @param port to run on
      * @return running application instance.
      * @see Javalin#create()
