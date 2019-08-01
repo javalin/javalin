@@ -116,7 +116,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
 
         // did we gzip? If so, finalize the gzip stream
-        if (res.getHeader(Header.CONTENT_ENCODING) == "gzip" && ::compressorOutputStream.isInitialized) {
+        if (res.getHeader(Header.CONTENT_ENCODING) == "gzip" && gzipEnabled) {
             (compressorOutputStream as LeveledGzipStream).finish()
         }
     }
@@ -127,7 +127,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
 
     private fun setAvailableCompressors(len: Int) {
         // enable compression based on length of first write and mime type
-        if (len >= minSizeForCompression && !excludedMimeType(res.contentType ?: "")) {
+        if (len >= minSizeForCompression && !excludedMimeType(res.contentType ?: "") && res.getHeader(Header.CONTENT_ENCODING).isNullOrEmpty()) {
             brotliEnabled = rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null
             gzipEnabled = rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null
         }
