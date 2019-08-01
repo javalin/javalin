@@ -116,7 +116,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
 
         // did we gzip? If so, finalize the gzip stream
-        if (res.getHeader(Header.CONTENT_ENCODING) == "gzip") {
+        if (res.getHeader(Header.CONTENT_ENCODING) == "gzip" && ::compressorOutputStream.isInitialized) {
             (compressorOutputStream as LeveledGzipStream).finish()
         }
     }
