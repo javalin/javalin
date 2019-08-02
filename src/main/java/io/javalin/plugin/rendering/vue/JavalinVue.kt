@@ -19,9 +19,10 @@ import java.util.stream.Collectors
 
 object JavalinVue {
 
+    @JvmField
+    var stateFunction: (Context) -> Any = { mapOf<String, String>() }
     var localPath = "src/main/resources/vue"
     var paths = setOf<Path>()
-    var stateFunction: (Context) -> Any = { mapOf<String, String>() }
 
     val cachedLayout by lazy { createLayout() }
     val cachedPaths by lazy { walkPaths() }
