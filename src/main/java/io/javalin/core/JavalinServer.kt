@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse
 class JavalinServer(val config: JavalinConfig) {
 
     var serverPort = 7000
-    var serverHost = null
+    var serverHost: String? = null
 
     fun server(): Server {
         config.inner.server = config.inner.server ?: JettyUtil.getOrDefault(config.inner.server)
