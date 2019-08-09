@@ -43,7 +43,7 @@ object JavalinVue {
         |    }""".trimMargin() + "\n</script>\n"
 
     private fun Path.readText(): String {
-        val s = Scanner(Files.newInputStream(this)).useDelimiter("\\A")
+        val s = Scanner(Files.newInputStream(this), "UTF-8").useDelimiter("\\A")
         return if (s.hasNext()) s.next() else ""
     }
 
