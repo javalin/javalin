@@ -49,14 +49,6 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>bintray-nitram509-jbrotli</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/nitram509/jbrotli</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -96,9 +88,9 @@
 
         <!-- BEGIN Optional dependencies -->
         <dependency>
-            <groupId>org.meteogroup.jbrotli</groupId>
-            <artifactId>jbrotli</artifactId>
-            <version>0.5.0</version>
+            <groupId>com.nixxcode.jvmbrotli</groupId>
+            <artifactId>jvmbrotli</artifactId>
+            <version>0.2.0</version>
             <optional>true</optional>
         </dependency>
         <dependency>

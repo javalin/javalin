@@ -7,6 +7,8 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
+import com.nixxcode.jvmbrotli.common.BrotliLoader
+import com.nixxcode.jvmbrotli.dec.BrotliInputStream
 import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.FileUtil
@@ -21,8 +23,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
-import org.meteogroup.jbrotli.io.BrotliInputStream
-import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader
 import java.util.zip.GZIPInputStream
 
 class TestCompression {
@@ -36,7 +36,6 @@ class TestCompression {
     @Before
     fun reset() {
         OutputStreamWrapper.minSizeForCompression = testDocument.length
-        OutputStreamWrapper.maxBufferSize = 1000000
     }
 
     val fullCompressionApp by lazy {
@@ -221,6 +220,7 @@ class TestCompression {
 
     @Test
     fun `brotli works for large static files`() {
+        assumeTrue(tryLoadBrotli())
         val path = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js"
         val compressedWebjars = Javalin.create {
             it.compressionStrategy(Brotli(4), Gzip(6))
@@ -232,21 +232,8 @@ class TestCompression {
     }
 
     @Test
-    fun `compression fails over to gzip for large static files`() {
-        assumeTrue(tryLoadBrotli())
-        val path = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js"
-        val compressedWebJars = Javalin.create {
-            it.compressionStrategy(Brotli(4), Gzip(6)) // brotli must be enabled to test failover
-            it.enableWebjars()
-        }
-        TestUtil.test(compressedWebJars) { _, http ->
-            OutputStreamWrapper.maxBufferSize = 50000 // Set buffer size limit lower than the file we're getting, to test failover to gzip
-            assertValidGzipResponse(http.origin, path)
-        }
-    }
-
-    @Test
     fun `brotli works for dynamic responses of different sizes`() {
+        assumeTrue(tryLoadBrotli())
         val repeats = listOf(10, 100, 1000, 10_000)
         val brotliApp = Javalin.create { it.compressionStrategy(Brotli(4), Gzip(6)) }
         repeats.forEach { n -> brotliApp.get("/$n") { it.result(testDocument.repeat(n)) } }
@@ -341,10 +328,6 @@ class TestCompression {
                 .execute()
     }
 
-    private fun tryLoadBrotli() = try {
-        BrotliLibraryLoader.loadBrotli()
-        true
-    } catch (t: Throwable) {
-        false
-    }
+    private fun tryLoadBrotli() = BrotliLoader.isBrotliAvailable()
+
 }
