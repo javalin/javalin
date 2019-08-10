@@ -6,3 +6,6 @@ jdk:
 - openjdk10
 - openjdk11
 - openjdk12
+cache:
+  directories:
+    - $HOME/.m2
