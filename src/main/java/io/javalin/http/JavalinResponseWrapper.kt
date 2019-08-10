@@ -59,9 +59,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     private var gzipEnabled = false
 
     companion object {
-        @JvmStatic
         var minSizeForCompression = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
-        @JvmStatic
         val excludedMimeTypes = setOf(
                 "image/",
                 "audio/",
@@ -76,8 +74,11 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     }
 
     override fun write(b: ByteArray, off: Int, len: Int) {
-        if (isFirstWrite) { // first write
-            setAvailableCompressors(len)
+        if (isFirstWrite) { // set available compressors, content encoding, and compressing-stream
+            if (canBeCompressed(len, res)) {
+                brotliEnabled = rwc.acceptsBrotli && rwc.compStrat.brotli != null
+                gzipEnabled = rwc.acceptsGzip && rwc.compStrat.gzip != null
+            }
             when {
                 brotliEnabled && res.getHeader(CONTENT_ENCODING) != BR -> {
                     res.setHeader(CONTENT_ENCODING, BR)
@@ -98,7 +99,6 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
     }
 
-    // If we used compression, finalize the stream
     fun finalize() {
         when {
             brotliEnabled && res.getHeader(CONTENT_ENCODING) == BR -> (compressingStream as BrotliOutputStream).close()
@@ -106,13 +106,8 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
         }
     }
 
-    private fun setAvailableCompressors(len: Int) {
-        // enable compression based on length of first write and mime type
-        if (len >= minSizeForCompression && !excludedMimeType(res.contentType) && res.getHeader(CONTENT_ENCODING).isNullOrEmpty()) {
-            brotliEnabled = rwc.acceptsBrotli && rwc.compStrat.brotli != null
-            gzipEnabled = rwc.acceptsGzip && rwc.compStrat.gzip != null
-        }
-    }
+    private fun canBeCompressed(len: Int, res: HttpServletResponse) =
+            len >= minSizeForCompression && !excludedMimeType(res.contentType) && res.getHeader(CONTENT_ENCODING).isNullOrEmpty()
 
     private fun excludedMimeType(mimeType: String = "") =
             if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
