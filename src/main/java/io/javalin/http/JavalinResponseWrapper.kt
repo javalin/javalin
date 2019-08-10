@@ -5,10 +5,8 @@ import com.nixxcode.jvmbrotli.enc.Encoder
 import io.javalin.core.JavalinConfig
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
-import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.logging.Level
 import java.util.zip.GZIPOutputStream
 import javax.servlet.ServletOutputStream
 import javax.servlet.WriteListener
@@ -17,10 +15,11 @@ import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpServletResponseWrapper
 
 class ResponseWrapperContext(request: HttpServletRequest, val config: JavalinConfig) {
-    val accepts = request.getHeader(Header.ACCEPT_ENCODING) ?: ""
-    val clientEtag = request.getHeader(Header.IF_NONE_MATCH) ?: ""
-    val type = HandlerType.fromServletRequest(request)
-    val compressionStrategy = config.inner.compressionStrategy
+    val acceptsBrotli by lazy { request.getHeader(Header.ACCEPT_ENCODING)?.contains("br", ignoreCase = true) == true }
+    val acceptsGzip by lazy { request.getHeader(Header.ACCEPT_ENCODING)?.contains("gzip", ignoreCase = true) == true }
+    val clientEtag by lazy { request.getHeader(Header.IF_NONE_MATCH) ?: "" }
+    val type by lazy { HandlerType.fromServletRequest(request) }
+    val compStrat = config.inner.compressionStrategy
 }
 
 class JavalinResponseWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : HttpServletResponseWrapper(res) {
@@ -73,24 +72,22 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     override fun write(b: ByteArray, off: Int, len: Int) {
         if (isFirstWrite) { // first write
             setAvailableCompressors(len)
+            when {
+                brotliEnabled && res.getHeader(Header.CONTENT_ENCODING) != "br" -> {
+                    res.setHeader(Header.CONTENT_ENCODING, "br")
+                    compressorOutputStream = LeveledBrotliStream(res.outputStream, rwc.compStrat.brotli!!.level)
+                }
+                gzipEnabled && res.getHeader(Header.CONTENT_ENCODING) != "gzip" -> {
+                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
+                    compressorOutputStream = LeveledGzipStream(res.outputStream, rwc.compStrat.gzip!!.level)
+                }
+            }
             isFirstWrite = false
         }
 
         when {
-            brotliEnabled -> {
-                if (res.getHeader(Header.CONTENT_ENCODING) != "br") {
-                    res.setHeader(Header.CONTENT_ENCODING, "br")
-                    compressorOutputStream = LeveledBrotliStream(res.outputStream, rwc.compressionStrategy.brotli!!.level)
-                }
-                (compressorOutputStream as LeveledBrotliStream).write(b, off, len)
-            }
-            gzipEnabled -> {
-                if (res.getHeader(Header.CONTENT_ENCODING) != "gzip") {
-                    res.setHeader(Header.CONTENT_ENCODING, "gzip")
-                    compressorOutputStream = LeveledGzipStream(res.outputStream, rwc.compressionStrategy.gzip!!.level)
-                }
-                (compressorOutputStream as LeveledGzipStream).write(b, off, len)
-            }
+            brotliEnabled -> (compressorOutputStream as LeveledBrotliStream).write(b, off, len)
+            gzipEnabled -> (compressorOutputStream as LeveledGzipStream).write(b, off, len)
             else -> super.write(b, off, len) // no compression
         }
     }
@@ -108,18 +105,13 @@ class OutputStreamWrapper(val res: HttpServletResponse, val rwc: ResponseWrapper
     private fun setAvailableCompressors(len: Int) {
         // enable compression based on length of first write and mime type
         if (len >= minSizeForCompression && !excludedMimeType(res.contentType ?: "") && res.getHeader(Header.CONTENT_ENCODING).isNullOrEmpty()) {
-            brotliEnabled = rwc.accepts.contains("br", ignoreCase = true) && rwc.compressionStrategy.brotli != null
-            if (brotliEnabled) return
-            gzipEnabled = rwc.accepts.contains("gzip", ignoreCase = true) && rwc.compressionStrategy.gzip != null
+            brotliEnabled = rwc.acceptsBrotli && rwc.compStrat.brotli != null
+            gzipEnabled = rwc.acceptsGzip && rwc.compStrat.gzip != null
         }
     }
 
-    private fun excludedMimeType(mimeType: String): Boolean {
-        if (mimeType.isEmpty()) {
-            return false
-        }
-        return excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
-    }
+    private fun excludedMimeType(mimeType: String) =
+            if (mimeType.isEmpty()) false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
     override fun isReady(): Boolean = res.outputStream.isReady
     override fun setWriteListener(writeListener: WriteListener?) = res.outputStream.setWriteListener(writeListener)
