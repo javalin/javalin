@@ -32,7 +32,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             val wrappedReq = CachedRequestWrapper(rawReq, config.requestCacheSize) // cached for reading multiple times
             val type = HandlerType.fromServletRequest(wrappedReq)
             val rwc = ResponseWrapperContext(rawReq, config)
-            val wrappedRes = JavalinResponseWrapper(rawRes, rwc)
             val requestUri = wrappedReq.requestURI.removePrefix(wrappedReq.contextPath)
             val ctx = Context(wrappedReq, rawRes, config.inner.appAttributes)
 
@@ -49,8 +48,8 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 if (type == HandlerType.HEAD && hasGetHandlerMapped(requestUri)) {
                     return@tryWithExceptionMapper // return 200, there is a get handler
                 }
-                if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources
-                    if (config.inner.resourceHandler?.handle(wrappedReq, wrappedRes) == true) return@tryWithExceptionMapper
+                if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources (will write response if found)
+                    if (config.inner.resourceHandler?.handle(wrappedReq, JavalinResponseWrapper(rawRes, rwc)) == true) return@tryWithExceptionMapper
                     if (config.inner.singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
                 }
                 val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
@@ -77,7 +76,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             if (ctx.resultFuture() == null) { // finish request synchronously
                 tryErrorHandlers()
                 tryAfterHandlers()
-                wrappedRes.write(ctx.resultStream())
+                JavalinResponseWrapper(rawRes, rwc).write(ctx.resultStream())
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
             } else { // finish request asynchronously
                 val asyncContext = wrappedReq.startAsync().apply { timeout = config.asyncRequestTimeout }
@@ -95,8 +94,8 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     }
                     tryErrorHandlers()
                     tryAfterHandlers()
-                    val wrappedAsyncRes = JavalinResponseWrapper(asyncContext.response as HttpServletResponse, rwc)
-                    wrappedAsyncRes.write(ctx.resultStream())
+                    val asyncRes = asyncContext.response as HttpServletResponse
+                    JavalinResponseWrapper(asyncRes, rwc).write(ctx.resultStream())
                     config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
                     asyncContext.complete() // async lifecycle complete
                 }
