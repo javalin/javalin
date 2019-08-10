@@ -23,6 +23,5 @@ enum class OptionalDependency(val displayName: String, val testClass: String, va
     SWAGGER_CORE("Swagger Core", "io.swagger.v3.oas.models.OpenAPI", "io.swagger.core.v3", "swagger-models", "2.0.8"),
     OPENAPI_KOTLIN_DSL("OpenAPI Kotlin DSL", "cc.vileda.openapi.dsl.OpenApiDslKt", "cc.vileda", "kotlin-openapi3-dsl", "0.20.1"),
     CLASS_GRAPH("ClassGraph", "io.github.classgraph.ClassGraph", "io.github.classgraph", "classgraph", "4.8.34"),
-    JBROTLI("JBrotli", "org.meteogroup.jbrotli.Brotli", "org.meteogroup", "jbrotli", "0.5.0"),
+    JVMBROTLI("Jvm-Brotli", "com.nixxcode.jvmbrotli.common.BrotliLoader", "com.nixxcode.jvmbrotli", "jvmbrotli", "0.2.0"),
 }
-
