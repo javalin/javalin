@@ -99,7 +99,7 @@ class TestCompression {
 
     @Test
     fun `does brotli when size is big and Accept header is set`() = TestUtil.test(fullCompressionApp) { _, http ->
-        assumeTrue(tryLoadBrotli())
+        assumeTrue(BrotliLoader.isBrotliAvailable())
         assertThat(Unirest.get(http.origin + "/huge").asString().body.length).isEqualTo(hugeLength)
         assertThat(getResponse(http.origin, "/huge", "br").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
         assertThat(getResponse(http.origin, "/huge", "br").body()!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
@@ -132,7 +132,7 @@ class TestCompression {
 
     @Test
     fun `does brotli when both enabled and supported`() = TestUtil.test(fullCompressionApp) { _, http ->
-        assumeTrue(tryLoadBrotli())
+        assumeTrue(BrotliLoader.isBrotliAvailable())
         val res = getResponse(http.origin, "/huge", "br, gzip")
         assertThat(res.headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
 
@@ -220,7 +220,7 @@ class TestCompression {
 
     @Test
     fun `brotli works for large static files`() {
-        assumeTrue(tryLoadBrotli())
+        assumeTrue(BrotliLoader.isBrotliAvailable())
         val path = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js"
         val compressedWebjars = Javalin.create {
             it.compressionStrategy(Brotli(4), Gzip(6))
@@ -233,7 +233,7 @@ class TestCompression {
 
     @Test
     fun `brotli works for dynamic responses of different sizes`() {
-        assumeTrue(tryLoadBrotli())
+        assumeTrue(BrotliLoader.isBrotliAvailable())
         val repeats = listOf(10, 100, 1000, 10_000)
         val brotliApp = Javalin.create { it.compressionStrategy(Brotli(4), Gzip(6)) }
         repeats.forEach { n -> brotliApp.get("/$n") { it.result(testDocument.repeat(n)) } }
@@ -327,7 +327,5 @@ class TestCompression {
                 .build())
                 .execute()
     }
-
-    private fun tryLoadBrotli() = BrotliLoader.isBrotliAvailable()
 
 }
