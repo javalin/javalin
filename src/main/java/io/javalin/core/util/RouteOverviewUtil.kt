@@ -36,7 +36,12 @@ class RouteOverviewRenderer(val app: Javalin) : Handler {
             ]
     )
     override fun handle(ctx: Context) {
-        ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
+        if (ctx.header(Header.ACCEPT)?.toLowerCase()?.contains("application/json") == true) {
+            ctx.header("Content-Type", "application/json")
+            ctx.result(RouteOverviewUtil.createJsonOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
+        } else {
+            ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
+        }
     }
 }
 
@@ -175,6 +180,38 @@ object RouteOverviewUtil {
                 });
             </script>
         </body>
+    """
+    }
+
+    @JvmStatic
+    fun createJsonOverview(handlerInfo: List<HandlerMetaInfo>, wsHandlerInfo: List<WsHandlerMetaInfo>): String {
+        return """
+            {
+                "handlers": [
+                ${handlerInfo.map { (handlerType, path, handler, roles) ->
+                    """
+                    {
+                        "path": "$path",
+                        "handlerType": "$handlerType",
+                        "metaInfo": "$handler.metaInfo",
+                        "roles": "$roles"
+                    }
+                    """
+        }.joinToString(",")}
+                ],
+                "wsHandlers": [
+                ${wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
+                    """
+                    {
+                        "path": "$path",
+                        "handlerType": "$wsHandlerType",
+                        "metaInfo": "$handler.metaInfo",
+                        "roles": "$roles"
+                    }
+                    """
+        }.joinToString(",")}
+                ]
+            }
     """
     }
 
