@@ -29,11 +29,11 @@ General information:
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>3.3.0</version>
+    <version>3.4.1</version>
 </dependency>
 
 // or gradle, if you must
-compile 'io.javalin:javalin:3.3.0'
+compile 'io.javalin:javalin:3.4.1'
 ```
 
 ### Start programming (Java)
