@@ -37,19 +37,24 @@ object Util {
 
     private val dependencyCheckCache = HashMap<String, Boolean>()
 
-    fun ensureDependencyPresent(dependency: OptionalDependency) {
+    fun ensureDependencyPresent(dependency: OptionalDependency, startupCheck: Boolean = false) {
         if (dependencyCheckCache[dependency.testClass] == true) {
             return
         }
         if (!classExists(dependency.testClass)) {
             val message = missingDependencyMessage(dependency)
-            Javalin.log?.warn(message)
-            throw InternalServerErrorResponse(message)
+            if (startupCheck) {
+                throw IllegalStateException(message)
+            } else {
+                Javalin.log?.warn(message)
+                throw InternalServerErrorResponse(message)
+            }
         }
         dependencyCheckCache[dependency.testClass] = true
     }
 
-    internal fun missingDependencyMessage(dependency: OptionalDependency) = """
+    internal fun missingDependencyMessage(dependency: OptionalDependency) = """|
+            |-------------------------------------------------------------------
             |Missing dependency '${dependency.displayName}'. Add the dependency.
             |
             |pom.xml:
@@ -60,7 +65,8 @@ object Util {
             |</dependency>
             |
             |build.gradle:
-            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
+            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
+            |-------------------------------------------------------------------""".trimMargin()
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 

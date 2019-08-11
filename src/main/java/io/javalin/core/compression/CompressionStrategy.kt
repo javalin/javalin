@@ -38,7 +38,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * If this fails, we keep Brotli disabled and warn the user.
      */
     private fun tryLoadBrotli(brotli: Brotli) : Brotli? {
-        Util.ensureDependencyPresent(OptionalDependency.JVMBROTLI)
+        Util.ensureDependencyPresent(OptionalDependency.JVMBROTLI, startupCheck = true)
         val brotliAvailable = BrotliLoader.isBrotliAvailable()
         if (brotliAvailable) {
             return brotli
