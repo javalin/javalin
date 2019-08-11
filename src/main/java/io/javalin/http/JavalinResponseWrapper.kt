@@ -75,7 +75,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, private val rwc: Respons
 
     override fun write(b: ByteArray, off: Int, len: Int) {
         if (!initialized) { // set available compressors, content encoding, and compressing-stream
-            val isCompressible = len >= minSizeForCompression && !excludedMimeType(res.contentType) && res.getHeader(CONTENT_ENCODING).isNullOrEmpty()
+            val isCompressible = len >= minSizeForCompression && !excludedMimeType(res.contentType ?: "") && res.getHeader(CONTENT_ENCODING).isNullOrEmpty()
             if (isCompressible && rwc.acceptsBrotli && rwc.compStrat.brotli != null) {
                 res.setHeader(CONTENT_ENCODING, BR)
                 compressingStream = LeveledBrotliStream(res.outputStream, rwc.compStrat.brotli.level)
@@ -101,7 +101,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, private val rwc: Respons
         }
     }
 
-    private fun excludedMimeType(mimeType: String = "") =
+    private fun excludedMimeType(mimeType: String) =
             if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
     override fun isReady(): Boolean = res.outputStream.isReady
