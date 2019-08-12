@@ -20,14 +20,14 @@ import io.swagger.v3.oas.models.Paths
 fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
             .map { it.extractDocumentation(options) }
-            .filter { !it.isIgnored }
+            .filter { it.isIgnored != true }
             .flatMap { it.componentsUpdaterList }
             .applyAllUpdates(this)
 }
 
 fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
-            .filter { !it.extractDocumentation(options).isIgnored }
+            .filter { it.extractDocumentation(options).isIgnored != true }
             .groupBy { it.path }
             .forEach { (url, metaInfos) ->
                 val pathParser = PathParser(url)
