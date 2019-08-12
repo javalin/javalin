@@ -37,19 +37,24 @@ object Util {
 
     private val dependencyCheckCache = HashMap<String, Boolean>()
 
-    fun ensureDependencyPresent(dependency: OptionalDependency) {
+    fun ensureDependencyPresent(dependency: OptionalDependency, startupCheck: Boolean = false) {
         if (dependencyCheckCache[dependency.testClass] == true) {
             return
         }
         if (!classExists(dependency.testClass)) {
             val message = missingDependencyMessage(dependency)
-            Javalin.log.warn(message)
-            throw InternalServerErrorResponse(message)
+            if (startupCheck) {
+                throw IllegalStateException(message)
+            } else {
+                Javalin.log?.warn(message)
+                throw InternalServerErrorResponse(message)
+            }
         }
         dependencyCheckCache[dependency.testClass] = true
     }
 
-    internal fun missingDependencyMessage(dependency: OptionalDependency) = """
+    internal fun missingDependencyMessage(dependency: OptionalDependency) = """|
+            |-------------------------------------------------------------------
             |Missing dependency '${dependency.displayName}'. Add the dependency.
             |
             |pom.xml:
@@ -60,7 +65,8 @@ object Util {
             |</dependency>
             |
             |build.gradle:
-            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"""".trimMargin()
+            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
+            |-------------------------------------------------------------------""".trimMargin()
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
@@ -77,7 +83,7 @@ object Util {
 
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
-        if (showBanner) Javalin.log.info("\n" + """
+        if (showBanner) Javalin.log?.info("\n" + """
           |           __                      __ _
           |          / /____ _ _   __ ____ _ / /(_)____
           |     __  / // __ `/| | / // __ `// // // __ \
@@ -109,7 +115,7 @@ object Util {
     fun assertWebjarInstalled(dependency: OptionalDependency) = try {
         getWebjarResourceUrl(dependency)
     } catch (e: Exception) {
-        Javalin.log.warn(missingDependencyMessage(dependency))
+        Javalin.log?.warn(missingDependencyMessage(dependency))
     }
 
     @JvmStatic
@@ -139,13 +145,15 @@ object Util {
         response.outputStream.close()
     }
 
+    var logIfNotStarted = true
+
     @JvmStatic
     fun logIfServerNotStarted(server: JavalinServer) = Thread {
         Thread.sleep(5000)
-        if (!server.started) {
-            Javalin.log.info("It looks like you created a Javalin instance, but you never started it.")
-            Javalin.log.info("Try: Javalin app = Javalin.create().start();")
-            Javalin.log.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+        if (!server.started && logIfNotStarted) {
+            Javalin.log?.info("It looks like you created a Javalin instance, but you never started it.")
+            Javalin.log?.info("Try: Javalin app = Javalin.create().start();")
+            Javalin.log?.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
         }
     }.start()
 
@@ -159,5 +167,8 @@ object Util {
         }
         return null
     }
+
+    // jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
+    fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
 
 }

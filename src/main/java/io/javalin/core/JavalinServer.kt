@@ -21,7 +21,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.net.BindException
-import java.util.function.Supplier
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -67,11 +66,11 @@ class JavalinServer(val config: JavalinConfig) {
         }.start()
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
-            Javalin.log.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
+            Javalin.log?.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
         }
 
         server().connectors.filter { it !is ServerConnector }.forEach {
-            Javalin.log.info("Binding to: $it")
+            Javalin.log?.info("Binding to: $it")
         }
 
         JettyUtil.reEnableJettyLogger()
@@ -120,17 +119,6 @@ object JettyUtil {
 
     fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(defaultLogger)
 
-    @JvmStatic
-    fun getSessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>): SessionHandler {
-        val sessionHandler = sessionHandlerSupplier.get()
-        try {
-            sessionHandler.sessionCache?.sessionDataStore?.exists("id-that-does-not-exist")
-        } catch (e: Exception) {
-            // TODO: This should throw... Find a way to check this that doesn't fail for valid SessionHandlers.
-            Javalin.log.warn("Failed to look up ID in sessionDataStore. SessionHandler might be misconfigured.")
-        }
-        return sessionHandler
-    }
 }
 
 class NoopLogger : org.eclipse.jetty.util.log.Logger {

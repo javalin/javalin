@@ -21,7 +21,7 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.core.util.Util;
 import io.javalin.http.Context;
-import io.javalin.http.ErrorHandler;
+import io.javalin.http.ErrorMapperKt;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
@@ -144,12 +144,12 @@ public class Javalin {
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
-            log.info("Starting Javalin ...");
+            Javalin.log.info("Starting Javalin ...");
             server.start(servlet, wsServlet);
-            log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
+            Javalin.log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
-            log.error("Failed to start Javalin");
+            Javalin.log.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (Boolean.TRUE.equals(server.server().getAttribute("is-default-server"))) {
                 stop();// stop if server is default server; otherwise, the caller is responsible to stop
@@ -251,9 +251,19 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
-    public Javalin error(int statusCode, @NotNull ErrorHandler errorHandler) {
-        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, errorHandler);
+    public Javalin error(int statusCode, @NotNull Handler handler) {
+        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, handler);
         return this;
+    }
+
+    /**
+     * Adds an error mapper for the specified content-type to the instance.
+     * Useful for turning error-codes (404, 500) into standardized messages/pages
+     *
+     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
+     */
+    public Javalin error(int statusCode, @NotNull String contentType, @NotNull Handler handler) {
+        return error(statusCode, ErrorMapperKt.contentTypeWrap(contentType, handler));
     }
 
     /**

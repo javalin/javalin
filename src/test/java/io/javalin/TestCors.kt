@@ -16,13 +16,16 @@ import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.core.util.Header.ORIGIN
 import io.javalin.core.util.Header.REFERER
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
 
 class TestCors {
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `enableCorsForOrigin() throws for empty varargs`() {
-        Javalin.create { it.enableCorsForOrigin() }
+        assertThatExceptionOfType(IllegalArgumentException::class.java)
+                .isThrownBy { Javalin.create { it.enableCorsForOrigin() } }
+                .withMessageStartingWith("Origins cannot be empty.")
     }
 
     @Test

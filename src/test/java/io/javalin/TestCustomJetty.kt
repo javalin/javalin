@@ -14,7 +14,9 @@ import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.*
-import org.eclipse.jetty.server.session.*
+import org.eclipse.jetty.server.session.DefaultSessionCache
+import org.eclipse.jetty.server.session.FileSessionDataStore
+import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.junit.Assert.assertFalse
@@ -115,27 +117,6 @@ class TestCustomJetty {
 
         val baseDir = File(System.getProperty("java.io.tmpdir"))
         File(baseDir, "javalin-session-store-for-test").deleteRecursively()
-    }
-
-    @Test
-    fun `default SessionHandler works`() {
-        Javalin.create { it.sessionHandler { SessionHandler() } }
-    }
-
-    @Test
-    fun `broken SessionHandler logs`() {
-        fun sqlSessionHandler(driver: String, url: String) = SessionHandler().apply {
-            sessionCache = DefaultSessionCache(this).apply {
-                sessionDataStore = JDBCSessionDataStoreFactory().apply {
-                    setDatabaseAdaptor(DatabaseAdaptor().apply {
-                        setDriverInfo(driver, url)
-                    })
-                }.getSessionDataStore(sessionHandler)
-            }
-        }
-        Javalin.create {
-            it.sessionHandler { sqlSessionHandler(driver = "null", url = "null") }
-        }
     }
 
     @Test

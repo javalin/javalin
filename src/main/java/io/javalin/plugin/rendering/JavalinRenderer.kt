@@ -36,7 +36,7 @@ object JavalinRenderer {
     @JvmStatic
     fun register(fileRenderer: FileRenderer, vararg ext: String) = ext.forEach {
         if (extensions[it] != null) {
-            Javalin.log.info("'$it' is already registered to ${extensions[it]!!.javaClass}. Overriding.")
+            Javalin.log?.info("'$it' is already registered to ${extensions[it]!!.javaClass}. Overriding.")
         }
         extensions[it] = fileRenderer
     }

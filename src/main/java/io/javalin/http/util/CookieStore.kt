@@ -14,12 +14,12 @@ import javax.servlet.http.Cookie
 class CookieStore(cookie: String?) {
 
     companion object {
-        const val COOKIE_NAME = "javalin-cookie-store"
+        var COOKIE_NAME = "javalin-cookie-store"
     }
 
     private val cookieMap = deserialize(cookie)
 
-    fun serializeToCookie() = Cookie(COOKIE_NAME, serialize(cookieMap))
+    fun serializeToCookie() = Cookie(COOKIE_NAME, serialize(cookieMap)).apply { path = "/" }
 
     operator fun <T> get(key: String) = cookieMap[key] as T
 

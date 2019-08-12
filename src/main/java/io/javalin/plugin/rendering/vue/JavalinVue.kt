@@ -19,9 +19,10 @@ import java.util.stream.Collectors
 
 object JavalinVue {
 
+    @JvmField
+    var stateFunction: (Context) -> Any = { mapOf<String, String>() }
     var localPath = "src/main/resources/vue"
     var paths = setOf<Path>()
-    var stateFunction: (Context) -> Any = { mapOf<String, String>() }
 
     val cachedLayout by lazy { createLayout() }
     val cachedPaths by lazy { walkPaths() }
@@ -42,7 +43,7 @@ object JavalinVue {
         |    }""".trimMargin() + "\n</script>\n"
 
     private fun Path.readText(): String {
-        val s = Scanner(Files.newInputStream(this)).useDelimiter("\\A")
+        val s = Scanner(Files.newInputStream(this), "UTF-8").useDelimiter("\\A")
         return if (s.hasNext()) s.next() else ""
     }
 

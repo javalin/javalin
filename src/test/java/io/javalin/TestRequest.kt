@@ -194,6 +194,16 @@ class TestRequest {
     }
 
     @Test
+    fun `basicAuthCredentials() extracts username and password with colon`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val basicAuthCredentials = ctx.basicAuthCredentials()
+            ctx.result(basicAuthCredentials!!.username + "|" + basicAuthCredentials.password)
+        }
+        val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
+        assertThat(response.body).isEqualTo("some-username|some-pass:::word")
+    }
+
+    @Test
     fun `matchedPath() returns the path used to match the request`() = TestUtil.test { app, http ->
         app.get("/matched") { ctx -> ctx.result(ctx.matchedPath()) }
         app.get("/matched/:path-param") { ctx -> ctx.result(ctx.matchedPath()) }

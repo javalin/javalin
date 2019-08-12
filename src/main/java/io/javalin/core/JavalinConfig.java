@@ -7,7 +7,9 @@
 package io.javalin.core;
 
 import io.javalin.Javalin;
+import io.javalin.core.compression.Brotli;
 import io.javalin.core.compression.CompressionStrategy;
+import io.javalin.core.compression.Gzip;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginInitLifecycleViolationException;
@@ -149,7 +151,7 @@ public class JavalinConfig {
 
     public JavalinConfig sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
         JettyUtil.disableJettyLogger();
-        inner.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
+        inner.sessionHandler = sessionHandlerSupplier.get();
         return this;
     }
 
@@ -175,8 +177,8 @@ public class JavalinConfig {
         return this;
     }
 
-    public JavalinConfig compressionStrategy(@NotNull CompressionStrategy strategy) {
-        inner.compressionStrategy = strategy;
+    public JavalinConfig compressionStrategy(Brotli brotli, Gzip gzip) {
+        inner.compressionStrategy = new CompressionStrategy(brotli, gzip);
         return this;
     }
 
