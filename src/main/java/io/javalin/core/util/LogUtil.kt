@@ -20,14 +20,11 @@ object LogUtil {
     fun requestDevLogger(ctx: Context, time: Float) = try {
         val type = HandlerType.fromServletRequest(ctx.req)
         val requestUri = ctx.req.requestURI
-        val gzipped = ctx.res.getHeader(Header.CONTENT_ENCODING) == "gzip"
-        val staticFile = ctx.req.getAttribute("handled-as-static-file") == true
         with(ctx) {
             val matcher = ctx.attribute<PathMatcher>("javalin-request-log-matcher")!!
             val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) + matcher.findEntries(type, requestUri) + matcher.findEntries(HandlerType.AFTER, requestUri)).map { it.type.name + "=" + it.path }
-            val resBody = resultStream()?.apply { reset() }?.bufferedReader()?.use { it.readText() } ?: ""
             val resHeaders = res.headerNames.asSequence().map { it to res.getHeader(it) }.toMap()
-            Javalin.log.info("""JAVALIN REQUEST DEBUG LOG:
+            Javalin.log?.info("""JAVALIN REQUEST DEBUG LOG:
                         |Request: ${method()} [${path()}]
                         |    Matching endpoint-handlers: $allMatching
                         |    Headers: ${headerMap()}
@@ -38,18 +35,32 @@ object LogUtil {
                         |    FormParams: ${formParamMap().mapValues { (_, v) -> v.toString() }}
                         |Response: [${status()}], execution took ${Formatter(Locale.US).format("%.2f", time)} ms
                         |    Headers: $resHeaders
-                        |    ${resBody(resBody, gzipped, staticFile)}
+                        |    ${resBody(ctx)}
                         |----------------------------------------------------------------------------------""".trimMargin())
         }
     } catch (e: Exception) {
-        Javalin.log.info("An exception occurred while logging debug-info", e)
+        Javalin.log?.info("An exception occurred while logging debug-info", e)
     }
 
-    private fun resBody(resBody: String, gzipped: Boolean, staticFile: Boolean) = when {
-        staticFile -> "Body is a static file (not logged)"
-        resBody.isNotEmpty() && gzipped -> "Body is gzipped (${resBody.length} bytes, not logged)"
-        resBody.isNotEmpty() && !gzipped -> "Body is ${resBody.length} bytes (starts on next line):\n    $resBody"
-        else -> "No body was set"
+    private fun resBody(ctx: Context): String {
+        val staticFile = ctx.req.getAttribute("handled-as-static-file") == true
+        if (staticFile) {
+            return "Body is a static file (not logged)"
+        }
+
+        val stream = ctx.resultStream() ?: return "No body was set"
+        if (!stream.markSupported()) {
+            return "Body is binary (not logged)"
+        }
+
+        val gzipped = ctx.res.getHeader(Header.CONTENT_ENCODING) == "gzip"
+        val brotlied = ctx.res.getHeader(Header.CONTENT_ENCODING) == "br"
+        val resBody = ctx.resultString()!!
+        return when {
+            gzipped -> "Body is gzipped (${resBody.length} bytes, not logged)"
+            brotlied -> "Body is brotlied (${resBody.length} bytes, not logged)"
+            else -> "Body is ${resBody.length} bytes (starts on next line):\n    $resBody"
+        }
     }
 
     fun setup(ctx: Context, matcher: PathMatcher) {
@@ -69,7 +80,7 @@ object LogUtil {
     }
 
     private fun WsContext.logEvent(event: String, additionalInfo: String = "") {
-        Javalin.log.info("""JAVALIN WEBSOCKET DEBUG LOG
+        Javalin.log?.info("""JAVALIN WEBSOCKET DEBUG LOG
                 |WebSocket Event: $event
                 |Session Id: ${this.sessionId}
                 |Host: ${this.host()}

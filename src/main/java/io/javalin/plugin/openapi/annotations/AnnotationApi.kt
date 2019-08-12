@@ -21,15 +21,9 @@ annotation class OpenApi(
         val requestBody: OpenApiRequestBody = OpenApiRequestBody([]),
         val fileUploads: Array<OpenApiFileUpload> = [],
         val responses: Array<OpenApiResponse> = [],
-        /**
-         * The path of the endpoint. This will only be used if class scanning is activated and the annotation
-         * couldn't be found via reflection.
-         */
+        /** The path of the endpoint. This will if the annotation * couldn't be found via reflection. */
         val path: String = NULL_STRING,
-        /**
-         * The method of the endpoint. This will only be used if class scanning is activated and the annotation
-         * couldn't be found via annotation.
-         */
+        /** The method of the endpoint. This will if the annotation * couldn't be found via reflection. */
         val method: HttpMethod = HttpMethod.GET
 )
 

@@ -8,31 +8,53 @@ package io.javalin.plugin.rendering.vue
 
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import io.javalin.http.util.ContextUtil
+import io.javalin.http.util.ContextUtil.isLocalhost
 import io.javalin.plugin.json.JavalinJson
-import java.io.File
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.*
+import java.util.stream.Collectors
 
 object JavalinVue {
 
-    val cachedTemplate: String by lazy { createLayout(localhost = false) }
+    @JvmField
+    var stateFunction: (Context) -> Any = { mapOf<String, String>() }
+    var localPath = "src/main/resources/vue"
+    var paths = setOf<Path>()
 
-    fun createLayout(localhost: Boolean): String {
-        val vueFolder = if (localhost) "src/main/resources/vue" else this.javaClass.classLoader.getResource("vue").path
-        val headContent = File(vueFolder).walkTopDown().filter { it.extension == "vue" }.joinToString("") { it.readText() } // // find and concat .vue files
-        return File("$vueFolder/layout.html").readText().replace("@componentRegistration", "@routeParams$headContent") // inject variable for route-params
+    val cachedLayout by lazy { createLayout() }
+    val cachedPaths by lazy { walkPaths() }
+    val vueRootUri by lazy { JavalinVue::class.java.getResource("/vue").toURI() }
+    val vueRootPath by lazy { if (vueRootUri.scheme == "jar") fileSystem.getPath("/vue") else Paths.get(localPath) }
+    val fileSystem by lazy { FileSystems.newFileSystem(vueRootUri, emptyMap<String, Any>()) }
+
+    fun createLayout() = layout().replace("@componentRegistration", "@serverState${components()}") // add state anchor for later
+    fun layout() = paths.find { it.endsWith("vue/layout.html") }!!.readText()
+    fun components() = paths.filter { it.toString().endsWith(".vue") }.joinToString("") { it.readText() }
+    fun walkPaths() = Files.walk(vueRootPath, 10).collect(Collectors.toSet())
+
+    fun getState(ctx: Context, state: Any) = "\n<script>\n" + """
+        |    Vue.prototype.${"$"}javalin = {
+        |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
+        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap())},
+        |        state: ${JavalinJson.toJson(state)}
+        |    }""".trimMargin() + "\n</script>\n"
+
+    private fun Path.readText(): String {
+        val s = Scanner(Files.newInputStream(this), "UTF-8").useDelimiter("\\A")
+        return if (s.hasNext()) s.next() else ""
     }
-
-    fun getParams(ctx: Context) = """<script>
-          Vue.prototype.${"$"}javalin = {
-          pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
-          queryParams: ${JavalinJson.toJson(ctx.queryParamMap())}
-      }</script>"""
 
 }
 
-class VueComponent(private val component: String) : Handler {
+class VueComponent(val component: String) : Handler {
     override fun handle(ctx: Context) {
-        val view = if (ContextUtil.isLocalhost(ctx)) JavalinVue.createLayout(localhost = true) else JavalinVue.cachedTemplate
-        ctx.html(view.replace("@routeParams", JavalinVue.getParams(ctx)).replace("@routeComponent", component)) // insert current route component
+        JavalinVue.paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
+        val view = if (ctx.isLocalhost()) JavalinVue.createLayout() else JavalinVue.cachedLayout
+        val state = JavalinVue.getState(ctx, JavalinVue.stateFunction.invoke(ctx))
+        ctx.header("Cache-Control", "no-cache, no-store, must-revalidate")
+        ctx.html(view.replace("@serverState", state).replace("@routeComponent", component)) // insert current route component
     }
 }

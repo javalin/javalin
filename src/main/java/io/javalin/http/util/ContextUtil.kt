@@ -40,7 +40,7 @@ object ContextUtil {
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
     fun getBasicAuthCredentials(header: String?): BasicAuthCredentials? = try {
-        val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(":")
+        val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(':', limit = 2)
         BasicAuthCredentials(username, password)
     } catch (e: Exception) {
         null
@@ -63,7 +63,7 @@ object ContextUtil {
         this.handlerType = handlerType
     }
 
-    fun isLocalhost(ctx: Context) = ctx.host()?.contains("localhost") == true || ctx.host()?.contains("127.0.0.1") == true
+    fun Context.isLocalhost() = this.host()?.contains("localhost") == true || this.host()?.contains("127.0.0.1") == true
 
     fun changeBaseRequest(ctx: Context, req: HttpServletRequest) = Context(req, ctx.res).apply {
         this.pathParamMap = ctx.pathParamMap;

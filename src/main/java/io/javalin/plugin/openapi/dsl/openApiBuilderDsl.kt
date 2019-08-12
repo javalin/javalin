@@ -105,9 +105,10 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
     documentation.operationUpdaterList.applyAllUpdates(this)
 }
 
-fun HandlerMetaInfo.getPathInfo(): PathInfo? = httpMethod.asAnnotationHttpMethod()?.let { method ->
-    PathInfo(path, method)
-}
+val HandlerMetaInfo.pathInfo: PathInfo?
+    get() = httpMethod.asAnnotationHttpMethod()?.let { method ->
+        PathInfo(path, method)
+    }
 
 fun HandlerType.asAnnotationHttpMethod(): HttpMethod? = when (this) {
     HandlerType.GET -> HttpMethod.GET

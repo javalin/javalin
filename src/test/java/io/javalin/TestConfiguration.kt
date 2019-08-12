@@ -6,6 +6,8 @@
 
 package io.javalin
 
+import io.javalin.core.compression.CompressionStrategy
+import io.javalin.core.compression.Gzip
 import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.staticfiles.Location
@@ -58,6 +60,7 @@ class TestConfiguration {
                 handler.addEventListener(object : HttpSessionListener {
                     override fun sessionCreated(e: HttpSessionEvent?) {
                     }
+
                     override fun sessionDestroyed(e: HttpSessionEvent?) {
                     }
                 })
@@ -67,4 +70,27 @@ class TestConfiguration {
         app.stop()
     }
 
+    @Test
+    fun `compression strategy with default config is correct`() {
+        val app = Javalin.create()
+        assertThat(app.config.inner.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
+    }
+
+    @Test
+    fun `compression strategy can be customized by user`() {
+        val app = Javalin.create {
+            it.compressionStrategy(null, Gzip(2))
+        }
+        assertThat(app.config.inner.compressionStrategy.gzip?.level).isEqualTo(2)
+        assertThat(app.config.inner.compressionStrategy.brotli).isNull()
+    }
+
+    @Test
+    fun `compression strategy gets disabled when dynamicGzip is set to false`() {
+        val app = Javalin.create {
+            it.dynamicGzip = false
+            it.compressionStrategy(null, Gzip(8))
+        }
+        assertThat(app.config.inner.compressionStrategy).isEqualTo(CompressionStrategy.NONE)
+    }
 }

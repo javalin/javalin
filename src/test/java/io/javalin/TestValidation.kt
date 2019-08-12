@@ -140,4 +140,44 @@ class TestValidation {
         assertThat(http.get("/").status).isEqualTo(HttpStatus.EXPECTATION_FAILED_417)
     }
 
+    @Test
+    fun `test optional query param value`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val myInt: Int? = ctx.queryParam<Int>("my-qp").getOrNull()
+            assertThat(myInt).isEqualTo(null)
+        }
+
+        assertThat(http.get("/").status).isEqualTo(200)
+    }
+
+    @Test
+    fun `test optional query param value with check`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val id: Int? = ctx.queryParam<Int>("id")
+                    .check({ it > 10 }, "id was not greater than 10")
+                    .getOrNull()
+
+            if (id != null) {
+                ctx.result(id.toString())
+            }
+        }
+
+        // Test valid param
+        http.get("/?id=20").apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("20")
+        }
+
+        // Test invalid param
+        http.get("/?id=4").apply {
+            assertThat(status).isEqualTo(400)
+            assertThat(body).isEqualTo("Query parameter 'id' with value '4' invalid - id was not greater than 10")
+        }
+
+        // test valid missing param
+        http.get("/").apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("")
+        }
+    }
 }

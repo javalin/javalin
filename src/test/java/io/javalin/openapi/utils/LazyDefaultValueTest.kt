@@ -1,43 +1,33 @@
 package io.javalin.openapi.utils
 
 import io.javalin.plugin.openapi.utils.LazyDefaultValue
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import java.util.function.Supplier
 
 class LazyDefaultValueTest {
+
     @Test
-    fun `should init default value if not overriden`() {
-        val mockSupplier = mockk<Supplier<Int>>()
-        every { mockSupplier.get() } returns 0
-
-        class MyClass {
-            var value by LazyDefaultValue { mockSupplier.get() }
+    fun `should init default value if not overridden`() {
+        var supplierCalled = false
+        val sideEffectSupplier: (() -> Int) = {
+            supplierCalled = true
+            0
         }
-
-        val myObject = MyClass()
-
-        assertThat(myObject.value).isEqualTo(0)
+        val value by LazyDefaultValue { sideEffectSupplier() }
+        assertThat(value).isEqualTo(0)
+        assertThat(supplierCalled).isTrue()
     }
 
     @Test
-    fun `should not call init function if overriden`() {
-        val mockSupplier = mockk<Supplier<Int>>()
-        every { mockSupplier.get() } returns 0
-
-        class MyClass {
-            var value by LazyDefaultValue { mockSupplier.get() }
+    fun `should not call init function if overridden`() {
+        var supplierCalled = false
+        val sideEffectSupplier: (() -> Int) = {
+            supplierCalled = true
+            0
         }
-
-        val myObject = MyClass()
-        myObject.value = 1
-
-        assertThat(myObject.value).isEqualTo(1)
-        verify(exactly = 0) { mockSupplier.get() }
-        confirmVerified(mockSupplier)
+        var value by LazyDefaultValue { sideEffectSupplier() }
+        value = 1
+        assertThat(value).isEqualTo(1)
+        assertThat(supplierCalled).isFalse()
     }
 }

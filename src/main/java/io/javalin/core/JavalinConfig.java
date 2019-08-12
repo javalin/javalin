@@ -7,6 +7,9 @@
 package io.javalin.core;
 
 import io.javalin.Javalin;
+import io.javalin.core.compression.Brotli;
+import io.javalin.core.compression.CompressionStrategy;
+import io.javalin.core.compression.Gzip;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginInitLifecycleViolationException;
@@ -39,7 +42,8 @@ import org.jetbrains.annotations.Nullable;
 public class JavalinConfig {
     // @formatter:off
     public static Consumer<JavalinConfig> noopConfig = JavalinConfig -> {}; // no change from default
-    public boolean dynamicGzip = true;
+    //Left here for backwards compatibility only. Please use CompressionStrategy instead
+    @Deprecated public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
@@ -66,6 +70,7 @@ public class JavalinConfig {
         @Nullable public WsHandler wsLogger = null;
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
+        @NotNull public CompressionStrategy compressionStrategy = CompressionStrategy.GZIP;
     }
     // @formatter:on
 
@@ -146,7 +151,7 @@ public class JavalinConfig {
 
     public JavalinConfig sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
         JettyUtil.disableJettyLogger();
-        inner.sessionHandler = JettyUtil.getSessionHandler(sessionHandlerSupplier);
+        inner.sessionHandler = sessionHandlerSupplier.get();
         return this;
     }
 
@@ -172,8 +177,18 @@ public class JavalinConfig {
         return this;
     }
 
+    public JavalinConfig compressionStrategy(Brotli brotli, Gzip gzip) {
+        inner.compressionStrategy = new CompressionStrategy(brotli, gzip);
+        return this;
+    }
+
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
+
+        //Backwards compatibility. If deprecated dynamicGzip flag is set to false, disable compression.
+        if (!config.dynamicGzip) {
+            config.inner.compressionStrategy = CompressionStrategy.NONE;
+        }
 
         AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);
         app.events(listener -> {

@@ -26,7 +26,7 @@ class WsExceptionMapper {
         if (handler != null) {
             handler.handle(exception, ctx)
         } else {
-            Javalin.log.warn("Uncaught exception in WebSocket handler", exception)
+            Javalin.log?.warn("Uncaught exception in WebSocket handler", exception)
             ctx.session.close(StatusCode.SERVER_ERROR, exception.message)
         }
     }

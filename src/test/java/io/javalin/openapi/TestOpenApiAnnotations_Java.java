@@ -17,7 +17,6 @@ import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JavaCrudHandler implements CrudHandler {
@@ -104,6 +103,44 @@ class JavaMethodReference {
     }
 }
 
+class JavaMethodReference2 {
+    @OpenApi(
+        path = "/test1",
+        description = "Test1",
+        responses = {@OpenApiResponse(status = "200")}
+    )
+    public void createHandler1(Context ctx) {
+    }
+
+    @OpenApi(
+        path = "/test2",
+        description = "Test2",
+        responses = {@OpenApiResponse(status = "200")}
+    )
+    public void createHandler2(Context ctx) {
+    }
+}
+
+class JavaMethodReference3 {
+    @OpenApi(
+        path = "/test",
+        method = HttpMethod.GET,
+        description = "Test1",
+        responses = {@OpenApiResponse(status = "200")}
+    )
+    public void createHandler1(Context ctx) {
+    }
+
+    @OpenApi(
+        path = "/test",
+        method = HttpMethod.POST,
+        description = "Test2",
+        responses = {@OpenApiResponse(status = "200")}
+    )
+    public void createHandler2(Context ctx) {
+    }
+}
+
 class JavaStaticMethodReference {
     @OpenApi(
         path = "/test",
@@ -117,7 +154,9 @@ class JavaStaticMethodReference {
 class JavaFieldReference {
     @OpenApi(responses = {@OpenApiResponse(status = "200")})
     public static Handler handler = new Handler() {
-        @Override public void handle(@NotNull Context ctx) throws Exception { }
+        @Override
+        public void handle(@NotNull Context ctx) throws Exception {
+        }
     };
 
 }
@@ -164,6 +203,34 @@ public class TestOpenApiAnnotations_Java {
             return Unit.INSTANCE;
         });
         OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithJavaMethodReferenceAndMultipleMethods() {
+        Info info = new Info().title("Example").version("1.0.0");
+        OpenApiOptions options = new OpenApiOptions(info);
+
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(options, app -> {
+            JavaMethodReference2 ref = new JavaMethodReference2();
+            app.get("/test1", ref::createHandler1);
+            app.get("/test2", ref::createHandler2);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExampleWithMultipleGets());
+    }
+
+    @Test
+    public void testWithJavaMethodReferenceAndMultipleMethodsAndSamePath() {
+        Info info = new Info().title("Example").version("1.0.0");
+        OpenApiOptions options = new OpenApiOptions(info);
+
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(options, app -> {
+            JavaMethodReference3 ref = new JavaMethodReference3();
+            app.get("/test", ref::createHandler1);
+            app.post("/test", ref::createHandler2);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExampleWithMultipleHttpMethods());
     }
 
     @Test

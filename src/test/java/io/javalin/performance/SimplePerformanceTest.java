@@ -26,7 +26,7 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 
 @BenchmarkOptions(benchmarkRounds = 35000, warmupRounds = 5000, concurrency = 4, clock = Clock.NANO_TIME)
-public class StupidPerformanceTest {
+public class SimplePerformanceTest {
 
     @Rule
     public TestRule benchmarkRun = new BenchmarkRule();
