@@ -12,7 +12,7 @@ import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 
 class OpenApiDocumentation {
-    var isIgnored: Boolean = false
+    var isIgnored: Boolean? = null
     val operationUpdaterList = mutableListOf<OpenApiUpdater<Operation>>()
     val requestBodyList = mutableListOf<OpenApiUpdater<RequestBody>>()
     val parameterUpdaterListMapping = mutableMapOf<String, MutableList<OpenApiUpdater<Parameter>>>()
@@ -23,7 +23,8 @@ class OpenApiDocumentation {
     fun hasResponses(): Boolean = responseUpdaterListMapping.values.flatten().isNotEmpty()
 
     /** Hide the endpoint in the documentation */
-    fun ignore() = apply { isIgnored = true }
+    @JvmOverloads
+    fun ignore(isIgnored: Boolean = true) = apply { this.isIgnored = isIgnored }
 
     // --- OPERATION ---
     fun operation(applyUpdates: ApplyUpdates<Operation>) = apply {
@@ -257,6 +258,31 @@ class OpenApiDocumentation {
         componentsUpdaterList.add { it.applyDocumentedResponse(documentedResponse) }
         responseUpdaterList.add { it.applyDocumentedResponse(documentedResponse) }
         responseUpdaterList.addIfNotNull(openApiUpdater)
+    }
+
+    /** Merge the values of another documentation into this documentation */
+    fun apply(other: OpenApiDocumentation) {
+        other.isIgnored?.let { this.isIgnored = it }
+        this.operationUpdaterList.addAll(other.operationUpdaterList)
+        this.requestBodyList.addAll(other.requestBodyList)
+
+        other.parameterUpdaterListMapping.forEach { key, value ->
+            if (this.parameterUpdaterListMapping.containsKey(key)) {
+                this.parameterUpdaterListMapping[key]!!.addAll(value)
+            } else {
+                this.parameterUpdaterListMapping[key] = value
+            }
+        }
+
+        other.responseUpdaterListMapping.forEach { key, value ->
+            if (this.responseUpdaterListMapping.containsKey(key)) {
+                this.responseUpdaterListMapping[key]!!.addAll(value)
+            } else {
+                this.responseUpdaterListMapping[key] = value
+            }
+        }
+
+        this.componentsUpdaterList.addAll(other.componentsUpdaterList)
     }
 }
 

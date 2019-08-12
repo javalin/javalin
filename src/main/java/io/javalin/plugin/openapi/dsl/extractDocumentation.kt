@@ -13,7 +13,11 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 
 fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiDocumentation {
-    val documentation = if (handler is DocumentedHandler) {
+    val documentation = document()
+
+    options.default?.apply(documentation)
+
+    val userDocumentation = if (handler is DocumentedHandler) {
         handler.documentation
     } else {
         val openApiAnnotation: OpenApi? = getOpenApiAnnotationFromReference() ?: getOpenApiAnnotationFromHandler()
@@ -22,7 +26,7 @@ fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiD
                 ?: document()
     }
 
-    options.default?.apply(documentation)
+    documentation.apply(userDocumentation)
 
     return documentation
 }
