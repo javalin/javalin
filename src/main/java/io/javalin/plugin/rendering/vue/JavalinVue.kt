@@ -49,12 +49,13 @@ object JavalinVue {
 
 }
 
-class VueComponent(val component: String) : Handler {
+class VueComponent(private val component: String) : Handler {
     override fun handle(ctx: Context) {
+        val normalizedComponent = if (component.startsWith("<")) component else "<$component></$component>"
         JavalinVue.paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
         val view = if (ctx.isLocalhost()) JavalinVue.createLayout() else JavalinVue.cachedLayout
         val state = JavalinVue.getState(ctx, JavalinVue.stateFunction.invoke(ctx))
         ctx.header("Cache-Control", "no-cache, no-store, must-revalidate")
-        ctx.html(view.replace("@serverState", state).replace("@routeComponent", component)) // insert current route component
+        ctx.html(view.replace("@serverState", state).replace("@routeComponent", normalizedComponent)) // insert current route component
     }
 }

@@ -63,4 +63,10 @@ class TestJavalinVue {
         assertThat(http.getBody("/unicode")).contains("<div>Test ÆØÅ</div>")
     }
 
+    @Test
+    fun `component shorthand works`() = TestUtil.test { app, http ->
+        app.get("/shorthand", VueComponent("test-component"))
+        assertThat(http.getBody("/shorthand")).contains("<test-component></test-component>")
+    }
+
 }
