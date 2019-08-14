@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import org.assertj.core.api.Assertions.assertThat
@@ -14,7 +15,7 @@ import org.junit.Test
 class TestJavalinVue {
 
     init {
-        JavalinVue.localPath = "src/test/resources/vue"
+        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }
 
     data class User(val name: String, val email: String)
