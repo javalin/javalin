@@ -8,11 +8,10 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.misc.HttpUtil
+import io.javalin.misc.captureStdOut
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -83,24 +82,4 @@ class TestLogging {
         val log = captureStdOut { Unirest.get("http://localhost:" + app.port() + "/").asString() }
         assertThat(log).contains("Body is binary (not logged)")
     }
-
-}
-
-fun captureStdOut(run: () -> Unit): String {
-    val byteArrayOutputStream = ByteArrayOutputStream()
-    val printStream = PrintStream(byteArrayOutputStream)
-    val oldOut = System.out
-    val oldErr = System.err
-    System.setOut(printStream)
-    System.setErr(printStream)
-
-    try {
-        run()
-    } finally {
-        System.out.flush()
-        System.setOut(oldOut)
-        System.setErr(oldErr)
-    }
-
-    return byteArrayOutputStream.toString()
 }
