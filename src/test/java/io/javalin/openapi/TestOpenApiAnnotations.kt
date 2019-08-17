@@ -137,20 +137,24 @@ fun getIgnore(ctx: Context) {
 
 // endregion complexExampleWithAnnotationsHandler
 // region handler types
-class ClassHandler : Handler {
+open class ClassHandler : Handler {
     @OpenApi(responses = [OpenApiResponse(status = "200")])
     override fun handle(ctx: Context) {
     }
 }
 
+class ExtendedClassHandler : ClassHandler()
+
 @OpenApi(responses = [OpenApiResponse(status = "200")])
 fun kotlinFunctionHandler(ctx: Context) {
 }
 
-object KotlinFieldHandlers {
+open class KotlinFieldHandlers {
     @OpenApi(responses = [OpenApiResponse(status = "200")])
     var kotlinFieldHandler = Handler { ctx -> }
 }
+
+class ExtendedKotlinFieldHandlers : KotlinFieldHandlers()
 
 // endregion handler types
 
@@ -221,6 +225,13 @@ class TestOpenApiAnnotations {
     }
 
     @Test
+    fun `createOpenApiSchema() with extended class`() {
+        extractSchemaForTest {
+            it.get("/test", ExtendedClassHandler())
+        }.assertEqualTo(simpleExample)
+    }
+
+    @Test
     fun `createOpenApiSchema() with kotlin function`() {
         extractSchemaForTest {
             it.get("/test", ::kotlinFunctionHandler)
@@ -230,7 +241,14 @@ class TestOpenApiAnnotations {
     @Test
     fun `createOpenApiSchema() with kotlin field`() {
         extractSchemaForTest {
-            it.get("/test", KotlinFieldHandlers.kotlinFieldHandler)
+            it.get("/test", KotlinFieldHandlers().kotlinFieldHandler)
+        }.assertEqualTo(simpleExample)
+    }
+
+    @Test
+    fun `createOpenApiSchema() with kotlin field from extended class`() {
+        extractSchemaForTest {
+            it.get("/test", ExtendedKotlinFieldHandlers().kotlinFieldHandler)
         }.assertEqualTo(simpleExample)
     }
 }

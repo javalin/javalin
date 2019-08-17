@@ -1,7 +1,18 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.core.event.HandlerMetaInfo
-import io.javalin.core.util.*
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
+import io.javalin.core.util.getFieldValue
+import io.javalin.core.util.getMethodByName
+import io.javalin.core.util.isClass
+import io.javalin.core.util.isJavaAnonymousLambda
+import io.javalin.core.util.isJavaNonStaticMethodReference
+import io.javalin.core.util.isKotlinAnonymousLambda
+import io.javalin.core.util.isKotlinMethodReference
+import io.javalin.core.util.lambdaField
+import io.javalin.core.util.methodReferenceReflectionMethodName
+import io.javalin.core.util.methodsNotDeclaredByObject
 import io.javalin.plugin.openapi.CreateSchemaOptions
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.asOpenApiDocumentation
@@ -62,7 +73,7 @@ private fun HandlerMetaInfo.getOpenApiAnnotationFromReference(): OpenApi? {
 
 private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): OpenApi? {
     return try {
-        val method = handler::class.java.declaredMethods.find { it.name == "handle" }!!
+        val method = handler::class.java.methods.find { it.name == "handle" }!!
         method.getAnnotation(OpenApi::class.java)
     } catch (e: NullPointerException) {
         null
@@ -71,7 +82,7 @@ private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): OpenApi? {
 
 private val HandlerMetaInfo.methodReferenceOfHandler: Method?
     get() = when {
-        handler.isClass -> (handler as Class<*>).declaredMethods[0]
+        handler.isClass -> (handler as Class<*>).methods[0]
         handler.isKotlinMethodReference -> {
             val functionValue = handler.getFieldValue("function") as KFunction<*>
             functionValue.javaMethod
@@ -85,24 +96,24 @@ private val HandlerMetaInfo.methodReferenceOfHandler: Method?
 private val HandlerMetaInfo.methodReferenceOfNonStaticJavaHandler: Method?
     get() {
         val handlerParentClass = handler.javaClass
-                .getDeclaredMethodByName(methodReferenceReflectionMethodName)
+                .getMethodByName(methodReferenceReflectionMethodName)
                 ?.parameters?.get(0)
                 ?.parameterizedType as Class<*>?
 
-        val declaredMethods = handlerParentClass
-                ?.declaredMethods
+        val methods = handlerParentClass
+                ?.methodsNotDeclaredByObject
                 ?: arrayOf()
 
         return when {
-            declaredMethods.isEmpty() -> null
-            declaredMethods.size == 1 -> declaredMethods[0]
+            methods.isEmpty() -> null
+            methods.size == 1 -> methods[0]
             else -> {
-                val methodThatMatchesHandler = findMethodByOpenApiAnnotation(declaredMethods)
+                val methodThatMatchesHandler = findMethodByOpenApiAnnotation(methods)
                 if (methodThatMatchesHandler != null) {
                     return methodThatMatchesHandler
                 }
 
-                val hasAnyMethodTheOpenApiAnnotation = declaredMethods.any { it.getAnnotation(OpenApi::class.java) != null }
+                val hasAnyMethodTheOpenApiAnnotation = methods.any { it.getAnnotation(OpenApi::class.java) != null }
                 if (hasAnyMethodTheOpenApiAnnotation && handlerParentClass != null) {
                     Logger.getGlobal()
                             .warning("Unfortunately it is not possible to match the @OpenApi annotations to the handler in ${handlerParentClass.canonicalName}. " +

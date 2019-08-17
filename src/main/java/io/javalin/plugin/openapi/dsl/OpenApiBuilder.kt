@@ -4,6 +4,7 @@ package io.javalin.plugin.openapi.dsl
 
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.apibuilder.CrudHandlerLambdaKey
+import io.javalin.core.util.getMethodByName
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.OpenApi
@@ -59,7 +60,7 @@ internal fun moveDocumentationFromAnnotationToHandler(
  * If the method is not documented, just returns the handler.
  */
 fun moveDocumentationFromAnnotationToHandler(javaClass: Class<*>, methodName: String, handler: Handler): Handler {
-    val method = javaClass.declaredMethods.find { it.name === methodName } ?: throw NoSuchMethodException(methodName)
+    val method = javaClass.getMethodByName(methodName) ?: throw NoSuchMethodException(methodName)
     return moveDocumentationFromAnnotationToHandler(method, handler)
 }
 
