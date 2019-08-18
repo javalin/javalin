@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import org.assertj.core.api.Assertions.assertThat
@@ -14,7 +15,7 @@ import org.junit.Test
 class TestJavalinVue {
 
     init {
-        JavalinVue.localPath = "src/test/resources/vue"
+        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }
 
     data class User(val name: String, val email: String)
@@ -61,6 +62,28 @@ class TestJavalinVue {
     fun `unicode in template works`() = TestUtil.test { app, http ->
         app.get("/unicode", VueComponent("<test-component></test-component>"))
         assertThat(http.getBody("/unicode")).contains("<div>Test ÆØÅ</div>")
+    }
+
+    @Test
+    fun `component shorthand works`() = TestUtil.test { app, http ->
+        app.get("/shorthand", VueComponent("test-component"))
+        assertThat(http.getBody("/shorthand")).contains("<test-component></test-component>")
+    }
+
+    @Test
+    fun `classpath works`() = TestUtil.test { app, http ->
+        JavalinVue.rootDirectory("/vue", Location.CLASSPATH)
+        app.get("/classpath", VueComponent("test-component"))
+        assertThat(http.getBody("/classpath")).contains("<test-component></test-component>")
+        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+    }
+
+    @Test
+    fun `non-existent-folder fails`() = TestUtil.test { app, http ->
+        JavalinVue.rootDirectory("/vue", Location.EXTERNAL)
+        app.get("/fail", VueComponent("test-component"))
+        assertThat(http.get("/fail").status).isEqualTo(500)
+        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }
 
 }

@@ -5,18 +5,21 @@ import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import io.javalin.misc.TestLoggingUtilKt;
 import io.javalin.plugin.openapi.JavalinOpenApi;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.annotations.HttpMethod;
 import io.javalin.plugin.openapi.annotations.OpenApi;
 import io.javalin.plugin.openapi.annotations.OpenApiContent;
+import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JavaCrudHandler implements CrudHandler {
@@ -158,7 +161,23 @@ class JavaFieldReference {
         public void handle(@NotNull Context ctx) throws Exception {
         }
     };
+}
 
+class ClassHandlerWithInvalidPath {
+    @OpenApi(
+        method = HttpMethod.GET,
+        path = "/account", // /account/:id would be correct
+        pathParams = @OpenApiParam(name = "id", type = Integer.class)
+    )
+    void getOne(Context ctx) {
+    }
+
+    @OpenApi(
+        method = HttpMethod.GET,
+        path = "/account"
+    )
+    void getAll(Context ctx) {
+    }
 }
 
 public class TestOpenApiAnnotations_Java {
@@ -253,5 +272,23 @@ public class TestOpenApiAnnotations_Java {
             return Unit.INSTANCE;
         });
         OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testIfUserIsWarnedOnInvalidPath() {
+        String log = TestLoggingUtilKt.captureStdOut(() -> {
+            OpenApiTestUtils.extractSchemaForTest(app -> {
+                ClassHandlerWithInvalidPath handler = new ClassHandlerWithInvalidPath();
+                app.get("/account", handler::getAll);
+                app.get("/account/:id", handler::getOne);
+                return Unit.INSTANCE;
+            });
+            return Unit.INSTANCE;
+        });
+        assertThat(log).contains(
+            "The `path` of one of the @OpenApi annotations on io.javalin.openapi.ClassHandlerWithInvalidPath is incorrect. " +
+            "The path param \":id\" is documented, but couldn't be found in GET \"/account\". " +
+            "Do you mean GET \"/account/:id\"?"
+        );
     }
 }

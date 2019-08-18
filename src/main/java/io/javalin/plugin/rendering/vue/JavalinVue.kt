@@ -6,8 +6,10 @@
 
 package io.javalin.plugin.rendering.vue
 
+import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil.isLocalhost
 import io.javalin.plugin.json.JavalinJson
 import java.nio.file.FileSystems
@@ -19,42 +21,56 @@ import java.util.stream.Collectors
 
 object JavalinVue {
 
+    private var vueDirPath = PathMaster.classpathPath("/vue")
+    fun walkPaths(): Set<Path> = Files.walk(vueDirPath, 10).collect(Collectors.toSet())
+
+    @JvmStatic
+    fun rootDirectory(path: String, location: Location) {
+        vueDirPath = if (location == Location.CLASSPATH) PathMaster.classpathPath(path) else Paths.get(path)
+    }
+
+    val cachedPaths by lazy { walkPaths() }
+    val cachedLayout by lazy { createLayout(cachedPaths) }
+
+    fun createLayout(paths: Set<Path>) = paths
+            .find { it.endsWith("vue/layout.html") }!!.readText()
+            .replace("@componentRegistration", "@componentRegistration@serverState") // add state anchor for later
+            .replace("@componentRegistration", paths
+                    .filter { it.toString().endsWith(".vue") }
+                    .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
+            )
+
     @JvmField
     var stateFunction: (Context) -> Any = { mapOf<String, String>() }
-    var localPath = "src/main/resources/vue"
-    var paths = setOf<Path>()
 
-    val cachedLayout by lazy { createLayout() }
-    val cachedPaths by lazy { walkPaths() }
-    val vueRootUri by lazy { JavalinVue::class.java.getResource("/vue").toURI() }
-    val vueRootPath by lazy { if (vueRootUri.scheme == "jar") fileSystem.getPath("/vue") else Paths.get(localPath) }
-    val fileSystem by lazy { FileSystems.newFileSystem(vueRootUri, emptyMap<String, Any>()) }
-
-    fun createLayout() = layout().replace("@componentRegistration", "@serverState${components()}") // add state anchor for later
-    fun layout() = paths.find { it.endsWith("vue/layout.html") }!!.readText()
-    fun components() = paths.filter { it.toString().endsWith(".vue") }.joinToString("") { it.readText() }
-    fun walkPaths() = Files.walk(vueRootPath, 10).collect(Collectors.toSet())
-
-    fun getState(ctx: Context, state: Any) = "\n<script>\n" + """
+    fun getState(ctx: Context) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
         |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
         |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap())},
-        |        state: ${JavalinJson.toJson(state)}
+        |        state: ${JavalinJson.toJson(stateFunction(ctx))}
         |    }""".trimMargin() + "\n</script>\n"
-
-    private fun Path.readText(): String {
-        val s = Scanner(Files.newInputStream(this), "UTF-8").useDelimiter("\\A")
-        return if (s.hasNext()) s.next() else ""
-    }
 
 }
 
-class VueComponent(val component: String) : Handler {
+class VueComponent(private val component: String) : Handler {
     override fun handle(ctx: Context) {
-        JavalinVue.paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
-        val view = if (ctx.isLocalhost()) JavalinVue.createLayout() else JavalinVue.cachedLayout
-        val state = JavalinVue.getState(ctx, JavalinVue.stateFunction.invoke(ctx))
-        ctx.header("Cache-Control", "no-cache, no-store, must-revalidate")
-        ctx.html(view.replace("@serverState", state).replace("@routeComponent", component)) // insert current route component
+        val routeComponent = if (component.startsWith("<")) component else "<$component></$component>"
+        val paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
+        val view = if (ctx.isLocalhost()) JavalinVue.createLayout(paths) else JavalinVue.cachedLayout
+        ctx.header(Header.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+        ctx.html(view.replace("@serverState", JavalinVue.getState(ctx)).replace("@routeComponent", routeComponent)) // insert current route component
     }
+}
+
+object PathMaster {
+    private val fileSystem by lazy { FileSystems.newFileSystem(PathMaster::class.java.getResource("").toURI(), emptyMap<String, Any>()) }
+    fun classpathPath(path: String): Path = when {
+        PathMaster::class.java.getResource("").toURI().scheme == "jar" -> fileSystem.getPath(path)
+        else -> Paths.get(PathMaster::class.java.getResource(path).toURI())
+    }
+}
+
+fun Path.readText(): String {
+    val s = Scanner(Files.newInputStream(this), "UTF-8").useDelimiter("\\A")
+    return if (s.hasNext()) s.next() else ""
 }

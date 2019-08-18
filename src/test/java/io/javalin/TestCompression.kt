@@ -275,7 +275,7 @@ class TestCompression {
             it.enableWebjars()
         }
         TestUtil.test(preCompressedTestApp) { _, http ->
-            assertUncompressedResponse(http.origin, "/webjars/swagger-ui/3.22.2/swagger-ui.js.gz")
+            assertUncompressedResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.js.gz")
             assertUncompressedResponse(http.origin, "/readme.md.br")
         }
     }

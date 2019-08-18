@@ -268,6 +268,36 @@ class TestOpenApi {
     }
 
     @Test
+    fun `createSchema() apply defaults before actual documentation`() {
+        val openApiOptions = OpenApiOptions(
+                Info().title("Example").version("1.0.0")
+        )
+                .defaultDocumentation { documentation -> documentation.ignore() }
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        val route1Documentation = document()
+                .ignore(false)
+                .json<User>("200")
+
+        val route3Documentation = document()
+                .json<User>("200")
+
+        with(app) {
+            get("/route1", documented(route1Documentation) {})
+            get("/route2") {}
+            get("/route3", documented(route3Documentation) {})
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.paths.containsKey("/route1")).isEqualTo(true)
+        assertThat(actual.paths.containsKey("/route2")).isEqualTo(false)
+        assertThat(actual.paths.containsKey("/route3")).isEqualTo(false)
+    }
+
+    @Test
     fun `enableOpenApi() provide get route if path is given`() {
         TestUtil.test(Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(
