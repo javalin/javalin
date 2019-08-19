@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
@@ -18,6 +19,8 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.asOpenApiDocumentation
 import io.javalin.plugin.openapi.annotations.pathInfo
 import io.javalin.plugin.openapi.annotations.scanForAnnotations
+import io.javalin.plugin.openapi.annotations.warnUserAboutPotentialBugs
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.logging.Logger
 import kotlin.reflect.KFunction
@@ -55,8 +58,8 @@ private fun HandlerMetaInfo.extractDocumentationWithPathScanning(options: Create
 
 private fun HandlerMetaInfo.getOpenApiAnnotationFromReference(): OpenApi? {
     return try {
-        methodReferenceOfHandler?.getAnnotation(OpenApi::class.java)
-                ?: handler.lambdaField?.getAnnotation(OpenApi::class.java)
+        methodReferenceOfHandler?.getOpenApiAnnotation()
+                ?: handler.lambdaField?.getOpenApiAnnotation()
     } catch (e: NoSuchFieldException) {
         null
     } catch (e: Error) {
@@ -73,8 +76,8 @@ private fun HandlerMetaInfo.getOpenApiAnnotationFromReference(): OpenApi? {
 
 private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): OpenApi? {
     return try {
-        val method = handler::class.java.methods.find { it.name == "handle" }!!
-        method.getAnnotation(OpenApi::class.java)
+        val method = handler::class.java.getMethodByName("handle")!!
+        method.getOpenApiAnnotation()
     } catch (e: NullPointerException) {
         null
     }
@@ -113,11 +116,10 @@ private val HandlerMetaInfo.methodReferenceOfNonStaticJavaHandler: Method?
                     return methodThatMatchesHandler
                 }
 
-                val hasAnyMethodTheOpenApiAnnotation = methods.any { it.getAnnotation(OpenApi::class.java) != null }
+                val hasAnyMethodTheOpenApiAnnotation = methods.any { it.getOpenApiAnnotation() != null }
                 if (hasAnyMethodTheOpenApiAnnotation && handlerParentClass != null) {
-                    Logger.getGlobal()
-                            .warning("Unfortunately it is not possible to match the @OpenApi annotations to the handler in ${handlerParentClass.canonicalName}. " +
-                                    "Please add the `path` and the `method` information to the annotation, so the handler can be matched.")
+                    Javalin.log.warn("Unfortunately it is not possible to match the @OpenApi annotations to the handler in ${handlerParentClass.canonicalName}. " +
+                            "Please add the `path` and the `method` information to the annotation, so the handler can be matched.")
                 }
                 null
             }
@@ -126,14 +128,14 @@ private val HandlerMetaInfo.methodReferenceOfNonStaticJavaHandler: Method?
 
 private fun HandlerMetaInfo.findMethodByOpenApiAnnotation(methods: Array<Method>): Method? {
     val methodsThatMatchesPath = methods.filter {
-        val annotation = it.getAnnotation(OpenApi::class.java) ?: return@filter false
+        val annotation = it.getOpenApiAnnotation() ?: return@filter false
         annotation.path == this.path
     }
     return when {
         methodsThatMatchesPath.size == 1 -> methodsThatMatchesPath[0]
         methodsThatMatchesPath.size > 1 -> methodsThatMatchesPath
                 .find {
-                    it.getAnnotation(OpenApi::class.java)
+                    it.getOpenApiAnnotation()
                             ?.let { annotation -> annotation.pathInfo == pathInfo }
                             ?: false
                 }
@@ -141,3 +143,14 @@ private fun HandlerMetaInfo.findMethodByOpenApiAnnotation(methods: Array<Method>
     }
 }
 
+fun Method.getOpenApiAnnotation(): OpenApi? {
+    val result = getAnnotation(OpenApi::class.java) ?: return null
+    result.warnUserAboutPotentialBugs(this.declaringClass)
+    return result
+}
+
+fun Field.getOpenApiAnnotation(): OpenApi? {
+    val result = getAnnotation(OpenApi::class.java) ?: return null
+    result.warnUserAboutPotentialBugs(this.declaringClass)
+    return result
+}

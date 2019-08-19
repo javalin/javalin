@@ -8,6 +8,7 @@ package io.javalin
 
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
+import io.javalin.misc.captureStdOut
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -19,7 +20,7 @@ import org.openqa.selenium.chrome.ChromeOptions
 class TestWebBrowser {
 
     companion object {
-        
+
         lateinit var driver: WebDriver
 
         @BeforeClass

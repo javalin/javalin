@@ -74,7 +74,8 @@ internal fun Class<*>.getDeclaredFieldByName(methodName: String): Field? = decla
         .find { it.name == methodName }
 
 internal val Class<*>.methodsNotDeclaredByObject
-    get(): Array<Method> = methods
+    get(): Array<Method> = (declaredMethods + methods)
+            .toSet()
             .filter { it.declaringClass != Object::class.java }
             .toTypedArray()
 
