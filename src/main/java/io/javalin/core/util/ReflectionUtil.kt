@@ -65,10 +65,18 @@ internal fun Any.getFieldValue(fieldName: String): Any {
     return field.get(this)
 }
 
-internal fun Class<*>.getDeclaredMethodByName(methodName: String): Method? = declaredMethods
-        .find { it.name == methodName }
+internal fun Class<*>.getMethodByName(methodName: String): Method? {
+    val isName = { method: Method -> method.name == methodName }
+    return declaredMethods.find(isName) ?: methods.find(isName)
+}
 
 internal fun Class<*>.getDeclaredFieldByName(methodName: String): Field? = declaredFields
         .find { it.name == methodName }
+
+internal val Class<*>.methodsNotDeclaredByObject
+    get(): Array<Method> = (declaredMethods + methods)
+            .toSet()
+            .filter { it.declaringClass != Object::class.java }
+            .toTypedArray()
 
 internal const val methodReferenceReflectionMethodName = "get\$Lambda"

@@ -5,7 +5,17 @@
  */
 package io.javalin.openapi
 
-import cc.vileda.openapi.dsl.*
+import cc.vileda.openapi.dsl.components
+import cc.vileda.openapi.dsl.externalDocs
+import cc.vileda.openapi.dsl.get
+import cc.vileda.openapi.dsl.info
+import cc.vileda.openapi.dsl.openapiDsl
+import cc.vileda.openapi.dsl.path
+import cc.vileda.openapi.dsl.paths
+import cc.vileda.openapi.dsl.security
+import cc.vileda.openapi.dsl.securityScheme
+import cc.vileda.openapi.dsl.server
+import cc.vileda.openapi.dsl.tag
 import io.javalin.Javalin
 import io.javalin.TestUtil
 import io.javalin.apibuilder.ApiBuilder.crud
@@ -14,7 +24,11 @@ import io.javalin.http.Context
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
-import io.javalin.plugin.openapi.dsl.*
+import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
+import io.javalin.plugin.openapi.dsl.document
+import io.javalin.plugin.openapi.dsl.documentCrud
+import io.javalin.plugin.openapi.dsl.documented
+import io.javalin.plugin.openapi.dsl.documentedContent
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityScheme
@@ -222,6 +236,38 @@ class TestOpenApi {
         val actual = JavalinOpenApi.createSchema(app)
 
         assertThat(actual.asJsonString()).isEqualTo(crudExampleJson)
+    }
+
+    @Test
+    fun `createSchema() work with extended crudhandler without documentation`() {
+        val app = Javalin.create {}
+
+        open class BaseCrudHandler : CrudHandler {
+            override fun getAll(ctx: Context) {
+            }
+
+            override fun getOne(ctx: Context, resourceId: String) {
+            }
+
+            override fun create(ctx: Context) {
+            }
+
+            override fun update(ctx: Context, resourceId: String) {
+            }
+
+            override fun delete(ctx: Context, resourceId: String) {
+            }
+        }
+
+        open class ExtendedCrudHandler : BaseCrudHandler()
+
+        class DoubleExtendedCrudHandler : ExtendedCrudHandler()
+
+        app.routes {
+            // Should not throw exception
+            crud("users/:user-id", ExtendedCrudHandler())
+            crud("accounts/:account-id", DoubleExtendedCrudHandler())
+        }
     }
 
     @Test

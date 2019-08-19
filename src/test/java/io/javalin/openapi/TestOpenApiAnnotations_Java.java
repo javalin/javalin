@@ -106,6 +106,9 @@ class JavaMethodReference {
     }
 }
 
+class ExtendedJavaMethodReference extends JavaMethodReference {
+}
+
 class JavaMethodReference2 {
     @OpenApi(
         path = "/test1",
@@ -219,6 +222,18 @@ public class TestOpenApiAnnotations_Java {
 
         OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(options, app -> {
             app.get("/test", new JavaMethodReference()::createHandler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithExtendedJavaMethodReference() {
+        Info info = new Info().title("Example").version("1.0.0");
+        OpenApiOptions options = new OpenApiOptions(info);
+
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(options, app -> {
+            app.get("/test", new ExtendedJavaMethodReference()::createHandler);
             return Unit.INSTANCE;
         });
         OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
