@@ -83,7 +83,9 @@ class NULL_CLASS
 
 object ContentType {
     const val JSON = "application/json"
+    const val OCTET = "application/octet-stream"
     const val HTML = "text/html"
+    const val PLAIN = "text/plain"
     const val AUTODETECT = "AUTODETECT - Will be replaced later"
 }
 

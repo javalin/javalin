@@ -1,6 +1,8 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.NULL_CLASS
+import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.SchemaType
 import io.javalin.plugin.openapi.external.*
 import io.swagger.v3.oas.models.Components
@@ -35,9 +37,10 @@ class DocumentedContent @JvmOverloads constructor(
 
     var log = LoggerFactory.getLogger(DocumentedContent::class.java)
 
+    val from: Array<Class<*>> = if (from.isNullOrEmpty()) arrayOf(NULL_CLASS::class.java) else from
 
     val contentType: String = if (contentType == null || contentType == ContentType.AUTODETECT) {
-        log.info("Guessing content type from the first content") //FIXME: is this allowed, shoudl I be less chatty?
+        log.info("Guessing content type from the first content") //FIXME: is this allowed, should I be less chatty?
         from.first().guessContentType()
     } else {
         contentType
@@ -46,7 +49,7 @@ class DocumentedContent @JvmOverloads constructor(
     private val fromTypeIsArray = from.all { it.isArray }
 
     private val isNotByteArray = if (schema == null) {
-        from != ByteArray::class.java
+        from.first() != ByteArray::class.java
     } else {
         schema.type == "string" && schema.format == "application/octet-stream"
     }
@@ -93,11 +96,16 @@ class DocumentedContent @JvmOverloads constructor(
  * Try to determine the content type based on the class
  */
 fun Class<*>.guessContentType(): String =
-        when (this) {
-            String::class.java -> "text/plain"
-            ByteArray::class.java -> "application/octet-stream"
-            else -> "application/json"
-        }
+        (ContentTypeClassRelation.values().find { this == it.javaClass } ?: ContentTypeClassRelation.OTHER).contentType.first()
+
+fun OpenApiContent.fillSchemaClassFromContentType(): Class<*> =
+        (ContentTypeClassRelation.values().find { it.contentType.contains(this.type) } ?: ContentTypeClassRelation.OTHER).javaClass
+
+enum class ContentTypeClassRelation(val javaClass: Class<*>, val contentType: Array<String>) {
+    TEXT(String::class.java, arrayOf(ContentType.PLAIN, ContentType.HTML)),
+    OCTET(ByteArray::class.java, arrayOf(ContentType.OCTET)),
+    OTHER(Any::class.java, arrayOf(ContentType.JSON)); //FIXME: should this be String (only meant for when the class is not set, but a contentType is)?
+}
 
 /**
  * A set of types that should be inlined, instead of creating a reference, in the OpenApi documentation

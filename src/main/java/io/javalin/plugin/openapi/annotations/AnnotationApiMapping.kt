@@ -83,13 +83,15 @@ private fun RequestBody.applyAnnotation(annotation: OpenApiFileUpload) {
 
 private fun OpenApiContent.asDocumentedContent(): DocumentedContent {
     val content = this
-    var from : Array<Class<*>>
-    when {
+    val from: Array<Class<*>> = when {
+        content.from.isEmpty() -> {
+            arrayOf(content.fillSchemaClassFromContentType())
+        }
         content.from.size == 1 -> {
-            from = arrayOf(resolveNullValueFromContentType(content.from.first(), content.type).java)
+            arrayOf(resolveNullValueFromContentType(content.from.first(), content.type).java)
         }
         else -> {
-            from = content.javaClassArray()
+            content.javaClassArray()
         }
     }
     return DocumentedContent(
