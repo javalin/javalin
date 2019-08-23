@@ -35,12 +35,9 @@ class DocumentedContent @JvmOverloads constructor(
         val schema: Schema<*>? = null
 ) {
 
-    var log = LoggerFactory.getLogger(DocumentedContent::class.java)
-
     val from: Array<Class<*>> = if (from.isNullOrEmpty()) arrayOf(NULL_CLASS::class.java) else from
 
     val contentType: String = if (contentType == null || contentType == ContentType.AUTODETECT) {
-        log.info("Guessing content type from the first content") //FIXME: is this allowed, should I be less chatty?
         from.first().guessContentType()
     } else {
         contentType
