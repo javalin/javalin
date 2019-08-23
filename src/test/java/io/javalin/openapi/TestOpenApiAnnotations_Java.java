@@ -109,6 +109,62 @@ class JavaMethodReference {
 class ExtendedJavaMethodReference extends JavaMethodReference {
 }
 
+class JavaApiwithAnyOfOneOfReference {
+    @OpenApi(
+        path = "/anyOfRoute",
+        method = HttpMethod.GET,
+        summary = "Get any of said object",
+        operationId = "anyOfRoute",
+        responses =
+        @OpenApiResponse(
+            status = "200",
+            description = "returns any of the schemas",
+            content = @OpenApiContent(
+                    from = {Address.class, User.class},
+                    schemaType = SchemaType.anyOf
+            )
+        )
+    )
+    public void anyOfMethod(Context ctx) {
+    }
+
+    @OpenApi(
+        path = "/oneOfRoute",
+        method = HttpMethod.GET,
+        summary = "Get one of said object",
+        operationId = "oneOfRoute",
+        responses =
+        @OpenApiResponse(
+            status = "200",
+            description = "returns one of the schemas",
+            content = @OpenApiContent(
+                    from = {Address.class, User.class},
+                    schemaType = SchemaType.oneOf
+            )
+        )
+    )
+    public void oneOfMethod(Context ctx) {
+    }
+
+    @OpenApi(
+        path = "/allOfRoute",
+        method = HttpMethod.GET,
+        summary = "Get all of said object",
+        operationId = "allOfRoute",
+        responses = @OpenApiResponse(
+            status = "200",
+            description = "returns all of the schemas",
+            content = @OpenApiContent(
+                isArray = true,
+                from = {Address.class, User.class},
+                schemaType = SchemaType.allOf
+            )
+        )
+    )
+    public void allOfMethod(Context ctx) {
+    }
+}
+
 class JavaMethodReference2 {
     @OpenApi(
         path = "/test1",
@@ -302,8 +358,22 @@ public class TestOpenApiAnnotations_Java {
         });
         assertThat(log).contains(
             "The `path` of one of the @OpenApi annotations on io.javalin.openapi.ClassHandlerWithInvalidPath is incorrect. " +
-            "The path param \":id\" is documented, but couldn't be found in GET \"/account\". " +
-            "Do you mean GET \"/account/:id\"?"
+                "The path param \":id\" is documented, but couldn't be found in GET \"/account\". " +
+                "Do you mean GET \"/account/:id\"?"
         );
+    }
+
+    @Test
+    public void testThatSchemaTypeWorks() {
+        OpenApiOptions options = new OpenApiOptions(new Info().title("Example").version("1.0.0"))
+            .activateAnnotationScanningFor("io.javalin.openapi");
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(options, app -> {
+            JavaApiwithAnyOfOneOfReference handler = new JavaApiwithAnyOfOneOfReference();
+            app.get("/anyOfRoute", handler::anyOfMethod);
+            app.get("/oneOfRoute", handler::oneOfMethod);
+            app.get("/allOfRoute", handler::allOfMethod);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getOneOfAnyOfExampleJson());
     }
 }

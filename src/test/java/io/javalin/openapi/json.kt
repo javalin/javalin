@@ -26,6 +26,9 @@ fun OpenAPI.asJsonString(): String = JacksonToJsonMapper.map(this)
 // This variable is needed for the jsons. That's how I can avoid the ugly """${"$"}""".
 val ref = "\$ref"
 
+// This is to help fix failing tests when dependency io.swagger.core.v3:swagger-models updates their openAPI specification version
+val openAPIversion = "3.0.1"
+
 @Language("JSON")
 val userOpenApiSchema = """
 {
@@ -86,7 +89,7 @@ val complexExampleUsersGetResponsesJson = """
 @Language("JSON")
 val simpleExample = """
   {
-    "openapi": "3.0.1",
+    "openapi": "$openAPIversion",
     "info": {
       "title": "Example",
       "version": "1.0.0"
@@ -111,7 +114,7 @@ val simpleExample = """
 @Language("JSON")
 val simpleExampleWithMultipleGets = """
   {
-    "openapi": "3.0.1",
+    "openapi": "$openAPIversion",
     "info": {
       "title": "Example",
       "version": "1.0.0"
@@ -150,7 +153,7 @@ val simpleExampleWithMultipleGets = """
 @Language("JSON")
 val simpleExampleWithMultipleHttpMethods = """
   {
-    "openapi": "3.0.1",
+    "openapi": "$openAPIversion",
     "info": {
       "title": "Example",
       "version": "1.0.0"
@@ -186,7 +189,7 @@ val simpleExampleWithMultipleHttpMethods = """
 @Language("JSON")
 val provideRouteExampleJson = """
   {
-    "openapi": "3.0.1",
+    "openapi": "$openAPIversion",
     "info": {
       "title": "Example",
       "version": "1.0.0"
@@ -206,7 +209,7 @@ val provideRouteExampleJson = """
 @Language("JSON")
 val complexExampleJson = """
 {
-  "openapi": "3.0.1",
+  "openapi": "$openAPIversion",
   "info": {
     "title": "Example",
     "version": "1.0.0"
@@ -481,7 +484,7 @@ val complexExampleJson = """
 @Language("JSON")
 val crudExampleJson = """
 {
-  "openapi": "3.0.1",
+  "openapi": "$openAPIversion",
   "info": {
     "title": "Example",
     "version": "1.0.0"
@@ -581,7 +584,7 @@ val crudExampleJson = """
 @Language("JSON")
 val defaultOperationExampleJson = """
 {
-  "openapi": "3.0.1",
+  "openapi": "$openAPIversion",
   "info": {
     "title": "Example",
     "version": "1.0.0"
@@ -651,3 +654,90 @@ val defaultOperationExampleJson = """
   }
 }
 """.formatJson()
+
+@Language("JSON")
+val oneOfAnyOfExampleJson = """
+{
+  "openapi": "$openAPIversion",
+  "info": {
+    "title": "Example",
+    "version": "1.0.0"
+  },
+  "paths": {
+      "/anyOfRoute": {
+        "get": {
+          "summary": "Get any of said object",
+          "operationId": "anyOfRoute",
+          "responses": {
+            "200": {
+              "description": "returns any of the schemas",
+              "content" : {
+                "application/json" : {
+                  "schema" : {
+                    "anyOf" : [ {
+                    "$ref" : "#/components/schemas/Address"
+                  }, {
+                    "$ref" : "#/components/schemas/User"
+                  } ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+    "/oneOfRoute": {
+        "get": {
+          "summary": "Get one of said object",
+          "operationId": "oneOfRoute",
+          "responses": {
+            "200": {
+              "description": "returns one of the schemas",
+              "content" : {
+                "application/json" : {
+                  "schema" : {
+                    "oneOf" : [ {
+                    "$ref" : "#/components/schemas/Address"
+                  }, {
+                    "$ref" : "#/components/schemas/User"
+                  } ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/allOfRoute": {
+        "get": {
+          "summary": "Get all of said object",
+          "operationId": "allOfRoute",
+          "responses": {
+            "200": {
+              "description": "returns all of the schemas",
+              "content" : {
+                "application/json" : {
+                  "schema" : {
+                    "type":"array",
+                    "allOf" : [ {
+                    "$ref" : "#/components/schemas/Address"
+                  }, {
+                    "$ref" : "#/components/schemas/User"
+                  } ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+  "components": {
+    "schemas": {
+      "Address": $addressOpenApiSchema,
+      "User": $userOpenApiSchema
+    }
+  }
+}
+"""
+
