@@ -1,10 +1,12 @@
 package io.javalin.plugin.openapi.external
 
+import io.javalin.plugin.openapi.annotations.SchemaType
 import io.swagger.v3.core.converter.ModelConverters
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.examples.Example
 import io.swagger.v3.oas.models.media.*
 import io.swagger.v3.oas.models.parameters.Parameter
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -13,15 +15,18 @@ import java.util.*
 // The original functions are in https://github.com/derveloper/kotlin-openapi3-dsl/blob/master/src/main/kotlin/cc/vileda/openapi/dsl/OpenApiDsl.kt
 // I needed to create a copy of all the inline functions, as it is not possible to call kotlin inline function from java code
 
-internal fun <T> Components.schema(clazz: Class<T>) {
+internal fun Components.schema(clazz: Array<Class<*>>) {
     schema(clazz) {}
 }
 
-internal fun <T> Components.schema(clazz: Class<T>, init: Schema<*>.() -> Unit) {
+internal fun Components.schema(clazz: Array<Class<*>>, init: Schema<*>.() -> Unit) {
     if (schemas == null) {
         schemas = mutableMapOf()
     }
-    val schema = findSchema(clazz)
+    val schema = when {
+        clazz.size == 1 -> findSchema(clazz.first())
+        else ->  clazz.composedFindSchemaResponse()
+    }
     schema?.main?.init()
     schema?.all?.forEach { (key, schema) ->
         schemas[key] = schema
@@ -57,9 +62,14 @@ internal fun mediaTypeOfList(): MediaType {
 
 internal fun <T> mediaTypeRef(clazz: Class<T>): MediaType {
     val mediaType = MediaType()
-    mediaType.schema = Schema<T>()
-    mediaType.schema.`$ref` = clazz.simpleName
+    mediaType.schema = refSchema(clazz)
     return mediaType
+}
+
+internal fun <T> refSchema(clazz: Class<T>): Schema<T> {
+    val schema = Schema<T>()
+    schema.`$ref` = clazz.simpleName
+    return schema
 }
 
 internal fun <T> Content.mediaTypeRef(clazz: Class<T>, name: String) {
@@ -86,39 +96,90 @@ internal fun <T> Content.mediaTypeArrayOf(clazz: Class<T>, name: String) {
     addMediaType(name, mediaTypeArray)
 }
 
-internal data class FindSchemaResponse(
+internal fun composedSchema(clazzArray: Array<Class<*>>, type: SchemaType): Schema<*> {
+    val composedSchema = ComposedSchema()
+    val objSchema = schemaArray(clazzArray)
+    return when {
+        type == SchemaType.oneOf -> composedSchema.oneOf(objSchema)
+        type == SchemaType.allOf -> composedSchema.allOf(objSchema)
+        type == SchemaType.anyOf -> composedSchema.anyOf(objSchema)
+        else -> {
+            LoggerFactory.getLogger(Content::class.java).warn("Attempted to serialize a composed schema but the SchemaType given could not be processed, SchemaType: ${type.name}, added the first object as a return object in stead")
+            objSchema.first()
+        }
+    }
+}
+
+fun schemaArray(clazzArray: Array<Class<*>>): List<Schema<*>> {
+    return clazzArray.map { refSchema(it) }
+}
+
+internal fun Content.mediaTypeComposed(clazzArray: Array<Class<*>>, type: SchemaType, name: String) {
+    val mediaType = MediaType()
+    mediaType.schema = composedSchema(clazzArray, type)
+    addMediaType(name, mediaType)
+}
+
+
+internal fun Content.mediaTypeComposedArray(clazzArray: Array<Class<*>>, type: SchemaType, name: String) {
+    val mediaType = MediaType()
+    mediaType.schema = composedSchema(clazzArray, type)
+    mediaType.schema.type = "array"
+    addMediaType(name, mediaType)
+}
+
+data class FindSchemaResponse(
         /** The main schema that is requested */
         val main: Schema<*>,
         /** All schemas that are used by the main schema */
         val all: Map<String, Schema<*>> = mapOf()
 )
 
+fun Array<Class<*>>.composedFindSchemaResponse(): FindSchemaResponse {
+    val allBuilder = mutableMapOf<String, Schema<*>>()
+    val schemaArrayFromClassArray = this.map { findSchemaFromClass(it)?.main }
+    schemaArrayFromClassArray.forEach { schema -> schema?.name?.let { allBuilder.put(key = it, value =  schema) } }
+    return FindSchemaResponse(main = Schema<Any>() ,all = allBuilder);
+}
+
 internal fun <T> findSchema(clazz: Class<T>): FindSchemaResponse? {
     getEnumSchema(clazz)?.let {
         return FindSchemaResponse(it)
     }
-    return when (clazz) {
-        String::class.java -> FindSchemaResponse(StringSchema())
-        Boolean::class.java -> FindSchemaResponse(BooleanSchema())
-        java.lang.Boolean::class.java -> FindSchemaResponse(BooleanSchema())
-        Int::class.java -> FindSchemaResponse(IntegerSchema())
-        Integer::class.java -> FindSchemaResponse(IntegerSchema())
-        List::class.java -> FindSchemaResponse(ArraySchema())
-        Map::class.java -> FindSchemaResponse(MapSchema())
-        Long::class.java -> FindSchemaResponse(IntegerSchema().format("int64"))
-        BigDecimal::class.java -> FindSchemaResponse(IntegerSchema().format(""))
-        Date::class.java -> FindSchemaResponse(DateSchema())
-        LocalDate::class.java -> FindSchemaResponse(DateSchema())
-        LocalDateTime::class.java -> FindSchemaResponse(DateTimeSchema())
-        /* BEGIN Custom classes */
-        ByteArray::class.java -> FindSchemaResponse(StringSchema().format("binary"))
-        /* END Custom classes */
-        else -> {
-            val schemas = ModelConverters.getInstance().readAll(clazz)
-            schemas[clazz.simpleName]?.let { FindSchemaResponse(it, schemas) }
-        }
-    }
+    return findSchemaFromClass(clazz)
 }
+
+enum class FindschemaResponseMap(val javaClass: Class<*>?, val schema: Schema<*>) {
+    STRING(String::class.java, StringSchema()),
+    BOOL(Boolean::class.java, BooleanSchema()),
+    BOOL_JAVA(java.lang.Boolean::class.java, BooleanSchema()),
+    INT(Int::class.java, IntegerSchema()),
+    INTEGER(Integer::class.java, IntegerSchema()),
+    LIST(List::class.java, ArraySchema()),
+    MAP(Map::class.java, MapSchema()),
+    LONG(Long::class.java, IntegerSchema().format("int64")),
+    BIGDECIMAL(BigDecimal::class.java, IntegerSchema().format("")),
+    DATE(Date::class.java, DateSchema()),
+    LOCALDATE(LocalDate::class.java, DateSchema()),
+    LOCALDATETIME(LocalDateTime::class.java, DateTimeSchema()),
+    BYTEARRAY(ByteArray::class.java, StringSchema().format("binary")),
+    //COMPOSED(),
+    OTHER(null, ObjectSchema());
+
+    fun getFindSchema(): FindSchemaResponse {
+        return FindSchemaResponse(main = schema);
+    }
+
+}
+fun findSchemaFromClass(javaClass: Class<*>): FindSchemaResponse? {
+    return FindschemaResponseMap.values().find { it.javaClass == javaClass }?.getFindSchema() ?: specialClassSchema(javaClass);
+}
+
+fun specialClassSchema(clazz: Class<*>): FindSchemaResponse? {
+    val schemas = ModelConverters.getInstance().readAll(clazz)
+    return schemas[clazz.simpleName]?.let { FindSchemaResponse(it, schemas) }
+}
+
 
 internal fun <T> getEnumSchema(clazz: Class<T>): Schema<*>? {
     val values = clazz.enumConstants ?: return null
