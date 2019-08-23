@@ -27,8 +27,8 @@ import org.junit.Test
             OpenApiResponse(
                     status = "200",
                     content = [
-                        OpenApiContent(User::class),
-                        OpenApiContent(User::class, type = "application/xml")
+                        OpenApiContent([User::class]),
+                        OpenApiContent([User::class], type = "application/xml")
                     ],
                     description = "Request successful")
         ]
@@ -59,7 +59,7 @@ fun getUserHandler(ctx: Context) {
             OpenApiParam(name = "age", type = Int::class)
         ],
         responses = [
-            OpenApiResponse(status = "200", content = [OpenApiContent(User::class, isArray = true)])
+            OpenApiResponse(status = "200", content = [OpenApiContent([User::class], isArray = true)])
         ]
 )
 fun getUsersHandler(ctx: Context) {
@@ -68,7 +68,7 @@ fun getUsersHandler(ctx: Context) {
 @OpenApi(
         tags = ["user"],
         responses = [
-            OpenApiResponse(status = "200", content = [OpenApiContent(Array<User>::class)])
+            OpenApiResponse(status = "200", content = [OpenApiContent([Array<User>::class])])
         ]
 )
 fun getUsers2Handler(ctx: Context) {
@@ -80,11 +80,11 @@ fun getUsers2Handler(ctx: Context) {
                 required = true,
                 description = "body description",
                 content = [
-                    OpenApiContent(String::class),
-                    OpenApiContent(User::class),
-                    OpenApiContent(User::class, type = "application/xml"),
-                    OpenApiContent(ByteArray::class),
-                    OpenApiContent(ByteArray::class, type = "image/png")
+                    OpenApiContent([String::class]),
+                    OpenApiContent([User::class]),
+                    OpenApiContent([User::class], type = "application/xml"),
+                    OpenApiContent([ByteArray::class]),
+                    OpenApiContent([ByteArray::class], type = "image/png")
                 ]
         )
 )
@@ -93,7 +93,7 @@ fun putUserHandler(ctx: Context) {
 
 @OpenApi(
         responses = [
-            OpenApiResponse(status = "200", content = [OpenApiContent(String::class)])
+            OpenApiResponse(status = "200", content = [OpenApiContent([String::class])])
         ]
 )
 fun getStringHandler(ctx: Context) {
@@ -186,7 +186,7 @@ class TestOpenApiAnnotations {
         class UserCrudHandlerWithAnnotations : CrudHandler {
             @OpenApi(
                     responses = [
-                        OpenApiResponse("200", content = [OpenApiContent(User::class, isArray = true)])
+                        OpenApiResponse("200", content = [OpenApiContent([User::class], isArray = true)])
                     ]
             )
             override fun getAll(ctx: Context) {
@@ -194,7 +194,7 @@ class TestOpenApiAnnotations {
 
             @OpenApi(
                     responses = [
-                        OpenApiResponse("200", content = [OpenApiContent(User::class)])
+                        OpenApiResponse("200", content = [OpenApiContent([User::class])])
                     ]
             )
             override fun getOne(ctx: Context, resourceId: String) {
