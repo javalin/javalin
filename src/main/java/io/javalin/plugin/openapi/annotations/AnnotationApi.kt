@@ -62,11 +62,18 @@ annotation class OpenApiFileUpload(
 
 @Target()
 annotation class OpenApiContent(
-        val from: KClass<*> = NULL_CLASS::class,
-        /** Whenever the schema should be wrapped in an array */
+        val from: Array<KClass<*>> = [],
         val isArray: Boolean = false,
+        val schemaType: SchemaType = SchemaType.NULL,
         val type: String = ContentType.AUTODETECT
 )
+
+enum class SchemaType {
+    oneOf,
+    anyOf,
+    allOf,
+    NULL
+}
 
 /** Null string because annotations do not support null values */
 const val NULL_STRING = "-- This string represents a null value and shouldn't be used --"
