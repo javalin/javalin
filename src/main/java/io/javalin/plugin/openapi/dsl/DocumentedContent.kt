@@ -1,11 +1,13 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.SchemaType
 import io.javalin.plugin.openapi.external.*
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -24,18 +26,24 @@ inline fun <reified T> documentedContent(
 }
 
 class DocumentedContent @JvmOverloads constructor(
-        from: Class<*>,
+        from: Array<Class<*>>,
         isArray: Boolean = false,
         contentType: String? = null,
+        val schemaType: SchemaType = SchemaType.NULL,
         val schema: Schema<*>? = null
 ) {
+
+    var log = LoggerFactory.getLogger(DocumentedContent::class.java)
+
+
     val contentType: String = if (contentType == null || contentType == ContentType.AUTODETECT) {
-        from.guessContentType()
+        log.info("Guessing content type from the first content") //FIXME: is this allowed, shoudl I be less chatty?
+        from.first().guessContentType()
     } else {
         contentType
     }
 
-    private val fromTypeIsArray = from.isArray
+    private val fromTypeIsArray = from.all { it.isArray }
 
     private val isNotByteArray = if (schema == null) {
         from != ByteArray::class.java
@@ -44,9 +52,11 @@ class DocumentedContent @JvmOverloads constructor(
     }
 
     val fromType = when {
-        fromTypeIsArray && isNotByteArray -> from.componentType!!
-        else -> from
+        fromTypeIsArray && isNotByteArray -> from.first().componentType!!
+        else -> from.first()
     }
+
+    val fromArray: Array<Class<*>> = from //FIXME: because it is explicitly an array; old understanding is kept
 
     val isArray = if (schema == null) {
         fromTypeIsArray && isNotByteArray || isArray
@@ -56,10 +66,20 @@ class DocumentedContent @JvmOverloads constructor(
 
     /** This constructor overrides the schema directly. The `from` class won't be used anymore */
     constructor(schema: Schema<*>, contentType: String) : this(
-            Object::class.java,
+            arrayOf(Object::class.java),
             schema.type == "array",
             contentType,
+            SchemaType.NULL,
             schema
+    )
+
+    /** Backwards compatible constructor */
+    constructor(from: Class<*>, isArray: Boolean, contentType: String? = null) : this(
+            arrayOf(from),
+            isArray,
+            contentType,
+            SchemaType.NULL,
+            null
     )
 
     fun isNonRefType(): Boolean = if (schema == null) {
@@ -107,14 +127,28 @@ fun Content.applyDocumentedContent(documentedContent: DocumentedContent) {
             else -> mediaType(documentedContent.fromType, documentedContent.contentType)
         }
         else -> when {
-            documentedContent.isArray -> mediaTypeArrayOfRef(documentedContent.fromType, documentedContent.contentType)
-            else -> mediaTypeRef(documentedContent.fromType, documentedContent.contentType)
+            documentedContent.isArray -> when {
+                documentedContent.schemaType != SchemaType.NULL -> {
+                    mediaTypeComposedArray(documentedContent.fromArray, documentedContent.schemaType, documentedContent.contentType)
+                }
+                else -> {
+                    mediaTypeArrayOfRef(documentedContent.fromType, documentedContent.contentType)
+                }
+            }
+            else ->  when {
+                documentedContent.schemaType != SchemaType.NULL -> {
+                    mediaTypeComposed(documentedContent.fromArray, documentedContent.schemaType, documentedContent.contentType)
+                }
+                else -> {
+                    mediaTypeRef(documentedContent.fromType, documentedContent.contentType)
+                }
         }
+    }
     }
 }
 
 fun Components.applyDocumentedContent(documentedResponse: DocumentedContent) {
     if (!documentedResponse.isNonRefType()) {
-        schema(documentedResponse.fromType)
+        schema(documentedResponse.fromArray)
     }
 }
