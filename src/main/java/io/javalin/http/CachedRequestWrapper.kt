@@ -22,7 +22,7 @@ class CachedRequestWrapper(request: HttpServletRequest, private val bodyCacheSiz
 
     override fun getInputStream(): ServletInputStream {
         if (bodyConsumed && bodySize > bodyCacheSize) { // consumed AND too big for cache
-            Javalin.log?.error("Body already consumed, and was too big to cache. Adjust cache size with app.maxBodySizeForRequestCache(newMaxSize);")
+            Javalin.log?.error("Body already consumed, and was too big to cache. Adjust cache size with `app.config.requestCacheSize = newMaxSize;`")
         }
         bodyConsumed = true
         return if (bodySize > bodyCacheSize || this.getHeader("Transfer-Encoding")?.contains("chunked") == true) {
