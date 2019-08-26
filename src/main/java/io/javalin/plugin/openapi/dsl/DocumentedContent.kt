@@ -101,7 +101,7 @@ fun OpenApiContent.fillSchemaClassFromContentType(): Class<*> =
 enum class ContentTypeClassRelation(val javaClass: Class<*>, val contentType: Array<String>) {
     TEXT(String::class.java, arrayOf(ContentType.PLAIN, ContentType.HTML)),
     OCTET(ByteArray::class.java, arrayOf(ContentType.OCTET)),
-    OTHER(Any::class.java, arrayOf(ContentType.JSON)); //FIXME: should this be String (only meant for when the class is not set, but a contentType is)?
+    OTHER(String::class.java, arrayOf(ContentType.JSON)); //FIXME: should this be something else than String?
 }
 
 /**
