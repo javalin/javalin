@@ -15,6 +15,11 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value") {
     private val rules = mutableSetOf<Rule<T>>()
 
     @JvmOverloads
+    open fun check(errorMessage: String = "Failed check", predicate: (T) -> Boolean): Validator<T> {
+        rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
+        return this
+    }
+
     open fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): Validator<T> {
         rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
         return this

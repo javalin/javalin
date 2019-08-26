@@ -23,10 +23,20 @@ public class TestValidation_Java {
 
         Instant fromDate = Validator.create(Instant.class, "1262347200000").get();
         Instant toDate = Validator.create(Instant.class, "1262347300000")
+            .check("'to' has to be after 'from'", it -> it.isAfter(fromDate))
+            .get();
+
+        Instant toDateUsingAlternativeCheckMethod = Validator.create(Instant.class, "1262347300000")
             .check(it -> it.isAfter(fromDate), "'to' has to be after 'from'")
             .get();
 
+        Instant toDateUsingCheckMethodWithoutErrorMessage = Validator.create(Instant.class, "1262347300000")
+            .check(it -> it.isAfter(fromDate))
+            .get();
+
         assertThat(toDate.getEpochSecond()).isEqualTo(1262347300L);
+        assertThat(toDateUsingAlternativeCheckMethod.getEpochSecond()).isEqualTo(1262347300L);
+        assertThat(toDateUsingCheckMethodWithoutErrorMessage.getEpochSecond()).isEqualTo(1262347300L);
         assertThat(Validator.create(Boolean.class, "true").get()).isInstanceOf(Boolean.class);
         assertThat(Validator.create(Double.class, "1.2").get()).isInstanceOf(Double.class);
         assertThat(Validator.create(Float.class, "1.2").get()).isInstanceOf(Float.class);

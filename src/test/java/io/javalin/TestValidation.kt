@@ -58,7 +58,24 @@ class TestValidation {
     @Test
     fun `test check()`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
+            ctx.queryParam<String>("my-qp").check("Length must be more than five") { it.length > 5 }.get()
+        }
+        assertThat(http.get("/?my-qp=1").body).isEqualTo("Query parameter 'my-qp' with value '1' invalid - Length must be more than five")
+    }
+
+    @Test
+    fun `test check() without optional error message`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.queryParam<String>("my-qp").check{ it.length > 5 }.get()
+        }
+        assertThat(http.get("/?my-qp=1").body).isEqualTo("Query parameter 'my-qp' with value '1' invalid - Failed check")
+    }
+
+    @Test
+    fun `test check() using alternative input format also works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
             ctx.queryParam<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
+            ctx.queryParam<String>("my-qp").check({ it.length > 5 }).get()
         }
         assertThat(http.get("/?my-qp=1").body).isEqualTo("Query parameter 'my-qp' with value '1' invalid - Length must be more than five")
     }
@@ -86,7 +103,7 @@ class TestValidation {
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParam<Instant>("from").get()
             val toDate = ctx.queryParam<Instant>("to")
-                    .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
+                    .check("'to' has to be after 'from'") { it.isAfter(fromDate) }
                     .get()
             ctx.json(toDate.isAfter(fromDate))
         }
@@ -114,7 +131,7 @@ class TestValidation {
     fun `test validatedBody()`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializeableObject>()
-                    .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
+                    .check("value1 must be 'Bananas'") { it.value1 == "Bananas" }
                     .get()
             ctx.result(obj.value1)
         }
@@ -154,7 +171,7 @@ class TestValidation {
     fun `test optional query param value with check`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val id: Int? = ctx.queryParam<Int>("id")
-                    .check({ it > 10 }, "id was not greater than 10")
+                    .check("id was not greater than 10") { it > 10 }
                     .getOrNull()
 
             if (id != null) {
