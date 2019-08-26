@@ -75,7 +75,6 @@ class TestValidation {
     fun `test check() using alternative input format also works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             ctx.queryParam<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
-            ctx.queryParam<String>("my-qp").check({ it.length > 5 }).get()
         }
         assertThat(http.get("/?my-qp=1").body).isEqualTo("Query parameter 'my-qp' with value '1' invalid - Length must be more than five")
     }
