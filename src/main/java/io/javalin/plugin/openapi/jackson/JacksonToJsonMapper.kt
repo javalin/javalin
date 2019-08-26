@@ -17,7 +17,7 @@ object JacksonToJsonMapper : ToJsonMapper {
 
 
 object JacksonToYamlMapper : ToJsonMapper {
-    val objectMapper by lazy { Yaml.pretty() }
+    val objectMapper by lazy { Yaml.mapper() }
 
-    override fun map(obj: Any): String = objectMapper.writeValueAsString(obj)
+    override fun map(obj: Any): String = Yaml.pretty(obj)
 }

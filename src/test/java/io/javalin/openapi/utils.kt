@@ -10,9 +10,11 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import org.assertj.core.api.Assertions.assertThat
 
+
+val OPENAPI_OPTION_BASIC = OpenApiOptions(Info().title("Example").version("1.0.0"))
+
 fun extractSchemaForTest(initSchema: (app: Javalin) -> Unit): OpenAPI {
-    val options = OpenApiOptions(Info().title("Example").version("1.0.0"))
-    return extractSchemaForTest(options, initSchema)
+    return extractSchemaForTest(OPENAPI_OPTION_BASIC, initSchema)
 }
 
 fun extractSchemaForTest(options: OpenApiOptions, initSchema: (app: Javalin) -> Unit): OpenAPI {

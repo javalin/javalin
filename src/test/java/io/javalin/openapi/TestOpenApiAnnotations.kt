@@ -14,6 +14,8 @@ import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.annotations.*
+import io.javalin.plugin.openapi.jackson.JacksonToYamlMapper
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
@@ -157,8 +159,8 @@ open class KotlinFieldHandlers {
 class ExtendedKotlinFieldHandlers : KotlinFieldHandlers()
 
 // endregion handler types
-
 class TestOpenApiAnnotations {
+
     @Test
     fun `createOpenApiSchema() work with complexExample and annotations`() {
         val app = Javalin.create {
@@ -251,4 +253,37 @@ class TestOpenApiAnnotations {
             it.get("/test", ExtendedKotlinFieldHandlers().kotlinFieldHandler)
         }.assertEqualTo(simpleExample)
     }
+
+    @Test
+    fun `|YamlMapper| - createOpenApiSchema() with class`() {
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OPENAPI_OPTION_BASIC.toJsonMapper(JacksonToYamlMapper)))
+        }
+        app.get("/test", ClassHandler())
+        assertThat(JavalinOpenApi.createSchema(app).asYamlString()).isEqualTo(simpleExample.createYamlFromJson())
+    }
+
+    @Test
+    fun `|YamlMapper| - createOpenApiSchema() work with complexExample and annotations`() {
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration).toJsonMapper(JacksonToYamlMapper)))
+        }
+
+        app.get("/user", ::getUserHandler)
+        app.get("/users/:my-path-param", ::getUsersHandler)
+        app.get("/users2", ::getUsers2Handler)
+        app.put("/user", ::putUserHandler)
+        app.get("/string", ::getStringHandler)
+        app.get("/homepage", ::getHomepageHandler)
+        app.get("/upload", ::getUploadHandler)
+        app.get("/uploads", ::getUploadsHandler)
+        app.get("/resources/*", ::getResources)
+        app.get("/ignore", ::getIgnore)
+
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(JavalinOpenApi.createSchema(app).asYamlString()).isEqualTo(complexExampleJson.createYamlFromJson())
+    }
+
+
 }

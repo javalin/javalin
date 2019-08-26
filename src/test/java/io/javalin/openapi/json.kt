@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
+import io.javalin.plugin.openapi.jackson.JacksonToYamlMapper
 import io.swagger.v3.oas.models.OpenAPI
 import org.intellij.lang.annotations.Language
 
@@ -22,6 +23,13 @@ fun String.formatJson(): String {
 }
 
 fun OpenAPI.asJsonString(): String = JacksonToJsonMapper.map(this)
+
+fun String.createYamlFromJson(): String {
+    val node = JavalinJackson.fromJson(this, JsonNode::class.java)
+    return JacksonToYamlMapper.map(node)
+}
+
+fun OpenAPI.asYamlString(): String = JacksonToYamlMapper.map(this)
 
 // This variable is needed for the jsons. That's how I can avoid the ugly """${"$"}""".
 val ref = "\$ref"
