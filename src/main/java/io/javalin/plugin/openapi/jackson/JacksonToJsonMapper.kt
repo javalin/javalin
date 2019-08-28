@@ -17,8 +17,9 @@ object JacksonToJsonMapper : ToJsonMapper {
     val objectMapper by lazy {
         jacksonObjectMapper()
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .registerModule(SimpleModule().addSerializer(SecurityScheme.Type::class.java, EnumToStringSerializer()))
-                .registerModule(SimpleModule().addSerializer(SecurityScheme.In::class.java, EnumToStringSerializer()))
+                .registerModule(SimpleModule()
+                        .addSerializer(SecurityScheme.Type::class.java, EnumToStringSerializer())
+                        .addSerializer(SecurityScheme.In::class.java, EnumToStringSerializer()))
     }
 
     override fun map(obj: Any): String = objectMapper.writeValueAsString(obj)
