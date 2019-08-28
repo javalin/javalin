@@ -64,9 +64,15 @@ fun createComplexExampleBaseConfiguration() = openapiDsl {
             type = SecurityScheme.Type.HTTP
             scheme = "basic"
         }
+        securityScheme {
+            type = SecurityScheme.Type.APIKEY
+            `in` = SecurityScheme.In.COOKIE
+            name = "token"
+        }
     }
     security {
         addList("http")
+        addList("token")
     }
     tag {
         name = "user"
@@ -210,7 +216,6 @@ class TestOpenApi {
         val userCrudHandlerDocumentation = documentCrud()
                 .getOne(document().json<User>("200"))
                 .getAll(document().jsonArray<User>("200"))
-
 
         class UserCrudHandler : CrudHandler {
             override fun getAll(ctx: Context) {

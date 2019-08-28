@@ -146,7 +146,6 @@ val simpleExampleWithMultipleGets = """
   }
 """.formatJson()
 
-
 @Language("JSON")
 val simpleExampleWithMultipleHttpMethods = """
   {
@@ -221,11 +220,10 @@ val complexExampleJson = """
       "description": "My example app"
     }
   ],
-  "security": [
-    {
-      "http": []
-    }
-  ],
+  "security" : [ {
+    "http" : [ ],
+    "token" : [ ]
+  } ],
   "tags": [
     {
       "name": "user",
@@ -468,10 +466,15 @@ val complexExampleJson = """
       "Address": $addressOpenApiSchema,
       "User": $userOpenApiSchema
     },
-    "securitySchemes": {
-      "http": {
-        "type": "HTTP",
-        "scheme": "basic"
+    "securitySchemes" : {
+      "http" : {
+        "type" : "http",
+        "scheme" : "basic"
+      },
+      "apiKey" : {
+        "type" : "apiKey",
+        "name" : "token",
+        "in" : "cookie"
       }
     }
   }
