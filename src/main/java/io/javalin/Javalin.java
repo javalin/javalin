@@ -106,6 +106,10 @@ public class Javalin {
         return this.servlet;
     }
 
+    public JavalinWsServlet wsServlet() {
+        return wsServlet;
+    }
+
     /**
      * Get the JavalinServer
      */

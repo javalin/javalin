@@ -25,7 +25,7 @@ class JavalinWsServlet(val config: JavalinConfig) : WebSocketServlet() {
 
     val wsExceptionMapper = WsExceptionMapper()
 
-    private val wsPathMatcher = WsPathMatcher()
+    val wsPathMatcher = WsPathMatcher()
 
     override fun configure(factory: WebSocketServletFactory) {
         config.inner.wsFactoryConfig?.accept(factory)
