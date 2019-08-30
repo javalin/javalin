@@ -285,4 +285,9 @@ class TestRequest {
         assertThat(http.getBody("/")).isEqualTo("unirest-java/1.3.11")
     }
 
+    @Test
+    fun `validator header() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.json(ctx.header<Double>("double").get().javaClass.name)}
+        assertThat(http.getBody("/", mapOf("double" to "12.34"))).isEqualTo("\"double\"")
+    }
 }

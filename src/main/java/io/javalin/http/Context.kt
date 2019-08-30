@@ -224,6 +224,12 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a request header by name, or null. */
     fun header(header: String): String? = req.getHeader(header)
 
+    /** Creates a [Validator] for the header() value, with the prefix "Request header '$header' with the value '$value'" */
+    fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), "Request header '$header' with value '${header(header)}'")
+
+    /** Reified version of [header] (Kotlin only) */
+    inline fun <reified T: Any> header(header: String) = header(header, T::class.java)
+
     /** Gets a map with all the header keys and values on the request. */
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
 
