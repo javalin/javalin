@@ -89,11 +89,17 @@ public class JavalinConfig {
      * Get a registered plugin
      */
     public <T extends Plugin> T getPlugin(@NotNull Class<T> pluginClass) {
-        T result = (T) inner.plugins.get(pluginClass);
+        T result = getPluginOrNull(pluginClass);
         if (result == null) {
             throw new PluginNotFoundException(pluginClass);
         }
         return result;
+    }
+
+    // The correct plugin class is added to the map, as a result suppress this warning
+    @SuppressWarnings("unchecked")
+    public <T extends Plugin> T getPluginOrNull(@NotNull Class<T> pluginClass) {
+        return (T) inner.plugins.get(pluginClass);
     }
 
     public JavalinConfig enableDevLogging() {
@@ -129,14 +135,22 @@ public class JavalinConfig {
         return this;
     }
 
+    public JavalinConfig enableCorsForAllOrigins(boolean openApiDocumented) {
+        registerPlugin(CorsPlugin.forAllOrigins(openApiDocumented));
+        return this;
+    }
+
     public JavalinConfig enableCorsForAllOrigins() {
-        registerPlugin(CorsPlugin.forAllOrigins());
+        return enableCorsForAllOrigins(true);
+    }
+
+    public JavalinConfig enableCorsForOrigin(boolean openApiDocumented, @NotNull String... origins) {
+        registerPlugin(CorsPlugin.forOrigins(origins, openApiDocumented));
         return this;
     }
 
     public JavalinConfig enableCorsForOrigin(@NotNull String... origins) {
-        registerPlugin(CorsPlugin.forOrigins(origins));
-        return this;
+        return enableCorsForOrigin(true, origins);
     }
 
     public JavalinConfig accessManager(@NotNull AccessManager accessManager) {
