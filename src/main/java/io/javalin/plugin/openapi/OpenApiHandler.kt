@@ -13,7 +13,11 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     private val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
 
     init {
-        app.events { it.handlerAdded { handlerInfo -> handlerMetaInfoList.add(handlerInfo) } }
+        app.events { it.handlerAdded { handlerInfo ->
+            if(handlerInfo.httpMethod.isHttpMethod()){
+                handlerMetaInfoList.add(handlerInfo)
+            }
+        } }
     }
 
     fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(CreateSchemaOptions(
