@@ -17,7 +17,19 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     }
 
     fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(CreateSchemaOptions(
-            handlerMetaInfoList = handlerMetaInfoList,
+            handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
+                options.ignoredDocumentationExact.none { (path, methods) ->
+                    handler.path == path && methods.any { method ->
+                        // HttpMethod is implemented two times :(
+                        method.name == handler.httpMethod.name
+                    }
+                } && options.ignoredDocumentationPrefix.none { (path, methods) ->
+                    handler.path.startsWith(path) && methods.any { method ->
+                        // HttpMethod is implemented two times :(
+                        method.name == handler.httpMethod.name
+                    }
+                }
+            },
             initialConfigurationCreator = options.initialConfigurationCreator,
             default = options.default,
             modelConverterFactory = options.modelConverterFactory,
