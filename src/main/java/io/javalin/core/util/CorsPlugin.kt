@@ -6,13 +6,14 @@ import io.javalin.core.security.CoreRoles
 import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.http.util.CorsBeforeHandler
 import io.javalin.http.util.CorsOptionsHandler
+import io.javalin.plugin.openapi.OpenApiPlugin
+import io.javalin.plugin.openapi.dsl.document
+import io.javalin.plugin.openapi.dsl.documented
 
 class CorsPlugin(private val origins: List<String>) : Plugin {
 
     init {
-        if (origins.isEmpty()) {
-            throw IllegalArgumentException("Origins cannot be empty.")
-        }
+        require(origins.isNotEmpty()) { "Origins cannot be empty." }
     }
 
     companion object {
@@ -24,8 +25,17 @@ class CorsPlugin(private val origins: List<String>) : Plugin {
     }
 
     override fun apply(app: Javalin) {
-        app.before(CorsBeforeHandler(origins))
-        app.options("*", CorsOptionsHandler(), roles(CoreRoles.NO_WRAP))
-    }
+        val openApiPlugin = app.config.getPluginOrNull(OpenApiPlugin::class.java)
+        val handler = if (openApiPlugin != null) {
+            documented(document().operation {
+                it.summary("CORS allowed for ${if (origins.contains("*")) "all" else "specific"} origins")
+                it.description("This api allows CORS for the following origins: " + origins.joinToString(separator = ", "))
+            }.result("200", null), CorsOptionsHandler())
+        } else {
+            CorsOptionsHandler()
+        }
 
+        app.before(CorsBeforeHandler(origins))
+        app.options("*", handler, roles(CoreRoles.NO_WRAP))
+    }
 }
