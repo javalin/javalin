@@ -301,6 +301,38 @@ val complexExampleJson = """
         }
       }
     },
+    "/user/{userid}": {
+      "get": {
+        "summary": "Get specific user",
+        "description": "Get a specific user with his/her id",
+        "operationId": "getSpecificUser",
+        "parameters": [ {
+          "name": "userid",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        } ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{my-path-param}": {
       "get": {
         "tags": ["user"],
