@@ -194,7 +194,12 @@ val provideRouteExampleJson = """
       "/test": {
         "get": {
           "summary": "Get test",
-          "operationId": "getTest"
+          "operationId": "getTest",
+          "responses" : {
+            "200" : {
+              "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+            }
+          }
         }
       }
     },
@@ -298,6 +303,11 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+          }
         }
       }
     },
@@ -420,6 +430,11 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+          }
         }
       }
     },
@@ -446,6 +461,11 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+          }
         }
       }
     },
@@ -529,7 +549,12 @@ val crudExampleJson = """
               "type": "string"
             }
           }
-        ]
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+          }
+        }
       },
       "patch": {
         "summary": "Patch users with userId",
@@ -543,7 +568,12 @@ val crudExampleJson = """
               "type": "string"
             }
           }
-        ]
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+          }
+        }
       }
     },
     "/users": {
@@ -568,7 +598,12 @@ val crudExampleJson = """
       },
       "post": {
         "summary": "Post users",
-        "operationId": "postUsers"
+        "operationId": "postUsers",
+        "responses" : {
+          "200" : {
+            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+          }
+        }
       }
     }
   },
