@@ -92,7 +92,16 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
         }
     }
 
-    if (documentation.hasResponses()) {
+    if (!documentation.hasResponses()) {
+        updateResponses {
+            updateResponse("200") {
+                this.description(
+                    "This endpoint currently has no documented responses, since OpenApi requires a response" +
+                            " which should be successful, this documentation was automatically generated"
+                )
+            }
+        }
+    } else {
         updateResponses {
             documentation.responseUpdaterListMapping
                     .forEach { name, updater ->
@@ -102,6 +111,7 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
                     }
         }
     }
+
     documentation.operationUpdaterList.applyAllUpdates(this)
 }
 
