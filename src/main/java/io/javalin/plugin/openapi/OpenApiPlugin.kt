@@ -33,11 +33,11 @@ class OpenApiPlugin(private val options: OpenApiOptions) : Plugin, PluginLifecyc
 
             options.swagger?.let {
                 Util.ensureDependencyPresent(OptionalDependency.SWAGGER_CORE)
-                app.get(it.path, SwaggerRenderer(options))
+                app.get(it.path, SwaggerRenderer(options), options.roles)
             }
 
             options.reDoc?.let {
-                app.get(it.path, ReDocRenderer(options))
+                app.get(it.path, ReDocRenderer(options), options.roles)
             }
 
             if (options.swagger != null || options.reDoc != null) {
