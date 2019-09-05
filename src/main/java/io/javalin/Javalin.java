@@ -45,6 +45,10 @@ public class Javalin {
 
     public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
+    /**
+     * Do not use this field unless you know what you're doing.
+     * Application config should be declared in {@link Javalin#create(Consumer)}
+     */
     public JavalinConfig config = new JavalinConfig();
 
     protected JavalinServer server; // null in standalone-mode
