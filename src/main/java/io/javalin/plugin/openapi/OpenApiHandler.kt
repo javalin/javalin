@@ -11,24 +11,37 @@ import io.swagger.v3.oas.models.OpenAPI
 
 class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     private val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
+    private var schema: OpenAPI? = null
 
     init {
-        app.events { it.handlerAdded { handlerInfo -> handlerMetaInfoList.add(handlerInfo) } }
+        app.events {
+            it.handlerAdded { handlerInfo ->
+                handlerMetaInfoList.add(handlerInfo)
+                schema = null
+            }
+        }
     }
 
-    fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(CreateSchemaOptions(
+    fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(
+        CreateSchemaOptions(
             handlerMetaInfoList = handlerMetaInfoList,
             initialConfigurationCreator = options.initialConfigurationCreator,
             default = options.default,
             modelConverterFactory = options.modelConverterFactory,
             packagePrefixesToScan = options.packagePrefixesToScan
-    ))
+        )
+    )
+
+    @Synchronized
+    private fun initializeSchemaSynchronized(): OpenAPI {
+        return (schema ?: createOpenAPISchema()).apply { schema = this }
+    }
 
     @OpenApi(ignore = true)
     override fun handle(ctx: Context) {
         ctx.contentType(ContentType.JSON)
         ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         ctx.header(Header.ACCESS_CONTROL_ALLOW_METHODS, "GET")
-        ctx.result(options.toJsonMapper.map(createOpenAPISchema()))
+        ctx.result(options.toJsonMapper.map(initializeSchemaSynchronized()))
     }
 }
