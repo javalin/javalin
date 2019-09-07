@@ -9,6 +9,7 @@ import io.javalin.core.PathSegment
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.CreateSchemaOptions
+import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.annotations.PathInfo
 import io.javalin.plugin.openapi.external.schema
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.Paths
+import org.slf4j.LoggerFactory
 
 fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
@@ -95,12 +97,12 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
     if (!documentation.hasResponses()) {
         updateResponses {
             updateResponse("200") {
-                this.description(
-                    "This endpoint currently has no documented responses, since OpenApi requires a response" +
-                            " which should be successful, this documentation was automatically generated"
-                )
+                this.description("Default response")
             }
         }
+
+        LoggerFactory.getLogger(JavalinOpenApi::javaClass.get()).warn(
+            "A default response was added to the documentation of ${metaInfo.httpMethod} ${path.getOpenApiUrl()}")
     } else {
         updateResponses {
             documentation.responseUpdaterListMapping

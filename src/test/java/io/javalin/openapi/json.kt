@@ -123,7 +123,7 @@ val defaultValueExample = """
         "operationId" : "getUnimplemented",
         "responses" : {
           "200" : {
-            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+            "description" : "Default response"
           }
         }
       }
@@ -222,7 +222,7 @@ val provideRouteExampleJson = """
           "operationId": "getTest",
           "responses" : {
             "200" : {
-              "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+              "description" : "Default response"
             }
           }
         }
@@ -331,7 +331,7 @@ val complexExampleJson = """
         },
         "responses" : {
           "200" : {
-            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+            "description" : "Default response"
           }
         }
       }
@@ -458,7 +458,7 @@ val complexExampleJson = """
         },
         "responses" : {
           "200" : {
-            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+            "description" : "Default response"
           }
         }
       }
@@ -489,7 +489,7 @@ val complexExampleJson = """
         },
         "responses" : {
           "200" : {
-            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+            "description" : "Default response"
           }
         }
       }
@@ -577,7 +577,7 @@ val crudExampleJson = """
         ],
         "responses" : {
           "200" : {
-            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+            "description" : "Default response"
           }
         }
       },
@@ -596,7 +596,7 @@ val crudExampleJson = """
         ],
         "responses" : {
           "200" : {
-            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+            "description" : "Default response"
           }
         }
       }
@@ -626,7 +626,7 @@ val crudExampleJson = """
         "operationId": "postUsers",
         "responses" : {
           "200" : {
-            "description" : "This endpoint currently has no documented responses, since OpenApi requires a response which should be successful, this documentation was automatically generated"
+            "description" : "Default response"
           }
         }
       }
