@@ -19,6 +19,7 @@ import java.util.*
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 import javax.servlet.http.HttpServletResponse
+import kotlin.collections.HashSet
 
 object Util {
 
@@ -36,27 +37,37 @@ object Util {
     }
 
     private val dependencyCheckCache = HashMap<String, Boolean>()
+    private val dependencyCheckOptionalMessages = HashSet<String>()
 
-    fun ensureDependencyPresent(dependency: OptionalDependency, startupCheck: Boolean = false) {
-        if (dependencyCheckCache[dependency.testClass] == true) {
-            return
-        }
-        if (!classExists(dependency.testClass)) {
-            val message = missingDependencyMessage(dependency)
-            if (startupCheck) {
-                throw IllegalStateException(message)
-            } else {
-                Javalin.log?.warn(message)
-                throw InternalServerErrorResponse(message)
-            }
-        }
-        dependencyCheckCache[dependency.testClass] = true
+    fun isDependencyPresent(dependency: OptionalDependency): Boolean {
+        return (dependencyCheckCache[dependency.testClass] == true || classExists(dependency.testClass))
+            .apply { dependencyCheckCache[dependency.testClass] = this }
     }
 
-    internal fun missingDependencyMessage(dependency: OptionalDependency) = """|
+    fun ensureDependencyPresent(dependency: OptionalDependency, startupCheck: Boolean = false) {
+        if(!isDependencyPresent(dependency)){
+            val message = missingDependencyMessage(dependency)
+            check(!startupCheck) { message }
+            Javalin.log?.warn(message)
+            throw InternalServerErrorResponse(message)
+        }
+    }
+
+    fun executeIfDependencyIsPresent(dependency: OptionalDependency, block: () -> Unit) {
+        if(isDependencyPresent(dependency)){
+            block()
+        } else {
+            if(!dependencyCheckOptionalMessages.contains(dependency.testClass)){
+                Javalin.log?.warn(missingDependencyMessage(dependency, true))
+                dependencyCheckOptionalMessages.add(dependency.testClass)
+            }
+        }
+    }
+
+    internal fun missingDependencyMessage(dependency: OptionalDependency, optional: Boolean = false) = """|
             |-------------------------------------------------------------------
             |Missing dependency '${dependency.displayName}'. Add the dependency.
-            |
+            ${if (optional) missingDependencyMessageOptional() else "|"}
             |pom.xml:
             |<dependency>
             |    <groupId>${dependency.groupId}</groupId>
@@ -67,6 +78,11 @@ object Util {
             |build.gradle:
             |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
             |-------------------------------------------------------------------""".trimMargin()
+
+    private fun missingDependencyMessageOptional() = """|
+            |This dependency is only required for an optional feature,
+            |as a result this message is suppressed on further occurrences of this dependency (except it is needed)
+            |""".trimMargin()
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 

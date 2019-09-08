@@ -3,6 +3,8 @@ package io.javalin.plugin.openapi
 import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.plugin.PluginNotFoundException
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
 import io.javalin.plugin.openapi.dsl.applyMetaInfoList
 import io.javalin.plugin.openapi.dsl.updateComponents
 import io.javalin.plugin.openapi.dsl.updatePaths
@@ -31,6 +33,8 @@ class CreateSchemaOptions(
 )
 
 object JavalinOpenApi {
+    private val logger = LoggerFactory.getLogger(JavalinOpenApi::javaClass.get())
+
     @JvmStatic
     fun createSchema(javalin: Javalin): OpenAPI {
         val handler = try {
@@ -56,13 +60,15 @@ object JavalinOpenApi {
             }
         }
 
-        val parsedSchema = OpenAPIV3Parser().readContents(Yaml.mapper().writeValueAsString(schema))
+        Util.executeIfDependencyIsPresent(OptionalDependency.SWAGGERPARSER) {
+            val parsedSchema = OpenAPIV3Parser().readContents(Yaml.mapper().writeValueAsString(schema))
 
-        if(parsedSchema.messages.isNotEmpty()){
-            LoggerFactory.getLogger(JavalinOpenApi::javaClass.get()).warn("The generated OpenApi specification is not valid")
+            if(parsedSchema.messages.isNotEmpty()){
+                logger.warn("The generated OpenApi specification is not valid")
 
-            parsedSchema.messages.forEach {
-                LoggerFactory.getLogger(JavalinOpenApi::javaClass.get()).warn(it)
+                parsedSchema.messages.forEach {
+                    logger.warn(it)
+                }
             }
         }
 
