@@ -32,6 +32,9 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
         )
     )
 
+    // This function is synchronized because an attacker can trigger the openapi schema generation very often
+    // It is ensured, that the schema is generated only maximal once after adding handlers
+    // See https://github.com/tipsy/javalin/pull/736#discussion_r322016515
     @Synchronized
     private fun initializeSchemaSynchronized(): OpenAPI {
         return (schema ?: createOpenAPISchema()).apply { schema = this }
