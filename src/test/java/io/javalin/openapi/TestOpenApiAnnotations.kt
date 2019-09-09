@@ -131,6 +131,20 @@ fun getUploadsHandler(ctx: Context) {
 fun getResources(ctx: Context) {
 }
 
+@OpenApi(
+        responses = [
+            OpenApiResponse(status = "200",
+                    description = "oneOf",
+                    content = [OpenApiContent(
+                            [Address::class, User::class],
+                            schemaType = SchemaType.oneOf
+                    )]
+            )
+        ]
+)
+fun getOneOf(ctx: Context) {
+}
+
 @OpenApi(ignore = true)
 fun getIgnore(ctx: Context) {
 }
@@ -250,5 +264,12 @@ class TestOpenApiAnnotations {
         extractSchemaForTest {
             it.get("/test", ExtendedKotlinFieldHandlers().kotlinFieldHandler)
         }.assertEqualTo(simpleExample)
+    }
+
+    @Test
+    fun `Open Api Schema with Composed Schema`() {
+        extractSchemaForTest {
+            it.get("/oneof", ::getOneOf)
+        }.assertEqualTo(simpleOneOfExample)
     }
 }
