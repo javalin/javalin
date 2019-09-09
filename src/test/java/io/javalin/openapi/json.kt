@@ -784,3 +784,30 @@ val simpleOneOfExample = """
 }
 """
 
+val dslComposedSchema = """
+{
+  "openapi" : "${openAPIversion()}",
+    "paths" : {
+        "/anyOf" : {
+          "get" : {
+            "responses" : {
+              "200" : {
+                "content" : {
+                  "application/json" : {
+                    "schema" : {
+                      "anyOf" : [ {
+                        "$ref" : "#/components/schemas/Address"
+                      }, {
+                        "$ref" : "#/components/schemas/User"
+                      } ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+    },
+    "components": { }
+}
+""".formatJson()

@@ -16,6 +16,9 @@ import cc.vileda.openapi.dsl.security
 import cc.vileda.openapi.dsl.securityScheme
 import cc.vileda.openapi.dsl.server
 import cc.vileda.openapi.dsl.tag
+import cc.vileda.openapi.dsl.responses
+import cc.vileda.openapi.dsl.response
+import cc.vileda.openapi.dsl.content
 import io.javalin.Javalin
 import io.javalin.TestUtil
 import io.javalin.apibuilder.ApiBuilder.crud
@@ -24,11 +27,13 @@ import io.javalin.http.Context
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
+import io.javalin.plugin.openapi.annotations.SchemaType
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documentCrud
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.dsl.documentedContent
+import io.javalin.plugin.openapi.external.mediaTypeComposed
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityScheme
@@ -75,6 +80,25 @@ fun createComplexExampleBaseConfiguration() = openapiDsl {
     externalDocs {
         description = "Find more info here"
         url = "https://external-documentation.info"
+    }
+}
+
+fun simpleAnyOfSchema() = openapiDsl {
+    paths {
+        path("/anyOf") {
+            get {
+                responses {
+                    response("200") {
+                        content {
+                            mediaTypeComposed(arrayOf(
+                                    Address::class.java,
+                                    User::class.java
+                            ), SchemaType.anyOf, "application/json")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -396,5 +420,14 @@ class TestOpenApi {
             assertThat(actualHeaders.getFirst("Access-Control-Allow-Origin")).isEqualTo("*")
             assertThat(actualHeaders.getFirst("Access-Control-Allow-Methods")).isEqualTo("GET")
         }
+    }
+
+    @Test
+    fun `composed schema via dsl`() {
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions(::simpleAnyOfSchema)))
+        }
+        val actual = JavalinOpenApi.createSchema(app)
+        assertThat(actual.asJsonString()).isEqualTo(dslComposedSchema)
     }
 }
