@@ -56,7 +56,7 @@ class DocumentedContent @JvmOverloads constructor(
         else -> from.first()
     }
 
-    val fromArray: Array<Class<*>> = from //FIXME: because it is explicitly an array; old understanding is kept
+    val fromArray: Array<Class<*>> = from
 
     val isArray = if (schema == null) {
         fromTypeIsArray && isNotByteArray || isArray
@@ -101,7 +101,7 @@ fun OpenApiContent.fillSchemaClassFromContentType(): Class<*> =
 enum class ContentTypeClassRelation(val javaClass: Class<*>, val contentType: Array<String>) {
     TEXT(String::class.java, arrayOf(ContentType.PLAIN, ContentType.HTML)),
     OCTET(ByteArray::class.java, arrayOf(ContentType.OCTET)),
-    OTHER(String::class.java, arrayOf(ContentType.JSON)); //FIXME: should this be something else than String?
+    OTHER(Object::class.java, arrayOf(ContentType.JSON));
 }
 
 /**
