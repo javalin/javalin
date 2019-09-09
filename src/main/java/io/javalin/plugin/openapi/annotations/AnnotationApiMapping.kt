@@ -103,7 +103,7 @@ private fun OpenApiContent.asDocumentedContent(): DocumentedContent {
 }
 
 private fun OpenApiContent.javaClassArray(): Array<Class<*>> {
-    return Array(from.size) { i -> from.get(i).java }
+    return from.map { it.java }.toTypedArray()
 }
 
 private fun OpenApiDocumentation.applyRequestBodyAnnotation(requestBody: OpenApiRequestBody) {
