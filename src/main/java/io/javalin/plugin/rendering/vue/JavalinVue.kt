@@ -57,6 +57,11 @@ class VueComponent(private val component: String) : Handler {
         val routeComponent = if (component.startsWith("<")) component else "<$component></$component>"
         val paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
         val view = if (ctx.isLocalhost()) JavalinVue.createLayout(paths) else JavalinVue.cachedLayout
+        val componentName = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
+        if (!view.contains(componentName)) {
+            ctx.result("Route component not found: $routeComponent")
+            return
+        }
         ctx.header(Header.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
         ctx.html(view.replace("@serverState", JavalinVue.getState(ctx)).replace("@routeComponent", routeComponent)) // insert current route component
     }
