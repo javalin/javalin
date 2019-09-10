@@ -13,14 +13,17 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     private val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
 
     init {
-        app.events { it.handlerAdded { handlerInfo ->
-            if(handlerInfo.httpMethod.isHttpMethod()){
-                handlerMetaInfoList.add(handlerInfo)
+        app.events {
+            it.handlerAdded { handlerInfo ->
+                if (handlerInfo.httpMethod.isHttpMethod()) {
+                    handlerMetaInfoList.add(handlerInfo)
+                }
             }
-        } }
+        }
     }
 
-    fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(CreateSchemaOptions(
+    fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(
+        CreateSchemaOptions(
             handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
                 options.ignoredDocumentationExact.none { (path, methods) ->
                     handler.path == path && methods.any { method ->
@@ -38,7 +41,8 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
             default = options.default,
             modelConverterFactory = options.modelConverterFactory,
             packagePrefixesToScan = options.packagePrefixesToScan
-    ))
+        )
+    )
 
     @OpenApi(ignore = true)
     override fun handle(ctx: Context) {
