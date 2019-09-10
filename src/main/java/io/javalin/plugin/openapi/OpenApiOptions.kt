@@ -46,6 +46,12 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
      */
     var packagePrefixesToScan = mutableSetOf<String>()
 
+    /**
+     * Validate the generated schema with the swagger parser
+     * (prints warnings if schema is invalid)
+     */
+    var validateSchema: Boolean = false
+
     constructor(info: Info) : this(InitialConfigurationCreator { OpenAPI().info(info) })
 
     fun path(value: String) = apply { path = value }
@@ -79,6 +85,8 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
     fun toJsonMapper(value: ToJsonMapper) = apply { toJsonMapper = value }
 
     fun getFullDocumentationUrl(ctx: Context) = "${ctx.contextPath()}${path!!}"
+
+    fun validateSchema(validate: Boolean = true) = apply { validateSchema = validate }
 }
 
 fun OpenApiOptions(createInitialConfiguration: () -> OpenAPI) =
