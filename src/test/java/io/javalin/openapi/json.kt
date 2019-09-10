@@ -27,9 +27,7 @@ fun OpenAPI.asJsonString(): String = JacksonToJsonMapper.map(this)
 val ref = "\$ref"
 
 // This is to help fix failing tests when dependency io.swagger.core.v3:swagger-models updates their openAPI specification version
-fun openAPIversion(): String {
-    return "3.0.1"
-}
+val openAPIversion = "3.0.1"
 
 @Language("JSON")
 val userOpenApiSchema = """
@@ -91,7 +89,7 @@ val complexExampleUsersGetResponsesJson = """
 @Language("JSON")
 val simpleExample = """
   {
-    "openapi": "${openAPIversion()}",
+    "openapi": "$openAPIversion",
     "info": {
       "title": "Example",
       "version": "1.0.0"
@@ -116,7 +114,7 @@ val simpleExample = """
 @Language("JSON")
 val simpleExampleWithMultipleGets = """
   {
-    "openapi": "${openAPIversion()}",
+    "openapi": "$openAPIversion",
     "info": {
       "title": "Example",
       "version": "1.0.0"
@@ -155,7 +153,7 @@ val simpleExampleWithMultipleGets = """
 @Language("JSON")
 val simpleExampleWithMultipleHttpMethods = """
   {
-    "openapi": "${openAPIversion()}",
+    "openapi": "$openAPIversion",
     "info": {
       "title": "Example",
       "version": "1.0.0"
@@ -191,7 +189,7 @@ val simpleExampleWithMultipleHttpMethods = """
 @Language("JSON")
 val provideRouteExampleJson = """
   {
-    "openapi": "${openAPIversion()}",
+    "openapi": "$openAPIversion",
     "info": {
       "title": "Example",
       "version": "1.0.0"
@@ -211,7 +209,7 @@ val provideRouteExampleJson = """
 @Language("JSON")
 val complexExampleJson = """
 {
-  "openapi": "${openAPIversion()}",
+  "openapi": "$openAPIversion",
   "info": {
     "title": "Example",
     "version": "1.0.0"
@@ -486,7 +484,7 @@ val complexExampleJson = """
 @Language("JSON")
 val crudExampleJson = """
 {
-  "openapi": "${openAPIversion()}",
+  "openapi": "$openAPIversion",
   "info": {
     "title": "Example",
     "version": "1.0.0"
@@ -586,7 +584,7 @@ val crudExampleJson = """
 @Language("JSON")
 val defaultOperationExampleJson = """
 {
-  "openapi": "${openAPIversion()}",
+  "openapi": "$openAPIversion",
   "info": {
     "title": "Example",
     "version": "1.0.0"
@@ -660,7 +658,7 @@ val defaultOperationExampleJson = """
 @Language("JSON")
 val oneOfAnyOfExampleJson = """
 {
-  "openapi": "${openAPIversion()}",
+  "openapi": "$openAPIversion",
   "info": {
     "title": "Example",
     "version": "1.0.0"
@@ -746,7 +744,7 @@ val oneOfAnyOfExampleJson = """
 @Language("JSON")
 val simpleOneOfExample = """
     {
-  "openapi" : "${openAPIversion()}",
+  "openapi" : "$openAPIversion",
   "info" : {
     "title" : "Example",
     "version" : "1.0.0"
@@ -786,7 +784,7 @@ val simpleOneOfExample = """
 
 val dslComposedSchema = """
 {
-  "openapi" : "${openAPIversion()}",
+  "openapi" : "$openAPIversion",
     "paths" : {
         "/anyOf" : {
           "get" : {
