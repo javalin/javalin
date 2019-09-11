@@ -14,7 +14,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.parser.OpenAPIV3Parser
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger(OpenApiHandler::javaClass.javaClass)
+private val logger = LoggerFactory.getLogger(OpenApiHandler::class.java)
 
 class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     private val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
