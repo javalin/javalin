@@ -15,11 +15,6 @@ import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.core.util.Header.ORIGIN
 import io.javalin.core.util.Header.REFERER
-import io.javalin.openapi.asJsonString
-import io.javalin.plugin.openapi.JavalinOpenApi
-import io.javalin.plugin.openapi.OpenApiOptions
-import io.javalin.plugin.openapi.OpenApiPlugin
-import io.swagger.v3.oas.models.info.Info
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
@@ -76,77 +71,4 @@ class TestCors {
         assertThat(response.body).isBlank()
     }
 
-    @Test
-    fun `enableCorsForAllOrigins() produces correct documentation`() {
-        val info = Info().version("1.0").description("My Application")
-        val app = Javalin.create {
-            it.enableCorsForAllOrigins()
-            it.registerPlugin(OpenApiPlugin(OpenApiOptions(info).path("/openapi")))
-        }
-
-        val actual = JavalinOpenApi.createSchema(app)
-        val correct = """
-            {
-              "openapi" : "3.0.1",
-              "info" : {
-                "description" : "My Application",
-                "version" : "1.0"
-              },
-              "paths" : {
-                "/*" : {
-                  "options" : {
-                    "summary" : "CORS allowed for all origins",
-                    "description" : "This api allows CORS for the following origins: *",
-                    "operationId" : "optionsWithWildcard",
-                    "responses" : {
-                      "200" : {
-                        "description" : "OK"
-                      }
-                    }
-                  }
-                }
-              },
-              "components" : { }
-            }
-        """.trimIndent()
-
-        assertThat(actual.asJsonString()).isEqualTo(correct)
-    }
-
-    @Test
-    fun `enableCorsForOrigin() produces correct documentation`() {
-        val info = Info().version("1.0").description("My Application")
-        val app = Javalin.create {
-            it.enableCorsForOrigin("test", "niceorigin")
-            it.registerPlugin(OpenApiPlugin(OpenApiOptions(info).path("/openapi")))
-        }
-
-        val actual = JavalinOpenApi.createSchema(app)
-        val correct = """
-            {
-              "openapi" : "3.0.1",
-              "info" : {
-                "description" : "My Application",
-                "version" : "1.0"
-              },
-              "paths" : {
-                "/*" : {
-                  "options" : {
-                    "summary" : "CORS allowed for specific origins",
-                    "description" : "This api allows CORS for the following origins: test, niceorigin",
-                    "operationId" : "optionsWithWildcard",
-                    "responses" : {
-                      "200" : {
-                        "description" : "OK"
-                      }
-                    }
-                  }
-                }
-              },
-              "components" : { }
-            }
-        """.trimIndent()
-
-        assertThat(actual.asJsonString()).isEqualTo(correct)
-    }
 }
