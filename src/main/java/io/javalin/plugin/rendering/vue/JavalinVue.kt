@@ -75,7 +75,4 @@ object PathMaster {
     }
 }
 
-fun Path.readText(): String {
-    val s = Scanner(Files.newInputStream(this), "UTF-8").useDelimiter("\\A")
-    return if (s.hasNext()) s.next() else ""
-}
+fun Path.readText() = String(Files.readAllBytes(this))
