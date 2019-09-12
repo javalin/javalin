@@ -194,7 +194,12 @@ val provideRouteExampleJson = """
       "/test": {
         "get": {
           "summary": "Get test",
-          "operationId": "getTest"
+          "operationId": "getTest",
+          "responses" : {
+            "200" : {
+              "description" : "Default response"
+            }
+          }
         }
       }
     },
@@ -233,7 +238,12 @@ val complexExampleJson = """
   "paths": {
     "/unimplemented": {
       "get": {
-        "summary": "This path is not implemented in javalin"
+        "summary": "This path is not implemented in javalin",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       }
     },
     "/user": {
@@ -298,6 +308,11 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
         }
       }
     },
@@ -420,6 +435,11 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
         }
       }
     },
@@ -446,6 +466,11 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
         }
       }
     },
@@ -529,7 +554,12 @@ val crudExampleJson = """
               "type": "string"
             }
           }
-        ]
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       },
       "patch": {
         "summary": "Patch users with userId",
@@ -543,7 +573,12 @@ val crudExampleJson = """
               "type": "string"
             }
           }
-        ]
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       }
     },
     "/users": {
@@ -568,7 +603,12 @@ val crudExampleJson = """
       },
       "post": {
         "summary": "Post users",
-        "operationId": "postUsers"
+        "operationId": "postUsers",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       }
     }
   },
