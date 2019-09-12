@@ -425,20 +425,6 @@ class TestOpenApi {
         }
     }
 
-    private val userWithIdJsonExpected = "{\"get\":{\"summary\":\"Get specific user\"," +
-            "\"description\":\"Get a specific user with his/her id\",\"operationId\":\"getSpecificUser\"," +
-            "\"responses\":{\"200\":{\"description\":\"Request successful\"," +
-            "\"content\":{\"application/xml\":{\"schema\":{\"$ref\":\"#/components/schemas/User\"}}," +
-            "\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/User\"}}}}}," +
-            "\"parameters\":[{\"schema\":{\"type\":\"string\"},\"in\":\"path\",\"name\":\"userid\",\"required\":true}]}}"
-
-    private val userJsonExpected = "{\"get\":{\"summary\":\"Get current user\",\"deprecated\":true," +
-            "\"description\":\"Get a specific user\",\"operationId\":\"getCurrentUser\"," +
-            "\"responses\":{\"200\":{\"description\":\"Request successful\"," +
-            "\"content\":{\"application/xml\":{\"schema\":{\"$ref\":\"#/components/schemas/User\"}}," +
-            "\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/User\"}}}}},\"tags\":[\"user\"]}," +
-            "\"description\":\"Some additional information for the /user endpoint\"}"
-
     @Test
     fun `ignorePath() works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration).ignorePath("/user"))
@@ -448,7 +434,7 @@ class TestOpenApi {
         val userWithIdJson = json.getJSONObject("/user/{userid}").toString()
 
         assertThat(userJson).isEqualTo("{\"description\":\"Some additional information for the /user endpoint\"}")
-        assertThat(userWithIdJson).isEqualTo(userWithIdJsonExpected)
+        assertThat(userWithIdJson.formatJson()).isEqualTo(userWithIdJsonExpected.formatJson())
     }
 
     @Test
@@ -458,7 +444,7 @@ class TestOpenApi {
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths").getJSONObject("/user").toString()
 
-        assertThat(json).isEqualTo(userJsonExpected)
+        assertThat(json.formatJson()).isEqualTo(userJsonExpected.formatJson())
     }
 
     @Test
@@ -482,7 +468,7 @@ class TestOpenApi {
         val userJson = json.getJSONObject("/user").toString()
         val userWithIdJson = json.getJSONObject("/user/{userid}").toString()
 
-        assertThat(userJson).isEqualTo(userJsonExpected)
-        assertThat(userWithIdJson).isEqualTo(userWithIdJsonExpected)
+        assertThat(userJson.formatJson()).isEqualTo(userJsonExpected.formatJson())
+        assertThat(userWithIdJson.formatJson()).isEqualTo(userWithIdJsonExpected.formatJson())
     }
 }
