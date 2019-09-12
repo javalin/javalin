@@ -474,7 +474,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `ignorePathWithPrefix() with http methods works`() {
+    fun `ignorePath() with prefix and http methods works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
                 .ignorePath("/user*", HttpMethod.PUT))
         val actual = JavalinOpenApi.createSchema(app)
