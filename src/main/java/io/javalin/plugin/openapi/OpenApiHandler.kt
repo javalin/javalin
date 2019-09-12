@@ -1,6 +1,7 @@
 package io.javalin.plugin.openapi
 
 import io.javalin.Javalin
+import io.javalin.core.PathParser
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.util.Header
 import io.javalin.http.Context
@@ -25,13 +26,8 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(
         CreateSchemaOptions(
             handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
-                options.ignoredDocumentationExact.none { (path, methods) ->
-                    handler.path == path && methods.any { method ->
-                        // HttpMethod is implemented two times :(
-                        method.name == handler.httpMethod.name
-                    }
-                } && options.ignoredDocumentationPrefix.none { (path, methods) ->
-                    handler.path.startsWith(path) && methods.any { method ->
+                options.ignoredPaths.none { (path, methods) ->
+                    PathParser(path).matches(handler.path) && methods.any { method ->
                         // HttpMethod is implemented two times :(
                         method.name == handler.httpMethod.name
                     }

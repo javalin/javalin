@@ -441,7 +441,7 @@ class TestOpenApi {
 
     @Test
     fun `ignorePath() works`() {
-        val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration).ignoreDocumentation("/user"))
+        val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration).ignorePath("/user"))
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths")
         val userJson = json.getJSONObject("/user").toString()
@@ -454,7 +454,7 @@ class TestOpenApi {
     @Test
     fun `ignorePath() with http methods works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
-                .ignoreDocumentation("/user", HttpMethod.PUT))
+                .ignorePath("/user", HttpMethod.PUT))
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths").getJSONObject("/user").toString()
 
@@ -464,7 +464,7 @@ class TestOpenApi {
     @Test
     fun `ignorePathWithPrefix() works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
-                .ignoreDocumentationWithPathPrefix("/user"))
+                .ignorePath("/user*"))
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths")
         val userJson = json.getJSONObject("/user").toString()
@@ -476,7 +476,7 @@ class TestOpenApi {
     @Test
     fun `ignorePathWithPrefix() with http methods works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
-                .ignoreDocumentationWithPathPrefix("/user", HttpMethod.PUT))
+                .ignorePath("/user*", HttpMethod.PUT))
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths")
         val userJson = json.getJSONObject("/user").toString()

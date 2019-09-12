@@ -48,14 +48,9 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
     var packagePrefixesToScan = mutableSetOf<String>()
 
     /**
-     * A list of paths to ignore in documentation (exact match)
+     * A list of paths to ignore in documentation
      */
-    var ignoredDocumentationExact: MutableList<Pair<String, List<HttpMethod>>> = mutableListOf()
-
-    /**
-     * A list of paths to ignore in documentation (prefix match)
-     */
-    var ignoredDocumentationPrefix: MutableList<Pair<String, List<HttpMethod>>> = mutableListOf()
+    var ignoredPaths: MutableList<Pair<String, List<HttpMethod>>> = mutableListOf()
 
     constructor(info: Info) : this(InitialConfigurationCreator { OpenAPI().info(info) })
 
@@ -91,12 +86,8 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
 
     fun getFullDocumentationUrl(ctx: Context) = "${ctx.contextPath()}${path!!}"
 
-    fun ignoreDocumentation(path: String, vararg httpMethod: HttpMethod) = apply {
-        ignoredDocumentationExact.add(Pair(path, httpMethod.asList().ifEmpty { HttpMethod.values().asList() }))
-    }
-
-    fun ignoreDocumentationWithPathPrefix(prefix: String, vararg httpMethod: HttpMethod) = apply {
-        ignoredDocumentationPrefix.add(Pair(prefix, httpMethod.asList().ifEmpty { HttpMethod.values().asList() }))
+    fun ignorePath(path: String, vararg httpMethod: HttpMethod) = apply {
+        ignoredPaths.add(Pair(path, httpMethod.asList().ifEmpty { HttpMethod.values().asList() }))
     }
 }
 
@@ -116,4 +107,3 @@ interface InitialConfigurationCreator {
 fun InitialConfigurationCreator(createInitialConfiguration: () -> OpenAPI) = object : InitialConfigurationCreator {
     override fun create() = createInitialConfiguration()
 }
-
