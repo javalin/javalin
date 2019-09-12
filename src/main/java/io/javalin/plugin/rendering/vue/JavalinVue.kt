@@ -70,4 +70,4 @@ object PathMaster {
     }
 }
 
-fun Path.readText(): String = Files.readAllBytes(this).toString(charset("UTF-8"))
+fun Path.readText() = String(Files.readAllBytes(this))
