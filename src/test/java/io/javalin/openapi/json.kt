@@ -109,31 +109,6 @@ val simpleExample = """
 """.formatJson()
 
 @Language("JSON")
-val defaultValueExample = """
-{
-  "openapi" : "3.0.1",
-  "info" : {
-    "title" : "Example",
-    "version" : "1.0.0"
-  },
-  "paths" : {
-    "/unimplemented" : {
-      "get" : {
-        "summary" : "This path is not implemented in javalin",
-        "operationId" : "getUnimplemented",
-        "responses" : {
-          "200" : {
-            "description" : "Default response"
-          }
-        }
-      }
-    }
-  },
-  "components" : { }
-}
-""".trimIndent()
-
-@Language("JSON")
 val simpleExampleWithMultipleGets = """
   {
     "openapi": "3.0.1",
@@ -263,7 +238,12 @@ val complexExampleJson = """
   "paths": {
     "/unimplemented": {
       "get": {
-        "summary": "This path is not implemented in javalin"
+        "summary": "This path is not implemented in javalin",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       }
     },
     "/user": {

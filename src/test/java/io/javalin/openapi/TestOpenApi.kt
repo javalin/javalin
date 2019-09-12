@@ -84,20 +84,6 @@ fun createComplexExampleBaseConfiguration() = openapiDsl {
     }
 }
 
-fun createDefaultValueExample() = openapiDsl {
-    info {
-        title = "Example"
-        version = "1.0.0"
-    }
-    paths {
-        path("/unimplemented") {
-            get {
-                summary = "This path is not implemented in javalin"
-            }
-        }
-    }
-}
-
 data class MyError(val message: String)
 
 class TestOpenApi {
@@ -415,15 +401,5 @@ class TestOpenApi {
             assertThat(actualHeaders.getFirst("Access-Control-Allow-Origin")).isEqualTo("*")
             assertThat(actualHeaders.getFirst("Access-Control-Allow-Methods")).isEqualTo("GET")
         }
-    }
-
-    @Test
-    fun `createSchema() with initialConfiguration generates default documentation`(){
-        val app = Javalin.create {
-            it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createDefaultValueExample)))
-        }
-
-        val actual = JavalinOpenApi.createSchema(app)
-        assertThat(actual.asJsonString()).isEqualTo(defaultValueExample)
     }
 }
