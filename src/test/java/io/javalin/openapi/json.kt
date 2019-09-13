@@ -316,6 +316,38 @@ val complexExampleJson = """
         }
       }
     },
+    "/user/{userid}": {
+      "get": {
+        "summary": "Get specific user",
+        "description": "Get a specific user with his/her id",
+        "operationId": "getSpecificUser",
+        "parameters": [ {
+          "name": "userid",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        } ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{my-path-param}": {
       "get": {
         "tags": ["user"],
@@ -694,3 +726,74 @@ val defaultOperationExampleJson = """
   }
 }
 """.formatJson()
+
+@Language("json")
+val userWithIdJsonExpected = """
+{
+	"get": {
+		"summary": "Get specific user",
+		"description": "Get a specific user with his/her id",
+		"operationId": "getSpecificUser",
+		"responses": {
+			"200": {
+				"description": "Request successful",
+				"content": {
+					"application/xml": {
+						"schema": {
+							"$ref": "#/components/schemas/User"
+						}
+					},
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/User"
+						}
+					}
+				}
+			}
+		},
+		"parameters": [
+			{
+				"schema": {
+					"type": "string"
+				},
+				"in": "path",
+				"name": "userid",
+				"required": true
+			}
+		]
+	}
+}
+""".trimIndent()
+
+@Language("json")
+val userJsonExpected = """
+{
+	"get": {
+		"summary": "Get current user",
+		"deprecated": true,
+		"description": "Get a specific user",
+		"operationId": "getCurrentUser",
+		"responses": {
+			"200": {
+				"description": "Request successful",
+				"content": {
+					"application/xml": {
+						"schema": {
+							"$ref": "#/components/schemas/User"
+						}
+					},
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/User"
+						}
+					}
+				}
+			}
+		},
+		"tags": [
+			"user"
+		]
+	},
+	"description": "Some additional information for the /user endpoint"
+}
+""".trimIndent()

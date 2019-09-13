@@ -37,6 +37,23 @@ fun getUserHandler(ctx: Context) {
 }
 
 @OpenApi(
+    description = "Get a specific user with his/her id",
+    summary = "Get specific user",
+    operationId = "getSpecificUser",
+    responses = [
+        OpenApiResponse(
+            status = "200",
+            content = [
+                OpenApiContent(User::class),
+                OpenApiContent(User::class, type = "application/xml")
+            ],
+            description = "Request successful")
+    ]
+)
+fun getSpecificUserHandler(ctx: Context) {
+}
+
+@OpenApi(
         tags = ["user"],
         cookies = [
             OpenApiParam(name = "my-cookie", type = String::class, description = "My cookie")
@@ -166,6 +183,7 @@ class TestOpenApiAnnotations {
         }
 
         app.get("/user", ::getUserHandler)
+        app.get("/user/:userid", ::getSpecificUserHandler)
         app.get("/users/:my-path-param", ::getUsersHandler)
         app.get("/users2", ::getUsers2Handler)
         app.put("/user", ::putUserHandler)
