@@ -694,3 +694,28 @@ val defaultOperationExampleJson = """
   }
 }
 """.formatJson()
+
+val overrideJson = """
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "Override Example",
+    "version" : "1.0.0"
+  },
+  "paths" : {
+    "/user" : {
+      "get" : {
+        "summary" : "Get user",
+        "description" : "post description overwritten",
+        "operationId" : "getUser"
+      },
+      "post" : {
+        "summary" : "Post user",
+        "description" : "get description overwritten",
+        "operationId" : "postUser"
+      }
+    }
+  },
+  "components" : { }
+}
+""".formatJson()

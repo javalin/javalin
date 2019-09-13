@@ -16,13 +16,16 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
         app.events { it.handlerAdded { handlerInfo -> handlerMetaInfoList.add(handlerInfo) } }
     }
 
-    fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(CreateSchemaOptions(
+    fun createOpenAPISchema(): OpenAPI = JavalinOpenApi.createSchema(
+        CreateSchemaOptions(
             handlerMetaInfoList = handlerMetaInfoList,
             initialConfigurationCreator = options.initialConfigurationCreator,
             default = options.default,
             modelConverterFactory = options.modelConverterFactory,
-            packagePrefixesToScan = options.packagePrefixesToScan
-    ))
+            packagePrefixesToScan = options.packagePrefixesToScan,
+            overridenPaths = options.overriddenDocumentation
+        )
+    )
 
     @OpenApi(ignore = true)
     override fun handle(ctx: Context) {

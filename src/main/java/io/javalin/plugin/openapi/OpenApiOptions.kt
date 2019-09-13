@@ -3,6 +3,7 @@ package io.javalin.plugin.openapi
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.json.ToJsonMapper
+import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
@@ -45,6 +46,10 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
      * A list of package prefixes to scan for annotations.
      */
     var packagePrefixesToScan = mutableSetOf<String>()
+    /**
+     * Manual set the documentation of specific paths
+     */
+    var overriddenDocumentation: MutableMap<Pair<String, HttpMethod>, OpenApiDocumentation> = mutableMapOf()
 
     constructor(info: Info) : this(InitialConfigurationCreator { OpenAPI().info(info) })
 
@@ -79,6 +84,10 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
     fun toJsonMapper(value: ToJsonMapper) = apply { toJsonMapper = value }
 
     fun getFullDocumentationUrl(ctx: Context) = "${ctx.contextPath()}${path!!}"
+
+    fun setDocumentation(path: String, method: HttpMethod, documentation: OpenApiDocumentation) = apply {
+        overriddenDocumentation[Pair(path, method)] = documentation
+    }
 }
 
 fun OpenApiOptions(createInitialConfiguration: () -> OpenAPI) =
@@ -97,4 +106,3 @@ interface InitialConfigurationCreator {
 fun InitialConfigurationCreator(createInitialConfiguration: () -> OpenAPI) = object : InitialConfigurationCreator {
     override fun create() = createInitialConfiguration()
 }
-

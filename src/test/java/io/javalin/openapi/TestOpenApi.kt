@@ -24,6 +24,7 @@ import io.javalin.http.Context
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
+import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documentCrud
@@ -401,5 +402,32 @@ class TestOpenApi {
             assertThat(actualHeaders.getFirst("Access-Control-Allow-Origin")).isEqualTo("*")
             assertThat(actualHeaders.getFirst("Access-Control-Allow-Methods")).isEqualTo("GET")
         }
+    }
+
+    @Test
+    fun `setDocumentation() works`() {
+        val app = Javalin.create {
+            it.registerPlugin(
+                OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
+                    .setDocumentation("/user", HttpMethod.POST, document().operation {
+                        it.description = "get description overwritten"
+                    })
+                    .setDocumentation("/user", HttpMethod.GET, document().operation {
+                        it.description = "post description overwritten"
+                    })
+                )
+            )
+        }
+
+        app.get("/user", documented(document().operation {
+            it.summary = "Summary"
+            it.description = "test"
+        }.result<String>("200")) {
+            it.html("Not a user")
+        })
+
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.asJsonString()).isEqualTo(overrideJson)
     }
 }
