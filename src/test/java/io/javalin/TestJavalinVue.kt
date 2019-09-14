@@ -42,20 +42,19 @@ class TestJavalinVue {
     @Test
     fun `vue component without state`() = TestUtil.test { app, http ->
         JavalinVue.stateFunction = { ctx -> mapOf<String, String>() }
-        app.get("/no-state", VueComponent("<other-component></other-component>"))
+        app.get("/no-state", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/no-state")
         assertThat(res).contains("""pathParams: {}""")
         assertThat(res).contains("""queryParams: {}""")
         assertThat(res).contains("""state: {}""")
-        assertThat(res).contains("<body><other-component></other-component></body>")
+        assertThat(res).contains("<body><test-component></test-component></body>")
     }
 
     @Test
     fun `vue component works Javalin#error`() = TestUtil.test { app, http ->
         app.get("/") { it.status(404) }
-        app.error(400, VueComponent("<bad-request></bad-request>"))
-        app.error(404, "html", VueComponent("<not-found></not-found>"))
-        assertThat(http.htmlGet("/").body).contains("<body><not-found></not-found></body>")
+        app.error(404, "html", VueComponent("<test-component></test-component>"))
+        assertThat(http.htmlGet("/").body).contains("<body><test-component></test-component></body>")
     }
 
     @Test
@@ -71,6 +70,18 @@ class TestJavalinVue {
     }
 
     @Test
+    fun `non-existent component fails`() = TestUtil.test { app, http ->
+        app.get("/fail", VueComponent("unknown-component"))
+        assertThat(http.getBody("/fail")).contains("Route component not found: <unknown-component></unknown-component>")
+    }
+
+    @Test
+    fun `component can have attributes`() = TestUtil.test { app, http ->
+        app.get("/attr", VueComponent("<test-component attr='1'></test-component>"))
+        assertThat(http.getBody("/attr")).contains("<test-component attr='1'>")
+    }
+
+    @Test
     fun `classpath works`() = TestUtil.test { app, http ->
         JavalinVue.rootDirectory("/vue", Location.CLASSPATH)
         app.get("/classpath", VueComponent("test-component"))
@@ -79,7 +90,7 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `non-existent-folder fails`() = TestUtil.test { app, http ->
+    fun `non-existent folder fails`() = TestUtil.test { app, http ->
         JavalinVue.rootDirectory("/vue", Location.EXTERNAL)
         app.get("/fail", VueComponent("test-component"))
         assertThat(http.get("/fail").status).isEqualTo(500)

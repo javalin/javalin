@@ -9,6 +9,7 @@ package io.javalin.http.util
 import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.plugin.openapi.annotations.OpenApi
 
 class CorsBeforeHandler(private val origins: List<String>) : Handler {
     override fun handle(ctx: Context) {
@@ -22,6 +23,7 @@ class CorsBeforeHandler(private val origins: List<String>) : Handler {
 }
 
 class CorsOptionsHandler : Handler {
+    @OpenApi(ignore = true)
     override fun handle(ctx: Context) {
         ctx.header(Header.ACCESS_CONTROL_REQUEST_HEADERS)?.let {
             ctx.header(Header.ACCESS_CONTROL_ALLOW_HEADERS, it)

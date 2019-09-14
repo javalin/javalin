@@ -194,7 +194,12 @@ val provideRouteExampleJson = """
       "/test": {
         "get": {
           "summary": "Get test",
-          "operationId": "getTest"
+          "operationId": "getTest",
+          "responses" : {
+            "200" : {
+              "description" : "Default response"
+            }
+          }
         }
       }
     },
@@ -233,7 +238,12 @@ val complexExampleJson = """
   "paths": {
     "/unimplemented": {
       "get": {
-        "summary": "This path is not implemented in javalin"
+        "summary": "This path is not implemented in javalin",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       }
     },
     "/user": {
@@ -298,6 +308,43 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
+      }
+    },
+    "/user/{userid}": {
+      "get": {
+        "summary": "Get specific user",
+        "description": "Get a specific user with his/her id",
+        "operationId": "getSpecificUser",
+        "parameters": [ {
+          "name": "userid",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        } ],
+        "responses": {
+          "200": {
+            "description": "Request successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -420,6 +467,11 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
         }
       }
     },
@@ -446,6 +498,11 @@ val complexExampleJson = """
             }
           },
           "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
         }
       }
     },
@@ -529,7 +586,12 @@ val crudExampleJson = """
               "type": "string"
             }
           }
-        ]
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       },
       "patch": {
         "summary": "Patch users with userId",
@@ -543,7 +605,12 @@ val crudExampleJson = """
               "type": "string"
             }
           }
-        ]
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       }
     },
     "/users": {
@@ -568,7 +635,12 @@ val crudExampleJson = """
       },
       "post": {
         "summary": "Post users",
-        "operationId": "postUsers"
+        "operationId": "postUsers",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       }
     }
   },
@@ -654,3 +726,74 @@ val defaultOperationExampleJson = """
   }
 }
 """.formatJson()
+
+@Language("json")
+val userWithIdJsonExpected = """
+{
+	"get": {
+		"summary": "Get specific user",
+		"description": "Get a specific user with his/her id",
+		"operationId": "getSpecificUser",
+		"responses": {
+			"200": {
+				"description": "Request successful",
+				"content": {
+					"application/xml": {
+						"schema": {
+							"$ref": "#/components/schemas/User"
+						}
+					},
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/User"
+						}
+					}
+				}
+			}
+		},
+		"parameters": [
+			{
+				"schema": {
+					"type": "string"
+				},
+				"in": "path",
+				"name": "userid",
+				"required": true
+			}
+		]
+	}
+}
+""".trimIndent()
+
+@Language("json")
+val userJsonExpected = """
+{
+	"get": {
+		"summary": "Get current user",
+		"deprecated": true,
+		"description": "Get a specific user",
+		"operationId": "getCurrentUser",
+		"responses": {
+			"200": {
+				"description": "Request successful",
+				"content": {
+					"application/xml": {
+						"schema": {
+							"$ref": "#/components/schemas/User"
+						}
+					},
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/User"
+						}
+					}
+				}
+			}
+		},
+		"tags": [
+			"user"
+		]
+	},
+	"description": "Some additional information for the /user endpoint"
+}
+""".trimIndent()

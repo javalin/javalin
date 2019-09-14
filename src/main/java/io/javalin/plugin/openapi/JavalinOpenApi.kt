@@ -4,6 +4,7 @@ import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.plugin.PluginNotFoundException
 import io.javalin.plugin.openapi.dsl.applyMetaInfoList
+import io.javalin.plugin.openapi.dsl.ensureDefaultResponse
 import io.javalin.plugin.openapi.dsl.updateComponents
 import io.javalin.plugin.openapi.dsl.updatePaths
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
@@ -49,6 +50,7 @@ object JavalinOpenApi {
                 }
                 updatePaths {
                     applyMetaInfoList(options.handlerMetaInfoList, options)
+                    ensureDefaultResponse()
                 }
             }
         }

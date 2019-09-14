@@ -1,6 +1,7 @@
 package io.javalin.plugin.openapi
 
 import io.javalin.Javalin
+import io.javalin.core.PathParser
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
@@ -23,8 +24,10 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     init {
         app.events {
             it.handlerAdded { handlerInfo ->
-                handlerMetaInfoList.add(handlerInfo)
-                schema = null
+                if (handlerInfo.httpMethod.isHttpMethod()) {
+                    handlerMetaInfoList.add(handlerInfo)
+                    schema = null
+                }
             }
         }
     }
@@ -32,7 +35,14 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     fun createOpenAPISchema(): OpenAPI {
         val schema = JavalinOpenApi.createSchema(
             CreateSchemaOptions(
-                handlerMetaInfoList = handlerMetaInfoList,
+                handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
+                options.ignoredPaths.none { (path, methods) ->
+                    PathParser(path).matches(handler.path) && methods.any { method ->
+                        // HttpMethod is implemented two times :(
+                        method.name == handler.httpMethod.name
+                    }
+                }
+            },
                 initialConfigurationCreator = options.initialConfigurationCreator,
                 default = options.default,
                 modelConverterFactory = options.modelConverterFactory,
