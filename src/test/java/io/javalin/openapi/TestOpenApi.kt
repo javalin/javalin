@@ -17,6 +17,7 @@ import cc.vileda.openapi.dsl.security
 import cc.vileda.openapi.dsl.securityScheme
 import cc.vileda.openapi.dsl.server
 import cc.vileda.openapi.dsl.tag
+import com.mashape.unirest.http.Unirest
 import io.javalin.Javalin
 import io.javalin.TestUtil
 import io.javalin.apibuilder.ApiBuilder.crud
@@ -422,6 +423,27 @@ class TestOpenApi {
 
             assertThat(actualHeaders.getFirst("Access-Control-Allow-Origin")).isEqualTo("*")
             assertThat(actualHeaders.getFirst("Access-Control-Allow-Methods")).isEqualTo("GET")
+        }
+    }
+
+    @Test
+    fun testOpenApiHandlerCaching() {
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration).path("/openapi")))
+        }
+
+        TestUtil.test(app) { _, http ->
+            // Generate OpenApi-Schema
+            Unirest.get("${http.origin}/openapi").asString()
+
+            // Get cached OpenApi-Schema
+            val cachedStartTime = System.nanoTime()
+            Unirest.get("${http.origin}/openapi").asString()
+            val cachedRequestTime = System.nanoTime() - cachedStartTime
+
+            // Initializing the OpenApi schema is slow (map to yml, parse, validate)
+            // It should run loner than 100 ms, the cached version should be faster than 100ms
+            assert(cachedRequestTime / 1000 / 1000 < 100)
         }
     }
 
