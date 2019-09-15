@@ -39,11 +39,10 @@ object ContextUtil {
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
-    fun getBasicAuthCredentials(header: String?): BasicAuthCredentials? = try {
+    fun getBasicAuthCredentials(header: String?): BasicAuthCredentials {
+        require(header?.startsWith("Basic ") == true) { "Invalid basicauth header. Value was '${header}'." }
         val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(':', limit = 2)
-        BasicAuthCredentials(username, password)
-    } catch (e: Exception) {
-        null
+        return BasicAuthCredentials(username, password)
     }
 
     fun acceptsHtml(ctx: Context) = ctx.header(Header.ACCEPT)?.contains("text/html") == true

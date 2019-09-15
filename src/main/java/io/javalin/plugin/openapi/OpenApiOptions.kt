@@ -55,6 +55,17 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
      */
     var overriddenDocumentation: MutableList<HandlerMetaInfo> = mutableListOf()
 
+    /**
+     * A list of paths to ignore in documentation
+     */
+    var ignoredPaths: MutableList<Pair<String, List<HttpMethod>>> = mutableListOf()
+
+    /**
+     * Validate the generated schema with the swagger parser
+     * (prints warnings if schema is invalid)
+     */
+    var validateSchema: Boolean = false
+
     constructor(info: Info) : this(InitialConfigurationCreator { OpenAPI().info(info) })
 
     fun path(value: String) = apply { path = value }
@@ -91,6 +102,12 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
 
     fun setDocumentation(path: String, method: HttpMethod, documentation: OpenApiDocumentation) = apply {
         overriddenDocumentation.add(HandlerMetaInfo(HandlerType.valueOf(method.name), path, documented(documentation, Handler { }), emptySet()))
+    }
+
+    fun validateSchema(validate: Boolean = true) = apply { validateSchema = validate }
+
+    fun ignorePath(path: String, vararg httpMethod: HttpMethod) = apply {
+        ignoredPaths.add(Pair(path, httpMethod.asList().ifEmpty { HttpMethod.values().asList() }))
     }
 }
 

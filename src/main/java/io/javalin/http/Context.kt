@@ -193,12 +193,12 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
 
     /**
-     * Gets basic-auth credentials from the request.
+     * Gets basic-auth credentials from the request, or throws.
      *
      * Returns a wrapper object [BasicAuthCredentials] which contains the
      * Base64 decoded username and password from the Authorization header.
      */
-    fun basicAuthCredentials(): BasicAuthCredentials? = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
+    fun basicAuthCredentials(): BasicAuthCredentials = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle */
     fun attribute(key: String, value: Any?) = req.setAttribute(key, value)
