@@ -707,15 +707,71 @@ val overrideJson = """
       "get" : {
         "summary" : "Get user",
         "description" : "post description overwritten",
-        "operationId" : "getUser"
+        "operationId" : "getUser",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
       },
       "post" : {
         "summary" : "Post user",
         "description" : "get description overwritten",
-        "operationId" : "postUser"
+        "operationId" : "postUser",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
+      }
+    },
+    "/unimplemented" : {
+      "get" : {
+        "summary" : "Get unimplemented",
+        "operationId" : "getUnimplemented",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
       }
     }
   },
-  "components" : { }
+  "components" : {
+    "schemas" : {
+      "Address" : {
+        "required" : [ "number", "street" ],
+        "type" : "object",
+        "properties" : {
+          "street" : {
+            "type" : "string"
+          },
+          "number" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "User" : {
+        "required" : [ "name" ],
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "address" : {
+            "$ref" : "#/components/schemas/Address"
+          }
+        }
+      }
+    }
+  }
 }
 """.formatJson()

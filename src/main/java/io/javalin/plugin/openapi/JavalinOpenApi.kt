@@ -1,16 +1,11 @@
 package io.javalin.plugin.openapi
 
 import io.javalin.Javalin
-import io.javalin.core.PathParser
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.plugin.PluginNotFoundException
-import io.javalin.http.Handler
-import io.javalin.http.HandlerType
-import io.javalin.plugin.openapi.annotations.HttpMethod
-import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.applyMetaInfoList
 import io.javalin.plugin.openapi.dsl.ensureDefaultResponse
-import io.javalin.plugin.openapi.dsl.documented
+import io.javalin.plugin.openapi.dsl.overridePaths
 import io.javalin.plugin.openapi.dsl.updateComponents
 import io.javalin.plugin.openapi.dsl.updatePaths
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
@@ -33,7 +28,7 @@ class CreateSchemaOptions(
 
     val packagePrefixesToScan: Set<String>,
 
-    val overridenPaths: Map<Pair<String, HttpMethod>, OpenApiDocumentation>? = emptyMap()
+    val overridenPaths: List<HandlerMetaInfo> = emptyList()
 )
 
 object JavalinOpenApi {
@@ -53,19 +48,14 @@ object JavalinOpenApi {
         val modelConverter = options.modelConverterFactory.create()
         return runWithModelConverter(modelConverter) {
             baseConfiguration.apply {
+                val handlerMetaInfoListWithOverridenPaths = overridePaths(options.handlerMetaInfoList, options.overridenPaths)
+
                 updateComponents {
-                    applyMetaInfoList(options.handlerMetaInfoList, options)
+                    applyMetaInfoList(handlerMetaInfoListWithOverridenPaths, options)
                 }
 
                 updatePaths {
-                    applyMetaInfoList(options.handlerMetaInfoList, options)
-                    options.overridenPaths?.forEach { (path, documentation) ->
-                        applyMetaInfoList(options.handlerMetaInfoList.filter {
-                            PathParser(path.first).matches(it.path) && it.httpMethod.name == path.second.name
-                        }.ifEmpty {
-                            listOf(HandlerMetaInfo(HandlerType.valueOf(path.second.name), path.first, Handler { }, emptySet()))
-                        }.map { it.copy(handler = documented(documentation, Handler { })) }, options)
-                    }
+                    applyMetaInfoList(handlerMetaInfoListWithOverridenPaths, options)
                     ensureDefaultResponse()
                 }
             }
