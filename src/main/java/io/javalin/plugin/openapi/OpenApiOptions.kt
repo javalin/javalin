@@ -1,10 +1,14 @@
 package io.javalin.plugin.openapi
 
+import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.security.Role
 import io.javalin.http.Context
+import io.javalin.http.Handler
+import io.javalin.http.HandlerType
 import io.javalin.plugin.json.ToJsonMapper
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
+import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.plugin.openapi.ui.ReDocOptions
@@ -46,6 +50,10 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
      * A list of package prefixes to scan for annotations.
      */
     var packagePrefixesToScan = mutableSetOf<String>()
+    /**
+     * Manual set the documentation of specific paths
+     */
+    var overriddenDocumentation: MutableList<HandlerMetaInfo> = mutableListOf()
 
     /**
      * A list of paths to ignore in documentation
@@ -91,6 +99,10 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
     fun toJsonMapper(value: ToJsonMapper) = apply { toJsonMapper = value }
 
     fun getFullDocumentationUrl(ctx: Context) = "${ctx.contextPath()}${path!!}"
+
+    fun setDocumentation(path: String, method: HttpMethod, documentation: OpenApiDocumentation) = apply {
+        overriddenDocumentation.add(HandlerMetaInfo(HandlerType.valueOf(method.name), path, documented(documentation, Handler { }), emptySet()))
+    }
 
     fun validateSchema(validate: Boolean = true) = apply { validateSchema = validate }
 

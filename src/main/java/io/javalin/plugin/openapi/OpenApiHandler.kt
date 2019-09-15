@@ -36,25 +36,26 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
         val schema = JavalinOpenApi.createSchema(
             CreateSchemaOptions(
                 handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
-                options.ignoredPaths.none { (path, methods) ->
-                    PathParser(path).matches(handler.path) && methods.any { method ->
-                        // HttpMethod is implemented two times :(
-                        method.name == handler.httpMethod.name
+                    options.ignoredPaths.none { (path, methods) ->
+                        PathParser(path).matches(handler.path) && methods.any { method ->
+                            // HttpMethod is implemented two times :(
+                            method.name == handler.httpMethod.name
+                        }
                     }
-                }
-            },
+                },
                 initialConfigurationCreator = options.initialConfigurationCreator,
                 default = options.default,
                 modelConverterFactory = options.modelConverterFactory,
-                packagePrefixesToScan = options.packagePrefixesToScan
+                packagePrefixesToScan = options.packagePrefixesToScan,
+                overridenPaths = options.overriddenDocumentation
             )
         )
 
-        if(options.validateSchema){
+        if (options.validateSchema) {
             Util.ensureDependencyPresent(OptionalDependency.SWAGGERPARSER)
             val parsedSchema = OpenAPIV3Parser().readContents(Yaml.mapper().writeValueAsString(schema))
 
-            if(parsedSchema.messages.isNotEmpty()){
+            if (parsedSchema.messages.isNotEmpty()) {
                 logger.warn("The generated OpenApi specification is not valid")
 
                 parsedSchema.messages.forEach {

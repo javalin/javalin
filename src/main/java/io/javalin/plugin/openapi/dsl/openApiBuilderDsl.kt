@@ -21,6 +21,17 @@ import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(JavalinOpenApi::class.java)
 
+fun overridePaths(
+    handlerMetaInfoList: List<HandlerMetaInfo>,
+    overridenPaths: List<HandlerMetaInfo>
+): List<HandlerMetaInfo> {
+    return overridenPaths.plus(handlerMetaInfoList.filter { handler ->
+        overridenPaths.none { overridenHandler ->
+            PathParser(overridenHandler.path).matches(handler.path) && overridenHandler.httpMethod == handler.httpMethod
+        }
+    })
+}
+
 fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
         .map { it.extractDocumentation(options) }

@@ -5,6 +5,7 @@ import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.plugin.PluginNotFoundException
 import io.javalin.plugin.openapi.dsl.applyMetaInfoList
 import io.javalin.plugin.openapi.dsl.ensureDefaultResponse
+import io.javalin.plugin.openapi.dsl.overridePaths
 import io.javalin.plugin.openapi.dsl.updateComponents
 import io.javalin.plugin.openapi.dsl.updatePaths
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
@@ -13,19 +14,21 @@ import io.swagger.v3.core.converter.ModelConverters
 import io.swagger.v3.oas.models.OpenAPI
 
 class CreateSchemaOptions(
-        val handlerMetaInfoList: List<HandlerMetaInfo>,
+    val handlerMetaInfoList: List<HandlerMetaInfo>,
 
-        /**
-         * Create the base open api configuration.
-         * This function will be called before the creation of every schema.
-         */
-        val initialConfigurationCreator: InitialConfigurationCreator,
+    /**
+     * Create the base open api configuration.
+     * This function will be called before the creation of every schema.
+     */
+    val initialConfigurationCreator: InitialConfigurationCreator,
 
-        val default: DefaultDocumentation?,
+    val default: DefaultDocumentation?,
 
-        val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory,
+    val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory,
 
-        val packagePrefixesToScan: Set<String>
+    val packagePrefixesToScan: Set<String>,
+
+    val overridenPaths: List<HandlerMetaInfo> = emptyList()
 )
 
 object JavalinOpenApi {
@@ -45,11 +48,14 @@ object JavalinOpenApi {
         val modelConverter = options.modelConverterFactory.create()
         return runWithModelConverter(modelConverter) {
             baseConfiguration.apply {
+                val handlerMetaInfoListWithOverridenPaths = overridePaths(options.handlerMetaInfoList, options.overridenPaths)
+
                 updateComponents {
-                    applyMetaInfoList(options.handlerMetaInfoList, options)
+                    applyMetaInfoList(handlerMetaInfoListWithOverridenPaths, options)
                 }
+
                 updatePaths {
-                    applyMetaInfoList(options.handlerMetaInfoList, options)
+                    applyMetaInfoList(handlerMetaInfoListWithOverridenPaths, options)
                     ensureDefaultResponse()
                 }
             }

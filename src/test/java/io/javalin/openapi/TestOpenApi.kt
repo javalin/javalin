@@ -427,6 +427,64 @@ class TestOpenApi {
     }
 
     @Test
+    fun `setDocumentation() works`() {
+        val app = Javalin.create {
+            it.registerPlugin(
+                OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
+                    .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
+                        operation.description = "get description overwritten"
+                    })
+                    .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
+                        operation.description = "post description overwritten"
+                    }.result<User>("200"))
+                )
+            )
+        }
+
+        app.get("/user", documented(document().operation {
+            it.summary = "Summary"
+            it.description = "test"
+        }.result<String>("200")) {
+            it.html("Not a user")
+        })
+
+        app.get("/unimplemented") {
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.asJsonString()).isEqualTo(overrideJson)
+    }
+
+    @Test
+    fun `setDocumentation() with non existing path works`() {
+        val app = Javalin.create {
+            it.registerPlugin(
+                OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
+                    .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
+                        operation.description = "get description overwritten"
+                    })
+                    .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
+                        operation.description = "post description overwritten"
+                    }.result<User>("200"))
+                    .setDocumentation("/unimplemented", HttpMethod.GET, document())
+                )
+            )
+        }
+
+        app.get("/user", documented(document().operation {
+            it.summary = "Summary"
+            it.description = "test"
+        }.result<String>("200")) {
+            it.html("Not a user")
+        })
+
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.asJsonString()).isEqualTo(overrideJson)
+    }
+
+    @Test
     fun testOpenApiHandlerCaching() {
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration).path("/openapi")))
