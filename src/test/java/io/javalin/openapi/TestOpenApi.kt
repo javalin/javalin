@@ -430,14 +430,14 @@ class TestOpenApi {
     fun `setDocumentation() works`() {
         val app = Javalin.create {
             it.registerPlugin(
-                OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
-                    .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
-                        operation.description = "get description overwritten"
-                    })
-                    .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
-                        operation.description = "post description overwritten"
-                    }.result<User>("200"))
-                )
+                    OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
+                            .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
+                                operation.description = "get description overwritten"
+                            })
+                            .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
+                                operation.description = "post description overwritten"
+                            }.result<User>("200"))
+                    )
             )
         }
 
@@ -460,15 +460,15 @@ class TestOpenApi {
     fun `setDocumentation() with non existing path works`() {
         val app = Javalin.create {
             it.registerPlugin(
-                OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
-                    .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
-                        operation.description = "get description overwritten"
-                    })
-                    .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
-                        operation.description = "post description overwritten"
-                    }.result<User>("200"))
-                    .setDocumentation("/unimplemented", HttpMethod.GET, document())
-                )
+                    OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
+                            .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
+                                operation.description = "get description overwritten"
+                            })
+                            .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
+                                operation.description = "post description overwritten"
+                            }.result<User>("200"))
+                            .setDocumentation("/unimplemented", HttpMethod.GET, document())
+                    )
             )
         }
 

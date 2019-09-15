@@ -6,14 +6,16 @@
 
 package io.javalin.examples
 
-import io.javalin.http.Context
-import io.javalin.http.Handler
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
-import io.javalin.examples.HelloWorldAuth.MyRoles.*
 import io.javalin.core.security.Role
 import io.javalin.core.security.SecurityUtil.roles
+import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE
+import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE
+import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO
+import io.javalin.http.Context
+import io.javalin.http.Handler
 
 enum class MyRoles : Role {
     ROLE_ONE, ROLE_TWO, ROLE_THREE

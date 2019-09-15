@@ -37,7 +37,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * When enabling Brotli, we try loading the jvm-brotli native library first.
      * If this fails, we keep Brotli disabled and warn the user.
      */
-    private fun tryLoadBrotli(brotli: Brotli) : Brotli? {
+    private fun tryLoadBrotli(brotli: Brotli): Brotli? {
         Util.ensureDependencyPresent(OptionalDependency.JVMBROTLI, startupCheck = true)
         val brotliAvailable = BrotliLoader.isBrotliAvailable()
         if (brotliAvailable) {

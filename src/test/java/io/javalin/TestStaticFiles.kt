@@ -16,7 +16,12 @@ import org.eclipse.jetty.server.ServletResponseHttpWrapper
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.Test
 import java.util.*
-import javax.servlet.*
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
+import javax.servlet.FilterChain
+import javax.servlet.FilterConfig
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
 
 class TestStaticFiles {
 

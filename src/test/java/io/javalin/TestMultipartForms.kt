@@ -8,7 +8,11 @@ package io.javalin
 
 import io.javalin.misc.UploadInfo
 import io.javalin.plugin.json.JavalinJackson
-import okhttp3.*
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test

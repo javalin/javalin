@@ -14,21 +14,21 @@ import io.swagger.v3.core.converter.ModelConverters
 import io.swagger.v3.oas.models.OpenAPI
 
 class CreateSchemaOptions(
-    val handlerMetaInfoList: List<HandlerMetaInfo>,
+        val handlerMetaInfoList: List<HandlerMetaInfo>,
 
-    /**
-     * Create the base open api configuration.
-     * This function will be called before the creation of every schema.
-     */
-    val initialConfigurationCreator: InitialConfigurationCreator,
+        /**
+         * Create the base open api configuration.
+         * This function will be called before the creation of every schema.
+         */
+        val initialConfigurationCreator: InitialConfigurationCreator,
 
-    val default: DefaultDocumentation?,
+        val default: DefaultDocumentation?,
 
-    val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory,
+        val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory,
 
-    val packagePrefixesToScan: Set<String>,
+        val packagePrefixesToScan: Set<String>,
 
-    val overridenPaths: List<HandlerMetaInfo> = emptyList()
+        val overridenPaths: List<HandlerMetaInfo> = emptyList()
 )
 
 object JavalinOpenApi {

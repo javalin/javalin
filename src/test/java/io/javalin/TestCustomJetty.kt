@@ -13,7 +13,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.handler.*
+import org.eclipse.jetty.server.handler.ContextHandlerCollection
+import org.eclipse.jetty.server.handler.HandlerCollection
+import org.eclipse.jetty.server.handler.HandlerList
+import org.eclipse.jetty.server.handler.HandlerWrapper
+import org.eclipse.jetty.server.handler.RequestLogHandler
+import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler

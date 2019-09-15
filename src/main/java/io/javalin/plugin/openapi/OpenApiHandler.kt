@@ -34,21 +34,21 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
 
     fun createOpenAPISchema(): OpenAPI {
         val schema = JavalinOpenApi.createSchema(
-            CreateSchemaOptions(
-                handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
-                    options.ignoredPaths.none { (path, methods) ->
-                        PathParser(path).matches(handler.path) && methods.any { method ->
-                            // HttpMethod is implemented two times :(
-                            method.name == handler.httpMethod.name
-                        }
-                    }
-                },
-                initialConfigurationCreator = options.initialConfigurationCreator,
-                default = options.default,
-                modelConverterFactory = options.modelConverterFactory,
-                packagePrefixesToScan = options.packagePrefixesToScan,
-                overridenPaths = options.overriddenDocumentation
-            )
+                CreateSchemaOptions(
+                        handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
+                            options.ignoredPaths.none { (path, methods) ->
+                                PathParser(path).matches(handler.path) && methods.any { method ->
+                                    // HttpMethod is implemented two times :(
+                                    method.name == handler.httpMethod.name
+                                }
+                            }
+                        },
+                        initialConfigurationCreator = options.initialConfigurationCreator,
+                        default = options.default,
+                        modelConverterFactory = options.modelConverterFactory,
+                        packagePrefixesToScan = options.packagePrefixesToScan,
+                        overridenPaths = options.overriddenDocumentation
+                )
         )
 
         if (options.validateSchema) {

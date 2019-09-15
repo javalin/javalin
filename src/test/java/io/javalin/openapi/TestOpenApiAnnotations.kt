@@ -13,7 +13,13 @@ import io.javalin.http.Handler
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
+import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
+import io.javalin.plugin.openapi.annotations.OpenApiParam
+import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
+import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
@@ -37,18 +43,18 @@ fun getUserHandler(ctx: Context) {
 }
 
 @OpenApi(
-    description = "Get a specific user with his/her id",
-    summary = "Get specific user",
-    operationId = "getSpecificUser",
-    responses = [
-        OpenApiResponse(
-            status = "200",
-            content = [
-                OpenApiContent(User::class),
-                OpenApiContent(User::class, type = "application/xml")
-            ],
-            description = "Request successful")
-    ]
+        description = "Get a specific user with his/her id",
+        summary = "Get specific user",
+        operationId = "getSpecificUser",
+        responses = [
+            OpenApiResponse(
+                    status = "200",
+                    content = [
+                        OpenApiContent(User::class),
+                        OpenApiContent(User::class, type = "application/xml")
+                    ],
+                    description = "Request successful")
+        ]
 )
 fun getSpecificUserHandler(ctx: Context) {
 }

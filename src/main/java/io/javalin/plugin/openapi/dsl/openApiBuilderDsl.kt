@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(JavalinOpenApi::class.java)
 
 fun overridePaths(
-    handlerMetaInfoList: List<HandlerMetaInfo>,
-    overridenPaths: List<HandlerMetaInfo>
+        handlerMetaInfoList: List<HandlerMetaInfo>,
+        overridenPaths: List<HandlerMetaInfo>
 ): List<HandlerMetaInfo> {
     return overridenPaths.plus(handlerMetaInfoList.filter { handler ->
         overridenPaths.none { overridenHandler ->
@@ -34,52 +34,52 @@ fun overridePaths(
 
 fun Components.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
-        .map { it.extractDocumentation(options) }
-        .filter { it.isIgnored != true }
-        .flatMap { it.componentsUpdaterList }
-        .applyAllUpdates(this)
+            .map { it.extractDocumentation(options) }
+            .filter { it.isIgnored != true }
+            .flatMap { it.componentsUpdaterList }
+            .applyAllUpdates(this)
 }
 
 fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options: CreateSchemaOptions) {
     handlerMetaInfoList
-        .filter { it.extractDocumentation(options).isIgnored != true }
-        .groupBy { it.path }
-        .forEach { (url, metaInfos) ->
-            val pathParser = PathParser(url)
-            updatePath(pathParser.getOpenApiUrl()) {
-                applyMetaInfoList(options, pathParser, metaInfos)
+            .filter { it.extractDocumentation(options).isIgnored != true }
+            .groupBy { it.path }
+            .forEach { (url, metaInfos) ->
+                val pathParser = PathParser(url)
+                updatePath(pathParser.getOpenApiUrl()) {
+                    applyMetaInfoList(options, pathParser, metaInfos)
+                }
             }
-        }
 }
 
 fun PathParser.getOpenApiUrl(): String {
     val segmentsString = segments
-        .joinToString("/") {
-            when (it) {
-                is PathSegment.Normal -> it.content
-                /*
-                 * At the moment, OpenApi does not support wildcards. So we just leave it as it is.
-                 * Once it is implemented we can change this.
-                 */
-                is PathSegment.Wildcard -> "*"
-                is PathSegment.Parameter -> "{${it.name}}"
+            .joinToString("/") {
+                when (it) {
+                    is PathSegment.Normal -> it.content
+                    /*
+                     * At the moment, OpenApi does not support wildcards. So we just leave it as it is.
+                     * Once it is implemented we can change this.
+                     */
+                    is PathSegment.Wildcard -> "*"
+                    is PathSegment.Parameter -> "{${it.name}}"
+                }
             }
-        }
     return "/$segmentsString"
 }
 
 fun PathItem.applyMetaInfoList(
-    options: CreateSchemaOptions,
-    path: PathParser,
-    handlerMetaInfoList: List<HandlerMetaInfo>
+        options: CreateSchemaOptions,
+        path: PathParser,
+        handlerMetaInfoList: List<HandlerMetaInfo>
 ) {
     handlerMetaInfoList
-        .forEach { metaInfo ->
-            val pathItemHttpMethod = metaInfo.httpMethod.asPathItemHttpMethod() ?: return@forEach
-            operation(pathItemHttpMethod, Operation().apply {
-                applyMetaInfo(options, path, metaInfo)
-            })
-        }
+            .forEach { metaInfo ->
+                val pathItemHttpMethod = metaInfo.httpMethod.asPathItemHttpMethod() ?: return@forEach
+                operation(pathItemHttpMethod, Operation().apply {
+                    applyMetaInfo(options, path, metaInfo)
+                })
+            }
 }
 
 fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, metaInfo: HandlerMetaInfo) {
@@ -99,10 +99,10 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
     }
 
     documentation.parameterUpdaterListMapping
-        .values
-        .forEach { updaters ->
-            updateParameter { updaters.applyAllUpdates(this) }
-        }
+            .values
+            .forEach { updaters ->
+                updateParameter { updaters.applyAllUpdates(this) }
+            }
 
     if (documentation.hasRequestBodies()) {
         updateRequestBody {
@@ -113,11 +113,11 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
     if (documentation.hasResponses()) {
         updateResponses {
             documentation.responseUpdaterListMapping
-                .forEach { (name, updater) ->
-                    updateResponse(name) {
-                        updater.applyAllUpdates(this)
+                    .forEach { (name, updater) ->
+                        updateResponse(name) {
+                            updater.applyAllUpdates(this)
+                        }
                     }
-                }
         }
     }
 
@@ -127,20 +127,20 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
 fun Paths.ensureDefaultResponse() {
     forEach { url, path ->
         path.readOperationsMap()
-            .filter { (_, operation) ->
-                operation.responses.isNullOrEmpty()
-            }
-            .forEach { (method, operation) ->
-                operation.updateResponses {
-                    updateResponse("200") {
-                        this.description("Default response")
-                    }
+                .filter { (_, operation) ->
+                    operation.responses.isNullOrEmpty()
                 }
+                .forEach { (method, operation) ->
+                    operation.updateResponses {
+                        updateResponse("200") {
+                            this.description("Default response")
+                        }
+                    }
 
-                logger.warn(
-                    "A default response was added to the documentation of $method $url"
-                )
-            }
+                    logger.warn(
+                            "A default response was added to the documentation of $method $url"
+                    )
+                }
     }
 }
 
@@ -202,6 +202,6 @@ private fun PathParser.asReadableWords(): List<String> {
 }
 
 private fun String.dashCaseToCamelCase() = split("-")
-    .map { it.toLowerCase() }
-    .mapIndexed { index, s -> if (index > 0) s.capitalize() else s }
-    .joinToString("")
+        .map { it.toLowerCase() }
+        .mapIndexed { index, s -> if (index > 0) s.capitalize() else s }
+        .joinToString("")
