@@ -13,6 +13,7 @@ import io.javalin.core.util.Util;
 import io.javalin.http.Handler;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JavalinJson;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 
 public class TestUtil {
@@ -20,13 +21,12 @@ public class TestUtil {
     public static Handler okHandler = ctx -> ctx.result("OK");
 
     public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
-        Util.INSTANCE.setLogIfNotStarted(false);
-        javalin.config.showJavalinBanner = false;
-        Javalin.log = LoggerFactory.getLogger(Javalin.class);
-        javalin.start(0);
-        Javalin.log = null;
-        HttpUtil http = new HttpUtil(javalin);
+        HttpUtil http = startAndCreateHttpUtil(javalin);
         test.accept(javalin, http);
+        cleanup(javalin, http);
+    }
+
+    static void cleanup(Javalin javalin, HttpUtil http) {
         javalin.delete("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
         http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
         Javalin.log = LoggerFactory.getLogger(Javalin.class);
@@ -34,6 +34,16 @@ public class TestUtil {
         JavalinJackson.configure(new ObjectMapper());
         JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE::toJson);
         JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE::fromJson);
+    }
+
+    @NotNull
+    static HttpUtil startAndCreateHttpUtil(Javalin javalin) {
+        Util.INSTANCE.setLogIfNotStarted(false);
+        javalin.config.showJavalinBanner = false;
+        Javalin.log = LoggerFactory.getLogger(Javalin.class);
+        javalin.start(0);
+        Javalin.log = null;
+        return new HttpUtil(javalin);
     }
 
     public static void test(ThrowingBiConsumer<Javalin, HttpUtil> test) {
