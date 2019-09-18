@@ -74,10 +74,10 @@ class TestCustomJetty {
                 assertThat(http.getBody("/")).isEqualTo("Hello World")
                 assertThat(http.get("/not_there").status).isEqualTo(404)
             }
-            assertThat(handlerChain.dispatched).isEqualTo(requests * 2)
-            assertThat(handlerChain.responses2xx).isEqualTo(requests)
-            assertThat(handlerChain.responses4xx).isEqualTo(requests)
-            assertThat(logCount.get()).isEqualTo((requests * 2).toLong())
+            assertThat(handlerChain.dispatched).`as`("dispatched").isEqualTo(requests * 2)
+            assertThat(handlerChain.responses2xx).`as`("responses 2xx").isEqualTo(requests)
+            assertThat(handlerChain.responses4xx).`as`("responses 4xx").isEqualTo(requests)
+            assertThat(logCount.get()).`as`("logCount").isEqualTo((requests * 2).toLong())
         }
     }
 
