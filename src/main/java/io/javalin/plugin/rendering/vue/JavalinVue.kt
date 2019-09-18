@@ -75,7 +75,7 @@ class VueComponent(private val component: String) : Handler {
 object PathMaster {
     private val fileSystem by lazy { FileSystems.newFileSystem(PathMaster::class.java.getResource("").toURI(), emptyMap<String, Any>()) }
     fun classpathPath(path: String): Path = when {
-        PathMaster::class.java.getResource("").toURI().scheme == "jar" -> fileSystem.getPath(path)
+        PathMaster::class.java.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path)
         else -> Paths.get(PathMaster::class.java.getResource(path).toURI())
     }
 }
