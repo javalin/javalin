@@ -11,10 +11,12 @@ jobs:
         java_version: [1.8, 11]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up JDK ${{ matrix.java_version }}
-      uses: actions/setup-java@v1
-      with:
-        java-version: ${{ matrix.java_version }}
-    - name: Build with Maven
-      run: mvn package --file pom.xml
+      - uses: actions/checkout@v1
+      - name: Set up JDK ${{ matrix.java_version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java_version }}
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+      - name: Build with Maven
+        run: ./mvnw package --file pom.xml
