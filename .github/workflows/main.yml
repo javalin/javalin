@@ -5,18 +5,21 @@ on: [push, pull_request]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        java_version: [1.8, 11]
+        java_version: [1.8, 9, 10, 11, 12]
+        os: [windows-latest, macOS-latest, ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/checkout@v1
       - name: Set up JDK ${{ matrix.java_version }}
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java_version }}
-      - name: Make Maven wrapper executable
+      - name: Make Maven Wrapper executable
+        if: contains(matrix.os, 'win') == false
         run: chmod +x ./mvnw
       - name: Build with Maven
         run: ./mvnw package --file pom.xml
