@@ -11,11 +11,13 @@ import io.javalin.core.compression.Brotli
 import io.javalin.misc.captureStdOut
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.AfterClass
+import org.junit.Assume
 import org.junit.BeforeClass
 import org.junit.Test
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
+import java.util.*
 
 class TestWebBrowser {
 
@@ -26,6 +28,8 @@ class TestWebBrowser {
         @BeforeClass
         @JvmStatic
         fun setupClass() {
+            val os: String = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
+            Assume.assumeTrue("mac" !in os && "darwin" !in os)
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--headless")
