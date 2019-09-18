@@ -39,7 +39,11 @@ class TestWebBrowser {
 
         @AfterClass
         @JvmStatic
-        fun teardownClass() = driver.quit()
+        fun teardownClass() {
+            if (Companion::driver.isInitialized) {
+                driver.quit()
+            }
+        }
     }
 
     @Test
