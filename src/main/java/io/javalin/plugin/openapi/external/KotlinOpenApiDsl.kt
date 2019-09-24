@@ -114,7 +114,7 @@ fun schemaArray(clazzArray: Array<Class<*>>): List<Schema<*>> {
     return clazzArray.map { refSchema(it) }
 }
 
-internal fun Content.mediaTypeComposed(clazzArray: Array<Class<*>>, type: SchemaType, name: String) {
+fun Content.mediaTypeComposed(clazzArray: Array<Class<*>>, type: SchemaType, name: String) {
     val mediaType = MediaType()
     mediaType.schema = composedSchema(clazzArray, type)
     addMediaType(name, mediaType)
