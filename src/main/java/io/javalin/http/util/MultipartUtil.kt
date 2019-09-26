@@ -7,7 +7,6 @@
 package io.javalin.http.util
 
 import io.javalin.http.UploadedFile
-import java.io.ByteArrayInputStream
 import java.nio.charset.Charset
 import javax.servlet.MultipartConfigElement
 import javax.servlet.http.HttpServletRequest
@@ -23,7 +22,8 @@ object MultipartUtil {
                     contentType = filePart.contentType,
                     contentLength = filePart.size.toInt(),
                     filename = filePart.submittedFileName,
-                    extension = filePart.submittedFileName.replaceBeforeLast(".", "")
+                    extension = filePart.submittedFileName.replaceBeforeLast(".", ""),
+                    size = filePart.size
             )
         }
     }
