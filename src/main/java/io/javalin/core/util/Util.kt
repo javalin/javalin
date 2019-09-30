@@ -107,7 +107,6 @@ object Util {
 
     @JvmStatic
     fun getWebjarPublicPath(ctx: Context, dependency: OptionalDependency): String {
-        assertWebjarInstalled(dependency)
         return "${ctx.contextPath()}/webjars/${dependency.artifactId}/${dependency.version}"
     }
 

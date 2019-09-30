@@ -189,7 +189,7 @@ object RouteOverviewUtil {
             {
                 "handlers": [
                 ${handlerInfo.map { (handlerType, path, handler, roles) ->
-                    """
+            """
                     {
                         "path": "$path",
                         "handlerType": "$handlerType",
@@ -201,7 +201,7 @@ object RouteOverviewUtil {
                 ],
                 "wsHandlers": [
                 ${wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
-                    """
+            """
                     {
                         "path": "$path",
                         "handlerType": "$wsHandlerType",

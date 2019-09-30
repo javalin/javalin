@@ -4,7 +4,13 @@ import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.NULL_CLASS
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.SchemaType
-import io.javalin.plugin.openapi.external.*
+import io.javalin.plugin.openapi.external.mediaType
+import io.javalin.plugin.openapi.external.mediaTypeArrayOf
+import io.javalin.plugin.openapi.external.mediaTypeArrayOfRef
+import io.javalin.plugin.openapi.external.mediaTypeComposed
+import io.javalin.plugin.openapi.external.mediaTypeComposedArray
+import io.javalin.plugin.openapi.external.mediaTypeRef
+import io.javalin.plugin.openapi.external.schema
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType

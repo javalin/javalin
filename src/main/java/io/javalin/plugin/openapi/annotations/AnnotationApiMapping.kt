@@ -1,6 +1,10 @@
 package io.javalin.plugin.openapi.annotations
 
-import io.javalin.plugin.openapi.dsl.*
+import io.javalin.plugin.openapi.dsl.DocumentedContent
+import io.javalin.plugin.openapi.dsl.DocumentedParameter
+import io.javalin.plugin.openapi.dsl.DocumentedResponse
+import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
+import io.javalin.plugin.openapi.dsl.createUpdater
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.parameters.RequestBody
 import kotlin.reflect.KClass

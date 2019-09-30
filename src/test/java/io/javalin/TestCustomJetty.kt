@@ -13,7 +13,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.handler.*
+import org.eclipse.jetty.server.handler.ContextHandlerCollection
+import org.eclipse.jetty.server.handler.HandlerCollection
+import org.eclipse.jetty.server.handler.HandlerList
+import org.eclipse.jetty.server.handler.HandlerWrapper
+import org.eclipse.jetty.server.handler.RequestLogHandler
+import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
@@ -69,10 +74,10 @@ class TestCustomJetty {
                 assertThat(http.getBody("/")).isEqualTo("Hello World")
                 assertThat(http.get("/not_there").status).isEqualTo(404)
             }
-            assertThat(handlerChain.dispatched).isEqualTo(requests * 2)
-            assertThat(handlerChain.responses2xx).isEqualTo(requests)
-            assertThat(handlerChain.responses4xx).isEqualTo(requests)
-            assertThat(logCount.get()).isEqualTo((requests * 2).toLong())
+            assertThat(handlerChain.dispatched).`as`("dispatched").isEqualTo(requests * 2)
+            assertThat(handlerChain.responses2xx).`as`("responses 2xx").isEqualTo(requests)
+            assertThat(handlerChain.responses4xx).`as`("responses 4xx").isEqualTo(requests)
+            assertThat(logCount.get()).`as`("logCount").isEqualTo((requests * 2).toLong())
         }
     }
 

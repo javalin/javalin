@@ -204,6 +204,19 @@ class TestRequest {
     }
 
     @Test
+    fun `basicauth requires Basic prefix to header`() = TestUtil.test { app, http ->
+        app.get("/") {
+            try {
+                it.basicAuthCredentials()
+            } catch (e: IllegalArgumentException) {
+                it.result(e.message!!)
+            }
+        }
+        val response = Unirest.get("${http.origin}/").header(Header.AUTHORIZATION, "user:pass").asString()
+        assertThat(response.body).isEqualTo("Invalid basicauth header. Value was 'user:pass'.")
+    }
+
+    @Test
     fun `matchedPath() returns the path used to match the request`() = TestUtil.test { app, http ->
         app.get("/matched") { ctx -> ctx.result(ctx.matchedPath()) }
         app.get("/matched/:path-param") { ctx -> ctx.result(ctx.matchedPath()) }
@@ -285,4 +298,9 @@ class TestRequest {
         assertThat(http.getBody("/")).isEqualTo("unirest-java/1.3.11")
     }
 
+    @Test
+    fun `validator header() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.json(ctx.header<Double>("double").get().javaClass.name) }
+        assertThat(http.getBody("/", mapOf("double" to "12.34"))).isEqualTo("\"double\"")
+    }
 }
