@@ -114,10 +114,10 @@ fun simpleAnyOfSchema() = openapiDsl {
 data class MyError(val message: String)
 
 class TestOpenApi {
-    @Test
-    fun `createSchema() work with complexExample and dsl`() {
+
+    fun buildComplexExample(options: OpenApiOptions): Javalin {
         val app = Javalin.create {
-            it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration)))
+            it.registerPlugin(OpenApiPlugin(options))
         }
 
         val getUserDocumentation = document()
@@ -134,6 +134,21 @@ class TestOpenApi {
                 .result("200", documentedContent<User>("application/xml"))
         app.get("/user", documented(getUserDocumentation) {
             it.json(User(name = "Jim"))
+        })
+
+        val getUserDocumentationSpecific = document()
+                .operation {
+                    it.description = "Get a specific user with his/her id"
+                    it.summary = "Get specific user"
+                    it.operationId = "getSpecificUser"
+                }
+                .json<User>("200") {
+                    it.description = "Request successful"
+                }
+                .result("200", documentedContent<User>("application/xml"))
+
+        app.get("/user/:userid", documented(getUserDocumentationSpecific) {
+            it.json(User(name = it.pathParam("userid")))
         })
 
         val getUsersDocumentation = document()
@@ -164,141 +179,74 @@ class TestOpenApi {
             val ageFilter = it.queryParam("age")
             it.json(listOf(User(name = "Jim")))
         })
-fun buildComplexExample(options: OpenApiOptions): Javalin {
-    val app = Javalin.create {
-        it.registerPlugin(OpenApiPlugin(options))
+
+        val getUsers2Documentation = document()
+                .operation {
+                    it.addTagsItem("user")
+                }
+                .json<Array<User>>("200")
+        app.get("/users2", documented(getUsers2Documentation) { it.json(listOf(User(name = "Jim"))) })
+
+        val putUserDocumentation = document()
+                .operation {
+                    it.addTagsItem("user")
+                }
+                .body<String> {
+                    it.description = "body description"
+                    it.required = true
+                }
+                .body<User>("application/json")
+                .body<User>("application/xml")
+                .bodyAsBytes()
+                .bodyAsBytes("image/png")
+        app.put("/user", documented(putUserDocumentation) {
+            val userString = it.body()
+            val user = it.bodyAsClass(User::class.java)
+            val userAsBytes = it.bodyAsBytes()
+            val userImage = it.bodyAsBytes()
+        })
+
+        val getStringDocumentation = OpenApiDocumentation()
+                .result<String>("200")
+        app.get("/string", documented(getStringDocumentation) {
+            it.result("Hello")
+        })
+
+        val getHomepageDocumentation = OpenApiDocumentation()
+                .html("200") {
+                    it.description = "My Homepage"
+                }
+        app.get("/homepage", documented(getHomepageDocumentation) {
+            it.html("<p>Hello World</p>")
+        })
+
+        val getUploadDocumentation = OpenApiDocumentation()
+                .uploadedFile("file") {
+                    it.description = "MyFile"
+                    it.required = true
+                }
+        app.get("/upload", documented(getUploadDocumentation) {
+            it.uploadedFile("file")
+        })
+
+        val getUploadsDocumentation = OpenApiDocumentation()
+                .uploadedFiles("files") {
+                    it.description = "MyFiles"
+                    it.required = true
+                }
+        app.get("/uploads", documented(getUploadsDocumentation) {
+            it.uploadedFiles("files")
+        })
+
+        val getResourcesDocumentation = OpenApiDocumentation()
+                .result<Unit>("200")
+        app.get("/resources/*", documented(getResourcesDocumentation) {})
+
+        app.get("/ignored", documented(document().ignore()) {})
+
+        return app
     }
 
-    val getUserDocumentation = document()
-            .operation {
-                it.description = "Get a specific user"
-                it.summary = "Get current user"
-                it.operationId = "getCurrentUser"
-                it.deprecated = true
-                it.addTagsItem("user")
-            }
-            .json<User>("200") {
-                it.description = "Request successful"
-            }
-            .result("200", documentedContent<User>("application/xml"))
-    app.get("/user", documented(getUserDocumentation) {
-        it.json(User(name = "Jim"))
-    })
-
-    val getUserDocumentationSpecific = document()
-            .operation {
-                it.description = "Get a specific user with his/her id"
-                it.summary = "Get specific user"
-                it.operationId = "getSpecificUser"
-            }
-            .json<User>("200") {
-                it.description = "Request successful"
-            }
-            .result("200", documentedContent<User>("application/xml"))
-
-    app.get("/user/:userid", documented(getUserDocumentationSpecific) {
-        it.json(User(name = it.pathParam("userid")))
-    })
-
-    val getUsersDocumentation = document()
-            .operation {
-                it.addTagsItem("user")
-            }
-            .cookie<String>("my-cookie") {
-                it.description = "My cookie"
-            }
-            .header<String>("x-my-header") {
-                it.description = "My header"
-            }
-            .pathParam<Int>("my-path-param") {
-                it.description = "My path param"
-            }
-            .queryParam<String>("name") {
-                it.description = "The name of the users you want to filter"
-                it.required = true
-                it.deprecated = true
-                it.allowEmptyValue = true
-            }
-            .queryParam<Int>("age")
-            .jsonArray<User>("200")
-    app.get("/users/:my-path-param", documented(getUsersDocumentation) {
-        val myCookie = it.cookie("my-cookie")
-        val myHeader = it.cookie("x-my-header")
-        val nameFilter = it.queryParam("name")
-        val ageFilter = it.queryParam("age")
-        it.json(listOf(User(name = "Jim")))
-    })
-
-    val getUsers2Documentation = document()
-            .operation {
-                it.addTagsItem("user")
-            }
-            .json<Array<User>>("200")
-    app.get("/users2", documented(getUsers2Documentation) { it.json(listOf(User(name = "Jim"))) })
-
-    val putUserDocumentation = document()
-            .operation {
-                it.addTagsItem("user")
-            }
-            .body<String> {
-                it.description = "body description"
-                it.required = true
-            }
-            .body<User>("application/json")
-            .body<User>("application/xml")
-            .bodyAsBytes()
-            .bodyAsBytes("image/png")
-    app.put("/user", documented(putUserDocumentation) {
-        val userString = it.body()
-        val user = it.bodyAsClass(User::class.java)
-        val userAsBytes = it.bodyAsBytes()
-        val userImage = it.bodyAsBytes()
-    })
-
-    val getStringDocumentation = OpenApiDocumentation()
-            .result<String>("200")
-    app.get("/string", documented(getStringDocumentation) {
-        it.result("Hello")
-    })
-
-    val getHomepageDocumentation = OpenApiDocumentation()
-            .html("200") {
-                it.description = "My Homepage"
-            }
-    app.get("/homepage", documented(getHomepageDocumentation) {
-        it.html("<p>Hello World</p>")
-    })
-
-    val getUploadDocumentation = OpenApiDocumentation()
-            .uploadedFile("file") {
-                it.description = "MyFile"
-                it.required = true
-            }
-    app.get("/upload", documented(getUploadDocumentation) {
-        it.uploadedFile("file")
-    })
-
-    val getUploadsDocumentation = OpenApiDocumentation()
-            .uploadedFiles("files") {
-                it.description = "MyFiles"
-                it.required = true
-            }
-    app.get("/uploads", documented(getUploadsDocumentation) {
-        it.uploadedFiles("files")
-    })
-
-    val getResourcesDocumentation = OpenApiDocumentation()
-            .result<Unit>("200")
-    app.get("/resources/*", documented(getResourcesDocumentation) {})
-
-    app.get("/ignored", documented(document().ignore()) {})
-
-    return app
-}
-
-data class MyError(val message: String)
-
-class TestOpenApi {
     @Test
     fun `createSchema() work with complexExample and dsl`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration))
@@ -510,8 +458,9 @@ class TestOpenApi {
         }
         val actual = JavalinOpenApi.createSchema(app)
         assertThat(actual.asJsonString()).isEqualTo(dslComposedSchema)
+    }
 
-      
+
     @Test
     fun `setDocumentation() works`() {
         val app = Javalin.create {

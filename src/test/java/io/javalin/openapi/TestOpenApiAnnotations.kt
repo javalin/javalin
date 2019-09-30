@@ -20,6 +20,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.plugin.openapi.annotations.SchemaType
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
@@ -50,8 +51,8 @@ fun getUserHandler(ctx: Context) {
             OpenApiResponse(
                     status = "200",
                     content = [
-                        OpenApiContent(User::class),
-                        OpenApiContent(User::class, type = "application/xml")
+                        OpenApiContent([User::class]),
+                        OpenApiContent([User::class], type = "application/xml")
                     ],
                     description = "Request successful")
         ]
