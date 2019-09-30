@@ -7,11 +7,13 @@ import io.swagger.v3.oas.models.examples.Example
 import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.BooleanSchema
 import io.swagger.v3.oas.models.media.Content
+import io.swagger.v3.oas.models.media.ComposedSchema
 import io.swagger.v3.oas.models.media.DateSchema
 import io.swagger.v3.oas.models.media.DateTimeSchema
 import io.swagger.v3.oas.models.media.IntegerSchema
 import io.swagger.v3.oas.models.media.MapSchema
 import io.swagger.v3.oas.models.media.MediaType
+import io.swagger.v3.oas.models.media.ObjectSchema
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.StringSchema
 import io.swagger.v3.oas.models.parameters.Parameter
