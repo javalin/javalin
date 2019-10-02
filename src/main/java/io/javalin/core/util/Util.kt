@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.net.URL
+import java.net.URLEncoder
 import java.util.*
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
@@ -66,6 +67,9 @@ object Util {
             |
             |build.gradle:
             |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
+            |
+            |Find the latest version here:
+            |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
             |-------------------------------------------------------------------""".trimMargin()
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
