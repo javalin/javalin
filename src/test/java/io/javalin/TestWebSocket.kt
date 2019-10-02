@@ -135,6 +135,7 @@ class TestWebSocket {
         doAndSleepWhile({ testClient1_2.close() }, { testClient1_2.isClosing })
         doAndSleepWhile({ testClient2_1.connect() }, { !testClient2_1.isOpen })
         doAndSleepWhile({ testClient2_1.close() }, { testClient2_1.isClosing })
+        Thread.sleep(50)
         assertThat(app.logger().log).containsExactlyInAnyOrder(
                 "0 connected",
                 "1 connected",
