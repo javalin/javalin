@@ -13,9 +13,9 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The access manager is a way of implementing per-endpoint security management.
- * It's only enabled for endpoints if a list of roles is provided.
- * Ex: get("/secured", SecuredController::get, roles(LOGGED_IN));
+ * The access manager is a way of implementing per-endpoint security management. It's only enabled
+ * for endpoints if a list of roles is provided. Ex: get("/secured", SecuredController::get,
+ * roles(LOGGED_IN));
  *
  * @see Role
  * @see io.javalin.Javalin#addHandler(HandlerType, String, Handler, Set)
@@ -23,5 +23,6 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface AccessManager {
-    void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<Role> permittedRoles) throws Exception;
+  void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<Role> permittedRoles)
+      throws Exception;
 }

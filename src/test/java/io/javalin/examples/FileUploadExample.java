@@ -11,26 +11,28 @@ import io.javalin.core.util.FileUtil;
 
 public class FileUploadExample {
 
-    public static void main(String[] args) {
+  public static void main(String[] args) {
 
-        Javalin app = Javalin.create().start(7000);
+    Javalin app = Javalin.create().start(7000);
 
-        app.get("/", ctx ->
+    app.get(
+        "/",
+        ctx ->
             ctx.html(
                 ""
                     + "<form method='post' enctype='multipart/form-data'>"
                     + "    <input type='file' name='files' multiple>"
                     + "    <button>Upload</button>"
-                    + "</form>"
-            )
-        );
+                    + "</form>"));
 
-        app.post("/", ctx -> {
-            ctx.uploadedFiles("files").forEach(file -> {
-                FileUtil.streamToFile(file.getContent(), "upload/" + file.getFilename());
-            });
+    app.post(
+        "/",
+        ctx -> {
+          ctx.uploadedFiles("files")
+              .forEach(
+                  file -> {
+                    FileUtil.streamToFile(file.getContent(), "upload/" + file.getFilename());
+                  });
         });
-
-    }
-
+  }
 }

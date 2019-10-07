@@ -6,29 +6,32 @@
 
 package io.javalin.examples;
 
-import io.javalin.Javalin;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.patch;
 import static io.javalin.apibuilder.ApiBuilder.post;
 
+import io.javalin.Javalin;
+
 public class HelloWorldCors {
 
-    public static void main(String[] args) {
+  public static void main(String[] args) {
 
-        Javalin corsApp = Javalin.create(config -> {
-            config.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002");
-        }).start(7070);
+    Javalin corsApp =
+        Javalin.create(
+                config -> {
+                  config.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002");
+                })
+            .start(7070);
 
-        corsApp.routes(() -> {
-            get(ctx -> ctx.json("Hello Get"));
-            post(ctx -> ctx.json("Hello Post"));
-            patch(ctx -> ctx.json("Hello Patch"));
+    corsApp.routes(
+        () -> {
+          get(ctx -> ctx.json("Hello Get"));
+          post(ctx -> ctx.json("Hello Post"));
+          patch(ctx -> ctx.json("Hello Patch"));
         });
 
-        Javalin.create().start(7001).get("/", ctx -> ctx.html("Try some CORS"));
-        Javalin.create().start(7002).get("/", ctx -> ctx.html("Try some CORS"));
-        Javalin.create().start(7003).get("/", ctx -> ctx.html("No CORS here"));
-
-    }
-
+    Javalin.create().start(7001).get("/", ctx -> ctx.html("Try some CORS"));
+    Javalin.create().start(7002).get("/", ctx -> ctx.html("Try some CORS"));
+    Javalin.create().start(7003).get("/", ctx -> ctx.html("No CORS here"));
+  }
 }

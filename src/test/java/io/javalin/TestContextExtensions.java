@@ -6,37 +6,38 @@
 
 package io.javalin;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.javalin.http.Context;
 import io.javalin.misc.SerializeableObject;
 import org.junit.Test;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestContextExtensions {
 
-    @Test
-    public void context_extensions_work() {
-        TestUtil.test((app, http) -> {
-            app.before(ctx -> ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx)));
-            app.get("/extended", ctx -> ctx.use(MyJsonMapper.class).toJson(new SerializeableObject()));
-            String expected = new GsonBuilder().create().toJson(new SerializeableObject());
-            assertThat(http.getBody("/extended")).isEqualTo(expected);
+  @Test
+  public void context_extensions_work() {
+    TestUtil.test(
+        (app, http) -> {
+          app.before(ctx -> ctx.register(MyJsonMapper.class, new MyJsonMapper(ctx)));
+          app.get(
+              "/extended", ctx -> ctx.use(MyJsonMapper.class).toJson(new SerializeableObject()));
+          String expected = new GsonBuilder().create().toJson(new SerializeableObject());
+          assertThat(http.getBody("/extended")).isEqualTo(expected);
         });
+  }
+
+  class MyJsonMapper {
+    private Context ctx;
+    private Gson gson = new GsonBuilder().create();
+
+    MyJsonMapper(Context ctx) {
+      this.ctx = ctx;
     }
 
-    class MyJsonMapper {
-        private Context ctx;
-        private Gson gson = new GsonBuilder().create();
-
-        MyJsonMapper(Context ctx) {
-            this.ctx = ctx;
-        }
-
-        void toJson(Object obj) {
-            ctx.result(gson.toJson(obj)).contentType("application/json");
-        }
+    void toJson(Object obj) {
+      ctx.result(gson.toJson(obj)).contentType("application/json");
     }
-
+  }
 }
-

@@ -7,12 +7,13 @@
 package io.javalin.core.event;
 
 /**
- * Main interface for Lifecycle Event Handlers. A Runnable does not suffice because
- * the an event handler may throw a checked exception.
+ * Main interface for Lifecycle Event Handlers. A Runnable does not suffice because the an event
+ * handler may throw a checked exception.
  *
- * @see <a href="https://javalin.io/documentation#lifecycle-events">Lifecycle Events in documentation</a>
+ * @see <a href="https://javalin.io/documentation#lifecycle-events">Lifecycle Events in
+ *     documentation</a>
  */
 @FunctionalInterface
 public interface EventHandler {
-    void handleEvent() throws Exception;
+  void handleEvent() throws Exception;
 }

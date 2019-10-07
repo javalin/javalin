@@ -10,5 +10,5 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface WsMessageHandler {
-    void handleMessage(@NotNull WsMessageContext ctx) throws Exception;
+  void handleMessage(@NotNull WsMessageContext ctx) throws Exception;
 }

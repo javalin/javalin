@@ -23,38 +23,33 @@ import io.swagger.v3.oas.models.info.Info;
 
 public class HelloWorldSwagger {
 
-    public static void main(String[] args) {
+  public static void main(String[] args) {
 
-        JavalinJackson.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    JavalinJackson.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-        OpenApiOptions openApiOptions = new OpenApiOptions(new Info().version("1.0").description("My Application"))
+    OpenApiOptions openApiOptions =
+        new OpenApiOptions(new Info().version("1.0").description("My Application"))
             .activateAnnotationScanningFor("io.javalin.examples")
             .path("/swagger-docs")
             .swagger(new SwaggerOptions("/swagger").title("My Swagger Documentation"))
             .reDoc(new ReDocOptions("/redoc").title("My ReDoc Documentation"));
 
-        Javalin app = Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions))).start(7070);
+    Javalin app =
+        Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions)))
+            .start(7070);
 
-        app.post("/users", ExampleController::create);
-
-    }
-
+    app.post("/users", ExampleController::create);
+  }
 }
 
 class ExampleController {
 
-    @OpenApi(
-        path = "/users",
-        method = HttpMethod.POST,
-        queryParams = {
-            @OpenApiParam(name = "my-query-param")
-        },
-        responses = {
-            @OpenApiResponse(status = "201", content = @OpenApiContent(from = String.class))
-        }
-    )
-    public static void create(Context ctx) {
-
-    }
-
+  @OpenApi(
+      path = "/users",
+      method = HttpMethod.POST,
+      queryParams = {@OpenApiParam(name = "my-query-param")},
+      responses = {
+        @OpenApiResponse(status = "201", content = @OpenApiContent(from = String.class))
+      })
+  public static void create(Context ctx) {}
 }

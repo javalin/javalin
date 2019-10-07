@@ -11,10 +11,11 @@ import io.javalin.http.staticfiles.Location;
 
 public class HelloWorldStaticFiles_external {
 
-    public static void main(String[] args) {
-        Javalin.create(config -> {
-            config.addStaticFiles("src/test/external/", Location.EXTERNAL);
-        }).start(7070);
-    }
-
+  public static void main(String[] args) {
+    Javalin.create(
+            config -> {
+              config.addStaticFiles("src/test/external/", Location.EXTERNAL);
+            })
+        .start(7070);
+  }
 }

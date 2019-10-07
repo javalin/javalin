@@ -14,15 +14,13 @@ import java.util.Arrays;
 
 public class HelloWorldGson {
 
-    public static void main(String[] args) {
+  public static void main(String[] args) {
 
-        Gson gson = new GsonBuilder().create();
-        JavalinJson.setFromJsonMapper(gson::fromJson);
-        JavalinJson.setToJsonMapper(gson::toJson);
+    Gson gson = new GsonBuilder().create();
+    JavalinJson.setFromJsonMapper(gson::fromJson);
+    JavalinJson.setToJsonMapper(gson::toJson);
 
-        Javalin app = Javalin.create().start(7070);
-        app.get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")));
-
-    }
-
+    Javalin app = Javalin.create().start(7070);
+    app.get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")));
+  }
 }

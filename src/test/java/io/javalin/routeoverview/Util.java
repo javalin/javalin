@@ -10,7 +10,7 @@ import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.http.Handler;
 
 public class Util {
-    static String getMetaInfo(Handler handler) {
-        return RouteOverviewUtil.getMetaInfo(handler);
-    }
+  static String getMetaInfo(Handler handler) {
+    return RouteOverviewUtil.getMetaInfo(handler);
+  }
 }

@@ -10,13 +10,13 @@ import io.javalin.Javalin;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A handler for use with {@link Javalin#exception(Class, ExceptionHandler)}.
- * Is triggered when exceptions are thrown by a {@link Handler}.
+ * A handler for use with {@link Javalin#exception(Class, ExceptionHandler)}. Is triggered when
+ * exceptions are thrown by a {@link Handler}.
  *
  * @see Context
  * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
  */
 @FunctionalInterface
 public interface ExceptionHandler<T extends Exception> {
-    void handle(@NotNull T exception, @NotNull Context ctx);
+  void handle(@NotNull T exception, @NotNull Context ctx);
 }

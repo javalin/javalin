@@ -11,5 +11,4 @@ package io.javalin.core.security;
  *
  * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
  */
-public interface Role {
-}
+public interface Role {}

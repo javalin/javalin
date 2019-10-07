@@ -12,9 +12,10 @@ import org.jetbrains.annotations.NotNull;
  * Interface for logging requests.
  *
  * @see Context
- * @see <a href="https://javalin.io/documentation#request-loggers">RequestLogger in documentation</a>
+ * @see <a href="https://javalin.io/documentation#request-loggers">RequestLogger in
+ *     documentation</a>
  */
 @FunctionalInterface
 public interface RequestLogger {
-    void handle(@NotNull Context ctx, @NotNull Float executionTimeMs) throws Exception;
+  void handle(@NotNull Context ctx, @NotNull Float executionTimeMs) throws Exception;
 }

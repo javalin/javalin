@@ -11,10 +11,11 @@ import io.javalin.Javalin;
 
 public class HelloWorldStaticFiles {
 
-    public static void main(String[] args) {
-        Javalin.create(config -> {
-            config.addStaticFiles("/public");
-        }).start(7070);
-    }
-
+  public static void main(String[] args) {
+    Javalin.create(
+            config -> {
+              config.addStaticFiles("/public");
+            })
+        .start(7070);
+  }
 }

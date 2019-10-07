@@ -6,6 +6,9 @@
 
 package io.javalin.performance;
 
+import static java.util.stream.IntStream.range;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.javalin.Javalin;
 import io.javalin.misc.HttpUtil;
 import java.util.concurrent.Callable;
@@ -19,56 +22,72 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static java.util.stream.IntStream.range;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class SimpleAsyncTest {
 
-    private static Logger log = LoggerFactory.getLogger(SimpleAsyncTest.class);
+  private static Logger log = LoggerFactory.getLogger(SimpleAsyncTest.class);
 
-    @Test
-    @Ignore("For running manually")
-    public void test_async() throws Exception {
+  @Test
+  @Ignore("For running manually")
+  public void test_async() throws Exception {
 
-        QueuedThreadPool threadPool = new QueuedThreadPool(10, 2, 60_000);
+    QueuedThreadPool threadPool = new QueuedThreadPool(10, 2, 60_000);
 
-        Javalin app = Javalin.create(c -> c.server(() -> new Server(threadPool))).start(0);
+    Javalin app = Javalin.create(c -> c.server(() -> new Server(threadPool))).start(0);
 
-        HttpUtil http = new HttpUtil(app);
+    HttpUtil http = new HttpUtil(app);
 
-        app.get("/test-async", ctx -> ctx.result(getFuture()));
-        app.get("/test-sync", ctx -> ctx.result(getBlockingResult()));
+    app.get("/test-async", ctx -> ctx.result(getFuture()));
+    app.get("/test-sync", ctx -> ctx.result(getBlockingResult()));
 
-        timeCallable("Async result", () -> {
-            return new ForkJoinPool(100).submit(() -> range(0, 50).parallel().forEach(i -> {
-                assertThat(http.getBody("/test-async")).isEqualTo("success");
-            })).get();
+    timeCallable(
+        "Async result",
+        () -> {
+          return new ForkJoinPool(100)
+              .submit(
+                  () ->
+                      range(0, 50)
+                          .parallel()
+                          .forEach(
+                              i -> {
+                                assertThat(http.getBody("/test-async")).isEqualTo("success");
+                              }))
+              .get();
         });
 
-        timeCallable("Blocking result", () -> {
-            return new ForkJoinPool(100).submit(() -> range(0, 50).parallel().forEach(i -> {
-                assertThat(http.getBody("/test-sync")).isEqualTo("success");
-            })).get();
+    timeCallable(
+        "Blocking result",
+        () -> {
+          return new ForkJoinPool(100)
+              .submit(
+                  () ->
+                      range(0, 50)
+                          .parallel()
+                          .forEach(
+                              i -> {
+                                assertThat(http.getBody("/test-sync")).isEqualTo("success");
+                              }))
+              .get();
         });
 
-        app.stop();
-    }
+    app.stop();
+  }
 
-    private void timeCallable(String name, Callable callable) throws Exception {
-        long startTime = System.currentTimeMillis();
-        callable.call();
-        log.info(name + " took " + (System.currentTimeMillis() - startTime) + " milliseconds");
-    }
+  private void timeCallable(String name, Callable callable) throws Exception {
+    long startTime = System.currentTimeMillis();
+    callable.call();
+    log.info(name + " took " + (System.currentTimeMillis() - startTime) + " milliseconds");
+  }
 
-    private String getBlockingResult() throws InterruptedException {
-        Thread.sleep(2000);
-        return "success";
-    }
+  private String getBlockingResult() throws InterruptedException {
+    Thread.sleep(2000);
+    return "success";
+  }
 
-    private CompletableFuture<String> getFuture() {
-        CompletableFuture<String> future = new CompletableFuture<>();
-        Executors.newSingleThreadScheduledExecutor().schedule(() -> future.complete("success"), 2000, TimeUnit.MILLISECONDS);
-        return future;
-    }
-
+  private CompletableFuture<String> getFuture() {
+    CompletableFuture<String> future = new CompletableFuture<>();
+    Executors.newSingleThreadScheduledExecutor()
+        .schedule(() -> future.complete("success"), 2000, TimeUnit.MILLISECONDS);
+    return future;
+  }
 }

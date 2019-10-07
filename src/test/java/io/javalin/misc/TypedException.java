@@ -8,7 +8,7 @@
 package io.javalin.misc;
 
 public class TypedException extends Exception {
-    public String proofOfType() {
-        return "I'm so typed";
-    }
+  public String proofOfType() {
+    return "I'm so typed";
+  }
 }

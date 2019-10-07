@@ -10,7 +10,6 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 
 public class HandlerImplementation implements Handler {
-    @Override
-    public void handle(Context context) {
-    }
+  @Override
+  public void handle(Context context) {}
 }

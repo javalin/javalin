@@ -18,27 +18,27 @@ import org.slf4j.LoggerFactory;
 
 public class TestUtil {
 
-    public static Handler okHandler = ctx -> ctx.result("OK");
+  public static Handler okHandler = ctx -> ctx.result("OK");
 
-    public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
-        Util.INSTANCE.setLogIfNotStarted(false);
-        javalin.config.showJavalinBanner = false;
-        Javalin.log = LoggerFactory.getLogger(Javalin.class);
-        javalin.start(0);
-        Javalin.log = null;
-        HttpUtil http = new HttpUtil(javalin);
-        test.accept(javalin, http);
-        javalin.delete("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
-        http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
-        Javalin.log = LoggerFactory.getLogger(Javalin.class);
-        javalin.stop();
-        JavalinJackson.configure(new ObjectMapper());
-        JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE::toJson);
-        JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE::fromJson);
-    }
+  public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
+    Util.INSTANCE.setLogIfNotStarted(false);
+    javalin.config.showJavalinBanner = false;
+    Javalin.log = LoggerFactory.getLogger(Javalin.class);
+    javalin.start(0);
+    Javalin.log = null;
+    HttpUtil http = new HttpUtil(javalin);
+    test.accept(javalin, http);
+    javalin.delete(
+        "/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
+    http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
+    Javalin.log = LoggerFactory.getLogger(Javalin.class);
+    javalin.stop();
+    JavalinJackson.configure(new ObjectMapper());
+    JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE::toJson);
+    JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE::fromJson);
+  }
 
-    public static void test(ThrowingBiConsumer<Javalin, HttpUtil> test) {
-        test(Javalin.create(), test);
-    }
-
+  public static void test(ThrowingBiConsumer<Javalin, HttpUtil> test) {
+    test(Javalin.create(), test);
+  }
 }

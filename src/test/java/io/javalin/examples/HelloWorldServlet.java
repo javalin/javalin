@@ -15,21 +15,23 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 
 public class HelloWorldServlet {
 
-    public static void main(String[] args) {
-        Javalin app = Javalin.create(config -> {
-            config.server(() -> {
-                Server server = new Server();
-                ServletContextHandler context = new ServletContextHandler();
-                context.setContextPath("/other-servlet");
-                context.addServlet(TestServlet.class, "/");
-                ContextHandlerCollection handlers = new ContextHandlerCollection();
-                handlers.setHandlers(new Handler[]{context});
-                server.setHandler(handlers);
-                return server;
+  public static void main(String[] args) {
+    Javalin app =
+        Javalin.create(
+            config -> {
+              config.server(
+                  () -> {
+                    Server server = new Server();
+                    ServletContextHandler context = new ServletContextHandler();
+                    context.setContextPath("/other-servlet");
+                    context.addServlet(TestServlet.class, "/");
+                    ContextHandlerCollection handlers = new ContextHandlerCollection();
+                    handlers.setHandlers(new Handler[] {context});
+                    server.setHandler(handlers);
+                    return server;
+                  });
             });
-        });
-        app.get("/", ctx -> ctx.result("Hello Javalin World!"));
-        app.start(8000);
-    }
-
+    app.get("/", ctx -> ctx.result("Hello Javalin World!"));
+    app.start(8000);
+  }
 }

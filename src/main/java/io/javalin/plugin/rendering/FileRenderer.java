@@ -10,10 +10,10 @@ import io.javalin.http.Context;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Interface for creating renderers to be used with {@link Context#render}.
- */
+/** Interface for creating renderers to be used with {@link Context#render}. */
 @FunctionalInterface
 public interface FileRenderer {
-    String render(@NotNull String filePath, @NotNull Map<String, Object> model, @NotNull Context context) throws Exception;
+  String render(
+      @NotNull String filePath, @NotNull Map<String, Object> model, @NotNull Context context)
+      throws Exception;
 }
