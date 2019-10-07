@@ -7,6 +7,7 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
+import io.javalin.core.security.BasicAuthFilter
 import io.javalin.core.util.Header
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -214,6 +215,20 @@ class TestRequest {
         }
         val response = Unirest.get("${http.origin}/").header(Header.AUTHORIZATION, "user:pass").asString()
         assertThat(response.body).isEqualTo("Invalid basicauth header. Value was 'user:pass'.")
+    }
+
+    @Test
+    fun `basic auth filter plugin works`() {
+        val basicauthApp = Javalin.create {
+            it.registerPlugin(BasicAuthFilter("u", "p"))
+            it.addStaticFiles("/public")
+        }.get("/hellopath") { it.result("Hello") }
+        TestUtil.test(basicauthApp) { app, http ->
+            assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")
+            assertThat(http.getBody("/html.html")).contains("Unauthorized")
+            Unirest.get("${http.origin}/hellopath").basicAuth("u", "p").asString().let { assertThat(it.body).isEqualTo("Hello") }
+            Unirest.get("${http.origin}/html.html").basicAuth("u", "p").asString().let { assertThat(it.body).contains("HTML works") }
+        }
     }
 
     @Test
