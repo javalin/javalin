@@ -167,17 +167,16 @@ object Util {
         }
     }.start()
 
-    fun <T : Any?> findByClass(map: Map<Class<out Exception>, T>, exceptionClass: Class<out Exception>): T? =
-            map.getOrElse(exceptionClass) {
-                var superclass = exceptionClass.superclass
-                while (superclass != null) {
-                    if (map.containsKey(superclass)) {
-                        return map[superclass]
-                    }
-                    superclass = superclass.superclass
-                }
-                return null
+    fun <T : Any?> findByClass(map: Map<Class<out Exception>, T>, exceptionClass: Class<out Exception>): T? = map.getOrElse(exceptionClass) {
+        var superclass = exceptionClass.superclass
+        while (superclass != null) {
+            if (map.containsKey(superclass)) {
+                return map[superclass]
             }
+            superclass = superclass.superclass
+        }
+        return null
+    }
 
     // jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
     fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
