@@ -27,8 +27,7 @@ object Util {
     fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
 
     @JvmStatic
-    fun prefixContextPath(contextPath: String, path: String) =
-            if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
+    fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
 
     private fun classExists(className: String) = try {
         Class.forName(className)
@@ -70,8 +69,7 @@ object Util {
             |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
             |
             |Find the latest version here:
-            |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId,
-                                                                   "UTF-8")}
+            |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
             |-------------------------------------------------------------------""".trimMargin()
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
@@ -79,8 +77,8 @@ object Util {
     @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
         if (!classExists(OptionalDependency.SLF4JSIMPLE.testClass) &&
-            !(classExists(OptionalDependency.SLF4J_PROVIDER_API.testClass) ||
-              classExists(OptionalDependency.SLF4J_PROVIDER_SIMPLE.testClass))) {
+                !(classExists(OptionalDependency.SLF4J_PROVIDER_API.testClass) ||
+                        classExists(OptionalDependency.SLF4J_PROVIDER_SIMPLE.testClass))) {
             System.err.println("""
             |-------------------------------------------------------------------
             |${missingDependencyMessage(OptionalDependency.SLF4JSIMPLE)}
