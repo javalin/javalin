@@ -76,9 +76,7 @@ object Util {
 
     @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
-        if (!classExists(OptionalDependency.SLF4JSIMPLE.testClass) &&
-                !(classExists(OptionalDependency.SLF4J_PROVIDER_API.testClass) ||
-                        classExists(OptionalDependency.SLF4J_PROVIDER_SIMPLE.testClass))) {
+        if (!isThereLogLibrary()) {
             System.err.println("""
             |-------------------------------------------------------------------
             |${missingDependencyMessage(OptionalDependency.SLF4JSIMPLE)}
@@ -90,6 +88,12 @@ object Util {
             |-------------------------------------------------------------------
             |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin())
         }
+    }
+
+    fun isThereLogLibrary(): Boolean {
+        return classExists(OptionalDependency.SLF4JSIMPLE.testClass) ||
+                (classExists(OptionalDependency.SLF4J_PROVIDER_API.testClass) &&
+                        classExists(OptionalDependency.SLF4J_PROVIDER_SIMPLE.testClass))
     }
 
     @JvmStatic
