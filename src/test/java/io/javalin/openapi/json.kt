@@ -411,6 +411,55 @@ val complexExampleJson = """
         "responses": $complexExampleUsersGetResponsesJson
       }
     },
+    "/form-data": {
+      "put": {
+        "summary": "Put formData",
+        "operationId": "putFormData",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "age": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/form-data-schema": {
+      "put": {
+        "summary": "Put formDataSchema",
+        "operationId": "putFormDataSchema",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Address"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/string": {
       "get": {
         "summary": "Get string",

@@ -110,6 +110,12 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
         }
     }
 
+    if (documentation.hasFormParameter()) {
+        updateRequestBody {
+            applyDocumentedFormParameters(documentation.formParameterList)
+        }
+    }
+
     if (documentation.hasResponses()) {
         updateResponses {
             documentation.responseUpdaterListMapping
