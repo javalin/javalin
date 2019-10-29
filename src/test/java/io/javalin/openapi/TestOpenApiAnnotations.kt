@@ -100,7 +100,7 @@ fun getUsers2Handler(ctx: Context) {
 
 @OpenApi(
         formParams = [
-            OpenApiFormParam(name = "name", type = String::class),
+            OpenApiFormParam(name = "name", type = String::class, required = true),
             OpenApiFormParam(name = "age", type = Int::class)
         ],
         responses = [

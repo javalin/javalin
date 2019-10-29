@@ -49,7 +49,8 @@ annotation class OpenApiParam(
 @Target()
 annotation class OpenApiFormParam(
         val name: String,
-        val type: KClass<*> = String::class
+        val type: KClass<*> = String::class,
+        val required: Boolean = false
 )
 
 @Target()

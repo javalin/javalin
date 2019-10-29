@@ -94,12 +94,12 @@ class OpenApiDocumentation {
     }
 
     // --- FORM PARAM ---
-    inline fun <reified T> formParam(name: String): OpenApiDocumentation = apply {
-        formParam(name, T::class.java)
+    inline fun <reified T> formParam(name: String, required: Boolean = false): OpenApiDocumentation = apply {
+        formParam(name, T::class.java, required)
     }
 
-    fun formParam(name: String, clazz: Class<*>) = apply {
-        formParam(DocumentedFormParameter(name, clazz))
+    fun formParam(name: String, clazz: Class<*>, required: Boolean = false) = apply {
+        formParam(DocumentedFormParameter(name, clazz, required))
     }
 
     fun formParam(formParameter: DocumentedFormParameter) = apply {

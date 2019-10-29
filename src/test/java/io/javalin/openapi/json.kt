@@ -419,6 +419,7 @@ val complexExampleJson = """
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
+                "required" : [ "name" ],
                 "type": "object",
                 "properties": {
                   "name": {

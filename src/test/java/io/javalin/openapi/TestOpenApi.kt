@@ -160,7 +160,7 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
     app.get("/users2", documented(getUsers2Documentation) { it.json(listOf(User(name = "Jim"))) })
 
     val getFormDataDocumentation = document()
-            .formParam<String>("name")
+            .formParam<String>("name", required = true)
             .formParam<Int>("age")
             .result<Unit>("200")
     app.put("/form-data", documented(getFormDataDocumentation) {
