@@ -119,9 +119,11 @@ fun OpenApi.warnUserIfPathParameterIsMissingInPath(parentClass: Class<*>) {
     val pathParamsPlaceholders = pathParams.map { ":${it.name}" };
     val pathParamsPlaceholderNotInPath = pathParamsPlaceholders.filter { !path.contains(it) }
 
-    Javalin.log.warn(
-            formatMissingPathParamsPlaceholderWarningMessage(parentClass, pathParamsPlaceholderNotInPath)
-    )
+    if (pathParamsPlaceholderNotInPath.size > 0) {
+        Javalin.log.warn(
+                formatMissingPathParamsPlaceholderWarningMessage(parentClass, pathParamsPlaceholderNotInPath)
+        )
+    }
 }
 
 fun OpenApi.formatMissingPathParamsPlaceholderWarningMessage(parentClass: Class<*>, pathParamsPlaceholders: List<String>): String {
