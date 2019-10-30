@@ -52,10 +52,10 @@ class TestCustomJetty {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
             assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
         }
+        app.stop()
         assertThat(statisticsHandler.dispatched).isEqualTo(requests * 2)
         assertThat(statisticsHandler.responses2xx).isEqualTo(requests)
         assertThat(statisticsHandler.responses4xx).isEqualTo(requests)
-        app.stop()
     }
 
     @Test
@@ -70,11 +70,11 @@ class TestCustomJetty {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
             assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
         }
+        app.stop()
         assertThat(handlerChain.dispatched).`as`("dispatched").isEqualTo(requests * 2)
         assertThat(handlerChain.responses2xx).`as`("responses 2xx").isEqualTo(requests)
         assertThat(handlerChain.responses4xx).`as`("responses 4xx").isEqualTo(requests)
         assertThat(logCount.get()).`as`("logCount").isEqualTo((requests * 2).toLong())
-        app.stop()
     }
 
     @Test
@@ -88,10 +88,10 @@ class TestCustomJetty {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
             assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
         }
+        app.stop()
         assertThat(handlerChain.dispatched).isEqualTo(requests * 2)
         assertThat(handlerChain.responses2xx).isEqualTo(requests)
         assertThat(handlerChain.responses4xx).isEqualTo(requests)
-        app.stop()
     }
 
     @Test
