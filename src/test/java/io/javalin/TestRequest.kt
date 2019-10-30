@@ -152,6 +152,12 @@ class TestRequest {
     }
 
     @Test
+    fun `queryParam() returns value containing equal sign`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.queryParam("equation")!!) }
+        assertThat(http.getBody("/?equation=2*2=4")).isEqualTo("2*2=4")
+    }
+
+    @Test
     fun `queryParams() returns empty list for unknown param`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParams("qp1").toString()) }
         assertThat(http.getBody("/")).isEqualTo("[]")
