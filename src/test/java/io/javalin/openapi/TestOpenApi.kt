@@ -159,6 +159,20 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
             .json<Array<User>>("200")
     app.get("/users2", documented(getUsers2Documentation) { it.json(listOf(User(name = "Jim"))) })
 
+    val getFormDataDocumentation = document()
+            .formParam<String>("name", required = true)
+            .formParam<Int>("age")
+            .result<Unit>("200")
+    app.put("/form-data", documented(getFormDataDocumentation) {
+        it.formParam("name")
+        it.formParam("age")
+    })
+
+    val getFormDataSchemaDocumentation = document()
+            .formParamBody<Address>()
+            .result<Unit>("200")
+    app.put("/form-data-schema", documented(getFormDataSchemaDocumentation) {})
+
     val putUserDocumentation = document()
             .operation {
                 it.addTagsItem("user")

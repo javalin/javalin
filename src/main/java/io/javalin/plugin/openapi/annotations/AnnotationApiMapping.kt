@@ -22,6 +22,8 @@ fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
     annotation.pathParams.forEach { documentation.applyParamAnnotation("path", it) }
     annotation.queryParams.forEach { documentation.applyParamAnnotation("query", it) }
 
+    annotation.formParams.forEach { documentation.formParam(it.name, it.type.java, it.required) }
+
     documentation.applyRequestBodyAnnotation(annotation.requestBody)
 
     annotation.fileUploads.forEach { fileUpload ->

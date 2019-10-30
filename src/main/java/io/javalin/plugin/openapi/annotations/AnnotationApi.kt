@@ -19,6 +19,7 @@ annotation class OpenApi(
         val headers: Array<OpenApiParam> = [],
         val pathParams: Array<OpenApiParam> = [],
         val queryParams: Array<OpenApiParam> = [],
+        val formParams: Array<OpenApiFormParam> = [],
         val requestBody: OpenApiRequestBody = OpenApiRequestBody([]),
         val fileUploads: Array<OpenApiFileUpload> = [],
         val responses: Array<OpenApiResponse> = [],
@@ -43,6 +44,13 @@ annotation class OpenApiParam(
         val deprecated: Boolean = false,
         val required: Boolean = false,
         val allowEmptyValue: Boolean = false
+)
+
+@Target()
+annotation class OpenApiFormParam(
+        val name: String,
+        val type: KClass<*> = String::class,
+        val required: Boolean = false
 )
 
 @Target()
@@ -77,6 +85,7 @@ class NULL_CLASS
 object ContentType {
     const val JSON = "application/json"
     const val HTML = "text/html"
+    const val FORM_DATA = "application/x-www-form-urlencoded"
     const val AUTODETECT = "AUTODETECT - Will be replaced later"
 }
 
