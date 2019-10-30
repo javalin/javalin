@@ -44,7 +44,7 @@ class WsHandlerController(val matcher: WsPathMatcher, val exceptionMapper: WsExc
 
     @OnWebSocketMessage
     fun onMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, buffer.toTypedArray(), offset, length)
+        val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, buffer, offset, length)
         tryBeforeAndEndpointHandlers(ctx) { it.handler.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         tryAfterHandlers(ctx) { it.handler.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)

@@ -69,7 +69,7 @@ class WsCloseContext(sessionId: String, session: Session, private val statusCode
     fun reason() = reason
 }
 
-class WsBinaryMessageContext(sessionId: String, session: Session, private val data: Array<Byte>, private val offset: Int, private val length: Int) : WsContext(sessionId, session) {
+class WsBinaryMessageContext(sessionId: String, session: Session, private val data: ByteArray, private val offset: Int, private val length: Int) : WsContext(sessionId, session) {
     fun data() = data
     fun offset() = offset
     fun length() = length
