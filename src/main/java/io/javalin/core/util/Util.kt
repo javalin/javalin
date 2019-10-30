@@ -76,7 +76,7 @@ object Util {
 
     @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
-        if (!isThereLogLibrary()) {
+        if (!loggingLibraryExists()) {
             System.err.println("""
             |-------------------------------------------------------------------
             |${missingDependencyMessage(OptionalDependency.SLF4JSIMPLE)}
@@ -90,7 +90,7 @@ object Util {
         }
     }
 
-    fun isThereLogLibrary(): Boolean {
+    fun loggingLibraryExists(): Boolean {
         return classExists(OptionalDependency.SLF4JSIMPLE.testClass) ||
                 (classExists(OptionalDependency.SLF4J_PROVIDER_API.testClass) &&
                         classExists(OptionalDependency.SLF4J_PROVIDER_SIMPLE.testClass))
