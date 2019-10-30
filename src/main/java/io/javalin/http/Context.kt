@@ -114,7 +114,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
 
-    /** Gets the request body as a [ByteArray]. */
+    /** Gets the request body as a [ByteArray].
+     *
+     * Calling this method consumes the underlying InputStream and will
+     * return an empty array unless the InputStream is cached.
+     * By default, bodies up to 4kb are cached.
+     * Use [io.javalin.core.JavalinConfig.requestCacheSize] to configure cache size.
+     */
     fun bodyAsBytes(): ByteArray = req.inputStream.readBytes()
 
     /**
