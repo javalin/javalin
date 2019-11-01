@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.Javalin
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.validation.Validator
@@ -137,6 +138,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> bodyValidator(clazz: Class<T>) = try {
         Validator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
     } catch (e: Exception) {
+        Javalin.log?.debug("Couldn't deserialize body to ${clazz.simpleName}", e);
         throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
 
