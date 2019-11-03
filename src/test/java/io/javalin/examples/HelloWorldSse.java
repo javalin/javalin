@@ -19,7 +19,7 @@ public class HelloWorldSse {
         Queue<SseClient> clients = new ConcurrentLinkedQueue<>();
 
         Javalin app = Javalin.create().start(7000);
-        app.get("/", ctx -> ctx.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));"));
+        app.get("/", ctx -> ctx.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));</script>"));
         app.sse("/sse", client -> {
             clients.add(client);
             client.onClose(() -> clients.remove(client));
