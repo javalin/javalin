@@ -194,17 +194,20 @@ class TestRequest {
     fun `hasBasicAuthCredentials() with Authorization header`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentialsExists = ctx.basicAuthCredentialsExists()
-            assertThat(basicAuthCredentialsExists)
+            ctx.result(basicAuthCredentialsExists.toString())
         }
+        val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
+        assertThat(response.body).isEqualTo("true")
     }
 
     @Test
     fun `hasBasicAuthCredentials() without Authorization header`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            ctx.header("Authorization", "Bearer abc")
             val basicAuthCredentialsExists = ctx.basicAuthCredentialsExists()
-            assertThat(basicAuthCredentialsExists).isEqualTo(false)
+            ctx.result(basicAuthCredentialsExists.toString())
         }
+        val response = Unirest.get("${http.origin}/").asString()
+        assertThat(response.body).isEqualTo("false")
     }
 
     @Test
