@@ -40,7 +40,7 @@ object ContextUtil {
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
     fun hasBasicAuthCredentials(header: String?): Boolean {
-        return header?.startsWith("Basic ") ?: false
+        return try { getBasicAuthCredentials(header); true } catch (e: IllegalArgumentException) { false }
     }
 
     fun getBasicAuthCredentials(header: String?): BasicAuthCredentials {
@@ -69,7 +69,7 @@ object ContextUtil {
     fun Context.isLocalhost() = this.host()?.contains("localhost") == true || this.host()?.contains("127.0.0.1") == true
 
     fun changeBaseRequest(ctx: Context, req: HttpServletRequest) = Context(req, ctx.res).apply {
-        this.pathParamMap = ctx.pathParamMap;
+        this.pathParamMap = ctx.pathParamMap
         this.matchedPath = ctx.matchedPath
     }
 
