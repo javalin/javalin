@@ -206,6 +206,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Returns a wrapper object [BasicAuthCredentials] which contains the
      * Base64 decoded username and password from the Authorization header.
      */
+    fun basicAuthCredentialsExists(): Boolean = ContextUtil.hasBasicAuthCredentials(header(Header.AUTHORIZATION))
+
+    /**
+     * Gets basic-auth credentials from the request, or throws.
+     *
+     * Returns a wrapper object [BasicAuthCredentials] which contains the
+     * Base64 decoded username and password from the Authorization header.
+     */
     fun basicAuthCredentials(): BasicAuthCredentials = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle */

@@ -191,6 +191,23 @@ class TestRequest {
     }
 
     @Test
+    fun `hasBasicAuthCredentials() with Authorization header`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val basicAuthCredentialsExists = ctx.basicAuthCredentialsExists()
+            assertThat(basicAuthCredentialsExists)
+        }
+    }
+
+    @Test
+    fun `hasBasicAuthCredentials() without Authorization header`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.header("Authorization", "Bearer abc")
+            val basicAuthCredentialsExists = ctx.basicAuthCredentialsExists()
+            assertThat(basicAuthCredentialsExists).isEqualTo(false)
+        }
+    }
+
+    @Test
     fun `basicAuthCredentials() extracts username and password`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
