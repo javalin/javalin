@@ -201,6 +201,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
 
     /**
+     * Checks whether or not basic-auth credentials from the request exists.
+     *
+     * Returns a Boolean which is true if there is an Authorization header with
+     * Basic auth credentials. Returns false otherwise.
+     */
+    fun basicAuthCredentialsExists(): Boolean = ContextUtil.hasBasicAuthCredentials(header(Header.AUTHORIZATION))
+
+    /**
      * Gets basic-auth credentials from the request, or throws.
      *
      * Returns a wrapper object [BasicAuthCredentials] which contains the
