@@ -13,7 +13,14 @@ import io.javalin.http.Handler
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
+import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
+import io.javalin.plugin.openapi.annotations.OpenApiFormParam
+import io.javalin.plugin.openapi.annotations.OpenApiParam
+import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
+import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
@@ -34,6 +41,23 @@ import org.junit.Test
         ]
 )
 fun getUserHandler(ctx: Context) {
+}
+
+@OpenApi(
+        description = "Get a specific user with his/her id",
+        summary = "Get specific user",
+        operationId = "getSpecificUser",
+        responses = [
+            OpenApiResponse(
+                    status = "200",
+                    content = [
+                        OpenApiContent(User::class),
+                        OpenApiContent(User::class, type = "application/xml")
+                    ],
+                    description = "Request successful")
+        ]
+)
+fun getSpecificUserHandler(ctx: Context) {
 }
 
 @OpenApi(
@@ -72,6 +96,27 @@ fun getUsersHandler(ctx: Context) {
         ]
 )
 fun getUsers2Handler(ctx: Context) {
+}
+
+@OpenApi(
+        formParams = [
+            OpenApiFormParam(name = "name", type = String::class, required = true),
+            OpenApiFormParam(name = "age", type = Int::class)
+        ],
+        responses = [
+            OpenApiResponse(status = "200")
+        ]
+)
+fun putFormDataHandler(ctx: Context) {
+}
+
+@OpenApi(
+        requestBody = OpenApiRequestBody(content = [OpenApiContent(Address::class, type = ContentType.FORM_DATA)]),
+        responses = [
+            OpenApiResponse(status = "200")
+        ]
+)
+fun putFormDataSchemaHandler(ctx: Context) {
 }
 
 @OpenApi(
@@ -166,8 +211,11 @@ class TestOpenApiAnnotations {
         }
 
         app.get("/user", ::getUserHandler)
+        app.get("/user/:userid", ::getSpecificUserHandler)
         app.get("/users/:my-path-param", ::getUsersHandler)
         app.get("/users2", ::getUsers2Handler)
+        app.put("/form-data", ::putFormDataHandler)
+        app.put("/form-data-schema", ::putFormDataSchemaHandler)
         app.put("/user", ::putUserHandler)
         app.get("/string", ::getStringHandler)
         app.get("/homepage", ::getHomepageHandler)

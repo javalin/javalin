@@ -1,6 +1,10 @@
 package io.javalin.plugin.openapi.annotations
 
-import io.javalin.plugin.openapi.dsl.*
+import io.javalin.plugin.openapi.dsl.DocumentedContent
+import io.javalin.plugin.openapi.dsl.DocumentedParameter
+import io.javalin.plugin.openapi.dsl.DocumentedResponse
+import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
+import io.javalin.plugin.openapi.dsl.createUpdater
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.parameters.RequestBody
 import kotlin.reflect.KClass
@@ -17,6 +21,8 @@ fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
     annotation.headers.forEach { documentation.applyParamAnnotation("header", it) }
     annotation.pathParams.forEach { documentation.applyParamAnnotation("path", it) }
     annotation.queryParams.forEach { documentation.applyParamAnnotation("query", it) }
+
+    annotation.formParams.forEach { documentation.formParam(it.name, it.type.java, it.required) }
 
     documentation.applyRequestBodyAnnotation(annotation.requestBody)
 

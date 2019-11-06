@@ -4,6 +4,8 @@ import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.plugin.PluginNotFoundException
 import io.javalin.plugin.openapi.dsl.applyMetaInfoList
+import io.javalin.plugin.openapi.dsl.ensureDefaultResponse
+import io.javalin.plugin.openapi.dsl.overridePaths
 import io.javalin.plugin.openapi.dsl.updateComponents
 import io.javalin.plugin.openapi.dsl.updatePaths
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
@@ -24,7 +26,9 @@ class CreateSchemaOptions(
 
         val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory,
 
-        val packagePrefixesToScan: Set<String>
+        val packagePrefixesToScan: Set<String>,
+
+        val overridenPaths: List<HandlerMetaInfo> = emptyList()
 )
 
 object JavalinOpenApi {
@@ -44,11 +48,15 @@ object JavalinOpenApi {
         val modelConverter = options.modelConverterFactory.create()
         return runWithModelConverter(modelConverter) {
             baseConfiguration.apply {
+                val handlerMetaInfoListWithOverridenPaths = overridePaths(options.handlerMetaInfoList, options.overridenPaths)
+
                 updateComponents {
-                    applyMetaInfoList(options.handlerMetaInfoList, options)
+                    applyMetaInfoList(handlerMetaInfoListWithOverridenPaths, options)
                 }
+
                 updatePaths {
-                    applyMetaInfoList(options.handlerMetaInfoList, options)
+                    applyMetaInfoList(handlerMetaInfoListWithOverridenPaths, options)
+                    ensureDefaultResponse()
                 }
             }
         }

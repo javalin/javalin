@@ -7,7 +7,11 @@
 package io.javalin.websocket
 
 import org.eclipse.jetty.websocket.api.Session
-import org.eclipse.jetty.websocket.api.annotations.*
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
+import org.eclipse.jetty.websocket.api.annotations.WebSocket
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -40,7 +44,7 @@ class WsHandlerController(val matcher: WsPathMatcher, val exceptionMapper: WsExc
 
     @OnWebSocketMessage
     fun onMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, buffer.toTypedArray(), offset, length)
+        val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, buffer, offset, length)
         tryBeforeAndEndpointHandlers(ctx) { it.handler.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         tryAfterHandlers(ctx) { it.handler.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)

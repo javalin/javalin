@@ -7,7 +7,11 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.unixsocket.UnixSocketConnector
 import org.junit.Test
-import java.io.*
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.File
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 
 class TestUnixSocketConnector {
 

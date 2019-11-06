@@ -18,9 +18,11 @@ class OpenApiDocumentation {
     val parameterUpdaterListMapping = mutableMapOf<String, MutableList<OpenApiUpdater<Parameter>>>()
     val responseUpdaterListMapping = mutableMapOf<String, MutableList<OpenApiUpdater<ApiResponse>>>()
     val componentsUpdaterList = mutableListOf<OpenApiUpdater<Components>>()
+    val formParameterList = mutableListOf<DocumentedFormParameter>()
 
     fun hasRequestBodies(): Boolean = requestBodyList.isNotEmpty()
     fun hasResponses(): Boolean = responseUpdaterListMapping.values.flatten().isNotEmpty()
+    fun hasFormParameter(): Boolean = formParameterList.isNotEmpty()
 
     /** Hide the endpoint in the documentation */
     @JvmOverloads
@@ -89,6 +91,29 @@ class OpenApiDocumentation {
         val parameterUpdaterList = parameterUpdaterListMapping.getOrSetDefault(documentedParameter.name, mutableListOf())
         parameterUpdaterList.add { it.applyDocumentedParameter(documentedParameter) }
         parameterUpdaterList.addIfNotNull(openApiUpdater)
+    }
+
+    // --- FORM PARAM ---
+    inline fun <reified T> formParam(name: String, required: Boolean = false): OpenApiDocumentation = apply {
+        formParam(name, T::class.java, required)
+    }
+
+    fun formParam(name: String, clazz: Class<*>, required: Boolean = false) = apply {
+        formParam(DocumentedFormParameter(name, clazz, required))
+    }
+
+    fun formParam(formParameter: DocumentedFormParameter) = apply {
+        formParameterList.add(formParameter)
+    }
+
+    // --- FORM PARAM BODY ---
+    inline fun <reified T> formParamBody(noinline applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
+        formParamBody(T::class.java, createUpdaterIfNotNull(applyUpdates))
+    }
+
+    @JvmOverloads
+    fun formParamBody(clazz: Class<*>, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
+        body(clazz, "application/x-www-form-urlencoded", openApiUpdater)
     }
 
     // --- UPLOADED FILE ---
@@ -283,6 +308,7 @@ class OpenApiDocumentation {
         }
 
         this.componentsUpdaterList.addAll(other.componentsUpdaterList)
+        this.formParameterList.addAll(other.formParameterList)
     }
 }
 

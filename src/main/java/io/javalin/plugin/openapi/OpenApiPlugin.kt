@@ -21,6 +21,7 @@ class OpenApiPlugin(private val options: OpenApiOptions) : Plugin, PluginLifecyc
     }
 
     override fun apply(app: Javalin) {
+        Util.ensureDependencyPresent(OptionalDependency.SWAGGER_CORE)
         if (options.path == null && (options.swagger != null || options.reDoc != null)) {
             throw IllegalStateException("""
                 Swagger or ReDoc is enabled, but there is no endpoint available for the OpenApi schema.
@@ -32,12 +33,13 @@ class OpenApiPlugin(private val options: OpenApiOptions) : Plugin, PluginLifecyc
             app.get(path, openApiHandler, options.roles)
 
             options.swagger?.let {
-                Util.ensureDependencyPresent(OptionalDependency.SWAGGER_CORE)
-                app.get(it.path, SwaggerRenderer(options))
+                Util.assertWebjarInstalled(OptionalDependency.SWAGGERUI)
+                app.get(it.path, SwaggerRenderer(options), options.roles)
             }
 
             options.reDoc?.let {
-                app.get(it.path, ReDocRenderer(options))
+                Util.assertWebjarInstalled(OptionalDependency.REDOC)
+                app.get(it.path, ReDocRenderer(options), options.roles)
             }
 
             if (options.swagger != null || options.reDoc != null) {

@@ -19,7 +19,6 @@ import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class JavaCrudHandler implements CrudHandler {
@@ -302,8 +301,8 @@ public class TestOpenApiAnnotations_Java {
         });
         assertThat(log).contains(
             "The `path` of one of the @OpenApi annotations on io.javalin.openapi.ClassHandlerWithInvalidPath is incorrect. " +
-            "The path param \":id\" is documented, but couldn't be found in GET \"/account\". " +
-            "Do you mean GET \"/account/:id\"?"
+                "The path param \":id\" is documented, but couldn't be found in GET \"/account\". " +
+                "Do you mean GET \"/account/:id\"?"
         );
     }
 }

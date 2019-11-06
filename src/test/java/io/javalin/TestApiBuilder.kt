@@ -11,7 +11,15 @@ import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
 import io.javalin.TestUtil.okHandler
 import io.javalin.apibuilder.ApiBuilder
-import io.javalin.apibuilder.ApiBuilder.*
+import io.javalin.apibuilder.ApiBuilder.after
+import io.javalin.apibuilder.ApiBuilder.before
+import io.javalin.apibuilder.ApiBuilder.crud
+import io.javalin.apibuilder.ApiBuilder.delete
+import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.apibuilder.ApiBuilder.patch
+import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.apibuilder.ApiBuilder.post
+import io.javalin.apibuilder.ApiBuilder.put
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
 import io.javalin.http.Handler

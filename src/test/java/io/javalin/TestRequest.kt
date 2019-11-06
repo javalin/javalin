@@ -7,6 +7,7 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
+import io.javalin.core.security.BasicAuthFilter
 import io.javalin.core.util.Header
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -151,6 +152,12 @@ class TestRequest {
     }
 
     @Test
+    fun `queryParam() returns value containing equal sign`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.queryParam("equation")!!) }
+        assertThat(http.getBody("/?equation=2*2=4")).isEqualTo("2*2=4")
+    }
+
+    @Test
     fun `queryParams() returns empty list for unknown param`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParams("qp1").toString()) }
         assertThat(http.getBody("/")).isEqualTo("[]")
@@ -201,6 +208,33 @@ class TestRequest {
         }
         val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
         assertThat(response.body).isEqualTo("some-username|some-pass:::word")
+    }
+
+    @Test
+    fun `basicauth requires Basic prefix to header`() = TestUtil.test { app, http ->
+        app.get("/") {
+            try {
+                it.basicAuthCredentials()
+            } catch (e: IllegalArgumentException) {
+                it.result(e.message!!)
+            }
+        }
+        val response = Unirest.get("${http.origin}/").header(Header.AUTHORIZATION, "user:pass").asString()
+        assertThat(response.body).isEqualTo("Invalid basicauth header. Value was 'user:pass'.")
+    }
+
+    @Test
+    fun `basic auth filter plugin works`() {
+        val basicauthApp = Javalin.create {
+            it.registerPlugin(BasicAuthFilter("u", "p"))
+            it.addStaticFiles("/public")
+        }.get("/hellopath") { it.result("Hello") }
+        TestUtil.test(basicauthApp) { app, http ->
+            assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")
+            assertThat(http.getBody("/html.html")).contains("Unauthorized")
+            Unirest.get("${http.origin}/hellopath").basicAuth("u", "p").asString().let { assertThat(it.body).isEqualTo("Hello") }
+            Unirest.get("${http.origin}/html.html").basicAuth("u", "p").asString().let { assertThat(it.body).contains("HTML works") }
+        }
     }
 
     @Test
@@ -285,4 +319,9 @@ class TestRequest {
         assertThat(http.getBody("/")).isEqualTo("unirest-java/1.3.11")
     }
 
+    @Test
+    fun `validator header() works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.json(ctx.header<Double>("double").get().javaClass.name) }
+        assertThat(http.getBody("/", mapOf("double" to "12.34"))).isEqualTo("\"double\"")
+    }
 }

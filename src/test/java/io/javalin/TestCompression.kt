@@ -256,7 +256,7 @@ class TestCompression {
     }
 
     @Test
-    fun `doesn't compress media files` () {
+    fun `doesn't compress media files`() {
         val mediaTestApp = Javalin.create {
             it.compressionStrategy(null, Gzip())
             it.addStaticFiles("/upload-test")
@@ -268,7 +268,7 @@ class TestCompression {
     }
 
     @Test
-    fun `doesn't compress pre-compressed files` () {
+    fun `doesn't compress pre-compressed files`() {
         val preCompressedTestApp = Javalin.create {
             it.compressionStrategy(null, Gzip())
             it.addStaticFiles("/public")

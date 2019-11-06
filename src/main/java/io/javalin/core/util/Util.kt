@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.net.URL
+import java.net.URLEncoder
 import java.util.*
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
@@ -66,19 +67,33 @@ object Util {
             |
             |build.gradle:
             |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
+            |
+            |Find the latest version here:
+            |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
             |-------------------------------------------------------------------""".trimMargin()
 
     fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
     @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
-        if (!classExists(OptionalDependency.SLF4JSIMPLE.testClass)) {
+        if (!loggingLibraryExists()) {
             System.err.println("""
             |-------------------------------------------------------------------
             |${missingDependencyMessage(OptionalDependency.SLF4JSIMPLE)}
             |-------------------------------------------------------------------
+            |OR
+            |-------------------------------------------------------------------
+            |${missingDependencyMessage(OptionalDependency.SLF4J_PROVIDER_API)} and
+            |${missingDependencyMessage(OptionalDependency.SLF4J_PROVIDER_SIMPLE)}
+            |-------------------------------------------------------------------
             |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin())
         }
+    }
+
+    fun loggingLibraryExists(): Boolean {
+        return classExists(OptionalDependency.SLF4JSIMPLE.testClass) ||
+                (classExists(OptionalDependency.SLF4J_PROVIDER_API.testClass) &&
+                        classExists(OptionalDependency.SLF4J_PROVIDER_SIMPLE.testClass))
     }
 
     @JvmStatic
@@ -107,7 +122,6 @@ object Util {
 
     @JvmStatic
     fun getWebjarPublicPath(ctx: Context, dependency: OptionalDependency): String {
-        assertWebjarInstalled(dependency)
         return "${ctx.contextPath()}/webjars/${dependency.artifactId}/${dependency.version}"
     }
 

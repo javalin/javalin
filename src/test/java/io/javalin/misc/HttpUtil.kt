@@ -25,6 +25,7 @@ class HttpUtil(javalin: Javalin) {
 
     fun get(path: String) = Unirest.get(origin + path).asString()
     fun getBody(path: String) = Unirest.get(origin + path).asString().body
+    fun getBody(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString().body
     fun post(path: String) = Unirest.post(origin + path)
     fun call(method: HttpMethod, pathname: String) = HttpRequestWithBody(method, origin + pathname).asString()
     fun htmlGet(path: String) = Unirest.get(origin + path).header(Header.ACCEPT, "text/html").asString()
