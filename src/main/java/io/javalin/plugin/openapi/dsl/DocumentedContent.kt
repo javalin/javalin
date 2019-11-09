@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -97,7 +98,8 @@ val nonRefTypes = setOf(
         Date::class.java,
         LocalDate::class.java,
         LocalDateTime::class.java,
-        ByteArray::class.java
+        ByteArray::class.java,
+        Instant::class.java
 )
 
 fun Content.applyDocumentedContent(documentedContent: DocumentedContent) {

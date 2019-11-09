@@ -17,6 +17,7 @@ import cc.vileda.openapi.dsl.security
 import cc.vileda.openapi.dsl.securityScheme
 import cc.vileda.openapi.dsl.server
 import cc.vileda.openapi.dsl.tag
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.mashape.unirest.http.Unirest
 import io.javalin.Javalin
 import io.javalin.TestUtil
@@ -32,16 +33,20 @@ import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documentCrud
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.dsl.documentedContent
+import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityScheme
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
+import java.time.Instant
 
 class Address(val street: String, val number: Int)
 
 class User(val name: String, val address: Address? = null)
+
+class Log(val timestamp: Instant, val message: String)
 
 fun createComplexExampleBaseConfiguration() = openapiDsl {
     info {
@@ -383,6 +388,56 @@ class TestOpenApi {
         assertThat(actual.paths.containsKey("/route1")).isEqualTo(true)
         assertThat(actual.paths.containsKey("/route2")).isEqualTo(false)
         assertThat(actual.paths.containsKey("/route3")).isEqualTo(false)
+    }
+
+    @Test
+    fun `createSchema() works with Instants as timestamps`() {
+        val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
+
+        val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
+                .jacksonMapper(customMapper)
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        val logsDocumentation = document()
+                .jsonArray<Log>("200")
+
+        with(app) {
+            get("/logs", documented(logsDocumentation) {})
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+        val schema = actual.components.schemas["Log"]!!
+        val timestampSchemaType = schema.properties["timestamp"]!!
+        assertThat(timestampSchemaType.type).isEqualTo("integer")
+        assertThat(timestampSchemaType.format).isEqualTo("int64")
+    }
+
+    @Test
+    fun `createSchema() works with Instants as strings`() {
+        val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+
+        val openApiOptions = OpenApiOptions(
+                Info().title("Example").version("1.0.0")
+        ).jacksonMapper(customMapper)
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        val logsDocumentation = document()
+                .jsonArray<Log>("200")
+
+        with(app) {
+            get("/logs", documented(logsDocumentation) {})
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+        val schema = actual.components.schemas["Log"]!!
+        val timestampSchemaType = schema.properties["timestamp"]!!
+        assertThat(timestampSchemaType.type).isEqualTo("string")
+        assertThat(timestampSchemaType.format).isEqualTo("date-time")
     }
 
     @Test
