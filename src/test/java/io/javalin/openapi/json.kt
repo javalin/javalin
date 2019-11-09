@@ -11,17 +11,17 @@ import io.swagger.v3.oas.models.OpenAPI
 import org.intellij.lang.annotations.Language
 
 fun configureJacksonToJsonMapper() {
-    JacksonToJsonMapper.objectMapper
+    JacksonToJsonMapper.defaultObjectMapper
             .enable(SerializationFeature.INDENT_OUTPUT)
 }
 
 fun String.formatJson(): String {
     configureJacksonToJsonMapper()
     val node = JavalinJackson.fromJson(this, JsonNode::class.java)
-    return JacksonToJsonMapper.map(node)
+    return JacksonToJsonMapper().map(node)
 }
 
-fun OpenAPI.asJsonString(): String = JacksonToJsonMapper.map(this)
+fun OpenAPI.asJsonString(): String = JacksonToJsonMapper().map(this)
 
 // This variable is needed for the jsons. That's how I can avoid the ugly """${"$"}""".
 val ref = "\$ref"

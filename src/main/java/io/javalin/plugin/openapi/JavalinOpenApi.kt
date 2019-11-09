@@ -24,7 +24,7 @@ class CreateSchemaOptions(
 
         val default: DefaultDocumentation?,
 
-        val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory,
+        val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory(),
 
         val packagePrefixesToScan: Set<String>,
 

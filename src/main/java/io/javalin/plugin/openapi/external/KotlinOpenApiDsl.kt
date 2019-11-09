@@ -123,8 +123,8 @@ internal fun <T> findSchema(clazz: Class<T>): FindSchemaResponse? {
         ByteArray::class.java -> FindSchemaResponse(StringSchema().format("binary"))
         /* END Custom classes */
         else -> {
-            val schemas = ModelConverters.getInstance().readAll(clazz)
-            schemas[clazz.simpleName]?.let { FindSchemaResponse(it, schemas) }
+            val resolved = ModelConverters.getInstance().readAllAsResolvedSchema(clazz)
+            return FindSchemaResponse(resolved.schema, resolved.referencedSchemas + mapOf(clazz.simpleName to resolved.schema))
         }
     }
 }

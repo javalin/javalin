@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.security.Role
 import io.javalin.http.Context
@@ -37,15 +38,19 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
      */
     var default: DefaultDocumentation? = null
     /**
+     * The default jackson mapper used, for "modelConverterFactory" and "toJsonMapper" if not overridden.
+     */
+    var jacksonMapper: ObjectMapper by LazyDefaultValue { JacksonToJsonMapper.defaultObjectMapper }
+    /**
      * Creates a model converter, which converts a class to an open api schema.
      * Defaults to the jackson converter.
      */
-    var modelConverterFactory: ModelConverterFactory by LazyDefaultValue { JacksonModelConverterFactory }
+    var modelConverterFactory: ModelConverterFactory by LazyDefaultValue { JacksonModelConverterFactory(jacksonMapper) }
     /**
      * The json mapper for creating the object api schema json. This is separated from
      * the default JavalinJson mappers.
      */
-    var toJsonMapper: ToJsonMapper by LazyDefaultValue { JacksonToJsonMapper }
+    var toJsonMapper: ToJsonMapper by LazyDefaultValue { JacksonToJsonMapper(jacksonMapper) }
     /**
      * A list of package prefixes to scan for annotations.
      */
@@ -93,6 +98,8 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
     fun activateAnnotationScanningFor(vararg packagePrefixes: String) = apply {
         packagePrefixesToScan.addAll(packagePrefixes)
     }
+
+    fun jacksonMapper(value: ObjectMapper) = apply { jacksonMapper = value }
 
     fun modelConverterFactory(value: ModelConverterFactory) = apply { modelConverterFactory = value }
 

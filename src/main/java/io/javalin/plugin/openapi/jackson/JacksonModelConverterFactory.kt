@@ -1,13 +1,20 @@
 package io.javalin.plugin.openapi.jackson
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.plugin.openapi.ModelConverterFactory
+import io.javalin.plugin.openapi.utils.LazyDefaultValue
 import io.swagger.v3.core.converter.ModelConverter
-import io.swagger.v3.core.jackson.ModelResolver
 
 /**
  * The default model converter, that uses jackson for the serialization.
  * This converter respects the jackson options and annotations.
  */
-object JacksonModelConverterFactory : ModelConverterFactory {
-    override fun create(): ModelConverter = ModelResolver(JacksonToJsonMapper.objectMapper)
+class JacksonModelConverterFactory(
+        objectMapper: ObjectMapper? = null
+) : ModelConverterFactory {
+    val objectMapper: ObjectMapper by LazyDefaultValue {
+        objectMapper ?: JacksonToJsonMapper.defaultObjectMapper
+    }
+
+    override fun create(): ModelConverter = JavalinModelResolver(objectMapper)
 }
