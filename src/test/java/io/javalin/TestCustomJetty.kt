@@ -38,14 +38,16 @@ class TestCustomJetty {
 
     @Test
     fun `setting port works`() {
-        Javalin.create().start(1234).get("/") { it.result("PORT WORKS") }
+        val app = Javalin.create().start(1234).get("/") { it.result("PORT WORKS") }
         assertThat(Unirest.get("http://localhost:1234/").asString().body).isEqualTo("PORT WORKS")
+        app.stop()
     }
 
     @Test
     fun `setting host works`() {
-        Javalin.create().host("127.1.2.3").start(1235).get("/") { it.result("HOST WORKS") }
+        val app = Javalin.create().host("127.1.2.3").start(1235).get("/") { it.result("HOST WORKS") }
         assertThat(Unirest.get("http://127.1.2.3:1235/").asString().body).isEqualTo("HOST WORKS")
+        app.stop()
     }
 
     @Test
