@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse
 
 class JavalinServer(val config: JavalinConfig) {
 
+    var serverHost: String? = null
     var serverPort = 7000
 
     fun server(): Server {
@@ -66,6 +67,9 @@ class JavalinServer(val config: JavalinConfig) {
             handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler))
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = serverPort
+                serverHost?.let {
+                    this.host = serverHost
+                }
             })
         }.start()
 

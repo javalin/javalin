@@ -123,6 +123,17 @@ public class Javalin {
     }
 
     /**
+     * Set the host to bind to. Often we want to set the host
+     * to "0.0.0.0" when running as docker container.
+     *
+     * @param host The host IP to bind to
+     */
+    public Javalin host(String host) {
+        server.setServerHost(host);
+        return this;
+    }
+
+    /**
      * Synchronously starts the application instance on the specified port.
      *
      * @param port to run on
