@@ -25,13 +25,18 @@ import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.net.BindException
+import java.net.InetSocketAddress
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JavalinServer(val config: JavalinConfig) {
 
-    var serverHost: String = "0.0.0.0"
     var serverPort = 7000
+    var serverHost: String = defaultHost()
+
+    private fun defaultHost(): String {
+        return InetSocketAddress(serverPort).hostName
+    }
 
     fun server(): Server {
         config.inner.server = config.inner.server ?: JettyUtil.getOrDefault(config.inner.server)
