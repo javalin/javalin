@@ -123,8 +123,7 @@ public class Javalin {
     }
 
     /**
-     * Set the host to bind to. Often we want to set the host
-     * to "0.0.0.0" when running as docker container.
+     * Set the host IP to bind to. This defaults to "0.0.0.0" meaning any local IP.
      *
      * @param host The host IP to bind to
      */
