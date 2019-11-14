@@ -1,4 +1,4 @@
-name: Build on all JDKs on all OSes
+name: Test all JDKs on all OSes
 
 on: [push, pull_request]
 
