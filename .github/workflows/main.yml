@@ -1,4 +1,4 @@
-name: Java CI
+name: Build on all JDKs on all OSes
 
 on: [push, pull_request]
 
