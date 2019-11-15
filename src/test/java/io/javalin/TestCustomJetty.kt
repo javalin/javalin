@@ -45,7 +45,7 @@ class TestCustomJetty {
 
     @Test
     fun `setting host works`() {
-        val app = Javalin.create().host("127.0.0.1").start(1235).get("/") { it.result("HOST WORKS") }
+        val app = Javalin.create().start("127.0.0.1", 1235).get("/") { it.result("HOST WORKS") }
         assertThat(Unirest.get("http://127.0.0.1:1235/").asString().body).isEqualTo("HOST WORKS")
         app.stop()
     }

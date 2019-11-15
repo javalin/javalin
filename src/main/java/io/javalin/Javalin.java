@@ -123,13 +123,18 @@ public class Javalin {
     }
 
     /**
-     * Set the host IP to bind to. This defaults to "0.0.0.0" meaning any local IP.
+     * Synchronously starts the application instance on the specified port
+     * with the given host IP to bind to.
      *
      * @param host The host IP to bind to
+     * @param port to run on
+     * @return running application instance.
+     * @see Javalin#create()
+     * @see Javalin#start()
      */
-    public Javalin host(String host) {
+    public Javalin start(String host, int port) {
         server.setServerHost(host);
-        return this;
+        return start(port);
     }
 
     /**
