@@ -123,6 +123,21 @@ public class Javalin {
     }
 
     /**
+     * Synchronously starts the application instance on the specified port
+     * with the given host IP to bind to.
+     *
+     * @param host The host IP to bind to
+     * @param port to run on
+     * @return running application instance.
+     * @see Javalin#create()
+     * @see Javalin#start()
+     */
+    public Javalin start(String host, int port) {
+        server.setServerHost(host);
+        return start(port);
+    }
+
+    /**
      * Synchronously starts the application instance on the specified port.
      *
      * @param port to run on
