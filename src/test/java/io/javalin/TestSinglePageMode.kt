@@ -9,6 +9,7 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
+import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -36,6 +37,27 @@ class TestSinglePageMode {
     private val rootSinglePageApp_external: Javalin by lazy {
         Javalin.create {
             it.addSinglePageRoot("/", "src/test/external/html.html", Location.EXTERNAL)
+        }
+    }
+
+    private val rootSinglePageCustomHandlerApp: Javalin by lazy {
+        Javalin.create {
+            it.addSinglePageHandler("/") { ctx: Context ->
+                ctx.result("Custom handler works")
+                ctx.status(418)
+            }
+        }
+    }
+
+    private val mixedSinglePageHandlerApp: Javalin by lazy {
+        Javalin.create {
+            it.addStaticFiles("/public")
+            it.addSinglePageRoot("/public", "/public/html.html")
+            it.addSinglePageHandler("/public") { ctx: Context -> ctx.result("Will never be seen") }
+            it.addSinglePageHandler("/special") { ctx: Context ->
+                ctx.result("Special custom handler works")
+                ctx.status(418)
+            }
         }
     }
 
@@ -112,5 +134,21 @@ class TestSinglePageMode {
         app.stop()
         file.delete()
     }
-}
 
+    @Test
+    fun `SinglePageHandler supports custom handler`() = TestUtil.test(rootSinglePageCustomHandlerApp) { _, http ->
+        assertThat(http.htmlGet("/not-a-path").body).contains("Custom handler works")
+        assertThat(http.htmlGet("/not-a-file.html").body).contains("Custom handler works")
+        assertThat(http.htmlGet("/not-a-file.html").status).isEqualTo(418)
+    }
+
+    @Test
+    fun `SinglePageHandler prefers filePath over customHandler`() = TestUtil.test(mixedSinglePageHandlerApp) { _, http ->
+        assertThat(http.htmlGet("/public").body).contains("HTML works")
+        assertThat(http.htmlGet("/public/not-a-path").body).contains("HTML works")
+        assertThat(http.htmlGet("/public/not-a-path").status).isEqualTo(200)
+        assertThat(http.htmlGet("/special").body).contains("Special custom handler works")
+        assertThat(http.htmlGet("/special/not-a-file.html").body).contains("Special custom handler works")
+        assertThat(http.htmlGet("/special/not-a-file.html").status).isEqualTo(418)
+    }
+}
