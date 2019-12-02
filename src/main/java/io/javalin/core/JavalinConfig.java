@@ -19,6 +19,7 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.CorsPlugin;
 import io.javalin.core.util.LogUtil;
+import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
 import io.javalin.http.staticfiles.JettyResourceHandler;
@@ -126,6 +127,11 @@ public class JavalinConfig {
 
     public JavalinConfig addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
         inner.singlePageHandler.add(path, filePath, location);
+        return this;
+    }
+
+    public JavalinConfig addSinglePageHandler(@NotNull String path, @NotNull Handler customHandler) {
+        inner.singlePageHandler.add(path, customHandler);
         return this;
     }
 
