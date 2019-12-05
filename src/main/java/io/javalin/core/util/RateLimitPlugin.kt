@@ -12,10 +12,8 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-
 /**
  * A very simple IP-based rate-limiting plugin
- *
  * A HashMap holds IPs and counters, and the rules are
  * - incremented counter on every request
  * - decremented all counters every [requestsPerSecond] seconds
@@ -51,7 +49,3 @@ class RateLimitPlugin(private val bufferSize: Int, private val requestsPerSecond
 
     }
 }
-
-
-
-
