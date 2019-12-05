@@ -151,7 +151,7 @@ public class Javalin {
     }
 
     /**
-     * Synchronously starts the application instance on the default port.
+     * Synchronously starts the application instance on the default port (7000).
      * To start the server on a random port use {@link Javalin#start(int)} with
      * port 0.
      *
