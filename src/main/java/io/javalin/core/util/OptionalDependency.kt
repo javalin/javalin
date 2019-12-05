@@ -7,8 +7,8 @@
 package io.javalin.core.util
 
 enum class OptionalDependency(val displayName: String, val testClass: String, val groupId: String, val artifactId: String, val version: String) {
-    JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "2.10.0"),
-    JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.10.0"),
+    JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "2.10.1"),
+    JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.10.1"),
     VELOCITY("Velocity", "org.apache.velocity.app.VelocityEngine", "org.apache.velocity", "velocity-engine-core", "2.1"),
     FREEMARKER("Freemarker", "freemarker.template.Configuration", "org.freemarker", "freemarker", "2.3.28"),
     THYMELEAF("Thymeleaf", "org.thymeleaf.TemplateEngine", "org.thymeleaf", "thymeleaf", "3.0.9.RELEASE"),
@@ -20,8 +20,8 @@ enum class OptionalDependency(val displayName: String, val testClass: String, va
     SLF4J_PROVIDER_SIMPLE("Slf4j simple with Provider", "org.slf4j.simple.SimpleServiceProvider", "org.slf4j", "slf4j-simple", "1.8.0-beta4"),
     SLF4J_PROVIDER_API("Slf4j simple with Provider", "org.slf4j.spi.SLF4JServiceProvider", "org.slf4j", "slf4j-api", "1.8.0-beta4"),
     MICROMETER("Micrometer", "io.micrometer.core.instrument.Metrics", "io.micrometer", "micrometer-core", "1.1.3"),
-    SWAGGERUI("Swagger UI", "STATIC-FILES", "org.webjars", "swagger-ui", "3.23.8"),
-    SWAGGERPARSER("Swagger Parser", "io.swagger.v3.parser.OpenAPIV3Parser", "io.swagger.parser.v3", "swagger-parser", "2.0.14"),
+    SWAGGERUI("Swagger UI", "STATIC-FILES", "org.webjars", "swagger-ui", "3.24.3"),
+    SWAGGERPARSER("Swagger Parser", "io.swagger.v3.parser.OpenAPIV3Parser", "io.swagger.parser.v3", "swagger-parser", "2.0.16"),
     REDOC("ReDoc", "STATIC-FILES", "org.webjars.npm", "redoc", "2.0.0-rc.2"),
     SWAGGER_CORE("Swagger Core", "io.swagger.v3.oas.models.OpenAPI", "io.swagger.core.v3", "swagger-models", "2.0.9"),
     OPENAPI_KOTLIN_DSL("OpenAPI Kotlin DSL", "cc.vileda.openapi.dsl.OpenApiDslKt", "cc.vileda", "kotlin-openapi3-dsl", "0.20.2"),
