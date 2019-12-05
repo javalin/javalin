@@ -5,6 +5,8 @@ import io.javalin.plugin.openapi.dsl.DocumentedParameter
 import io.javalin.plugin.openapi.dsl.DocumentedResponse
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.createUpdater
+import io.javalin.plugin.openapi.dsl.anyOf
+import io.javalin.plugin.openapi.dsl.oneOf
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.parameters.RequestBody
 import kotlin.reflect.KClass
@@ -25,6 +27,7 @@ fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
     annotation.formParams.forEach { documentation.formParam(it.name, it.type.java, it.required) }
 
     documentation.applyRequestBodyAnnotation(annotation.requestBody)
+    documentation.applyComposedRequestBodyAnnotation(annotation.composedRequestBody)
 
     annotation.fileUploads.forEach { fileUpload ->
         if (fileUpload.isArray) {
@@ -78,6 +81,15 @@ private fun RequestBody.applyAnnotation(annotation: OpenApiRequestBody) {
     }
 }
 
+private fun RequestBody.applyAnnotation(annotation: OpenApiComposedRequestBody) {
+    if (annotation.required) {
+        this.required = annotation.required
+    }
+    if (annotation.description.isNotNullString()) {
+        this.description = annotation.description
+    }
+}
+
 private fun RequestBody.applyAnnotation(annotation: OpenApiFileUpload) {
     if (annotation.required) {
         this.required = annotation.required
@@ -100,6 +112,17 @@ private fun OpenApiContent.asDocumentedContent(): DocumentedContent {
 private fun OpenApiDocumentation.applyRequestBodyAnnotation(requestBody: OpenApiRequestBody) {
     if (requestBody.content.isNotEmpty()) {
         this.body(requestBody.content.map { it.asDocumentedContent() }, createUpdater { it.applyAnnotation(requestBody) })
+    }
+}
+
+private fun OpenApiDocumentation.applyComposedRequestBodyAnnotation(requestBody: OpenApiComposedRequestBody) {
+    val composition = when {
+        requestBody.anyOf.isNotEmpty() -> anyOf(*requestBody.anyOf)
+        requestBody.oneOf.isNotEmpty() -> oneOf(*requestBody.oneOf)
+        else -> null
+    }
+    if (composition != null) {
+        this.body(composition, requestBody.contentType, createUpdater { it.applyAnnotation(requestBody) })
     }
 }
 

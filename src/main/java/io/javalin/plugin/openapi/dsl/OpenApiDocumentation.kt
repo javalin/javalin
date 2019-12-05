@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.external.findSchema
 import io.swagger.v3.oas.models.Components
@@ -164,6 +165,12 @@ class OpenApiDocumentation {
     }
 
     @JvmOverloads
+    fun body(composition: Composition, contentType: String? = null, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
+        val documentedContent = composition.classes.map { DocumentedContent(it, false, contentType) }
+        body(documentedContent, openApiUpdater, contentType, composition.type)
+    }
+
+    @JvmOverloads
     fun body(returnType: Class<*>, contentType: String? = null, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
         val documentedContent = listOf(DocumentedContent(returnType, false, contentType))
         body(documentedContent, openApiUpdater)
@@ -176,8 +183,8 @@ class OpenApiDocumentation {
     }
 
     @JvmOverloads
-    fun body(content: List<DocumentedContent>, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        val documentedBody = DocumentedRequestBody(content)
+    fun body(content: List<DocumentedContent>, openApiUpdater: OpenApiUpdater<RequestBody>? = null, contentType: String? = null, composedType: ComposedType = ComposedType.NULL) = apply {
+        val documentedBody = DocumentedRequestBody(content, contentType, composedType)
         body(documentedBody, openApiUpdater)
     }
 

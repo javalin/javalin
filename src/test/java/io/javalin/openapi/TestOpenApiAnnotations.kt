@@ -20,6 +20,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
 import io.javalin.plugin.openapi.annotations.OpenApiFormParam
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
+import io.javalin.plugin.openapi.annotations.OpenApiComposedRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import org.junit.Test
 
@@ -203,6 +204,37 @@ class ExtendedKotlinFieldHandlers : KotlinFieldHandlers()
 
 // endregion handler types
 
+// region composed body
+@OpenApi(
+        path = "/composed-body/any-of",
+        summary = "Get body with any of objects",
+        operationId = "composedBodyAnyOf",
+        composedRequestBody = OpenApiComposedRequestBody(
+                anyOf = [
+                    Address::class,
+                    User::class
+                ]
+        )
+)
+fun getAnyOfHandler(ctx: Context) {
+}
+
+@OpenApi(
+        path = "/composed-body/one-of",
+        summary = "Get body with one of objects",
+        operationId = "composedBodyOneOf",
+        composedRequestBody = OpenApiComposedRequestBody(
+                oneOf = [
+                    Address::class,
+                    User::class
+                ]
+        )
+)
+fun getOneOfHandler(ctx: Context) {
+}
+
+// endregion composed body
+
 class TestOpenApiAnnotations {
     @Test
     fun `createOpenApiSchema() work with complexExample and annotations`() {
@@ -298,5 +330,13 @@ class TestOpenApiAnnotations {
         extractSchemaForTest {
             it.get("/test", ExtendedKotlinFieldHandlers().kotlinFieldHandler)
         }.assertEqualTo(simpleExample)
+    }
+
+    @Test
+    fun `createOpenApiSchema() work with composed body`() {
+        extractSchemaForTest {
+            it.get("/composed-body/any-of", ::getAnyOfHandler)
+            it.get("/composed-body/one-of", ::getOneOfHandler)
+        }.assertEqualTo(composedBodyExample)
     }
 }

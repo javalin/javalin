@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.external.mediaType
 import io.javalin.plugin.openapi.external.mediaTypeArrayOf
@@ -15,6 +16,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.reflect.KClass
 
 /** Kotlin factory for documented content */
 inline fun <reified T> documentedContent(
@@ -74,6 +76,19 @@ class DocumentedContent @JvmOverloads constructor(
     }
 }
 
+sealed class Composition(val type: ComposedType, val classes: Array<Class<*>>) {
+
+    class OneOf(classes: Array<Class<*>>) : Composition(ComposedType.ONE_OF, classes)
+    class AnyOf(classes: Array<Class<*>>) : Composition(ComposedType.ANY_OF, classes)
+
+}
+
+fun oneOf(vararg classes: Class<*>) = Composition.OneOf(classes.toList().toTypedArray())
+fun oneOf(vararg classes: KClass<*>) = Composition.OneOf(classes.map { it.java }.toTypedArray())
+
+fun anyOf(vararg classes: Class<*>) = Composition.AnyOf(classes.toList().toTypedArray())
+fun anyOf(vararg classes: KClass<*>) = Composition.AnyOf(classes.map { it.java }.toTypedArray())
+
 /**
  * Try to determine the content type based on the class
  */
@@ -90,8 +105,11 @@ fun Class<*>.guessContentType(): String =
 val nonRefTypes = setOf(
         String::class.java,
         Boolean::class.java,
+        java.lang.Boolean::class.java,
         Int::class.java,
         Integer::class.java,
+        Double::class.java,
+        java.lang.Double::class.java,
         List::class.java,
         Long::class.java,
         BigDecimal::class.java,

@@ -33,6 +33,8 @@ import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documentCrud
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.dsl.documentedContent
+import io.javalin.plugin.openapi.dsl.anyOf
+import io.javalin.plugin.openapi.dsl.oneOf
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
@@ -438,6 +440,35 @@ class TestOpenApi {
         val timestampSchemaType = schema.properties["timestamp"]!!
         assertThat(timestampSchemaType.type).isEqualTo("string")
         assertThat(timestampSchemaType.format).isEqualTo("date-time")
+    }
+
+    @Test
+    fun `createSchema() work with composed body`() {
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions(
+                    Info().title("Example").version("1.0.0")
+            )))
+        }
+
+        val anyOfDocumentation = document()
+                .body(anyOf(Address::class, User::class))
+                .operation {
+                    it.summary = "Get body with any of objects"
+                    it.operationId = "composedBodyAnyOf"
+                }
+        app.get("/composed-body/any-of", documented(anyOfDocumentation) {})
+
+        val oneOfDocumentation = document()
+                .body(oneOf(Address::class, User::class))
+                .operation {
+                    it.summary = "Get body with one of objects"
+                    it.operationId = "composedBodyOneOf"
+                }
+        app.get("/composed-body/one-of", documented(oneOfDocumentation) {})
+
+        val actual = JavalinOpenApi.createSchema(app)
+        print(actual.asJsonString())
+        assertThat(actual.asJsonString()).isEqualTo(composedBodyExample.formatJson())
     }
 
     @Test
