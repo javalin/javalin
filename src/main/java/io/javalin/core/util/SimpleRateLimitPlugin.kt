@@ -16,10 +16,10 @@ import java.util.concurrent.TimeUnit
  * A very simple IP-based rate-limiting plugin.
  * A ConcurrentHashMap ([ipRequestCount]) holds IPs and counters, and the rules are:
  * - Incremented counter on every request.
- * - Decremented all counters every [requestsPerSecond] seconds.
- * - Short circuit request if count > [bufferSize]
+ * - Short circuit request if count > [requestsPerSecond]
+ * - Clear map every second
  */
-class RateLimitPlugin(private val bufferSize: Int, private val requestsPerSecond: Int) : Plugin {
+class SimpleRateLimitPlugin(private val requestsPerSecond: Int) : Plugin {
 
     class RateLimitException : Exception()
 
@@ -28,22 +28,18 @@ class RateLimitPlugin(private val bufferSize: Int, private val requestsPerSecond
     override fun apply(app: Javalin) {
 
         app.before { ctx ->
-            ipRequestCount.compute(ctx.ip()) { _, count ->
+            ipRequestCount.compute(ctx.ip()) { ip, count ->
                 when (count) {
                     null -> 1
-                    in 0 until bufferSize -> count + 1
+                    in 0 until requestsPerSecond -> count + 1
                     else -> throw RateLimitException()
                 }
             }
         }.exception(RateLimitException::class.java) { _, ctx ->
-            ctx.status(429).result("Ratelimited - Server allows $requestsPerSecond requests per second with a buffer of $bufferSize.")
+            ctx.status(429).result("Ratelimited - Server allows $requestsPerSecond requests per second.")
         }
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
-            ipRequestCount.forEachKey(1) { ip ->
-                ipRequestCount.computeIfPresent(ip) { _, count -> if (count > 1) count - 1 else null }
-            }
-        }, 0, requestsPerSecond.toLong(), TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ ipRequestCount.clear() }, 0, 1, TimeUnit.SECONDS)
 
     }
 }
