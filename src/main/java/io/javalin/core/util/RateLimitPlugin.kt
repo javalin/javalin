@@ -13,11 +13,11 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * A very simple IP-based rate-limiting plugin
- * A HashMap holds IPs and counters, and the rules are
- * - incremented counter on every request
- * - decremented all counters every [requestsPerSecond] seconds
- * - block request if count > [bufferSize]
+ * A very simple IP-based rate-limiting plugin.
+ * A ConcurrentHashMap ([ipRequestCount]) holds IPs and counters, and the rules are:
+ * - Incremented counter on every request.
+ * - Decremented all counters every [requestsPerSecond] seconds.
+ * - Short circuit request if count > [bufferSize]
  */
 class RateLimitPlugin(private val bufferSize: Int, private val requestsPerSecond: Int) : Plugin {
 
@@ -35,9 +35,7 @@ class RateLimitPlugin(private val bufferSize: Int, private val requestsPerSecond
                     else -> throw RateLimitException()
                 }
             }
-        }
-
-        app.exception(RateLimitException::class.java) { _, ctx ->
+        }.exception(RateLimitException::class.java) { _, ctx ->
             ctx.status(429).result("Ratelimited - Server allows $requestsPerSecond requests per second with a buffer of $bufferSize.")
         }
 
