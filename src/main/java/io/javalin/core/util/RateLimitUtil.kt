@@ -13,23 +13,27 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 object RateLimitUtil {
-    val ipPathRequestCount = ConcurrentHashMap<String, Int>()
+    val handlerToIpToRequestCount = HashMap<String, ConcurrentHashMap<String, Int>>()
 
     init {
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({ ipPathRequestCount.clear() }, 0, 1, TimeUnit.SECONDS)
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
+            handlerToIpToRequestCount.forEach { (_, ipRequestCount) -> ipRequestCount.clear() }
+        }, 0, 1, TimeUnit.SECONDS)
     }
+
 }
 
 /**
- * Simple IP-and-path-based rate-limiting, activated by calling it in a [io.javalin.http.Handler]
- * A [ConcurrentHashMap] in [RateLimitUtil] holds IP/path keys and counter values.
- * The [RateLimiter] works by incrementing counters when less than requestsPerSecond,
- * and throwing if not. The map is cleared every second.
+ * Simple IP-and-handler-based rate-limiting, activated by calling it in a [io.javalin.http.Handler]
+ * A map of maps in [RateLimitUtil] holds one ip/counter map per method/path (handler).
+ * On each request the counter for that IP is incremented. If the counter exceeds requestPerSecond,
+ * an exception is thrown. All counters are cleared every second.
  */
 class RateLimiter(val ctx: Context) {
     fun requestPerSeconds(requestsPerSecond: Int) {
-        val mapKey = ctx.ip() + ctx.matchedPath() // rate-limit on ip + handler path
-        RateLimitUtil.ipPathRequestCount.compute(mapKey) { _, count ->
+        val limiter = ctx.method() + ctx.matchedPath()
+        RateLimitUtil.handlerToIpToRequestCount.putIfAbsent(limiter, ConcurrentHashMap())
+        RateLimitUtil.handlerToIpToRequestCount[limiter]!!.compute(ctx.ip()) { _, count ->
             when {
                 count == null -> 1
                 count < requestsPerSecond -> count + 1

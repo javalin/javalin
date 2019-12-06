@@ -12,19 +12,30 @@ import org.junit.Test
 
 class TestRateLimitUtil {
 
+    private val testApp by lazy {
+        Javalin.create()
+                .get("/") { ctx ->
+                    RateLimiter(ctx).requestPerSeconds(5)
+                    ctx.result("Hello, World!")
+                }
+                .post("/") { it.result("Hello, World!") }
+    }
+
     @Test
-    fun `rate limiting kicks in if number of requests exceeds rate limit`() = TestUtil.test(Javalin.create()) { app, http ->
-        app.get("/rate-limited") { ctx ->
-            RateLimiter(ctx).requestPerSeconds(5)
-            ctx.result("Hello, World!")
-        }
-        app.get("/not-rate-limited") { ctx ->
-            ctx.result("Hello, World!")
-        }
-        repeat(5) { assertThat(http.get("/rate-limited").body).isEqualTo("Hello, World!") }
-        assertThat(http.get("/rate-limited").status).isEqualTo(429)
-        assertThat(http.get("/rate-limited").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per second.")
-        repeat(10) { assertThat(http.get("/not-rate-limited").body).isEqualTo("Hello, World!") }
+    fun `rate limiting kicks in if number of requests exceeds rate limit`() = TestUtil.test(testApp) { app, http ->
+        repeat(10) { http.get("/") }
+        assertThat(http.get("/").status).isEqualTo(429)
+        assertThat(http.get("/").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per second.")
+    }
+
+    @Test
+    fun `rate limit doesn't affect other verbs`() = TestUtil.test(testApp) { app, http ->
+        repeat(10) { assertThat(http.post("/").asString().body).isEqualTo("Hello, World!") }
+    }
+
+    @Test
+    fun `rate limit doesn't affect other paths`() = TestUtil.test(testApp) { app, http ->
+        repeat(10) { assertThat(http.get("/test").body).isEqualTo("Not found") }
     }
 
 }
