@@ -18,7 +18,7 @@ object RateLimitUtil {
     init {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
             handlerToIpToRequestCount.forEach { (_, ipRequestCount) -> ipRequestCount.clear() }
-        }, 0, 1, TimeUnit.SECONDS)
+        }, 5, 1, TimeUnit.SECONDS) // the initial delay is there to ensure deterministic tests
     }
 
 }
