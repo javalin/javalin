@@ -30,7 +30,7 @@ object RateLimitUtil {
  * an exception is thrown. All counters are cleared every second.
  */
 class RateLimiter(val ctx: Context) {
-    fun requestPerSeconds(requestsPerSecond: Int) {
+    fun requestsPerSeconds(requestsPerSecond: Int) {
         val limiter = ctx.method() + ctx.matchedPath()
         RateLimitUtil.handlerToIpToRequestCount.putIfAbsent(limiter, ConcurrentHashMap())
         RateLimitUtil.handlerToIpToRequestCount[limiter]!!.compute(ctx.ip()) { _, count ->

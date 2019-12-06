@@ -15,7 +15,7 @@ class TestRateLimitUtil {
     private val testApp by lazy {
         Javalin.create()
                 .get("/") { ctx ->
-                    RateLimiter(ctx).requestPerSeconds(5)
+                    RateLimiter(ctx).requestsPerSeconds(5)
                     ctx.result("Hello, World!")
                 }
                 .post("/") { it.result("Hello, World!") }
