@@ -15,15 +15,9 @@ class TestRateLimitUtil {
 
     private val testApp by lazy {
         Javalin.create()
-                .get("/") { ctx ->
-                    RateLimit(ctx).requestPerTimeunit(5, TimeUnit.HOURS)
-                }
-                .get("/dynamic/:path") { ctx ->
-                    RateLimit(ctx).requestPerTimeunit(5, TimeUnit.MINUTES)
-                }
-                .get("/ms") { ctx ->
-                    RateLimit(ctx).requestPerTimeunit(1, TimeUnit.MILLISECONDS)
-                }
+                .get("/") { RateLimit(it).requestPerTimeUnit(5, TimeUnit.HOURS) }
+                .get("/dynamic/:path") { RateLimit(it).requestPerTimeUnit(5, TimeUnit.MINUTES) }
+                .get("/ms") { RateLimit(it).requestPerTimeUnit(1, TimeUnit.MILLISECONDS) }
                 .post("/") { }
     }
 
@@ -44,22 +38,21 @@ class TestRateLimitUtil {
 
     @Test
     fun `rate limit on dynamic path-params limits per endpoint, not per URL`() = TestUtil.test(testApp) { app, http ->
-        repeat(2) { http.get("/dynamic/1") }
-        repeat(2) { http.get("/dynamic/2") }
-        repeat(2) { http.get("/dynamic/3") }
+        repeat(5) { http.get("/dynamic/1") }
+        repeat(5) { http.get("/dynamic/2") }
+        repeat(5) { http.get("/dynamic/3") }
         assertThat(http.get("/dynamic/4").status).isEqualTo(429)
         assertThat(http.get("/dynamic/5").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per minute.")
     }
 
     @Test
     fun `millisecond rate-limiting works`() = TestUtil.test(testApp) { app, http ->
-        repeat(5) {
-            Thread.sleep(2)
+        repeat(3) {
+            Thread.sleep(5)
             assertThat(http.get("/ms").status).isEqualTo(200)
         }
         val responses = (0..10).map { http.get("/ms").status }
         assertThat(responses).contains(429)
     }
-
 
 }

@@ -45,7 +45,7 @@ class RateLimit(val ctx: Context) {
      * On each request the counter for that IP is incremented. If the counter exceeds [numRequests]
      * per [timeUnit], an exception is thrown. All counters are cleared every [timeUnit].
      */
-    fun requestPerTimeunit(numRequests: Int, timeUnit: TimeUnit) = try {
+    fun requestPerTimeUnit(numRequests: Int, timeUnit: TimeUnit) = try {
         limiters.putIfAbsent(timeUnit, RateLimiter(timeUnit))
         limiters[timeUnit]!!.incrementCounter(ctx, numRequests)
     } catch (e: RuntimeException) {
