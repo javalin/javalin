@@ -33,17 +33,15 @@ class TestRateLimitUtil {
     }
 
     @Test
-    fun `rate limit doesn't affect Handlers with the same path but different HTTP method`() = TestUtil.test(testApp) { app, http ->
-        repeat(10) { assertThat(http.post("/").asString().body).isEqualTo("Hello, World!") }
+    fun `both path and HTTP method must match for rate limiting to kick in`() = TestUtil.test(testApp) { app, http ->
+        repeat(10) { http.get("/") }
+        assertThat(http.get("/").status).isEqualTo(429)
+        assertThat(http.get("/test").status).isNotEqualTo(429)
+        assertThat(http.post("/").asString().status).isNotEqualTo(429)
     }
 
     @Test
-    fun `rate limit doesn't affect Handlers with the same HTTP method but different path`() = TestUtil.test(testApp) { app, http ->
-        repeat(10) { assertThat(http.get("/test").status).isNotEqualTo(429) }
-    }
-
-    @Test
-    fun `rate limit on dynamic path-params work per endpoint, not per URL`() = TestUtil.test(testApp) { app, http ->
+    fun `rate limit on dynamic path-params limits per endpoint, not per URL`() = TestUtil.test(testApp) { app, http ->
         repeat(2) { http.get("/dynamic/1") }
         repeat(2) { http.get("/dynamic/2") }
         repeat(2) { http.get("/dynamic/3") }
