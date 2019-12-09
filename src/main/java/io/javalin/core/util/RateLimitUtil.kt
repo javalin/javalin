@@ -12,37 +12,43 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-object RateLimitUtil {
-    val handlerToIpToRequestCount = HashMap<String, ConcurrentHashMap<String, Int>>()
+private val limiters = ConcurrentHashMap<TimeUnit, RateLimiter>()
+
+class RateLimiter(timeUnit: TimeUnit) {
+
+    private val handlerToIpToRequestCount = ConcurrentHashMap<String, ConcurrentHashMap<String, Int>>()
 
     init {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
             handlerToIpToRequestCount.forEach { (_, ipRequestCount) -> ipRequestCount.clear() }
-        }, /*delay=*/0,  /*period=*/1, TimeUnit.MINUTES)
+        }, /*delay=*/0,  /*period=*/1, timeUnit)
     }
 
-}
-
-/**
- * Simple IP-and-handler-based rate-limiting, activated by calling it in a [io.javalin.http.Handler]
- * A map of maps in [RateLimitUtil] holds one ip/counter map per method/path (handler).
- * On each request the counter for that IP is incremented. If the counter exceeds number of
- * requests per minute, an exception is thrown. All counters are cleared every minute.
- */
-class RateLimiter(val ctx: Context) {
-
-    fun requestsPerSeconds(requestsPerSecond: Int) = requestsPerMinute(requestsPerSecond * 60)
-
-    fun requestsPerMinute(requestsPerMinute: Int) {
-        val limiter = ctx.method() + ctx.matchedPath()
-        RateLimitUtil.handlerToIpToRequestCount.putIfAbsent(limiter, ConcurrentHashMap())
-        RateLimitUtil.handlerToIpToRequestCount[limiter]!!.compute(ctx.ip()) { _, count ->
+    fun incrementCounter(ctx: Context, requestLimit: Int) {
+        val limiterName = ctx.method() + ctx.matchedPath()
+        handlerToIpToRequestCount.putIfAbsent(limiterName, ConcurrentHashMap())
+        handlerToIpToRequestCount[limiterName]!!.compute(ctx.ip()) { _, count ->
             when {
                 count == null -> 1
-                count < requestsPerMinute -> count + 1
-                else -> throw HttpResponseException(429, "Rate limit exceeded - Server allows $requestsPerMinute requests per minute.")
+                count < requestLimit -> count + 1
+                else -> throw RuntimeException("Too many requests!")
             }
         }
     }
 
+}
+
+class RateLimit(val ctx: Context) {
+    /**
+     * Simple IP-and-handler-based rate-limiting, activated by calling it in a [io.javalin.http.Handler]
+     * A map of maps in a [RateLimiter] holds one ip/counter map per method/path (handler).
+     * On each request the counter for that IP is incremented. If the counter exceeds [numRequests]
+     * per [timeUnit], an exception is thrown. All counters are cleared every [timeUnit].
+     */
+    fun requestPerTimeunit(numRequests: Int, timeUnit: TimeUnit) = try {
+        limiters.putIfAbsent(timeUnit, RateLimiter(timeUnit))
+        limiters[timeUnit]!!.incrementCounter(ctx, numRequests)
+    } catch (e: RuntimeException) {
+        throw HttpResponseException(429, "Rate limit exceeded - Server allows $numRequests requests per ${timeUnit.toString().toLowerCase().removeSuffix("s")}.")
+    }
 }
