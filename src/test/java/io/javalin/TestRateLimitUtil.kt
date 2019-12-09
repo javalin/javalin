@@ -15,7 +15,11 @@ class TestRateLimitUtil {
     private val testApp by lazy {
         Javalin.create()
                 .get("/") { ctx ->
-                    RateLimiter(ctx).requestsPerSeconds(5)
+                    RateLimiter(ctx).requestsPerMinute(5)
+                    ctx.result("Hello, World!")
+                }
+                .get("/dynamic/:path") { ctx ->
+                    RateLimiter(ctx).requestsPerMinute(5)
                     ctx.result("Hello, World!")
                 }
                 .post("/") { it.result("Hello, World!") }
@@ -25,17 +29,26 @@ class TestRateLimitUtil {
     fun `rate limiting kicks in if number of requests exceeds rate limit`() = TestUtil.test(testApp) { app, http ->
         repeat(10) { http.get("/") }
         assertThat(http.get("/").status).isEqualTo(429)
-        assertThat(http.get("/").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per second.")
+        assertThat(http.get("/").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per minute.")
     }
 
     @Test
-    fun `rate limit doesn't affect other verbs`() = TestUtil.test(testApp) { app, http ->
+    fun `rate limit doesn't affect Handlers with the same path but different HTTP method`() = TestUtil.test(testApp) { app, http ->
         repeat(10) { assertThat(http.post("/").asString().body).isEqualTo("Hello, World!") }
     }
 
     @Test
-    fun `rate limit doesn't affect other paths`() = TestUtil.test(testApp) { app, http ->
-        repeat(10) { assertThat(http.get("/test").body).isEqualTo("Not found") }
+    fun `rate limit doesn't affect Handlers with the same HTTP method but different path`() = TestUtil.test(testApp) { app, http ->
+        repeat(10) { assertThat(http.get("/test").status).isNotEqualTo(429) }
+    }
+
+    @Test
+    fun `rate limit on dynamic path-params work per endpoint, not per URL`() = TestUtil.test(testApp) { app, http ->
+        repeat(2) { http.get("/dynamic/1") }
+        repeat(2) { http.get("/dynamic/2") }
+        repeat(2) { http.get("/dynamic/3") }
+        assertThat(http.get("/dynamic/4").status).isEqualTo(429)
+        assertThat(http.get("/dynamic/5").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per minute.")
     }
 
 }
