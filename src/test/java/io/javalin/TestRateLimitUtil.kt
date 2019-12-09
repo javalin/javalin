@@ -51,8 +51,6 @@ class TestRateLimitUtil {
             Thread.sleep(5)
             assertThat(http.get("/ms").status).isEqualTo(200)
         }
-        val responses = (0..10).map { http.get("/ms").status }
-        assertThat(responses).contains(429)
     }
 
 }
