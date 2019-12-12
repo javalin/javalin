@@ -928,3 +928,94 @@ val userJsonExpected = """
 	"description": "Some additional information for the /user endpoint"
 }
 """.trimIndent()
+
+
+@Language("json")
+val composedBodyExample = """
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "Example",
+    "version" : "1.0.0"
+  },
+  "paths" : {
+    "/composed-body/any-of" : {
+      "get" : {
+        "summary" : "Get body with any of objects",
+        "operationId" : "composedBodyAnyOf",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "anyOf" : [ {
+                  "$ref" : "#/components/schemas/Address"
+                }, {
+                  "$ref" : "#/components/schemas/User"
+                } ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
+      }
+    },
+    "/composed-body/one-of" : {
+      "get" : {
+        "summary" : "Get body with one of objects",
+        "operationId" : "composedBodyOneOf",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "oneOf" : [ {
+                  "$ref" : "#/components/schemas/Address"
+                }, {
+                  "$ref" : "#/components/schemas/User"
+                } ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "Address" : {
+        "required" : [ "number", "street" ],
+        "type" : "object",
+        "properties" : {
+          "street" : {
+            "type" : "string"
+          },
+          "number" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "User" : {
+        "required" : [ "name" ],
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "address" : {
+            "$ref" : "#/components/schemas/Address"
+          }
+        }
+      }
+    }
+  }
+}
+""".trimIndent()

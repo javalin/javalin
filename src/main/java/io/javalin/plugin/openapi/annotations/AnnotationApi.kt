@@ -21,6 +21,7 @@ annotation class OpenApi(
         val queryParams: Array<OpenApiParam> = [],
         val formParams: Array<OpenApiFormParam> = [],
         val requestBody: OpenApiRequestBody = OpenApiRequestBody([]),
+        val composedRequestBody: OpenApiComposedRequestBody = OpenApiComposedRequestBody([]),
         val fileUploads: Array<OpenApiFileUpload> = [],
         val responses: Array<OpenApiResponse> = [],
         /** The path of the endpoint. This will if the annotation * couldn't be found via reflection. */
@@ -61,6 +62,15 @@ annotation class OpenApiRequestBody(
 )
 
 @Target()
+annotation class OpenApiComposedRequestBody(
+        val anyOf: Array<KClass<*>> = [],
+        val oneOf: Array<KClass<*>> = [],
+        val required: Boolean = false,
+        val description: String = NULL_STRING,
+        val contentType: String = ContentType.AUTODETECT
+)
+
+@Target()
 annotation class OpenApiFileUpload(
         val name: String,
         val isArray: Boolean = false,
@@ -87,6 +97,12 @@ object ContentType {
     const val HTML = "text/html"
     const val FORM_DATA = "application/x-www-form-urlencoded"
     const val AUTODETECT = "AUTODETECT - Will be replaced later"
+}
+
+enum class ComposedType {
+    NULL,
+    ANY_OF,
+    ONE_OF;
 }
 
 enum class HttpMethod {

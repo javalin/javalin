@@ -13,6 +13,7 @@ import io.swagger.v3.oas.models.media.MapSchema
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.StringSchema
+import io.swagger.v3.oas.models.media.NumberSchema
 import io.swagger.v3.oas.models.parameters.Parameter
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -119,6 +120,9 @@ internal fun <T> findSchema(clazz: Class<T>): FindSchemaResponse? {
         Date::class.java -> FindSchemaResponse(DateSchema())
         LocalDate::class.java -> FindSchemaResponse(DateSchema())
         LocalDateTime::class.java -> FindSchemaResponse(DateTimeSchema())
+        java.lang.Double::class.java -> FindSchemaResponse(NumberSchema())
+        Double::class.java -> FindSchemaResponse(NumberSchema())
+        Float::class.java -> FindSchemaResponse(NumberSchema())
         /* BEGIN Custom classes */
         ByteArray::class.java -> FindSchemaResponse(StringSchema().format("binary"))
         /* END Custom classes */
