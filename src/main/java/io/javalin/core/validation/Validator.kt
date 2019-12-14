@@ -22,6 +22,11 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value") {
 
     fun get(): T = getOrNull() ?: throw BadRequestResponse("$messagePrefix cannot be null or empty")
 
+    fun get(defaultValue: T): T {
+        if (value == null) return defaultValue
+        return rules.find { !it.test.invoke(value) }?.let { defaultValue } ?: value
+    }
+    
     fun getOrNull(): T? {
         if (value == null) return null
         return rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse(it.invalidMessage) } ?: value
