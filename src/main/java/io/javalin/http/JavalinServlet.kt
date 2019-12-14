@@ -56,6 +56,9 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 if (config.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
                     throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
                 }
+                if (ctx.handlerType == HandlerType.BEFORE) {
+                    ctx.endpointHandlerPath = "No handler matched request path (404)"
+                }
                 throw NotFoundResponse()
             }
 

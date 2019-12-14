@@ -277,6 +277,13 @@ class TestRequest {
     }
 
     @Test
+    fun `endpointHandlerPath() doesn't crash for 404s`() = TestUtil.test { app, http ->
+        app.before { }
+        app.after { it.result(it.endpointHandlerPath()) }
+        assertThat(http.getBody("/")).isEqualTo("No handler matched request path (404)")
+    }
+
+    @Test
     fun `servlet-context is not null`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(if (ctx.req.servletContext != null) "not-null" else "null") }
         assertThat(http.getBody("/")).isEqualTo("not-null")
