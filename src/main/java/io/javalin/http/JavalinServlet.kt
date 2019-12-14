@@ -52,12 +52,12 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     if (config.inner.resourceHandler?.handle(wrappedReq, JavalinResponseWrapper(rawRes, rwc)) == true) return@tryWithExceptionMapper
                     if (config.inner.singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
                 }
+                if (ctx.handlerType == HandlerType.BEFORE) { // no match, status will be 404 or 405 after this point
+                    ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
+                }
                 val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
                 if (config.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
                     throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
-                }
-                if (ctx.handlerType == HandlerType.BEFORE) {
-                    ctx.endpointHandlerPath = "No handler matched request path (404)"
                 }
                 throw NotFoundResponse()
             }

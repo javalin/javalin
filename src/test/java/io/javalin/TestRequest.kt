@@ -280,7 +280,7 @@ class TestRequest {
     fun `endpointHandlerPath() doesn't crash for 404s`() = TestUtil.test { app, http ->
         app.before { }
         app.after { it.result(it.endpointHandlerPath()) }
-        assertThat(http.getBody("/")).isEqualTo("No handler matched request path (404)")
+        assertThat(http.getBody("/")).isEqualTo("No handler matched request path/method (404/405)")
     }
 
     @Test
