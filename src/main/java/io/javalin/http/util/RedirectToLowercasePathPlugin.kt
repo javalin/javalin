@@ -13,6 +13,13 @@ import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
 import io.javalin.http.HandlerType
 
+/**
+ * This plugin redirects requests with uppercase/mixcase paths to lowercase paths
+ * Ex: `/Users/John` -> `/users/John` (if endpoint is `/users/:userId`)
+ * It does not affect the casing of path-params and query-params, only static
+ * URL fragments ('Users' becomes 'users' above, but 'John' remains 'John').
+ * When using this plugin, you can only add paths with lowercase URL fragments.
+ */
 class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
 
     override fun init(app: Javalin) {
