@@ -24,7 +24,8 @@ object SecurityUtil {
 
     @JvmStatic
     fun sslRedirect(ctx: Context) {
-        if (ctx.scheme() == "http") {
+        val xForwardedProto = ctx.header("x-forwarded-proto")
+        if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
             ctx.redirect(ctx.fullUrl().replace("http", "https"), 301)
         }
     }
