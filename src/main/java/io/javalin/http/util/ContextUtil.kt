@@ -27,10 +27,10 @@ object ContextUtil {
         }
     }
 
-    fun splitKeyValueStringAndGroupByKey(string: String): Map<String, List<String>> {
+    fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> {
         return if (string.isEmpty()) mapOf() else string.split("&").map { it.split("=", limit = 2) }.groupBy(
                 { it[0] },
-                { if (it.size > 1) URLDecoder.decode(it[1], "UTF-8") else "" }
+                { if (it.size > 1) URLDecoder.decode(it[1], charset) else "" }
         ).mapValues { it.value.toList() }
     }
 
