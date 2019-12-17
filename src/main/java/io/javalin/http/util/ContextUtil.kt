@@ -27,6 +27,11 @@ object ContextUtil {
         }
     }
 
+    // this header is semi-colon separated, like: "text/html; charset=UTF-8"
+    fun getRequestCharset(ctx: Context) = ctx.req.getHeader(Header.CONTENT_TYPE)?.let { value ->
+        value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
+    }
+
     fun splitKeyValueStringAndGroupByKey(string: String, charset: String): Map<String, List<String>> {
         return if (string.isEmpty()) mapOf() else string.split("&").map { it.split("=", limit = 2) }.groupBy(
                 { it[0] },

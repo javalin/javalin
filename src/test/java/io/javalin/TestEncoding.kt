@@ -32,11 +32,19 @@ class TestEncoding {
     }
 
     @Test
-    fun `URLEncoded query-params work`() = TestUtil.test { app, http ->
+    fun `URLEncoded query-params work utf-8`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
         assertThat(http.getBody("/?qp=" + "8%3A00+PM")).isEqualTo("8:00 PM")
         val encoded = URLEncoder.encode("!#$&'()*+,/:;=?@[]", "UTF-8")
         assertThat(http.getBody("/?qp=$encoded")).isEqualTo("!#$&'()*+,/:;=?@[]")
+    }
+
+    @Test
+    fun `URLEncoded query-params work ISO-8859-1`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
+        val encoded = URLEncoder.encode("æøå", "ISO-8859-1")
+        val response = Unirest.get(http.origin + "/?qp=$encoded").header("Content-Type", "text/plain; charset=ISO-8859-1").asString()
+        assertThat(response.body).isEqualTo("æøå")
     }
 
     @Test

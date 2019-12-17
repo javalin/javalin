@@ -40,7 +40,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
-    private val characterEncoding = req.getHeader(Header.CONTENT_TYPE)?.let { it.substring(it.lastIndexOf("=") + 1).trim() } ?: "UTF-8"
+    private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
 
