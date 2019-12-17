@@ -40,6 +40,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
+    private val characterEncoding = req.getHeader(Header.CONTENT_TYPE)?.let { it.substring(it.lastIndexOf("=") + 1).trim() } ?: "UTF-8"
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
 
@@ -106,7 +107,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     ///////////////////////////////////////////////////////////////
 
     /** Gets the request body as a [String]. */
-    fun body(): String = bodyAsBytes().toString(Charset.forName(req.characterEncoding ?: "UTF-8"))
+    fun body(): String = bodyAsBytes().toString(Charset.forName(characterEncoding))
 
     /**
      * Maps a JSON body to a Java/Kotlin class using JavalinJson.
@@ -177,7 +178,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> =
             if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
-            else ContextUtil.splitKeyValueStringAndGroupByKey(body())
+            else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
 
     /**
      * Gets a path param by name (ex: pathParam("param").
@@ -295,7 +296,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
 
     /** Gets a map with all the query param keys and values. */
-    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "")
+    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding)
 
     /** Gets the request query string, or null. */
     fun queryString(): String? = req.queryString
