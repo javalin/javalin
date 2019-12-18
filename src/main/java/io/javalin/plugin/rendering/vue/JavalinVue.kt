@@ -27,6 +27,11 @@ object JavalinVue {
         vueDirPath = if (location == Location.CLASSPATH) PathMaster.classpathPath(path) else Paths.get(path)
     }
 
+    @JvmStatic
+    fun rootDirectory(path: Path) {
+        vueDirPath = path
+    }
+
     @JvmField
     var stateFunction: (Context) -> Any = { mapOf<String, String>() }
 

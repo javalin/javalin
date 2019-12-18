@@ -11,6 +11,7 @@ import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import java.nio.file.Paths
 
 class TestJavalinVue {
 
@@ -86,6 +87,14 @@ class TestJavalinVue {
         JavalinVue.rootDirectory("/vue", Location.CLASSPATH)
         app.get("/classpath", VueComponent("test-component"))
         assertThat(http.getBody("/classpath")).contains("<test-component></test-component>")
+        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+    }
+
+    @Test
+    fun `setting with Path works`() = TestUtil.test { app, http ->
+        JavalinVue.rootDirectory(Paths.get("src/test/resources/vue"))
+        app.get("/path", VueComponent("test-component"))
+        assertThat(http.getBody("/path")).contains("<test-component></test-component>")
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }
 
