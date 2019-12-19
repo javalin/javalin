@@ -11,33 +11,6 @@
     <artifactId>javalin</artifactId>
     <version>3.6.1-SNAPSHOT</version>
 
-    <name>Javalin</name>
-    <description>Javalin: Simple REST APIs for Java and Kotlin</description>
-    <url>https://javalin.io</url>
-
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-    <scm>
-        <connection>scm:git:git@github.com:tipsy/javalin.git</connection>
-        <developerConnection>scm:git:git@github.com:tipsy/javalin.git</developerConnection>
-        <url>https://github.com/tipsy/javalin.git</url>
-        <tag>HEAD</tag>
-    </scm>
-    <developers>
-        <developer>
-            <name>David Åse</name>
-        </developer>
-    </developers>
-    <issueManagement>
-        <system>GitHub Issue Tracker</system>
-        <url>https://github.com/tipsy/javalin/issues</url>
-    </issueManagement>
-
     <properties>
         <jetty.version>9.4.24.v20191120</jetty.version>
         <slf4j.version>1.7.28</slf4j.version>
