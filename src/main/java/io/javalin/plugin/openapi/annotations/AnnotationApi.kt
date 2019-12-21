@@ -63,8 +63,8 @@ annotation class OpenApiRequestBody(
 
 @Target()
 annotation class OpenApiComposedRequestBody(
-        val anyOf: Array<KClass<*>> = [],
-        val oneOf: Array<KClass<*>> = [],
+        val anyOf: Array<OpenApiContent> = [],
+        val oneOf: Array<OpenApiContent> = [],
         val required: Boolean = false,
         val description: String = NULL_STRING,
         val contentType: String = ContentType.AUTODETECT

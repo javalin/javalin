@@ -166,8 +166,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun body(composition: Composition, contentType: String? = null, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        val documentedContent = composition.classes.map { DocumentedContent(it, false, contentType) }
-        body(documentedContent, openApiUpdater, contentType, composition.type)
+        body(composition.content, openApiUpdater, contentType, composition.type)
     }
 
     @JvmOverloads
@@ -269,6 +268,11 @@ class OpenApiDocumentation {
             listOf(DocumentedContent(returnType, false, contentType))
         }
         result(status, documentedContent, openApiUpdater)
+    }
+
+    @JvmOverloads
+    fun result(status: String, composition: Composition.OneOf, applyUpdates: ApplyUpdates<ApiResponse>? = null) = apply {
+        result(status, composition.content, createUpdaterIfNotNull(applyUpdates))
     }
 
     fun result(documentedResponse: DocumentedResponse, applyUpdates: ApplyUpdates<ApiResponse>? = null) = apply {

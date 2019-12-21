@@ -16,7 +16,19 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.reflect.KClass
+
+@JvmOverloads
+fun documentedContent(
+        clazz: Class<*>,
+        isArray: Boolean = false,
+        contentType: String? = ContentType.AUTODETECT
+): DocumentedContent {
+    return DocumentedContent(
+            clazz,
+            contentType = contentType,
+            isArray = isArray
+    )
+}
 
 /** Kotlin factory for documented content */
 inline fun <reified T> documentedContent(
@@ -76,18 +88,15 @@ class DocumentedContent @JvmOverloads constructor(
     }
 }
 
-sealed class Composition(val type: ComposedType, val classes: Array<Class<*>>) {
+sealed class Composition(val type: ComposedType, val content: List<DocumentedContent>) {
 
-    class OneOf(classes: Array<Class<*>>) : Composition(ComposedType.ONE_OF, classes)
-    class AnyOf(classes: Array<Class<*>>) : Composition(ComposedType.ANY_OF, classes)
+    class OneOf(contents: List<DocumentedContent>) : Composition(ComposedType.ONE_OF, contents)
+    class AnyOf(contents: List<DocumentedContent>) : Composition(ComposedType.ANY_OF, contents)
 
 }
 
-fun oneOf(vararg classes: Class<*>) = Composition.OneOf(classes.toList().toTypedArray())
-fun oneOf(vararg classes: KClass<*>) = Composition.OneOf(classes.map { it.java }.toTypedArray())
-
-fun anyOf(vararg classes: Class<*>) = Composition.AnyOf(classes.toList().toTypedArray())
-fun anyOf(vararg classes: KClass<*>) = Composition.AnyOf(classes.map { it.java }.toTypedArray())
+fun oneOf(vararg content: DocumentedContent) = Composition.OneOf(content.toList())
+fun anyOf(vararg content: DocumentedContent) = Composition.AnyOf(content.toList())
 
 /**
  * Try to determine the content type based on the class

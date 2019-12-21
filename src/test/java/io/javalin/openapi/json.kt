@@ -931,7 +931,7 @@ val userJsonExpected = """
 
 
 @Language("json")
-val composedBodyExample = """
+val composedExample = """
 {
   "openapi" : "3.0.1",
   "info" : {
@@ -950,7 +950,10 @@ val composedBodyExample = """
                 "anyOf" : [ {
                   "$ref" : "#/components/schemas/Address"
                 }, {
-                  "$ref" : "#/components/schemas/User"
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/User"
+                  }
                 } ]
               }
             }
@@ -974,7 +977,10 @@ val composedBodyExample = """
                 "oneOf" : [ {
                   "$ref" : "#/components/schemas/Address"
                 }, {
-                  "$ref" : "#/components/schemas/User"
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/User"
+                  }
                 } ]
               }
             }
@@ -983,6 +989,33 @@ val composedBodyExample = """
         "responses" : {
           "200" : {
             "description" : "Default response"
+          }
+        }
+      }
+    },
+    "/composed-response/one-of" : {
+      "get" : {
+        "summary" : "Get with one of responses",
+        "operationId" : "composedResponseOneOf",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "oneOf" : [ {
+                    "$ref" : "#/components/schemas/Address"
+                  }, {
+                    "$ref" : "#/components/schemas/User"
+                  } ]
+                }
+              },
+              "application/xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/User"
+                }
+              }
+            }
           }
         }
       }
