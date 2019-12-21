@@ -211,12 +211,12 @@ class ExtendedKotlinFieldHandlers : KotlinFieldHandlers()
         operationId = "composedBodyAnyOf",
         composedRequestBody = OpenApiComposedRequestBody(
                 anyOf = [
-                    Address::class,
-                    User::class
+                    OpenApiContent(from = Address::class),
+                    OpenApiContent(from = User::class, isArray = true)
                 ]
         )
 )
-fun getAnyOfHandler(ctx: Context) {
+fun getBodyAnyOfHandler(ctx: Context) {
 }
 
 @OpenApi(
@@ -225,12 +225,29 @@ fun getAnyOfHandler(ctx: Context) {
         operationId = "composedBodyOneOf",
         composedRequestBody = OpenApiComposedRequestBody(
                 oneOf = [
-                    Address::class,
-                    User::class
+                    OpenApiContent(from = Address::class),
+                    OpenApiContent(from = User::class, isArray = true)
                 ]
         )
 )
-fun getOneOfHandler(ctx: Context) {
+fun getBodyOneOfHandler(ctx: Context) {
+}
+
+@OpenApi(
+        path = "/composed-response/one-of",
+        summary = "Get with one of responses",
+        operationId = "composedResponseOneOf",
+        responses = [
+            OpenApiResponse("200", content = [
+                OpenApiContent(from = Address::class),
+                OpenApiContent(from = User::class, type = "application/xml")
+            ]),
+            OpenApiResponse("200", content = [
+                OpenApiContent(from = User::class)
+            ])
+        ]
+)
+fun getResponseOneOfHandler(ctx: Context) {
 }
 
 // endregion composed body
@@ -333,10 +350,12 @@ class TestOpenApiAnnotations {
     }
 
     @Test
-    fun `createOpenApiSchema() work with composed body`() {
+    fun `createOpenApiSchema() work with composed body and response`() {
         extractSchemaForTest {
-            it.get("/composed-body/any-of", ::getAnyOfHandler)
-            it.get("/composed-body/one-of", ::getOneOfHandler)
-        }.assertEqualTo(composedBodyExample)
+            it.get("/composed-body/any-of", ::getBodyAnyOfHandler)
+            it.get("/composed-body/one-of", ::getBodyOneOfHandler)
+            it.get("/composed-response/one-of", ::getResponseOneOfHandler)
+
+        }.assertEqualTo(composedExample)
     }
 }

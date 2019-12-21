@@ -36,8 +36,7 @@ fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
             documentation.uploadedFile(name = fileUpload.name) { it.applyAnnotation(fileUpload) }
         }
     }
-
-    annotation.responses.forEach { documentation.applyResponseAnnotation(it) }
+    documentation.applyResponseAnnotations(annotation.responses)
 
     return documentation
 }
@@ -117,8 +116,8 @@ private fun OpenApiDocumentation.applyRequestBodyAnnotation(requestBody: OpenApi
 
 private fun OpenApiDocumentation.applyComposedRequestBodyAnnotation(requestBody: OpenApiComposedRequestBody) {
     val composition = when {
-        requestBody.anyOf.isNotEmpty() -> anyOf(*requestBody.anyOf)
-        requestBody.oneOf.isNotEmpty() -> oneOf(*requestBody.oneOf)
+        requestBody.anyOf.isNotEmpty() -> anyOf(*requestBody.anyOf.toList().map { it.asDocumentedContent() }.toTypedArray())
+        requestBody.oneOf.isNotEmpty() -> oneOf(*requestBody.oneOf.toList().map { it.asDocumentedContent() }.toTypedArray())
         else -> null
     }
     if (composition != null) {
@@ -126,19 +125,22 @@ private fun OpenApiDocumentation.applyComposedRequestBodyAnnotation(requestBody:
     }
 }
 
-private fun OpenApiDocumentation.applyResponseAnnotation(it: OpenApiResponse) {
+private fun OpenApiDocumentation.applyResponseAnnotations(responses: Array<OpenApiResponse>) {
     val documentation = this
-    documentation.result(
-            documentedResponse = DocumentedResponse(
-                    status = it.status,
-                    content = it.content.map { it.asDocumentedContent() }
-            ),
-            applyUpdates = { responseDocumentation ->
-                if (it.description.isNotNullString()) {
-                    responseDocumentation.description = it.description
+    responses.groupBy { it.status }.forEach { (status, list) ->
+        documentation.result(
+                documentedResponse = DocumentedResponse(
+                        status = status,
+                        content = list.flatMap { it.content.toList() }.map { it.asDocumentedContent() }
+                ),
+                applyUpdates = { responseDocumentation ->
+                    val description = list.map { it.description }.filter { it.isNotNullString() }.joinToString(separator = "; ")
+                    if (description.isNotBlank()) {
+                        responseDocumentation.description = description
+                    }
                 }
-            }
-    )
+        )
+    }
 }
 
 private fun OpenApiDocumentation.applyParamAnnotation(`in`: String, param: OpenApiParam) {

@@ -443,32 +443,39 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() work with composed body`() {
+    fun `createSchema() work with composed body and response`() {
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(
                     Info().title("Example").version("1.0.0")
             )))
         }
 
-        val anyOfDocumentation = document()
-                .body(anyOf(Address::class, User::class))
+        val anyOfBodyDocumentation = document()
+                .body(anyOf(documentedContent<Address>(), documentedContent<User>(isArray = true)))
                 .operation {
                     it.summary = "Get body with any of objects"
                     it.operationId = "composedBodyAnyOf"
                 }
-        app.get("/composed-body/any-of", documented(anyOfDocumentation) {})
+        app.get("/composed-body/any-of", documented(anyOfBodyDocumentation) {})
 
-        val oneOfDocumentation = document()
-                .body(oneOf(Address::class, User::class))
+        val oneOfBodyDocumentation = document()
+                .body(oneOf(documentedContent<Address>(), documentedContent<User>(isArray = true)))
                 .operation {
                     it.summary = "Get body with one of objects"
                     it.operationId = "composedBodyOneOf"
                 }
-        app.get("/composed-body/one-of", documented(oneOfDocumentation) {})
+        app.get("/composed-body/one-of", documented(oneOfBodyDocumentation) {})
+
+        val oneOfResponseDocumentation = document()
+                .result("200", oneOf(documentedContent<Address>(), documentedContent<User>(), documentedContent<User>(contentType = "application/xml")))
+                .operation {
+                    it.summary = "Get with one of responses"
+                    it.operationId = "composedResponseOneOf"
+                }
+        app.get("/composed-response/one-of", documented(oneOfResponseDocumentation) {})
 
         val actual = JavalinOpenApi.createSchema(app)
-        print(actual.asJsonString())
-        assertThat(actual.asJsonString()).isEqualTo(composedBodyExample.formatJson())
+        assertThat(actual.asJsonString()).isEqualTo(composedExample.formatJson())
     }
 
     @Test
