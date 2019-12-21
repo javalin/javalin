@@ -101,7 +101,7 @@ class PathParser2(private val path: String) {
     private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
 }
 
-internal sealed class PathSegment2 {
+sealed class PathSegment2 {
 
     internal abstract fun asRegexString(): String
     // TODO: replace this property by making Parameter a sealed class itself
@@ -135,6 +135,16 @@ internal sealed class PathSegment2 {
         private val regex: String = innerSegments.joinToString(separator = "") { it.asRegexString() }
         override fun asRegexString(): String = regex
     }
+}
+
+fun List<PathSegment2>.flattenMultipleSegments(): List<PathSegment2> {
+    return this.map {
+        if (it is PathSegment2.MultipleSegments) {
+            it.innerSegments
+        } else {
+            listOf(it)
+        }
+    }.flatten()
 }
 
 private fun PathSegment2.pathParamNames(): List<String> {

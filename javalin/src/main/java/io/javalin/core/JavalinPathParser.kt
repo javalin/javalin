@@ -28,7 +28,7 @@ object JavalinPathParser {
         get() = this.parserImplementation == PathParserImplementation.COLON_BASED_PARSER
 }
 
-internal interface PathParserSpec {
+interface PathParserSpec {
     val segments: List<PathSegment2>
     val pathParamNames: List<String>
     fun matches(url: String): Boolean
@@ -60,7 +60,7 @@ private class BracketsBasedParser(path: String) : PathParserSpec {
 
 }
 
-internal fun createPathParser(path: String): PathParserSpec = if (JavalinPathParser.isColonBasedParser) {
+fun createPathParser(path: String): PathParserSpec = if (JavalinPathParser.isColonBasedParser) {
     ColonBasedParser(path)
 } else {
     BracketsBasedParser(path)
