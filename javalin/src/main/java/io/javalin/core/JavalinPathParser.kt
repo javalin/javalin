@@ -29,12 +29,18 @@ object JavalinPathParser {
 }
 
 internal interface PathParserSpec {
+    val segments: List<PathSegment2>
+    val pathParamNames: List<String>
     fun matches(url: String): Boolean
     fun extractPathParams(url: String): Map<String, String>
 }
 
 private class ColonBasedParser(path: String) : PathParserSpec {
     val impl = PathParser(path)
+
+    override val segments: List<PathSegment2> = impl.segments.map { it.toPathSegment2() }
+
+    override val pathParamNames: List<String> = impl.pathParamNames
 
     override fun matches(url: String): Boolean = impl.matches(url)
 
@@ -43,6 +49,10 @@ private class ColonBasedParser(path: String) : PathParserSpec {
 
 private class BracketsBasedParser(path: String) : PathParserSpec {
     val impl = PathParser2(path)
+
+    override val segments: List<PathSegment2> = impl.segments
+
+    override val pathParamNames: List<String> = impl.pathParamNames
 
     override fun matches(url: String): Boolean = impl.matches(url)
 
@@ -54,4 +64,12 @@ internal fun createPathParser(path: String): PathParserSpec = if (JavalinPathPar
     ColonBasedParser(path)
 } else {
     BracketsBasedParser(path)
+}
+
+internal fun PathSegment.toPathSegment2(): PathSegment2 {
+    return when (this) {
+        is PathSegment.Normal -> PathSegment2.Normal(this.content)
+        is PathSegment.Parameter -> PathSegment2.Parameter(this.name)
+        is PathSegment.Wildcard -> PathSegment2.Wildcard
+    }
 }

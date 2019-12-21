@@ -87,9 +87,9 @@ class PathParser2(private val path: String) {
 
     internal val pathParamNames: List<String> = segments.map { it.pathParamNames() }.flatten()
 
-    private val matchRegex: Regex = "^/${segments.joinToString("/") { it.asRegexString() }}/?$".toRegex()
+    private val matchRegex = "^/${segments.joinToString("/") { it.asRegexString() }}/?$".toRegex()
 
-    private val pathParamRegex: Regex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
+    private val pathParamRegex = "^/${segments.joinToString("/") { it.asGroupedRegexString() }}/?$".toRegex()
 
     fun matches(url: String): Boolean = url matches matchRegex
 
@@ -104,6 +104,15 @@ class PathParser2(private val path: String) {
 internal sealed class PathSegment2 {
 
     internal abstract fun asRegexString(): String
+    internal open val isParameter: Boolean = false
+
+    internal fun asGroupedRegexString(): String {
+        return if (isParameter) {
+            "(${this.asRegexString()})"
+        } else {
+            this.asRegexString()
+        }
+    }
 
     class Normal(val content: String) : PathSegment2() {
         override fun asRegexString(): String = content
@@ -111,6 +120,7 @@ internal sealed class PathSegment2 {
 
     class Parameter(val name: String) : PathSegment2() {
         override fun asRegexString(): String = "[^/]+?" // Accept everything except slash
+        override val isParameter: Boolean = true
     }
 
     object Wildcard : PathSegment2() {
