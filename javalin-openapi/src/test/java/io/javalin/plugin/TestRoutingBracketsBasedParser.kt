@@ -49,8 +49,10 @@ class TestRoutingBracketsBasedParser {
     @Test
     fun `case sensitive urls work`() = TestUtil.test { app, http ->
         app.get("/My-Url") { ctx -> ctx.result("OK") }
-        assertThat(http.getBody("/MY-URL")).isEqualTo("Not found")
-        assertThat(http.getBody("/My-Url")).isEqualTo("OK")
+        assertThat(http.get("/MY-URL").status).isEqualTo(404)
+        val response = http.get("/My-Url")
+        assertThat(response.status).isEqualTo(200)
+        assertThat(response.body).isEqualTo("OK")
     }
 
     @Test
@@ -82,8 +84,10 @@ class TestRoutingBracketsBasedParser {
     @Test
     fun `path-params can be combined with wildcards`() = TestUtil.test { app, http ->
         app.get("/hi-{name}-*") { ctx -> ctx.result(ctx.pathParam("name")) }
-        assertThat(http.getBody("/hi-world")).isEqualTo("Not found")
-        assertThat(http.getBody("/hi-world-not-included")).isEqualTo("world")
+        assertThat(http.get("/hi-world").status).isEqualTo(404)
+        val response = http.get("/hi-world-not-included")
+        assertThat(response.status).isEqualTo(200)
+        assertThat(response.body).isEqualTo("world")
     }
 
     @Test
@@ -111,8 +115,8 @@ class TestRoutingBracketsBasedParser {
     @Test
     fun `path regex works`() = TestUtil.test { app, http ->
         app.get("/{path-param}/[0-9]+/") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        assertThat(http.getBody("/test/pathParam")).isEqualTo("Not found")
-        assertThat(http.getBody("/test/21")).isEqualTo("test")
+        assertThat(http.get("/test/pathParam").status).isEqualTo(404)
+        assertThat(http.get("/test/21").body).isEqualTo("test")
     }
 
     @Test

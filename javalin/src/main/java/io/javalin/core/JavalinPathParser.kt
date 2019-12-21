@@ -38,9 +38,11 @@ interface PathParserSpec {
 private class ColonBasedParser(path: String) : PathParserSpec {
     val impl = PathParser(path)
 
-    override val segments: List<PathSegment2> = impl.segments.map { it.toPathSegment2() }
+    override val segments: List<PathSegment2>
+        get() = impl.segments.map { it.toPathSegment2() }
 
-    override val pathParamNames: List<String> = impl.pathParamNames
+    override val pathParamNames: List<String>
+        get() = impl.pathParamNames
 
     override fun matches(url: String): Boolean = impl.matches(url)
 
@@ -50,9 +52,11 @@ private class ColonBasedParser(path: String) : PathParserSpec {
 private class BracketsBasedParser(path: String) : PathParserSpec {
     val impl = PathParser2(path)
 
-    override val segments: List<PathSegment2> = impl.segments
+    override val segments: List<PathSegment2>
+        get() = impl.segments
 
-    override val pathParamNames: List<String> = impl.pathParamNames
+    override val pathParamNames: List<String>
+        get() = impl.pathParamNames
 
     override fun matches(url: String): Boolean = impl.matches(url)
 

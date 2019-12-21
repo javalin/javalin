@@ -104,16 +104,8 @@ class PathParser2(private val path: String) {
 sealed class PathSegment2 {
 
     internal abstract fun asRegexString(): String
-    // TODO: replace this property by making Parameter a sealed class itself
-    internal open val isParameter: Boolean = false
 
-    internal fun asGroupedRegexString(): String {
-        return if (isParameter) {
-            "(${this.asRegexString()})"
-        } else {
-            this.asRegexString()
-        }
-    }
+    internal open fun asGroupedRegexString(): String = asRegexString()
 
     class Normal(val content: String) : PathSegment2() {
         override fun asRegexString(): String = content
@@ -121,7 +113,7 @@ sealed class PathSegment2 {
 
     class Parameter(val name: String) : PathSegment2() {
         override fun asRegexString(): String = "[^/]+?" // Accept everything except slash
-        override val isParameter: Boolean = true
+        override fun asGroupedRegexString(): String = "(${asRegexString()})"
     }
 
     object Wildcard : PathSegment2() {
@@ -129,11 +121,17 @@ sealed class PathSegment2 {
     }
 
     class MultipleSegments(segments: List<PathSegment2>) : PathSegment2() {
-        // TODO: maybe throw an exception instead of silently ignoring MultipleSegments inside MultipleSegments
+        init {
+            if (segments.filterIsInstance<MultipleSegments>().isNotEmpty()) {
+                throw IllegalStateException("Found MultipleSegment inside MultipleSegments! This is forbidden")
+            }
+        }
         val innerSegments = segments.filterNot { it is MultipleSegments }
 
         private val regex: String = innerSegments.joinToString(separator = "") { it.asRegexString() }
+        private val groupedRegex: String = innerSegments.joinToString(separator = "") { it.asGroupedRegexString() }
         override fun asRegexString(): String = regex
+        override fun asGroupedRegexString(): String = groupedRegex
     }
 }
 
