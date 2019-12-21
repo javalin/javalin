@@ -7,8 +7,8 @@
 package io.javalin.http.util
 
 import io.javalin.Javalin
-import io.javalin.core.PathParser
-import io.javalin.core.PathSegment
+import io.javalin.core.PathSegment2
+import io.javalin.core.createPathParser
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
 import io.javalin.http.HandlerType
@@ -25,9 +25,20 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
     override fun init(app: Javalin) {
         app.events { e ->
             e.handlerAdded { h ->
-                PathParser(h.path, app._conf.ignoreTrailingSlashes).segments.filterIsInstance<PathSegment.Normal>().map { it.asRegexString() }.forEach {
+                val parser = createPathParser(h.path, app._conf.ignoreTrailingSlashes)
+                parser.segments.filterIsInstance<PathSegment2.Normal>().map { it.asRegexString() }.forEach {
                     if (it != it.toLowerCase()) throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin")
                 }
+                parser.segments
+                        .filterIsInstance<PathSegment2.MultipleSegments>()
+                        .flatMap { it.innerSegments }
+                        .filterIsInstance<PathSegment2.Normal>()
+                        .map { it.asRegexString() }
+                        .forEach {
+                            if (it != it.toLowerCase()) {
+                                throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin")
+                            }
+                        }
             }
         }
     }
@@ -42,10 +53,18 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
             }
             matcher.findEntries(type, requestUri.toLowerCase()).firstOrNull()?.let { entry ->
                 val clientSegments = requestUri.split("/").filter { it.isNotEmpty() }.toTypedArray()
-                val serverSegments = PathParser(entry.path, app._conf.ignoreTrailingSlashes).segments
-                serverSegments.forEachIndexed { i, _ ->
-                    if (serverSegments[i] is PathSegment.Normal) {
+                val serverSegments = createPathParser(entry.path, app._conf.ignoreTrailingSlashes).segments
+                serverSegments.forEachIndexed { i, serverSegment ->
+                    if (serverSegment is PathSegment2.Normal) {
                         clientSegments[i] = clientSegments[i].toLowerCase() // this is also a "Normal" segment
+                    }
+                    if (serverSegment is PathSegment2.MultipleSegments) {
+                        serverSegments.forEach { innerServerSegment ->
+                            if (innerServerSegment is PathSegment2.Normal) {
+                                // replace the non lowercased part of the segment with the lowercased version
+                                clientSegments[i] = clientSegments[i].replace(innerServerSegment.content, innerServerSegment.content.toLowerCase(), ignoreCase = true)
+                            }
+                        }
                     }
                 }
                 val lowercasePath = "/" + clientSegments.joinToString("/") + if (ctx.queryString() != null) "?" + ctx.queryString() else ""
