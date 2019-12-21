@@ -104,6 +104,7 @@ class PathParser2(private val path: String) {
 internal sealed class PathSegment2 {
 
     internal abstract fun asRegexString(): String
+    // TODO: replace this property by making Parameter a sealed class itself
     internal open val isParameter: Boolean = false
 
     internal fun asGroupedRegexString(): String {
@@ -127,7 +128,10 @@ internal sealed class PathSegment2 {
         override fun asRegexString(): String = ".*?" // Accept everything
     }
 
-    class MultipleSegments(val innerSegments: List<PathSegment2>) : PathSegment2() {
+    class MultipleSegments(segments: List<PathSegment2>) : PathSegment2() {
+        // TODO: maybe throw an exception instead of silently ignoring MultipleSegments inside MultipleSegments
+        val innerSegments = segments.filterNot { it is MultipleSegments }
+
         private val regex: String = innerSegments.joinToString(separator = "") { it.asRegexString() }
         override fun asRegexString(): String = regex
     }
