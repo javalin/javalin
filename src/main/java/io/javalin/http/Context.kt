@@ -207,7 +207,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Returns a Boolean which is true if there is an Authorization header with
      * Basic auth credentials. Returns false otherwise.
      */
-    fun basicAuthCredentialsExists(): Boolean = ContextUtil.hasBasicAuthCredentials(header(Header.AUTHORIZATION))
+    fun basicAuthCredentialsExist(): Boolean = ContextUtil.hasBasicAuthCredentials(header(Header.AUTHORIZATION))
 
     /**
      * Gets basic-auth credentials from the request, or throws.
