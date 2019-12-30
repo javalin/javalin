@@ -8,6 +8,7 @@ package io.javalin.core.security
 
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.http.util.ContextUtil.isLocalhost
 
 object SecurityUtil {
 
@@ -24,6 +25,7 @@ object SecurityUtil {
 
     @JvmStatic
     fun sslRedirect(ctx: Context) {
+        if (ctx.isLocalhost()) return
         val xForwardedProto = ctx.header("x-forwarded-proto")
         if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
             ctx.redirect(ctx.fullUrl().replace("http", "https"), 301)
