@@ -38,7 +38,7 @@ class RateLimiter(timeUnit: TimeUnit) {
 
 }
 
-class RateLimit(val ctx: Context) {
+class RateLimit(private val ctx: Context) {
     /**
      * Simple IP-and-handler-based rate-limiting, activated by calling it in a [io.javalin.http.Handler]
      * A map of maps in a [RateLimiter] holds one ip/counter map per method/path (handler).
