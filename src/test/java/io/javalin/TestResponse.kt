@@ -39,6 +39,20 @@ class TestResponse {
     }
 
     @Test
+    fun `setting a byte array result works`() = TestUtil.test { app, http ->
+        val bytes = ByteArray(512)
+
+        for(i in 0 until 512)
+            bytes[i] = (i % 256).toByte()
+
+        app.get("/hello") { ctx -> ctx.result(bytes) }
+        val response = http.call(HttpMethod.GET, "/hello")
+        val bout = ByteArrayOutputStream()
+        assertThat(IOUtils.copy(response.rawBody, bout)).isEqualTo(bytes.size)
+        assertThat(bytes).isEqualTo(bout.toByteArray())
+    }
+
+    @Test
     fun `setting an InputStream result works`() = TestUtil.test { app, http ->
         val buf = ByteArray(65537) // big and not on a page boundary
         Random().nextBytes(buf)
