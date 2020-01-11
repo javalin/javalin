@@ -73,7 +73,7 @@ fun createPathParser(path: String): PathParserSpec = if (JavalinPathParser.isCol
 internal fun PathSegment.toPathSegment2(): PathSegment2 {
     return when (this) {
         is PathSegment.Normal -> PathSegment2.Normal(this.content)
-        is PathSegment.Parameter -> PathSegment2.Parameter(this.name)
+        is PathSegment.Parameter -> PathSegment2.Parameter.SlashIgnoringParameter(this.name)
         is PathSegment.Wildcard -> PathSegment2.Wildcard
     }
 }

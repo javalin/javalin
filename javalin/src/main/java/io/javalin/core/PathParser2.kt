@@ -31,7 +31,7 @@ class PathParser2(private val path: String) {
         when {
             // just a Parameter in this segment
             // checking the number of brackets enforces a path parameter name without those brackets
-            brackets == 2 && segment.startsWith("{") && segment.endsWith("}") -> return PathSegment2.Parameter(segment.removePrefix("{").removeSuffix("}"))
+            brackets == 2 && segment.startsWith("{") && segment.endsWith("}") -> return PathSegment2.Parameter.SlashIgnoringParameter(segment.removePrefix("{").removeSuffix("}"))
             segment == "*" -> return PathSegment2.Wildcard
             // no special characters
             brackets == 0 && wildcards == 0 -> return PathSegment2.Normal(segment)
@@ -61,7 +61,7 @@ class PathParser2(private val path: String) {
                         insideBrackets = false
                         val name = pathNameAccumulator.joinToString(separator = "")
                         pathNameAccumulator.clear()
-                        PathSegment2.Parameter(name)
+                        PathSegment2.Parameter.SlashIgnoringParameter(name)
                     }
                     // wildcard is also okay inside a variable name
                     else -> {
@@ -111,9 +111,16 @@ sealed class PathSegment2 {
         override fun asRegexString(): String = content
     }
 
-    class Parameter(val name: String) : PathSegment2() {
-        override fun asRegexString(): String = "[^/]+?" // Accept everything except slash
-        override fun asGroupedRegexString(): String = "(${asRegexString()})"
+    sealed class Parameter(val name: String) : PathSegment2() {
+        class SlashIgnoringParameter(name: String) : Parameter(name) {
+            override fun asRegexString(): String = "[^/]+?" // Accept everything except slash
+            override fun asGroupedRegexString(): String = "(${asRegexString()})"
+        }
+
+        class SlashAccepting(name: String) : Parameter(name) {
+            override fun asRegexString(): String = ".+?" // Accept everything
+            override fun asGroupedRegexString(): String = "(${asRegexString()})"
+        }
     }
 
     object Wildcard : PathSegment2() {
@@ -126,6 +133,7 @@ sealed class PathSegment2 {
                 throw IllegalStateException("Found MultipleSegment inside MultipleSegments! This is forbidden")
             }
         }
+
         val innerSegments = segments.filterNot { it is MultipleSegments }
 
         private val regex: String = innerSegments.joinToString(separator = "") { it.asRegexString() }
