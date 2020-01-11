@@ -113,6 +113,27 @@ class TestRoutingBracketsBasedParser {
     }
 
     @Test
+    fun `splat path-params work`() = TestUtil.test { app, http ->
+        app.get("/<name>") { ctx -> ctx.result(ctx.pathParam("name")) }
+        assertThat(http.getBody("/hi/with/slashes")).isEqualTo("hi/with/slashes")
+    }
+
+    @Test
+    fun `splat path-params can be combined with regular content`() = TestUtil.test { app, http ->
+        app.get("/hi/<name>") { ctx -> ctx.result(ctx.pathParam("name")) }
+        assertThat(http.getBody("/hi/with/slashes")).isEqualTo("with/slashes")
+    }
+
+    @Test
+    fun `splat path-params can be combined with wildcards`() = TestUtil.test { app, http ->
+        app.get("/hi-<name>-*") { ctx -> ctx.result(ctx.pathParam("name")) }
+        assertThat(http.get("/hi-world").status).isEqualTo(404)
+        val response = http.get("/hi-world/hi-not-included")
+        assertThat(response.status).isEqualTo(200)
+        assertThat(response.body).isEqualTo("world/hi")
+    }
+
+    @Test
     fun `path regex works`() = TestUtil.test { app, http ->
         app.get("/{path-param}/[0-9]+/") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.get("/test/pathParam").status).isEqualTo(404)

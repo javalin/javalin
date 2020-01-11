@@ -3,9 +3,12 @@ package io.javalin.core
 object JavalinPathParser {
     private val colonParserMode: () -> PathParserOptions = {
         PathParserOptions(
-                openingDelimiter = ':',
-                closingDelimiter = Char.MIN_VALUE,
-                allowOptionalClosingDelimiter = true
+                openingDelimiterType1 = ':',
+                closingDelimiterType1 = Char.MIN_VALUE,
+                allowOptionalClosingDelimiter = true,
+                // Slash accepting parameters are not supported for colon parser mode
+                openingDelimiterType2 = Char.MIN_VALUE,
+                closingDelimiterType2 = Char.MIN_VALUE
         )
     }
 
