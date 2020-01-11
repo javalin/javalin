@@ -89,9 +89,14 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
         }
     }
 
-    var securityScheme = SecurityScheme()
-    fun securityScheme(securityScheme: (SecurityScheme) -> Unit) = apply {
-        securityScheme.invoke(this.securityScheme)
+    var securitySchemes: MutableMap<String, SecurityScheme>? = null
+    fun addSecurityScheme(securityScheme: (SecurityScheme) -> Unit) = apply {
+        if (securitySchemes == null) {
+            securitySchemes = mutableMapOf()
+        }
+        val scheme = SecurityScheme()
+        securityScheme.invoke(scheme)
+        securitySchemes!![scheme.type.toString()] = scheme
     }
 
     /**

@@ -25,7 +25,7 @@ class CreateSchemaOptions(
 
         val default: DefaultDocumentation?,
 
-        val securityScheme: SecurityScheme?,
+        val securitySchemes: Map<String, SecurityScheme>?,
 
         val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory(),
 

@@ -72,7 +72,7 @@ fun main() {
                 .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
                 .reDoc(ReDocOptions("/redoc").title("My ReDoc Documentation"))
                 .defaultDocumentation { documentation -> documentation.json<InternalServerErrorResponse>("500") }
-                .securityScheme { securityScheme ->
+                .addSecurityScheme { securityScheme ->
                     securityScheme.type = SecurityScheme.Type.HTTP
                     securityScheme.scheme = "basic"
                 }

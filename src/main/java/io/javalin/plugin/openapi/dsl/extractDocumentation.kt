@@ -31,8 +31,6 @@ fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiD
 
     options.default?.apply(documentation)
 
-    options.securityScheme // TODO: What should be done here?
-
     val userDocumentation = if (handler is DocumentedHandler) {
         handler.documentation
     } else {
@@ -41,6 +39,9 @@ fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiD
                 ?: extractDocumentationWithPathScanning(options)
                 ?: document()
     }
+
+    // TODO: This is not the right thing to do...
+    userDocumentation.componentsUpdaterList.add(createUpdater { options.securitySchemes })
 
     documentation.apply(userDocumentation)
 
