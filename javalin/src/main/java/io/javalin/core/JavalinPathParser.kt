@@ -31,6 +31,11 @@ object JavalinPathParser {
     fun useDefaultParser() {
         parserImplementation = defaultParser
     }
+
+    @JvmStatic
+    fun custom(options: PathParserOptions) {
+        parserImplementation = options
+    }
 }
 
 interface PathParserSpec {
