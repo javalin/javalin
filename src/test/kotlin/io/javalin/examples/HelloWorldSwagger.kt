@@ -15,6 +15,7 @@ import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.security.SecurityScheme
 
 enum class UserRole {
     CUSTOMER,
@@ -71,6 +72,10 @@ fun main() {
                 .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
                 .reDoc(ReDocOptions("/redoc").title("My ReDoc Documentation"))
                 .defaultDocumentation { documentation -> documentation.json<InternalServerErrorResponse>("500") }
+                .securityScheme { securityScheme ->
+                    securityScheme.type = SecurityScheme.Type.HTTP
+                    securityScheme.scheme = "basic"
+                }
         it.registerPlugin(OpenApiPlugin(openApiOptions))
     }
 

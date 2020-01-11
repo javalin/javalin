@@ -12,6 +12,7 @@ import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
 import io.swagger.v3.core.converter.ModelConverter
 import io.swagger.v3.core.converter.ModelConverters
 import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.security.SecurityScheme
 
 class CreateSchemaOptions(
         val handlerMetaInfoList: List<HandlerMetaInfo>,
@@ -23,6 +24,8 @@ class CreateSchemaOptions(
         val initialConfigurationCreator: InitialConfigurationCreator,
 
         val default: DefaultDocumentation?,
+
+        val securityScheme: SecurityScheme?,
 
         val modelConverterFactory: ModelConverterFactory = JacksonModelConverterFactory(),
 

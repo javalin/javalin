@@ -31,6 +31,8 @@ fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiD
 
     options.default?.apply(documentation)
 
+    options.securityScheme // TODO: What should be done here?
+
     val userDocumentation = if (handler is DocumentedHandler) {
         handler.documentation
     } else {

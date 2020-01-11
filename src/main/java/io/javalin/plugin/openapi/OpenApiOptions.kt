@@ -17,6 +17,7 @@ import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.javalin.plugin.openapi.utils.LazyDefaultValue
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.security.SecurityScheme
 
 class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigurationCreator) {
     /** If not null, creates a GET route to get the schema as a json */
@@ -86,6 +87,11 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
         default = object : DefaultDocumentation {
             override fun apply(documentation: OpenApiDocumentation) = apply(documentation)
         }
+    }
+
+    var securityScheme = SecurityScheme()
+    fun securityScheme(securityScheme: (SecurityScheme) -> Unit) = apply {
+        securityScheme.invoke(this.securityScheme)
     }
 
     /**

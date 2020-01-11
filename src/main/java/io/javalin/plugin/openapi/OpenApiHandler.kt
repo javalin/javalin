@@ -45,6 +45,7 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
                         },
                         initialConfigurationCreator = options.initialConfigurationCreator,
                         default = options.default,
+                        securityScheme = options.securityScheme,
                         modelConverterFactory = options.modelConverterFactory,
                         packagePrefixesToScan = options.packagePrefixesToScan,
                         overridenPaths = options.overriddenDocumentation
