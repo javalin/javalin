@@ -10,20 +10,36 @@ class WildcardBracketAdjacentException(val segment: String, val path: String) : 
         "Wildcard and a path parameter bracket are adjacent in segment '$segment' of path '$path'. This is forbidden"
 )
 
-class PathParser2(private val path: String) {
+private enum class ParserState {
+    NORMAL,
+    INSIDE_BRACKET_TYPE_1,
+}
+
+data class PathParserOptions(
+        val openingDelimiter: Char = '{',
+        val closingDelimiter: Char = '}',
+        val allowOptionalClosingDelimiter: Boolean = false
+)
+
+class PathParser2(private val path: String, private val options: PathParserOptions) {
+
+    private val adjacentViolations: List<String> = listOf(
+            "*${options.openingDelimiter}",
+            "${options.closingDelimiter}*"
+    )
 
     internal val segments: List<PathSegment2> = path.split("/")
             .filter { it.isNotEmpty() }
             .map(::convertSegment)
 
     private fun convertSegment(segment: String): PathSegment2 {
-        val brackets = segment.count { it == '{' || it == '}' }
+        val brackets = segment.count { it == options.openingDelimiter || it == options.closingDelimiter }
         val wildcards = segment.count { it == '*' }
         // avoid parsing malformed paths
-        if (brackets % 2 != 0) {
+        if (brackets % 2 != 0 && !options.allowOptionalClosingDelimiter) {
             throw MissingBracketsException(segment, path)
         }
-        if ("*{" in segment || "}*" in segment) {
+        if (adjacentViolations.any { it in segment }) {
             throw WildcardBracketAdjacentException(segment, path)
         }
 
@@ -31,7 +47,8 @@ class PathParser2(private val path: String) {
         when {
             // just a Parameter in this segment
             // checking the number of brackets enforces a path parameter name without those brackets
-            brackets == 2 && segment.startsWith("{") && segment.endsWith("}") -> return PathSegment2.Parameter.SlashIgnoringParameter(segment.removePrefix("{").removeSuffix("}"))
+            brackets == 2 && segment.startsWith(options.openingDelimiter) && segment.endsWith(options.closingDelimiter) -> return PathSegment2.Parameter.SlashIgnoringParameter(segment.removePrefix(options.openingDelimiter.toString()).removeSuffix(options.closingDelimiter.toString()))
+            brackets == 1 && segment.startsWith(options.openingDelimiter) -> return PathSegment2.Parameter.SlashIgnoringParameter(segment.removePrefix(options.openingDelimiter.toString()))
             segment == "*" -> return PathSegment2.Wildcard
             // no special characters
             brackets == 0 && wildcards == 0 -> return PathSegment2.Normal(segment)
@@ -41,32 +58,35 @@ class PathParser2(private val path: String) {
     }
 
     private fun parseAsPathSegment(segment: String): PathSegment2 {
-        var insideBrackets = false
+        var state: ParserState = ParserState.NORMAL
         val pathNameAccumulator = mutableListOf<Char>()
         fun mapSingleChar(char: Char): PathSegment2? {
-            return if (!insideBrackets) {
-                when (char) {
-                    '*' -> PathSegment2.Wildcard
-                    '{' -> {
-                        insideBrackets = true
-                        null
+            return when (state) {
+                ParserState.NORMAL -> {
+                    return when (char) {
+                        '*' -> PathSegment2.Wildcard
+                        options.openingDelimiter -> {
+                            state = ParserState.INSIDE_BRACKET_TYPE_1
+                            null
+                        }
+                        options.closingDelimiter -> throw MissingBracketsException(segment, path) // cannot start with a closing delimiter
+                        else -> PathSegment2.Normal(char.toString()) // the single characters will be merged later
                     }
-                    '}' -> throw MissingBracketsException(segment, path) // cannot start with a closing bracket
-                    else -> PathSegment2.Normal(char.toString()) // the single characters will be merged later
                 }
-            } else {
-                when (char) {
-                    '{' -> throw MissingBracketsException(segment, path) // cannot start another variable inside a variable
-                    '}' -> {
-                        insideBrackets = false
-                        val name = pathNameAccumulator.joinToString(separator = "")
-                        pathNameAccumulator.clear()
-                        PathSegment2.Parameter.SlashIgnoringParameter(name)
-                    }
-                    // wildcard is also okay inside a variable name
-                    else -> {
-                        pathNameAccumulator += char
-                        null
+                ParserState.INSIDE_BRACKET_TYPE_1 -> {
+                    return when (char) {
+                        options.openingDelimiter -> throw MissingBracketsException(segment, path) // cannot start another variable inside a variable
+                        options.closingDelimiter -> {
+                            state = ParserState.NORMAL
+                            val name = pathNameAccumulator.joinToString(separator = "")
+                            pathNameAccumulator.clear()
+                            PathSegment2.Parameter.SlashIgnoringParameter(name)
+                        }
+                        // wildcard is also okay inside a variable name
+                        else -> {
+                            pathNameAccumulator += char
+                            null
+                        }
                     }
                 }
             }
