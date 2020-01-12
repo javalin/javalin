@@ -22,14 +22,14 @@ import org.junit.Test
 class TestCors {
 
     @Test
-    fun `enableCorsForOrigin() throws for empty varargs`() {
+    fun `enableCorsForOrigin throws for empty varargs`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
                 .isThrownBy { Javalin.create { it.enableCorsForOrigin() } }
                 .withMessageStartingWith("Origins cannot be empty.")
     }
 
     @Test
-    fun `enableCorsForOrigin() enables cors for specific origins`() {
+    fun `enableCorsForOrigin enables cors for specific origins`() {
         val javalin = Javalin.create { it.enableCorsForOrigin("origin-1", "referer-1") }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello") }
@@ -40,7 +40,7 @@ class TestCors {
     }
 
     @Test
-    fun `enableCorsForAllOrigins() enables cors for all origins`() {
+    fun `enableCorsForAllOrigins enables cors for all origins`() {
         val javalin = Javalin.create { it.enableCorsForAllOrigins() }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello") }
@@ -51,24 +51,26 @@ class TestCors {
         }
     }
 
-    private val accessManagedCorsApp = Javalin.create {
-        it.enableCorsForAllOrigins()
-        it.accessManager { _, ctx, _ ->
-            ctx.status(401).result("Unauthorized")
-        }
-    }
 
     @Test
-    fun `enableCorsForAllOrigins() enables cors for all origins with AccessManager`() = TestUtil.test(accessManagedCorsApp) { app, http ->
-        app.get("/", { ctx -> ctx.result("Hello") }, setOf(TestAccessManager.MyRoles.ROLE_ONE))
-        assertThat(http.get("/").body).isEqualTo("Unauthorized")
-        val response = Unirest.options(http.origin)
-                .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
-                .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
-                .asString()
-        assertThat(response.headers[ACCESS_CONTROL_ALLOW_HEADERS]!![0]).isEqualTo("123")
-        assertThat(response.headers[ACCESS_CONTROL_ALLOW_METHODS]!![0]).isEqualTo("TEST")
-        assertThat(response.body).isBlank()
+    fun `enableCorsForAllOrigins enables cors for all origins with AccessManager`() {
+        val accessManagedCorsApp = Javalin.create {
+            it.enableCorsForAllOrigins()
+            it.accessManager { _, ctx, _ ->
+                ctx.status(401).result("Unauthorized")
+            }
+        }
+        TestUtil.test(accessManagedCorsApp) { app, http ->
+            app.get("/", { ctx -> ctx.result("Hello") }, setOf(TestAccessManager.MyRoles.ROLE_ONE))
+            assertThat(http.get("/").body).isEqualTo("Unauthorized")
+            val response = Unirest.options(http.origin)
+                    .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
+                    .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
+                    .asString()
+            assertThat(response.headers[ACCESS_CONTROL_ALLOW_HEADERS]!![0]).isEqualTo("123")
+            assertThat(response.headers[ACCESS_CONTROL_ALLOW_METHODS]!![0]).isEqualTo("TEST")
+            assertThat(response.body).isBlank()
+        }
     }
 
 }

@@ -25,34 +25,40 @@ import javax.servlet.ServletResponse
 
 class TestStaticFiles {
 
-    private val defaultStaticResourceApp = Javalin.create { it.addStaticFiles("/public") } // classpath
-    private val externalStaticResourceApp = Javalin.create { it.addStaticFiles("src/test/external/", Location.EXTERNAL) }
-    private val multiLocationStaticResourceApp = Javalin.create { servlet ->
-        servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
-        servlet.addStaticFiles("/public/immutable")
-        servlet.addStaticFiles("/public/protected")
-        servlet.addStaticFiles("/public/subdir")
-    }
-    private val devLoggingApp = Javalin.create {
-        it.addStaticFiles("/public")
-        it.enableDevLogging()
-    }
-
-    private val customFilterStaticResourceApp = Javalin.create {
-        val filter = object : Filter {
-            override fun init(config: FilterConfig?) {
-            }
-
-            override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
-                chain?.doFilter(request, ServletResponseHttpWrapper(response))
-            }
-
-            override fun destroy() {
-            }
+    private val defaultStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("/public") } } // classpath
+    private val externalStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("src/test/external/", Location.EXTERNAL) } }
+    private val multiLocationStaticResourceApp: Javalin by lazy {
+        Javalin.create { servlet ->
+            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
+            servlet.addStaticFiles("/public/immutable")
+            servlet.addStaticFiles("/public/protected")
+            servlet.addStaticFiles("/public/subdir")
         }
-        it.addStaticFiles("/public")
-        it.configureServletContextHandler { handler ->
-            handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
+    }
+    private val devLoggingApp: Javalin by lazy {
+        Javalin.create {
+            it.addStaticFiles("/public")
+            it.enableDevLogging()
+        }
+    }
+
+    private val customFilterStaticResourceApp: Javalin by lazy {
+        Javalin.create {
+            val filter = object : Filter {
+                override fun init(config: FilterConfig?) {
+                }
+
+                override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
+                    chain?.doFilter(request, ServletResponseHttpWrapper(response))
+                }
+
+                override fun destroy() {
+                }
+            }
+            it.addStaticFiles("/public")
+            it.configureServletContextHandler { handler ->
+                handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
+            }
         }
     }
 
@@ -149,5 +155,4 @@ class TestStaticFiles {
         assertThat(http.get("/html.html").status).isEqualTo(200)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
     }
-
 }

@@ -297,10 +297,6 @@
                             <goal>compile</goal>
                         </goals>
                         <configuration>
-                            <args>
-                                <!-- Workaround for bug in Kotlin compiler: https://youtrack.jetbrains.com/issue/KT-29475 -->
-                                <arg>-Xsanitize-parentheses</arg>
-                            </args>
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/main/java</sourceDir>
                             </sourceDirs>

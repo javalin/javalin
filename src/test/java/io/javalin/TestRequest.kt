@@ -107,25 +107,25 @@ class TestRequest {
      * Path params
      */
     @Test
-    fun `pathParam() throws for invalid param`() = TestUtil.test { app, http ->
+    fun `pathParam throws for invalid param`() = TestUtil.test { app, http ->
         app.get("/:my/:path") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/my/path")).isEqualTo("Internal server error")
     }
 
     @Test
-    fun `pathParam() works for multiple params`() = TestUtil.test { app, http ->
+    fun `pathParam works for multiple params`() = TestUtil.test { app, http ->
         app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("mypathparams")
     }
 
     @Test
-    fun `pathParamMap() returns empty map if no path params present`() = TestUtil.test { app, http ->
+    fun `pathParamMap returns empty map if no path params present`() = TestUtil.test { app, http ->
         app.get("/my/path/params") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("{}")
     }
 
     @Test
-    fun `pathParamMap() returns all present path-params`() = TestUtil.test { app, http ->
+    fun `pathParamMap returns all present path-params`() = TestUtil.test { app, http ->
         app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("{1=my, 2=path, 3=params}")
     }
@@ -134,37 +134,37 @@ class TestRequest {
      * Query params
      */
     @Test
-    fun `queryParam() returns null for unknown param`() = TestUtil.test { app, http ->
+    fun `queryParam returns null for unknown param`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp")) }
         assertThat(http.getBody("/")).isEqualTo("null")
     }
 
     @Test
-    fun `queryParam() defaults to default value`() = TestUtil.test { app, http ->
+    fun `queryParam defaults to default value`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp", "default")!!) }
         assertThat(http.getBody("/")).isEqualTo("default")
     }
 
     @Test
-    fun `queryParam() returns supplied values`() = TestUtil.test { app, http ->
+    fun `queryParam returns supplied values`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp1") + ctx.queryParam("qp2") + ctx.queryParam("qp3")) }
         assertThat(http.getBody("/?qp1=1&qp2=2&qp3=3")).isEqualTo("123")
     }
 
     @Test
-    fun `queryParam() returns value containing equal sign`() = TestUtil.test { app, http ->
+    fun `queryParam returns value containing equal sign`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("equation")!!) }
         assertThat(http.getBody("/?equation=2*2=4")).isEqualTo("2*2=4")
     }
 
     @Test
-    fun `queryParams() returns empty list for unknown param`() = TestUtil.test { app, http ->
+    fun `queryParams returns empty list for unknown param`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParams("qp1").toString()) }
         assertThat(http.getBody("/")).isEqualTo("[]")
     }
 
     @Test
-    fun `queryParams() returns list of supplied params`() = TestUtil.test { app, http ->
+    fun `queryParams returns list of supplied params`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParams("qp1").toString()) }
         assertThat(http.getBody("/?qp1=1&qp1=2&qp1=3")).isEqualTo("[1, 2, 3]")
     }
@@ -173,25 +173,25 @@ class TestRequest {
      * Form params
      */
     @Test
-    fun `formParam() returns supplied form-param`() = TestUtil.test { app, http ->
+    fun `formParam returns supplied form-param`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp1")!!) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("1")
     }
 
     @Test
-    fun `formParam() returns null for unknown param`() = TestUtil.test { app, http ->
+    fun `formParam returns null for unknown param`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp3")) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("null")
     }
 
     @Test
-    fun `formParam() returns defaults to default value`() = TestUtil.test { app, http ->
+    fun `formParam returns defaults to default value`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp4", "4")!!) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
     }
 
     @Test
-    fun `hasBasicAuthCredentials() with Authorization header`() = TestUtil.test { app, http ->
+    fun `hasBasicAuthCredentials with Authorization header`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentialsExist = ctx.basicAuthCredentialsExist()
             ctx.result(basicAuthCredentialsExist.toString())
@@ -201,7 +201,7 @@ class TestRequest {
     }
 
     @Test
-    fun `hasBasicAuthCredentials() without Authorization header`() = TestUtil.test { app, http ->
+    fun `hasBasicAuthCredentials without Authorization header`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentialsExist = ctx.basicAuthCredentialsExist()
             ctx.result(basicAuthCredentialsExist.toString())
@@ -211,20 +211,20 @@ class TestRequest {
     }
 
     @Test
-    fun `basicAuthCredentials() extracts username and password`() = TestUtil.test { app, http ->
+    fun `basicAuthCredentials extracts username and password`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
-            ctx.result(basicAuthCredentials!!.username + "|" + basicAuthCredentials.password)
+            ctx.result(basicAuthCredentials.username + "|" + basicAuthCredentials.password)
         }
         val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-password").asString()
         assertThat(response.body).isEqualTo("some-username|some-password")
     }
 
     @Test
-    fun `basicAuthCredentials() extracts username and password with colon`() = TestUtil.test { app, http ->
+    fun `basicAuthCredentials extracts username and password with colon`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
-            ctx.result(basicAuthCredentials!!.username + "|" + basicAuthCredentials.password)
+            ctx.result(basicAuthCredentials.username + "|" + basicAuthCredentials.password)
         }
         val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
         assertThat(response.body).isEqualTo("some-username|some-pass:::word")
@@ -258,7 +258,7 @@ class TestRequest {
     }
 
     @Test
-    fun `matchedPath() returns the path used to match the request`() = TestUtil.test { app, http ->
+    fun `matchedPath returns the path used to match the request`() = TestUtil.test { app, http ->
         app.get("/matched") { ctx -> ctx.result(ctx.matchedPath()) }
         app.get("/matched/:path-param") { ctx -> ctx.result(ctx.matchedPath()) }
         app.after("/matched/:path-param/:param2") { ctx -> ctx.result(ctx.matchedPath()) }
@@ -268,7 +268,7 @@ class TestRequest {
     }
 
     @Test
-    fun `endpointHandlerPath() returns the path used to match the request (excluding any AFTER handlers)`() = TestUtil.test { app, http ->
+    fun `endpointHandlerPath returns the path used to match the request, excluding any AFTER handlers`() = TestUtil.test { app, http ->
         app.before { }
         app.get("/matched/:path-param") { }
         app.get("/matched/:another-path-param") { }
@@ -277,7 +277,7 @@ class TestRequest {
     }
 
     @Test
-    fun `endpointHandlerPath() doesn't crash for 404s`() = TestUtil.test { app, http ->
+    fun `endpointHandlerPath doesn't crash for 404s`() = TestUtil.test { app, http ->
         app.before { }
         app.after { it.result(it.endpointHandlerPath()) }
         assertThat(http.getBody("/")).isEqualTo("No handler matched request path/method (404/405)")
@@ -293,61 +293,61 @@ class TestRequest {
      * Simple proxy methods
      */
     @Test
-    fun `contentLength() works`() = TestUtil.test { app, http ->
+    fun `contentLength works`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.result(ctx.contentLength().toString()) }
         assertThat(http.post("/").body("Hello").asString().body).isEqualTo("5")
     }
 
     @Test
-    fun `host() works`() = TestUtil.test { app, http ->
+    fun `host works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.host()!!) }
         assertThat(http.getBody("/")).isEqualTo("localhost:" + app.port())
     }
 
     @Test
-    fun `ip() works`() = TestUtil.test { app, http ->
+    fun `ip works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.ip()) }
         assertThat(http.getBody("/")).isEqualTo("127.0.0.1")
     }
 
     @Test
-    fun `protocol() works`() = TestUtil.test { app, http ->
+    fun `protocol works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.protocol()) }
         assertThat(http.getBody("/")).isEqualTo("HTTP/1.1")
     }
 
     @Test
-    fun `scheme() works`() = TestUtil.test { app, http ->
+    fun `scheme works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.scheme()) }
         assertThat(http.getBody("/")).isEqualTo("http")
     }
 
     @Test
-    fun `url() works`() = TestUtil.test { app, http ->
+    fun `url works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.url()) }
         assertThat(http.getBody("/")).isEqualTo("http://localhost:" + app.port() + "/")
     }
 
     @Test
-    fun `empty contextPath() works`() = TestUtil.test { app, http ->
+    fun `empty contextPath works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
         assertThat(http.getBody("/")).isEqualTo("")
     }
 
     @Test
-    fun `contextPath() with value works`() = TestUtil.test(Javalin.create { it.contextPath = "/ctx" }) { app, http ->
+    fun `contextPath with value works`() = TestUtil.test(Javalin.create { it.contextPath = "/ctx" }) { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
         assertThat(http.getBody("/ctx/")).isEqualTo("/ctx")
     }
 
     @Test
-    fun `userAgent() works`() = TestUtil.test { app, http ->
+    fun `userAgent works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.userAgent()!!) }
         assertThat(http.getBody("/")).isEqualTo("unirest-java/1.3.11")
     }
 
     @Test
-    fun `validator header() works`() = TestUtil.test { app, http ->
+    fun `validator header works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.json(ctx.header<Double>("double").get().javaClass.name) }
         assertThat(http.getBody("/", mapOf("double" to "12.34"))).isEqualTo("\"double\"")
     }

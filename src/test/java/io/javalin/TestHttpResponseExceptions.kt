@@ -99,46 +99,43 @@ class TestHttpResponseExceptions {
 
     @Test
     fun `completing exceptionally with HttpResponseExceptions in future works`() = TestUtil.test { app, http ->
+        fun getExceptionallyCompletingFuture(): CompletableFuture<String> {
+            val future = CompletableFuture<String>()
+            Executors.newSingleThreadScheduledExecutor().schedule({
+                future.completeExceptionally(UnauthorizedResponse())
+            }, 10, TimeUnit.MILLISECONDS)
+            return future
+        }
         app.get("/completed-future-route") { ctx -> ctx.result(getExceptionallyCompletingFuture()) }
         assertThat(http.get("/completed-future-route").body).isEqualTo("Unauthorized")
         assertThat(http.get("/completed-future-route").status).isEqualTo(401)
     }
 
-    private fun getExceptionallyCompletingFuture(): CompletableFuture<String> {
-        val future = CompletableFuture<String>()
-        Executors.newSingleThreadScheduledExecutor().schedule({
-            future.completeExceptionally(UnauthorizedResponse())
-        }, 10, TimeUnit.MILLISECONDS)
-        return future
-    }
-
     @Test
     fun `throwing HttpResponseExceptions in future works`() = TestUtil.test { app, http ->
+        fun getThrowingFuture() = CompletableFuture.supplyAsync {
+            if (true) {
+                throw UnauthorizedResponse()
+            }
+            "Result"
+        }
         app.get("/throwing-future-route") { ctx -> ctx.result(getThrowingFuture()) }
         assertThat(http.get("/throwing-future-route").body).isEqualTo("Unauthorized")
         assertThat(http.get("/throwing-future-route").status).isEqualTo(401)
     }
 
-    private fun getThrowingFuture() = CompletableFuture.supplyAsync {
-        if (true) {
-            throw UnauthorizedResponse()
-        }
-        "Result"
-    }
-
     @Test
     fun `completing exceptionally with unexpected exceptions in future works`() = TestUtil.test { app, http ->
+        fun getUnexpectedExceptionallyCompletingFuture(): CompletableFuture<String> {
+            val future = CompletableFuture<String>()
+            Executors.newSingleThreadScheduledExecutor().schedule({
+                future.completeExceptionally(IllegalStateException("Unexpected message"))
+            }, 10, TimeUnit.MILLISECONDS)
+            return future
+        }
         app.get("/completed-future-route") { ctx -> ctx.result(getUnexpectedExceptionallyCompletingFuture()) }
         app.exception(IllegalStateException::class.java) { exception, ctx -> ctx.result(exception.message!!) }
         assertThat(http.get("/completed-future-route").body).isEqualTo("Unexpected message")
-    }
-
-    private fun getUnexpectedExceptionallyCompletingFuture(): CompletableFuture<String> {
-        val future = CompletableFuture<String>()
-        Executors.newSingleThreadScheduledExecutor().schedule({
-            future.completeExceptionally(IllegalStateException("Unexpected message"))
-        }, 10, TimeUnit.MILLISECONDS)
-        return future
     }
 
     @Test

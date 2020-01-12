@@ -72,7 +72,7 @@ class TestPlugins {
     }
 
     @Test
-    fun `registerPlugin() should work with lambdas`() {
+    fun `registerPlugin should work with lambdas`() {
         var called = false
 
         Javalin.create {
@@ -85,7 +85,7 @@ class TestPlugins {
     }
 
     @Test
-    fun `registerPlugin() should throw error if plugin is already registered`() {
+    fun `registerPlugin should throw error if plugin is already registered`() {
         Javalin.create {
             it.registerPlugin(TestPlugin())
 
@@ -112,7 +112,7 @@ class TestPlugins {
     }
 
     @Test
-    fun `getPlugin() should return instance`() {
+    fun `getPlugin should return instance`() {
         val plugin = TestPlugin()
 
         val app = Javalin.create {
@@ -123,7 +123,7 @@ class TestPlugins {
     }
 
     @Test
-    fun `getPlugin() should throw an error if instance does not exists`() {
+    fun `getPlugin should throw an error if instance does not exists`() {
         val app = Javalin.create {}
 
         assertThatThrownBy {

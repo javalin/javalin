@@ -97,7 +97,6 @@ class TestFuture {
         return future
     }
 
-
     private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {
         return CompletableFuture.supplyAsync({ throw failure })
     }

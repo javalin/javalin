@@ -187,7 +187,7 @@ class TestCompression {
     }
 
     @Test
-    fun `dynamic responds with 304 when ETag is set`() = TestUtil.test(etagApp) { _, http ->
+    fun `dynamic handler responds with 304 when ETag is set`() = TestUtil.test(etagApp) { _, http ->
         val firstRes = getResponse(http.origin, "/huge", "br, gzip")
         val etag = firstRes.headers().get(Header.ETAG) ?: ""
         val secondRes = getResponseWithMultipleHeaders(http.origin, "/huge",
@@ -197,7 +197,7 @@ class TestCompression {
     }
 
     @Test
-    fun `static responds with 304 when ETag is set`() = TestUtil.test(etagApp) { _, http ->
+    fun `static handler responds with 304 when ETag is set`() = TestUtil.test(etagApp) { _, http ->
         val firstRes = getResponse(http.origin, "/html.html", "br, gzip")
         val etag = firstRes.headers().get(Header.ETAG) ?: ""
         val secondRes = getResponseWithMultipleHeaders(http.origin, "/html.html",

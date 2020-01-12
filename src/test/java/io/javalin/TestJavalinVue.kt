@@ -91,7 +91,7 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `setting with Path works`() = TestUtil.test { app, http ->
+    fun `setting rootDirectory with Path works`() = TestUtil.test { app, http ->
         JavalinVue.rootDirectory(Paths.get("src/test/resources/vue"))
         app.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("<test-component></test-component>")

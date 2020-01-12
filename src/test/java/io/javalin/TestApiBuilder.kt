@@ -65,7 +65,7 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `multiple nested path() calls works`() = TestUtil.test { app, http ->
+    fun `multiple nested path-method calls works`() = TestUtil.test { app, http ->
         app.routes {
             get("/hello", simpleAnswer("Hello from level 0"))
             path("/level-1") {
@@ -99,7 +99,7 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `slashes can be omitted for both path() and verbs`() = TestUtil.test { app, http ->
+    fun `slashes can be omitted for both path-method and verbs`() = TestUtil.test { app, http ->
         app.routes {
             path("level-1") {
                 get { ctx -> ctx.result("level-1") }
@@ -247,7 +247,6 @@ class TestApiBuilder {
         override fun delete(ctx: Context, resourceId: String) {
             ctx.status(204)
         }
-
     }
 
 }

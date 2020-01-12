@@ -21,19 +21,19 @@ import javax.servlet.http.Cookie
 
 class TestResponse {
 
-    private val MY_BODY = (""
-            + "This is my body, and I live in it. It's 31 and 6 months old. "
-            + "It's changed a lot since it was new. It's done stuff it wasn't built to do. "
-            + "I often try to fill if up with wine. - Tim Minchin")
-
     @Test
     fun `setting a String result works`() = TestUtil.test { app, http ->
+        val myBody = """
+            This is my body, and I live in it. It's 31 and 6 months old.
+            It's changed a lot since it was new. It's done stuff it wasn't built to do.
+            I often try to fill if up with wine. - Tim Minchin
+        """
         app.get("/hello") { ctx ->
-            ctx.status(418).result(MY_BODY).header("X-HEADER-1", "my-header-1").header("X-HEADER-2", "my-header-2")
+            ctx.status(418).result(myBody).header("X-HEADER-1", "my-header-1").header("X-HEADER-2", "my-header-2")
         }
         val response = http.call(HttpMethod.GET, "/hello")
         assertThat(response.status).isEqualTo(418)
-        assertThat(response.body).isEqualTo(MY_BODY)
+        assertThat(response.body).isEqualTo(myBody)
         assertThat(response.headers.getFirst("X-HEADER-1")).isEqualTo("my-header-1")
         assertThat(response.headers.getFirst("X-HEADER-2")).isEqualTo("my-header-2")
     }
@@ -42,8 +42,9 @@ class TestResponse {
     fun `setting a byte array result works`() = TestUtil.test { app, http ->
         val bytes = ByteArray(512)
 
-        for(i in 0 until 512)
+        for(i in 0 until 512) {
             bytes[i] = (i % 256).toByte()
+        }
 
         app.get("/hello") { ctx -> ctx.result(bytes) }
         val response = http.call(HttpMethod.GET, "/hello")

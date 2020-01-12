@@ -16,7 +16,7 @@ import java.util.*
 class TestCookieStore {
 
     @Test
-    fun `cookieStore() works between two handlers`() = TestUtil.test { app, http ->
+    fun `cookieStore works between two handlers`() = TestUtil.test { app, http ->
         app.get("/cookie-store") { ctx -> ctx.cookieStore("test-object", 123) }
         app.after("/cookie-store") { ctx ->
             if (ctx.cookieStore<Any>("test-object") is Int) {
@@ -27,7 +27,7 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore() can be cleared`() = TestUtil.test { app, http ->
+    fun `cookieStore can be cleared`() = TestUtil.test { app, http ->
         app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 123) }
         app.get("/cookie-clearer") { it.clearCookieStore() }
         app.get("/cookie-checker") { ctx -> ctx.result("stored: " + ctx.cookie("javalin-cookie-store")) }
@@ -37,7 +37,7 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore() works between two requests`() = TestUtil.test { app, http ->
+    fun `cookieStore works between two requests`() = TestUtil.test { app, http ->
         app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 123) }
         app.get("/cookie-reader") { ctx ->
             if (ctx.cookieStore<Any>("test-object") is Int) {
@@ -49,7 +49,7 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore() works between two request with object overwrite`() = TestUtil.test { app, http ->
+    fun `cookieStore works between two request with object overwrite`() = TestUtil.test { app, http ->
         app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 1) }
         app.get("/cookie-overwriter") { ctx -> ctx.cookieStore("test-object", "Hello world!") }
         app.get("/cookie-reader") { ctx ->
@@ -63,7 +63,7 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore() works between two request with multiple objects`() = TestUtil.test { app, http ->
+    fun `cookieStore works between two request with multiple objects`() = TestUtil.test { app, http ->
         app.get("/cookie-storer") { ctx ->
             ctx.cookieStore("s", "Hello world!")
             ctx.cookieStore("i", 42)
@@ -84,13 +84,13 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookie store path is root`() = TestUtil.test { app, http ->
+    fun `cookieStore cookie path is root`() = TestUtil.test { app, http ->
         app.get("/") { it.cookieStore("s", "Hello world!") }
         assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).endsWith("; Path=/")
     }
 
     @Test
-    fun `rename cookie store works`() = TestUtil.test { app, http ->
+    fun `renaming cookieStore cookie works`() = TestUtil.test { app, http ->
         app.get("/") { it.cookieStore("s", "Hello world!") }
         assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).startsWith(CookieStore.COOKIE_NAME)
         CookieStore.COOKIE_NAME = "another-name"

@@ -20,32 +20,32 @@ import java.time.Instant
 class TestValidation {
 
     @Test
-    fun `test pathParam() gives correct error message`() = TestUtil.test { app, http ->
+    fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/:param") { ctx -> ctx.pathParam<Int>("param").get() }
         assertThat(http.get("/abc").body).isEqualTo("Path parameter 'param' with value 'abc' is not a valid Integer")
     }
 
     @Test
-    fun `test queryParam() gives correct error message`() = TestUtil.test { app, http ->
+    fun `queryParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<Int>("param").get() }
         assertThat(http.get("/?param=abc").body).isEqualTo("Query parameter 'param' with value 'abc' is not a valid Integer")
     }
 
     @Test
-    fun `test formParam() gives correct error message`() = TestUtil.test { app, http ->
+    fun `formParam gives correct error message`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.formParam<Int>("param").get() }
         assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("Form parameter 'param' with value 'abc' is not a valid Integer")
     }
 
     @Test
-    fun `test notNullOrEmpty()`() = TestUtil.test { app, http ->
+    fun `notNullOrEmpty works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("Query parameter 'my-qp' with value 'null' cannot be null or empty")
         assertThat(http.get("/").status).isEqualTo(400)
     }
 
     @Test
-    fun `test getAs(clazz)`() = TestUtil.test { app, http ->
+    fun `getAs clazz works`() = TestUtil.test { app, http ->
         app.get("/int") { ctx ->
             val myInt = ctx.queryParam<Int>("my-qp").get()
             ctx.result((myInt * 2).toString())
@@ -56,7 +56,7 @@ class TestValidation {
     }
 
     @Test
-    fun `test check()`() = TestUtil.test { app, http ->
+    fun `check works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             ctx.queryParam<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
         }
@@ -64,7 +64,7 @@ class TestValidation {
     }
 
     @Test
-    fun `test default query param value`() = TestUtil.test { app, http ->
+    fun `default query param values work`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myInt = ctx.queryParam<Int>("my-qp", "788").get()
             ctx.result(myInt.toString())
@@ -75,13 +75,13 @@ class TestValidation {
     }
 
     @Test
-    fun `test unregistered converter`() = TestUtil.test { app, http ->
+    fun `unregistered converter fails`() = TestUtil.test { app, http ->
         app.get("/duration") { it.queryParam<Duration>("from").get() }
         assertThat(http.get("/duration?from=abc").status).isEqualTo(500)
     }
 
     @Test
-    fun `test custom converter`() = TestUtil.test { app, http ->
+    fun `custom converter works`() = TestUtil.test { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParam<Instant>("from").get()
@@ -95,14 +95,14 @@ class TestValidation {
     }
 
     @Test
-    fun `test custom converter returns null`() = TestUtil.test { app, http ->
+    fun `custom converter returns null`() = TestUtil.test { app, http ->
         JavalinValidation.register(Instant::class.java) { null }
         app.get("/instant") { it.queryParam<Instant>("from").get() }
         assertThat(http.get("/instant?from=1262347200000").status).isEqualTo(400)
     }
 
     @Test
-    fun `test default converters`() {
+    fun `default converters work`() {
         assertThat(Validator.create(Boolean::class.java, "true").get() is Boolean).isTrue()
         assertThat(Validator.create(Double::class.java, "1.2").get() is Double).isTrue()
         assertThat(Validator.create(Float::class.java, "1.2").get() is Float).isTrue()
@@ -111,7 +111,7 @@ class TestValidation {
     }
 
     @Test
-    fun `test validatedBody()`() = TestUtil.test { app, http ->
+    fun `validatedBody works`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializeableObject>()
                     .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
@@ -128,7 +128,7 @@ class TestValidation {
     }
 
     @Test
-    fun `test custom treatment for BadRequestResponse exception response`() = TestUtil.test { app, http ->
+    fun `custom treatment for BadRequestResponse exception response works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myString = ctx.queryParam<String>("my-qp").get()
         }
@@ -141,17 +141,16 @@ class TestValidation {
     }
 
     @Test
-    fun `test optional query param value`() = TestUtil.test { app, http ->
+    fun `optional query param value works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myInt: Int? = ctx.queryParam<Int>("my-qp").getOrNull()
             assertThat(myInt).isEqualTo(null)
         }
-
         assertThat(http.get("/").status).isEqualTo(200)
     }
 
     @Test
-    fun `test optional query param value with check`() = TestUtil.test { app, http ->
+    fun `optional query param value with check works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val id: Int? = ctx.queryParam<Int>("id")
                     .check({ it > 10 }, "id was not greater than 10")

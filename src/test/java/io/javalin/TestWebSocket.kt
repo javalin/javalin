@@ -204,7 +204,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `routing and pathParams() work`() = TestUtil.test(contextPathJavalin()) { app, _ ->
+    fun `routing and pathParams work`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         app.ws("/params/:1") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1")) } }
         app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { _ -> app.logger().log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
@@ -356,7 +356,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `accessmanager rejects invalid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
+    fun `AccessManager rejects invalid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
         val client = TestClient(app, "/")
 
         doAndSleepWhile({ client.connect() }, { !client.isClosed })
@@ -366,14 +366,14 @@ class TestWebSocket {
     }
 
     @Test
-    fun `accessmanager accepts valid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
+    fun `AccessManager accepts valid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
         TestClient(app, "/?allowed=true").connectAndDisconnect()
         assertThat(app.logger().log.size).isEqualTo(3)
         assertThat(app.logger().log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request valid!", "connected with upgrade request")
     }
 
     @Test
-    fun `accessmanager doesn't crash on exception`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
+    fun `AccessManager doesn't crash on exception`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
         val client = TestClient(app, "/?exception=true")
 
         doAndSleepWhile({ client.connect() }, { !client.isClosed })

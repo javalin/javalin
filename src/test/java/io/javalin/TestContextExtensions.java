@@ -13,6 +13,7 @@ import io.javalin.misc.SerializeableObject;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
+// This feature is for Java users, so the test is written in Java
 public class TestContextExtensions {
 
     @Test

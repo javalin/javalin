@@ -15,14 +15,14 @@ import org.junit.Test
 class TestTrailingSlashes {
 
     @Test
-    fun `ignores by default (instance)`() = TestUtil.test { app, http ->
+    fun `trailing slashes are ignored by default`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
         assertThat(http.getBody("/hello")).isEqualTo("Hello, slash!")
         assertThat(http.getBody("/hello/")).isEqualTo("Hello, slash!")
     }
 
     @Test
-    fun `ignores by default (ApiBuilder)`() = TestUtil.test { app, http ->
+    fun `trailing slashes are ignored by default - ApiBuilder`() = TestUtil.test { app, http ->
         app.routes {
             path("a") {
                 get { ctx -> ctx.result("a") }

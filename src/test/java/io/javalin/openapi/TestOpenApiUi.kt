@@ -12,13 +12,13 @@ import org.junit.Test
 
 
 class TestOpenApiUi {
+
     private fun createDefaultOptions() = OpenApiOptions(
             Info().apply {
                 title = "Example"
                 version = "1.0.0"
             }
-    )
-            .path("/docs/swagger.json")
+    ).path("/docs/swagger.json")
 
     @Test
     fun `should get swagger if activated`() {

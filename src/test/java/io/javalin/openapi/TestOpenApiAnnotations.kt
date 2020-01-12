@@ -254,7 +254,7 @@ fun getResponseOneOfHandler(ctx: Context) {
 
 class TestOpenApiAnnotations {
     @Test
-    fun `createOpenApiSchema() work with complexExample and annotations`() {
+    fun `createOpenApiSchema works with complexExample and annotations`() {
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration)))
         }
@@ -279,7 +279,7 @@ class TestOpenApiAnnotations {
     }
 
     @Test
-    fun `createOpenApiSchema() work with crudHandler and annotations`() {
+    fun `createOpenApiSchema works with crudHandler and annotations`() {
         class UserCrudHandlerWithAnnotations : CrudHandler {
             @OpenApi(
                     responses = [
@@ -315,42 +315,42 @@ class TestOpenApiAnnotations {
     }
 
     @Test
-    fun `createOpenApiSchema() with class`() {
+    fun `createOpenApiSchema with class`() {
         extractSchemaForTest {
             it.get("/test", ClassHandler())
         }.assertEqualTo(simpleExample)
     }
 
     @Test
-    fun `createOpenApiSchema() with extended class`() {
+    fun `createOpenApiSchema with extended class`() {
         extractSchemaForTest {
             it.get("/test", ExtendedClassHandler())
         }.assertEqualTo(simpleExample)
     }
 
     @Test
-    fun `createOpenApiSchema() with kotlin function`() {
+    fun `createOpenApiSchema with kotlin function`() {
         extractSchemaForTest {
             it.get("/test", ::kotlinFunctionHandler)
         }.assertEqualTo(simpleExample)
     }
 
     @Test
-    fun `createOpenApiSchema() with kotlin field`() {
+    fun `createOpenApiSchema with kotlin field`() {
         extractSchemaForTest {
             it.get("/test", KotlinFieldHandlers().kotlinFieldHandler)
         }.assertEqualTo(simpleExample)
     }
 
     @Test
-    fun `createOpenApiSchema() with kotlin field from extended class`() {
+    fun `createOpenApiSchema with kotlin field from extended class`() {
         extractSchemaForTest {
             it.get("/test", ExtendedKotlinFieldHandlers().kotlinFieldHandler)
         }.assertEqualTo(simpleExample)
     }
 
     @Test
-    fun `createOpenApiSchema() work with composed body and response`() {
+    fun `createOpenApiSchema works with composed body and response`() {
         extractSchemaForTest {
             it.get("/composed-body/any-of", ::getBodyAnyOfHandler)
             it.get("/composed-body/one-of", ::getBodyOneOfHandler)

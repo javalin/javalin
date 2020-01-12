@@ -244,7 +244,7 @@ data class MyError(val message: String)
 
 class TestOpenApi {
     @Test
-    fun `createSchema() work with complexExample and dsl`() {
+    fun `createSchema works with complexExample and dsl`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration))
         val actual = JavalinOpenApi.createSchema(app)
 
@@ -252,7 +252,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() work with crudHandler and dsl`() {
+    fun `createSchema works with crudHandler and dsl`() {
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions { OpenAPI().info(Info().title("Example").version("1.0.0")) }))
         }
@@ -288,7 +288,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() work with extended crudhandler without documentation`() {
+    fun `createSchema works with extended crudhandler without documentation`() {
         val app = Javalin.create {}
 
         open class BaseCrudHandler : CrudHandler {
@@ -320,7 +320,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() throw error if enableOpenApi is not activated`() {
+    fun `createSchema throws error if enableOpenApi is not activated`() {
         val app = Javalin.create()
 
         val getUserDocumentation = document().result<User>("200")
@@ -336,7 +336,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() work with default operation`() {
+    fun `createSchema works with default operation`() {
         val openApiOptions = OpenApiOptions(
                 Info().title("Example").version("1.0.0")
         )
@@ -363,7 +363,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() apply defaults before actual documentation`() {
+    fun `createSchema applies defaults before actual documentation`() {
         val openApiOptions = OpenApiOptions(
                 Info().title("Example").version("1.0.0")
         )
@@ -393,7 +393,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() works with Instants as timestamps`() {
+    fun `createSchema works with Instants as timestamps`() {
         val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
 
         val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
@@ -417,7 +417,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() works with Instants as strings`() {
+    fun `createSchema works with Instants as strings`() {
         val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
                 .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
@@ -443,7 +443,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `createSchema() work with composed body and response`() {
+    fun `createSchema works with composed body and response`() {
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(
                     Info().title("Example").version("1.0.0")
@@ -479,7 +479,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `enableOpenApi() provide get route if path is given`() {
+    fun `enableOpenApi provides get route if path is given`() {
         TestUtil.test(Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(
                     Info().apply {
@@ -492,12 +492,12 @@ class TestOpenApi {
 
             val actual = http.jsonGet("/docs/swagger.json").body
 
-            assertThat(actual).isEqualTo(provideRouteExampleJson)
+            assertThat(actual.formatJson()).isEqualTo(provideRouteExampleJson)
         }
     }
 
     @Test
-    fun `enableOpenApi() provide get route if path is given with baseConfiguration`() {
+    fun `enableOpenApi provides get route if path is given with baseConfiguration`() {
         TestUtil.test(Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions {
                 OpenAPI().info(Info().apply {
@@ -515,7 +515,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `enableOpenApi() provide get route that allows cross-origin GET request`() {
+    fun `enableOpenApi provides get route that allows cross-origin GET request`() {
         TestUtil.test(Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions {
                 OpenAPI().info(Info().apply {
@@ -534,7 +534,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `setDocumentation() works`() {
+    fun `setDocumentation works`() {
         val app = Javalin.create {
             it.registerPlugin(
                     OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
@@ -564,7 +564,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `setDocumentation() with non existing path works`() {
+    fun `setDocumentation with non existing path works`() {
         val app = Javalin.create {
             it.registerPlugin(
                     OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
@@ -592,7 +592,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun testOpenApiHandlerCaching() {
+    fun `openapi handler is cached`() {
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration).path("/openapi")))
         }
@@ -613,7 +613,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `ignorePath() works`() {
+    fun `ignorePath works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration).ignorePath("/user"))
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths")
@@ -625,7 +625,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `ignorePath() with http methods works`() {
+    fun `ignorePath with http methods works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
                 .ignorePath("/user", HttpMethod.PUT))
         val actual = JavalinOpenApi.createSchema(app)
@@ -635,7 +635,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `ignorePath() with prefix works`() {
+    fun `ignorePath with prefix works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
                 .ignorePath("/user*"))
         val actual = JavalinOpenApi.createSchema(app)
@@ -647,7 +647,7 @@ class TestOpenApi {
     }
 
     @Test
-    fun `ignorePath() with prefix and http methods works`() {
+    fun `ignorePath with prefix and http methods works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
                 .ignorePath("/user*", HttpMethod.PUT))
         val actual = JavalinOpenApi.createSchema(app)

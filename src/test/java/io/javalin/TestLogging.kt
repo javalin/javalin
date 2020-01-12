@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 class TestLogging {
 
     @Test
-    fun `default logging (no logging) works`() {
+    fun `default logging works`() {
         val log = captureStdOut { runTest(Javalin.create()) }
         println(log) // hard to test for absence ...
     }
@@ -55,7 +55,7 @@ class TestLogging {
     }
 
     @Test
-    fun `resultString is available in request logger and can be read twice`() {
+    fun `resultString is available in request logger and can be read multiple times`() {
         val loggerLog = mutableListOf<String?>()
         val bodyLoggingJavalin = Javalin.create {
             it.requestLogger { ctx, ms ->

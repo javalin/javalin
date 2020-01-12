@@ -22,27 +22,27 @@ fun standAloneMethod(ctx: Context) {}
 class TestRouteOverview_Kotlin {
 
     @Test
-    fun field_works() {
+    fun `field works`() {
         assertThat(Util.getMetaInfo(ObjectHandlers.lambdaField), `is`("io.javalin.routeoverview.ObjectHandlers.lambdaField"))
         assertThat(Util.getMetaInfo(ClassHandlers().lambdaField), `is`("io.javalin.routeoverview.ClassHandlers.lambdaField"))
         assertThat(Util.getMetaInfo(standAloneField), `is`("io.javalin.routeoverview.TestRouteOverview_KotlinKt.standAloneField"))
     }
 
     @Test
-    fun class_works() {
+    fun `class works`() {
         assertThat(Util.getMetaInfo(ObjectHandlers.ImplementingClass()), `is`("io.javalin.routeoverview.ObjectHandlers\$ImplementingClass.class"))
         assertThat(Util.getMetaInfo(HandlerImplementation()), `is`("io.javalin.routeoverview.HandlerImplementation.class"))
     }
 
     @Test
-    fun method_reference_works() {
+    fun `method reference works`() {
         assertThat(Util.getMetaInfo(ObjectHandlers::methodReference), `is`("io.javalin.routeoverview.ObjectHandlers::methodReference"))
         assertThat(Util.getMetaInfo(ClassHandlers()::methodReference), `is`("io.javalin.routeoverview.ClassHandlers::methodReference"))
         assertThat(Util.getMetaInfo(::standAloneMethod), `is`("io.javalin.routeoverview.TestRouteOverview_KotlinKt::standAloneMethod"))
     }
 
     @Test
-    fun lambda_works() {
+    fun `lambda works`() {
         assertThat(Util.getMetaInfo({}), `is`("io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)"))
     }
 

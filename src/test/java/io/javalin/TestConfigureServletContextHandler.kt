@@ -24,7 +24,7 @@ import javax.servlet.ServletResponse
 class TestConfigureServletContextHandler {
 
     @Test
-    fun `Adding an event listener to the ServletContextHandler works`() {
+    fun `adding an event listener to the ServletContextHandler works`() {
         val listener = object : ServletContextListener {
             var called = false
             override fun contextInitialized(ev: ServletContextEvent?) {
@@ -49,7 +49,7 @@ class TestConfigureServletContextHandler {
     }
 
     @Test
-    fun `Adding a filter to the ServletContextHandler works`() {
+    fun `adding a filter to the ServletContextHandler works`() {
         val filter = object : Filter {
             var initialized = false
             var called = false

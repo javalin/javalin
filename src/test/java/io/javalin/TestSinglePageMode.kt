@@ -62,21 +62,21 @@ class TestSinglePageMode {
     }
 
     @Test
-    fun `SinglePageHandler works for HTML requests (classpath)`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
+    fun `SinglePageHandler works for HTML requests - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
         assertThat(http.htmlGet("/not-a-path").body).contains("HTML works")
         assertThat(http.htmlGet("/not-a-file.html").body).contains("HTML works")
         assertThat(http.htmlGet("/not-a-file.html").status).isEqualTo(200)
     }
 
     @Test
-    fun `SinglePageHandler doesn't affect static files (classpath)`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
+    fun `SinglePageHandler doesn't affect static files - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
         assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains("application/javascript")
         assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE)).contains("text/css")
         assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status).isEqualTo(200)
     }
 
     @Test
-    fun `SinglePageHandler doesn't affect JSON requests (classpath)`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
+    fun `SinglePageHandler doesn't affect JSON requests - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
         assertThat(http.jsonGet("/").body).contains("Not found")
         assertThat(http.jsonGet("/not-a-file.html").body).contains("Not found")
         assertThat(http.jsonGet("/not-a-file.html").status).isEqualTo(404)
@@ -91,7 +91,7 @@ class TestSinglePageMode {
     }
 
     @Test
-    fun `SinglePageHandler works for just subpaths (classpath)`() = TestUtil.test(dualSinglePageApp_classPath) { _, http ->
+    fun `SinglePageHandler works for just subpaths - classpath`() = TestUtil.test(dualSinglePageApp_classPath) { _, http ->
         assertThat(http.htmlGet("/").body).contains("Not found")
         assertThat(http.htmlGet("/").status).isEqualTo(404)
         assertThat(http.htmlGet("/admin").body).contains("Secret file")
@@ -102,21 +102,21 @@ class TestSinglePageMode {
     }
 
     @Test
-    fun `SinglePageHandler throws for non-existent file (classpath)`() {
+    fun `SinglePageHandler throws for non-existent file - classpath`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
                 .isThrownBy { Javalin.create { it.addSinglePageRoot("/", "/not-a-file.html") }.start().stop() }
                 .withMessageStartingWith("File at '/not-a-file.html' not found. Path should be relative to resource folder.")
     }
 
     @Test
-    fun `SinglePageHandler throws for non-existent file (external)`() {
+    fun `SinglePageHandler throws for non-existent file - external`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
                 .isThrownBy { Javalin.create { it.addSinglePageRoot("/", "/not-a-file.html", Location.EXTERNAL) }.start().stop() }
                 .withMessageStartingWith("External file at '/not-a-file.html' not found.")
     }
 
     @Test
-    fun `SinglePageHandler works for HTML requests (external)`() = TestUtil.test(rootSinglePageApp_external) { _, http ->
+    fun `SinglePageHandler works for HTML requests - external`() = TestUtil.test(rootSinglePageApp_external) { _, http ->
         assertThat(http.htmlGet("/not-a-path").body).contains("HTML works")
         assertThat(http.htmlGet("/not-a-file.html").body).contains("HTML works")
         assertThat(http.htmlGet("/not-a-file.html").status).isEqualTo(200)

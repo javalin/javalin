@@ -83,7 +83,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun `uploadedFile() doesn't throw for missing file`() = TestUtil.test { app, http ->
+    fun `uploadedFile doesn't throw for missing file`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             ctx.uploadedFile("non-existing-file")
             ctx.result("OK")
