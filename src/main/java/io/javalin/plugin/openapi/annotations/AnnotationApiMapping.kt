@@ -4,11 +4,12 @@ import io.javalin.plugin.openapi.dsl.DocumentedContent
 import io.javalin.plugin.openapi.dsl.DocumentedParameter
 import io.javalin.plugin.openapi.dsl.DocumentedResponse
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
-import io.javalin.plugin.openapi.dsl.createUpdater
 import io.javalin.plugin.openapi.dsl.anyOf
+import io.javalin.plugin.openapi.dsl.createUpdater
 import io.javalin.plugin.openapi.dsl.oneOf
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.parameters.RequestBody
+import io.swagger.v3.oas.models.security.SecurityRequirement
 import kotlin.reflect.KClass
 
 fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
@@ -67,6 +68,9 @@ private fun Operation.applyAnnotation(annotation: OpenApi) {
     }
     if (annotation.deprecated) {
         this.deprecated = annotation.deprecated
+    }
+    if (annotation.security.isNotEmpty()) {
+        this.applySecurity(annotation.security)
     }
     annotation.tags.forEach { tag -> this.addTagsItem(tag) }
 }
@@ -162,6 +166,19 @@ private fun OpenApiDocumentation.applyParamAnnotation(`in`: String, param: OpenA
                 }
             }
     )
+}
+
+private fun Operation.applySecurity(securityArray: Array<OpenApiSecurity>) {
+    if (securityArray.isEmpty()) {
+        return
+    }
+
+    val operation = this
+    var securityRequirement = SecurityRequirement()
+    securityArray.forEach {
+        securityRequirement = securityRequirement.addList(it.name, it.scopes.toList())
+    }
+    operation.addSecurityItem(securityRequirement)
 }
 
 private fun createDocumentedParam(`in`: String, param: OpenApiParam) = DocumentedParameter(

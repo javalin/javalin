@@ -408,7 +408,10 @@ val complexExampleJson = """
         "tags": ["user"],
         "summary": "Get users2",
         "operationId": "getUsers2",
-        "responses": $complexExampleUsersGetResponsesJson
+        "responses": $complexExampleUsersGetResponsesJson,
+        "security": [
+          { "http": ["myScope"] }
+        ]
       }
     },
     "/form-data": {
