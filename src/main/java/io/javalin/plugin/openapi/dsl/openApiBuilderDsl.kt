@@ -127,6 +127,14 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
         }
     }
 
+    if (documentation.hasSecuritySchemes()) {
+        documentation.securitySchemeList.forEach {
+            updateSecurityRequirement {
+                addList(it.key)
+            }
+        }
+    }
+
     documentation.operationUpdaterList.applyAllUpdates(this)
 }
 

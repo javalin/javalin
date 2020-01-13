@@ -13,6 +13,7 @@ import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
+import io.swagger.v3.oas.models.security.SecurityRequirement
 
 internal fun OpenAPI.updateComponents(apply: Components.() -> Unit) {
     components = components ?: Components()
@@ -75,4 +76,11 @@ internal fun ApiResponses.updateResponse(name: String, apply: ApiResponse.() -> 
     } else {
         response.apply(apply)
     }
+}
+
+fun Operation.updateSecurityRequirement(apply: SecurityRequirement.() -> Unit) {
+    if (security == null) {
+        security = mutableListOf()
+    }
+    security.add(SecurityRequirement().apply(apply))
 }

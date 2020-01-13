@@ -1052,3 +1052,64 @@ val composedExample = """
   }
 }
 """.trimIndent()
+
+
+@Language("json")
+val secureExample = """
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "Example",
+    "version" : "1.0.0"
+  },
+  "paths" : {
+    "/very-secure-request" : {
+      "get" : {
+        "summary" : "Get verySecureRequest",
+        "operationId" : "getVerySecureRequest",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        },
+        "security" : [ {
+          "basicAuth" : [ ]
+        }, {
+          "bearerAuth" : [ ]
+        }, {
+          "apiKeyAuth" : [ ]
+        } ]
+      }
+    },
+    "/insecure-request" : {
+      "get" : {
+        "summary" : "Get insecureRequest",
+        "operationId" : "getInsecureRequest",
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "securitySchemes" : {
+      "basicAuth" : {
+        "type" : "http",
+        "scheme" : "basic"
+      },
+      "bearerAuth" : {
+        "type" : "http",
+        "scheme" : "bearer",
+        "bearerFormat" : "JWT"
+      },
+      "apiKeyAuth" : {
+        "type" : "apiKey",
+        "name" : "API-KEY",
+        "in" : "cookie"
+      }
+    }
+  }
+}
+""".trimIndent()

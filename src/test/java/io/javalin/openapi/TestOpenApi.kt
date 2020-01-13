@@ -658,4 +658,27 @@ class TestOpenApi {
         assertThat(userJson.formatJson()).isEqualTo(userJsonExpected.formatJson())
         assertThat(userWithIdJson.formatJson()).isEqualTo(userWithIdJsonExpected.formatJson())
     }
+
+    @Test
+    fun `createSchema() work with security requirements`() {
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions(
+                    Info().title("Example").version("1.0.0")
+            )))
+        }
+
+        val secureDocument = document()
+                .basicAuth()
+                .bearerAuth("JWT")
+                .apiKeyAuth("API-KEY", SecurityScheme.In.COOKIE)
+
+        app.get("/very-secure-request", documented(secureDocument) {})
+
+        val insecureDocument = document()
+
+        app.get("/insecure-request", documented(insecureDocument) {})
+
+        val actual = JavalinOpenApi.createSchema(app)
+        assertThat(actual.asJsonString()).isEqualTo(secureExample.formatJson())
+    }
 }

@@ -24,10 +24,18 @@ annotation class OpenApi(
         val composedRequestBody: OpenApiComposedRequestBody = OpenApiComposedRequestBody([]),
         val fileUploads: Array<OpenApiFileUpload> = [],
         val responses: Array<OpenApiResponse> = [],
+        val security: Array<OpenApiSecurity> = [],
         /** The path of the endpoint. This will if the annotation * couldn't be found via reflection. */
         val path: String = NULL_STRING,
         /** The method of the endpoint. This will if the annotation * couldn't be found via reflection. */
         val method: HttpMethod = HttpMethod.GET
+)
+
+@Target()
+annotation class OpenApiSecurity(
+        val scheme: AuthScheme,
+        val name: String = NULL_STRING,
+        val format: String = NULL_STRING
 )
 
 @Target()
@@ -115,6 +123,15 @@ enum class HttpMethod {
     OPTIONS,
     TRACE;
 }
+
+enum class AuthScheme {
+    BASIC,
+    BEARER,
+    APIKEY_COOKIE,
+    APIKEY_HEADER,
+    APIKEY_QUERY
+}
+
 
 data class PathInfo(val path: String, val method: HttpMethod)
 

@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.plugin.openapi.annotations.AuthScheme
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.external.findSchema
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.responses.ApiResponse
+import io.swagger.v3.oas.models.security.SecurityScheme
 
 class OpenApiDocumentation {
     var isIgnored: Boolean? = null
@@ -20,10 +22,12 @@ class OpenApiDocumentation {
     val responseUpdaterListMapping = mutableMapOf<String, MutableList<OpenApiUpdater<ApiResponse>>>()
     val componentsUpdaterList = mutableListOf<OpenApiUpdater<Components>>()
     val formParameterList = mutableListOf<DocumentedFormParameter>()
+    val securitySchemeList = mutableMapOf<String, SecurityScheme>()
 
     fun hasRequestBodies(): Boolean = requestBodyList.isNotEmpty()
     fun hasResponses(): Boolean = responseUpdaterListMapping.values.flatten().isNotEmpty()
     fun hasFormParameter(): Boolean = formParameterList.isNotEmpty()
+    fun hasSecuritySchemes(): Boolean = securitySchemeList.isNotEmpty()
 
     /** Hide the endpoint in the documentation */
     @JvmOverloads
@@ -99,6 +103,7 @@ class OpenApiDocumentation {
         formParam(name, T::class.java, required)
     }
 
+    @JvmOverloads
     fun formParam(name: String, clazz: Class<*>, required: Boolean = false) = apply {
         formParam(DocumentedFormParameter(name, clazz, required))
     }
@@ -296,6 +301,40 @@ class OpenApiDocumentation {
         responseUpdaterList.addIfNotNull(openApiUpdater)
     }
 
+    // --- SECURITY ---
+    fun basicAuth() = apply {
+        val securityScheme = SecurityScheme().apply {
+            this.type = SecurityScheme.Type.HTTP
+            this.scheme = AuthScheme.BASIC.name.toLowerCase()
+        }
+        security("basicAuth", securityScheme)
+    }
+
+    @JvmOverloads
+    fun bearerAuth(format: String? = null) = apply {
+        val securityScheme = SecurityScheme().apply {
+            this.type = SecurityScheme.Type.HTTP
+            this.scheme = AuthScheme.BEARER.name.toLowerCase()
+            this.bearerFormat = format
+        }
+        security("bearerAuth", securityScheme)
+    }
+
+    @JvmOverloads
+    fun apiKeyAuth(paramName: String, `in`: SecurityScheme.In = SecurityScheme.In.HEADER) = apply {
+        val securityScheme = SecurityScheme().apply {
+            this.type = SecurityScheme.Type.APIKEY
+            this.name = paramName
+            this.`in` = `in`
+        }
+        security("apiKeyAuth", securityScheme)
+    }
+
+    fun security(schemeName: String, securityScheme: SecurityScheme) = apply {
+        componentsUpdaterList.add { it.addSecuritySchemes(schemeName, securityScheme) }
+        securitySchemeList[schemeName] = securityScheme
+    }
+
     /** Merge the values of another documentation into this documentation */
     fun apply(other: OpenApiDocumentation) {
         other.isIgnored?.let { this.isIgnored = it }
@@ -320,6 +359,7 @@ class OpenApiDocumentation {
 
         this.componentsUpdaterList.addAll(other.componentsUpdaterList)
         this.formParameterList.addAll(other.formParameterList)
+        this.securitySchemeList.putAll(other.securitySchemeList)
     }
 }
 

@@ -9,6 +9,7 @@ import io.javalin.plugin.openapi.dsl.anyOf
 import io.javalin.plugin.openapi.dsl.oneOf
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.parameters.RequestBody
+import io.swagger.v3.oas.models.security.SecurityScheme
 import kotlin.reflect.KClass
 
 fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
@@ -37,6 +38,8 @@ fun OpenApi.asOpenApiDocumentation(): OpenApiDocumentation {
         }
     }
     documentation.applyResponseAnnotations(annotation.responses)
+
+    documentation.applySecurityAnnotations(annotation.security)
 
     return documentation
 }
@@ -162,6 +165,25 @@ private fun OpenApiDocumentation.applyParamAnnotation(`in`: String, param: OpenA
                 }
             }
     )
+}
+
+private fun OpenApiDocumentation.applySecurityAnnotations(security: Array<OpenApiSecurity>) {
+    val documentation = this
+    security.forEach {
+        when(it.scheme) {
+            AuthScheme.BASIC -> documentation.basicAuth()
+            AuthScheme.BEARER -> documentation.bearerAuth(format = if (it.format != NULL_STRING) it.format else null)
+            else -> {
+                if (it.name != NULL_STRING) {
+                    when(it.scheme) {
+                        AuthScheme.APIKEY_COOKIE -> documentation.apiKeyAuth(it.name, `in` = SecurityScheme.In.COOKIE)
+                        AuthScheme.APIKEY_HEADER -> documentation.apiKeyAuth(it.name, `in` = SecurityScheme.In.HEADER)
+                        else -> documentation.apiKeyAuth(it.name, `in` = SecurityScheme.In.QUERY)
+                    }
+                }
+            }
+        }
+    }
 }
 
 private fun createDocumentedParam(`in`: String, param: OpenApiParam) = DocumentedParameter(

@@ -14,6 +14,7 @@ import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.AuthScheme
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
@@ -22,6 +23,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiComposedRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.plugin.openapi.annotations.OpenApiSecurity
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
@@ -252,6 +254,28 @@ fun getResponseOneOfHandler(ctx: Context) {
 
 // endregion composed body
 
+//region secure handlers
+@OpenApi(
+        path = "/very-secure-request",
+        security = [
+            OpenApiSecurity(scheme = AuthScheme.BASIC),
+            OpenApiSecurity(scheme = AuthScheme.BEARER, format = "JWT"),
+            OpenApiSecurity(scheme = AuthScheme.APIKEY_COOKIE, name = "API-KEY")
+        ]
+)
+fun getSecureRequestHandler(ctx: Context) {
+
+}
+
+@OpenApi(
+        path = "/insecure-request"
+)
+fun getInSecureRequestHandler(ctx: Context) {
+
+}
+// endregion secure handlers
+
+
 class TestOpenApiAnnotations {
     @Test
     fun `createOpenApiSchema() work with complexExample and annotations`() {
@@ -357,5 +381,14 @@ class TestOpenApiAnnotations {
             it.get("/composed-response/one-of", ::getResponseOneOfHandler)
 
         }.assertEqualTo(composedExample)
+    }
+
+    @Test
+    fun `createOpenApiSchema() work with security requirements`() {
+        extractSchemaForTest {
+            it.get("/very-secure-request", ::getSecureRequestHandler)
+            it.get("/insecure-request", ::getInSecureRequestHandler)
+
+        }.assertEqualTo(secureExample)
     }
 }
