@@ -22,6 +22,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiComposedRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.plugin.openapi.annotations.OpenApiSecurity
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
@@ -94,6 +95,9 @@ fun getUsersHandler(ctx: Context) {
         tags = ["user"],
         responses = [
             OpenApiResponse(status = "200", content = [OpenApiContent(Array<User>::class)])
+        ],
+        security = [
+            OpenApiSecurity("http", ["myScope"])
         ]
 )
 fun getUsers2Handler(ctx: Context) {

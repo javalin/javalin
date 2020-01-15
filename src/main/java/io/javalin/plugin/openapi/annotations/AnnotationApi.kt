@@ -24,6 +24,7 @@ annotation class OpenApi(
         val composedRequestBody: OpenApiComposedRequestBody = OpenApiComposedRequestBody([]),
         val fileUploads: Array<OpenApiFileUpload> = [],
         val responses: Array<OpenApiResponse> = [],
+        val security: Array<OpenApiSecurity> = [],
         /** The path of the endpoint. This will if the annotation * couldn't be found via reflection. */
         val path: String = NULL_STRING,
         /** The method of the endpoint. This will if the annotation * couldn't be found via reflection. */
@@ -84,6 +85,12 @@ annotation class OpenApiContent(
         /** Whenever the schema should be wrapped in an array */
         val isArray: Boolean = false,
         val type: String = ContentType.AUTODETECT
+)
+
+@Target()
+annotation class OpenApiSecurity(
+        val name: String,
+        val scopes: Array<String> = []
 )
 
 /** Null string because annotations do not support null values */

@@ -29,15 +29,16 @@ import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
+import io.javalin.plugin.openapi.dsl.anyOf
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documentCrud
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.dsl.documentedContent
-import io.javalin.plugin.openapi.dsl.anyOf
 import io.javalin.plugin.openapi.dsl.oneOf
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -162,6 +163,9 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
     val getUsers2Documentation = document()
             .operation {
                 it.addTagsItem("user")
+                it.security(listOf(
+                        SecurityRequirement().addList("http", listOf("myScope"))
+                ))
             }
             .json<Array<User>>("200")
     app.get("/users2", documented(getUsers2Documentation) { it.json(listOf(User(name = "Jim"))) })
