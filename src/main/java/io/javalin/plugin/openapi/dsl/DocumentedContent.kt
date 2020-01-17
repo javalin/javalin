@@ -171,8 +171,8 @@ fun Content.applyDocumentedContent(documentedContent: DocumentedContent) {
             else -> mediaTypeRef(documentedContent.fromType, documentedContent.contentType)
         }
     }
-
-    get(documentedContent.contentType)?.examples = documentedContent.examples
+    if (documentedContent.examples.isNotEmpty())
+        get(documentedContent.contentType)?.examples = documentedContent.examples
 }
 
 fun Components.applyDocumentedContent(documentedResponse: DocumentedContent) {
