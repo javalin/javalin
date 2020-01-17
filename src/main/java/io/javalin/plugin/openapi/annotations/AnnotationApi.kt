@@ -93,6 +93,11 @@ annotation class OpenApiSecurity(
         val scopes: Array<String> = []
 )
 
+@Target(AnnotationTarget.FUNCTION)
+annotation class OpenApiExample(
+        val name: String
+)
+
 /** Null string because annotations do not support null values */
 const val NULL_STRING = "-- This string represents a null value and shouldn't be used --"
 

@@ -2,20 +2,27 @@ package io.javalin.plugin.openapi.dsl
 
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.OpenApiExample
 import io.javalin.plugin.openapi.external.mediaType
 import io.javalin.plugin.openapi.external.mediaTypeArrayOf
 import io.javalin.plugin.openapi.external.mediaTypeArrayOfRef
 import io.javalin.plugin.openapi.external.mediaTypeRef
 import io.javalin.plugin.openapi.external.schema
 import io.swagger.v3.oas.models.Components
+import io.swagger.v3.oas.models.examples.Example
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
+import java.lang.reflect.Modifier
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.declaredFunctions
+import kotlin.reflect.jvm.javaMethod
 
 @JvmOverloads
 fun documentedContent(
@@ -71,6 +78,26 @@ class DocumentedContent @JvmOverloads constructor(
         fromTypeIsArray && isNotByteArray || isArray
     } else {
         schema.type == "array"
+    }
+
+    val examples = if (!isNonRefType()) {
+        from.declaredMethods
+                .filter { Modifier.isStatic(it.modifiers) }
+                .toMutableList()
+                .apply {
+                    from.kotlin.companionObject?.declaredFunctions?.map { it.javaMethod }?.forEach { add(it) } // kotlin companion functions
+                }
+                .map { it to it.getAnnotation(OpenApiExample::class.java) } // map function to annotation
+                .filter { it.second != null && it.first.parameterCount == 0 }
+                .map {
+                    it.first.isAccessible = true
+                    val example = Example().apply {
+                        value = it.first.invoke(from.kotlin.companionObjectInstance) // in case of kotlin companion
+                    }
+                    it.second.name to example
+                }.toMap()
+    } else {
+        emptyMap()
     }
 
     /** This constructor overrides the schema directly. The `from` class won't be used anymore */
@@ -144,6 +171,8 @@ fun Content.applyDocumentedContent(documentedContent: DocumentedContent) {
             else -> mediaTypeRef(documentedContent.fromType, documentedContent.contentType)
         }
     }
+
+    get(documentedContent.contentType)?.examples = documentedContent.examples
 }
 
 fun Components.applyDocumentedContent(documentedResponse: DocumentedContent) {
