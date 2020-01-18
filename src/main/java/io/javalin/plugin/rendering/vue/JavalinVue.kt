@@ -20,6 +20,8 @@ import java.util.stream.Collectors
 
 object JavalinVue {
 
+    internal var useCdn = false
+
     private var vueDirPath: Path? = null
 
     @JvmStatic
@@ -46,7 +48,7 @@ object JavalinVue {
             .replace("@componentRegistration", paths
                     .filter { it.toString().endsWith(".vue") }
                     .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
-            )
+            ).replaceWebjarsWithCdn()
 
     internal fun getState(ctx: Context) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
@@ -59,11 +61,15 @@ object JavalinVue {
         vueDirPath = vueDirPath ?: if (ctx.isLocalhost()) Paths.get("src/main/resources/vue") else PathMaster.classpathPath("/vue")
     }
 
+    private fun String.replaceWebjarsWithCdn() =
+            this.replace("@cdnWebjar/", if (useCdn) "//cdn.jsdelivr.net/webjars/" else "/webjars/")
+
 }
 
 class VueComponent(private val component: String) : Handler {
     override fun handle(ctx: Context) {
         JavalinVue.setRootDirPathIfUnset(ctx)
+        JavalinVue.useCdn = !ctx.isLocalhost()
         val routeComponent = if (component.startsWith("<")) component else "<$component></$component>"
         val paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
         val view = if (ctx.isLocalhost()) JavalinVue.createLayout(paths) else JavalinVue.cachedLayout

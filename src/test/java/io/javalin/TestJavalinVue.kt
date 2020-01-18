@@ -106,4 +106,10 @@ class TestJavalinVue {
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }
 
+    @Test
+    fun `webjars uses cdn when tagged with @cdnWebjar to`() = TestUtil.test { app, http ->
+        app.get("/unicode", VueComponent("<test-component></test-component>"))
+        assertThat(http.getBody("/unicode")).contains("""<script src="/webjars/swagger-ui/3.24.3/swagger-ui.css"></script>""")
+    }
+
 }
