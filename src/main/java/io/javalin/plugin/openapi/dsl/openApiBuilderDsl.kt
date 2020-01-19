@@ -113,10 +113,7 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
 
     if (documentation.hasFormParameter() || documentation.hasFileUploads()) {
         updateRequestBody {
-            // Requests with file uploads need to be a multipart content
-            // Regular forms alone will be url encoded by default
-            val contentType = if (documentation.hasFileUploads()) ContentType.FORM_DATA_MULTIPART else ContentType.FORM_DATA_URL_ENCODED
-            applyDocumentedFormParameters(documentation.formParameterList, documentation.fileUploadList, contentType)
+            applyDocumentedFormParameters(documentation.formParameterList, documentation.fileUploadList)
         }
     }
 

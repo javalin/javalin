@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.external.findSchema
 import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.ObjectSchema
@@ -26,19 +27,24 @@ fun getFileSchema(fileUpload: DocumentedFileUpload): Schema<*>? {
 }
 
 fun RequestBody.applyDocumentedFormParameters(documentedFormParameters: List<DocumentedFormParameter>,
-                                              fileUploadList: List<DocumentedFileUpload>,
-                                              contentType: String) {
+                                              fileUploadList: List<DocumentedFileUpload>) {
     if (documentedFormParameters.isNotEmpty() || fileUploadList.isNotEmpty()) {
+
+        val formParams = documentedFormParameters
+            .map { it.name to findSchema(it.clazz)?.main }
+        val fileParams = fileUploadList
+            .map { it.name to getFileSchema(it) }
+
         val schema = ObjectSchema().apply {
-            val formParams = documentedFormParameters
-                .map { it.name to findSchema(it.clazz)?.main }
-            val fileParams = fileUploadList
-                .map { it.name to getFileSchema(it) }
             properties = fileParams.union(formParams).toMap()
+            required = documentedFormParameters
+                .filter { it.required }
+                .map { it.name }
         }
-        schema.required = documentedFormParameters
-            .filter { it.required }
-            .map { it.name }
+
+        // Requests with file uploads need to be a multipart content
+        // Regular forms alone will be url encoded by default
+        val contentType = if (fileUploadList.isEmpty()) ContentType.FORM_DATA_URL_ENCODED else ContentType.FORM_DATA_MULTIPART
         val content = DocumentedContent(schema, contentType)
 
         updateContent { applyDocumentedContent(content) }
