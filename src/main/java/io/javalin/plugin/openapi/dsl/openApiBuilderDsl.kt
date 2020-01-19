@@ -10,6 +10,7 @@ import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.CreateSchemaOptions
 import io.javalin.plugin.openapi.JavalinOpenApi
+import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.annotations.PathInfo
 import io.javalin.plugin.openapi.external.schema
@@ -110,9 +111,12 @@ fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, meta
         }
     }
 
-    if (documentation.hasFormParameter()) {
+    if (documentation.hasFormParameter() || documentation.hasFileUploads()) {
         updateRequestBody {
-            applyDocumentedFormParameters(documentation.formParameterList)
+            // Requests with file uploads need to be a multipart content
+            // Regular forms alone will be url encoded by default
+            val contentType = if (documentation.hasFileUploads()) ContentType.FORM_DATA_MULTIPART else ContentType.FORM_DATA_URL_ENCODED
+            applyDocumentedFormParameters(documentation.formParameterList, documentation.fileUploadList, contentType)
         }
     }
 

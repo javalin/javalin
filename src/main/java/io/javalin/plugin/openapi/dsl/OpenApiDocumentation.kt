@@ -2,11 +2,8 @@ package io.javalin.plugin.openapi.dsl
 
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
-import io.javalin.plugin.openapi.external.findSchema
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.Operation
-import io.swagger.v3.oas.models.media.ArraySchema
-import io.swagger.v3.oas.models.media.ObjectSchema
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
@@ -20,10 +17,12 @@ class OpenApiDocumentation {
     val responseUpdaterListMapping = mutableMapOf<String, MutableList<OpenApiUpdater<ApiResponse>>>()
     val componentsUpdaterList = mutableListOf<OpenApiUpdater<Components>>()
     val formParameterList = mutableListOf<DocumentedFormParameter>()
+    val fileUploadList = mutableListOf<DocumentedFileUpload>()
 
     fun hasRequestBodies(): Boolean = requestBodyList.isNotEmpty()
     fun hasResponses(): Boolean = responseUpdaterListMapping.values.flatten().isNotEmpty()
     fun hasFormParameter(): Boolean = formParameterList.isNotEmpty()
+    fun hasFileUploads(): Boolean = fileUploadList.isNotEmpty()
 
     /** Hide the endpoint in the documentation */
     @JvmOverloads
@@ -114,7 +113,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun formParamBody(clazz: Class<*>, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        body(clazz, "application/x-www-form-urlencoded", openApiUpdater)
+        body(clazz, ContentType.FORM_DATA_URL_ENCODED, openApiUpdater)
     }
 
     // --- UPLOADED FILE ---
@@ -124,12 +123,8 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun uploadedFile(name: String, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        val schema = ObjectSchema().apply {
-            properties = mapOf(
-                    name to findSchema(ByteArray::class.java)?.main
-            )
-        }
-        body(schema, "multipart/form-data", openApiUpdater)
+        fileUploadList.add(DocumentedFileUpload(name))
+        requestBodyList.addIfNotNull(openApiUpdater)
     }
 
     // --- UPLOADED FILES ---
@@ -139,12 +134,8 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun uploadedFiles(name: String, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        val schema = ObjectSchema().apply {
-            properties = mapOf(
-                    name to ArraySchema().items(findSchema(ByteArray::class.java)?.main)
-            )
-        }
-        body(schema, "multipart/form-data", openApiUpdater)
+        fileUploadList.add(DocumentedFileUpload(name,true))
+        requestBodyList.addIfNotNull(openApiUpdater)
     }
 
     // --- BODY ---
@@ -319,6 +310,7 @@ class OpenApiDocumentation {
         }
 
         this.componentsUpdaterList.addAll(other.componentsUpdaterList)
+        this.fileUploadList.addAll(other.fileUploadList)
         this.formParameterList.addAll(other.formParameterList)
     }
 }

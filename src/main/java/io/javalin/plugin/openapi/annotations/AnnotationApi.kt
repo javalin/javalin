@@ -102,7 +102,8 @@ class NULL_CLASS
 object ContentType {
     const val JSON = "application/json"
     const val HTML = "text/html"
-    const val FORM_DATA = "application/x-www-form-urlencoded"
+    const val FORM_DATA_URL_ENCODED = "application/x-www-form-urlencoded"
+    const val FORM_DATA_MULTIPART = "multipart/form-data"
     const val AUTODETECT = "AUTODETECT - Will be replaced later"
 }
 

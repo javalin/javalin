@@ -559,6 +559,37 @@ val complexExampleJson = """
         }
       }
     },
+     "/uploadWithFormData": {
+      "get": {
+        "summary": "Get uploadwithformdata",
+        "operationId": "getUploadwithformdata",
+        "requestBody": {
+          "description": "MyFile",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
+      }
+    },
     "/resources/*": {
       "get": {
         "summary": "Get resources with wildcard",
