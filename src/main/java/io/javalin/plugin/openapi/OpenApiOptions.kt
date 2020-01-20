@@ -16,6 +16,7 @@ import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.javalin.plugin.openapi.utils.LazyDefaultValue
 import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.examples.Example
 import io.swagger.v3.oas.models.info.Info
 
 class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigurationCreator) {
@@ -88,6 +89,10 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
         }
     }
 
+    fun examples(examples: Map<Class<*>, Map<String, Example>>) {
+        openApiExamples = examples;
+    }
+
     /**
      * Activate annotation scanning for specific package prefixes.
      * This will search for `OpenApi` annotations which define the `path` and `method` * property.
@@ -134,3 +139,5 @@ interface InitialConfigurationCreator {
 fun InitialConfigurationCreator(createInitialConfiguration: () -> OpenAPI) = object : InitialConfigurationCreator {
     override fun create() = createInitialConfiguration()
 }
+
+internal var openApiExamples = mapOf<Class<*>, Map<String, Example>>()
