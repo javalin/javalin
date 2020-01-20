@@ -16,6 +16,7 @@ import io.javalin.http.Context
 import io.javalin.plugin.openapi.JavalinOpenApi
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
+import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.dsl.*
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
@@ -167,6 +168,11 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
             .result<Unit>("200")
     app.put("/form-data-schema", documented(getFormDataSchemaDocumentation) {})
 
+    val getFormDataSchemaMultipartDocumentation = document()
+            .formParamBody<Address>(contentType = ContentType.FORM_DATA_MULTIPART)
+            .result<Unit>("200")
+    app.put("/form-data-schema-multipart", documented(getFormDataSchemaMultipartDocumentation) {})
+
     val putUserDocumentation = document()
             .operation {
                 it.addTagsItem("user")
@@ -224,7 +230,7 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
             it.required = true
         }
         .formParam<String>("title")
-    app.get("/uploadWithFormData", documented(getUploadWithFormDataDocumentation) {
+    app.get("/upload-with-form-data", documented(getUploadWithFormDataDocumentation) {
         it.uploadedFile("file")
         it.formParam("title")
     })
