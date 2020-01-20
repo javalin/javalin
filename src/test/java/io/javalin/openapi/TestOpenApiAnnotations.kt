@@ -125,6 +125,15 @@ fun putFormDataSchemaHandler(ctx: Context) {
 }
 
 @OpenApi(
+        requestBody = OpenApiRequestBody(content = [OpenApiContent(Address::class, type = ContentType.FORM_DATA_MULTIPART)]),
+        responses = [
+            OpenApiResponse(status = "200")
+        ]
+)
+fun putFormDataSchemaMultipartHandler(ctx: Context) {
+}
+
+@OpenApi(
         tags = ["user"],
         requestBody = OpenApiRequestBody(
                 required = true,
@@ -280,12 +289,13 @@ class TestOpenApiAnnotations {
         app.get("/users2", ::getUsers2Handler)
         app.put("/form-data", ::putFormDataHandler)
         app.put("/form-data-schema", ::putFormDataSchemaHandler)
+        app.put("/form-data-schema-multipart", ::putFormDataSchemaMultipartHandler)
         app.put("/user", ::putUserHandler)
         app.get("/string", ::getStringHandler)
         app.get("/homepage", ::getHomepageHandler)
         app.get("/upload", ::getUploadHandler)
         app.get("/uploads", ::getUploadsHandler)
-        app.get("/uploadWithFormData", ::getUploadWithFormDataHandler)
+        app.get("/upload-with-form-data", ::getUploadWithFormDataHandler)
         app.get("/resources/*", ::getResources)
         app.get("/ignore", ::getIgnore)
 

@@ -111,9 +111,17 @@ class OpenApiDocumentation {
         formParamBody(T::class.java, createUpdaterIfNotNull(applyUpdates))
     }
 
+    inline fun <reified T> formParamBody(contentType: String? = null, noinline applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
+        formParamBody(T::class.java, contentType, createUpdaterIfNotNull(applyUpdates))
+    }
+
     @JvmOverloads
     fun formParamBody(clazz: Class<*>, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        body(clazz, ContentType.FORM_DATA_URL_ENCODED, openApiUpdater)
+        formParamBody(clazz, null, openApiUpdater)
+    }
+
+    fun formParamBody(clazz: Class<*>, contentType: String? = null, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
+        body(clazz, contentType ?: ContentType.FORM_DATA_URL_ENCODED, openApiUpdater)
     }
 
     // --- UPLOADED FILE ---
