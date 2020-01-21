@@ -37,7 +37,6 @@ import io.javalin.plugin.openapi.dsl.documentedContent
 import io.javalin.plugin.openapi.dsl.oneOf
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.swagger.v3.oas.models.OpenAPI
-import io.swagger.v3.oas.models.examples.Example
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
@@ -446,21 +445,6 @@ class TestOpenApi {
         assertThat(timestampSchemaType.type).isEqualTo("string")
         assertThat(timestampSchemaType.format).isEqualTo("date-time")
     }
-
-    val examples = mapOf(
-            User::class.java to mapOf(
-                    "User example" to Example().apply {
-                        summary = "A correctly configured user"
-                        value = User("John", Address("Some street", 123))
-                    }
-            ),
-            Address::class.java to mapOf(
-                    "Address example" to Example().apply {
-                        summary = "A correctly configured address"
-                        value = Address("Some street", 123)
-                    }
-            )
-    )
 
     @Test
     fun `createSchema works with composed body and response`() {

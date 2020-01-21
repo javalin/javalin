@@ -90,7 +90,13 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
     }
 
     fun examples(examples: Map<Class<*>, Map<String, Example>>) {
-        openApiExamples = examples;
+        openApiExamples = examples.mapValues { it.value.toMutableMap() }.toMutableMap()
+    }
+
+    inline fun <reified T : Any> addExampleForSchema(name: String, example: Example) = addExampleForSchema(T::class.java, name, example)
+
+    fun <T> addExampleForSchema(clazz: Class<T>, name: String, example: Example) {
+        openApiExamples[clazz] = mutableMapOf(name to example)
     }
 
     /**
@@ -140,4 +146,4 @@ fun InitialConfigurationCreator(createInitialConfiguration: () -> OpenAPI) = obj
     override fun create() = createInitialConfiguration()
 }
 
-internal var openApiExamples = mapOf<Class<*>, Map<String, Example>>()
+internal var openApiExamples = mutableMapOf<Class<*>, MutableMap<String, Example>>()
