@@ -464,6 +464,26 @@ val complexExampleJson = """
         }
       }
     },
+    "/form-data-schema-multipart": {
+      "put": {
+        "summary": "Put formDataSchemaMultipart",
+        "operationId": "putFormDataSchemaMultipart",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Address"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/string": {
       "get": {
         "summary": "Get string",
@@ -545,6 +565,37 @@ val complexExampleJson = """
                       "type": "string",
                       "format": "binary"
                     }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
+      }
+    },
+    "/upload-with-form-data": {
+      "get": {
+        "summary": "Get uploadWithFormData",
+        "operationId": "getUploadWithFormData",
+        "requestBody": {
+          "description": "MyFile",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "title": {
+                    "type": "string"
                   }
                 }
               }

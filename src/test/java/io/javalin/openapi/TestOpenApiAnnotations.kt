@@ -116,12 +116,21 @@ fun putFormDataHandler(ctx: Context) {
 }
 
 @OpenApi(
-        requestBody = OpenApiRequestBody(content = [OpenApiContent(Address::class, type = ContentType.FORM_DATA)]),
+        requestBody = OpenApiRequestBody(content = [OpenApiContent(Address::class, type = ContentType.FORM_DATA_URL_ENCODED)]),
         responses = [
             OpenApiResponse(status = "200")
         ]
 )
 fun putFormDataSchemaHandler(ctx: Context) {
+}
+
+@OpenApi(
+        requestBody = OpenApiRequestBody(content = [OpenApiContent(Address::class, type = ContentType.FORM_DATA_MULTIPART)]),
+        responses = [
+            OpenApiResponse(status = "200")
+        ]
+)
+fun putFormDataSchemaMultipartHandler(ctx: Context) {
 }
 
 @OpenApi(
@@ -171,6 +180,17 @@ fun getUploadHandler(ctx: Context) {
         ]
 )
 fun getUploadsHandler(ctx: Context) {
+}
+
+@OpenApi(
+        fileUploads = [
+            OpenApiFileUpload(name = "file", description = "MyFile", required = true)
+        ],
+        formParams = [
+            OpenApiFormParam("title")
+        ]
+)
+fun getUploadWithFormDataHandler(ctx: Context) {
 }
 
 @OpenApi(
@@ -269,11 +289,13 @@ class TestOpenApiAnnotations {
         app.get("/users2", ::getUsers2Handler)
         app.put("/form-data", ::putFormDataHandler)
         app.put("/form-data-schema", ::putFormDataSchemaHandler)
+        app.put("/form-data-schema-multipart", ::putFormDataSchemaMultipartHandler)
         app.put("/user", ::putUserHandler)
         app.get("/string", ::getStringHandler)
         app.get("/homepage", ::getHomepageHandler)
         app.get("/upload", ::getUploadHandler)
         app.get("/uploads", ::getUploadsHandler)
+        app.get("/upload-with-form-data", ::getUploadWithFormDataHandler)
         app.get("/resources/*", ::getResources)
         app.get("/ignore", ::getIgnore)
 
