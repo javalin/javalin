@@ -34,6 +34,111 @@ val examples = mapOf(
         )
 )
 
+val expectedJson = """
+    {
+      "openapi" : "3.0.1",
+      "info" : { },
+      "paths" : {
+        "/user" : {
+          "get" : {
+            "summary" : "Get user",
+            "operationId" : "getUser",
+            "responses" : {
+              "200" : {
+                "description" : "OK",
+                "content" : {
+                  "application/json" : {
+                    "schema" : {
+                      "$ref" : "#/components/schemas/ExampleUser"
+                    },
+                    "examples" : {
+                      "User example" : {
+                        "summary" : "A correctly configured user",
+                        "value" : {
+                          "name" : "John",
+                          "address" : {
+                            "street" : "Some street",
+                            "number" : 123
+                          }
+                        }
+                      },
+                      "User example 2" : {
+                        "summary" : "Another correctly configured user",
+                        "value" : {
+                          "name" : "Dave",
+                          "address" : {
+                            "street" : "Some street",
+                            "number" : 123
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/address" : {
+          "get" : {
+            "summary" : "Get address",
+            "operationId" : "getAddress",
+            "responses" : {
+              "200" : {
+                "description" : "OK",
+                "content" : {
+                  "application/json" : {
+                    "schema" : {
+                      "$ref" : "#/components/schemas/ExampleAddress"
+                    },
+                    "examples" : {
+                      "Address example" : {
+                        "summary" : "A correctly configured address",
+                        "value" : {
+                          "street" : "Some street",
+                          "number" : 123
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "components" : {
+        "schemas" : {
+          "ExampleAddress" : {
+            "required" : [ "number", "street" ],
+            "type" : "object",
+            "properties" : {
+              "street" : {
+                "type" : "string"
+              },
+              "number" : {
+                "type" : "integer",
+                "format" : "int32"
+              }
+            }
+          },
+          "ExampleUser" : {
+            "required" : [ "address", "name" ],
+            "type" : "object",
+            "properties" : {
+              "name" : {
+                "type" : "string"
+              },
+              "address" : {
+                "$ref" : "#/components/schemas/ExampleAddress"
+              }
+            }
+          }
+        }
+      }
+    }
+""".trimIndent()
+
 class TestOpenApiExample {
 
     private fun createApp(openApiPlugin: OpenApiPlugin) = Javalin.create {
@@ -50,10 +155,11 @@ class TestOpenApiExample {
             addExample<ExampleUser>("User example 2", examples[ExampleUser::class.java]!!["User example 2"]!!)
             addExample<ExampleAddress>("Address example", examples[ExampleAddress::class.java]!!["Address example"]!!)
         }))
-        val openApiJson = JavalinOpenApi.createSchema(app).toString()
-        assertThat(openApiJson).contains("value: ExampleUser(name=John, address=ExampleAddress(street=Some street, number=123))")
-        assertThat(openApiJson).contains("value: ExampleUser(name=Dave, address=ExampleAddress(street=Some street, number=123))")
-        openApiExamples.clear() // since this is global
+
+        val openApiJson = JavalinOpenApi.createSchema(app).asJsonString()
+
+        assertThat(openApiJson).isEqualTo(expectedJson.formatJson())
+        openApiExamples.clear()
     }
 
     @Test
@@ -61,9 +167,11 @@ class TestOpenApiExample {
         val app = createApp(OpenApiPlugin(OpenApiOptions(Info()).apply {
             examples(examples)
         }))
-        val openApiJson = JavalinOpenApi.createSchema(app).toString()
-        assertThat(openApiJson).contains("value: ExampleUser(name=John, address=ExampleAddress(street=Some street, number=123))")
-        openApiExamples.clear() // since this is global
+
+        val openApiJson = JavalinOpenApi.createSchema(app).asJsonString()
+
+        assertThat(openApiJson).isEqualTo(expectedJson.formatJson())
+        openApiExamples.clear()
     }
 
 }
