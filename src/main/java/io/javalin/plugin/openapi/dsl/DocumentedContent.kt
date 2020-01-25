@@ -2,6 +2,7 @@ package io.javalin.plugin.openapi.dsl
 
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.openApiExamples
 import io.javalin.plugin.openapi.external.mediaType
 import io.javalin.plugin.openapi.external.mediaTypeArrayOf
 import io.javalin.plugin.openapi.external.mediaTypeArrayOfRef
@@ -143,6 +144,9 @@ fun Content.applyDocumentedContent(documentedContent: DocumentedContent) {
             documentedContent.isArray -> mediaTypeArrayOfRef(documentedContent.fromType, documentedContent.contentType)
             else -> mediaTypeRef(documentedContent.fromType, documentedContent.contentType)
         }
+    }
+    openApiExamples[documentedContent.fromType]?.let { examples ->
+        get(documentedContent.contentType)?.examples = examples
     }
 }
 
