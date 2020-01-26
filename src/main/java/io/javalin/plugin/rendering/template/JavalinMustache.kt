@@ -29,8 +29,7 @@ object JavalinMustache : FileRenderer {
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.MUSTACHE)
         val stringWriter = StringWriter()
-        mustacheFactory = mustacheFactory ?: defaultMustacheFactory
-        mustacheFactory!!.compile(filePath).execute(stringWriter, model).close()
+        (mustacheFactory ?: defaultMustacheFactory).compile(filePath).execute(stringWriter, model).close()
         return stringWriter.toString()
     }
 

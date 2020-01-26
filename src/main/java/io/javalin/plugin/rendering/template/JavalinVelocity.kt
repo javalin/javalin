@@ -29,9 +29,8 @@ object JavalinVelocity : FileRenderer {
 
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
-        velocityEngine = velocityEngine ?: defaultVelocityEngine
         val stringWriter = StringWriter()
-        velocityEngine!!.getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(
+        (velocityEngine ?: defaultVelocityEngine).getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(
                 VelocityContext(model.toMutableMap()), stringWriter
         )
         return stringWriter.toString()

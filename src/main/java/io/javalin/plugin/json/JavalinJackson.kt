@@ -40,8 +40,7 @@ object JavalinJackson {
         if (Util.isKotlinClass(clazz)) {
             Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
         }
-        objectMapper = objectMapper ?: defaultObjectMapper
-        return objectMapper!!.readValue(json, clazz)
+        return (objectMapper ?: defaultObjectMapper).readValue(json, clazz)
     }
 
     private fun createObjectMapper(): ObjectMapper = try {

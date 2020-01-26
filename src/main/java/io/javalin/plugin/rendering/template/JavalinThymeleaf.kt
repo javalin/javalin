@@ -31,8 +31,7 @@ object JavalinThymeleaf : FileRenderer {
         Util.ensureDependencyPresent(OptionalDependency.THYMELEAF)
         val context = WebContext(ctx.req, ctx.res, ctx.req.servletContext)
         context.setVariables(model)
-        templateEngine = templateEngine ?: defaultTemplateEngine
-        return templateEngine!!.process(filePath, context)
+        return (templateEngine ?: defaultTemplateEngine).process(filePath, context)
     }
 
     private fun defaultThymeLeafEngine() = TemplateEngine().apply {

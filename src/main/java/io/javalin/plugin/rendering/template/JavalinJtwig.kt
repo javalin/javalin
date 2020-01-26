@@ -29,8 +29,7 @@ object JavalinJtwig : FileRenderer {
 
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.JTWIG)
-        configuration = configuration ?: defaultConfiguration
-        val template = JtwigTemplate.classpathTemplate(filePath, configuration!!)
+        val template = JtwigTemplate.classpathTemplate(filePath, configuration ?: defaultConfiguration)
         return template.render(JtwigModel.newModel(model))
     }
 
