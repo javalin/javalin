@@ -13,6 +13,8 @@ import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
 import java.io.StringWriter
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 object JavalinFreemarker : FileRenderer {
 
@@ -31,8 +33,12 @@ object JavalinFreemarker : FileRenderer {
         return stringWriter.toString()
     }
 
-    private fun defaultFreemarkerEngine() = Configuration(Version(2, 3, 26)).apply {
-        setClassForTemplateLoading(JavalinFreemarker::class.java, "/")
+    var lock = ReentrantLock();
+
+    private fun defaultFreemarkerEngine() = lock.withLock {
+        configuration ?: Configuration(Version(2, 3, 26)).apply {
+            setClassForTemplateLoading(JavalinFreemarker::class.java, "/")
+        }
     }
 
 }

@@ -14,6 +14,8 @@ import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.WebContext
 import org.thymeleaf.templatemode.TemplateMode
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 object JavalinThymeleaf : FileRenderer {
 
@@ -32,10 +34,14 @@ object JavalinThymeleaf : FileRenderer {
         return templateEngine!!.process(filePath, context)
     }
 
-    private fun defaultThymeLeafEngine() = TemplateEngine().apply {
-        setTemplateResolver(ClassLoaderTemplateResolver().apply {
-            templateMode = TemplateMode.HTML
-        })
+    var lock = ReentrantLock()
+
+    private fun defaultThymeLeafEngine() = lock.withLock {
+        templateEngine ?: TemplateEngine().apply {
+            setTemplateResolver(ClassLoaderTemplateResolver().apply {
+                templateMode = TemplateMode.HTML
+            })
+        }
     }
 
 }

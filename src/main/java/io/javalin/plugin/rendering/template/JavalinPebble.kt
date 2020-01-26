@@ -13,6 +13,8 @@ import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
 import java.io.StringWriter
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 object JavalinPebble : FileRenderer {
 
@@ -32,9 +34,13 @@ object JavalinPebble : FileRenderer {
         return stringWriter.toString()
     }
 
-    private fun defaultPebbleEngine() = PebbleEngine.Builder()
+    var lock = ReentrantLock()
+
+    private fun defaultPebbleEngine() = lock.withLock {
+        pebbleEngine ?: PebbleEngine.Builder()
             .loader(ClasspathLoader())
             .strictVariables(false)
             .build()
+    }
 
 }

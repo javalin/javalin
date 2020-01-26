@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 object JavalinJackson {
 
@@ -20,9 +22,13 @@ object JavalinJackson {
         objectMapper = staticObjectMapper
     }
 
+    var lock = ReentrantLock()
+
     @JvmStatic
     fun getObjectMapper(): ObjectMapper {
-        objectMapper = objectMapper ?: createObjectMapper()
+        objectMapper = objectMapper ?: lock.withLock {
+            objectMapper ?: createObjectMapper()
+        }
         return objectMapper!!
     }
 

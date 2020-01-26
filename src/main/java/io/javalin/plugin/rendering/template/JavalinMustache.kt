@@ -13,6 +13,8 @@ import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
 import java.io.StringWriter
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 object JavalinMustache : FileRenderer {
 
@@ -23,9 +25,13 @@ object JavalinMustache : FileRenderer {
         mustacheFactory = staticMustacheFactory
     }
 
+    var lock = ReentrantLock()
+
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.MUSTACHE)
-        mustacheFactory = mustacheFactory ?: DefaultMustacheFactory("./")
+        mustacheFactory = mustacheFactory ?: lock.withLock {
+            mustacheFactory ?: DefaultMustacheFactory("./")
+        }
         val stringWriter = StringWriter()
         mustacheFactory!!.compile(filePath).execute(stringWriter, model).close()
         return stringWriter.toString()
