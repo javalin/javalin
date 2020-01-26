@@ -17,11 +17,14 @@ import org.jtwig.environment.EnvironmentConfiguration
 
 object JavalinJtwig : FileRenderer {
 
-    private var configuration: EnvironmentConfiguration? = null
+    private var configuredConfiguration: EnvironmentConfiguration? = null
+    private val configuration: EnvironmentConfiguration by lazy {
+        configuredConfiguration ?: DefaultEnvironmentConfiguration()
+    }
 
     @JvmStatic
     fun configure(staticConfiguration: EnvironmentConfiguration) {
-        configuration = staticConfiguration
+        configuredConfiguration = staticConfiguration
     }
 
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {

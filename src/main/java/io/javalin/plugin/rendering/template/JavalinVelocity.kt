@@ -17,18 +17,21 @@ import java.nio.charset.StandardCharsets
 
 object JavalinVelocity : FileRenderer {
 
-    private var velocityEngine: VelocityEngine? = null
+    private var configuredVelocityEngine: VelocityEngine? = null
+    private val velocityEngine: VelocityEngine by lazy {
+        configuredVelocityEngine ?: defaultVelocityEngine()
+    }
 
     @JvmStatic
     fun configure(staticVelocityEngine: VelocityEngine) {
-        velocityEngine = staticVelocityEngine
+        configuredVelocityEngine = staticVelocityEngine
     }
 
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
-        velocityEngine = velocityEngine ?: defaultVelocityEngine()
+        configuredVelocityEngine = configuredVelocityEngine ?: defaultVelocityEngine()
         val stringWriter = StringWriter()
-        velocityEngine!!.getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(
+        velocityEngine.getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(
                 VelocityContext(model.toMutableMap()), stringWriter
         )
         return stringWriter.toString()
