@@ -17,20 +17,20 @@ import org.jtwig.environment.EnvironmentConfiguration
 
 object JavalinJtwig : FileRenderer {
 
-    private var configuredConfiguration: EnvironmentConfiguration? = null
-    private val configuration: EnvironmentConfiguration by lazy {
-        configuredConfiguration ?: DefaultEnvironmentConfiguration()
+    private var configuration: EnvironmentConfiguration? = null
+    private val defaultConfiguration: EnvironmentConfiguration by lazy {
+        DefaultEnvironmentConfiguration()
     }
 
     @JvmStatic
     fun configure(staticConfiguration: EnvironmentConfiguration) {
-        configuredConfiguration = staticConfiguration
+        configuration = staticConfiguration
     }
 
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.JTWIG)
-        val configuration = configuration ?: DefaultEnvironmentConfiguration()
-        val template = JtwigTemplate.classpathTemplate(filePath, configuration)
+        configuration = configuration ?: defaultConfiguration
+        val template = JtwigTemplate.classpathTemplate(filePath, configuration!!)
         return template.render(JtwigModel.newModel(model))
     }
 

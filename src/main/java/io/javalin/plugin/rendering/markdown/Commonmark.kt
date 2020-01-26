@@ -15,26 +15,28 @@ import org.commonmark.renderer.html.HtmlRenderer
 
 object JavalinCommonmark : FileRenderer {
 
-    private var configuredRenderer: HtmlRenderer? = null
-    private val renderer: HtmlRenderer by lazy {
-        configuredRenderer ?: HtmlRenderer.builder().build()
+    private var renderer: HtmlRenderer? = null
+    private val defaultRenderer: HtmlRenderer by lazy {
+        HtmlRenderer.builder().build()
     }
 
-    private var configuredParser: Parser? = null
-    private val parser: Parser by lazy {
-        configuredParser ?: Parser.builder().build()
+    private var parser: Parser? = null
+    private val defaultParser: Parser by lazy {
+        Parser.builder().build()
     }
 
     @JvmStatic
     fun configure(staticHtmlRenderer: HtmlRenderer, staticMarkdownParser: Parser) {
-        configuredRenderer = staticHtmlRenderer
-        configuredParser = staticMarkdownParser
+        renderer = staticHtmlRenderer
+        parser = staticMarkdownParser
     }
 
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.COMMONMARK)
         val fileContent = JavalinCommonmark::class.java.getResource(filePath).readText()
-        return renderer.render(parser.parse(fileContent))
+        parser = parser ?: defaultParser
+        renderer = renderer ?: defaultRenderer
+        return renderer!!.render(parser!!.parse(fileContent))
     }
 
 }

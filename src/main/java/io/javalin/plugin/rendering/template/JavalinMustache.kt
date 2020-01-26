@@ -16,20 +16,21 @@ import java.io.StringWriter
 
 object JavalinMustache : FileRenderer {
 
-    private var configuredMustacheFactory: MustacheFactory? = null
-    private val mustacheFactory: MustacheFactory by lazy {
-        configuredMustacheFactory ?: DefaultMustacheFactory("./")
+    private var mustacheFactory: MustacheFactory? = null
+    private val defaultMustacheFactory: MustacheFactory by lazy {
+        DefaultMustacheFactory("./")
     }
 
     @JvmStatic
     fun configure(staticMustacheFactory: MustacheFactory) {
-        configuredMustacheFactory = staticMustacheFactory
+        mustacheFactory = staticMustacheFactory
     }
 
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.MUSTACHE)
         val stringWriter = StringWriter()
-        mustacheFactory.compile(filePath).execute(stringWriter, model).close()
+        mustacheFactory = mustacheFactory ?: defaultMustacheFactory
+        mustacheFactory!!.compile(filePath).execute(stringWriter, model).close()
         return stringWriter.toString()
     }
 
