@@ -14,6 +14,9 @@ import io.javalin.core.util.Util
 object JavalinJackson {
 
     private var objectMapper: ObjectMapper? = null
+    private val defaultObjectMapper : ObjectMapper by lazy {
+        createObjectMapper()
+    }
 
     @JvmStatic
     fun configure(staticObjectMapper: ObjectMapper) {
@@ -28,7 +31,8 @@ object JavalinJackson {
 
     fun toJson(`object`: Any): String {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        return getObjectMapper().writeValueAsString(`object`)
+        objectMapper = objectMapper ?: defaultObjectMapper
+        return objectMapper!!.writeValueAsString(`object`)
     }
 
     fun <T> fromJson(json: String, clazz: Class<T>): T {
@@ -36,7 +40,7 @@ object JavalinJackson {
         if (Util.isKotlinClass(clazz)) {
             Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
         }
-        return getObjectMapper().readValue(json, clazz)
+        return (objectMapper ?: defaultObjectMapper).readValue(json, clazz)
     }
 
     private fun createObjectMapper(): ObjectMapper = try {
