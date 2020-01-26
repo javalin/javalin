@@ -14,8 +14,6 @@ import org.jtwig.JtwigModel
 import org.jtwig.JtwigTemplate
 import org.jtwig.environment.DefaultEnvironmentConfiguration
 import org.jtwig.environment.EnvironmentConfiguration
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 object JavalinJtwig : FileRenderer {
 
@@ -26,13 +24,9 @@ object JavalinJtwig : FileRenderer {
         configuration = staticConfiguration
     }
 
-    var lock = ReentrantLock()
-
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.JTWIG)
-        val configuration = configuration ?: lock.withLock {
-            configuration ?: DefaultEnvironmentConfiguration()
-        }
+        val configuration = configuration ?: DefaultEnvironmentConfiguration()
         val template = JtwigTemplate.classpathTemplate(filePath, configuration)
         return template.render(JtwigModel.newModel(model))
     }
