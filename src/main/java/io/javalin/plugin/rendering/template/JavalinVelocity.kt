@@ -18,9 +18,7 @@ import java.nio.charset.StandardCharsets
 object JavalinVelocity : FileRenderer {
 
     private var velocityEngine: VelocityEngine? = null
-    private val defaultVelocityEngine: VelocityEngine by lazy {
-        defaultVelocityEngine()
-    }
+    private val defaultVelocityEngine: VelocityEngine by lazy { defaultVelocityEngine() }
 
     @JvmStatic
     fun configure(staticVelocityEngine: VelocityEngine) {

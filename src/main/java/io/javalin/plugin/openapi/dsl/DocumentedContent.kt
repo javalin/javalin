@@ -2,12 +2,12 @@ package io.javalin.plugin.openapi.dsl
 
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
-import io.javalin.plugin.openapi.openApiExamples
 import io.javalin.plugin.openapi.external.mediaType
 import io.javalin.plugin.openapi.external.mediaTypeArrayOf
 import io.javalin.plugin.openapi.external.mediaTypeArrayOfRef
 import io.javalin.plugin.openapi.external.mediaTypeRef
 import io.javalin.plugin.openapi.external.schema
+import io.javalin.plugin.openapi.openApiExamples
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType

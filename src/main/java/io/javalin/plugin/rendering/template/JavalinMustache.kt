@@ -17,9 +17,7 @@ import java.io.StringWriter
 object JavalinMustache : FileRenderer {
 
     private var mustacheFactory: MustacheFactory? = null
-    private val defaultMustacheFactory: MustacheFactory by lazy {
-        DefaultMustacheFactory("./")
-    }
+    private val defaultMustacheFactory: MustacheFactory by lazy { DefaultMustacheFactory("./") }
 
     @JvmStatic
     fun configure(staticMustacheFactory: MustacheFactory) {

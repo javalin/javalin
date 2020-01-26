@@ -17,9 +17,7 @@ import java.io.StringWriter
 object JavalinPebble : FileRenderer {
 
     private var pebbleEngine: PebbleEngine? = null
-    private val defaultPebbleEngine: PebbleEngine by lazy {
-        defaultPebbleEngine()
-    }
+    private val defaultPebbleEngine: PebbleEngine by lazy { defaultPebbleEngine() }
 
     @JvmStatic
     fun configure(staticPebbleEngine: PebbleEngine) {

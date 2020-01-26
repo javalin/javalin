@@ -14,9 +14,7 @@ import io.javalin.core.util.Util
 object JavalinJackson {
 
     private var objectMapper: ObjectMapper? = null
-    private val defaultObjectMapper : ObjectMapper by lazy {
-        createObjectMapper()
-    }
+    private val defaultObjectMapper: ObjectMapper by lazy { defaultObjectMapper() }
 
     @JvmStatic
     fun configure(staticObjectMapper: ObjectMapper) {
@@ -25,14 +23,12 @@ object JavalinJackson {
 
     @JvmStatic
     fun getObjectMapper(): ObjectMapper {
-        objectMapper = objectMapper ?: createObjectMapper()
-        return objectMapper!!
+        return (objectMapper ?: defaultObjectMapper)
     }
 
     fun toJson(`object`: Any): String {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        objectMapper = objectMapper ?: defaultObjectMapper
-        return objectMapper!!.writeValueAsString(`object`)
+        return (objectMapper ?: defaultObjectMapper).writeValueAsString(`object`)
     }
 
     fun <T> fromJson(json: String, clazz: Class<T>): T {
@@ -43,7 +39,7 @@ object JavalinJackson {
         return (objectMapper ?: defaultObjectMapper).readValue(json, clazz)
     }
 
-    private fun createObjectMapper(): ObjectMapper = try {
+    private fun defaultObjectMapper(): ObjectMapper = try {
         val className = OptionalDependency.JACKSON_KT.testClass
         ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
     } catch (e: ClassNotFoundException) {

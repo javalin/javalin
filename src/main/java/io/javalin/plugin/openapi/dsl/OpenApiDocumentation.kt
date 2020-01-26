@@ -142,7 +142,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun uploadedFiles(name: String, openApiUpdater: OpenApiUpdater<RequestBody>? = null) = apply {
-        fileUploadList.add(DocumentedFileUpload(name,true))
+        fileUploadList.add(DocumentedFileUpload(name, true))
         requestBodyList.addIfNotNull(openApiUpdater)
     }
 

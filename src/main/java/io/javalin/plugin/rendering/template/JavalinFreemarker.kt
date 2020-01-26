@@ -17,9 +17,7 @@ import java.io.StringWriter
 object JavalinFreemarker : FileRenderer {
 
     private var configuration: Configuration? = null
-    private val defaultConfiguration: Configuration by lazy {
-        defaultFreemarkerEngine()
-    }
+    private val defaultConfiguration: Configuration by lazy { defaultFreemarkerEngine() }
 
     @JvmStatic
     fun configure(staticConfiguration: Configuration) {

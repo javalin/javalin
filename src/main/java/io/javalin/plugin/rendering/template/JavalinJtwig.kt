@@ -18,9 +18,7 @@ import org.jtwig.environment.EnvironmentConfiguration
 object JavalinJtwig : FileRenderer {
 
     private var configuration: EnvironmentConfiguration? = null
-    private val defaultConfiguration: EnvironmentConfiguration by lazy {
-        DefaultEnvironmentConfiguration()
-    }
+    private val defaultConfiguration: EnvironmentConfiguration by lazy { DefaultEnvironmentConfiguration() }
 
     @JvmStatic
     fun configure(staticConfiguration: EnvironmentConfiguration) {

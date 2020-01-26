@@ -31,15 +31,15 @@ fun RequestBody.applyDocumentedFormParameters(documentedFormParameters: List<Doc
     if (documentedFormParameters.isNotEmpty() || fileUploadList.isNotEmpty()) {
 
         val formParams = documentedFormParameters
-            .map { it.name to findSchema(it.clazz)?.main }
+                .map { it.name to findSchema(it.clazz)?.main }
         val fileParams = fileUploadList
-            .map { it.name to getFileSchema(it) }
+                .map { it.name to getFileSchema(it) }
 
         val schema = ObjectSchema().apply {
             properties = fileParams.union(formParams).toMap()
             required = documentedFormParameters
-                .filter { it.required }
-                .map { it.name }
+                    .filter { it.required }
+                    .map { it.name }
         }
 
         // Requests with file uploads need to be a multipart content
