@@ -46,7 +46,7 @@ class RateLimit(private val ctx: Context) {
      * per [timeUnit], an exception is thrown. All counters are cleared every [timeUnit].
      */
     fun requestPerTimeUnit(numRequests: Int, timeUnit: TimeUnit) = try {
-        (limiters.computeIfAbsent(timeUnit) { RateLimiter(timeUnit) }).incrementCounter(ctx, numRequests)
+        limiters.computeIfAbsent(timeUnit) { RateLimiter(timeUnit) }.incrementCounter(ctx, numRequests)
     } catch (e: RuntimeException) {
         throw HttpResponseException(429, "Rate limit exceeded - Server allows $numRequests requests per ${timeUnit.toString().toLowerCase().removeSuffix("s")}.")
     }
