@@ -194,8 +194,8 @@ public class Javalin {
      * @return stopped application instance.
      */
     public Javalin stop() {
-        eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         log.info("Stopping Javalin ...");
+        eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         try {
             server.server().stop();
         } catch (Exception e) {
