@@ -27,7 +27,7 @@ class RateLimiter(timeUnit: TimeUnit) {
     fun incrementCounter(ctx: Context, requestLimit: Int) {
         val limiterName = ctx.method() + ctx.matchedPath()
         handlerToIpToRequestCount.putIfAbsent(limiterName, ConcurrentHashMap())
-        handlerToIpToRequestCount[limiterName]!!.compute(ctx.ip()) { _, count ->
+        handlerToIpToRequestCount[limiterName]!!.compute(ip(ctx)) { _, count ->
             when {
                 count == null -> 1
                 count < requestLimit -> count + 1
@@ -37,6 +37,8 @@ class RateLimiter(timeUnit: TimeUnit) {
     }
 
 }
+
+private fun ip(ctx: Context) = ctx.header("X-Forwarded-For")?.split(",")?.get(0) ?: ctx.ip()
 
 class RateLimit(private val ctx: Context) {
     /**
