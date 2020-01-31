@@ -29,7 +29,7 @@ object StreamWriter {
     }
 
     private fun OutputStream.write(inputStream: InputStream, from: Int, to: Int, buffer: ByteArray = ByteArray(1024)) = inputStream.use {
-        inputStream.skip(from.toLong())
+        it.skip(from.toLong())
         var bytesLeft = to - from + 1
         while (bytesLeft != 0) {
             val read = it.read(buffer, 0, Math.min(buffer.size, bytesLeft))
