@@ -362,6 +362,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return this
     }
 
+    /** Writes the specified inputStream as a seekable stream */
+    fun seekableStream(inputStream: InputStream, contentType: String) = StreamWriter.write(this, inputStream, contentType)
+
     /** Gets the current context result as an [InputStream] (if set). */
     fun resultStream(): InputStream? = resultStream
 
@@ -382,9 +385,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
     fun resultFuture(): CompletableFuture<*>? = resultFuture
-
-    /** Writes the specified inputStream as a seekable stream */
-    fun streamMedia(inputStream: InputStream, contentType: String) = StreamWriter.write(this, inputStream, contentType)
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {
