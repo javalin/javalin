@@ -8,7 +8,9 @@
 package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
+import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
+import io.javalin.http.util.SeekableWriter
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -42,7 +44,7 @@ class TestResponse {
     fun `setting a byte array result works`() = TestUtil.test { app, http ->
         val bytes = ByteArray(512)
 
-        for(i in 0 until 512) {
+        for (i in 0 until 512) {
             bytes[i] = (i % 256).toByte()
         }
 
@@ -145,6 +147,17 @@ class TestResponse {
         }
 
         assertThat(http.getBody("/test")).isEqualTo(result)
+    }
+
+    @Test
+    fun `seekabe streaming range works`() = TestUtil.test { app, http ->
+        val input = "a".repeat(SeekableWriter.chunkSize) + "b".repeat(SeekableWriter.chunkSize) + "c".repeat(SeekableWriter.chunkSize)
+        val inputStream = ByteArrayInputStream(input.toByteArray(Charsets.UTF_8))
+        app.get("/seekable") { ctx -> ctx.seekableStream(inputStream, "text/plain") }
+        val response = Unirest.get(http.origin + "/seekable")
+                .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
+                .asString().body
+        assertThat(response).doesNotContain("a").contains("b").doesNotContain("c")
     }
 
 }

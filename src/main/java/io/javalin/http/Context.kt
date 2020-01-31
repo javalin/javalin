@@ -13,7 +13,7 @@ import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
-import io.javalin.http.util.StreamWriter
+import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.plugin.rendering.JavalinRenderer
 import java.io.InputStream
@@ -363,7 +363,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Writes the specified inputStream as a seekable stream */
-    fun seekableStream(inputStream: InputStream, contentType: String) = StreamWriter.write(this, inputStream, contentType)
+    fun seekableStream(inputStream: InputStream, contentType: String) = SeekableWriter.write(this, inputStream, contentType)
 
     /** Gets the current context result as an [InputStream] (if set). */
     fun resultStream(): InputStream? = resultStream

@@ -5,8 +5,8 @@ import io.javalin.http.Context
 import java.io.InputStream
 import java.io.OutputStream
 
-object StreamWriter {
-    private const val chunkSize = 256000
+object SeekableWriter {
+    var chunkSize = 256000
     fun write(ctx: Context, inputStream: InputStream, contentType: String) {
         if (ctx.header(Header.RANGE) == null) {
             ctx.result(inputStream)
