@@ -62,7 +62,7 @@ object JavalinVue {
     }
 
     private fun String.replaceWebjarsWithCdn() =
-            this.replace("@cdnWebjar/", if (useCdn) "//cdn.jsdelivr.net/webjars/" else "/webjars/")
+            this.replace("@cdnWebjar/", if (useCdn) "//cdn.jsdelivr.net/webjars/org.webjars.npm/" else "/webjars/")
 
 }
 
