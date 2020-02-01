@@ -8,6 +8,7 @@ package io.javalin
 
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
+import io.javalin.http.util.SeekableWriter.chunkSize
 import io.javalin.misc.captureStdOut
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.AfterClass
@@ -17,7 +18,9 @@ import org.junit.Test
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
+import java.io.File
 import java.util.*
+import kotlin.math.ceil
 
 class TestWebBrowser {
 
@@ -47,10 +50,9 @@ class TestWebBrowser {
     }
 
     @Test
-    fun `hello world works in chrome`() {
-        val app = Javalin.create().start(0)
+    fun `hello world works in chrome`()  = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.result("Hello, Selenium!") }
-        driver.get("http://localhost:" + app.port() + "/hello")
+        driver.get(http.origin + "/hello")
         assertThat(driver.pageSource).contains("Hello, Selenium")
     }
 
@@ -66,6 +68,21 @@ class TestWebBrowser {
         assertThat(driver.pageSource).contains(payload)
         assertThat(logResult).contains("Content-Encoding=br")
         assertThat(logResult).contains("Body is brotlied (${payload.length} bytes, not logged)")
+        app.stop();
+    }
+
+    @Test
+    fun `seeking works in chrome`() = TestUtil.test { app, http ->
+        chunkSize = 30000
+        val file = File("src/test/resources/upload-test/sound.mp3")
+        var chunkCount = 0
+        app.get("/file") { it.seekableStream(file.inputStream(), "audio/mpeg").also { chunkCount++ } }
+        app.get("/audio-player") { it.html("""<audio src="/file"></audio>""")}
+        driver.get(http.origin + "/audio-player")
+        val expectedChunkCount = ceil(file.inputStream().available() / chunkSize.toDouble()).toInt()
+        assertThat(chunkCount).isEqualTo(expectedChunkCount)
+        println("Chunk count was '$chunkCount' when seeking in Chrome")
+        chunkSize = 128000
     }
 
 }
