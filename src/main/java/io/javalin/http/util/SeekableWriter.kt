@@ -18,7 +18,7 @@ object SeekableWriter {
         val to = when {
             from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
             requestedRange.size == 2 -> requestedRange[1].toInt() // chunk smaller than file, to/from specified
-            else -> from + chunkSize // chunk smaller then file, to/from not specified
+            else -> from + chunkSize - 1 // chunk smaller then file, to/from not specified
         }
         ctx.status(206)
         ctx.header(Header.CONTENT_TYPE, contentType)
