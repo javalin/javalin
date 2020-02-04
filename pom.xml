@@ -112,6 +112,12 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.apache.velocity.tools</groupId>
+            <artifactId>velocity-tools-view</artifactId>
+            <version>3.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
             <version>2.3.28</version>
