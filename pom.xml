@@ -116,6 +116,13 @@
             <artifactId>velocity-tools-view</artifactId>
             <version>3.0</version>
             <optional>true</optional>
+            <exclusions>
+                <!-- avoid unused commons-digester dependency to an old asm lib -->
+                <exclusion>
+                    <groupId>cglib</groupId>
+                    <artifactId>cglib</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.freemarker</groupId>
