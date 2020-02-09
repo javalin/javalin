@@ -56,7 +56,7 @@ object JavalinVue {
     internal fun getState(ctx: Context) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
         |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
-        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap())},
+        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap().filter { it.key != "cache_ts" })},
         |        state: ${JavalinJson.toJson(stateFunction(ctx))}
         |    }""".trimMargin() + "\n</script>\n"
 
