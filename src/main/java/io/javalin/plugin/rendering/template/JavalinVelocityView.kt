@@ -54,8 +54,9 @@ object JavalinVelocityView : FileRenderer {
         Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
         val view = velocityView ?: DefaultVelocityViewFactory.velocityView(ctx)
         val writer = StringWriter()
-        view.getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(
-                view.createContext(ctx.req, ctx.res), writer)
+        val context = view.createContext(ctx.req, ctx.res)
+        for ((key, obj) in model) context.put(key, obj)
+        view.getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(context, writer)
         return writer.toString()
     }
 
