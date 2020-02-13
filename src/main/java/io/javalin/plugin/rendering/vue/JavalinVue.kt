@@ -37,6 +37,9 @@ object JavalinVue {
     @JvmField
     var stateFunction: (Context) -> Any = { mapOf<String, String>() }
 
+    @JvmField
+    var cacheControl = "no-cache, no-store, must-revalidate"
+
     internal fun walkPaths(): Set<Path> = Files.walk(vueDirPath, 10).collect(Collectors.toSet())
 
     internal val cachedPaths by lazy { walkPaths() }
@@ -53,7 +56,7 @@ object JavalinVue {
     internal fun getState(ctx: Context) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
         |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
-        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap())},
+        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap().filter { it.key != "cache_ts" })},
         |        state: ${JavalinJson.toJson(stateFunction(ctx))}
         |    }""".trimMargin() + "\n</script>\n"
 
@@ -78,7 +81,7 @@ class VueComponent(private val component: String) : Handler {
             ctx.result("Route component not found: $routeComponent")
             return
         }
-        ctx.header(Header.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+        ctx.header(Header.CACHE_CONTROL, JavalinVue.cacheControl)
         ctx.html(view.replace("@serverState", JavalinVue.getState(ctx)).replace("@routeComponent", routeComponent)) // insert current route component
     }
 }
