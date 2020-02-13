@@ -17,8 +17,9 @@ import org.junit.Assume
 import org.junit.BeforeClass
 import org.junit.Test
 import org.openqa.selenium.WebDriver
-import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
+import org.openqa.selenium.firefox.FirefoxDriver
+import org.openqa.selenium.firefox.FirefoxOptions
+import org.openqa.selenium.firefox.FirefoxProfile
 import java.io.File
 import java.util.*
 import kotlin.math.ceil
@@ -34,11 +35,26 @@ class TestWebBrowser {
         fun setupClass() {
             val os: String = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
             Assume.assumeTrue("mac" !in os && "darwin" !in os)
+            WebDriverManager.firefoxdriver().setup()
+
+            // for firefox
+            driver = FirefoxDriver(FirefoxOptions().apply{
+                profile = FirefoxProfile().apply {
+                    setPreference("browser.chrome.favicons", false)
+                    setPreference("browser.chrome.site_icons", false)
+                }
+                addArguments("--headless")
+                addArguments("--disable-gpu")
+            })
+
+            /*
+            // for chrome
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--headless")
                 addArguments("--disable-gpu")
             })
+            */
         }
 
         @AfterClass
@@ -57,6 +73,7 @@ class TestWebBrowser {
         assertThat(driver.pageSource).contains("Hello, Selenium")
     }
 
+    /*
     @Test
     fun `brotli works in chrome`() {
         val payload = "Hello, Selenium!".repeat(150)
@@ -71,6 +88,7 @@ class TestWebBrowser {
         assertThat(logResult).contains("Body is brotlied (${payload.length} bytes, not logged)")
         app.stop();
     }
+     */
 
     @Test
     fun `seeking works in chrome`() {

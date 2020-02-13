@@ -17,10 +17,14 @@ package io.javalin.plugin.rendering.template
  *
  * Tools can be given properties at toolbox configuration time, which will take
  * effect after the tools are instanciated either via standard public setters or
- * via an optional <code>configure(Map)</code> method.
+ * via an optional <code>configure(Map)</code> method. Both methods include the
+ * following standard properties :
  *
- * The scoped toolboxes can be built from code using the JavalinVelocityView.data()
- * and JavalinVelocityView.tool() methods.
+ * request, velocityContext, log, response, session, servletContext, scope, key
+ *
+ * The scoped toolboxes can be built from code using method shortcuts:
+ *
+ * JavalinVelocityView.data("foo", "bar).session().tool("something", { MyTool() })
  *
  * @see <a href="http://velocity.apache.org/tools/3.0/view.html">Velocity Tools View</a>
  * @author Claude Brisson
@@ -30,29 +34,50 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
-import org.apache.velocity.tools.config.EasyFactoryConfiguration
-import org.apache.velocity.tools.config.ToolConfiguration
-import org.apache.velocity.tools.config.ToolboxConfiguration
-import org.apache.velocity.tools.view.ServletUtils.CONFIGURATION_KEY
+import org.apache.velocity.app.VelocityEngine
+import org.apache.velocity.tools.ToolInfo
+import org.apache.velocity.tools.ToolboxFactory
+import org.apache.velocity.tools.config.*
+import org.apache.velocity.tools.view.JeeConfig
 import org.apache.velocity.tools.view.VelocityView
 import java.io.StringWriter
+import java.lang.IllegalStateException
 import java.nio.charset.StandardCharsets
-import java.util.*
 import javax.servlet.ServletContext
-import kotlin.collections.HashMap
 
 object JavalinVelocityView : FileRenderer {
 
     private var velocityView: VelocityView? = null
+    private var velocityEngine: VelocityEngine? = null
+
+    @JvmStatic
+    fun configure(staticVelocityEngine: VelocityEngine) {
+        if (velocityView != null) {
+            throw IllegalStateException("use configure(VelocityView) or configure(VelocityEngine) but not both")
+        }
+        velocityEngine = staticVelocityEngine
+    }
 
     @JvmStatic
     fun configure(staticVelocityView: VelocityView) {
+        if (velocityView != null) {
+            throw IllegalStateException("use configure(VelocityView) or configure(VelocityEngine) but not both")
+        }
         velocityView = staticVelocityView
     }
 
+    @JvmStatic
+    fun reset() {
+        // reset configuration, mainly for tests
+        velocityEngine = null
+        velocityView = null
+        VelocityViewFactory.defaultVelocityView = null
+    }
+
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
+        System.out.println("@@@@@@@@ JVV " + this + ", DVV " + VelocityViewFactory.defaultVelocityView)
         Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
-        val view = velocityView ?: DefaultVelocityViewFactory.velocityView(ctx)
+        val view = velocityView ?: VelocityViewFactory.velocityView(ctx)
         val writer = StringWriter()
         val context = view.createContext(ctx.req, ctx.res)
         for ((key, obj) in model) context.put(key, obj)
@@ -60,60 +85,82 @@ object JavalinVelocityView : FileRenderer {
         return writer.toString()
     }
 
-    // the 'by lazy' construct used in other rendering plugins cannot be used here,
-    // because VelocityView constructor needs a ServletContext object
-    private object DefaultVelocityViewFactory
+    private object VelocityViewFactory
     {
-        private var defaultVelocityView : VelocityView? = null
+        @Volatile
+        var defaultVelocityView : VelocityView? = null
+
         @JvmStatic
         fun velocityView(ctx: Context) : VelocityView {
-            val view = defaultVelocityView;
-            if (view != null) {
-                return view;
+            if (velocityEngine != null) {
+                return synchronized(this) {
+                    if (velocityView != null) {
+                        velocityView!!
+                    } else {
+                        val created = object : VelocityView(ctx.req.servletContext) {
+                            // use custom engine
+                            override fun init(config: JeeConfig) {
+                                velocityEngine = JavalinVelocityView.velocityEngine ?: VelocityEngine()
+                                super.init(config)
+                            }
+                            override fun configure(config: JeeConfig?, velocity: VelocityEngine?) {}
+                        }
+                        velocityView = created
+                        created
+                    }
+                }
+            }
+            if (defaultVelocityView != null) {
+                return defaultVelocityView!!
             }
             return synchronized(this) {
 
-                val view2 = defaultVelocityView
-                if (view2 != null) { view2 }
-                else {
+                if (defaultVelocityView != null) {
+                    defaultVelocityView!!
+                } else {
                     val created = DefaultVelocityView(ctx.req.servletContext)
                     defaultVelocityView = created
                     created
                 }
             }
         }
-    }
 
-    public class DefaultVelocityView (servletContext : ServletContext) : VelocityView(servletContext) {
+        private class DefaultVelocityView(servletContext : ServletContext) : VelocityView(servletContext) {
 
-        init {
-            // inject our own toolboxes configuration factory
-            servletContext.setAttribute(CONFIGURATION_KEY, configuration)
-        }
+            // tweak Velocity engine config
+            override fun configure(config: JeeConfig, velocity: VelocityEngine)
+            {
+                // first get the default properties from the classpath, and bail if we don't find them
+                val defaultProperties = getProperties(DEFAULT_PROPERTIES_PATH, true)
+                velocity.setProperties(defaultProperties)
 
-        // tweak Velocity configuration
-        override fun getProperties(path: String, required: Boolean): Properties {
+                // stuck in our own defaults
+                velocity.setProperty("resource.loaders", "class")
+                velocity.setProperty("resource.loader.class.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
 
-            var props = super.getProperties(path, required)
-
-            // stuck in our own defaults after calling super
-            if (path == DEFAULT_PROPERTIES_PATH) {
-                // override properties using their deprecated Velocity pre-2.1 property names (for Tools 3.0)
-                props.setProperty("resource.loader", "class");
-                props.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-                // note: next version of Tools (3.1+) will use Velocity 2.1+ property names, hence:
-                // props.setProperty("resource.loaders", "class");
-                // props.setProperty("resource.loader.class.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+                initLog()
             }
-            return props;
+
+            // tweak VelocityView config
+            override fun configure(config: JeeConfig, factory: ToolboxFactory) {
+
+                val factoryConfig = FactoryConfiguration("VelocityView.configure(config,factory)");
+
+                // add default tools
+                getLog().trace("Loading default tools configuration...")
+                factoryConfig.addConfiguration(ConfigurationUtils.getDefaultTools())
+
+                // inject our own toolboxes configuration factory
+                factoryConfig.addConfiguration(configuration)
+
+                // apply configuration to factory
+                getLog().debug("Configuring factory with: {}", factoryConfig)
+                configure(factoryConfig)
+            }
         }
     }
 
-    private val configuration: EasyFactoryConfiguration by lazy {
-        val conf = EasyFactoryConfiguration()
-        conf.addDefaultTools() // always add default tools
-        conf
-    }
+    private val configuration: EasyFactoryConfiguration by lazy { EasyFactoryConfiguration() }
 
     /**
      * add a new data
@@ -125,18 +172,79 @@ object JavalinVelocityView : FileRenderer {
     }
 
     /**
-     * add a new scoped tool
+     * get application toolbox
      */
     @JvmStatic
-    fun tool(key: String, classname: String, scope: String = "application", properties: Map<String, Any> = HashMap()) : JavalinVelocityView {
-        val toolbox: ToolboxConfiguration
-                = configuration.getToolbox(scope)
-                ?: configuration.toolbox(scope).configuration
-        val tool = ToolConfiguration()
-        tool.key = key
-        tool.classname = classname
-        tool.propertyMap = properties
-        toolbox.addTool(tool)
-        return this
+    fun global() : Toolbox = Toolbox("application")
+
+    /**
+     * get session toolbox
+     */
+    @JvmStatic
+    fun session() : Toolbox = Toolbox("session")
+
+    /**
+     * get request toolbox
+     */
+    @JvmStatic
+    fun request() : Toolbox = Toolbox("request")
+
+    /**
+     * Helper class to create scoped tools
+     */
+    class Toolbox(scope : String) {
+
+        private val toolbox: ToolboxConfiguration
+            = configuration.getToolbox(scope)
+            ?: configuration.toolbox(scope).configuration
+
+        /**
+         * Get tool configuration for given key
+         */
+        fun tool(key : String) : ToolConfiguration = toolbox.getTool(key)
+
+        /**
+         * Add a new tool by java classname
+         *
+         * At instantiation, the given properties, if any, will be applied, as long as the following ones:
+         * request, velocityContext, log, response, session, servletContext, scope, key
+         */
+        fun tool(key : String, classname : String, properties: Map<String, Any> = HashMap()) : Toolbox {
+            val tool = ToolConfiguration().apply {
+                this.key = key
+                this.classname = classname
+                this.propertyMap = properties
+            }
+            toolbox.addTool(tool)
+            return this
+        }
+
+        /**
+         * Add a new tool with a kotlin lambda as factory
+         *
+         * At instantiation, the given properties, if any, will be applied, as long as the following ones:
+         * request, velocityContext, log, response, session, servletContext, scope, key
+         */
+        fun <T : Any> tool(key : String, factory : () -> T, properties: Map<String, Any> = HashMap()) : Toolbox {
+            var tool : ToolConfiguration = object : ToolConfiguration() {
+                override fun createInfo() : ToolInfo {
+                    val info = object : ToolInfo(key,  Any::class.java) {
+                        override fun newInstance(): Any = factory.invoke()
+                    }
+                    info.restrictTo(restrictTo)
+                    info.setSkipSetters(skipSetters ?: false)
+                    info.addProperties(properties)
+                    return info
+                }
+
+            }.apply {
+                this.key = key
+                // this.classname = factory.javaClass.enclosingMethod.returnType.name // not working, returning "void"
+                this.classname = "java.lang.Object" // won't be used to instantiate the tool
+                this.propertyMap = properties
+            }
+            toolbox.addTool(tool)
+            return this
+        }
     }
 }
