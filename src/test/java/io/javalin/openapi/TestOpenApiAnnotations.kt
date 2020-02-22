@@ -275,7 +275,6 @@ fun getResponseOneOfHandler(ctx: Context) {
 }
 
 @OpenApi(
-        path = "/test",
         queryParams = [
             OpenApiParam("id", Long::class, isRepeatable = true)
         ]
