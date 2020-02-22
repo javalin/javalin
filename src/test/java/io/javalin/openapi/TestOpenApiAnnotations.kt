@@ -7,6 +7,7 @@ package io.javalin.openapi
 
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.crud
+import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
 import io.javalin.http.Handler
@@ -274,6 +275,16 @@ fun getBodyOneOfHandler(ctx: Context) {
 fun getResponseOneOfHandler(ctx: Context) {
 }
 
+interface OwnSpec {
+    fun getOne(ctx: Context)
+}
+
+class OwnSpecImplementation: OwnSpec {
+    @OpenApi(responses = [OpenApiResponse(status = "200")])
+    override fun getOne(ctx: Context) {
+    }
+}
+
 // endregion composed body
 
 class TestOpenApiAnnotations {
@@ -338,6 +349,15 @@ class TestOpenApiAnnotations {
         }
 
         actual.assertEqualTo(crudExampleJson)
+    }
+
+    @Test
+    fun `create Schema for own spec implementation`() {
+        val actual = extractSchemaForTest { app ->
+            app.routes { get("/test", (OwnSpecImplementation() as OwnSpec)::getOne) }
+        }
+
+        actual.assertEqualTo(simpleExample)
     }
 
     @Test
