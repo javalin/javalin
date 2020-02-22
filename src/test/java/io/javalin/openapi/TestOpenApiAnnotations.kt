@@ -275,13 +275,34 @@ fun getBodyOneOfHandler(ctx: Context) {
 fun getResponseOneOfHandler(ctx: Context) {
 }
 
-interface OwnSpec {
-    fun getOne(ctx: Context)
+fun routeExternal(spec: OwnSpec) {
+    get("/test1", spec::test1)
+    get("/test2", spec::test2)
 }
 
-class OwnSpecImplementation: OwnSpec {
-    @OpenApi(responses = [OpenApiResponse(status = "200")])
-    override fun getOne(ctx: Context) {
+interface OwnSpec {
+    fun test1(ctx: Context)
+    fun test2(ctx: Context)
+
+    fun route() {
+        get("/test1", this::test1)
+        get("/test2", this::test2)
+    }
+}
+
+class OwnSpecImplementation1: OwnSpec {
+    @OpenApi(
+            description = "Test1",
+            responses = [OpenApiResponse(status = "200")]
+    )
+    override fun test1(ctx: Context) {
+    }
+
+    @OpenApi(
+            description = "Test2",
+            responses = [OpenApiResponse(status = "200")]
+    )
+    override fun test2(ctx: Context) {
     }
 }
 
@@ -352,12 +373,25 @@ class TestOpenApiAnnotations {
     }
 
     @Test
-    fun `create Schema for own spec implementation`() {
+    fun `create Schema for own spec implementation with internal route`() {
         val actual = extractSchemaForTest { app ->
-            app.routes { get("/test", (OwnSpecImplementation() as OwnSpec)::getOne) }
+            app.routes {
+                OwnSpecImplementation1().route()
+            }
         }
 
-        actual.assertEqualTo(simpleExample)
+        actual.assertEqualTo(simpleExampleWithMultipleGets)
+    }
+
+    @Test
+    fun `create Schema for own spec implementation with external route`() {
+        val actual = extractSchemaForTest { app ->
+            app.routes {
+                routeExternal(OwnSpecImplementation1())
+            }
+        }
+
+        actual.assertEqualTo(simpleExampleWithMultipleGets)
     }
 
     @Test
