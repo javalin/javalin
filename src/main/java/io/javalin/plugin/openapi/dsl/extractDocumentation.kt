@@ -23,6 +23,7 @@ import io.javalin.plugin.openapi.annotations.warnUserAboutPotentialBugs
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.logging.Logger
+import kotlin.jvm.internal.FunctionReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 
@@ -31,16 +32,14 @@ fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiD
 
     options.default?.apply(documentation)
 
-    val userDocumentation = if (handler is DocumentedHandler) {
-        handler.documentation
+    if (handler is DocumentedHandler) {
+        listOf(handler.documentation)
     } else {
-        val openApiAnnotation: OpenApi? = getOpenApiAnnotationFromReference() ?: getOpenApiAnnotationFromHandler()
-        openApiAnnotation?.asOpenApiDocumentation()
-                ?: extractDocumentationWithPathScanning(options)
-                ?: document()
-    }
-
-    documentation.apply(userDocumentation)
+        getOpenApiAnnotationFromReference()
+                .ifEmpty(this::getOpenApiAnnotationFromHandler)
+                .map(OpenApi::asOpenApiDocumentation)
+                .ifEmpty { listOf(extractDocumentationWithPathScanning(options) ?: document()) }
+    }.forEach(documentation::apply)
 
     return documentation
 }
@@ -56,44 +55,59 @@ private fun HandlerMetaInfo.extractDocumentationWithPathScanning(options: Create
     }
 }
 
-private fun HandlerMetaInfo.getOpenApiAnnotationFromReference(): OpenApi? {
+private fun HandlerMetaInfo.getOpenApiAnnotationFromReference(): List<OpenApi> {
     return try {
-        methodReferenceOfHandler?.getOpenApiAnnotation()
-                ?: handler.lambdaField?.getOpenApiAnnotation()
+        methodReferenceOfHandler.mapNotNull(Method::getOpenApiAnnotation).ifEmpty {
+            handler.lambdaField?.getOpenApiAnnotation()?.let { listOf(it) } ?: listOf()
+        }
     } catch (e: NoSuchFieldException) {
-        null
+        listOf()
     } catch (e: Error) {
         return if (e::class.qualifiedName == "kotlin.reflect.jvm.internal.KotlinReflectionInternalError") {
             Logger.getGlobal()
                     .warning("Local functions, lambdas, anonymous functions and local variables with @OpenApi annotations are currently not supported. " +
                             "The annotation of the handler for \"$httpMethod $path\" will be ignored. To fix this, move the handler into a global function.")
-            null
+            listOf()
         } else {
             throw e
         }
     }
 }
 
-private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): OpenApi? {
+private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): List<OpenApi> {
     return try {
         val method = handler::class.java.getMethodByName("handle")!!
-        method.getOpenApiAnnotation()
+        method.getOpenApiAnnotation()?.let { listOf(it) } ?: listOf()
     } catch (e: NullPointerException) {
-        null
+        listOf()
     }
 }
 
-private val HandlerMetaInfo.methodReferenceOfHandler: Method?
+private val HandlerMetaInfo.methodReferenceOfHandler: List<Method>
     get() = when {
-        handler.isClass -> (handler as Class<*>).methods[0]
+        handler.isClass -> listOf((handler as Class<*>).methods[0])
         handler.isKotlinMethodReference -> {
-            val functionValue = handler.getFieldValue("function") as KFunction<*>
-            functionValue.javaMethod
+            val functionValue = handler.getFieldValue("function") as FunctionReference
+            val javaMethod = functionValue.javaMethod
+            if (javaMethod != null && functionValue.isAbstract) {
+                try {
+                    functionValue.boundReceiver::class.java.getMethod(
+                            javaMethod.name ?: "",
+                            *javaMethod.parameterTypes ?: arrayOf()
+                    )?.let { implementation ->
+                        listOf(javaMethod, implementation)
+                    } ?: listOf(javaMethod)
+                } catch (e : NoSuchMethodException) {
+                    listOf(javaMethod)
+                }
+            } else {
+                javaMethod?.let { listOf(it) } ?: listOf()
+            }
         }
-        handler.isKotlinAnonymousLambda -> null // Cannot be parsed
-        handler.isJavaNonStaticMethodReference -> methodReferenceOfNonStaticJavaHandler
-        handler.isJavaAnonymousLambda -> null // Cannot be parsed
-        else -> null
+        handler.isKotlinAnonymousLambda -> listOf() // Cannot be parsed
+        handler.isJavaNonStaticMethodReference -> methodReferenceOfNonStaticJavaHandler?.let { listOf(it) } ?: listOf()
+        handler.isJavaAnonymousLambda -> listOf() // Cannot be parsed
+        else -> listOf()
     }
 
 private val HandlerMetaInfo.methodReferenceOfNonStaticJavaHandler: Method?
