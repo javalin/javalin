@@ -121,7 +121,6 @@ internal fun <T> findSchema(clazz: Class<T>): FindSchemaResponse? {
         Date::class.java -> FindSchemaResponse(DateSchema())
         LocalDate::class.java -> FindSchemaResponse(DateSchema())
         LocalDateTime::class.java -> FindSchemaResponse(DateTimeSchema())
-        java.lang.Double::class.java -> FindSchemaResponse(NumberSchema())
         Double::class.java -> FindSchemaResponse(NumberSchema())
         java.lang.Double::class.java -> FindSchemaResponse(NumberSchema())
         Float::class.java -> FindSchemaResponse(NumberSchema())
