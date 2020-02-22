@@ -274,6 +274,15 @@ fun getBodyOneOfHandler(ctx: Context) {
 fun getResponseOneOfHandler(ctx: Context) {
 }
 
+@OpenApi(
+        path = "/test",
+        queryParams = [
+            OpenApiParam("id", Long::class, isRepeatable = true)
+        ]
+)
+fun getQueryParamListHandler(ctx: Context) {
+}
+
 // endregion composed body
 
 class TestOpenApiAnnotations {
@@ -345,6 +354,13 @@ class TestOpenApiAnnotations {
         extractSchemaForTest {
             it.get("/test", ClassHandler())
         }.assertEqualTo(simpleExample)
+    }
+
+    @Test
+    fun `createOpenApiSchema with repeatable query param`() {
+        extractSchemaForTest {
+            it.get("/test", ::getQueryParamListHandler)
+        }.assertEqualTo(simpleExampleWithRepeatableQueryParam)
     }
 
     @Test
