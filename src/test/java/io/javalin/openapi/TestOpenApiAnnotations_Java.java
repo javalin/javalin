@@ -146,16 +146,6 @@ class JavaMethodReference3 {
     }
 }
 
-class JavaStaticMethodReference {
-    @OpenApi(
-        path = "/test",
-        method = HttpMethod.GET,
-        responses = {@OpenApiResponse(status = "200")}
-    )
-    public static void createStaticHandler(Context ctx) {
-    }
-}
-
 class JavaFieldReference {
     @OpenApi(responses = {@OpenApiResponse(status = "200")})
     public static Handler handler = new Handler() {
