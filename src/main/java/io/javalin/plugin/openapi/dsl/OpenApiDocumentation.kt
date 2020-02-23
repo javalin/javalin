@@ -45,18 +45,18 @@ class OpenApiDocumentation {
     @JvmOverloads
     fun pathParam(name: String, clazz: Class<*>, openApiUpdater: OpenApiUpdater<Parameter>? = null) = apply {
         val documentedQueryParameter = DocumentedParameter("path", name, clazz)
-        param(documentedQueryParameter, openApiUpdater)
+        param(documentedQueryParameter, openApiUpdater = openApiUpdater)
     }
 
     // --- QUERY PARAM ---
-    inline fun <reified T> queryParam(name: String, noinline applyUpdates: ApplyUpdates<Parameter>? = null): OpenApiDocumentation = apply {
-        queryParam(name, T::class.java, createUpdaterIfNotNull(applyUpdates))
+    inline fun <reified T> queryParam(name: String, isRepeatable: Boolean = false, noinline applyUpdates: ApplyUpdates<Parameter>? = null): OpenApiDocumentation = apply {
+        queryParam(name, T::class.java, isRepeatable, createUpdaterIfNotNull(applyUpdates))
     }
 
     @JvmOverloads
-    fun queryParam(name: String, clazz: Class<*>, openApiUpdater: OpenApiUpdater<Parameter>? = null) = apply {
+    fun queryParam(name: String, clazz: Class<*>, isRepeatable: Boolean = false, openApiUpdater: OpenApiUpdater<Parameter>? = null) = apply {
         val documentedQueryParameter = DocumentedParameter("query", name, clazz)
-        param(documentedQueryParameter, openApiUpdater)
+        param(documentedQueryParameter, isRepeatable, openApiUpdater)
     }
 
     // --- HEADER ---
@@ -67,7 +67,7 @@ class OpenApiDocumentation {
     @JvmOverloads
     fun header(name: String, clazz: Class<*>, openApiUpdater: OpenApiUpdater<Parameter>? = null) = apply {
         val documentedQueryParameter = DocumentedParameter("header", name, clazz)
-        param(documentedQueryParameter, openApiUpdater)
+        param(documentedQueryParameter, openApiUpdater = openApiUpdater)
     }
 
     // --- COOKIE ---
@@ -78,18 +78,23 @@ class OpenApiDocumentation {
     @JvmOverloads
     fun cookie(name: String, clazz: Class<*>, openApiUpdater: OpenApiUpdater<Parameter>? = null) = apply {
         val documentedQueryParameter = DocumentedParameter("cookie", name, clazz)
-        param(documentedQueryParameter, openApiUpdater)
+        param(documentedQueryParameter, openApiUpdater = openApiUpdater)
     }
 
     // --- PARAM ---
-    fun param(documentedParameter: DocumentedParameter, applyUpdates: ApplyUpdates<Parameter>? = null) = apply {
-        param(documentedParameter, createUpdaterIfNotNull(applyUpdates))
+    fun param(documentedParameter: DocumentedParameter, isRepeatable: Boolean = false, applyUpdates: ApplyUpdates<Parameter>? = null) = apply {
+        param(documentedParameter, isRepeatable, createUpdaterIfNotNull(applyUpdates))
     }
 
     @JvmOverloads
-    fun param(documentedParameter: DocumentedParameter, openApiUpdater: OpenApiUpdater<Parameter>? = null) = apply {
+    fun param(documentedParameter: DocumentedParameter, isRepeatable: Boolean = false, openApiUpdater: OpenApiUpdater<Parameter>? = null) = apply {
         val parameterUpdaterList = parameterUpdaterListMapping.getOrSetDefault(documentedParameter.name, mutableListOf())
-        parameterUpdaterList.add { it.applyDocumentedParameter(documentedParameter) }
+        parameterUpdaterList.add {
+            if (isRepeatable)
+                it.applyRepeatableDocumentedParameter(documentedParameter)
+            else
+                it.applyDocumentedParameter(documentedParameter)
+        }
         parameterUpdaterList.addIfNotNull(openApiUpdater)
     }
 

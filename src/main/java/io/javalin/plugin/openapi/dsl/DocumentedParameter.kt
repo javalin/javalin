@@ -1,6 +1,7 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.plugin.openapi.external.findSchema
+import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.parameters.Parameter
 
 class DocumentedParameter(
@@ -13,4 +14,10 @@ fun Parameter.applyDocumentedParameter(documentedParameter: DocumentedParameter)
     `in` = documentedParameter.`in`
     name = documentedParameter.name
     schema = findSchema(documentedParameter.type)?.main
+}
+
+fun Parameter.applyRepeatableDocumentedParameter(documentedParameter: DocumentedParameter) {
+    `in` = documentedParameter.`in`
+    name = documentedParameter.name
+    schema = findSchema(documentedParameter.type)?.main?.let { ArraySchema().items(it) }
 }

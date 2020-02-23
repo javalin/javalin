@@ -45,7 +45,8 @@ annotation class OpenApiParam(
         val description: String = NULL_STRING,
         val deprecated: Boolean = false,
         val required: Boolean = false,
-        val allowEmptyValue: Boolean = false
+        val allowEmptyValue: Boolean = false,
+        val isRepeatable: Boolean = false
 )
 
 @Target()
