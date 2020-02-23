@@ -73,7 +73,6 @@ class TestWebBrowser {
         assertThat(driver.pageSource).contains("Hello, Selenium")
     }
 
-    /*
     @Test
     fun `brotli works in chrome`() {
         val payload = "Hello, Selenium!".repeat(150)
@@ -88,7 +87,6 @@ class TestWebBrowser {
         assertThat(logResult).contains("Body is brotlied (${payload.length} bytes, not logged)")
         app.stop();
     }
-     */
 
     @Test
     fun `seeking works in chrome`() {
