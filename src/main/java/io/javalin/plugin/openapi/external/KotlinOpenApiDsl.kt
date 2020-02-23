@@ -116,13 +116,15 @@ internal fun <T> findSchema(clazz: Class<T>): FindSchemaResponse? {
         List::class.java -> FindSchemaResponse(ArraySchema())
         Map::class.java -> FindSchemaResponse(MapSchema())
         Long::class.java -> FindSchemaResponse(IntegerSchema().format("int64"))
+        java.lang.Long::class.java -> FindSchemaResponse(IntegerSchema().format("int64"))
         BigDecimal::class.java -> FindSchemaResponse(IntegerSchema().format(""))
         Date::class.java -> FindSchemaResponse(DateSchema())
         LocalDate::class.java -> FindSchemaResponse(DateSchema())
         LocalDateTime::class.java -> FindSchemaResponse(DateTimeSchema())
-        java.lang.Double::class.java -> FindSchemaResponse(NumberSchema())
         Double::class.java -> FindSchemaResponse(NumberSchema())
+        java.lang.Double::class.java -> FindSchemaResponse(NumberSchema())
         Float::class.java -> FindSchemaResponse(NumberSchema())
+        java.lang.Float::class.java -> FindSchemaResponse(NumberSchema())
         /* BEGIN Custom classes */
         ByteArray::class.java -> FindSchemaResponse(StringSchema().format("binary"))
         /* END Custom classes */
