@@ -83,29 +83,31 @@ private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): List<OpenApi> {
     }
 }
 
+private fun FunctionReference.findMethodOnInstance(): Method? {
+    return try {
+        this.boundReceiver::class.java.getMethod(
+                this.javaMethod?.name ?: "",
+                *this.javaMethod?.parameterTypes ?: arrayOf()
+        )
+    } catch (e : NoSuchMethodException) {
+        null
+    }
+}
+
+private fun Any.findMethodOfReference(): FunctionReference {
+    return this.getFieldValue("function") as FunctionReference
+}
+
 private val HandlerMetaInfo.methodReferenceOfHandler: List<Method>
     get() = when {
         handler.isClass -> listOf((handler as Class<*>).methods[0])
         handler.isKotlinMethodReference -> {
-            val functionValue = handler.getFieldValue("function") as FunctionReference
-            val javaMethod = functionValue.javaMethod
-            if (javaMethod != null && functionValue.isAbstract) {
-                try {
-                    functionValue.boundReceiver::class.java.getMethod(
-                            javaMethod.name ?: "",
-                            *javaMethod.parameterTypes ?: arrayOf()
-                    )?.let { implementation ->
-                        listOf(javaMethod, implementation)
-                    } ?: listOf(javaMethod)
-                } catch (e : NoSuchMethodException) {
-                    listOf(javaMethod)
-                }
-            } else {
-                javaMethod?.let { listOf(it) } ?: listOf()
-            }
+            val functionValue = handler.findMethodOfReference()
+
+            listOfNotNull(functionValue.javaMethod, functionValue.findMethodOnInstance())
         }
         handler.isKotlinAnonymousLambda -> listOf() // Cannot be parsed
-        handler.isJavaNonStaticMethodReference -> methodReferenceOfNonStaticJavaHandler?.let { listOf(it) } ?: listOf()
+        handler.isJavaNonStaticMethodReference -> listOfNotNull(methodReferenceOfNonStaticJavaHandler)
         handler.isJavaAnonymousLambda -> listOf() // Cannot be parsed
         else -> listOf()
     }
