@@ -135,6 +135,39 @@ val simpleExampleWithDescription = """
 """.formatJson()
 
 @Language("JSON")
+val simpleExampleWithPrimitiveQueryParam = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/test": {
+        "get": {
+          "summary": "Get test",
+          "operationId": "getTest",
+          "parameters" : [ {
+            "name" : "id",
+            "in" : "query",
+            "schema" : {
+              "type": "integer",
+              "format": "int64"
+            }
+          } ],
+          "responses" : {
+            "200" : {
+              "description" : "Default response"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+@Language("JSON")
 val simpleExampleWithMultipleGets = """
   {
     "openapi": "3.0.1",
