@@ -146,6 +146,15 @@ class JavaMethodReference3 {
     }
 }
 
+class JavaStaticMethodReference {
+    @OpenApi(
+        method = HttpMethod.GET,
+        responses = {@OpenApiResponse(status = "200")}
+    )
+    public static void createStaticHandler(Context ctx) {
+    }
+}
+
 class JavaFieldReference {
     @OpenApi(responses = {@OpenApiResponse(status = "200")})
     public static Handler handler = new Handler() {
@@ -266,7 +275,7 @@ public class TestOpenApiAnnotations_Java {
             app.get("/test", JavaStaticMethodReference::createStaticHandler);
             return Unit.INSTANCE;
         });
-        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExampleWithDescription());
     }
 
     @Test
