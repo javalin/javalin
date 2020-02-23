@@ -180,6 +180,42 @@ val simpleExampleWithMultipleGets = """
 """.formatJson()
 
 @Language("JSON")
+val simpleExampleWithRepeatableQueryParam = """
+  {
+  "openapi" : "3.0.1",
+    "info" : {
+      "title" : "Example",
+      "version" : "1.0.0"
+    },
+    "paths" : {
+      "/test" : {
+        "get" : {
+          "summary" : "Get test",
+          "operationId" : "getTest",
+          "parameters" : [ {
+            "name" : "id",
+            "in" : "query",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "integer",
+                "format" : "int64"
+              }
+            }
+          } ],
+          "responses" : {
+            "200" : {
+              "description" : "Default response"
+            }
+          }
+        }
+      }
+    },
+    "components" : { }
+}
+""".formatJson()
+
+@Language("JSON")
 val simpleExampleWithMultipleHttpMethods = """
   {
     "openapi": "3.0.1",
