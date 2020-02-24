@@ -109,6 +109,32 @@ val simpleExample = """
 """.formatJson()
 
 @Language("JSON")
+val simpleExampleWithDescription = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/test": {
+        "get": {
+          "summary": "Get test",
+          "description" : "Test1",
+          "operationId": "getTest",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+@Language("JSON")
 val simpleExampleWithPrimitiveQueryParam = """
   {
     "openapi": "3.0.1",
