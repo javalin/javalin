@@ -1,7 +1,8 @@
-package io.javalin.plugin.openapi.dsl
+package io.javalin.plugin.openapi.handler
 
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 
 class DocumentedHandler(
         val documentation: OpenApiDocumentation,

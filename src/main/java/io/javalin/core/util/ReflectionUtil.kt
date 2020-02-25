@@ -1,5 +1,7 @@
 package io.javalin.core.util
 
+import io.javalin.plugin.openapi.handler.functional.SerializableFunction
+import java.lang.invoke.SerializedLambda
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -70,6 +72,41 @@ internal fun Class<*>.getMethodByName(methodName: String): Method? {
     return declaredMethods.find(isName) ?: methods.find(isName)
 }
 
+internal fun Class<*>.getMethodByNameAndSignature(methodName: String, signature: String): Method? {
+    val isName = { method: Method -> method.name == methodName && method.signature == signature }
+    return declaredMethods.find(isName) ?: methods.find(isName)
+}
+
+internal val Method.signature: String get() {
+    val result = StringBuilder()
+    result.append('(')
+    parameterTypes.forEach { result.append(it.signature).append(';') }
+    result.append(')')
+    result.append(returnType.signature)
+    return result.toString()
+}
+
+internal val Class<*>.signature: String get() = when {
+        this == Boolean::class.java -> "Z"
+        this == Byte::class.java -> "B"
+        this == Char::class.java -> "C"
+        this == Boolean::class.java -> "D"
+        this == Float::class.java -> "F"
+        this == Int::class.java -> "I"
+        this == Short::class.java -> "S"
+        this == Void.TYPE -> "V"
+        this == Array<Any>::class.java -> "[${this.componentType.signature}"
+        else -> "L${this.name.replace(".", "/")}"
+    }
+
+internal fun SerializableFunction.getReferencedMethodNameAndSignature(): Pair<String, String>? {
+    val serializedLambda = this::class.java.getMethodByNameAndSignature("writeReplace", "()Ljava/lang/Object").apply {
+        this@apply?.isAccessible = true
+    }?.invoke(this) as SerializedLambda?
+
+    return serializedLambda?.let { it.implMethodName to it.implMethodSignature }
+}
+
 internal fun Class<*>.getDeclaredFieldByName(methodName: String): Field? = declaredFields
         .find { it.name == methodName }
 
@@ -79,4 +116,7 @@ internal val Class<*>.methodsNotDeclaredByObject
             .filter { it.declaringClass != Object::class.java }
             .toTypedArray()
 
+
+
 internal const val methodReferenceReflectionMethodName = "get\$Lambda"
+internal const val parentFieldReflectionMethodName = "arg\$1"

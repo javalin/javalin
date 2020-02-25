@@ -6,6 +6,7 @@
 
 package io.javalin.http;
 
+import io.javalin.plugin.openapi.handler.functional.SerializableFunction;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,6 +17,6 @@ import org.jetbrains.annotations.NotNull;
  * @see <a href="https://javalin.io/documentation#handlers">Handler in documentation</a>
  */
 @FunctionalInterface
-public interface Handler {
+public interface Handler extends SerializableFunction {
     void handle(@NotNull Context ctx) throws Exception;
 }

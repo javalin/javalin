@@ -11,15 +11,15 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
-import io.javalin.plugin.openapi.dsl.OpenApiBuilder;
 import io.javalin.websocket.WsHandler;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Static methods for route declarations in Javalin
@@ -488,14 +488,16 @@ public class ApiBuilder {
         String SEPARATOR = "/:";
         String resourceBase = path.substring(0, path.lastIndexOf(SEPARATOR));
         String resourceId = path.substring(path.lastIndexOf(SEPARATOR) + SEPARATOR.length());
+        final Map<CrudHandlerType, Handler> handlerMap = crudHandler.asMap(resourceId);
 
-        Map<CrudHandlerLambdaKey, Handler> lambdas = CrudHandlerKt.getLambdas(crudHandler, resourceId);
-        lambdas = OpenApiBuilder.documented(crudHandler, lambdas);
+        staticInstance().get(prefixPath(path), handlerMap.get(CrudHandlerType.GET_ONE), permittedRoles);
+        staticInstance().get(prefixPath(resourceBase), handlerMap.get(CrudHandlerType.GET_ALL), permittedRoles);
+        staticInstance().post(prefixPath(resourceBase), handlerMap.get(CrudHandlerType.CREATE), permittedRoles);
+        staticInstance().patch(prefixPath(path), handlerMap.get(CrudHandlerType.UPDATE), permittedRoles);
+        staticInstance().delete(prefixPath(path), handlerMap.get(CrudHandlerType.DELETE), permittedRoles);
+    }
 
-        staticInstance().get(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.GET_ONE), permittedRoles);
-        staticInstance().get(prefixPath(resourceBase), lambdas.get(CrudHandlerLambdaKey.GET_ALL), permittedRoles);
-        staticInstance().post(prefixPath(resourceBase), lambdas.get(CrudHandlerLambdaKey.CREATE), permittedRoles);
-        staticInstance().patch(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.UPDATE), permittedRoles);
-        staticInstance().delete(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.DELETE), permittedRoles);
+    public static Handler handler(Handler handler) {
+        return handler;
     }
 }
