@@ -89,6 +89,7 @@ class OpenApiDocumentation {
     @JvmOverloads
     fun param(documentedParameter: DocumentedParameter, isRepeatable: Boolean = false, openApiUpdater: OpenApiUpdater<Parameter>? = null) = apply {
         val parameterUpdaterList = parameterUpdaterListMapping.getOrSetDefault(documentedParameter.name, mutableListOf())
+        componentsUpdaterList.add { it.applyDocumentedParameter(documentedParameter) }
         parameterUpdaterList.add {
             if (isRepeatable)
                 it.applyRepeatableDocumentedParameter(documentedParameter)

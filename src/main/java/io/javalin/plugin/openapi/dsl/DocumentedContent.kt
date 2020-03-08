@@ -83,7 +83,7 @@ class DocumentedContent @JvmOverloads constructor(
     )
 
     fun isNonRefType(): Boolean = if (schema == null) {
-        fromType in nonRefTypes
+        fromType.isNonRefType()
     } else {
         true
     }
@@ -108,6 +108,8 @@ fun Class<*>.guessContentType(): String =
             ByteArray::class.java -> "application/octet-stream"
             else -> "application/json"
         }
+
+fun Class<*>.isNonRefType(): Boolean = this in nonRefTypes
 
 /**
  * A set of types that should be inlined, instead of creating a reference, in the OpenApi documentation

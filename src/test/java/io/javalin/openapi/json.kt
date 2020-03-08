@@ -84,6 +84,73 @@ val complexExampleUsersGetResponsesJson = """
 """.formatJson()
 
 @Language("JSON")
+val queryBeanExample = """
+    {
+      "openapi" : "3.0.1",
+      "info" : {
+        "title" : "Example",
+        "version" : "1.0.0"
+      },
+      "paths" : {
+        "/test" : {
+          "get" : {
+            "summary" : "Get test",
+            "operationId" : "getTest",
+            "parameters" : [ {
+              "name" : "user",
+              "in" : "query",
+              "schema" : {
+                "$ref" : "#/components/schemas/User"
+              }
+            } ],
+            "responses" : {
+              "200" : {
+                "description" : "OK",
+                "content" : {
+                  "application/json" : {
+                    "schema" : {
+                      "$ref" : "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "components" : {
+        "schemas" : {
+          "Address" : {
+            "required" : [ "number", "street" ],
+            "type" : "object",
+            "properties" : {
+              "street" : {
+                "type" : "string"
+              },
+              "number" : {
+                "type" : "integer",
+                "format" : "int32"
+              }
+            }
+          },
+          "User" : {
+            "required" : [ "name" ],
+            "type" : "object",
+            "properties" : {
+              "name" : {
+                "type" : "string"
+              },
+              "address" : {
+                "$ref" : "#/components/schemas/Address"
+              }
+            }
+          }
+        }
+      }
+    }
+""".formatJson()
+
+@Language("JSON")
 val simpleExample = """
   {
     "openapi": "3.0.1",
