@@ -226,6 +226,25 @@ class TestApiBuilder {
         assertThat(Unirest.delete(http.origin + "/s/users/myUser").asString().status).isEqualTo(204)
     }
 
+    @Test
+    fun `Regex parameter works`() = TestUtil.test { app, http ->
+        app.routes {
+            get("/user") {
+                it.result("All my users")
+            }
+            get("/user/{id:[0-9]+}") {
+                it.result("My single user with id: ${it.pathParam<Long>("id").get()}")
+            }
+            get("/user/count") {
+                it.result("42")
+            }
+        }
+
+        assertThat(Unirest.get(http.origin + "/user").asString().body).isEqualTo("All my users")
+        assertThat(Unirest.get(http.origin + "/user/2").asString().body).isEqualTo("My single user with id: 2")
+        assertThat(Unirest.get(http.origin + "/user/count").asString().body).isEqualTo("42")
+    }
+
     class UserController : CrudHandler {
 
         override fun getAll(ctx: Context) {

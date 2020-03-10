@@ -15,6 +15,10 @@ class PathParser(path: String) {
             .map {
                 when {
                     it.startsWith(":") -> PathSegment.Parameter(it.removePrefix(":"))
+                    it.startsWith("{") -> PathSegment.Parameter(
+                            it.removePrefix("{").split(":").first(),
+                            it.removeSuffix("}").split(":").drop(1).joinToString(":")
+                    )
                     it == "*" -> PathSegment.Wildcard
                     else -> PathSegment.Normal(it)
                 }
@@ -24,7 +28,7 @@ class PathParser(path: String) {
 
     private val matchRegex = "^/${segments.joinToString("/") { it.asRegexString() }}/?$".toRegex()
 
-    private val pathParamRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
+    private val pathParamRegex = "^/${segments.joinToString("/") { it.asRegexString(true) }}/?$".toRegex()
 
     fun matches(url: String): Boolean = url matches matchRegex
 
@@ -37,18 +41,30 @@ class PathParser(path: String) {
 }
 
 sealed class PathSegment {
+    /**
+     * @param extract surround the regex with brackets if it is a path parameter.
+     */
+    internal abstract fun asRegexString(extract: Boolean = false): String
 
-    internal abstract fun asRegexString(): String
-
+    /**
+     * @param content the content (literal between two dashes of an url) this segment represents
+     */
     class Normal(val content: String) : PathSegment() {
-        override fun asRegexString(): String = content
+        override fun asRegexString(extract: Boolean): String = content
     }
 
-    class Parameter(val name: String) : PathSegment() {
-        override fun asRegexString(): String = "[^/]+?" // Accepting everything except slash
+    /**
+     * @param name the name of the parameter this segment represents
+     * @param regex the regex to match for the path detection, the default is accept everything except slash
+     */
+    class Parameter(val name: String, val regex: String = "[^/]+?") : PathSegment() {
+        override fun asRegexString(extract: Boolean): String = if (extract) "($regex)" else regex
     }
 
+    /**
+     * A segment representing a wildcard, matching everything including dashes.
+     */
     object Wildcard : PathSegment() {
-        override fun asRegexString(): String = ".*?" // Accept everything
+        override fun asRegexString(extract: Boolean): String = ".*?" // Accept everything
     }
 }
