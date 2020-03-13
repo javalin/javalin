@@ -15,6 +15,7 @@ import io.javalin.plugin.rendering.template.JavalinMustache
 import io.javalin.plugin.rendering.template.JavalinPebble
 import io.javalin.plugin.rendering.template.JavalinThymeleaf
 import io.javalin.plugin.rendering.template.JavalinVelocity
+import io.javalin.plugin.rendering.template.JavalinVelocityView
 
 object JavalinRenderer {
 
@@ -22,6 +23,7 @@ object JavalinRenderer {
 
     init {
         register(JavalinVelocity, ".vm", ".vtl")
+        register(JavalinVelocityView, ".vhtml")
         register(JavalinFreemarker, ".ftl")
         register(JavalinMustache, ".mustache")
         register(JavalinJtwig, ".jtwig", ".twig", ".html.twig")
