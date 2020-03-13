@@ -1,0 +1,2 @@
+#set($display = "Override works")
+<h1>$display</h1>

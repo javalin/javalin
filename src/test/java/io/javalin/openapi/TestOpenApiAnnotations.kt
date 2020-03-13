@@ -274,6 +274,27 @@ fun getBodyOneOfHandler(ctx: Context) {
 fun getResponseOneOfHandler(ctx: Context) {
 }
 
+@OpenApi(
+        queryParams = [
+            OpenApiParam("user", type = User::class)
+        ],
+        responses = [
+            OpenApiResponse("200", content = [
+                OpenApiContent(from = User::class)
+            ])
+        ]
+)
+fun getQueryParamBeanHandler(ctx: Context) {
+}
+
+@OpenApi(
+        queryParams = [
+            OpenApiParam("id", Long::class, isRepeatable = true)
+        ]
+)
+fun getQueryParamListHandler(ctx: Context) {
+}
+
 // endregion composed body
 
 class TestOpenApiAnnotations {
@@ -345,6 +366,20 @@ class TestOpenApiAnnotations {
         extractSchemaForTest {
             it.get("/test", ClassHandler())
         }.assertEqualTo(simpleExample)
+    }
+
+    @Test
+    fun `createOpenApiSchema with query param bean`() {
+        val actual = extractSchemaForTest {
+            it.get("/test", ::getQueryParamBeanHandler)
+        }.assertEqualTo(queryBeanExample)
+    }
+
+    @Test
+    fun `createOpenApiSchema with repeatable query param`() {
+        extractSchemaForTest {
+            it.get("/test", ::getQueryParamListHandler)
+        }.assertEqualTo(simpleExampleWithRepeatableQueryParam)
     }
 
     @Test

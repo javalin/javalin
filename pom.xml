@@ -9,7 +9,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>3.7.1-SNAPSHOT</version>
+    <version>3.7.1-velocityview-SNAPSHOT</version>
 
     <name>Javalin</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -110,6 +110,19 @@
             <artifactId>velocity-engine-core</artifactId>
             <version>2.1</version>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.velocity.tools</groupId>
+            <artifactId>velocity-tools-view</artifactId>
+            <version>3.0</version>
+            <optional>true</optional>
+            <exclusions>
+                <!-- avoid unused commons-digester dependency to an old asm lib -->
+                <exclusion>
+                    <groupId>cglib</groupId>
+                    <artifactId>cglib</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.freemarker</groupId>

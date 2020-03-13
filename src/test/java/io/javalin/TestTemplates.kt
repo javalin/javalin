@@ -14,6 +14,7 @@ import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.plugin.rendering.template.JavalinJtwig
 import io.javalin.plugin.rendering.template.JavalinPebble
 import io.javalin.plugin.rendering.template.JavalinVelocity
+import io.javalin.plugin.rendering.template.JavalinVelocityView
 import io.javalin.plugin.rendering.template.TemplateUtil.model
 import org.apache.velocity.app.VelocityEngine
 import org.assertj.core.api.Assertions.assertThat
@@ -24,6 +25,8 @@ import org.jtwig.util.FunctionValueUtils
 import org.junit.Test
 
 class TestTemplates {
+
+    // velocity
 
     private val defaultVelocityEngine = VelocityEngine().apply {
         setProperty("resource.loader", "class")
@@ -66,11 +69,73 @@ class TestTemplates {
         assertThat(http.getBody("/hello")).isEqualTo("<h1>\$message</h1>")
     }
 
+    // velocity-view
+
+    @Test
+    fun `velocity-view templates work`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/velocity-view/test.vhtml", model("message", "Hello Velocity View!")) }
+        assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Velocity View!</h1>")
+    }
+
+    @Test
+    fun `velocity-view template variables work`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/velocity-view/test-set.vhtml") }
+        assertThat(http.getBody("/hello")).isEqualTo("<h1>Set works</h1>")
+    }
+
+    @Test
+    fun `velocity-view allows tools override`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/velocity-view/test-override-tool.vhtml") }
+        assertThat(http.getBody("/hello")).isEqualTo("<h1>Override works</h1>")
+    }
+
+    @Test
+    fun `velocity-view custom engines work`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/velocity-view/test.vhtml") }
+        JavalinVelocityView.configure(VelocityEngine().apply {
+            setProperty("runtime.references.strict", true)
+            setProperty("resource.loader", "class")
+            setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
+        })
+        assertThat(http.getBody("/hello")).isEqualTo("Internal server error")
+    }
+
+    @Test
+    fun `velocity-view external templates work`() = TestUtil.test { app, http ->
+        JavalinVelocityView.configure(VelocityEngine().apply {
+            setProperty("resource.loader", "file")
+            setProperty("file.resource.loader.path", "src/test/resources/templates/velocity-view")
+        })
+        app.get("/hello") { ctx -> ctx.render("test.vhtml") }
+        assertThat(http.getBody("/hello")).isEqualTo("<h1>\$message</h1>")
+    }
+
+    @Test
+    fun `velocity-view standard tools work`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/velocity-view/test-standard-tool.vhtml") }
+        assertThat(http.getBody("/hello")).isEqualTo("<h1>Standard tools work</h1>")
+    }
+
+    class CustomTool(var what : String) {
+        fun works() = "$what work"
+    }
+
+    @Test
+    fun `velocity-view custom tools work`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.render("/templates/velocity-view/test-custom-tool.vhtml") }
+        JavalinVelocityView.request().tool("status", { CustomTool("Custom tools") } )
+        assertThat(http.getBody("/hello")).isEqualTo("<h1>Custom tools work</h1>")
+    }
+
+    // freemarker
+
     @Test
     fun `freemarker templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/freemarker/test.ftl", model("message", "Hello Freemarker!")) }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Freemarker!</h1>")
     }
+
+    // thymeleaf
 
     @Test
     fun `thymeleaf templates work`() = TestUtil.test { app, http ->
@@ -84,11 +149,15 @@ class TestTemplates {
         assertThat(http.getBody("/hello")).isEqualTo("<a href=\"/test-link?param1=val1&amp;param2=val2\">Link text</a>")
     }
 
+    // mustache
+
     @Test
     fun `mustache templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/mustache/test.mustache", model("message", "Hello Mustache!")) }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Mustache!</h1>")
     }
+
+    // peeble
 
     @Test
     fun `pebble templates work`() = TestUtil.test { app, http ->
@@ -113,6 +182,8 @@ class TestTemplates {
         assertThat(http.getBody("/hello")).isEqualTo("Internal server error")
     }
 
+    // jTwig
+
     @Test
     fun `jTwig templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/jtwig/test.jtwig", model("message", "Hello jTwig!")) }
@@ -136,6 +207,8 @@ class TestTemplates {
         assertThat(http.getBody("/quiz")).isEqualTo("<h1>Javalin is the best framework you will ever get</h1>")
     }
 
+    // markdown
+
     @Test
     fun `markdown works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/markdown/test.md") }
@@ -154,6 +227,8 @@ class TestTemplates {
         app.get("/hello") { ctx -> ctx.render("/markdown/test.lol") }
         assertThat(http.getBody("/hello")).isEqualTo("Hah.")
     }
+
+    // double extension
 
     @Test
     fun `double extension works`() = TestUtil.test { app, http ->

@@ -367,6 +367,57 @@ class TestOpenApi {
     }
 
     @Test
+    fun `createSchema works with repeatable query param and dsl`() {
+        val openApiOptions = OpenApiOptions(
+                Info().title("Example").version("1.0.0")
+        )
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        with(app) {
+            get("/test", documented(document().queryParam("id", Long::class.java, isRepeatable = true)) {})
+        }
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.asJsonString()).isEqualTo(simpleExampleWithRepeatableQueryParam)
+    }
+
+    @Test
+    fun `createSchema works with query param and reified dsl`() {
+        val openApiOptions = OpenApiOptions(
+                Info().title("Example").version("1.0.0")
+        )
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        with(app) {
+            get("/test", documented(document().queryParam<Long>("id")) {})
+        }
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.asJsonString()).isEqualTo(simpleExampleWithPrimitiveQueryParam)
+    }
+
+    @Test
+    fun `createSchema works with query param and dsl`() {
+        val openApiOptions = OpenApiOptions(
+                Info().title("Example").version("1.0.0")
+        )
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        with(app) {
+            get("/test", documented(document().queryParam("id", Long::class.java)) {})
+        }
+        val actual = JavalinOpenApi.createSchema(app)
+
+        assertThat(actual.asJsonString()).isEqualTo(simpleExampleWithPrimitiveQueryParam)
+    }
+
+    @Test
     fun `createSchema applies defaults before actual documentation`() {
         val openApiOptions = OpenApiOptions(
                 Info().title("Example").version("1.0.0")

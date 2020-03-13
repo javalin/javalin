@@ -83,7 +83,7 @@ class DocumentedContent @JvmOverloads constructor(
     )
 
     fun isNonRefType(): Boolean = if (schema == null) {
-        fromType in nonRefTypes
+        fromType.isNonRefType()
     } else {
         true
     }
@@ -109,6 +109,8 @@ fun Class<*>.guessContentType(): String =
             else -> "application/json"
         }
 
+fun Class<*>.isNonRefType(): Boolean = this in nonRefTypes
+
 /**
  * A set of types that should be inlined, instead of creating a reference, in the OpenApi documentation
  */
@@ -120,8 +122,11 @@ val nonRefTypes = setOf(
         Integer::class.java,
         Double::class.java,
         java.lang.Double::class.java,
+        Float::class.java,
+        java.lang.Float::class.java,
         List::class.java,
         Long::class.java,
+        java.lang.Long::class.java,
         BigDecimal::class.java,
         Date::class.java,
         LocalDate::class.java,

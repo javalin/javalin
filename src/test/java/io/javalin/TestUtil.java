@@ -14,6 +14,7 @@ import io.javalin.misc.HttpUtil;
 import io.javalin.misc.ThrowingBiConsumer;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JavalinJson;
+import io.javalin.plugin.rendering.template.JavalinVelocityView;
 import org.slf4j.LoggerFactory;
 
 public class TestUtil {
@@ -35,6 +36,7 @@ public class TestUtil {
         JavalinJackson.configure(new ObjectMapper());
         JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE::toJson);
         JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE::fromJson);
+        JavalinVelocityView.reset();
     }
 
     public static void test(ThrowingBiConsumer<Javalin, HttpUtil> test) {
