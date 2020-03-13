@@ -23,6 +23,15 @@ internal fun scanForAnnotations(packagePrefixes: Set<String>): Map<PathInfo, Ope
             .map { it.getAnnotation(OpenApi::class.java) }
             .filter { it.path != NULL_STRING }
 
+    assert(annotations.none { a -> annotations.any { b -> a != b && a.pathInfo == b.pathInfo } }) {
+        val duplicates = annotations.filter { a -> annotations.any { b -> a != b && a.pathInfo == b.pathInfo } }
+                .map { it.pathInfo.path }
+                .distinct()
+                .joinToString(", ")
+        throw IllegalStateException("Found multiple of the name path infos ("
+            + duplicates + ") in packages: " + packagePrefixes.joinToString(", "))
+    }
+
     annotations.forEach {
         documentationByPathInfo[it.pathInfo] = it.asOpenApiDocumentation()
     }

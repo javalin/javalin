@@ -164,7 +164,8 @@ private fun OpenApiDocumentation.applyParamAnnotation(`in`: String, param: OpenA
                 if (param.allowEmptyValue) {
                     paramDocumentation.allowEmptyValue = param.allowEmptyValue
                 }
-            }
+            },
+            isRepeatable = param.isRepeatable
     )
 }
 
