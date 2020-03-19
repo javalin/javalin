@@ -1,5 +1,7 @@
 # Contributing
 
+This document describes how to contribute to the core Javalin project, if you want to contribute to the Javalin website you should go to [https://github.com/javalin/javalin.github.io](https://github.com/javalin/javalin.github.io).
+
 ## Creating an issue
 Remember to include enough information if you're reporting a bug.  
 Creating an issue to ask a question is fine.
