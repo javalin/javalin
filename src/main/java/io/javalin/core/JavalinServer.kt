@@ -84,7 +84,7 @@ class JavalinServer(val config: JavalinConfig) {
     private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
 
     private fun attachJavalinHandlers(userHandler: Handler?, javalinHandlers: ServletContextHandler) = when (userHandler) {
-        null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom Handler set, wrap Javalin handlers in a HandlerWrapper
+        null -> javalinHandlers // no special action required
         is HandlerCollection -> userHandler.apply { addHandler(javalinHandlers) } // user is using a HandlerCollection, add Javalin handlers to it
         is HandlerWrapper -> userHandler.apply {
             (unwrap(this) as? HandlerCollection)?.addHandler(javalinHandlers) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handlers
