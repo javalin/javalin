@@ -29,7 +29,7 @@ class JavalinWsFilterParent(val config: JavalinConfig) {
     val wsExceptionMapper = WsExceptionMapper()
     val wsPathMatcher = WsPathMatcher()
 
-    fun createFilter(servletContextHandler: ServletContextHandler): JavalinWsUpgradeFilter {
+    fun createWsFilter(servletContextHandler: ServletContextHandler): JavalinWsUpgradeFilter {
         val wsFactory = WebSocketServerFactory(servletContextHandler.servletContext)
         config.inner.wsFactoryConfig?.accept(wsFactory)
         wsFactory.creator = WebSocketCreator { req, res ->
@@ -51,9 +51,9 @@ class JavalinWsFilterParent(val config: JavalinConfig) {
 class JavalinWsUpgradeFilter(val wsPathMatcher: WsPathMatcher, val config: JavalinConfig, wsFactory: WebSocketServerFactory) : WebSocketUpgradeFilter(wsFactory) {
 
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        if (!(request as HttpServletRequest).isWebSocket()) return chain.doFilter(request, response)
-        val req = request as HttpServletRequest
-        val res = response as HttpServletResponse
+        val req by lazy { request as HttpServletRequest }
+        val res by lazy { response as HttpServletResponse }
+        if (!req.isWebSocket()) return chain.doFilter(request, response)
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val entry = wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
         try {

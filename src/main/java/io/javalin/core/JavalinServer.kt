@@ -55,7 +55,7 @@ class JavalinServer(val config: JavalinConfig) {
         }.apply {
             this.sessionHandler = config.inner.sessionHandler
             config.inner.servletContextHandlerConsumer?.accept(this)
-            addFilter(FilterHolder(javalinWsFilterParent.createFilter(this)), "/*", EnumSet.allOf(DispatcherType::class.java))
+            addFilter(FilterHolder(javalinWsFilterParent.createWsFilter(this)), "/*", EnumSet.of(DispatcherType.REQUEST))
             addServlet(ServletHolder(javalinServlet), "/*")
         }
 
