@@ -24,6 +24,10 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+internal const val upgradeAllowedKey = "javalin-ws-upgrade-allowed"
+internal const val upgradeContextKey = "javalin-ws-upgrade-context"
+internal const val upgradeHttpSessionKey = "javalin-ws-upgrade-http-session"
+
 class JavalinWsFilterParent(val config: JavalinConfig) {
 
     val wsExceptionMapper = WsExceptionMapper()
@@ -33,8 +37,9 @@ class JavalinWsFilterParent(val config: JavalinConfig) {
         val wsFactory = WebSocketServerFactory(servletContextHandler.servletContext)
         config.inner.wsFactoryConfig?.accept(wsFactory)
         wsFactory.creator = WebSocketCreator { req, res ->
-            val preUpgradeContext = req.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
-            req.httpServletRequest.setAttribute("javalin-ws-upgrade-context", ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
+            val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context // the base request is GC'ed fast, so we have to switch
+            req.httpServletRequest.setAttribute(upgradeContextKey, ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
+            req.httpServletRequest.setAttribute(upgradeHttpSessionKey, req.session)
             return@WebSocketCreator WsHandlerController(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         }
         val upgradeFilter = JavalinWsUpgradeFilter(wsPathMatcher, config, wsFactory)
@@ -61,9 +66,9 @@ class JavalinWsUpgradeFilter(val wsPathMatcher: WsPathMatcher, val config: Javal
                 pathParamMap = entry.extractPathParams(requestUri)
                 matchedPath = entry.path
             }
-            config.inner.accessManager.manage({ ctx -> ctx.req.setAttribute("javalin-ws-upgrade-allowed", "true") }, upgradeContext, entry.permittedRoles)
-            if (req.getAttribute("javalin-ws-upgrade-allowed") != "true") throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
-            req.setAttribute("javalin-ws-upgrade-context", upgradeContext)
+            config.inner.accessManager.manage({ ctx -> ctx.req.setAttribute(upgradeAllowedKey, true) }, upgradeContext, entry.permittedRoles)
+            if (req.getAttribute(upgradeAllowedKey) != true) throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
+            req.setAttribute(upgradeContextKey, upgradeContext)
             super.getFactory().acceptWebSocket(req, res)
         } catch (e: Exception) {
             res.sendError(401, "Unauthorized")

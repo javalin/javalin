@@ -283,6 +283,37 @@ class TestWebSocket {
     }
 
     @Test
+    fun `getting session attributes works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.sessionAttribute("session-key", "session-value") }
+        app.ws("/") { ws ->
+            ws.onConnect {
+                app.logger().log.add(it.sessionAttribute("session-key")!!)
+                app.logger().log.add("sessionAttributeMapSize:${it.sessionAttributeMap<Any>().size}")
+            }
+        }
+        val sessionCookie = http.get("/").headers["Set-Cookie"]!!.first().removePrefix("JSESSIONID=")
+        TestClient(app, "/", mapOf("Cookie" to "JSESSIONID=${sessionCookie}")).connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("session-value", "sessionAttributeMapSize:1")
+    }
+
+    @Test
+    fun `setting session attributes works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.sessionAttribute("session-key", "session-value") }
+        app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttribute<String>("test")!!) }
+        app.ws("/") { ws ->
+            ws.onMessage {
+                it.sessionAttribute("test", "set-from-ws")
+            }
+        }
+        val sessionCookie = http.get("/").headers["Set-Cookie"]!!.first().removePrefix("JSESSIONID=")
+        val testClient = TestClient(app, "/", mapOf("Cookie" to "JSESSIONID=${sessionCookie}"))
+        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
+        doAndSleep { testClient.send("PING") }
+        doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
+        assertThat(http.getBody("/read-session")).isEqualTo("set-from-ws")
+    }
+
+    @Test
     fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
         app.ws("/other-path/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
