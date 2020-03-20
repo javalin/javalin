@@ -40,7 +40,7 @@ class TestWebSocket {
         return this.attribute(TestLogger::class.java)
     }
 
-    fun contextPathJavalin() = Javalin.create { it.wsContextPath = "/websocket" }
+    fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
 
     fun javalinWithWsLogger() = Javalin.create().apply {
         this.config.wsLogger { ws ->

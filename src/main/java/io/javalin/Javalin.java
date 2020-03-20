@@ -28,7 +28,7 @@ import io.javalin.http.HandlerType;
 import io.javalin.http.JavalinServlet;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
-import io.javalin.websocket.JavalinWsServlet;
+import io.javalin.websocket.JavalinWsFilterParent;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsHandlerType;
@@ -52,19 +52,19 @@ public class Javalin {
     public JavalinConfig config = new JavalinConfig();
 
     protected JavalinServer server; // null in standalone-mode
-    protected JavalinWsServlet wsServlet; // null in standalone-mode
+    protected JavalinWsFilterParent wsFilterParent; // null in standalone-mode
     protected JavalinServlet servlet = new JavalinServlet(config);
 
     protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
         this.server = new JavalinServer(config);
-        this.wsServlet = new JavalinWsServlet(config);
+        this.wsFilterParent = new JavalinWsFilterParent(config);
     }
 
-    public Javalin(JavalinServer server, JavalinWsServlet wsServlet) {
+    public Javalin(JavalinServer server, JavalinWsFilterParent wsFilterParent) {
         this.server = server;
-        this.wsServlet = wsServlet;
+        this.wsFilterParent = wsFilterParent;
     }
 
     /**
@@ -110,8 +110,8 @@ public class Javalin {
         return this.servlet;
     }
 
-    public JavalinWsServlet wsServlet() {
-        return wsServlet;
+    public JavalinWsFilterParent wsServlet() {
+        return wsFilterParent;
     }
 
     /**
@@ -169,7 +169,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             Javalin.log.info("Starting Javalin ...");
-            server.start(servlet, wsServlet);
+            server.start(servlet, wsFilterParent);
             Javalin.log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
@@ -527,7 +527,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
-        wsServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
+        wsFilterParent.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
@@ -536,7 +536,7 @@ public class Javalin {
      * Requires an access manager to be set on the instance.
      */
     private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsHandler> wsHandler, @NotNull Set<Role> roles) {
-        wsServlet.addHandler(handlerType, path, wsHandler, roles);
+        wsFilterParent.addHandler(handlerType, path, wsHandler, roles);
         eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsHandler, roles));
         return this;
     }
