@@ -29,7 +29,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     val errorMapper = ErrorMapper()
 
     override fun service(rawReq: HttpServletRequest, rawRes: HttpServletResponse) {
-        if (rawReq.isWebSocket()) return
         try {
             val wrappedReq = CachedRequestWrapper(rawReq, config.requestCacheSize) // cached for reading multiple times
             val type = HandlerType.fromServletRequest(wrappedReq)
