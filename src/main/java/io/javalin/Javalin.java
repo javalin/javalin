@@ -59,7 +59,7 @@ public class Javalin {
 
     protected Javalin() {
         this.server = new JavalinServer(config);
-        this.wsServlet = new JavalinWsServlet(config);
+        this.wsServlet = new JavalinWsServlet(config, servlet);
     }
 
     public Javalin(JavalinServer server, JavalinWsServlet wsServlet) {
@@ -169,7 +169,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             Javalin.log.info("Starting Javalin ...");
-            server.start(servlet, wsServlet);
+            server.start(wsServlet);
             Javalin.log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {

@@ -20,8 +20,9 @@ import java.nio.ByteBuffer
  */
 abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
 
-    private val upgradeReq = session.upgradeRequest as ServletUpgradeRequest
-    private val upgradeCtx = upgradeReq.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
+    private val upgradeReq by lazy { session.upgradeRequest as ServletUpgradeRequest }
+    private val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
+    private val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
     fun matchedPath() = upgradeCtx.matchedPath
 
@@ -53,6 +54,9 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
     fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
     fun <T> attributeMap(): Map<String, T?> = upgradeCtx.attributeMap()
+
+    fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
+    fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
 
     override fun equals(other: Any?) = session == (other as WsContext).session
     override fun hashCode() = session.hashCode()

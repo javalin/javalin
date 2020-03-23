@@ -15,8 +15,6 @@ import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ContextHandlerCollection
 import org.eclipse.jetty.server.handler.HandlerCollection
-import org.eclipse.jetty.server.handler.HandlerList
-import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.RequestLogHandler
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.DefaultSessionCache
@@ -118,7 +116,7 @@ class TestCustomJetty {
             it.sessionHandler { fileSessionHandler }
             it.server { newServer }
         }.start(0)
-        val httpHandler = (((newServer.handlers[0] as HandlerWrapper).handler as HandlerList).handlers.first() as ServletContextHandler)
+        val httpHandler = (newServer.handlers[0] as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
         javalin.stop()
 

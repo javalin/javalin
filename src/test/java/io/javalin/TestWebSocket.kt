@@ -40,7 +40,7 @@ class TestWebSocket {
         return this.attribute(TestLogger::class.java)
     }
 
-    fun contextPathJavalin() = Javalin.create { it.wsContextPath = "/websocket" }
+    fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
 
     fun javalinWithWsLogger() = Javalin.create().apply {
         this.config.wsLogger { ws ->
@@ -280,6 +280,20 @@ class TestWebSocket {
         }
         TestClient(app, "/attributes").connectAndDisconnect()
         assertThat(app.logger().log).containsExactly("Success")
+    }
+
+    @Test
+    fun `getting session attributes works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.sessionAttribute("session-key", "session-value") }
+        app.ws("/") { ws ->
+            ws.onConnect {
+                app.logger().log.add(it.sessionAttribute("session-key")!!)
+                app.logger().log.add("sessionAttributeMapSize:${it.sessionAttributeMap().size}")
+            }
+        }
+        val sessionCookie = http.get("/").headers["Set-Cookie"]!!.first().removePrefix("JSESSIONID=")
+        TestClient(app, "/", mapOf("Cookie" to "JSESSIONID=${sessionCookie}")).connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("session-value", "sessionAttributeMapSize:1")
     }
 
     @Test

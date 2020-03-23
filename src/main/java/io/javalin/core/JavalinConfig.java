@@ -54,7 +54,6 @@ public class JavalinConfig {
     @NotNull public String contextPath = "/";
     @NotNull public Long requestCacheSize = 4096L;
     @NotNull public Long asyncRequestTimeout = 0L;
-    @NotNull public String wsContextPath = "/";
     @NotNull public Inner inner = new Inner();
 
     // it's not bad to access this, the main reason it's hidden

@@ -42,7 +42,7 @@ class TestContextPath {
         val javalin = Javalin.create { it.contextPath = "/context-path" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { ctx -> ctx.result("Hello World") }
-            assertThat(http.getBody("/hello")).isEqualTo("Not found. Request is below context-path")
+            assertThat(http.get("/hello").status).isEqualTo(404)
             assertThat(http.getBody("/context-path/hello")).isEqualTo("Hello World")
         }
     }
