@@ -12,7 +12,6 @@ import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import java.nio.ByteBuffer
-import javax.servlet.http.HttpSession
 
 /**
  * The [WsContext] class holds Jetty's [Session] and provides (convenient) delegate methods.
@@ -23,7 +22,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     private val upgradeReq by lazy { session.upgradeRequest as ServletUpgradeRequest }
     private val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
-    private val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeHttpSessionAttributsKey) as Map<String, Any>? }
+    private val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
     fun matchedPath() = upgradeCtx.matchedPath
 
