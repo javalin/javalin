@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse
 
 internal const val upgradeAllowedKey = "javalin-ws-upgrade-allowed"
 internal const val upgradeContextKey = "javalin-ws-upgrade-context"
-internal const val upgradeHttpSessionKey = "javalin-ws-upgrade-http-session"
+internal const val upgradeHttpSessionAttributsKey = "javalin-ws-upgrade-http-session"
 
 /**
  * The JavalinWsServlet is responsible for both WebSocket and HTTP requests.
@@ -40,7 +40,7 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
         factory.creator = WebSocketCreator { req, res ->
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context
             req.httpServletRequest.setAttribute(upgradeContextKey, ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
-            req.httpServletRequest.setAttribute(upgradeHttpSessionKey, req.session)
+            req.httpServletRequest.setAttribute(upgradeHttpSessionAttributsKey, req.session?.attributeNames?.asSequence()?.associateWith { req.session.getAttribute(it) })
             return@WebSocketCreator WsHandlerController(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         }
     }
