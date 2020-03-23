@@ -15,7 +15,6 @@ import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
-import io.javalin.websocket.isWebSocket
 import java.io.InputStream
 import java.util.concurrent.CompletionException
 import javax.servlet.http.HttpServlet
