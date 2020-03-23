@@ -42,7 +42,7 @@ class JavalinServer(val config: JavalinConfig) {
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
-        val httpAndWebsocketHandler = object : ServletContextHandler(nullParent, config.contextPath, SESSIONS) {
+        val wsAndHttpHandler = object : ServletContextHandler(nullParent, config.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 request.setAttribute("jetty-target", target) // used in JettyResourceHandler
                 request.setAttribute("jetty-request", jettyRequest)
@@ -55,7 +55,7 @@ class JavalinServer(val config: JavalinConfig) {
         }
 
         server().apply {
-            handler = attachJavalinHandlers(server.handler, httpAndWebsocketHandler)
+            handler = if (server.handler == null) wsAndHttpHandler else server.handler.attachHandler(wsAndHttpHandler)
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = serverPort
                 this.host = serverHost
@@ -78,21 +78,20 @@ class JavalinServer(val config: JavalinConfig) {
 
     private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
 
-    private fun attachJavalinHandlers(userHandler: Handler?, javalinHandlers: ServletContextHandler) = when (userHandler) {
-        null -> javalinHandlers // no special action required
-        is HandlerCollection -> userHandler.apply { addHandler(javalinHandlers) } // user is using a HandlerCollection, add Javalin handlers to it
-        is HandlerWrapper -> userHandler.apply {
-            (unwrap(this) as? HandlerCollection)?.addHandler(javalinHandlers) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handlers
-            (unwrap(this) as? HandlerWrapper)?.handler = javalinHandlers // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
+    private fun Handler.attachHandler(servletContextHandler: ServletContextHandler) = when (this) {
+        is HandlerCollection -> this.apply { addHandler(servletContextHandler) } // user is using a HandlerCollection, add Javalin handler to it
+        is HandlerWrapper -> this.apply {
+            (this.unwrap() as? HandlerCollection)?.addHandler(servletContextHandler) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handler
+            (this.unwrap() as? HandlerWrapper)?.handler = servletContextHandler // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
         }
-        else -> throw IllegalStateException("Server has unidentified handler attached to it")
+        else -> throw IllegalStateException("Server has unsupported Handler attached to it (must be HandlerCollection or HandlerWrapper)")
     }
 
-    private fun unwrap(userHandler: HandlerWrapper): Handler = when (userHandler.handler) {
-        null -> userHandler // current HandlerWrapper is last element, return the HandlerWrapper
-        is HandlerCollection -> userHandler.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
-        is HandlerWrapper -> unwrap(userHandler.handler as HandlerWrapper) // HandlerWrapper wraps another HandlerWrapper, recursive call required
-        else -> throw IllegalStateException("Cannot insert Javalin handlers into a Handler that is not a HandlerCollection or HandlerWrapper")
+    private fun HandlerWrapper.unwrap(): Handler = when (this.handler) {
+        null -> this // current HandlerWrapper is last element, return the HandlerWrapper itself
+        is HandlerCollection -> this.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
+        is HandlerWrapper -> (this.handler as HandlerWrapper).unwrap() // HandlerWrapper wraps another HandlerWrapper, recursive call required
+        else -> throw IllegalStateException("HandlerWrapper has unsupported Handler type (must be HandlerCollection or HandlerWrapper")
     }
 
 }
