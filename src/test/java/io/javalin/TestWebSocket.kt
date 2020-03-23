@@ -40,7 +40,7 @@ class TestWebSocket {
         return this.attribute(TestLogger::class.java)
     }
 
-    fun contextPathJavalin() = Javalin.create { it.wsContextPath = "/websocket" }
+    fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
 
     fun javalinWithWsLogger() = Javalin.create().apply {
         this.config.wsLogger { ws ->
@@ -280,6 +280,37 @@ class TestWebSocket {
         }
         TestClient(app, "/attributes").connectAndDisconnect()
         assertThat(app.logger().log).containsExactly("Success")
+    }
+
+    @Test
+    fun `getting session attributes works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.sessionAttribute("session-key", "session-value") }
+        app.ws("/") { ws ->
+            ws.onConnect {
+                app.logger().log.add(it.sessionAttribute("session-key")!!)
+                app.logger().log.add("sessionAttributeMapSize:${it.sessionAttributeMap<Any>().size}")
+            }
+        }
+        val sessionCookie = http.get("/").headers["Set-Cookie"]!!.first().removePrefix("JSESSIONID=")
+        TestClient(app, "/", mapOf("Cookie" to "JSESSIONID=${sessionCookie}")).connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("session-value", "sessionAttributeMapSize:1")
+    }
+
+    @Test
+    fun `setting session attributes works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.sessionAttribute("session-key", "session-value") }
+        app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttribute<String>("test")!!) }
+        app.ws("/") { ws ->
+            ws.onMessage {
+                it.sessionAttribute("test", "set-from-ws")
+            }
+        }
+        val sessionCookie = http.get("/").headers["Set-Cookie"]!!.first().removePrefix("JSESSIONID=")
+        val testClient = TestClient(app, "/", mapOf("Cookie" to "JSESSIONID=${sessionCookie}"))
+        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
+        doAndSleep { testClient.send("PING") }
+        doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
+        assertThat(http.getBody("/read-session")).isEqualTo("set-from-ws")
     }
 
     @Test

@@ -7,21 +7,17 @@
 package io.javalin.core
 
 import io.javalin.Javalin
-import io.javalin.http.JavalinServlet
 import io.javalin.websocket.JavalinWsServlet
-import io.javalin.websocket.isWebSocket
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerCollection
-import org.eclipse.jetty.server.handler.HandlerList
 import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.net.BindException
@@ -41,14 +37,13 @@ class JavalinServer(val config: JavalinConfig) {
     var started = false
 
     @Throws(BindException::class)
-    fun start(javalinServlet: JavalinServlet, javalinWsServlet: JavalinWsServlet) {
+    fun start(wsAndHttpServlet: JavalinWsServlet) {
 
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
-        val httpHandler = object : ServletContextHandler(nullParent, config.contextPath, SESSIONS) {
+        val httpAndWebsocketHandler = object : ServletContextHandler(nullParent, config.contextPath, SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                if (request.isWebSocket()) return // don't touch websocket requests
                 request.setAttribute("jetty-target", target) // used in JettyResourceHandler
                 request.setAttribute("jetty-request", jettyRequest)
                 nextHandle(target, jettyRequest, request, response)
@@ -56,15 +51,11 @@ class JavalinServer(val config: JavalinConfig) {
         }.apply {
             this.sessionHandler = config.inner.sessionHandler
             config.inner.servletContextHandlerConsumer?.accept(this)
-            addServlet(ServletHolder(javalinServlet), "/*")
-        }
-
-        val webSocketHandler = ServletContextHandler(nullParent, javalinWsServlet.config.wsContextPath, SESSIONS).apply {
-            addServlet(ServletHolder(javalinWsServlet), "/*")
+            addServlet(ServletHolder(wsAndHttpServlet), "/*")
         }
 
         server().apply {
-            handler = attachJavalinHandlers(server.handler, HandlerList(httpHandler, webSocketHandler))
+            handler = attachJavalinHandlers(server.handler, httpAndWebsocketHandler)
             connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
                 this.port = serverPort
                 this.host = serverHost
@@ -87,8 +78,8 @@ class JavalinServer(val config: JavalinConfig) {
 
     private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
 
-    private fun attachJavalinHandlers(userHandler: Handler?, javalinHandlers: HandlerList) = when (userHandler) {
-        null -> HandlerWrapper().apply { handler = javalinHandlers } // no custom Handler set, wrap Javalin handlers in a HandlerWrapper
+    private fun attachJavalinHandlers(userHandler: Handler?, javalinHandlers: ServletContextHandler) = when (userHandler) {
+        null -> javalinHandlers // no special action required
         is HandlerCollection -> userHandler.apply { addHandler(javalinHandlers) } // user is using a HandlerCollection, add Javalin handlers to it
         is HandlerWrapper -> userHandler.apply {
             (unwrap(this) as? HandlerCollection)?.addHandler(javalinHandlers) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handlers

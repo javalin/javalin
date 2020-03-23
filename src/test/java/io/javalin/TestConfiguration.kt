@@ -45,7 +45,6 @@ class TestConfiguration {
             it.requestLogger { ctx, executionTimeMs -> }
             it.sessionHandler { SessionHandler() }
             // WsServlet
-            it.wsContextPath = "/"
             it.wsFactoryConfig { }
             it.wsLogger { }
             // Server

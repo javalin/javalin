@@ -15,6 +15,7 @@ import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
+import io.javalin.websocket.isWebSocket
 import java.io.InputStream
 import java.util.concurrent.CompletionException
 import javax.servlet.http.HttpServlet
@@ -28,6 +29,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     val errorMapper = ErrorMapper()
 
     override fun service(rawReq: HttpServletRequest, rawRes: HttpServletResponse) {
+        if (rawReq.isWebSocket()) return
         try {
             val wrappedReq = CachedRequestWrapper(rawReq, config.requestCacheSize) // cached for reading multiple times
             val type = HandlerType.fromServletRequest(wrappedReq)

@@ -12,6 +12,7 @@ import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import java.nio.ByteBuffer
+import javax.servlet.http.HttpSession
 
 /**
  * The [WsContext] class holds Jetty's [Session] and provides (convenient) delegate methods.
@@ -20,8 +21,9 @@ import java.nio.ByteBuffer
  */
 abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
 
-    private val upgradeReq = session.upgradeRequest as ServletUpgradeRequest
-    private val upgradeCtx = upgradeReq.httpServletRequest.getAttribute("javalin-ws-upgrade-context") as Context
+    private val upgradeReq by lazy { session.upgradeRequest as ServletUpgradeRequest }
+    private val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
+    private val httpSession by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeHttpSessionKey) as HttpSession }
 
     fun matchedPath() = upgradeCtx.matchedPath
 
@@ -53,6 +55,10 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
     fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
     fun <T> attributeMap(): Map<String, T?> = upgradeCtx.attributeMap()
+
+    fun sessionAttribute(key: String, value: Any?) = httpSession.setAttribute(key, value)
+    fun <T> sessionAttribute(key: String): T? = httpSession.getAttribute(key) as? T
+    fun <T> sessionAttributeMap(): Map<String, T?> = httpSession.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
 
     override fun equals(other: Any?) = session == (other as WsContext).session
     override fun hashCode() = session.hashCode()
