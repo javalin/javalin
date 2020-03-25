@@ -52,11 +52,11 @@ public class ApiBuilder {
         pathDeque.removeLast();
     }
 
-    private static String prefixPath(@NotNull String path) {
+    public static String prefixPath(@NotNull String path) {
         return String.join("", pathDeque) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
     }
 
-    private static Javalin staticInstance() {
+    public static Javalin staticInstance() {
         if (staticJavalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
