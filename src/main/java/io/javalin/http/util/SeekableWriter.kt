@@ -9,6 +9,7 @@ object SeekableWriter {
     var chunkSize = 128000
     fun write(ctx: Context, inputStream: InputStream, contentType: String) {
         if (ctx.header(Header.RANGE) == null) {
+            ctx.header(Header.CONTENT_TYPE, contentType)
             ctx.result(inputStream)
             return
         }
