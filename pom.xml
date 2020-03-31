@@ -40,11 +40,11 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <jetty.version>9.4.25.v20191220</jetty.version>
-        <slf4j.version>1.7.28</slf4j.version>
-        <jackson.version>2.10.1</jackson.version>
+        <jetty.version>9.4.27.v20200227</jetty.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <jackson.version>2.10.3</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.3.61</kotlin.version>
+        <kotlin.version>1.3.71</kotlin.version>
         <kotlin.compiler.jvmTarget>1.6</kotlin.compiler.jvmTarget> <!-- This is 1.6 on purpose, don't bump -->
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
@@ -108,25 +108,25 @@
         <dependency>
             <groupId>org.apache.velocity</groupId>
             <artifactId>velocity-engine-core</artifactId>
-            <version>2.1</version>
+            <version>2.2</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
-            <version>2.3.28</version>
+            <version>2.3.30</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.thymeleaf</groupId>
             <artifactId>thymeleaf</artifactId>
-            <version>3.0.9.RELEASE</version>
+            <version>3.0.11.RELEASE</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>
             <artifactId>compiler</artifactId>
-            <version>0.9.5</version>
+            <version>0.9.6</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -138,37 +138,37 @@
         <dependency>
             <groupId>io.pebbletemplates</groupId>
             <artifactId>pebble</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.2</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.atlassian.commonmark</groupId>
             <artifactId>commonmark</artifactId>
-            <version>0.11.0</version>
+            <version>0.14.0</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.1.3</version>
+            <version>1.3.6</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-models</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.swagger.parser.v3</groupId>
             <artifactId>swagger-parser</artifactId>
-            <version>2.0.16</version>
+            <version>2.0.18</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>redoc</artifactId>
-            <version>2.0.0-rc.2</version>
+            <version>2.0.0-rc.23</version>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
@@ -180,7 +180,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>swagger-ui</artifactId>
-            <version>3.24.3</version>
+            <version>3.25.0</version>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
@@ -192,7 +192,7 @@
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
-            <version>4.8.34</version>
+            <version>4.8.66</version>
             <optional>true</optional>
         </dependency>
         <!-- END Optional dependencies -->
@@ -201,13 +201,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.11.1</version>
+            <version>3.15.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -219,13 +219,13 @@
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
-            <version>1.3.8</version>
+            <version>1.4.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>3.11.0</version>
+            <version>3.14.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -243,7 +243,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.5</version>
+            <version>2.8.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -267,7 +267,7 @@
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>3.6.2</version>
+            <version>3.8.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -283,7 +283,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>25.0-jre</version>
+                <version>28.2-jre</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
