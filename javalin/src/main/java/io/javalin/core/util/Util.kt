@@ -17,6 +17,7 @@ import java.io.InputStream
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*
+import java.util.ServiceLoader
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 import javax.servlet.http.HttpServletResponse
@@ -32,6 +33,14 @@ object Util {
     private fun classExists(className: String) = try {
         Class.forName(className)
         true
+    } catch (e: ClassNotFoundException) {
+        false
+    }
+
+    private fun serviceImplementationExists(className: String) = try {
+        val serviceClass = Class.forName(className)
+        val loader = ServiceLoader.load(serviceClass)
+        loader.any()
     } catch (e: ClassNotFoundException) {
         false
     }
@@ -92,8 +101,7 @@ object Util {
 
     fun loggingLibraryExists(): Boolean {
         return classExists(OptionalDependency.SLF4JSIMPLE.testClass) ||
-                (classExists(OptionalDependency.SLF4J_PROVIDER_API.testClass) &&
-                        classExists(OptionalDependency.SLF4J_PROVIDER_SIMPLE.testClass))
+                serviceImplementationExists(OptionalDependency.SLF4J_PROVIDER_API.testClass)
     }
 
     @JvmStatic
