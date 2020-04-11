@@ -101,8 +101,7 @@ object Util {
 
     fun loggingLibraryExists(): Boolean {
         return classExists(OptionalDependency.SLF4JSIMPLE.testClass) ||
-                (classExists(OptionalDependency.SLF4J_PROVIDER_API.testClass) &&
-                        serviceImplementationExists(OptionalDependency.SLF4J_PROVIDER_API.testClass))
+                serviceImplementationExists(OptionalDependency.SLF4J_PROVIDER_API.testClass)
     }
 
     @JvmStatic
