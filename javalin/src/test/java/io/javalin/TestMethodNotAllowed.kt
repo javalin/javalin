@@ -1,5 +1,6 @@
 package io.javalin
 
+import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import javax.servlet.http.HttpServletResponse

@@ -8,7 +8,8 @@
 package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
-import io.javalin.TestUtil.okHandler
+import io.javalin.testing.TestUtil
+import io.javalin.testing.TestUtil.okHandler
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 

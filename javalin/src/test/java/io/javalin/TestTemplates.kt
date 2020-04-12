@@ -15,6 +15,7 @@ import io.javalin.plugin.rendering.template.JavalinJtwig
 import io.javalin.plugin.rendering.template.JavalinPebble
 import io.javalin.plugin.rendering.template.JavalinVelocity
 import io.javalin.plugin.rendering.template.TemplateUtil.model
+import io.javalin.testing.TestUtil
 import org.apache.velocity.app.VelocityEngine
 import org.assertj.core.api.Assertions.assertThat
 import org.jtwig.environment.EnvironmentConfigurationBuilder

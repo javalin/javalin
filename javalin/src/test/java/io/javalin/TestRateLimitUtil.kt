@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.http.util.RateLimit
+import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.concurrent.TimeUnit

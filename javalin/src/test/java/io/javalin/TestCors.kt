@@ -15,6 +15,7 @@ import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.core.util.Header.ORIGIN
 import io.javalin.core.util.Header.REFERER
+import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test

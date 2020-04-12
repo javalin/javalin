@@ -79,4 +79,36 @@ internal val Class<*>.methodsNotDeclaredByObject
             .filter { it.declaringClass != Object::class.java }
             .toTypedArray()
 
-internal const val methodReferenceReflectionMethodName = "get\$Lambda"
+const val methodReferenceReflectionMethodName = "get\$Lambda"
+
+/**
+ * Allow other modules to use the reflection utils without pollute Any.* for lib users
+ */
+class Reflection(val obj: Any) {
+    companion object {
+        /**
+         * Short name for convenience
+         */
+        fun rfl(obj: Any) = Reflection(obj)
+        private fun classOf(obj: Any): Class<*> = if (obj is Class<*>) obj else obj.javaClass
+    }
+
+    val kotlinFieldName: String get() = obj.kotlinFieldName
+    val javaFieldName: String? get() = obj.javaFieldName
+    val parentClass: Class<*> get() = obj.parentClass
+    val implementingClassName: String? get() = obj.implementingClassName
+    val isClass: Boolean get() = obj is Class<*>
+    val isKotlinAnonymousLambda: Boolean get() = obj.isKotlinAnonymousLambda
+    val isKotlinMethodReference: Boolean get() = obj.isKotlinMethodReference
+    val isKotlinField: Boolean get() = obj.isKotlinField
+    val isJavaAnonymousLambda: Boolean get() = obj.isJavaAnonymousLambda
+    val hasMethodName: Boolean get() = obj.hasMethodName
+    val isJavaNonStaticMethodReference: Boolean get() = obj.isJavaNonStaticMethodReference
+    val isJavaField: Boolean get() = obj.isJavaField
+    val lambdaField: Field? get() = obj.lambdaField
+    val methodsNotDeclaredByObject: Array<Method> get() = classOf(obj).methodsNotDeclaredByObject
+    fun runMethod(name: String) = obj.runMethod(name)
+    fun getFieldValue(fieldName: String) = obj.getFieldValue(fieldName)
+    fun getMethodByName(methodName: String) = classOf(obj).getMethodByName(methodName)
+    fun getDeclaredFieldByName(methodName: String) = classOf(obj).getDeclaredFieldByName(methodName)
+}

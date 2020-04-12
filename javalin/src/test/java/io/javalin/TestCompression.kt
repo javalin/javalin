@@ -15,6 +15,7 @@ import io.javalin.core.util.FileUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.http.OutputStreamWrapper
+import io.javalin.testing.TestUtil
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request

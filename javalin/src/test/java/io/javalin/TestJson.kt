@@ -10,12 +10,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.gson.GsonBuilder
 import com.mashape.unirest.http.Unirest
-import io.javalin.misc.NonSerializableObject
-import io.javalin.misc.SerializeableObject
+import io.javalin.testing.NonSerializableObject
+import io.javalin.testing.SerializeableObject
 import io.javalin.plugin.json.FromJsonMapper
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.plugin.json.ToJsonMapper
+import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test

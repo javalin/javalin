@@ -10,7 +10,8 @@ import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
 import io.javalin.core.util.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
-import io.javalin.misc.captureStdOut
+import io.javalin.testing.TestLoggingUtil.captureStdOut
+import io.javalin.testing.TestUtil
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.AfterClass
 import org.junit.Assume
