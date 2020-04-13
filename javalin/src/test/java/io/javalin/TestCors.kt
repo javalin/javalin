@@ -40,6 +40,16 @@ class TestCors {
     }
 
     @Test
+    fun `rejectCorsForInvalidOrigin reject where origin doesn't match`() {
+        val javalin = Javalin.create { it.enableCorsForOrigin("origin-1.com") }
+        TestUtil.test(javalin) { app, http ->
+            app.get("/") { ctx -> ctx.result("Hello") }
+            assertThat(Unirest.get(http.origin).header(ORIGIN, "origin-2.com").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isNull()
+            assertThat(Unirest.get(http.origin).header(ORIGIN, "origin-1.com.au").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isNull()
+        }
+    }
+
+    @Test
     fun `enableCorsForAllOrigins enables cors for all origins`() {
         val javalin = Javalin.create { it.enableCorsForAllOrigins() }
         TestUtil.test(javalin) { app, http ->
