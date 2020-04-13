@@ -35,6 +35,13 @@ class TestStaticFiles {
             servlet.addStaticFiles("/public/subdir")
         }
     }
+    private val customUrlStaticResourceApp: Javalin by lazy {
+        Javalin.create { servlet ->
+            servlet.addStaticFiles("/public")
+            servlet.addStaticFiles("/custom1", "/public", Location.CLASSPATH)
+            servlet.addStaticFiles("/custom2", "/public", Location.CLASSPATH)
+        }
+    }
     private val devLoggingApp: Javalin by lazy {
         Javalin.create {
             it.addStaticFiles("/public")
@@ -154,5 +161,11 @@ class TestStaticFiles {
     fun `Correct content type is returned when a custom filter with a response wrapper is added`() = TestUtil.test(customFilterStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
+    }
+    @Test
+    fun `serving from custom url path works`() = TestUtil.test(customFilterStaticResourceApp) { _, http ->
+        assertThat(http.get("/file").status).isEqualTo(200)
+        assertThat(http.get("/custom1/file").status).isEqualTo(200)
+        assertThat(http.get("/custom2/file").status).isEqualTo(200)
     }
 }

@@ -113,9 +113,14 @@ public class JavalinConfig {
     }
 
     public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location) {
+        addStaticFiles("", path, location);
+        return this;
+    }
+
+    public JavalinConfig addStaticFiles(@NotNull String urlPath, @NotNull String path, @NotNull Location location) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null) inner.resourceHandler = new JettyResourceHandler();
-        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
+        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPath, path, location));
         return this;
     }
 

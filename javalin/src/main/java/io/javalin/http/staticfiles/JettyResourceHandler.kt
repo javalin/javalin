@@ -26,11 +26,16 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
     private val dummyServer = Server()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
-        val handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
-            resourceBase = getResourcePath(config)
-            isDirAllowed = false
-            isEtags = true
-            Javalin.log?.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
+        val handler = if (config.path == "/webjars") WebjarHandler()
+        else if (config.urlPath != "") CustomStaticFileUrl(config.urlPath)
+        else ResourceHandler()
+        if (handler !is WebjarHandler) {
+            handler.apply {
+                resourceBase = getResourcePath(config)
+                isDirAllowed = false
+                isEtags = true
+                Javalin.log?.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
+            }
         }
         handlers.add(handler.apply {
             server = dummyServer
@@ -40,6 +45,10 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
     inner class WebjarHandler : ResourceHandler() {
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
+    }
+
+    inner class CustomStaticFileUrl(private var pathUrl: String) : ResourceHandler() {
+        override fun getResource(path: String) = super.getResource(path.replace(pathUrl, ""))
     }
 
     fun getResourcePath(staticFileConfig: StaticFileConfig): String {
