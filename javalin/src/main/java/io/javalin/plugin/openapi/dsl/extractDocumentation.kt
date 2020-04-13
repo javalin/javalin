@@ -1,6 +1,7 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.Javalin
+import io.javalin.apibuilder.CrudFunctionHandler
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
@@ -31,18 +32,33 @@ fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiD
 
     options.default?.apply(documentation)
 
-    val userDocumentation = if (handler is DocumentedHandler) {
-        handler.documentation
-    } else {
-        val openApiAnnotation: OpenApi? = getOpenApiAnnotationFromReference() ?: getOpenApiAnnotationFromHandler()
-        openApiAnnotation?.asOpenApiDocumentation()
-                ?: extractDocumentationWithPathScanning(options)
-                ?: document()
+    val userDocumentation: OpenApiDocumentation = when (handler) {
+        is DocumentedHandler -> handler.documentation
+        is CrudFunctionHandler -> extractDocumentationFromCrudHandler(handler)
+        else -> {
+            val openApiAnnotation: OpenApi? = getOpenApiAnnotationFromReference() ?: getOpenApiAnnotationFromHandler()
+            openApiAnnotation?.asOpenApiDocumentation()
+                    ?: extractDocumentationWithPathScanning(options)
+                    ?: document()
+        }
     }
 
     documentation.apply(userDocumentation)
 
     return documentation
+}
+
+private fun HandlerMetaInfo.extractDocumentationFromCrudHandler(handler: CrudFunctionHandler): OpenApiDocumentation {
+    val crudHandler = handler.crudHandler
+    return if (crudHandler is DocumentedCrudHandler) {
+        crudHandler.crudHandlerDocumentation.asMap()[handler.function]
+                ?: throw IllegalStateException("No documentation for this function")
+    } else {
+        val method = handler.crudHandler::class.java.getMethodByName(handler.function.value) ?: throw NoSuchMethodException(handler.function.value)
+        val openApi: OpenApi? = method.getDeclaredAnnotation(OpenApi::class.java)
+        openApi?.asOpenApiDocumentation()
+                ?: document()
+    }
 }
 
 private fun HandlerMetaInfo.extractDocumentationWithPathScanning(options: CreateSchemaOptions): OpenApiDocumentation? {
