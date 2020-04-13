@@ -6,6 +6,11 @@
 
 package io.javalin.apibuilder
 
+import io.javalin.apibuilder.CrudFunction.CREATE
+import io.javalin.apibuilder.CrudFunction.DELETE
+import io.javalin.apibuilder.CrudFunction.GET_ALL
+import io.javalin.apibuilder.CrudFunction.GET_ONE
+import io.javalin.apibuilder.CrudFunction.UPDATE
 import io.javalin.http.Context
 import io.javalin.http.Handler
 
@@ -23,21 +28,24 @@ interface CrudHandler {
     fun delete(ctx: Context, resourceId: String)
 }
 
-internal enum class CrudHandlerLambdaKey(val value: String) {
-    GET_ALL("getAll"),
-    GET_ONE("getOne"),
-    CREATE("create"),
-    UPDATE("update"),
-    DELETE("delete")
+enum class CrudFunction(
+       val value: String,
+       val createHandler: (CrudHandler, String) -> Handler
+) {
+    GET_ALL("getAll", { crud, _ -> Handler { crud.getAll(it) } }),
+    GET_ONE("getOne", { crud, id -> Handler { crud.getOne(it, it.pathParam(id)) } }),
+    CREATE("create", { crud, _ -> Handler { crud.create(it) } }),
+    UPDATE("update", { crud, id -> Handler { crud.update(it, it.pathParam(id)) } }),
+    DELETE("delete", { crud, id -> Handler { crud.delete(it, it.pathParam(id)) } });
 }
 
-internal fun CrudHandler.getLambdas(resourceId: String): Map<CrudHandlerLambdaKey, Handler> {
-    val crudHandler = this
-    return mapOf(
-            CrudHandlerLambdaKey.GET_ALL to Handler { ctx -> crudHandler.getAll(ctx) },
-            CrudHandlerLambdaKey.GET_ONE to Handler { ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)) },
-            CrudHandlerLambdaKey.CREATE to Handler { ctx -> crudHandler.create(ctx) },
-            CrudHandlerLambdaKey.UPDATE to Handler { ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)) },
-            CrudHandlerLambdaKey.DELETE to Handler { ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)) }
-    )
-}
+class CrudFunctionHandler(
+        val function: CrudFunction,
+        val crudHandler: CrudHandler,
+        resourceId: String,
+        handler: Handler = function.createHandler(crudHandler, resourceId)
+): Handler by handler
+
+internal fun CrudHandler.getCrudFunctions(resourceId: String): Map<CrudFunction, Handler> = CrudFunction.values()
+            .map { it to CrudFunctionHandler(it, this, resourceId) }
+            .toMap()

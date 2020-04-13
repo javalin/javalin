@@ -11,15 +11,15 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
-import io.javalin.plugin.openapi.dsl.OpenApiBuilder;
 import io.javalin.websocket.WsHandler;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Static methods for route declarations in Javalin
@@ -485,17 +485,19 @@ public class ApiBuilder {
         if (!path.contains("/:") || path.lastIndexOf("/") > path.lastIndexOf("/:")) {
             throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path e.g. '/users/:user-id'");
         }
-        String SEPARATOR = "/:";
+        final String SEPARATOR = "/:";
         String resourceBase = path.substring(0, path.lastIndexOf(SEPARATOR));
         String resourceId = path.substring(path.lastIndexOf(SEPARATOR) + SEPARATOR.length());
 
-        Map<CrudHandlerLambdaKey, Handler> lambdas = CrudHandlerKt.getLambdas(crudHandler, resourceId);
-        lambdas = OpenApiBuilder.documented(crudHandler, lambdas);
+        Map<CrudFunction, Handler> crudFunctions = CrudHandlerKt.getCrudFunctions(crudHandler, resourceId);
 
-        staticInstance().get(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.GET_ONE), permittedRoles);
-        staticInstance().get(prefixPath(resourceBase), lambdas.get(CrudHandlerLambdaKey.GET_ALL), permittedRoles);
-        staticInstance().post(prefixPath(resourceBase), lambdas.get(CrudHandlerLambdaKey.CREATE), permittedRoles);
-        staticInstance().patch(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.UPDATE), permittedRoles);
-        staticInstance().delete(prefixPath(path), lambdas.get(CrudHandlerLambdaKey.DELETE), permittedRoles);
+        String resourceIdPath = prefixPath(path);
+        String resourceBasePath = prefixPath(resourceBase);
+
+        staticInstance().get(resourceIdPath, crudFunctions.get(CrudFunction.GET_ONE), permittedRoles);
+        staticInstance().get(resourceBasePath, crudFunctions.get(CrudFunction.GET_ALL), permittedRoles);
+        staticInstance().post(resourceBasePath, crudFunctions.get(CrudFunction.CREATE), permittedRoles);
+        staticInstance().patch(resourceIdPath, crudFunctions.get(CrudFunction.UPDATE), permittedRoles);
+        staticInstance().delete(resourceIdPath, crudFunctions.get(CrudFunction.DELETE), permittedRoles);
     }
 }

@@ -3,7 +3,7 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.apibuilder.CrudHandler
-import io.javalin.apibuilder.CrudHandlerLambdaKey
+import io.javalin.apibuilder.CrudFunction
 import io.javalin.core.util.getMethodByName
 import io.javalin.http.Context
 import io.javalin.http.Handler
@@ -38,7 +38,7 @@ fun <T> documented(documentation: Map<T, OpenApiDocumentation>, handlers: Map<T,
     return handlers.mapValues { (key, value) -> documented(documentation.getValue(key), value) }
 }
 
-internal fun documented(crudHandler: CrudHandler, handlers: Map<CrudHandlerLambdaKey, Handler>): Map<CrudHandlerLambdaKey, Handler> {
+internal fun documented(crudHandler: CrudHandler, handlers: Map<CrudFunction, Handler>): Map<CrudFunction, Handler> {
     return if (crudHandler is DocumentedCrudHandler) {
         documented(crudHandler.crudHandlerDocumentation.asMap(), handlers)
     } else {
@@ -48,8 +48,8 @@ internal fun documented(crudHandler: CrudHandler, handlers: Map<CrudHandlerLambd
 
 internal fun moveDocumentationFromAnnotationToHandler(
         crudHandlerClass: Class<out CrudHandler>,
-        handlers: Map<CrudHandlerLambdaKey, Handler>
-): Map<CrudHandlerLambdaKey, Handler> {
+        handlers: Map<CrudFunction, Handler>
+): Map<CrudFunction, Handler> {
     return handlers.mapValues { (key, handler) ->
         moveDocumentationFromAnnotationToHandler(crudHandlerClass, key.value, handler)
     }
@@ -79,10 +79,10 @@ private fun <K> Map<K, *>.assertSameKeys(other: Map<K, *>) {
     }
 }
 
-private fun OpenApiCrudHandlerDocumentation.asMap(): Map<CrudHandlerLambdaKey, OpenApiDocumentation> = mapOf(
-        CrudHandlerLambdaKey.GET_ALL to getAllDocumentation,
-        CrudHandlerLambdaKey.GET_ONE to getOneDocumentation,
-        CrudHandlerLambdaKey.CREATE to createDocumentation,
-        CrudHandlerLambdaKey.UPDATE to updateDocumentation,
-        CrudHandlerLambdaKey.DELETE to deleteDocumentation
+internal fun OpenApiCrudHandlerDocumentation.asMap(): Map<CrudFunction, OpenApiDocumentation> = mapOf(
+        CrudFunction.GET_ALL to getAllDocumentation,
+        CrudFunction.GET_ONE to getOneDocumentation,
+        CrudFunction.CREATE to createDocumentation,
+        CrudFunction.UPDATE to updateDocumentation,
+        CrudFunction.DELETE to deleteDocumentation
 )
