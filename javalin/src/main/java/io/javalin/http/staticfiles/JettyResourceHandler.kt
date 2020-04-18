@@ -47,8 +47,14 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
     }
 
-    inner class CustomStaticFileUrl(private var pathUrl: String) : ResourceHandler() {
-        override fun getResource(path: String) = super.getResource(path.replace(pathUrl, ""))
+    inner class CustomStaticFileUrl(private var customUrlPath: String) : ResourceHandler() {
+        override fun getResource(path: String) = super.getResource(removeCustomUrlPath(path))
+        private fun removeCustomUrlPath(path: String): String {
+            if (path.length > customUrlPath.length && path.subSequence(0, customUrlPath.length) == customUrlPath) {
+                return path.substring(customUrlPath.length)
+            }
+            return path;
+        }
     }
 
     fun getResourcePath(staticFileConfig: StaticFileConfig): String {
