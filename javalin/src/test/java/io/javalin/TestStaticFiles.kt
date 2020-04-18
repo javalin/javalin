@@ -62,6 +62,14 @@ class TestStaticFiles {
         }
     }
 
+    private val contentLengthHeaderConfigStaticResourceApp: Javalin by lazy{
+        Javalin.create { config->
+            config.addStaticFiles("src/test/external/", Location.EXTERNAL,true)
+            config.addStaticFiles("/public/immutable",true)
+            config.addStaticFiles("/public/protected",false)
+        }
+    }
+
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
@@ -154,5 +162,13 @@ class TestStaticFiles {
     fun `Correct content type is returned when a custom filter with a response wrapper is added`() = TestUtil.test(customFilterStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
+    }
+
+    @Test
+    fun `response header always contains content-length if enforceContentLength is true`() = TestUtil.test(contentLengthHeaderConfigStaticResourceApp) { _, http ->
+        assertThat(http.get("/secret.html").headers.getFirst(Header.CONTENT_LENGTH).isEmpty())
+        assertThat(http.get("/library-1.0.0.min.js").headers.getFirst(Header.CONTENT_LENGTH).isNotEmpty())
+        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_LENGTH).isNotEmpty()) // src/test/external/html.html
+
     }
 }
