@@ -108,14 +108,24 @@ public class JavalinConfig {
     }
 
     public JavalinConfig addStaticFiles(@NotNull String classpathPath) {
-        addStaticFiles(classpathPath, Location.CLASSPATH);
+        addStaticFiles(classpathPath, false);
+        return this;
+    }
+
+    public JavalinConfig addStaticFiles(@NotNull String classpathPath,@NotNull boolean enforceContentLengthHeader) {
+        addStaticFiles(classpathPath, Location.CLASSPATH, enforceContentLengthHeader);
         return this;
     }
 
     public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location) {
+        addStaticFiles(path, location, false);
+        return this;
+    }
+
+    public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location,@NotNull boolean enforceContentLengthHeader) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null) inner.resourceHandler = new JettyResourceHandler();
-        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
+        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location, enforceContentLengthHeader));
         return this;
     }
 

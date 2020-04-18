@@ -21,11 +21,13 @@ import javax.servlet.http.HttpServletResponse
 class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
+    var enforceContentLengthHeader = false
 
     // It would work without a server, but if none is set jetty will log a warning.
     private val dummyServer = Server()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
+        enforceContentLengthHeader = config.enforceContentLengthHeader
         val handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
             resourceBase = getResourcePath(config)
             isDirAllowed = false
@@ -66,6 +68,8 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
+                    if(enforceContentLengthHeader)
+                        httpResponse.setContentLengthLong(resource.length())
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
                     httpResponse.contentType = null
