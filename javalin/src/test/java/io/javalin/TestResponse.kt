@@ -11,6 +11,7 @@ import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.http.util.SeekableWriter
+import io.javalin.testing.TestUtil
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat

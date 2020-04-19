@@ -6,8 +6,9 @@
 
 package io.javalin
 
-import io.javalin.misc.UploadInfo
+import io.javalin.testing.UploadInfo
 import io.javalin.plugin.json.JavalinJackson
+import io.javalin.testing.TestUtil
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient

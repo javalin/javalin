@@ -7,8 +7,9 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
-import io.javalin.misc.HttpUtil
-import io.javalin.misc.captureStdOut
+import io.javalin.testing.HttpUtil
+import io.javalin.testing.TestLoggingUtil.captureStdOut
+import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.File
@@ -49,8 +50,8 @@ class TestLogging {
             ctx.result(future)
         }
         app.start(0)
-        assertThat(HttpUtil(app).getBody("/async")).isEqualTo("Hello Async World!")
-        assertThat(HttpUtil(app).getBody("/blocking")).isEqualTo("Hello Blocking World!")
+        assertThat(HttpUtil(app.port()).getBody("/async")).isEqualTo("Hello Async World!")
+        assertThat(HttpUtil(app.port()).getBody("/blocking")).isEqualTo("Hello Blocking World!")
         app.stop()
     }
 

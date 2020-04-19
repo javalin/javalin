@@ -10,7 +10,7 @@ import io.javalin.http.util.ContextUtil
 
 class PathParser(path: String) {
 
-    internal val segments: List<PathSegment> = path.split("/")
+    val segments: List<PathSegment> = path.split("/")
             .filter { it.isNotEmpty() }
             .map {
                 when {
@@ -20,7 +20,7 @@ class PathParser(path: String) {
                 }
             }
 
-    internal val pathParamNames = segments.filterIsInstance<PathSegment.Parameter>().map { it.name }
+    val pathParamNames = segments.filterIsInstance<PathSegment.Parameter>().map { it.name }
 
     private val matchRegex = "^/${segments.joinToString("/") { it.asRegexString() }}/?$".toRegex()
 

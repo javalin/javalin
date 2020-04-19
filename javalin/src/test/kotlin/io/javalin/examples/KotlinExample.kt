@@ -7,7 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.misc.TypedException
+import io.javalin.testing.TypedException
 
 fun main(args: Array<String>) {
 

@@ -7,7 +7,8 @@
 
 package io.javalin
 
-import io.javalin.misc.HttpUtil
+import io.javalin.testing.HttpUtil
+import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.Test
@@ -42,7 +43,7 @@ class TestConfigureServletContextHandler {
             }
         }.start(0)
 
-        val http = HttpUtil(app)
+        val http = HttpUtil(app.port())
         http.htmlGet("/");
 
         assertThat(listener.called).isTrue()
