@@ -16,7 +16,7 @@
     <artifactId>javalin-parent</artifactId>
     <version>3.8.1-SNAPSHOT</version>
 
-    <name>Javalin</name>
+    <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
     <url>https://javalin.io</url>
 
@@ -213,11 +213,23 @@
                 <groupId>org.webjars.npm</groupId>
                 <artifactId>redoc</artifactId>
                 <version>${redoc.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.webjars</groupId>
                 <artifactId>swagger-ui</artifactId>
                 <version>${swagger.ui.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.github.classgraph</groupId>
