@@ -187,6 +187,11 @@ public class JavalinConfig {
         return this;
     }
 
+    public JavalinConfig compressionStrategy(CompressionStrategy compressionStrategy) {
+        inner.compressionStrategy = compressionStrategy;
+        return this;
+    }
+
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
 
