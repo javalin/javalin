@@ -25,6 +25,8 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         val NONE = CompressionStrategy()
         @JvmField
         val GZIP = CompressionStrategy(null, Gzip())
+        @JvmField
+        val BROTLI_AND_GZIP  = CompressionStrategy(Brotli(), Gzip())
     }
 
     init {
