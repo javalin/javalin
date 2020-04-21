@@ -21,17 +21,16 @@ import javax.servlet.http.HttpServletResponse
 class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
-    var enforceContentLengthHeader = false
 
     // It would work without a server, but if none is set jetty will log a warning.
     private val dummyServer = Server()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
-        enforceContentLengthHeader = config.enforceContentLengthHeader
-        val handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
+        val handler = if (config.path == "/webjars") WebjarHandler() else StaticFileHandler().apply {
             resourceBase = getResourcePath(config)
             isDirAllowed = false
             isEtags = true
+            enforceContentLengthHeader = config.enforceContentLengthHeader
             Javalin.log?.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
         }
         handlers.add(handler.apply {
@@ -42,6 +41,10 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
     inner class WebjarHandler : ResourceHandler() {
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
+    }
+
+    inner class StaticFileHandler : ResourceHandler() {
+        var enforceContentLengthHeader = false
     }
 
     fun getResourcePath(staticFileConfig: StaticFileConfig): String {
@@ -68,8 +71,10 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
-                    if(enforceContentLengthHeader)
-                        httpResponse.setContentLengthLong(resource.length())
+                    if(handler is StaticFileHandler) {
+                        if(handler.enforceContentLengthHeader)
+                            httpResponse.setContentLengthLong(resource.length())
+                    }
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
                     httpResponse.contentType = null
