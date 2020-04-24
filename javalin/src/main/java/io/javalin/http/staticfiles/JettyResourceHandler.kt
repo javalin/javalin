@@ -10,11 +10,14 @@ import io.javalin.Javalin
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
+import io.javalin.http.LeveledBrotliStream
+import io.javalin.http.LeveledGzipStream
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
+import java.io.OutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -60,6 +63,36 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
             throw RuntimeException(nosuchdir)
         }
         return staticFileConfig.path
+    }
+
+    enum class CompressType(val type: String, val fileType: String) {
+        GZIP("gzip", "gz"),
+        BR("br", "br")
+    }
+
+    val tempDir = createTempDir("javalin-compress").also {it.deleteOnExit()}
+
+    private fun getCompressedFile(originResource: Resource, target: String, type: CompressType): Resource {
+        val my = File(tempDir.path,target+"."+type.fileType).apply {this.deleteOnExit()}
+        if (!my.exists()) {
+            val fileInput = originResource.inputStream
+            val outputStream: OutputStream = when (type) {
+                CompressType.GZIP -> {
+                    LeveledGzipStream(my.outputStream(), 1)
+                }
+                CompressType.BR -> {
+                    LeveledBrotliStream(my.outputStream(), 1)
+                }
+            }
+            val buffer = ByteArray(2048)
+            var bytesRead: Int
+            while (fileInput.read(buffer).also { bytesRead = it } > 0) {
+                outputStream.write(buffer, 0, bytesRead)
+            }
+            fileInput.close()
+            outputStream.close()
+        }
+        return Resource.newResource(my)
     }
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
