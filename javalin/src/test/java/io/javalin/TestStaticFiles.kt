@@ -12,7 +12,7 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.ServletResponseHttpWrapper
+import org.eclipse.jetty.server.*
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.Test
 import java.util.*
@@ -64,9 +64,16 @@ class TestStaticFiles {
 
     private val contentLengthHeaderConfigStaticResourceApp: Javalin by lazy{
         Javalin.create { config->
-            config.addStaticFiles("src/test/external/", Location.EXTERNAL,true)
-            config.addStaticFiles("/public/immutable",true)
-            config.addStaticFiles("/public/protected",false)
+            config.server {
+                val server = Server()
+                val httpConfig = HttpConfiguration()
+                httpConfig.outputBufferSize = 1 // jetty will use chucked by default
+                val connector = ServerConnector(server, HttpConnectionFactory(httpConfig))
+                server.connectors = arrayOf<Connector>(connector)
+                server
+            }
+            config.addStaticFiles("/public/immutable",false)
+            config.addStaticFiles("/public/protected",true)
         }
     }
 
@@ -166,9 +173,7 @@ class TestStaticFiles {
 
     @Test
     fun `response header always contains content-length if enforceContentLength is true`() = TestUtil.test(contentLengthHeaderConfigStaticResourceApp) { _, http ->
-        assertThat(http.get("/secret.html").headers.getFirst(Header.CONTENT_LENGTH).isEmpty())
-        assertThat(http.get("/library-1.0.0.min.js").headers.getFirst(Header.CONTENT_LENGTH).isNotEmpty())
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_LENGTH).isNotEmpty()) // src/test/external/html.html
-
+        assertThat(!http.get("/secret.html").headers.getFirst(Header.CONTENT_LENGTH).isNullOrEmpty())
+        assertThat(http.get("/library-1.0.0.min.js").headers.getFirst(Header.CONTENT_LENGTH).isNullOrBlank())
     }
 }
