@@ -28,7 +28,7 @@ class ResponseWrapperContext(request: HttpServletRequest, val config: JavalinCon
     val compStrat = config.inner.compressionStrategy
 }
 
-class JavalinResponseWrapper(val res: HttpServletResponse, private val rwc: ResponseWrapperContext) : HttpServletResponseWrapper(res) {
+class JavalinResponseWrapper(val res: HttpServletResponse, val rwc: ResponseWrapperContext) : HttpServletResponseWrapper(res) {
 
     private val outputStreamWrapper by lazy { OutputStreamWrapper(res, rwc) }
     override fun getOutputStream() = outputStreamWrapper

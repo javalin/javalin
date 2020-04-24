@@ -70,18 +70,18 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         BR("br", "br")
     }
 
-    val tempDir = createTempDir("javalin-compress").also {it.deleteOnExit()}
+    val tempDir = createTempDir("javalin-compress").also { it.deleteOnExit() }
 
-    private fun getCompressedFile(originResource: Resource, target: String, type: CompressType): Resource {
-        val my = File(tempDir.path,target+"."+type.fileType).apply {this.deleteOnExit()}
+    private fun getCompressedFile(originResource: Resource, target: String, type: CompressType, level: Int): Resource {
+        val my = File(tempDir.path, target + "." + type.fileType).apply { this.deleteOnExit() }
         if (!my.exists()) {
             val fileInput = originResource.inputStream
             val outputStream: OutputStream = when (type) {
                 CompressType.GZIP -> {
-                    LeveledGzipStream(my.outputStream(), 1)
+                    LeveledGzipStream(my.outputStream(), level)
                 }
                 CompressType.BR -> {
-                    LeveledBrotliStream(my.outputStream(), 1)
+                    LeveledBrotliStream(my.outputStream(), level)
                 }
             }
             val buffer = ByteArray(2048)
@@ -103,30 +103,29 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                 var resource = handler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
+                    val rwc = (httpResponse as JavalinResponseWrapper).rwc
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
-                    if (handler is StaticFileHandler && handler.enforceContentLengthHeader) {//if need content length
-                        httpRequest.getHeader(Header.ACCEPT_ENCODING)?.apply {
-                            when {
-                                this.contains(CompressType.GZIP.type, ignoreCase = true) -> {
-                                    resource = getCompressedFile(resource,target, CompressType.GZIP)
-                                    httpResponse.setHeader(Header.CONTENT_ENCODING,CompressType.GZIP.type)
-                                }
-                                this.contains(CompressType.BR.type, ignoreCase = true) -> {
-                                    resource = getCompressedFile(resource,target, CompressType.BR)
-                                    httpResponse.setHeader(Header.CONTENT_ENCODING,CompressType.BR.type)
-                                }
-                            }
-                            httpResponse.setContentLengthLong(resource.length())
-                            (httpResponse as JavalinResponseWrapper).write(resource.inputStream)
-                            return true
-                        }
-                    }
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
                     httpResponse.contentType = null
+                    if (handler is StaticFileHandler && handler.enforceContentLengthHeader) {//if need content length
+                        when {
+                            rwc.acceptsGzip && rwc.compStrat.gzip != null -> {
+                                resource = getCompressedFile(resource, target, CompressType.GZIP, rwc.compStrat.gzip.level)
+                                httpResponse.setHeader(Header.CONTENT_ENCODING, CompressType.GZIP.type)
+                            }
+                            rwc.acceptsBrotli && rwc.compStrat.brotli != null -> {
+                                resource = getCompressedFile(resource, target, CompressType.BR, rwc.compStrat.brotli.level)
+                                httpResponse.setHeader(Header.CONTENT_ENCODING, CompressType.BR.type)
+                            }
+                        }
+                        httpResponse.setContentLengthLong(resource.length())
+                        httpResponse.write(resource.inputStream)
+                        return true
+                    }
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
-                    (httpResponse as JavalinResponseWrapper).outputStream.finalize()
+                    httpResponse.outputStream.finalize()
                     return true
                 }
             } catch (e: Exception) { // it's fine
