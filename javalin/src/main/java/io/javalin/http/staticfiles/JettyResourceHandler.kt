@@ -100,13 +100,26 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
         for (handler in handlers) {
             try {
-                val resource = handler.getResource(target)
+                var resource = handler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
-                    if(handler is StaticFileHandler) {
-                        if(handler.enforceContentLengthHeader)
+                    if (handler is StaticFileHandler && handler.enforceContentLengthHeader) {//if need content length
+                        httpRequest.getHeader(Header.ACCEPT_ENCODING)?.apply {
+                            when {
+                                this.contains(CompressType.GZIP.type, ignoreCase = true) -> {
+                                    resource = getCompressedFile(resource,target, CompressType.GZIP)
+                                    httpResponse.setHeader(Header.CONTENT_ENCODING,CompressType.GZIP.type)
+                                }
+                                this.contains(CompressType.BR.type, ignoreCase = true) -> {
+                                    resource = getCompressedFile(resource,target, CompressType.BR)
+                                    httpResponse.setHeader(Header.CONTENT_ENCODING,CompressType.BR.type)
+                                }
+                            }
                             httpResponse.setContentLengthLong(resource.length())
+                            (httpResponse as JavalinResponseWrapper).write(resource.inputStream)
+                            return true
+                        }
                     }
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
