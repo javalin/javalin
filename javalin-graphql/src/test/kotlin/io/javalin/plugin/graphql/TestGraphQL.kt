@@ -29,18 +29,7 @@ class TestGraphQL {
     private val message = "Hello World"
     private val newMessage = "hi"
 
-    private fun shortTimeoutServer(): Javalin {
-        return Javalin.create {
-            val graphQLOption = GraphQLOptions(graphqlPath, ContextExample())
-                    .addPackage("io.javalin.plugin.graphql")
-                    .addPackage("io.javalin.plugin.graphql.helpers")
-                    .register(QueryExample(message))
-                    .register(MutationExample(message))
-                    .register(SubscriptionExample())
-            it.registerPlugin(GraphQLPlugin(graphQLOption))
-        }
-                .after { ctx -> ctx.req.asyncContext.timeout = 10 }
-    }
+    data class TestLogger(val log: ArrayList<String>)
 
     @Test
     fun query() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
@@ -117,11 +106,25 @@ class TestGraphQL {
         }
     }
 
-    private fun Javalin.logger(): TestWebSocket.TestLogger {
-        if (this.attribute(TestWebSocket.TestLogger::class.java) == null) {
-            this.attribute(TestWebSocket.TestLogger::class.java, TestWebSocket.TestLogger(ArrayList()))
+    private fun Javalin.logger(): TestLogger {
+        if (this.attribute(TestLogger::class.java) == null) {
+            this.attribute(TestLogger::class.java, TestLogger(ArrayList()))
         }
-        return this.attribute(TestWebSocket.TestLogger::class.java)
+        return this.attribute(TestLogger::class.java)
+    }
+
+
+    private fun shortTimeoutServer(): Javalin {
+        return Javalin.create {
+            val graphQLOption = GraphQLOptions(graphqlPath, ContextExample())
+                    .addPackage("io.javalin.plugin.graphql")
+                    .addPackage("io.javalin.plugin.graphql.helpers")
+                    .register(QueryExample(message))
+                    .register(MutationExample(message))
+                    .register(SubscriptionExample())
+            it.registerPlugin(GraphQLPlugin(graphQLOption))
+        }
+                .after { ctx -> ctx.req.asyncContext.timeout = 10 }
     }
 
     private fun doAndSleep(func: () -> Unit) = func.invoke().also { Thread.sleep(1000) }
