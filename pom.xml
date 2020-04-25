@@ -4,6 +4,7 @@
     <modules>
         <module>javalin</module>
         <module>javalin-openapi</module>
+        <module>javalin-graphql</module>
     </modules>
 
     <parent>
