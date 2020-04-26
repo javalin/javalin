@@ -12,7 +12,6 @@ class SubscriberGraphQL(private val ctx: WsMessageContext) : Subscriber<Executio
     private val subscriptionRef = AtomicReference<Subscription>()
 
     override fun onError(error: Throwable) {
-        print(3)
         throw error
     }
 
@@ -22,7 +21,6 @@ class SubscriberGraphQL(private val ctx: WsMessageContext) : Subscriber<Executio
     }
 
     override fun onComplete() {
-        print(1)
     }
 
     override fun onNext(result: ExecutionResult) {
