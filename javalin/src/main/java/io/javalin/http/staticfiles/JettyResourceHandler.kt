@@ -73,15 +73,15 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
     val tempDir = createTempDir("javalin-compress").also { it.deleteOnExit() }
 
     private fun getCompressedFile(originResource: Resource, target: String, type: CompressType, level: Int): Resource {
-        val my = File(tempDir.path, target + "." + type.fileType).apply { this.deleteOnExit() }
-        if (!my.exists()) {
+        val tmp = File(tempDir.path, target + type.extension).apply { this.deleteOnExit() }
+        if (!tmp.exists()) {
             val fileInput = originResource.inputStream
             val outputStream: OutputStream = when (type) {
                 CompressType.GZIP -> {
-                    LeveledGzipStream(my.outputStream(), level)
+                    LeveledGzipStream(tmp.outputStream(), level)
                 }
                 CompressType.BR -> {
-                    LeveledBrotliStream(my.outputStream(), level)
+                    LeveledBrotliStream(tmp.outputStream(), level)
                 }
             }
             val buffer = ByteArray(2048)
@@ -92,7 +92,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
             fileInput.close()
             outputStream.close()
         }
-        return Resource.newResource(my)
+        return Resource.newResource(tmp)
     }
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
