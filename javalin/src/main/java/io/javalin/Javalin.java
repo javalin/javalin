@@ -162,7 +162,10 @@ public class Javalin {
         JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
         if (server.getStarted()) {
-            throw new IllegalStateException("Cannot call start() again on a started server.");
+            String message = "Cannot call start() again on a started server. The server is not intented to be \"re-started\". " +
+                "If you are trying to call start() on an instance of Javalin that was stopped using stop(), " +
+                "please consider calling start() on a new instance.";
+            throw new IllegalStateException(message);
         }
         server.setStarted(true);
         Util.printHelpfulMessageIfLoggerIsMissing();
