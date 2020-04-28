@@ -75,6 +75,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
         fun handleFile(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             var resource = getResource(target)
+            if(resource.isDirectoryWithWelcomeFile(this, target)) return
             val rwc = (response as JavalinResponseWrapper).rwc
                     when {
                         rwc.acceptsBrotli && rwc.compStrat.brotli != null -> {
