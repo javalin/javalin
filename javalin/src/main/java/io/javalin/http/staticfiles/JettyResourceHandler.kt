@@ -13,6 +13,7 @@ import io.javalin.http.JavalinResponseWrapper
 import io.javalin.http.LeveledBrotliStream
 import io.javalin.http.LeveledGzipStream
 import io.javalin.http.OutputStreamWrapper
+import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -43,12 +44,53 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         })
     }
 
+    enum class CompressType(val type: String, val extension: String) {
+        GZIP("gzip", ".gz"),
+        BR("br", ".br")
+    }
+
+    val tempDir = createTempDir("javalin-compress").also { it.deleteOnExit() }
+
+    companion object {
+        val excludedMimeTypes = setOf(
+                "image/",
+                "audio/",
+                "video/",
+                "application/compress",
+                "application/zip",
+                "application/gzip",
+                "application/bzip2",
+                "application/brotli",
+                "application/x-xz",
+                "application/x-rar-compressed")
+    }
+
     inner class WebjarHandler : ResourceHandler() {
-        override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
+        override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path")
+                ?: super.getResource(path)
     }
 
     inner class StaticFileHandler : ResourceHandler() {
         var enforceContentLengthHeader = false
+
+        fun handleFile(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+            var resource = getResource(target)
+            val rwc = (response as JavalinResponseWrapper).rwc
+                    when {
+                        rwc.acceptsBrotli && rwc.compStrat.brotli != null -> {
+                            resource = getCompressedFile(resource, target, CompressType.BR, rwc.compStrat.brotli.level)
+                            response.setHeader(Header.CONTENT_ENCODING, CompressType.BR.type)
+                            compressed = true
+                        }
+                        rwc.acceptsGzip && rwc.compStrat.gzip != null -> {
+                            resource = getCompressedFile(resource, target, CompressType.GZIP, rwc.compStrat.gzip.level)
+                            response.setHeader(Header.CONTENT_ENCODING, CompressType.GZIP.type)
+                            compressed = true
+                        }
+                    }
+            response.contentType = null
+            super.handle(target, baseRequest, request, response)
+        }
     }
 
     fun getResourcePath(staticFileConfig: StaticFileConfig): String {
@@ -65,13 +107,6 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         }
         return staticFileConfig.path
     }
-
-    enum class CompressType(val type: String, val extension: String) {
-        GZIP("gzip", ".gz"),
-        BR("br", ".br")
-    }
-
-    val tempDir = createTempDir("javalin-compress").also { it.deleteOnExit() }
 
     private fun getCompressedFile(originResource: Resource, target: String, type: CompressType, level: Int): Resource {
         val tmp = File(tempDir.path, target + type.extension).apply { this.deleteOnExit() }
@@ -101,35 +136,18 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
         for (handler in handlers) {
             try {
-                var resource = handler.getResource(target)
+                val resource = handler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
-                    val rwc = (httpResponse as JavalinResponseWrapper).rwc
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
                     httpResponse.contentType = null
+                    if (handler is StaticFileHandler)
+                        handler.handleFile(target, baseRequest, httpRequest, httpResponse)
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
-                    if (handler is StaticFileHandler && handler.enforceContentLengthHeader) {//if need content length
-                        if (!isCompressedFile(target)) {
-                            println(httpResponse)
-                            when {
-                                rwc.acceptsGzip && rwc.compStrat.gzip != null -> {
-                                    resource = getCompressedFile(resource, target, CompressType.GZIP, rwc.compStrat.gzip.level)
-                                    httpResponse.setHeader(Header.CONTENT_ENCODING, CompressType.GZIP.type)
-                                }
-                                rwc.acceptsBrotli && rwc.compStrat.brotli != null -> {
-                                    resource = getCompressedFile(resource, target, CompressType.BR, rwc.compStrat.brotli.level)
-                                    httpResponse.setHeader(Header.CONTENT_ENCODING, CompressType.BR.type)
-                                }
-                            }
-                        }
-                        httpResponse.setContentLengthLong(resource.length())
-                        httpResponse.write(resource.inputStream)
-                        return true
-                    }
                     httpRequest.setAttribute("handled-as-static-file", true)
-                    httpResponse.outputStream.finalize()
+                    (httpResponse as JavalinResponseWrapper).outputStream.finalize()
                     return true
                 }
             } catch (e: Exception) { // it's fine
@@ -141,7 +159,8 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         return false
     }
 
-    private fun isCompressedFile(path: String) = CompressType.values().any { extension -> path.endsWith(extension.extension, ignoreCase = true) }
+    private fun excludedMimeType(mimeType: String) =
+            if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
 
