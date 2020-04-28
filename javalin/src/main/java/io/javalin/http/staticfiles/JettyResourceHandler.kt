@@ -76,7 +76,16 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         fun handleFile(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             var resource = getResource(target)
             if(resource.isDirectoryWithWelcomeFile(this, target)) return
+
+            response.setHeader(Header.ETAG, resource.weakETag)
+            response.setHeader(Header.ACCEPT_RANGES, "bytes") //all resource on jetty can accept range
+            response.setDateHeader(Header.LAST_MODIFIED, resource.lastModified())
+            response.setHeader(Header.CONTENT_TYPE, MimeTypes.getDefaultMimeByExtension(target))
             val rwc = (response as JavalinResponseWrapper).rwc
+            var compressed = false
+            if(request.getHeader(Header.RANGE).isNullOrEmpty()) {
+                if (!excludedMimeType(response.contentType ?: "")
+                        && resource.length() > OutputStreamWrapper.minSizeForCompression) {
                     when {
                         rwc.acceptsBrotli && rwc.compStrat.brotli != null -> {
                             resource = getCompressedFile(resource, target, CompressType.BR, rwc.compStrat.brotli.level)
@@ -89,6 +98,17 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                             compressed = true
                         }
                     }
+                }
+                if (enforceContentLengthHeader) {
+                    //set content-length before write response
+                    response.setContentLengthLong(resource.length())
+                }
+                if(compressed){
+                    response.write(resource.inputStream)
+                    baseRequest.isHandled = true
+                    return
+                }
+            }
             response.contentType = null
             super.handle(target, baseRequest, request, response)
         }
