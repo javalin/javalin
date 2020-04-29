@@ -72,7 +72,7 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
 
     inner class StaticFileHandler : ResourceHandler() {
         var enforceContentLengthHeader = false
-
+        val CUSTOM_COMPRESS_PREFIX = "javalin-pecompressed-files/"
         fun handleFile(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             var resource = getResource(target)
             if(resource.isDirectoryWithWelcomeFile(this, target)) return
@@ -111,6 +111,13 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
             }
             response.contentType = null
             super.handle(target, baseRequest, request, response)
+        }
+
+        override fun getResource(path: String): Resource {// return custom resource
+            if (path.startsWith(CUSTOM_COMPRESS_PREFIX)) {
+                return Resource.newResource(path.substringAfter(CUSTOM_COMPRESS_PREFIX))
+            }
+            return super.getResource(path)
         }
     }
 
