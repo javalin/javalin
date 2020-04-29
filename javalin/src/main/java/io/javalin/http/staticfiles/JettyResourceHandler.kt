@@ -130,7 +130,13 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
     }
 
     private fun getCompressedFile(originResource: Resource, target: String, type: CompressType, level: Int): Resource {
-        val tmp = File(tempDir.path, target + type.extension).apply { this.deleteOnExit() }
+        val tmp = File(tempDir.path, target + type.extension).apply {
+            this.parentFile.also {
+                it.mkdirs()
+                it.deleteOnExit()
+            }
+            this.deleteOnExit()
+        }
         if (!tmp.exists()) {
             val fileInput = originResource.inputStream
             val outputStream: OutputStream = when (type) {
