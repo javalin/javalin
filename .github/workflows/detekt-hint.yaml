@@ -1,0 +1,29 @@
+name: detekt hint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  gradle:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        jdk: [11]
+    runs-on: ${{ matrix.os }}
+    if: ${{ !contains(github.event.head_commit.message, 'detekt hint skip') }}
+    env:
+      JDK_VERSION:  ${{ matrix.jdk }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+
+      - name: Run detekt hint
+        uses: Mkohm/detekt-hint-action@v1.1
+        with:
+          github-api-token: ${{ secrets.GITHUB_TOKEN }}

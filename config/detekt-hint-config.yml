@@ -1,0 +1,11 @@
+detekt-hint:
+  UseCompositionInsteadOfInheritance:
+    active: true
+    yourUniquePackageName: "io.javalin"
+  LackOfCohesionMethods:
+    active: true
+    threshold: "0.8"
+  InterfaceSegregationPrinciple:
+    active: true
+  OpenClosedPrinciple:
+    active: true
