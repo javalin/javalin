@@ -75,16 +75,11 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
         val CUSTOM_COMPRESS_PREFIX = "javalin-pecompressed-files/"
         fun handleFile(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             var resource = getResource(target)
-            if(resource.isDirectoryWithWelcomeFile(this, target)) return
-
-            response.setHeader(Header.ETAG, resource.weakETag)
-            response.setHeader(Header.ACCEPT_RANGES, "bytes") //all resource on jetty can accept range
-            response.setDateHeader(Header.LAST_MODIFIED, resource.lastModified())
-            response.setHeader(Header.CONTENT_TYPE, MimeTypes.getDefaultMimeByExtension(target))
+            if (resource.isDirectory) return
             val rwc = (response as JavalinResponseWrapper).rwc
             var compressed = false
-            if(request.getHeader(Header.RANGE).isNullOrEmpty()) {
-                if (!excludedMimeType(response.contentType ?: "")
+            try {
+                if (!excludedMimeType(MimeTypes.getDefaultMimeByExtension(target) ?: "")
                         && resource.length() > OutputStreamWrapper.minSizeForCompression) {
                     when {
                         rwc.acceptsBrotli && rwc.compStrat.brotli != null -> {
@@ -99,15 +94,23 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                         }
                     }
                 }
-                if (enforceContentLengthHeader) {
-                    //set content-length before write response
-                    response.setContentLengthLong(resource.length())
+            } catch (e: Exception) {
+                if (!Util.isClientAbortException(e)) {
+                    Javalin.log?.error("Exception occurred precompress static resource", e)
                 }
-                if(compressed){
-                    response.write(resource.inputStream)
-                    baseRequest.isHandled = true
-                    return
-                }
+                response.setHeader(Header.CONTENT_ENCODING,null)
+                compressed = false
+            }
+            if (request.getHeader(Header.RANGE).isNullOrEmpty() && enforceContentLengthHeader) {
+                //set content-length before write response
+                response.setContentLengthLong(resource.length())
+            }
+            if (compressed) {
+                //if 'javax.servlet.include.request_uri' isn't null, jetty will use 'javax.servlet.include.servlet_path'
+                // and 'javax.servlet.include.path_info' as resource path
+                request.setAttribute("javax.servlet.include.request_uri", "magic string")
+                request.setAttribute("javax.servlet.include.servlet_path", CUSTOM_COMPRESS_PREFIX + tempDir.path)
+                request.setAttribute("javax.servlet.include.path_info", target + CompressType.GZIP.extension)
             }
             response.contentType = null
             super.handle(target, baseRequest, request, response)
