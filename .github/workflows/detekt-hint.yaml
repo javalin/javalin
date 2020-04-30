@@ -20,6 +20,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run detekt hint
-        uses: Mkohm/detekt-hint-action@v1.1
+        uses: Mkohm/detekt-hint-action@master
         with:
           github-api-token: ${{ secrets.GITHUB_TOKEN }}
