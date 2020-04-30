@@ -18,20 +18,19 @@
             <artifactId>javalin</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <!-- END Project dependencies -->
         <!-- BEGIN Plugin dependencies -->
         <dependency>
             <groupId>com.expediagroup</groupId>
             <artifactId>graphql-kotlin-schema-generator</artifactId>
             <version>1.1.0</version>
         </dependency>
-
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
             <version>3.2.9.RELEASE</version>
         </dependency>
-
+        <!-- END Plugin dependencies -->
         <!-- BEGIN Test dependencies -->
         <dependency>
             <groupId>io.javalin</groupId>
@@ -71,5 +70,6 @@
             <artifactId>Java-WebSocket</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- END Test dependencies -->
     </dependencies>
 </project>
