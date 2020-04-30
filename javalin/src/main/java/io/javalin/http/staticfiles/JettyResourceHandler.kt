@@ -70,26 +70,30 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
     inner class StaticFileHandler : ResourceHandler() {
         var enforceContentLengthHeader = false
         val CUSTOM_COMPRESS_PREFIX = "javalin-pecompressed-files/"
+
         fun handleFile(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             var resource = getResource(target)
             if (resource.isDirectory) return
             val rwc = (response as JavalinResponseWrapper).rwc
-            var compressed = false
             response.contentType = MimeTypes.getDefaultMimeByExtension(target)
+            var compressType: CompressType? = null
+            var compressLevel = 1
             try {
                 if (!excludedMimeType(response.contentType ?: "")
                         && resource.length() > 1500) {
                     when {
                         rwc.acceptsBrotli && rwc.compStrat.brotli != null -> {
-                            resource = getCompressedFile(resource, target, CompressType.BR, rwc.compStrat.brotli.level)
-                            response.setHeader(Header.CONTENT_ENCODING, CompressType.BR.type)
-                            compressed = true
+                            compressType = CompressType.BR
+                            compressLevel = rwc.compStrat.brotli.level
                         }
                         rwc.acceptsGzip && rwc.compStrat.gzip != null -> {
-                            resource = getCompressedFile(resource, target, CompressType.GZIP, rwc.compStrat.gzip.level)
-                            response.setHeader(Header.CONTENT_ENCODING, CompressType.GZIP.type)
-                            compressed = true
+                            compressType = CompressType.GZIP
+                            compressLevel = rwc.compStrat.gzip.level
                         }
+                    }
+                    if (compressType != null) {
+                        resource = getCompressedFile(resource, target, compressType, compressLevel)
+                        response.setHeader(Header.CONTENT_ENCODING, compressType.type)
                     }
                 }
             } catch (e: Exception) {
@@ -97,16 +101,15 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                     Javalin.log?.error("Exception occurred precompress static resource", e)
                 }
                 response.setHeader(Header.CONTENT_ENCODING, null)
-                compressed = false
             }
             if (request.getHeader(Header.RANGE).isNullOrEmpty() && enforceContentLengthHeader) {
                 //set content-length before write response
                 response.setContentLengthLong(resource.length())
             }
-            if (compressed) {
+            if (compressType != null) {
                 //Change serving path to compressed file
                 ((request as CachedRequestWrapper).request as Request).servletPath = CUSTOM_COMPRESS_PREFIX + tempDir.path
-                ((request as CachedRequestWrapper).request as Request).pathInfo = target + CompressType.GZIP.extension
+                ((request as CachedRequestWrapper).request as Request).pathInfo = target + compressType.extension
             }
             super.handle(target, baseRequest, request, response)
         }
