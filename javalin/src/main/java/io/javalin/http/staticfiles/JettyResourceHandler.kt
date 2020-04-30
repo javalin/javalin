@@ -96,22 +96,23 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                         response.setHeader(Header.CONTENT_ENCODING, compressType.type)
                     }
                 }
+                if (request.getHeader(Header.RANGE).isNullOrEmpty() && enforceContentLengthHeader) {
+                    //set content-length before write response
+                    response.setContentLengthLong(resource.length())
+                }
+                if (compressType != null) {
+                    //Change serving path to compressed file
+                    ((request as CachedRequestWrapper).request as Request).servletPath = CUSTOM_COMPRESS_PREFIX + tempDir.path
+                    ((request as CachedRequestWrapper).request as Request).pathInfo = target + compressType.extension
+                }
+                super.handle(target, baseRequest, request, response)
             } catch (e: Exception) {
                 if (!Util.isClientAbortException(e)) {
-                    Javalin.log?.error("Exception occurred precompress static resource", e)
+                    Javalin.log?.error("Exception occurred precompressed static resource", e)
                 }
+                response.contentType = null
                 response.setHeader(Header.CONTENT_ENCODING, null)
             }
-            if (request.getHeader(Header.RANGE).isNullOrEmpty() && enforceContentLengthHeader) {
-                //set content-length before write response
-                response.setContentLengthLong(resource.length())
-            }
-            if (compressType != null) {
-                //Change serving path to compressed file
-                ((request as CachedRequestWrapper).request as Request).servletPath = CUSTOM_COMPRESS_PREFIX + tempDir.path
-                ((request as CachedRequestWrapper).request as Request).pathInfo = target + compressType.extension
-            }
-            super.handle(target, baseRequest, request, response)
         }
 
         override fun getResource(path: String): Resource {// return custom resource
