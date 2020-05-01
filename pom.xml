@@ -1,5 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+    <modules>
+        <module>javalin</module>
+        <module>javalin-openapi</module>
+    </modules>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -8,10 +13,10 @@
     </parent>
 
     <groupId>io.javalin</groupId>
-    <artifactId>javalin</artifactId>
-    <version>3.7.1-SNAPSHOT</version>
+    <artifactId>javalin-parent</artifactId>
+    <version>3.8.1-SNAPSHOT</version>
 
-    <name>Javalin</name>
+    <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
     <url>https://javalin.io</url>
 
@@ -40,13 +45,53 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <jetty.version>9.4.25.v20191220</jetty.version>
-        <slf4j.version>1.7.28</slf4j.version>
-        <jackson.version>2.10.1</jackson.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.3.61</kotlin.version>
+        <kotlin.version>1.3.71</kotlin.version>
         <kotlin.compiler.jvmTarget>1.6</kotlin.compiler.jvmTarget> <!-- This is 1.6 on purpose, don't bump -->
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+
+        <!-- PLUGINS -->
+        <compiler.plugin.version>3.8.1</compiler.plugin.version>
+        <dokka.plugin.version>0.10.0</dokka.plugin.version>
+        <gpg.plugin.version>1.6</gpg.plugin.version>
+        <jar.plugin.version>3.2.0</jar.plugin.version>
+        <surefire.plugin.version>2.22.2</surefire.plugin.version>
+
+        <!-- DEPENDENCIES -->
+        <classgraph.version>4.8.66</classgraph.version>
+        <commonmark.version>0.14.0</commonmark.version>
+        <freemarker.version>2.3.30</freemarker.version>
+        <guava.version>28.2-jre</guava.version>
+        <jackson.version>2.10.3</jackson.version>
+        <jetty.version>9.4.28.v20200408</jetty.version>
+        <jtwig.version>5.87.0.RELEASE</jtwig.version>
+        <jvmbrotli.version>0.2.0</jvmbrotli.version>
+        <micrometer.version>1.3.6</micrometer.version>
+        <mustache.version>0.9.6</mustache.version>
+        <pebble.version>3.1.2</pebble.version>
+        <redoc.version>2.0.0-rc.23</redoc.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <swagger.models.version>2.1.2</swagger.models.version>
+        <swagger.parser.version>2.0.18</swagger.parser.version>
+        <swagger.ui.version>3.25.0</swagger.ui.version>
+        <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
+        <velocity.version>2.2</velocity.version>
+
+        <!-- TEST DEPENDENCIES -->
+        <assertj.version>3.15.0</assertj.version>
+        <common.io.version>2.6</common.io.version>
+        <gson.version>2.8.6</gson.version>
+        <java.websocket.version>1.4.1</java.websocket.version>
+        <javax.servlet.api.version>3.1.0</javax.servlet.api.version>
+        <junit.benchmark.version>0.7.2</junit.benchmark.version>
+        <junit.version>4.13</junit.version>
+        <kotlin.openapi.dsl.version>0.20.2</kotlin.openapi.dsl.version>
+        <mockk.version>1.9.3.kotlin12</mockk.version>
+        <okhttp.version>3.14.7</okhttp.version>
+        <selenium.chrome.driver.version>3.141.59</selenium.chrome.driver.version>
+        <unirest.version>1.4.9</unirest.version>
+        <webdrivermanager.version>3.8.1</webdrivermanager.version>
     </properties>
 
     <dependencies>
@@ -55,227 +100,6 @@
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Jetty -->
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-
-        <!-- BEGIN Optional dependencies -->
-        <dependency>
-            <groupId>com.nixxcode.jvmbrotli</groupId>
-            <artifactId>jvmbrotli</artifactId>
-            <version>0.2.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-kotlin</artifactId>
-            <version>${jackson.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.velocity</groupId>
-            <artifactId>velocity-engine-core</artifactId>
-            <version>2.1</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>2.3.28</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.thymeleaf</groupId>
-            <artifactId>thymeleaf</artifactId>
-            <version>3.0.9.RELEASE</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.github.spullara.mustache.java</groupId>
-            <artifactId>compiler</artifactId>
-            <version>0.9.5</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jtwig</groupId>
-            <artifactId>jtwig-core</artifactId>
-            <version>5.87.0.RELEASE</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.pebbletemplates</groupId>
-            <artifactId>pebble</artifactId>
-            <version>3.1.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.atlassian.commonmark</groupId>
-            <artifactId>commonmark</artifactId>
-            <version>0.11.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-            <version>1.1.3</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-models</artifactId>
-            <version>2.1.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.swagger.parser.v3</groupId>
-            <artifactId>swagger-parser</artifactId>
-            <version>2.0.16</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.npm</groupId>
-            <artifactId>redoc</artifactId>
-            <version>2.0.0-rc.2</version>
-            <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>swagger-ui</artifactId>
-            <version>3.24.3</version>
-            <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.github.classgraph</groupId>
-            <artifactId>classgraph</artifactId>
-            <version>4.8.34</version>
-            <optional>true</optional>
-        </dependency>
-        <!-- END Optional dependencies -->
-
-        <!-- BEGIN Test dependencies -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>3.11.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.mashape.unirest</groupId>
-            <artifactId>unirest-java</artifactId>
-            <version>1.4.9</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.java-websocket</groupId>
-            <artifactId>Java-WebSocket</artifactId>
-            <version>1.3.8</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>3.11.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.carrotsearch</groupId>
-            <artifactId>junit-benchmarks</artifactId>
-            <version>0.7.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.6</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.5</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-unixsocket</artifactId>
-            <version>${jetty.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.mockk</groupId>
-            <artifactId>mockk</artifactId>
-            <version>1.9.3.kotlin12</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-chrome-driver</artifactId>
-            <version>3.141.59</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.github.bonigarcia</groupId>
-            <artifactId>webdrivermanager</artifactId>
-            <version>3.6.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>cc.vileda</groupId>
-            <artifactId>kotlin-openapi3-dsl</artifactId>
-            <version>0.20.2</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -283,7 +107,207 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>25.0-jre</version>
+                <version>${guava.version}</version>
+            </dependency>
+            <!-- Logging -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <!-- Jetty -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.websocket</groupId>
+                <artifactId>websocket-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+
+            <!-- BEGIN Optional dependencies -->
+            <dependency>
+                <groupId>com.nixxcode.jvmbrotli</groupId>
+                <artifactId>jvmbrotli</artifactId>
+                <version>${jvmbrotli.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-kotlin</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity-engine-core</artifactId>
+                <version>${velocity.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thymeleaf</groupId>
+                <artifactId>thymeleaf</artifactId>
+                <version>${thymeleaf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.spullara.mustache.java</groupId>
+                <artifactId>compiler</artifactId>
+                <version>${mustache.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jtwig</groupId>
+                <artifactId>jtwig-core</artifactId>
+                <version>${jtwig.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.pebbletemplates</groupId>
+                <artifactId>pebble</artifactId>
+                <version>${pebble.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.atlassian.commonmark</groupId>
+                <artifactId>commonmark</artifactId>
+                <version>${commonmark.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-core</artifactId>
+                <version>${micrometer.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>${swagger.models.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.parser.v3</groupId>
+                <artifactId>swagger-parser</artifactId>
+                <version>${swagger.parser.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars.npm</groupId>
+                <artifactId>redoc</artifactId>
+                <version>${redoc.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>swagger-ui</artifactId>
+                <version>${swagger.ui.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.github.classgraph</groupId>
+                <artifactId>classgraph</artifactId>
+                <version>${classgraph.version}</version>
+            </dependency>
+            <!-- END Optional dependencies -->
+
+            <!-- BEGIN Test dependencies -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.mashape.unirest</groupId>
+                <artifactId>unirest-java</artifactId>
+                <version>${unirest.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.java-websocket</groupId>
+                <artifactId>Java-WebSocket</artifactId>
+                <version>${java.websocket.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.carrotsearch</groupId>
+                <artifactId>junit-benchmarks</artifactId>
+                <version>${junit.benchmark.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${common.io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-unixsocket</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.mockk</groupId>
+                <artifactId>mockk</artifactId>
+                <version>${mockk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-chrome-driver</artifactId>
+                <version>${selenium.chrome.driver.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.bonigarcia</groupId>
+                <artifactId>webdrivermanager</artifactId>
+                <version>${webdrivermanager.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cc.vileda</groupId>
+                <artifactId>kotlin-openapi3-dsl</artifactId>
+                <version>${kotlin.openapi.dsl.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${javax.servlet.api.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -335,7 +359,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>${compiler.plugin.version}</version>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->
                     <execution>
@@ -371,7 +395,7 @@
             <plugin>
                 <groupId>org.jetbrains.dokka</groupId>
                 <artifactId>dokka-maven-plugin</artifactId>
-                <version>0.10.0</version>
+                <version>${dokka.plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>pre-site</phase>
@@ -384,24 +408,22 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>${surefire.plugin.version}</version>
                 <configuration>
                     <rerunFailingTestsCount>2</rerunFailingTestsCount>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Automatic-Module-Name>io.javalin</Automatic-Module-Name>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
         </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${jar.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
     <profiles>
@@ -418,7 +440,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>${gpg.plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
