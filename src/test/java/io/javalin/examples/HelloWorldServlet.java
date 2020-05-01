@@ -20,7 +20,8 @@ public class HelloWorldServlet {
             config.server(() -> {
                 Server server = new Server();
                 ServletContextHandler context = new ServletContextHandler();
-                context.setContextPath("/other-servlet");
+                context.setContextPath("/test-servlet");
+                //Servlet will respond to all requests beginning with /test-servlet
                 context.addServlet(TestServlet.class, "/");
                 ContextHandlerCollection handlers = new ContextHandlerCollection();
                 handlers.setHandlers(new Handler[]{context});
@@ -28,6 +29,8 @@ public class HelloWorldServlet {
                 return server;
             });
         });
+        app.config.contextPath = "/api";
+        //This route will now respond on /api
         app.get("/", ctx -> ctx.result("Hello Javalin World!"));
         app.start(8000);
     }
