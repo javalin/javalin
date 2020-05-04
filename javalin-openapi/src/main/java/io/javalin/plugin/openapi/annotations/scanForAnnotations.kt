@@ -29,7 +29,7 @@ internal fun scanForAnnotations(packagePrefixes: Set<String>): Map<PathInfo, Ope
                 .distinct()
                 .joinToString(", ")
         throw IllegalStateException("Found multiple of the name path infos ("
-            + duplicates + ") in packages: " + packagePrefixes.joinToString(", "))
+                + duplicates + ") in packages: " + packagePrefixes.joinToString(", "))
     }
 
     annotations.forEach {

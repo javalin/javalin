@@ -162,7 +162,7 @@ public class Javalin {
         JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
         if (server.getStarted()) {
-            String message = "Server already started. If you are trying to call start() on an instance " + 
+            String message = "Server already started. If you are trying to call start() on an instance " +
                 "of Javalin that was stopped using stop(), please create a new instance instead.";
             throw new IllegalStateException(message);
         }

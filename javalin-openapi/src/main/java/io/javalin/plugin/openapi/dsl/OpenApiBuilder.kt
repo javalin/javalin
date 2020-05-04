@@ -2,8 +2,8 @@
 
 package io.javalin.plugin.openapi.dsl
 
-import io.javalin.apibuilder.CrudHandler
 import io.javalin.apibuilder.CrudFunction
+import io.javalin.apibuilder.CrudHandler
 import io.javalin.core.util.Reflection.Companion.rfl
 import io.javalin.http.Context
 import io.javalin.http.Handler

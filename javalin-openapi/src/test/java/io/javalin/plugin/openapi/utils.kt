@@ -3,9 +3,6 @@
 package io.javalin.plugin.openapi;
 
 import io.javalin.Javalin
-import io.javalin.plugin.openapi.JavalinOpenApi
-import io.javalin.plugin.openapi.OpenApiOptions
-import io.javalin.plugin.openapi.OpenApiPlugin
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import org.assertj.core.api.Assertions.assertThat

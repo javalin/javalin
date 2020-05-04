@@ -9,7 +9,6 @@ package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
-import io.javalin.testing.TestUtil.okHandler
 import io.javalin.apibuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.before
@@ -24,6 +23,7 @@ import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.testing.TestUtil
+import io.javalin.testing.TestUtil.okHandler
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
