@@ -6,6 +6,7 @@
         <module>javalin</module>
         <module>javalin-openapi</module>
         <module>javalin-bundle</module>
+        <module>javalin-without-jetty</module>
     </modules>
 
     <parent>
