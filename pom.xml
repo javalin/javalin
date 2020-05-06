@@ -1,10 +1,13 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <modules>
         <module>javalin</module>
         <module>javalin-openapi</module>
         <module>javalin-graphql</module>
+        <module>javalin-bundle</module>
+        <module>javalin-without-jetty</module>
     </modules>
 
     <parent>
@@ -68,6 +71,7 @@
         <jetty.version>9.4.28.v20200408</jetty.version>
         <jtwig.version>5.87.0.RELEASE</jtwig.version>
         <jvmbrotli.version>0.2.0</jvmbrotli.version>
+        <logback.version>1.2.3</logback.version>
         <micrometer.version>1.3.6</micrometer.version>
         <mustache.version>0.9.6</mustache.version>
         <pebble.version>3.1.2</pebble.version>
@@ -120,6 +124,11 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
                 <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
             </dependency>
 
             <!-- Jetty -->

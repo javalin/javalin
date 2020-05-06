@@ -90,6 +90,7 @@ class Reflection(val obj: Any) {
          * Short name for convenience
          */
         fun rfl(obj: Any) = Reflection(obj)
+
         private fun classOf(obj: Any): Class<*> = if (obj is Class<*>) obj else obj.javaClass
     }
 

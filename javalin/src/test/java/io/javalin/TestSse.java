@@ -2,10 +2,9 @@ package io.javalin;
 
 import com.mashape.unirest.http.Headers;
 import io.javalin.http.sse.SseClient;
+import io.javalin.testing.TestUtil;
 import java.util.ArrayList;
 import java.util.List;
-
-import io.javalin.testing.TestUtil;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
