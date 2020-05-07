@@ -20,8 +20,12 @@
     </dependencies>
 
     <properties>
-        <javalin.original.path>../javalin/src/main/java/io/javalin/Javalin.java</javalin.original.path>
-        <javalin.hack.path>../javalin-without-jetty/target/generated-sources/src/main/java/io/javalin/Javalin.java</javalin.hack.path>
+        <original.root>../javalin/src/main/java/io/javalin</original.root>
+        <hackity.hack.root>../javalin-without-jetty/target/generated-sources/src/main/java/io/javalin</hackity.hack.root>
+        <javalin.original.path>${original.root}/Javalin.java</javalin.original.path>
+        <javalin.hack.path>${hackity.hack.root}/Javalin.java</javalin.hack.path>
+        <javalinconfig.original.path>${original.root}/core/JavalinConfig.java</javalinconfig.original.path>
+        <javalinconfig.hack.path>${hackity.hack.root}/core/JavalinConfig.java</javalinconfig.hack.path>
     </properties>
 
     <build>
@@ -62,6 +66,7 @@
                         <phase>generate-sources</phase>
                         <configuration><!-- @formatter:off -->
                             <target name="hacky-mchackface">
+                                <!-- Javalin.java -->
                                 <copy file="${javalin.original.path}" tofile="${javalin.hack.path}"/>
                                 <replace file="${javalin.hack.path}" token="public Javalin ws("
                                                                      value="private Javalin ws("/>
@@ -91,6 +96,26 @@
                                                                      value="private Javalin stop("/>
                                 <replace file="${javalin.hack.path}" token="public int port("
                                                                      value="private int port("/>
+                                <!-- JavalinConfig.java -->
+                                <copy file="${javalinconfig.original.path}" tofile="${javalinconfig.hack.path}"/>
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig addStaticFiles("
+                                                                           value="private JavalinConfig addStaticFiles("/>
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig sessionHandler("
+                                                                           value="private JavalinConfig sessionHandler("/>
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig wsFactoryConfig("
+                                                                           value="private JavalinConfig wsFactoryConfig("/>
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig wsLogger("
+                                                                           value="private JavalinConfig wsLogger("/>
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig enableWebjars()"
+                                                                           value="private JavalinConfig enableWebjars()"/>
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig enableDevLogging()"
+                                                                           value="private JavalinConfig enableDevLogging()"/>
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig server("
+                                                                           value="private JavalinConfig server("/>
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig configureServletContextHandler("
+                                                                           value="private JavalinConfig configureServletContextHandler("/>
+                                <replace file="${javalinconfig.hack.path}" token="public boolean logIfServerNotStarted = true;"
+                                                                           value="public boolean logIfServerNotStarted = false;"/>
                             </target>
                         </configuration><!-- @formatter:on -->
                         <goals>
