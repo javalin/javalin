@@ -26,6 +26,8 @@
         <javalin.hack.path>${hackity.hack.root}/Javalin.java</javalin.hack.path>
         <javalinconfig.original.path>${original.root}/core/JavalinConfig.java</javalinconfig.original.path>
         <javalinconfig.hack.path>${hackity.hack.root}/core/JavalinConfig.java</javalinconfig.hack.path>
+        <context.original.path>${original.root}/http/Context.kt</context.original.path>
+        <context.hack.path>${hackity.hack.root}/http/Context.kt</context.hack.path>
     </properties>
 
     <build>
@@ -116,6 +118,12 @@
                                                                            value="private JavalinConfig configureServletContextHandler("/>
                                 <replace file="${javalinconfig.hack.path}" token="public boolean logIfServerNotStarted = true;"
                                                                            value="public boolean logIfServerNotStarted = false;"/>
+                                <!-- Context.kt -->
+                                <copy file="${context.original.path}" tofile="${context.hack.path}"/>
+                                <replace file="${context.hack.path}" token="fun uploadedFile("
+                                                                     value="private fun uploadedFile("/>
+                                <replace file="${context.hack.path}" token="fun uploadedFiles("
+                                                                     value="private fun uploadedFiles("/>
                             </target>
                         </configuration><!-- @formatter:on -->
                         <goals>
@@ -137,6 +145,40 @@
                             <sources>
                                 <source>${project.build.directory}/generated-sources/</source>
                             </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/target/generated-sources/src/main/java</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <args>
+                                <!-- Workaround for bug in Kotlin compiler: https://youtrack.jetbrains.com/issue/KT-29475 -->
+                                <arg>-Xsanitize-parentheses</arg>
+                            </args>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+                                <sourceDir>${project.basedir}/src/test/java</sourceDir>
+                            </sourceDirs>
                         </configuration>
                     </execution>
                 </executions>
