@@ -77,8 +77,8 @@
         <redoc.version>2.0.0-rc.23</redoc.version>
         <slf4j.version>1.7.30</slf4j.version>
         <swagger.models.version>2.1.2</swagger.models.version>
-        <swagger.parser.version>2.0.18</swagger.parser.version>
-        <swagger.ui.version>3.25.0</swagger.ui.version>
+        <swagger.parser.version>2.0.19</swagger.parser.version>
+        <swagger.ui.version>3.25.2</swagger.ui.version>
         <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
         <velocity.version>2.2</velocity.version>
 
