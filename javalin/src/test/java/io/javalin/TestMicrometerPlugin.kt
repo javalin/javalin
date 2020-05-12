@@ -3,6 +3,7 @@ package io.javalin
 import io.javalin.plugin.metrics.MicrometerPlugin
 import io.javalin.testing.HttpUtil
 import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.junit.After
 import org.junit.Before
@@ -10,7 +11,7 @@ import org.junit.Test
 
 class TestMicrometerPlugin {
     private val meterRegistry: MeterRegistry = SimpleMeterRegistry()
-    val app: Javalin = Javalin.create { config -> config.registerPlugin(MicrometerPlugin(meterRegistry)) }.start(0);
+    val app: Javalin = Javalin.create { config -> config.registerPlugin(MicrometerPlugin(meterRegistry, Tags.empty(), true)) }.start(0);
     val http = HttpUtil(app.port())
 
     @Before

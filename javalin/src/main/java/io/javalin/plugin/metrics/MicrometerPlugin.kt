@@ -18,14 +18,23 @@ import org.apache.commons.lang3.StringUtils
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegistry = Metrics.globalRegistry, private val tags: Iterable<Tag> = Tags.empty()) : Plugin {
+class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegistry = Metrics.globalRegistry,
+                                                 private val tags: Iterable<Tag> = Tags.empty(),
+                                                 private val tagExceptionName: Boolean = false) : Plugin {
     override fun apply(app: Javalin) {
         app.server()?.server()?.let { server ->
-            app.exception(Exception::class.java, EXCEPTION_HANDLER)
+            if(tagExceptionName) {
+                app.exception(Exception::class.java, EXCEPTION_HANDLER)
+            }
 
             server.insertHandler(TimedHandler(registry, tags, object : DefaultHttpServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {
-                    val exceptionName = response.getHeader(EXCEPTION_HEADER)
+                    val exceptionName = if(tagExceptionName) {
+                        response.getHeader(EXCEPTION_HEADER)
+                    } else {
+                        "Unknown"
+                    }
+
                     response.setHeader(EXCEPTION_HEADER, null)
                     val uri = app.servlet().matcher
                             .findEntries(HandlerType.GET, request.pathInfo)
