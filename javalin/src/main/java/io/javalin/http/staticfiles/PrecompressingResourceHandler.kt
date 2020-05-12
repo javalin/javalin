@@ -38,13 +38,13 @@ class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
             if (!resourceCompressible)
                 acceptCompressType = CompressType.NONE
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType)
-
-            //TODO request range and content length
-            res.setHeader(Header.CONTENT_LENGTH, resultByteArray.size.toString())
+            res.setContentLength(resultByteArray.size)
             res.setHeader(Header.CONTENT_TYPE, contentType)
+
             if (acceptCompressType != CompressType.NONE)
                 res.setHeader(Header.CONTENT_ENCODING, acceptCompressType.typeName)
-            val weakETag = resource.weakETag
+
+            val weakETag = resource.weakETag //jetty resource use weakETag too
             req.getHeader(Header.IF_NONE_MATCH)?.let { etag ->
                 if (etag == weakETag) {
                     res.status = 304
