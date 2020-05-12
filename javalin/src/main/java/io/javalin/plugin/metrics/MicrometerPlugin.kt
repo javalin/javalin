@@ -42,8 +42,9 @@ class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegi
                     }
 
                     response.setHeader(EXCEPTION_HEADER, null)
-                    val uri = app.servlet().matcher
-                            .findEntries(HandlerType.GET, request.pathInfo)
+                    val uri = app.servlet()
+                            .matcher
+                            .findEntries(HandlerType.valueOf(request.method), request.pathInfo)
                             .stream()
                             .findAny()
                             .map(HandlerEntry::path)
