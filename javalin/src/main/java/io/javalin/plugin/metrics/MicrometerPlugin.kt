@@ -1,3 +1,9 @@
+/*
+ * Javalin - https://javalin.io
+ * Copyright 2020 David Åse
+ * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ */
+
 package io.javalin.plugin.metrics
 
 import io.javalin.Javalin
