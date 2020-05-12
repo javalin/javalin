@@ -1,5 +1,6 @@
 package io.javalin.http.staticfiles
 
+import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.LeveledBrotliStream
@@ -9,7 +10,7 @@ import org.eclipse.jetty.util.resource.Resource
 import java.io.*
 
 
-class PrecompressingResourceHandler {
+class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
 
     val compressedFiles = HashMap<String, ByteArray>()
 
@@ -34,42 +35,40 @@ class PrecompressingResourceHandler {
             val resourceCompressible = !excludedMimeType(contentType)
             if (!resourceCompressible)
                 acceptCompressType = CompressType.NONE
-            val resultByteArray = getStaticResourceByteArray(resource, ctx.path(), acceptCompressType, 4)
+            val resultByteArray = getStaticResourceByteArray(resource, ctx.path(), acceptCompressType)
 
             //TODO etag
-            //TODO compression level
-            //TODO request range
+            //TODO request range and content length
 
             ctx.header(Header.CONTENT_TYPE, contentType)
             ctx.header(Header.CONTENT_ENCODING, acceptCompressType.typeName)
             ctx.result(resultByteArray)
-            
+
             return true
         }
         return false
     }
 
-    private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType, level: Int): ByteArray {
+    private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray {
         val key = target + type.extension
         if (!compressedFiles.containsKey(key)) {
-            compressedFiles[key] = getCompressedByteArray(resource, type, level)
+            compressedFiles[key] = getCompressedByteArray(resource, type)
         }
         return compressedFiles[key]!!
     }
 
-    private fun getCompressedByteArray(resource: Resource, type: CompressType, level: Int): ByteArray {
+    private fun getCompressedByteArray(resource: Resource, type: CompressType): ByteArray {
         val fileInput = resource.file.inputStream()
         val byteArrayOutputStream = ByteArrayOutputStream()
-        val outputStream: OutputStream = when (type) {
-            CompressType.GZIP -> {
-                LeveledGzipStream(byteArrayOutputStream, level)
+        val outputStream: OutputStream = when {
+            compStrat.gzip != null && type == CompressType.GZIP -> {
+                LeveledGzipStream(byteArrayOutputStream, compStrat.gzip.level)
             }
-            CompressType.BR -> {
-                LeveledBrotliStream(byteArrayOutputStream, level)
+            compStrat.brotli != null && type == CompressType.BR -> {
+                LeveledBrotliStream(byteArrayOutputStream, compStrat.brotli.level)
             }
-            CompressType.NONE -> {
+            else ->
                 byteArrayOutputStream
-            }
         }
         fileInput.copyTo(outputStream, bufferSize = 2048)
         fileInput.close()

@@ -7,6 +7,7 @@
 package io.javalin.http.staticfiles
 
 import io.javalin.Javalin
+import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.Context
@@ -19,11 +20,11 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler(val usePrecompressStaticFiles: Boolean) : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val usePrecompressStaticFiles: Boolean, compStrat: CompressionStrategy) : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
 
-    val precompressStaticFiles = PrecompressingResourceHandler()
+    val precompressStaticFiles = PrecompressingResourceHandler(compStrat)
 
     // It would work without a server, but if none is set jetty will log a warning.
     private val dummyServer = Server()

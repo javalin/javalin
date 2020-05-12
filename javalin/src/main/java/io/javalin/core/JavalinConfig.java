@@ -116,7 +116,7 @@ public class JavalinConfig {
     public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null)
-            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles);
+            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles,inner.compressionStrategy);
         inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
         return this;
     }
