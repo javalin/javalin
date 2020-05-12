@@ -63,6 +63,14 @@ class TestStaticFiles {
         }
     }
 
+    private val configPrecompressionStaticResourceApp: Javalin by lazy{
+        Javalin.create { config->
+            config.precompressStaticFiles = true
+            config.addStaticFiles("/public/immutable")
+            config.addStaticFiles("/public/protected")
+        }
+    }
+
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
@@ -155,5 +163,11 @@ class TestStaticFiles {
     fun `Correct content type is returned when a custom filter with a response wrapper is added`() = TestUtil.test(customFilterStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
+    }
+
+    @Test
+    fun `response header always contains content-length if enforceContentLength is true`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
+        assertThat(!http.get("/secret.html").headers.getFirst(Header.CONTENT_LENGTH).isNullOrEmpty())
+        assertThat(!http.get("/library-1.0.0.min.js").headers.getFirst(Header.CONTENT_LENGTH).isNullOrEmpty())
     }
 }
