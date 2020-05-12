@@ -72,7 +72,7 @@ class JettyResourceHandler(val usePrecompressStaticFiles: Boolean, compStrat: Co
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
-                    if(usePrecompressStaticFiles && precompressStaticFiles.handle(resource,Context(httpRequest,httpResponse)))
+                    if(usePrecompressStaticFiles && precompressStaticFiles.handle(resource,httpRequest,httpResponse))
                         return true
                     httpResponse.contentType = null
                     handler.handle(target, baseRequest, httpRequest, httpResponse)

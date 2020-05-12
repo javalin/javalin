@@ -2,12 +2,13 @@ package io.javalin.http.staticfiles
 
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.util.Header
-import io.javalin.http.Context
 import io.javalin.http.LeveledBrotliStream
 import io.javalin.http.LeveledGzipStream
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.*
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 
 class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
@@ -28,29 +29,31 @@ class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
                 "application/x-rar-compressed")
     }
 
-    fun handle(resource: Resource, ctx: Context): Boolean {
+    fun handle(resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
         if (resource.exists() && !resource.isDirectory) {
-            var acceptCompressType = CompressType.getByAcceptEncoding(ctx.header(Header.ACCEPT_ENCODING) ?: "")
+            val target = req.getAttribute("jetty-target") as String
+            var acceptCompressType = CompressType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
             val contentType = MimeTypes.getDefaultMimeByExtension(resource.file.name)//get content type by file extension
             val resourceCompressible = !excludedMimeType(contentType)
             if (!resourceCompressible)
                 acceptCompressType = CompressType.NONE
-            val resultByteArray = getStaticResourceByteArray(resource, ctx.path(), acceptCompressType)
+            val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType)
 
             //TODO etag
             //TODO request range and content length
-
-            ctx.header(Header.CONTENT_TYPE, contentType)
-            ctx.header(Header.CONTENT_ENCODING, acceptCompressType.typeName)
-            ctx.result(resultByteArray)
-
+            res.setHeader(Header.CONTENT_LENGTH, resultByteArray.size.toString())
+            res.setHeader(Header.CONTENT_TYPE, contentType)
+            if (acceptCompressType != CompressType.NONE)
+                res.setHeader(Header.CONTENT_ENCODING, acceptCompressType.typeName)
+            resultByteArray.inputStream().copyTo(res.outputStream, 2048)
+            res.outputStream.close()
             return true
         }
         return false
     }
 
     private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray {
-        if(resource.length() > Int.MAX_VALUE)
+        if (resource.length() > Int.MAX_VALUE)
             throw RuntimeException("Precompression doesn't support static file size large than 2GB")
         val key = target + type.extension
         if (!compressedFiles.containsKey(key)) {
