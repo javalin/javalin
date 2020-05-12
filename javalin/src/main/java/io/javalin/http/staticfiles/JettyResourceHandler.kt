@@ -20,7 +20,7 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler(val usePrecompressStaticFiles: Boolean, compStrat: CompressionStrategy) : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val usePrecompressStaticFiles: Boolean = false, compStrat: CompressionStrategy) : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
 
