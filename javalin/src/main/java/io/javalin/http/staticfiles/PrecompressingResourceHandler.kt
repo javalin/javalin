@@ -50,6 +50,8 @@ class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
     }
 
     private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray {
+        if(resource.length() > Int.MAX_VALUE)
+            throw RuntimeException("Precompression doesn't support static file size large than 2GB")
         val key = target + type.extension
         if (!compressedFiles.containsKey(key)) {
             compressedFiles[key] = getCompressedByteArray(resource, type)
