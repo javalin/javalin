@@ -9,6 +9,7 @@ package io.javalin.http.staticfiles
 import io.javalin.Javalin
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
+import io.javalin.http.Context
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
@@ -18,9 +19,11 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val usePrecompressStaticFiles: Boolean) : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
+
+    val precompressStaticFiles = PrecompressingResourceHandler()
 
     // It would work without a server, but if none is set jetty will log a warning.
     private val dummyServer = Server()
@@ -68,6 +71,8 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
+                    if(usePrecompressStaticFiles && precompressStaticFiles.handle(resource,Context(httpRequest,httpResponse)))
+                        return true
                     httpResponse.contentType = null
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)

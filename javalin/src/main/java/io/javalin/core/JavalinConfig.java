@@ -48,6 +48,7 @@ public class JavalinConfig {
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
+    public boolean precompressStaticFiles = false;
     public boolean showJavalinBanner = true;
     public boolean logIfServerNotStarted = true;
     @NotNull public String defaultContentType = "text/plain";
@@ -114,7 +115,8 @@ public class JavalinConfig {
 
     public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location) {
         JettyUtil.disableJettyLogger();
-        if (inner.resourceHandler == null) inner.resourceHandler = new JettyResourceHandler();
+        if (inner.resourceHandler == null)
+            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles);
         inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(path, location));
         return this;
     }
