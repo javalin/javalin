@@ -13,6 +13,7 @@ import io.javalin.http.Context
 import io.javalin.http.JavalinServlet
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.util.ContextUtil
+import org.eclipse.jetty.websocket.api.WebSocketConstants
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
@@ -59,6 +60,19 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
             config.inner.accessManager.manage({ ctx -> ctx.req.setAttribute(upgradeAllowedKey, true) }, upgradeContext, entry.permittedRoles)
             if (req.getAttribute(upgradeAllowedKey) != true) throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
             req.setAttribute(upgradeContextKey, upgradeContext)
+
+            // hhh, 2020.5.13 we should select one protocol according to IETF RFC 6455
+            val s = req.getHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)
+            if (s != null) {
+                val protocolNames = s.split(',').map{it.trim()}.filter { it!="" }
+                if (protocolNames.isNotEmpty()) {
+                    // which protocol?  Maybe should given it in configuration
+                    val preferProtocol = "mqtt"
+                    val selectedProtocol = protocolNames.firstOrNull { it==preferProtocol }
+                    res.setHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, selectedProtocol ?: protocolNames[0])
+                }
+            }
+
             super.service(req, res) // everything is okay, perform websocket upgrade
         } catch (e: Exception) {
             res.sendError(401, "Unauthorized")
