@@ -19,7 +19,7 @@
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
-# Maven2 Start Up Batch script
+# Maven Start Up Batch script
 #
 # Required ENV vars:
 # ------------------
@@ -212,9 +212,9 @@ else
       echo "Couldn't find .mvn/wrapper/maven-wrapper.jar, downloading it ..."
     fi
     if [ -n "$MVNW_REPOURL" ]; then
-      jarUrl="$MVNW_REPOURL/io/takari/maven-wrapper/0.5.3/maven-wrapper-0.5.3.jar"
+      jarUrl="$MVNW_REPOURL/io/takari/maven-wrapper/0.5.6/maven-wrapper-0.5.6.jar"
     else
-      jarUrl="https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.5.3/maven-wrapper-0.5.3.jar"
+      jarUrl="https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.5.6/maven-wrapper-0.5.6.jar"
     fi
     while IFS="=" read key value; do
       case "$key" in (wrapperUrl) jarUrl="$value"; break ;;
@@ -246,7 +246,7 @@ else
         else
             curl --user $MVNW_USERNAME:$MVNW_PASSWORD -o "$wrapperJarPath" "$jarUrl" -f
         fi
-        
+
     else
         if [ "$MVNW_VERBOSE" = true ]; then
           echo "Falling back to using Java to download"
@@ -295,6 +295,11 @@ if $cygwin; then
   [ -n "$MAVEN_PROJECTBASEDIR" ] &&
     MAVEN_PROJECTBASEDIR=`cygpath --path --windows "$MAVEN_PROJECTBASEDIR"`
 fi
+
+# Provide a "standardized" way to retrieve the CLI args that will
+# work with both Windows and non-Windows executions.
+MAVEN_CMD_LINE_ARGS="$MAVEN_CONFIG $@"
+export MAVEN_CMD_LINE_ARGS
 
 WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
 

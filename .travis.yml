@@ -1,8 +1,0 @@
-sudo: required # this became required on 30-08-2018 for unknown reasons
-language: java
-jdk:
-- openjdk8
-- openjdk9
-- openjdk10
-# - openjdk11
-- openjdk12

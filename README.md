@@ -1,5 +1,5 @@
 [![Chat at https://gitter.im/javalin-io/general](https://badges.gitter.im/javalin-io/general.svg)](https://gitter.im/javalin-io/general)
-[![Travis](https://img.shields.io/travis/tipsy/javalin.svg)](https://travis-ci.org/tipsy/javalin/builds)
+[![Travis](https://github.com/tipsy/javalin/workflows/Test%20all%20JDKs%20on%20all%20OSes/badge.svg)](https://github.com/tipsy/javalin/actions)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Maven](https://img.shields.io/maven-central/v/io.javalin/javalin.svg)](https://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22io.javalin%22%20AND%20a%3A%22javalin%22)
 
@@ -14,24 +14,31 @@ Javalin is more of a library than a framework. Some key points:
 * There is no other magic; just code.
 
 General information:
-* The project webpage is [javalin.io](https://javalin.io).
+* The project webpage is [javalin.io](https://javalin.io) (repo for webpage is at [github.com/javalin/javalin.github.io](https://github.com/javalin/javalin.github.io)).
 * Documentation: [javalin.io/documentation](https://javalin.io/documentation)
 * Chat: https://gitter.im/javalin-io/general
 * Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javalin/blob/master/CONTRIBUTING.md)
+* License summary: https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)
+* Interesting issues: [/tipsy/javalin/issues?q=label:INFO](https://github.com/tipsy/javalin/issues?q=is%3Aissue+label%3AINFO)
 
 ## Quickstart
 
 ### Add dependency
 
+#### Maven
+
 ```xml
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>3.0.0</version>
+    <version>3.8.0</version>
 </dependency>
+```
 
-// or gradle, if you must
-compile 'io.javalin:javalin:3.0.0'
+#### Gradle
+
+```groovy
+compile "io.javalin:javalin:3.8.0"
 ```
 
 ### Start programming (Java)

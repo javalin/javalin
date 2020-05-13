@@ -1,0 +1,5 @@
+{% set message = 'Hello world' %}
+
+{% block content %}
+    {{ message }}
+{% endblock %}

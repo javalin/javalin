@@ -1,0 +1,28 @@
+name: Test all JDKs on all OSes
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        java_version: [1.8, 9, 10, 11, 12, 13]
+        os: [windows-latest, macOS-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Set up JDK ${{ matrix.java_version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java_version }}
+      - name: Make Maven Wrapper executable
+        if: contains(matrix.os, 'win') == false
+        run: chmod +x ./mvnw
+      - name: Build with Maven
+        run: ./mvnw package --file pom.xml --batch-mode
+        env:
+          MAVEN_OPTS: -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn

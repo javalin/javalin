@@ -1,5 +1,7 @@
 # Contributing
 
+This document describes how to contribute to the core Javalin project, if you want to contribute to the Javalin website you should go to [https://github.com/javalin/javalin.github.io](https://github.com/javalin/javalin.github.io).
+
 ## Creating an issue
 Remember to include enough information if you're reporting a bug.  
 Creating an issue to ask a question is fine.
@@ -48,7 +50,7 @@ io.javalin
 │   └── rendering/              // Interface for file rendering, and several template engine implementations
 ├── websocket/                  // Everything related to WebSockets
 │   ├── WsContext.kt            // Wrapper class for WebSockets
-│   ├── JavalinWsServlet.kt     // Responsible for WebSocket upgrade
+│   ├── JavalinWsServlet.kt     // Responsible for WebSocket upgrade, as well as switching between WebSocket and HTTP
 │   └── WsHandlerController.kt  // Responsible for Websocket request lifecycle (before, endpoint, after, logging)
 └── Javalin.java                // Main public API, responsible for setting up and configuring the server
 ```
