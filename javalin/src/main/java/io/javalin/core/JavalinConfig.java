@@ -28,6 +28,7 @@ import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -68,6 +69,7 @@ public class JavalinConfig {
         @Nullable public SessionHandler sessionHandler = null;
         @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig = null;
         @Nullable public WsHandler wsLogger = null;
+        @Nullable public List<String> wsSubProtocols = null;
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
         @NotNull public CompressionStrategy compressionStrategy = CompressionStrategy.GZIP;
@@ -131,6 +133,11 @@ public class JavalinConfig {
 
     public JavalinConfig addSinglePageHandler(@NotNull String path, @NotNull Handler customHandler) {
         inner.singlePageHandler.add(path, customHandler);
+        return this;
+    }
+
+    public JavalinConfig setWsSubProtocols(List<String> protocols) {
+        inner.wsSubProtocols = protocols;
         return this;
     }
 

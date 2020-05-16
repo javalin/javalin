@@ -65,10 +65,10 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
             val s = req.getHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)
             if (s != null) {
                 val protocolNames = s.split(',').map{it.trim()}.filter { it!="" }
-                if (protocolNames.isNotEmpty()) {
-                    // which protocol?  Maybe should given it in configuration
-                    val preferProtocol = "mqtt"
-                    val selectedProtocol = protocolNames.firstOrNull { it==preferProtocol }
+                // using config.setWsSubProtocols to set it
+                val wsSubProtocols = config.inner.wsSubProtocols
+                if (protocolNames.isNotEmpty() && wsSubProtocols!=null) {
+                    val selectedProtocol = protocolNames.firstOrNull { wsSubProtocols.contains(it) }
                     res.setHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, selectedProtocol ?: protocolNames[0])
                 }
             }
