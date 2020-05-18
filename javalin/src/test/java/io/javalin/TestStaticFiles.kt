@@ -170,4 +170,28 @@ class TestStaticFiles {
         assertThat(!http.get("/secret.html").headers.getFirst(Header.CONTENT_LENGTH).isNullOrEmpty())
         assertThat(!http.get("/library-1.0.0.min.js").headers.getFirst(Header.CONTENT_LENGTH).isNullOrEmpty())
     }
+
+    @Test
+    fun `serving from custom url path works`() {
+        TestUtil.test(Javalin.create { servlet ->
+            servlet.addStaticFiles("/public")
+            servlet.addStaticFiles("/url-prefix", "/public", Location.CLASSPATH)
+        }) { _, http ->
+            assertThat(http.get("/styles.css").status).isEqualTo(200)
+            assertThat(http.get("/url-prefix/styles.css").status).isEqualTo(200)
+        }
+    }
+
+    @Test
+    fun `urlPathPrefix filters requests to a specific subfolder`() {
+        TestUtil.test(Javalin.create { servlet ->
+            // effectively equivalent to servlet.addStaticFiles("/public", Location.CLASSPATH)
+            // but with benefit of additional "filtering": only requests matching /assets/* will be matched against static resources handler
+            servlet.addStaticFiles("/assets", "/public/assets", Location.CLASSPATH)
+        }) { _, http ->
+            assertThat(http.get("/assets/filtered-styles.css").status).isEqualTo(200) // access to urls matching /assets/* is allowed
+            assertThat(http.get("/filtered-styles.css").status).isEqualTo(404) // direct access to a file in the subfolder is not allowed
+            assertThat(http.get("/styles.css").status).isEqualTo(404) // access to other locations in /public is not allowed
+        }
+    }
 }

@@ -1,0 +1,3 @@
+.css-test:before {
+    content: "CSS works"
+}
