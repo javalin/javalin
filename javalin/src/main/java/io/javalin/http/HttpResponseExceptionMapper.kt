@@ -7,6 +7,7 @@
 package io.javalin.http
 
 import io.javalin.core.util.Header
+import io.javalin.http.util.JsonEscapeUtil
 import java.util.concurrent.CompletionException
 
 object HttpResponseExceptionMapper {
@@ -58,6 +59,6 @@ object HttpResponseExceptionMapper {
         else -> docsUrl + "error-responses"
     }
 
-    private fun String.jsonEscape() = this.replace("\"", "\\\"")
+    private fun String.jsonEscape() = JsonEscapeUtil.escape(this)
 
 }
