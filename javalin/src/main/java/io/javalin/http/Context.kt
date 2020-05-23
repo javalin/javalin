@@ -9,6 +9,7 @@ package io.javalin.http
 import io.javalin.Javalin
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
+import io.javalin.core.validation.BodyValidator
 import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.CookieStore
@@ -138,7 +139,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Throws [BadRequestResponse] if validation fails.
      */
     fun <T> bodyValidator(clazz: Class<T>) = try {
-        Validator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
+        BodyValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
     } catch (e: Exception) {
         Javalin.log?.info("Couldn't deserialize body to ${clazz.simpleName}", e)
         throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
