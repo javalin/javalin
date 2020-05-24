@@ -52,7 +52,7 @@ class PrecompressingResourceHandler() {
                 }
             }
             res.setHeader(Header.ETAG, weakETag)
-            resultByteArray.inputStream().copyTo(res.outputStream, 2048)
+            resultByteArray.inputStream().copyTo(res.outputStream)
             res.outputStream.close()
             return true
         }
@@ -81,7 +81,7 @@ class PrecompressingResourceHandler() {
             }
             else -> byteArrayOutputStream
         }
-        fileInput.copyTo(outputStream, bufferSize = 2048)
+        fileInput.copyTo(outputStream)
         fileInput.close()
         outputStream.close()
         return byteArrayOutputStream.toByteArray()
