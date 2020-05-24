@@ -10,13 +10,13 @@ import io.javalin.http.BadRequestResponse
 
 open class Validator<T>(val value: T?, val messagePrefix: String = "Value") {
 
-    data class Rule<T>(val test: (T) -> Boolean, val invalidMessage: String)
+    data class Rule<T>(val fieldName: String, val test: (T) -> Boolean, val invalidMessage: String)
 
-    private val rules = mutableSetOf<Rule<T>>()
+    protected val rules = mutableSetOf<Rule<T>>()
 
     @JvmOverloads
     open fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): Validator<T> {
-        rules.add(Rule(predicate, "$messagePrefix invalid - $errorMessage"))
+        rules.add(Rule("_", predicate, "$messagePrefix invalid - $errorMessage"))
         return this
     }
 
