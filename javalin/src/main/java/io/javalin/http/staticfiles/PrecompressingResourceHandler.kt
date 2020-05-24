@@ -1,7 +1,7 @@
 package io.javalin.http.staticfiles
 
 import com.nixxcode.jvmbrotli.common.BrotliLoader
-import io.javalin.core.compression.CompressionStrategy
+import io.javalin.Javalin
 import io.javalin.core.util.Header
 import io.javalin.http.LeveledBrotliStream
 import io.javalin.http.LeveledGzipStream
@@ -12,9 +12,10 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-class PrecompressingResourceHandler() {
+class PrecompressingResourceHandler {
 
     val compressedFiles = HashMap<String, ByteArray>()
+    val resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
     companion object {
         val excludedMimeTypes = setOf(
@@ -37,7 +38,7 @@ class PrecompressingResourceHandler() {
             val contentType = MimeTypes.getDefaultMimeByExtension(resource.file.name)//get content type by file extension
             if (excludedMimeType(contentType))
                 acceptCompressType = CompressType.NONE
-            val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType)
+            val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
             res.setContentLength(resultByteArray.size)
             res.setHeader(Header.CONTENT_TYPE, contentType)
 
@@ -59,9 +60,13 @@ class PrecompressingResourceHandler() {
         return false
     }
 
-    private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray {
-        if (resource.length() > Int.MAX_VALUE)
-            throw RuntimeException("Precompression doesn't support static file size larger than 2GB")
+    private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray? {
+        if (resource.length() > resourceMaxSize) {
+            Javalin.log?.warn("PrecompressingResourceHandler can't handle " +
+                    "the resource of path : ${resource.file.path} with size : ${resource.length()} byte, " +
+                    "because it is larger than resourceMaxSize : $resourceMaxSize byte")
+           return null
+        }
         val key = target + type.extension
         if (!compressedFiles.containsKey(key)) { // check the target resource exist in compressedFiles or not.
             compressedFiles[key] = getCompressedByteArray(resource, type)
