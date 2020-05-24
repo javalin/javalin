@@ -65,13 +65,9 @@ class PrecompressingResourceHandler {
             Javalin.log?.warn("PrecompressingResourceHandler can't handle " +
                     "the resource of path : ${resource.file.path} with size : ${resource.length()} byte, " +
                     "because it is larger than resourceMaxSize : $resourceMaxSize byte")
-           return null
+            return null
         }
-        val key = target + type.extension
-        if (!compressedFiles.containsKey(key)) { // check the target resource exist in compressedFiles or not.
-            compressedFiles[key] = getCompressedByteArray(resource, type)
-        }
-        return compressedFiles[key]!!
+        return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
     }
 
     private fun getCompressedByteArray(resource: Resource, type: CompressType): ByteArray {
