@@ -20,11 +20,11 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler(val usePrecompressStaticFiles: Boolean = false, compStrat: CompressionStrategy) : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
 
-    val precompressStaticFiles = PrecompressingResourceHandler(compStrat)
+    val precompressingResourceHandler = PrecompressingResourceHandler()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
         val handler = if (config.path == "/webjars") WebjarHandler() else PrefixableHandler(config.urlPathPrefix).apply {
@@ -83,8 +83,9 @@ class JettyResourceHandler(val usePrecompressStaticFiles: Boolean = false, compS
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
-                    if(usePrecompressStaticFiles && precompressStaticFiles.handle(resource,httpRequest,httpResponse))
+                    if(precompressStaticFiles && precompressingResourceHandler.handle(resource,httpRequest,httpResponse)) {
                         return true
+                    }
                     httpResponse.contentType = null
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)

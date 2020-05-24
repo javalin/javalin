@@ -1,5 +1,6 @@
 package io.javalin.http.staticfiles
 
+import com.nixxcode.jvmbrotli.common.BrotliLoader
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.util.Header
 import io.javalin.http.LeveledBrotliStream
@@ -11,7 +12,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
+class PrecompressingResourceHandler() {
 
     val compressedFiles = HashMap<String, ByteArray>()
 
@@ -34,8 +35,7 @@ class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
             val target = req.getAttribute("jetty-target") as String
             var acceptCompressType = CompressType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
             val contentType = MimeTypes.getDefaultMimeByExtension(resource.file.name)//get content type by file extension
-            val resourceCompressible = !excludedMimeType(contentType)
-            if (!resourceCompressible)
+            if (excludedMimeType(contentType))
                 acceptCompressType = CompressType.NONE
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType)
             res.setContentLength(resultByteArray.size)
@@ -61,9 +61,9 @@ class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
 
     private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray {
         if (resource.length() > Int.MAX_VALUE)
-            throw RuntimeException("Precompression doesn't support static file size large than 2GB")
+            throw RuntimeException("Precompression doesn't support static file size larger than 2GB")
         val key = target + type.extension
-        if (!compressedFiles.containsKey(key)) {
+        if (!compressedFiles.containsKey(key)) { // check the target resource exist in compressedFiles or not.
             compressedFiles[key] = getCompressedByteArray(resource, type)
         }
         return compressedFiles[key]!!
@@ -73,14 +73,13 @@ class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
         val fileInput = resource.file.inputStream()
         val byteArrayOutputStream = ByteArrayOutputStream()
         val outputStream: OutputStream = when {
-            compStrat.gzip != null && type == CompressType.GZIP -> {
-                LeveledGzipStream(byteArrayOutputStream, compStrat.gzip.level)
+            type == CompressType.GZIP -> {
+                LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
             }
-            compStrat.brotli != null && type == CompressType.BR -> {
-                LeveledBrotliStream(byteArrayOutputStream, compStrat.brotli.level)
+            BrotliLoader.isBrotliAvailable() && type == CompressType.BR -> {
+                LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
             }
-            else ->
-                byteArrayOutputStream
+            else -> byteArrayOutputStream
         }
         fileInput.copyTo(outputStream, bufferSize = 2048)
         fileInput.close()
@@ -102,10 +101,7 @@ class PrecompressingResourceHandler(val compStrat: CompressionStrategy) {
 
         companion object {
             fun getByAcceptEncoding(acceptEncoding: String): CompressType {
-                values().forEach {
-                    if (it.acceptEncoding(acceptEncoding)) return it
-                }
-                return NONE
+                return values().find { it.acceptEncoding(acceptEncoding) } ?: NONE
             }
         }
     }
