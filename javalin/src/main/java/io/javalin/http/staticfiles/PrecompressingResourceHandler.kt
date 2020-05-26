@@ -36,7 +36,7 @@ class PrecompressingResourceHandler {
         if (resource.exists() && !resource.isDirectory) {
             val target = req.getAttribute("jetty-target") as String
             var acceptCompressType = CompressType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
-            val contentType = MimeTypes.getDefaultMimeByExtension(resource.file.name)//get content type by file extension
+            val contentType = MimeTypes.getDefaultMimeByExtension(target)//get content type by file extension
             if (excludedMimeType(contentType))
                 acceptCompressType = CompressType.NONE
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
@@ -64,7 +64,7 @@ class PrecompressingResourceHandler {
     private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray? {
         if (resource.length() > resourceMaxSize) {
             Javalin.log?.warn("PrecompressingResourceHandler can't handle " +
-                    "the resource of path : ${resource.file.path} with size : ${resource.length()} byte, " +
+                    "the resource of path : $target with size : ${resource.length()} byte, " +
                     "because it is larger than resourceMaxSize : $resourceMaxSize byte")
             return null
         }
@@ -72,7 +72,7 @@ class PrecompressingResourceHandler {
     }
 
     private fun getCompressedByteArray(resource: Resource, type: CompressType): ByteArray {
-        val fileInput = resource.file.inputStream()
+        val fileInput = resource.inputStream
         val byteArrayOutputStream = ByteArrayOutputStream()
         val outputStream: OutputStream = when {
             type == CompressType.GZIP -> {
