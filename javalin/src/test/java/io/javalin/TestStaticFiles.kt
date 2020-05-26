@@ -12,6 +12,8 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
 import org.eclipse.jetty.servlet.FilterHolder
@@ -66,6 +68,7 @@ class TestStaticFiles {
     private val configPrecompressionStaticResourceApp: Javalin by lazy{
         Javalin.create { config->
             config.precompressStaticFiles = true
+            config.enableWebjars()
             config.addStaticFiles("/public/immutable")
             config.addStaticFiles("/public/protected")
         }
@@ -167,8 +170,9 @@ class TestStaticFiles {
 
     @Test
     fun `response header always contains content-length if enforceContentLength is true`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
-        assertThat(!http.get("/secret.html").headers.getFirst(Header.CONTENT_LENGTH).isNullOrEmpty())
-        assertThat(!http.get("/library-1.0.0.min.js").headers.getFirst(Header.CONTENT_LENGTH).isNullOrEmpty())
+        assertThat(getResponse(http.origin, "/secret.html", "br, gzip").headers().get(Header.CONTENT_LENGTH)).isNotBlank()
+        assertThat(getResponse(http.origin, "/library-1.0.0.min.js", "br").headers().get(Header.CONTENT_LENGTH)).isNotBlank()
+        assertThat(getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js", "gzip").headers().get(Header.CONTENT_LENGTH)).isNotBlank()
     }
 
     @Test
@@ -194,4 +198,12 @@ class TestStaticFiles {
             assertThat(http.get("/styles.css").status).isEqualTo(404) // access to other locations in /public is not allowed
         }
     }
+
+    // we need to use okhttp, because unirest omits the content-encoding and content-length header
+    private fun getResponse(origin: String, url: String, encoding: String) = OkHttpClient()
+            .newCall(Request.Builder()
+                    .url(origin + url)
+                    .header(Header.ACCEPT_ENCODING, encoding)
+                    .build())
+            .execute()
 }
