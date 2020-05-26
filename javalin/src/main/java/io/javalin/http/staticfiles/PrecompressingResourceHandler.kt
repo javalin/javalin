@@ -1,8 +1,9 @@
 package io.javalin.http.staticfiles
 
-import com.nixxcode.jvmbrotli.common.BrotliLoader
 import io.javalin.Javalin
 import io.javalin.core.util.Header
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
 import io.javalin.http.LeveledBrotliStream
 import io.javalin.http.LeveledGzipStream
 import org.eclipse.jetty.http.MimeTypes
@@ -77,7 +78,7 @@ class PrecompressingResourceHandler {
             type == CompressType.GZIP -> {
                 LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
             }
-            BrotliLoader.isBrotliAvailable() && type == CompressType.BR -> {
+            Util.dependencyIsPresent(OptionalDependency.JVMBROTLI) && type == CompressType.BR -> {
                 LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
             }
             else -> byteArrayOutputStream
