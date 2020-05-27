@@ -13,6 +13,7 @@ import io.javalin.plugin.openapi.annotations.*
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.util.logging.Logger
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 
@@ -31,7 +32,8 @@ fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiD
         is DocumentedHandler -> (handler as DocumentedHandler).documentation
         is CrudFunctionHandler -> extractDocumentationFromCrudHandler(handler as CrudFunctionHandler)
         else -> {
-            val openApiAnnotation: OpenApi? = methodReferenceOfHandler?.getOpenApiAnnotation()
+            val openApiAnnotation: OpenApi? = getOpenApiAnnotationFromReference()
+                    ?: methodReferenceOfHandler?.getOpenApiAnnotation()
                     ?: fieldReferenceOfHandler?.getOpenApiAnnotation()
                     ?: getOpenApiAnnotationFromHandler()
             openApiAnnotation?.asOpenApiDocumentation()
@@ -66,6 +68,24 @@ private fun HandlerMetaInfo.extractDocumentationWithPathScanning(options: Create
     return pathInfo?.let { pathInfo ->
         val documentationFromScan = scanForAnnotations(options.packagePrefixesToScan)
         documentationFromScan[pathInfo]
+    }
+}
+
+private fun HandlerMetaInfo.getOpenApiAnnotationFromReference(): OpenApi? {
+    return try {
+        methodReferenceOfHandler?.getOpenApiAnnotation()
+                ?: rfl(handler).lambdaField?.getOpenApiAnnotation()
+    } catch (e: NoSuchFieldException) {
+        null
+    } catch (e: Error) {
+        return if (e::class.qualifiedName == "kotlin.reflect.jvm.internal.KotlinReflectionInternalError") {
+            Logger.getGlobal()
+                    .warning("Local functions, lambdas, anonymous functions and local variables with @OpenApi annotations are currently not supported. " +
+                            "The annotation of the handler for \"$httpMethod $path\" will be ignored. To fix this, move the handler into a global function.")
+            null
+        } else {
+            throw e
+        }
     }
 }
 
