@@ -29,13 +29,13 @@ class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegi
                                                  private val tagExceptionName: Boolean = false) : Plugin {
     override fun apply(app: Javalin) {
         app.server()?.server()?.let { server ->
-            if(tagExceptionName) {
+            if (tagExceptionName) {
                 app.exception(Exception::class.java, EXCEPTION_HANDLER)
             }
 
             server.insertHandler(TimedHandler(registry, tags, object : DefaultHttpServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {
-                    val exceptionName = if(tagExceptionName) {
+                    val exceptionName = if (tagExceptionName) {
                         response.getHeader(EXCEPTION_HEADER)
                     } else {
                         "Unknown"

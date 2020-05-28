@@ -7,10 +7,8 @@
 package io.javalin.http.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.util.Header
 import io.javalin.core.util.Util
-import io.javalin.http.Context
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -24,8 +22,6 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
 
     val handlers = mutableListOf<ResourceHandler>()
 
-    val precompressingResourceHandler = PrecompressingResourceHandler()
-
     override fun addStaticFileConfig(config: StaticFileConfig) {
         val handler = if (config.path == "/webjars") WebjarHandler() else PrefixableHandler(config.urlPathPrefix).apply {
             resourceBase = getResourcePath(config)
@@ -36,9 +32,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
                 |    Resolved path: '${getResourcePath(config)}'
                 """.trimMargin())
         }
-        handlers.add(handler.apply {
-            start()
-        })
+        handlers.add(handler.apply { start() })
     }
 
     inner class WebjarHandler : ResourceHandler() {
@@ -83,7 +77,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
-                    if(precompressStaticFiles && precompressingResourceHandler.handle(resource,httpRequest,httpResponse)) {
+                    if (precompressStaticFiles && PrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
                         return true
                     }
                     httpResponse.contentType = null

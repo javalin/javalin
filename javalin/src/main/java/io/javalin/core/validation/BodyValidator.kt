@@ -48,7 +48,7 @@ open class BodyValidator<T>(value: T?, messagePrefix: String = "Value") : Valida
                         }
                         errors!![rule.fieldName]?.add(rule.invalidMessage)
                     }
-                } catch (ignore : NullPointerException) {
+                } catch (ignore: NullPointerException) {
                 }
             }
         }

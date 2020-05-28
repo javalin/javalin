@@ -8,35 +8,35 @@ import io.javalin.http.LeveledBrotliStream
 import io.javalin.http.LeveledGzipStream
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
-import java.io.*
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-class PrecompressingResourceHandler {
+object PrecompressingResourceHandler {
 
     val compressedFiles = HashMap<String, ByteArray>()
-    val resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
+    var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
-    companion object {
-        val excludedMimeTypes = setOf(
-                "image/",
-                "audio/",
-                "video/",
-                "application/compress",
-                "application/zip",
-                "application/gzip",
-                "application/bzip2",
-                "application/brotli",
-                "application/x-xz",
-                "application/x-rar-compressed")
-    }
+    val excludedMimeTypes = setOf(
+            "image/",
+            "audio/",
+            "video/",
+            "application/compress",
+            "application/zip",
+            "application/gzip",
+            "application/bzip2",
+            "application/brotli",
+            "application/x-xz",
+            "application/x-rar-compressed"
+    )
 
     fun handle(resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
         if (resource.exists() && !resource.isDirectory) {
             val target = req.getAttribute("jetty-target") as String
             var acceptCompressType = CompressType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
-            val contentType = MimeTypes.getDefaultMimeByExtension(target)//get content type by file extension
+            val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
             if (excludedMimeType(contentType))
                 acceptCompressType = CompressType.NONE
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
@@ -46,7 +46,7 @@ class PrecompressingResourceHandler {
             if (acceptCompressType != CompressType.NONE)
                 res.setHeader(Header.CONTENT_ENCODING, acceptCompressType.typeName)
 
-            val weakETag = resource.weakETag //jetty resource use weakETag too
+            val weakETag = resource.weakETag // jetty resource use weakETag too
             req.getHeader(Header.IF_NONE_MATCH)?.let { etag ->
                 if (etag == weakETag) {
                     res.status = 304
@@ -63,9 +63,8 @@ class PrecompressingResourceHandler {
 
     private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray? {
         if (resource.length() > resourceMaxSize) {
-            Javalin.log?.warn("PrecompressingResourceHandler can't handle " +
-                    "the resource of path : $target with size : ${resource.length()} byte, " +
-                    "because it is larger than resourceMaxSize : $resourceMaxSize byte")
+            Javalin.log?.warn("Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
+                    "You can configure the max size with `PrecompressingResourceHandler.resourceMaxSize = newMaxSize`.")
             return null
         }
         return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
@@ -78,7 +77,7 @@ class PrecompressingResourceHandler {
             type == CompressType.GZIP -> {
                 LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
             }
-            Util.dependencyIsPresent(OptionalDependency.JVMBROTLI) && type == CompressType.BR -> {
+            type == CompressType.BR && Util.dependencyIsPresent(OptionalDependency.JVMBROTLI) -> {
                 LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
             }
             else -> byteArrayOutputStream

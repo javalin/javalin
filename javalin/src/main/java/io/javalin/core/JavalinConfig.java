@@ -104,18 +104,15 @@ public class JavalinConfig {
     }
 
     public JavalinConfig enableWebjars() {
-        addStaticFiles("/webjars", Location.CLASSPATH);
-        return this;
+        return addStaticFiles("/webjars", Location.CLASSPATH);
     }
 
     public JavalinConfig addStaticFiles(@NotNull String classpathPath) {
-        addStaticFiles(classpathPath, Location.CLASSPATH);
-        return this;
+        return addStaticFiles(classpathPath, Location.CLASSPATH);
     }
 
     public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location) {
-        addStaticFiles("/", path, location);
-        return this;
+        return addStaticFiles("/", path, location);
     }
 
     public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location) {
