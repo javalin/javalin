@@ -7,11 +7,15 @@
 
 package io.javalin
 
+import io.javalin.core.compression.Brotli
+import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
 import org.eclipse.jetty.servlet.FilterHolder
@@ -60,6 +64,24 @@ class TestStaticFiles {
             it.configureServletContextHandler { handler ->
                 handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
+        }
+    }
+
+    private val configPrecompressionStaticResourceApp: Javalin by lazy{
+        Javalin.create { config->
+            config.precompressStaticFiles = true
+            config.compressionStrategy(Brotli(), Gzip())
+            config.enableWebjars()
+            config.addStaticFiles("/public/immutable")
+            config.addStaticFiles("/public/protected")
+        }
+    }
+
+    private val precompressionNotEnableApp: Javalin by lazy{
+        Javalin.create { config->
+            config.precompressStaticFiles = false
+            config.compressionStrategy(Brotli(), Gzip())
+            config.enableWebjars()
         }
     }
 
@@ -158,6 +180,27 @@ class TestStaticFiles {
     }
 
     @Test
+    fun `response header always contains content-length if precompressStaticFiles is true`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
+        assertThat(getResponse(http.origin, "/secret.html", "br, gzip").headers().get(Header.CONTENT_LENGTH)).isNotBlank()
+        assertThat(getResponse(http.origin, "/library-1.0.0.min.js", "br").headers().get(Header.CONTENT_LENGTH)).isNotBlank()
+        assertThat(getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js", "gzip").headers().get(Header.CONTENT_LENGTH)).isNotBlank()
+    }
+
+    @Test
+    fun `compression works when precompressStaticFiles is true`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
+        assertThat(getResponse(http.origin, "/secret.html", "gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        assertThat(getResponse(http.origin, "/library-1.0.0.min.js", "br").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
+        assertThat(getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js", "gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        assertThat(getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.js.gz", "gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
+    }
+
+    @Test(expected = NullPointerException::class)
+    fun `content-length does not works with large static file when precompressStaticFiles is false`() = TestUtil.test(precompressionNotEnableApp) { _, http ->
+        getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js", "gzip").headers().get(Header.CONTENT_LENGTH)!!.toInt()
+        getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.js.gz", "gzip").headers().get(Header.CONTENT_LENGTH)!!.toInt()
+    }
+
+    @Test
     fun `serving from custom url path works`() {
         TestUtil.test(Javalin.create { servlet ->
             servlet.addStaticFiles("/public")
@@ -180,4 +223,12 @@ class TestStaticFiles {
             assertThat(http.get("/styles.css").status).isEqualTo(404) // access to other locations in /public is not allowed
         }
     }
+
+    // we need to use okhttp, because unirest omits the content-encoding and content-length header
+    private fun getResponse(origin: String, url: String, encoding: String) = OkHttpClient()
+            .newCall(Request.Builder()
+                    .url(origin + url)
+                    .header(Header.ACCEPT_ENCODING, encoding)
+                    .build())
+            .execute()
 }
