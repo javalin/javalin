@@ -77,6 +77,14 @@ class TestStaticFiles {
         }
     }
 
+    private val precompressionNotEnableApp: Javalin by lazy{
+        Javalin.create { config->
+            config.precompressStaticFiles = false
+            config.compressionStrategy(Brotli(), Gzip())
+            config.enableWebjars()
+        }
+    }
+
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
@@ -184,6 +192,12 @@ class TestStaticFiles {
         assertThat(getResponse(http.origin, "/library-1.0.0.min.js", "br").headers().get(Header.CONTENT_ENCODING)).isEqualTo("br")
         assertThat(getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js", "gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
         assertThat(getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.js.gz", "gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
+    }
+
+    @Test(expected = NullPointerException::class)
+    fun `content-length does not works with large static file when precompressStaticFiles is false`() = TestUtil.test(precompressionNotEnableApp) { _, http ->
+        getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js", "gzip").headers().get(Header.CONTENT_LENGTH)!!.toInt()
+        getResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.js.gz", "gzip").headers().get(Header.CONTENT_LENGTH)!!.toInt()
     }
 
     @Test
