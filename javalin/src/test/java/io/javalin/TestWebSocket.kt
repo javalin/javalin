@@ -8,6 +8,7 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
+import io.javalin.core.util.Header
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.testing.SerializeableObject
@@ -17,6 +18,7 @@ import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.StatusCode
+import org.eclipse.jetty.websocket.api.WebSocketConstants
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
@@ -527,6 +529,16 @@ class TestWebSocket {
         app.wsException(TypedException::class.java) { _, _ -> app.logger().log.add("TypedException handler called") }
         TestClient(app, "/ws").connectAndDisconnect()
         assertThat(app.logger().log).containsExactly("TypedException handler called")
+    }
+
+    @Test
+    fun `websocket subprotocol is set if included`() = TestUtil.test { app, http ->
+        app.ws("/ws") {}
+        val response = Unirest.get("http://localhost:${app.port()}/ws")
+                .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+                .header(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, "mqtt")
+                .asString()
+        assertThat(response.headers.getFirst(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)).isEqualTo("mqtt")
     }
 
     // ********************************************************************************************

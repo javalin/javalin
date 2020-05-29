@@ -61,15 +61,11 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
             if (req.getAttribute(upgradeAllowedKey) != true) throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
             req.setAttribute(upgradeContextKey, upgradeContext)
 
-            // hhh, 2020.5.13 we should select one protocol according to IETF RFC 6455
-            val s = req.getHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)
-            if (s != null) {
-                val protocolNames = s.split(',').map{it.trim()}.filter { it!="" }
-                // using config.setWsSubProtocols to set it
-                val wsSubProtocols = config.inner.wsSubProtocols
-                if (protocolNames.isNotEmpty() && wsSubProtocols!=null) {
-                    val selectedProtocol = protocolNames.firstOrNull { wsSubProtocols.contains(it) }
-                    res.setHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, selectedProtocol ?: protocolNames[0])
+            val wsProtocolHeader = req.getHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)
+            if (wsProtocolHeader != null) {
+                val protocolNames = wsProtocolHeader.split(',').map { it.trim() }.filter { it != "" }
+                if (protocolNames.isNotEmpty()) {
+                    res.setHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, protocolNames.first())
                 }
             }
 
