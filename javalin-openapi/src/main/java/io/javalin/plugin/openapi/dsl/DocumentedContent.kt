@@ -32,6 +32,7 @@ fun documentedContent(
 }
 
 /** Kotlin factory for documented content */
+@JvmSynthetic
 inline fun <reified T> documentedContent(
         contentType: String? = ContentType.AUTODETECT,
         isArray: Boolean = false

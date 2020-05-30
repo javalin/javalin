@@ -86,5 +86,7 @@ class WsBinaryMessageContext(sessionId: String, session: Session, private val da
 class WsMessageContext(sessionId: String, session: Session, private val message: String) : WsContext(sessionId, session) {
     fun message(): String = message
     fun <T> message(clazz: Class<T>): T = JavalinJson.fromJson(message, clazz)
+
+    @JvmSynthetic
     inline fun <reified T : Any> message(): T = message(T::class.java)
 }
