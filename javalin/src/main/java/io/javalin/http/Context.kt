@@ -147,6 +147,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Reified version of [bodyValidator] */
+    @JvmSynthetic
     inline fun <reified T : Any> bodyValidator() = bodyValidator(T::class.java)
 
     /** Gets first [UploadedFile] for the specified name, or null. */
