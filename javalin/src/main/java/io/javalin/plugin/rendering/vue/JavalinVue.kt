@@ -87,10 +87,18 @@ class VueComponent(private val component: String) : Handler {
 }
 
 object PathMaster {
+    /**
+     * PathMaster::class.java.getResource("").toURI() means that this code will
+     * only work if the resources are in the same jar as Javalin (i.e. in a fat-jar/uber-jar).
+     *
+     * Creating a filesystem is required since we want to "walk" the jar (see [JavalinVue.walkPaths])
+     * to find all the .vue files.
+     */
     private val fileSystem by lazy { FileSystems.newFileSystem(PathMaster::class.java.getResource("").toURI(), emptyMap<String, Any>()) }
+
     fun classpathPath(path: String): Path = when {
-        PathMaster::class.java.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path)
-        else -> Paths.get(PathMaster::class.java.getResource(path).toURI())
+        PathMaster::class.java.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path) // we're inside a jar
+        else -> Paths.get(PathMaster::class.java.getResource(path).toURI()) // we're not in jar (probably running from IDE)
     }
 }
 

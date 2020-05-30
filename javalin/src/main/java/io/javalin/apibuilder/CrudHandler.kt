@@ -6,11 +6,6 @@
 
 package io.javalin.apibuilder
 
-import io.javalin.apibuilder.CrudFunction.CREATE
-import io.javalin.apibuilder.CrudFunction.DELETE
-import io.javalin.apibuilder.CrudFunction.GET_ALL
-import io.javalin.apibuilder.CrudFunction.GET_ONE
-import io.javalin.apibuilder.CrudFunction.UPDATE
 import io.javalin.http.Context
 import io.javalin.http.Handler
 
@@ -29,8 +24,8 @@ interface CrudHandler {
 }
 
 enum class CrudFunction(
-       val value: String,
-       val createHandler: (CrudHandler, String) -> Handler
+        val value: String,
+        val createHandler: (CrudHandler, String) -> Handler
 ) {
     GET_ALL("getAll", { crud, _ -> Handler { crud.getAll(it) } }),
     GET_ONE("getOne", { crud, id -> Handler { crud.getOne(it, it.pathParam(id)) } }),
@@ -44,8 +39,8 @@ class CrudFunctionHandler(
         val crudHandler: CrudHandler,
         resourceId: String,
         handler: Handler = function.createHandler(crudHandler, resourceId)
-): Handler by handler
+) : Handler by handler
 
 internal fun CrudHandler.getCrudFunctions(resourceId: String): Map<CrudFunction, Handler> = CrudFunction.values()
-            .map { it to CrudFunctionHandler(it, this, resourceId) }
-            .toMap()
+        .map { it to CrudFunctionHandler(it, this, resourceId) }
+        .toMap()

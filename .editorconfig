@@ -25,12 +25,12 @@ trim_trailing_whitespace = false
 trim_trailing_whitespace = false
 
 
-[*.{js,css,html}]
+[*.{js, css, html}]
 indent_style = space
 indent_size = 4
 insert_final_newline = false
 
-[*.{yml,yaml,json}]
+[*.{yml, yaml, json}]
 indent_style = space
 indent_size = 2
 

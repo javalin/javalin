@@ -117,10 +117,11 @@ public class Javalin {
     /**
      * Get the JavalinServer
      */
-    public @Nullable
-    JavalinServer server() {
+    // @formatter:off
+    public @Nullable JavalinServer server() {
         return this.server;
     }
+    // @formatter:off
 
     /**
      * Synchronously starts the application instance on the specified port
@@ -162,7 +163,7 @@ public class Javalin {
         JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
         if (server.getStarted()) {
-            String message = "Server already started. If you are trying to call start() on an instance " + 
+            String message = "Server already started. If you are trying to call start() on an instance " +
                 "of Javalin that was stopped using stop(), please create a new instance instead.";
             throw new IllegalStateException(message);
         }

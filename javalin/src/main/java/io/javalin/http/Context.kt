@@ -9,6 +9,7 @@ package io.javalin.http
 import io.javalin.Javalin
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
+import io.javalin.core.validation.BodyValidator
 import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.CookieStore
@@ -115,6 +116,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * JavalinJson can be configured to use any mapping library.
      * @return The mapped object
      */
+    @JvmSynthetic
     inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
 
     /** Gets the request body as a [ByteArray].
@@ -138,13 +140,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Throws [BadRequestResponse] if validation fails.
      */
     fun <T> bodyValidator(clazz: Class<T>) = try {
-        Validator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
+        BodyValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
     } catch (e: Exception) {
         Javalin.log?.info("Couldn't deserialize body to ${clazz.simpleName}", e)
         throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
     }
 
     /** Reified version of [bodyValidator] */
+    @JvmSynthetic
     inline fun <reified T : Any> bodyValidator() = bodyValidator(T::class.java)
 
     /** Gets first [UploadedFile] for the specified name, or null. */
@@ -171,6 +174,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'")
 
     /** Reified version of [formParam] (Kotlin only) */
+    @JvmSynthetic
     inline fun <reified T : Any> formParam(key: String, default: String? = null) = formParam(key, T::class.java, default)
 
     /** Gets a list of form params for the specified key, or empty list. */
@@ -197,6 +201,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'")
 
     /** Reified version of [pathParam] (Kotlin only) */
+    @JvmSynthetic
     inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)
 
     /** Gets a map of all the [pathParam] keys and values. */
@@ -246,6 +251,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), "Request header '$header' with value '${header(header)}'")
 
     /** Reified version of [header] (Kotlin only) */
+    @JvmSynthetic
     inline fun <reified T : Any> header(header: String) = header(header, T::class.java)
 
     /** Gets a map with all the header keys and values on the request. */
@@ -291,6 +297,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'")
 
     /** Reified version of [queryParam] (Kotlin only) */
+    @JvmSynthetic
     inline fun <reified T : Any> queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)
 
     /** Gets a list of query params for the specified key, or empty list. */

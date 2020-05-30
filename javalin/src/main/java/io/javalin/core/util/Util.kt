@@ -45,6 +45,13 @@ object Util {
         false
     }
 
+    fun dependencyIsPresent(dependency: OptionalDependency) = try {
+        ensureDependencyPresent(dependency)
+        true
+    } catch (e: Exception) {
+        false
+    }
+
     private val dependencyCheckCache = HashMap<String, Boolean>()
 
     fun ensureDependencyPresent(dependency: OptionalDependency, startupCheck: Boolean = false) {

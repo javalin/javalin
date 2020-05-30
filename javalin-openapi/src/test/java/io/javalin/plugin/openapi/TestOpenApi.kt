@@ -5,18 +5,35 @@
  */
 package io.javalin.plugin.openapi
 
-import cc.vileda.openapi.dsl.*
+import cc.vileda.openapi.dsl.asJson
+import cc.vileda.openapi.dsl.components
+import cc.vileda.openapi.dsl.externalDocs
+import cc.vileda.openapi.dsl.get
+import cc.vileda.openapi.dsl.info
+import cc.vileda.openapi.dsl.openapiDsl
+import cc.vileda.openapi.dsl.path
+import cc.vileda.openapi.dsl.paths
+import cc.vileda.openapi.dsl.security
+import cc.vileda.openapi.dsl.securityScheme
+import cc.vileda.openapi.dsl.server
+import cc.vileda.openapi.dsl.tag
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.mashape.unirest.http.Unirest
 import io.javalin.Javalin
-import io.javalin.testing.TestUtil
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.HttpMethod
-import io.javalin.plugin.openapi.dsl.*
+import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
+import io.javalin.plugin.openapi.dsl.anyOf
+import io.javalin.plugin.openapi.dsl.document
+import io.javalin.plugin.openapi.dsl.documentCrud
+import io.javalin.plugin.openapi.dsl.documented
+import io.javalin.plugin.openapi.dsl.documentedContent
+import io.javalin.plugin.openapi.dsl.oneOf
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
+import io.javalin.testing.TestUtil
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
@@ -222,11 +239,11 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
     })
 
     val getUploadWithFormDataDocumentation = OpenApiDocumentation()
-        .uploadedFile("file") {
-            it.description = "MyFile"
-            it.required = true
-        }
-        .formParam<String>("title")
+            .uploadedFile("file") {
+                it.description = "MyFile"
+                it.required = true
+            }
+            .formParam<String>("title")
     app.get("/upload-with-form-data", documented(getUploadWithFormDataDocumentation) {
         it.uploadedFile("file")
         it.formParam("title")

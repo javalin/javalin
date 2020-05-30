@@ -21,6 +21,7 @@ class HttpUtil(port: Int) {
 
     // Unirest
     fun get(path: String) = Unirest.get(origin + path).asString()
+
     fun getBody(path: String) = Unirest.get(origin + path).asString().body
     fun getBody(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString().body
     fun post(path: String) = Unirest.post(origin + path)

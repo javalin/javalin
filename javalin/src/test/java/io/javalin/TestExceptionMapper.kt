@@ -10,8 +10,8 @@ package io.javalin
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.HttpResponseException
 import io.javalin.http.NotFoundResponse
-import io.javalin.testing.TypedException
 import io.javalin.testing.TestUtil
+import io.javalin.testing.TypedException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import kotlin.reflect.full.allSuperclasses
@@ -90,6 +90,12 @@ class TestExceptionMapper {
     fun `exception title can contain quotes`() = TestUtil.test { app, http ->
         app.get("/") { throw BadRequestResponse("""MY MESSAGE WITH "QUOTES"""") }
         assertThat(http.jsonGet("/").body).contains("""MY MESSAGE WITH \"QUOTES\"""")
+    }
+
+    @Test
+    fun `exception title can contain newlines`() = TestUtil.test { app, http ->
+        app.get("/") { throw BadRequestResponse("MY MESSAGE WITH \nNEWLINES\n") }
+        assertThat(http.jsonGet("/").body).contains("""MY MESSAGE WITH \nNEWLINES\n""")
     }
 
 }
