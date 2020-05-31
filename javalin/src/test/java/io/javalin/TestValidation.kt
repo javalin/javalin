@@ -211,7 +211,7 @@ class TestValidation {
             assertThat(errors["number"]).contains("must be greater than 12.", "must be even.")
 
             assertThat(errors["first_name"]).size().isEqualTo(2)
-            assertThat(errors["first_name"]).contains("cannot contain spaces.", "cannot be longer than 10 characters.")
+            assertThat(errors["first_name"]).contains("cannot contain hyphens.", "cannot be longer than 10 characters.")
         }
     }
 
