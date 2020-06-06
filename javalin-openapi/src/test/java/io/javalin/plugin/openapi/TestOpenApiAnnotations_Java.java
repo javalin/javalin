@@ -152,11 +152,108 @@ class JavaStaticMethodReference {
     }
 }
 
-class JavaFieldReference {
+class JavaStaticFieldReference {
     @OpenApi(responses = {@OpenApiResponse(status = "200")})
     public static Handler handler = new Handler() {
         @Override
         public void handle(@NotNull Context ctx) throws Exception {
+        }
+    };
+}
+
+class JavaFieldReference {
+    public final int irrelevantField = 0;
+
+    @OpenApi(
+        responses = {@OpenApiResponse(status = "200")})
+    public final Handler handler = new Handler() {
+        @Override
+        public void handle(@NotNull Context ctx) throws Exception {
+        }
+    };
+}
+
+class JavaLambdaFieldReference {
+    @OpenApi(
+        responses = {@OpenApiResponse(status = "200")})
+    public final Handler handler = ctx -> { };
+}
+
+class JavaMultipleFieldReferences {
+    @OpenApi(
+        path = "/test1", // parameter needed to due ambiguity
+        responses = {@OpenApiResponse(status = "200")})
+    public final Handler handler1 = ctx -> { };
+
+    @OpenApi(
+        path = "/test2", // parameter needed to due ambiguity
+        responses = {@OpenApiResponse(status = "200")})
+    public final Handler handler2 = ctx -> { };
+
+    @OpenApi(
+        method = HttpMethod.PUT,
+        responses = {@OpenApiResponse(status = "200")})
+    public final Handler putHandler = ctx -> { };
+
+    @OpenApi(
+        method = HttpMethod.DELETE,
+        responses = {@OpenApiResponse(status = "200")})
+    public final Handler deleteHandler = ctx -> { };
+}
+
+class JavaStaticLambdaFieldReference {
+    @OpenApi(
+        path = "/test",
+        method = HttpMethod.GET,
+        responses = {@OpenApiResponse(status = "200")})
+    public static final Handler handler = ctx -> { };
+}
+
+class CustomOuterClassHandler implements Handler {
+    public final int irrelevantField;
+
+    CustomOuterClassHandler() {
+        irrelevantField = 2;
+    }
+
+    @Override
+    public void handle(@NotNull Context ctx) throws Exception {
+        // some custom user code
+    }
+}
+
+class JavaOuterClassFieldReference {
+    @OpenApi(responses = {@OpenApiResponse(status = "200")})
+    public final Handler handler = new CustomOuterClassHandler(){};
+    // N.B. curly brackets '{}' are important to make the above a pseudo-anonymous class
+}
+
+class JavaInnerClassFieldReference {
+    @OpenApi(responses = {@OpenApiResponse(status = "200")})
+    public final Handler handler = new CustomInnerClassHandler(ctx -> {});
+
+    private class CustomInnerClassHandler implements Handler {
+        public final int irrelevantField;
+        public final Handler userHandler;
+
+        public CustomInnerClassHandler(final Handler userHandler) {
+            this.userHandler = userHandler;
+            irrelevantField = 2;
+        }
+
+        @Override
+        public void handle(@NotNull Context ctx) throws Exception {
+            // derived custom handler
+        }
+    };
+}
+
+class JavaAnonymousClassFieldReference {
+    @OpenApi(responses = {@OpenApiResponse(status = "200")})
+    public final Handler handler = new Handler() {
+        @Override
+        public void handle(@NotNull Context ctx) throws Exception {
+            // derived custom handler
         }
     };
 }
@@ -276,9 +373,98 @@ public class TestOpenApiAnnotations_Java {
     }
 
     @Test
-    public void testWithJavaFieldReference() {
+    public void testWithStaticJavaFieldReference() {
         OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
-            app.get("/test", JavaFieldReference.handler);
+            app.get("/test", JavaStaticFieldReference.handler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithJavaFieldReference() {
+        final JavaFieldReference instance = new JavaFieldReference();
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test", instance.handler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithJavaLambdaFieldReference() {
+        final JavaLambdaFieldReference instance = new JavaLambdaFieldReference();
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test", instance.handler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithMultipleFieldReferences() {
+        final JavaMultipleFieldReferences instance = new JavaMultipleFieldReferences();
+
+        OpenAPI schemaPut = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.put("/put", instance.putHandler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schemaPut, JsonKt.getSimplePutExample());
+
+        OpenAPI schemaDelete = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.put("/delete", instance.deleteHandler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schemaDelete, JsonKt.getSimpleDeleteExample());
+
+        OpenAPI schemaTestCase1 = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test1", instance.handler1);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schemaTestCase1, JsonKt.getSimpleExample1());
+
+        OpenAPI schemaTestCase2 = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test2", instance.handler2);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schemaTestCase2, JsonKt.getSimpleExample2());
+    }
+
+
+    @Test
+    public void testWithJavaOuterClassFieldReference() {
+        final JavaOuterClassFieldReference instance = new JavaOuterClassFieldReference();
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test", instance.handler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithJavaInnerClassFieldReference() {
+        final JavaInnerClassFieldReference instance = new JavaInnerClassFieldReference();
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test", instance.handler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithAnonymousJavaClassFieldReference() {
+        final JavaAnonymousClassFieldReference instance = new JavaAnonymousClassFieldReference();
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test", instance.handler);
+            return Unit.INSTANCE;
+        });
+        OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
+    }
+
+    @Test
+    public void testWithJavaStaticLambdaFieldReference() {
+        OpenAPI schema = OpenApiTestUtils.extractSchemaForTest(app -> {
+            app.get("/test", JavaStaticLambdaFieldReference.handler);
             return Unit.INSTANCE;
         });
         OpenApiTestUtils.assertEqualTo(schema, JsonKt.getSimpleExample());
