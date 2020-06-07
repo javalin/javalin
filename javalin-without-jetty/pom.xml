@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>3.8.1-SNAPSHOT</version>
+        <version>3.9.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -69,61 +67,36 @@
                         <configuration><!-- @formatter:off -->
                             <target name="hacky-mchackface">
                                 <!-- Javalin.java -->
-                                <copy file="${javalin.original.path}" tofile="${javalin.hack.path}"/>
-                                <replace file="${javalin.hack.path}" token="public Javalin ws("
-                                                                     value="private Javalin ws("/>
-                                <replace file="${javalin.hack.path}" token="public Javalin wsBefore("
-                                                                     value="private Javalin wsBefore("/>
-                                <replace file="${javalin.hack.path}" token="public Javalin wsAfter("
-                                                                     value="private Javalin wsAfter("/>
-                                <replace file="${javalin.hack.path}" token="public &lt;T extends Exception&gt; Javalin wsException("
-                                                                     value="private &lt;T extends Exception&gt; Javalin wsException("/>
-                                <replace file="${javalin.hack.path}" token="public JavalinWsServlet wsServlet()"
-                                                                     value="private JavalinWsServlet wsServlet()"/>
-                                <replace file="${javalin.hack.path}" token="protected JavalinWsServlet wsServlet"
-                                                                     value="private JavalinWsServlet wsServlet"/>
-                                <replace file="${javalin.hack.path}" token="public @Nullable JavalinServer server() {"
-                                                                     value="private @Nullable JavalinServer server() {"/>
-                                <replace file="${javalin.hack.path}" token="protected JavalinServer server"
-                                                                     value="private JavalinServer server"/>
-                                <replace file="${javalin.hack.path}" token="protected JavalinServer server"
-                                                                     value="private JavalinServer server"/>
-                                <replace file="${javalin.hack.path}" token="public Javalin("
-                                                                     value="private Javalin("/>
-                                <replace file="${javalin.hack.path}" token="public static Javalin create("
-                                                                     value="private static Javalin create("/>
-                                <replace file="${javalin.hack.path}" token="public Javalin start("
-                                                                     value="private Javalin start("/>
-                                <replace file="${javalin.hack.path}" token="public Javalin stop("
-                                                                     value="private Javalin stop("/>
-                                <replace file="${javalin.hack.path}" token="public int port("
-                                                                     value="private int port("/>
+                                <copy file="${javalin.original.path}" tofile="${javalin.hack.path}" />
+                                <replace file="${javalin.hack.path}" token="public Javalin ws(" value="private Javalin ws(" />
+                                <replace file="${javalin.hack.path}" token="public Javalin wsBefore(" value="private Javalin wsBefore(" />
+                                <replace file="${javalin.hack.path}" token="public Javalin wsAfter(" value="private Javalin wsAfter(" />
+                                <replace file="${javalin.hack.path}" token="public &lt;T extends Exception&gt; Javalin wsException(" value="private &lt;T extends Exception&gt; Javalin wsException(" />
+                                <replace file="${javalin.hack.path}" token="public JavalinWsServlet wsServlet()" value="private JavalinWsServlet wsServlet()" />
+                                <replace file="${javalin.hack.path}" token="protected JavalinWsServlet wsServlet" value="private JavalinWsServlet wsServlet" />
+                                <replace file="${javalin.hack.path}" token="public @Nullable JavalinServer server() {" value="private @Nullable JavalinServer server() {" />
+                                <replace file="${javalin.hack.path}" token="protected JavalinServer server" value="private JavalinServer server" />
+                                <replace file="${javalin.hack.path}" token="protected JavalinServer server" value="private JavalinServer server" />
+                                <replace file="${javalin.hack.path}" token="public Javalin(" value="private Javalin(" />
+                                <replace file="${javalin.hack.path}" token="public static Javalin create(" value="private static Javalin create(" />
+                                <replace file="${javalin.hack.path}" token="public Javalin start(" value="private Javalin start(" />
+                                <replace file="${javalin.hack.path}" token="public Javalin stop(" value="private Javalin stop(" />
+                                <replace file="${javalin.hack.path}" token="public int port(" value="private int port(" />
                                 <!-- JavalinConfig.java -->
-                                <copy file="${javalinconfig.original.path}" tofile="${javalinconfig.hack.path}"/>
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig addStaticFiles("
-                                                                           value="private JavalinConfig addStaticFiles("/>
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig sessionHandler("
-                                                                           value="private JavalinConfig sessionHandler("/>
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig wsFactoryConfig("
-                                                                           value="private JavalinConfig wsFactoryConfig("/>
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig wsLogger("
-                                                                           value="private JavalinConfig wsLogger("/>
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig enableWebjars()"
-                                                                           value="private JavalinConfig enableWebjars()"/>
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig enableDevLogging()"
-                                                                           value="private JavalinConfig enableDevLogging()"/>
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig server("
-                                                                           value="private JavalinConfig server("/>
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig configureServletContextHandler("
-                                                                           value="private JavalinConfig configureServletContextHandler("/>
-                                <replace file="${javalinconfig.hack.path}" token="public boolean logIfServerNotStarted = true;"
-                                                                           value="public boolean logIfServerNotStarted = false;"/>
+                                <copy file="${javalinconfig.original.path}" tofile="${javalinconfig.hack.path}" />
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig addStaticFiles(" value="private JavalinConfig addStaticFiles(" />
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig sessionHandler(" value="private JavalinConfig sessionHandler(" />
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig wsFactoryConfig(" value="private JavalinConfig wsFactoryConfig(" />
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig wsLogger(" value="private JavalinConfig wsLogger(" />
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig enableWebjars()" value="private JavalinConfig enableWebjars()" />
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig enableDevLogging()" value="private JavalinConfig enableDevLogging()" />
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig server(" value="private JavalinConfig server(" />
+                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig configureServletContextHandler(" value="private JavalinConfig configureServletContextHandler(" />
+                                <replace file="${javalinconfig.hack.path}" token="public boolean logIfServerNotStarted = true;" value="public boolean logIfServerNotStarted = false;" />
                                 <!-- Context.kt -->
-                                <copy file="${context.original.path}" tofile="${context.hack.path}"/>
-                                <replace file="${context.hack.path}" token="fun uploadedFile("
-                                                                     value="private fun uploadedFile("/>
-                                <replace file="${context.hack.path}" token="fun uploadedFiles("
-                                                                     value="private fun uploadedFiles("/>
+                                <copy file="${context.original.path}" tofile="${context.hack.path}" />
+                                <replace file="${context.hack.path}" token="fun uploadedFile(" value="private fun uploadedFile(" />
+                                <replace file="${context.hack.path}" token="fun uploadedFiles(" value="private fun uploadedFiles(" />
                             </target>
                         </configuration><!-- @formatter:on -->
                         <goals>
