@@ -28,6 +28,7 @@
         <javalinconfig.hack.path>${hackity.hack.root}/core/JavalinConfig.java</javalinconfig.hack.path>
         <context.original.path>${original.root}/http/Context.kt</context.original.path>
         <context.hack.path>${hackity.hack.root}/http/Context.kt</context.hack.path>
+        <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
     </properties>
 
     <build>
