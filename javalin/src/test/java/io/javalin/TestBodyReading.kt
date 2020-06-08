@@ -75,9 +75,9 @@ class TestBodyReading {
                 ctx.result(formParamString)
             }
         }
-        val params = "a=1&a=2&a=3&b=1&b=2&c=1&d=&e&f=%28%23%29"
+        val params = "a=1&a=2&a=3&b=1&b=2&c=1&d=&e&%28+f+%29=%28%23%29"
         val response = http.post("/body-reader?$params").body(params).asString()
-        assertThat(response.body).isEqualTo("a: 1, as: [1, 2, 3]. b: 1, bs: [1, 2]. c: 1, cs: [1]. d: , ds: []. e: , es: []. f: (#), fs: [(#)]")
+        assertThat(response.body).isEqualTo("a: 1, as: [1, 2, 3]. b: 1, bs: [1, 2]. c: 1, cs: [1]. d: , ds: []. e: , es: []. ( f ): (#), ( f )s: [(#)]")
     }
 
 }
