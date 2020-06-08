@@ -11,6 +11,8 @@ import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.io.ByteArrayInputStream
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class TestBodyReading {
 
@@ -75,9 +77,17 @@ class TestBodyReading {
                 ctx.result(formParamString)
             }
         }
-        val params = "a=1&a=2&a=3&b=1&b=2&c=1&d=&e&%28+f+%29=%28%23%29"
+        val params = "a=1" +      // single value
+                "&b=1&b=2&b=3" +  // multiple values
+                "&c=1=1" +        // value with '=' character
+                "&d=" +           // empty value
+                "&e" +            // also empty value
+                "&f=" + urlEncode("( # )") +   // %-encoded value with special chars
+                "&" + urlEncode("<g>") + "=g"  // %-encoded key with special chars
         val response = http.post("/body-reader?$params").body(params).asString()
-        assertThat(response.body).isEqualTo("a: 1, as: [1, 2, 3]. b: 1, bs: [1, 2]. c: 1, cs: [1]. d: , ds: []. e: , es: []. ( f ): (#), ( f )s: [(#)]")
+        assertThat(response.body).isEqualTo("a: 1, as: [1]. b: 1, bs: [1, 2, 3]. c: 1=1, cs: [1=1]. d: , ds: []. e: , es: []. f: ( # ), fs: [( # )]. <g>: g, <g>s: [g]")
     }
+
+    private fun urlEncode(text: String) = URLEncoder.encode(text, StandardCharsets.UTF_8)
 
 }
