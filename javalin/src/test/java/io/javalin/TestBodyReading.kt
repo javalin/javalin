@@ -88,6 +88,6 @@ class TestBodyReading {
         assertThat(response.body).isEqualTo("a: 1, as: [1]. b: 1, bs: [1, 2, 3]. c: 1=1, cs: [1=1]. d: , ds: []. e: , es: []. f: ( # ), fs: [( # )]. <g>: g, <g>s: [g]")
     }
 
-    private fun urlEncode(text: String) = URLEncoder.encode(text, StandardCharsets.UTF_8)
+    private fun urlEncode(text: String) = URLEncoder.encode(text, StandardCharsets.UTF_8.name())
 
 }
