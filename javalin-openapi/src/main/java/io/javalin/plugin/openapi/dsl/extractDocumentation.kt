@@ -94,7 +94,6 @@ private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): OpenApi? {
         val method = rfl(handler).getMethodByName("handle")!!
         method.getOpenApiAnnotation()
     } catch (e: NullPointerException) {
-        localLogger.error("cannot match handler: $httpMethod path: $path --  NullPointerException", e)
         return null
     }
 }
@@ -195,7 +194,7 @@ private fun HandlerMetaInfo.findMethodByOpenApiAnnotation(methods: Array<Method>
 
 private fun HandlerMetaInfo.findFieldByOpenApiAnnotation(allFields: Array<Field>): Field? {
     if (allFields.isEmpty()) {
-        localLogger.warn("cannot match handler: $httpMethod path: $path -- no fields declared")
+        // no fields declared -> handler cannot be a field-type declaration
         return null
     }
     // filter only implementations that are derived from the Handler interface
@@ -309,21 +308,13 @@ private fun HandlerMetaInfo.findFieldByOpenApiAnnotation(allFields: Array<Field>
 }
 
 fun Method.getOpenApiAnnotation(): OpenApi? {
-    val result = getAnnotation(OpenApi::class.java)
-    if (result == null) {
-        localLogger.warn("cannot match handler -- missing OpenAPI method annotation: " + declaringLocation())
-        return null
-    }
+    val result = getAnnotation(OpenApi::class.java) ?: return null
     result.warnUserAboutPotentialBugs(this.declaringClass)
     return result
 }
 
 fun Field.getOpenApiAnnotation(): OpenApi? {
-    val result = getAnnotation(OpenApi::class.java)
-    if (result == null) {
-        localLogger.warn("cannot match handler -- missing OpenAPI field annotation: " + declaringLocation())
-        return null
-    }
+    val result = getAnnotation(OpenApi::class.java) ?: return null
     result.warnUserAboutPotentialBugs(this.declaringClass)
     return result
 }
