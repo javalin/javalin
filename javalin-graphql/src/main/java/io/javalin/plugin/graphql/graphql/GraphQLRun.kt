@@ -10,7 +10,7 @@ import org.reactivestreams.Subscriber
 import java.util.concurrent.CompletableFuture
 
 class GraphQLRun(private val graphql: GraphQL) {
-    private var context: GraphQLContext? = null
+    private var context: Any? = null
     private var query: String = ""
     private var variables: Map<String, Any> = emptyMap()
 
@@ -18,7 +18,7 @@ class GraphQLRun(private val graphql: GraphQL) {
 
     fun withVariables(variables: Map<String, Any>): GraphQLRun = apply { this.variables = variables }
 
-    fun withContext(context: GraphQLContext?): GraphQLRun = apply { this.context = context }
+    fun withContext(context: Any?): GraphQLRun = apply { this.context = context }
 
     fun execute(): CompletableFuture<MutableMap<String, Any>> {
         val action = generateAction();
