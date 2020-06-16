@@ -92,4 +92,10 @@ class TestExceptionMapper {
         assertThat(http.jsonGet("/").body).contains("""MY MESSAGE WITH \"QUOTES\"""")
     }
 
+    @Test
+    fun `exception title can contain newlines`() = TestUtil.test { app, http ->
+        app.get("/") { throw BadRequestResponse("MY MESSAGE WITH \nNEWLINES\n") }
+        assertThat(http.jsonGet("/").body).contains("""MY MESSAGE WITH \nNEWLINES\n""")
+    }
+
 }

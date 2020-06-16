@@ -93,6 +93,7 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
         openApiExamples = examples.mapValues { it.value.toMutableMap() }.toMutableMap()
     }
 
+    @JvmSynthetic
     inline fun <reified T : Any> addExample(name: String, example: Example) = addExample(T::class.java, name, example)
 
     fun <T> addExample(clazz: Class<T>, name: String, example: Example) {

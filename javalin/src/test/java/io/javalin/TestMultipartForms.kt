@@ -22,8 +22,10 @@ import java.nio.charset.StandardCharsets
 
 class TestMultipartForms {
 
-    private val EOL = System.getProperty("line.separator")
-    private val TEXT_FILE_CONTENT = "This is my content." + EOL + "It's two lines." + EOL
+    private val LF = "\n"
+    private val CRLF = "\r\n"
+    private val TEXT_FILE_CONTENT_LF = "This is my content." + LF + "It's two lines." + LF
+    private val TEXT_FILE_CONTENT_CRLF = "This is my content." + CRLF + "It's two lines." + CRLF
 
     // Using OkHttp because Unirest doesn't allow to send non-files as form-data
     private val okHttp = OkHttpClient()
@@ -34,21 +36,25 @@ class TestMultipartForms {
         val response = http.post("/test-upload")
                 .field("upload", File("src/test/resources/upload-test/text.txt"))
                 .asString()
-        assertThat(response.body).isEqualTo(TEXT_FILE_CONTENT)
+        if (CRLF in response.body) {
+            assertThat(response.body).isEqualTo(TEXT_FILE_CONTENT_CRLF)
+        } else {
+            assertThat(response.body).isEqualTo(TEXT_FILE_CONTENT_LF)
+        }
     }
 
     @Test
     fun `mp3s are uploaded correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")!!
-            ctx.json(UploadInfo(uf.filename, uf.contentLength, uf.contentType, uf.extension))
+            ctx.json(UploadInfo(uf.filename, uf.size, uf.contentType, uf.extension))
         }
         val uploadFile = File("src/test/resources/upload-test/sound.mp3")
         val response = http.post("/test-upload")
                 .field("upload", uploadFile)
                 .asString()
         val uploadInfo = JavalinJackson.fromJson(response.body, UploadInfo::class.java)
-        assertThat(uploadInfo.contentLength).isEqualTo(uploadFile.length())
+        assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo("application/octet-stream")
         assertThat(uploadInfo.extension).isEqualTo(".mp3")
@@ -58,18 +64,18 @@ class TestMultipartForms {
     fun `pngs are uploaded correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")
-            ctx.json(UploadInfo(uf!!.filename, uf.contentLength, uf.contentType, uf.extension))
+            ctx.json(UploadInfo(uf!!.filename, uf.size, uf.contentType, uf.extension))
         }
         val uploadFile = File("src/test/resources/upload-test/image.png")
         val response = http.post("/test-upload")
                 .field("upload", uploadFile, "image/png")
                 .asString()
         val uploadInfo = JavalinJackson.fromJson(response.body, UploadInfo::class.java)
-        assertThat(uploadInfo.contentLength).isEqualTo(uploadFile.length())
+        assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo("image/png")
         assertThat(uploadInfo.extension).isEqualTo(".png")
-        assertThat(uploadInfo.contentLength).isEqualTo(6690)
+        assertThat(uploadInfo.size).isEqualTo(6690L)
     }
 
     @Test
@@ -170,7 +176,12 @@ class TestMultipartForms {
                                 .build()
                 ).build()
         ).execute().body()!!.string()
-        assertThat(responseAsString).isEqualTo(prefix + TEXT_FILE_CONTENT)
+
+        if (CRLF in responseAsString) {
+            assertThat(responseAsString).isEqualTo(prefix + TEXT_FILE_CONTENT_CRLF)
+        } else {
+            assertThat(responseAsString).isEqualTo(prefix + TEXT_FILE_CONTENT_LF)
+        }
     }
 
 }

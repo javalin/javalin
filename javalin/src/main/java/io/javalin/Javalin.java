@@ -117,10 +117,11 @@ public class Javalin {
     /**
      * Get the JavalinServer
      */
-    public @Nullable
-    JavalinServer server() {
+    // @formatter:off
+    public @Nullable JavalinServer server() {
         return this.server;
     }
+    // @formatter:off
 
     /**
      * Synchronously starts the application instance on the specified port

@@ -6,6 +6,7 @@ import io.javalin.plugin.graphql.graphql.MutationGraphql
 import io.javalin.plugin.graphql.graphql.QueryGraphql
 import io.javalin.plugin.graphql.graphql.SubscriptionGraphql
 
+
 class GraphQLOptions(val path: String, val context: GraphQLContext? = null) {
     var queries: MutableList<TopLevelObject> = mutableListOf()
     var mutations: MutableList<TopLevelObject> = mutableListOf()

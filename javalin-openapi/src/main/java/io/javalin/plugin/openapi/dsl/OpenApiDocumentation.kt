@@ -38,6 +38,7 @@ class OpenApiDocumentation {
     }
 
     // --- PATH PARAM ---
+    @JvmSynthetic
     inline fun <reified T> pathParam(name: String, noinline applyUpdates: ApplyUpdates<Parameter>? = null): OpenApiDocumentation = apply {
         pathParam(name, T::class.java, createUpdaterIfNotNull(applyUpdates))
     }
@@ -49,6 +50,7 @@ class OpenApiDocumentation {
     }
 
     // --- QUERY PARAM ---
+    @JvmSynthetic
     inline fun <reified T> queryParam(name: String, isRepeatable: Boolean = false, noinline applyUpdates: ApplyUpdates<Parameter>? = null): OpenApiDocumentation = apply {
         queryParam(name, T::class.java, isRepeatable, createUpdaterIfNotNull(applyUpdates))
     }
@@ -60,6 +62,7 @@ class OpenApiDocumentation {
     }
 
     // --- HEADER ---
+    @JvmSynthetic
     inline fun <reified T> header(name: String, noinline applyUpdates: ApplyUpdates<Parameter>? = null): OpenApiDocumentation = apply {
         header(name, T::class.java, createUpdaterIfNotNull(applyUpdates))
     }
@@ -71,6 +74,7 @@ class OpenApiDocumentation {
     }
 
     // --- COOKIE ---
+    @JvmSynthetic
     inline fun <reified T> cookie(name: String, noinline applyUpdates: ApplyUpdates<Parameter>? = null): OpenApiDocumentation = apply {
         cookie(name, T::class.java, createUpdaterIfNotNull(applyUpdates))
     }
@@ -100,6 +104,7 @@ class OpenApiDocumentation {
     }
 
     // --- FORM PARAM ---
+    @JvmSynthetic
     inline fun <reified T> formParam(name: String, required: Boolean = false): OpenApiDocumentation = apply {
         formParam(name, T::class.java, required)
     }
@@ -113,10 +118,12 @@ class OpenApiDocumentation {
     }
 
     // --- FORM PARAM BODY ---
+    @JvmSynthetic
     inline fun <reified T> formParamBody(noinline applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
         formParamBody(T::class.java, createUpdaterIfNotNull(applyUpdates))
     }
 
+    @JvmSynthetic
     inline fun <reified T> formParamBody(contentType: String? = null, noinline applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
         formParamBody(T::class.java, contentType, createUpdaterIfNotNull(applyUpdates))
     }
@@ -153,10 +160,12 @@ class OpenApiDocumentation {
     }
 
     // --- BODY ---
+    @JvmSynthetic
     inline fun <reified T> body(noinline applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
         body(T::class.java, null, applyUpdates)
     }
 
+    @JvmSynthetic
     inline fun <reified T> body(contentType: String? = null, noinline applyUpdates: ApplyUpdates<RequestBody>? = null) = apply {
         body(T::class.java, contentType, applyUpdates)
     }
@@ -211,6 +220,7 @@ class OpenApiDocumentation {
     }
 
     // --- JSON ARRAY ---
+    @JvmSynthetic
     inline fun <reified T> jsonArray(status: String, noinline applyUpdates: ApplyUpdates<ApiResponse>? = null) = apply {
         jsonArray(status, T::class.java, createUpdaterIfNotNull(applyUpdates))
     }
@@ -223,6 +233,7 @@ class OpenApiDocumentation {
     }
 
     // --- JSON ---
+    @JvmSynthetic
     inline fun <reified T> json(status: String, noinline applyUpdates: ApplyUpdates<ApiResponse>? = null) = apply {
         json(status, T::class.java, createUpdaterIfNotNull(applyUpdates))
     }
@@ -247,6 +258,7 @@ class OpenApiDocumentation {
     }
 
     // --- RESULT ---
+    @JvmSynthetic
     inline fun <reified T> result(status: String, noinline applyUpdates: ApplyUpdates<ApiResponse>? = null) = apply {
         result(status, T::class.java, createUpdaterIfNotNull(applyUpdates))
     }
@@ -261,6 +273,7 @@ class OpenApiDocumentation {
         result(status, documentedContent, openApiUpdater)
     }
 
+    @JvmSynthetic
     inline fun <reified T> result(status: String, contentType: String?, noinline applyUpdates: ApplyUpdates<ApiResponse>? = null) = apply {
         result(status, T::class.java, contentType, createUpdaterIfNotNull(applyUpdates))
     }

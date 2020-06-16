@@ -11,38 +11,47 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
+import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
 
-    // It would work without a server, but if none is set jetty will log a warning.
-    private val dummyServer = Server()
-
     override fun addStaticFileConfig(config: StaticFileConfig) {
-        val handler = if (config.path == "/webjars") WebjarHandler() else ResourceHandler().apply {
+        val handler = if (config.path == "/webjars") WebjarHandler() else PrefixableHandler(config.urlPathPrefix).apply {
             resourceBase = getResourcePath(config)
             isDirAllowed = false
             isEtags = true
-            Javalin.log?.info("Static file handler added with path=${config.path} and location=${config.location}. Absolute path: '${getResourcePath(config)}'.")
+            Javalin.log?.info("""Static file handler added:
+                |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.path}", location: Location.${config.location}}
+                |    Resolved path: '${getResourcePath(config)}'
+                """.trimMargin())
         }
-        handlers.add(handler.apply {
-            server = dummyServer
-            start()
-        })
+        handlers.add(handler.apply { start() })
     }
 
     inner class WebjarHandler : ResourceHandler() {
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
     }
 
-    fun getResourcePath(staticFileConfig: StaticFileConfig): String {
+    inner class PrefixableHandler(private var urlPathPrefix: String) : ResourceHandler() {
+        override fun getResource(path: String): Resource {
+            val targetResource by lazy { path.removePrefix(urlPathPrefix) }
+            return when {
+                urlPathPrefix == "/" -> super.getResource(path) // same as regular ResourceHandler
+                !path.startsWith(urlPathPrefix) -> EmptyResource.INSTANCE
+                !targetResource.startsWith("/") -> EmptyResource.INSTANCE
+                else -> super.getResource(targetResource)
+            }
+        }
+    }
+
+    private fun getResourcePath(staticFileConfig: StaticFileConfig): String {
         val nosuchdir = "Static resource directory with path: '${staticFileConfig.path}' does not exist."
         if (staticFileConfig.location == Location.CLASSPATH) {
             val classPathResource = Resource.newClassPathResource(staticFileConfig.path)
@@ -68,6 +77,9 @@ class JettyResourceHandler : io.javalin.http.staticfiles.ResourceHandler {
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
+                    if (precompressStaticFiles && PrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
+                        return true
+                    }
                     httpResponse.contentType = null
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)

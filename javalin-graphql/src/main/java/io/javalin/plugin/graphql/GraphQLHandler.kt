@@ -46,7 +46,7 @@ class GraphQLHandler(val options: GraphQLOptions) {
         return GraphQLRun(graphQL)
                 .withQuery(query)
                 .withVariables(variables)
-                .withContext(options.context)
+                .withContext(options.context);
     }
 
 

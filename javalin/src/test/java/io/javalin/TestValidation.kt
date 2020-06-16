@@ -6,8 +6,11 @@
 
 package io.javalin
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.javalin.core.validation.JavalinValidation
 import io.javalin.core.validation.Validator
+import io.javalin.core.validation.collectErrors
 import io.javalin.http.BadRequestResponse
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.testing.SerializeableObject
@@ -178,6 +181,127 @@ class TestValidation {
         http.get("/").apply {
             assertThat(status).isEqualTo(200)
             assertThat(body).isEqualTo("")
+        }
+    }
+
+    @Test
+    fun `All errors can be collected from multiple validators`() = TestUtil.test { app, http ->
+
+        app.get("/") { ctx ->
+            val numberValidator = ctx.queryParam<Int>("number")
+                    .check({ it > 12 }, "must be greater than 12.")
+                    .check({ it.rem(2) == 0}, "must be even.")
+
+            val stringValidator = ctx.queryParam<String>("first_name")
+                    .check({ !it.contains("-") }, "cannot contain hyphens.")
+                    .check({ it.length < 10 }, "cannot be longer than 10 characters.")
+
+            ctx.json(listOf(numberValidator, stringValidator).collectErrors())
+        }
+
+        http.get("/?number=7&first_name=my-overly-long-first-name").apply {
+            assertThat(status).isEqualTo(200)
+
+            val errors = jacksonObjectMapper().readValue<Map<String, List<String>>>(body)
+
+            assertThat(errors).size().isEqualTo(2)
+            assertThat(errors.keys).contains("number", "first_name")
+
+            assertThat(errors["number"]).size().isEqualTo(2)
+            assertThat(errors["number"]).contains("must be greater than 12.", "must be even.")
+
+            assertThat(errors["first_name"]).size().isEqualTo(2)
+            assertThat(errors["first_name"]).contains("cannot contain hyphens.", "cannot be longer than 10 characters.")
+        }
+    }
+
+    @Test
+    fun `body validator with check and retrieve errors`() = TestUtil.test { app, http ->
+        app.post("/") { ctx ->
+            val errors = ctx.bodyValidator<Map<String, String>>()
+                    .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
+                    .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
+                    .errors()
+
+            ctx.json(errors)
+        }
+
+        // Test valid param
+        http.post("/").body("{\"first_name\":\"John\"}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("{}")
+        }
+
+        // Test invalid param
+        http.post("/").body("{\"first_name\":\"Mathilde\"}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("{\"first_name\":[\"Too long\"]}")
+        }
+
+        // Test invalid empty param
+        http.post("/").body("{}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("{\"first_name\":[\"This field is mandatory\"]}")
+        }
+    }
+
+    @Test
+    fun `body validator with check and isValid`() = TestUtil.test { app, http ->
+        app.post("/") { ctx ->
+            val isValid = ctx.bodyValidator<Map<String, String>>()
+                    .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
+                    .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
+                    .isValid()
+
+            ctx.result(isValid.toString())
+        }
+
+        // Test valid param
+        http.post("/").body("{\"first_name\":\"John\"}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("true")
+        }
+
+        // Test invalid param
+        http.post("/").body("{\"first_name\":\"Mathilde\"}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("false")
+        }
+
+        // Test invalid empty param
+        http.post("/").body("{}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("false")
+        }
+    }
+
+    @Test
+    fun `body validator with check and hasError`() = TestUtil.test { app, http ->
+        app.post("/") { ctx ->
+            val hasError = ctx.bodyValidator<Map<String, String>>()
+                    .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
+                    .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
+                    .hasError()
+
+            ctx.result(hasError.toString())
+        }
+
+        // Test valid param
+        http.post("/").body("{\"first_name\":\"John\"}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("false")
+        }
+
+        // Test invalid param
+        http.post("/").body("{\"first_name\":\"Mathilde\"}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("true")
+        }
+
+        // Test invalid empty param
+        http.post("/").body("{}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("true")
         }
     }
 }

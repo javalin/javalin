@@ -23,6 +23,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
     companion object {
         @JvmField
         val NONE = CompressionStrategy()
+
         @JvmField
         val GZIP = CompressionStrategy(null, Gzip())
     }
