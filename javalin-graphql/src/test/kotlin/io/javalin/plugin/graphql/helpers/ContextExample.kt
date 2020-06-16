@@ -1,6 +1,9 @@
 package io.javalin.plugin.graphql.helpers
 
-class ContextExample {
+import io.javalin.plugin.graphql.graphql.GraphQLContext
+
+
+class ContextExample: GraphQLContext() {
     val hi = "Hi"
     val hello = "Hello World"
 }

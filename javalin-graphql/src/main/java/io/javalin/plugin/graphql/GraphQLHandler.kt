@@ -24,6 +24,7 @@ class GraphQLHandler(val options: GraphQLOptions) {
 
     fun execute(ctx: Context) {
         val body = ctx.bodyAsClass(Map::class.java)
+        this.options.context?.setContext(ctx)
         val result = this.genericExecute(body)
                 .execute()
                 .thenApplyAsync { JavalinJson.toJson(it) }
@@ -32,6 +33,7 @@ class GraphQLHandler(val options: GraphQLOptions) {
 
     fun execute(ctx: WsMessageContext) {
         val body = ctx.message(Map::class.java)
+        this.options.context?.setWSContext(ctx)
         this.genericExecute(body)
                 .subscribe(SubscriberGraphQL(ctx))
     }
@@ -44,7 +46,7 @@ class GraphQLHandler(val options: GraphQLOptions) {
         return GraphQLRun(graphQL)
                 .withQuery(query)
                 .withVariables(variables)
-                .withContext(options.context);
+                .withContext(options.context)
     }
 
 

@@ -4,12 +4,13 @@ import graphql.ExceptionWhileDataFetching
 import graphql.ExecutionInput
 import graphql.ExecutionResult
 import graphql.GraphQL
+import org.eclipse.jetty.server.handler.ContextHandler
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import java.util.concurrent.CompletableFuture
 
 class GraphQLRun(private val graphql: GraphQL) {
-    private var context: Any? = null
+    private var context: GraphQLContext? = null
     private var query: String = ""
     private var variables: Map<String, Any> = emptyMap()
 
@@ -17,7 +18,7 @@ class GraphQLRun(private val graphql: GraphQL) {
 
     fun withVariables(variables: Map<String, Any>): GraphQLRun = apply { this.variables = variables }
 
-    fun withContext(context: Any?): GraphQLRun = apply { this.context = context }
+    fun withContext(context: GraphQLContext?): GraphQLRun = apply { this.context = context }
 
     fun execute(): CompletableFuture<MutableMap<String, Any>> {
         val action = generateAction();
