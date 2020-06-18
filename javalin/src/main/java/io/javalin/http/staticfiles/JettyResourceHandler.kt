@@ -44,6 +44,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
             val targetResource by lazy { path.removePrefix(urlPathPrefix) }
             return when {
                 urlPathPrefix == "/" -> super.getResource(path) // same as regular ResourceHandler
+                targetResource == "" -> super.getResource("/") // directory without trailing '/'
                 !path.startsWith(urlPathPrefix) -> EmptyResource.INSTANCE
                 !targetResource.startsWith("/") -> EmptyResource.INSTANCE
                 else -> super.getResource(targetResource)
