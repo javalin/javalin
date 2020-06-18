@@ -176,6 +176,106 @@ val simpleExample = """
 """.formatJson()
 
 @Language("JSON")
+val simpleExample1 = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/test1": {
+        "get": {
+          "summary": "Get test1",
+          "operationId": "getTest1",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+@Language("JSON")
+val simpleExample2 = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/test2": {
+        "get": {
+          "summary": "Get test2",
+          "operationId": "getTest2",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+@Language("JSON")
+val simplePutExample = """
+  {
+    "openapi" : "3.0.1",
+    "info" : {
+      "title" : "Example",
+      "version" : "1.0.0"
+    },
+    "paths" : {
+      "/put" : {
+        "put" : {
+          "summary" : "Put put",
+          "operationId" : "putPut",
+          "responses" : {
+            "200" : {
+            "description" : "OK"
+            }
+          }
+        }
+      }
+    },
+    "components" : { }
+  }
+""".formatJson()
+
+@Language("JSON")
+val simpleDeleteExample = """
+  {
+    "openapi" : "3.0.1",
+    "info" : {
+      "title" : "Example",
+      "version" : "1.0.0"
+    },
+    "paths" : {
+      "/delete" : {
+        "put" : {
+          "summary" : "Put delete",
+          "operationId" : "putDelete",
+          "responses" : {
+            "200" : {
+              "description" : "OK"
+            }
+          }
+        }
+      }
+    },
+    "components" : { }
+  }
+""".formatJson()
+
+@Language("JSON")
 val simpleExampleWithDescription = """
   {
     "openapi": "3.0.1",

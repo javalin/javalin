@@ -42,6 +42,10 @@ internal val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declare
 
 internal val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
 
+internal val Any.isJavaAnonymousClass: Boolean get() = this.javaClass.isAnonymousClass
+
+internal val Any.isJavaMemberClass: Boolean get() = this.javaClass.isMemberClass
+
 internal val Any.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthetic
 
 internal val Any.hasMethodName: Boolean get() = methodName != null
@@ -102,7 +106,9 @@ class Reflection(val obj: Any) {
     val isKotlinAnonymousLambda: Boolean get() = obj.isKotlinAnonymousLambda
     val isKotlinMethodReference: Boolean get() = obj.isKotlinMethodReference
     val isKotlinField: Boolean get() = obj.isKotlinField
+    val isJavaAnonymousClass: Boolean get() = obj.isJavaAnonymousClass
     val isJavaAnonymousLambda: Boolean get() = obj.isJavaAnonymousLambda
+    val isJavaMemberClass: Boolean get() = obj.isJavaMemberClass
     val hasMethodName: Boolean get() = obj.hasMethodName
     val isJavaNonStaticMethodReference: Boolean get() = obj.isJavaNonStaticMethodReference
     val isJavaField: Boolean get() = obj.isJavaField
