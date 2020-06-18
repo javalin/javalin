@@ -101,6 +101,8 @@ class TestStaticFiles {
     fun `directory root return welcome file if there is a welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/subdir/").status).isEqualTo(200)
         assertThat(http.getBody("/subdir/")).isEqualTo("<h1>Welcome file</h1>")
+        assertThat(http.get("/subdir").status).isEqualTo(200)
+        assertThat(http.getBody("/subdir")).isEqualTo("<h1>Welcome file</h1>")
     }
 
     @Test
