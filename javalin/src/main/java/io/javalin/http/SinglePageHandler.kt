@@ -41,7 +41,7 @@ class SinglePageHandler {
 
     fun handle(ctx: Context): Boolean {
         val accepts = ctx.header(Header.ACCEPT) ?: ""
-        if (accepts.contains("text/html") || accepts == "*/*" || accepts == "") {
+        if (accepts.contains("text/html") || accepts.contains("*/*") || accepts == "") {
             for (path in pathPageMap.keys) {
                 if (ctx.path().startsWith(path)) {
                     ctx.html(when (ctx.isLocalhost()) {
