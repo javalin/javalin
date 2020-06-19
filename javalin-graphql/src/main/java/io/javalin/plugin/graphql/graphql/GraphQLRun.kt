@@ -4,6 +4,7 @@ import graphql.ExceptionWhileDataFetching
 import graphql.ExecutionInput
 import graphql.ExecutionResult
 import graphql.GraphQL
+import org.eclipse.jetty.server.handler.ContextHandler
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import java.util.concurrent.CompletableFuture

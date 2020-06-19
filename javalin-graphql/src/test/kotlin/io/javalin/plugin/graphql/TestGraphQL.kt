@@ -90,7 +90,7 @@ class TestGraphQL {
 
     private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(5)) {
         val startTime = System.currentTimeMillis()
-        val limitTime = startTime + timeout.toMillis();
+        val limitTime = startTime + timeout.toMillis()
 
         slowFunction.invoke()
 
