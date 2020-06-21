@@ -94,9 +94,10 @@
                                 <replace file="${javalinconfig.hack.path}" token="public JavalinConfig configureServletContextHandler(" value="private JavalinConfig configureServletContextHandler(" />
                                 <replace file="${javalinconfig.hack.path}" token="public boolean logIfServerNotStarted = true;" value="public boolean logIfServerNotStarted = false;" />
                                 <!-- Context.kt -->
-                                <copy file="${context.original.path}" tofile="${context.hack.path}" />
-                                <replace file="${context.hack.path}" token="fun uploadedFile(" value="private fun uploadedFile(" />
-                                <replace file="${context.hack.path}" token="fun uploadedFiles(" value="private fun uploadedFiles(" />
+                                <!-- This stopped working for some reason -->
+<!--                                <copy file="${context.original.path}" tofile="${context.hack.path}" />-->
+<!--                                <replace file="${context.hack.path}" token="fun uploadedFile(" value="private fun uploadedFile(" />-->
+<!--                                <replace file="${context.hack.path}" token="fun uploadedFiles(" value="private fun uploadedFiles(" />-->
                             </target>
                         </configuration><!-- @formatter:on -->
                         <goals>
