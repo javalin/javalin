@@ -11,6 +11,7 @@ import io.javalin.core.compression.Gzip
 import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.staticfiles.Location
+import io.javalin.http.DefaultContextFactory
 import io.javalin.plugin.metrics.MicrometerPlugin
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
@@ -64,6 +65,7 @@ class TestConfiguration {
                     }
                 })
             }
+            it.contextFactory(DefaultContextFactory())
         }.start(0)
         assertThat(app.server.started).isTrue()
         app.stop()

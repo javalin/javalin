@@ -33,7 +33,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             val type = HandlerType.fromServletRequest(wrappedReq)
             val rwc = ResponseWrapperContext(rawReq, config)
             val requestUri = wrappedReq.requestURI.removePrefix(wrappedReq.contextPath)
-            val ctx = Context(wrappedReq, rawRes, config.inner.appAttributes)
+            val ctx = config.inner.contextFactory.createContext(wrappedReq, rawRes, config.inner.appAttributes)
 
             fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 

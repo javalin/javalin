@@ -19,9 +19,7 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.CorsPlugin;
 import io.javalin.core.util.LogUtil;
-import io.javalin.http.Handler;
-import io.javalin.http.RequestLogger;
-import io.javalin.http.SinglePageHandler;
+import io.javalin.http.*;
 import io.javalin.http.staticfiles.JettyResourceHandler;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
@@ -72,6 +70,7 @@ public class JavalinConfig {
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
         @NotNull public CompressionStrategy compressionStrategy = CompressionStrategy.GZIP;
+        @NotNull public ContextFactory contextFactory = new DefaultContextFactory();
     }
     // @formatter:on
 
@@ -150,6 +149,11 @@ public class JavalinConfig {
 
     public JavalinConfig accessManager(@NotNull AccessManager accessManager) {
         inner.accessManager = accessManager;
+        return this;
+    }
+
+    public JavalinConfig contextFactory(@NotNull ContextFactory contextFactory) {
+        inner.contextFactory = contextFactory;
         return this;
     }
 
