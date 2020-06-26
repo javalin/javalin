@@ -61,7 +61,7 @@ object JavalinVue {
         |    }""".trimMargin() + "\n</script>\n"
 
     internal fun setRootDirPathIfUnset(ctx: Context) {
-        vueDirPath = vueDirPath ?: if (ctx.isLocalhost()) Paths.get("src/main/resources/vue") else PathMaster.classpathPath("/vue")
+        vueDirPath = vueDirPath ?: PathMaster.classpathPath("/vue")
     }
 
     private fun String.replaceWebjarsWithCdn() =
