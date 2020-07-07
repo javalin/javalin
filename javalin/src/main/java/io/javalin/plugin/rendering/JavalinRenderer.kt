@@ -9,12 +9,7 @@ package io.javalin.plugin.rendering
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.markdown.JavalinCommonmark
-import io.javalin.plugin.rendering.template.JavalinFreemarker
-import io.javalin.plugin.rendering.template.JavalinJtwig
-import io.javalin.plugin.rendering.template.JavalinMustache
-import io.javalin.plugin.rendering.template.JavalinPebble
-import io.javalin.plugin.rendering.template.JavalinThymeleaf
-import io.javalin.plugin.rendering.template.JavalinVelocity
+import io.javalin.plugin.rendering.template.*
 
 object JavalinRenderer {
 
@@ -28,6 +23,7 @@ object JavalinRenderer {
         register(JavalinPebble, ".peb", ".pebble")
         register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
         register(JavalinCommonmark, ".md", ".markdown")
+        register(JavalinJte, ".jte")
     }
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>, ctx: Context): String {

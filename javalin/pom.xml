@@ -82,6 +82,11 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.jusecase</groupId>
+            <artifactId>jte</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.atlassian.commonmark</groupId>
             <artifactId>commonmark</artifactId>
             <optional>true</optional>
