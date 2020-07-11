@@ -11,6 +11,7 @@ import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.HandlerEntry
 import io.javalin.http.HandlerType
+import java.net.URL
 import java.net.URLDecoder
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -74,7 +75,11 @@ object ContextUtil {
         this.handlerType = handlerType
     }
 
-    fun Context.isLocalhost() = this.host()?.contains("localhost") == true || this.host()?.contains("127.0.0.1") == true
+    fun Context.isLocalhost() = try {
+        URL(this.url()).host.let { it == "localhost" || it == "127.0.0.1" }
+    } catch (e: Exception) {
+        false
+    }
 
     fun changeBaseRequest(ctx: Context, req: HttpServletRequest) = Context(req, ctx.res).apply {
         this.pathParamMap = ctx.pathParamMap
