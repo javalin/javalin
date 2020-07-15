@@ -145,7 +145,18 @@ class TestTemplates {
     fun `jte works`() = TestUtil.test { app, http ->
         try {
             JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath()))
-            app.get("/hello") { ctx -> ctx.render("test.jte", mapOf("jte" to JteTestPage("hello", "world"))) }
+            app.get("/hello") { ctx -> ctx.render("test.jte", model("page", JteTestPage("hello", "world"))) }
+            assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
+        } catch (e:UnsupportedClassVersionError) {
+            // jte does require JDK 11+ to work
+        }
+    }
+
+    @Test
+    fun `jte multiple params work`() = TestUtil.test { app, http ->
+        try {
+            JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath()))
+            app.get("/hello") { ctx -> ctx.render("multiple-params.jte", model("one", "hello", "two", "world")) }
             assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
         } catch (e:UnsupportedClassVersionError) {
             // jte does require JDK 11+ to work

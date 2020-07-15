@@ -29,7 +29,7 @@ object JavalinJte : FileRenderer {
         Util.ensureDependencyPresent(OptionalDependency.JTE)
 
         val stringOutput = StringOutput()
-        (templateEngine ?: defaultTemplateEngine).render(filePath, model["jte"], stringOutput)
+        (templateEngine ?: defaultTemplateEngine).render(filePath, model, stringOutput)
         return stringOutput.toString()
     }
 
