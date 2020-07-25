@@ -11,6 +11,7 @@ import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.ClasspathLoader
 import io.javalin.plugin.rendering.FileRenderer
 import io.javalin.plugin.rendering.JavalinRenderer
+import io.javalin.plugin.rendering.template.JavalinJte
 import io.javalin.plugin.rendering.template.JavalinJtwig
 import io.javalin.plugin.rendering.template.JavalinPebble
 import io.javalin.plugin.rendering.template.JavalinVelocity
@@ -23,6 +24,9 @@ import org.jtwig.functions.FunctionRequest
 import org.jtwig.functions.SimpleJtwigFunction
 import org.jtwig.util.FunctionValueUtils
 import org.junit.Test
+import org.jusecase.jte.TemplateEngine
+import org.jusecase.jte.resolve.ResourceCodeResolver
+import java.io.File
 
 class TestTemplates {
 
@@ -138,6 +142,28 @@ class TestTemplates {
     }
 
     @Test
+    fun `jte works`() = TestUtil.test { app, http ->
+        try {
+            JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath()))
+            app.get("/hello") { ctx -> ctx.render("test.jte", model("page", JteTestPage("hello", "world"))) }
+            assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
+        } catch (e:UnsupportedClassVersionError) {
+            // jte does require JDK 11+ to work
+        }
+    }
+
+    @Test
+    fun `jte multiple params work`() = TestUtil.test { app, http ->
+        try {
+            JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath()))
+            app.get("/hello") { ctx -> ctx.render("multiple-params.jte", model("one", "hello", "two", "world")) }
+            assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
+        } catch (e:UnsupportedClassVersionError) {
+            // jte does require JDK 11+ to work
+        }
+    }
+
+    @Test
     fun `markdown works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/markdown/test.md") }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Markdown!</h1>\n")
@@ -167,4 +193,6 @@ class TestTemplates {
         app.get("/hello") { ctx -> ctx.render("/templates/jtwig/multiple.dots.twig", model("message", "Hello jTwig!")) }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello jTwig!</h1>")
     }
+
+    data class JteTestPage(val hello:String, val world:String)
 }
