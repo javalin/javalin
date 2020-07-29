@@ -170,25 +170,5 @@ class TestCustomJetty {
         }
     }
 
-    @Test
-    fun `no warnings in log file when adding static files to a custom server`() {
-        val baos = ByteArrayOutputStream()
-        val origErr = System.err
-        try {
-            System.setErr(PrintStream(baos))
-
-            Javalin.create {
-                it.server { Server() }
-                it.enableWebjars()
-            }
-
-            System.err.flush()
-
-            assertFalse(baos.toString().contains("WARN"))
-        } finally {
-            System.setErr(origErr)
-        }
-    }
-
 }
 
