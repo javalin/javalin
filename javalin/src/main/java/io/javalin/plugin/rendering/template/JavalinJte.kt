@@ -10,6 +10,7 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
+import org.jusecase.jte.ContentType
 import org.jusecase.jte.TemplateEngine
 import org.jusecase.jte.output.StringOutput
 import org.jusecase.jte.resolve.DirectoryCodeResolver
@@ -33,6 +34,6 @@ object JavalinJte : FileRenderer {
         return stringOutput.toString()
     }
 
-    private fun defaultJteEngine() = TemplateEngine.create(DirectoryCodeResolver(File("src/main/jte").toPath()))
+    private fun defaultJteEngine() = TemplateEngine.create(DirectoryCodeResolver(File("src/main/jte").toPath()), ContentType.Html)
 
 }
