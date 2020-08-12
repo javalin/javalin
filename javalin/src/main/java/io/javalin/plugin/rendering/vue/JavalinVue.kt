@@ -53,11 +53,11 @@ object JavalinVue {
                     .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
             ).replaceWebjarsWithCdn()
 
-    internal fun getState(ctx: Context) = "\n<script>\n" + """
+    internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
         |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
         |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap())},
-        |        state: ${JavalinJson.toJson(stateFunction(ctx))}
+        |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
         |    }""".trimMargin() + "\n</script>\n"
 
     internal fun setRootDirPathIfUnset(ctx: Context) {
@@ -69,7 +69,7 @@ object JavalinVue {
 
 }
 
-class VueComponent(private val component: String) : Handler {
+class VueComponent @JvmOverloads constructor(private val component: String, private val state: Any? = null) : Handler {
     override fun handle(ctx: Context) {
         JavalinVue.setRootDirPathIfUnset(ctx)
         JavalinVue.useCdn = !ctx.isLocalhost()
@@ -82,7 +82,7 @@ class VueComponent(private val component: String) : Handler {
             return
         }
         ctx.header(Header.CACHE_CONTROL, JavalinVue.cacheControl)
-        ctx.html(view.replace("@serverState", JavalinVue.getState(ctx)).replace("@routeComponent", routeComponent)) // insert current route component
+        ctx.html(view.replace("@serverState", JavalinVue.getState(ctx, state)).replace("@routeComponent", routeComponent)) // insert current route component
     }
 }
 

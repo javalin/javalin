@@ -53,6 +53,17 @@ class TestJavalinVue {
     }
 
     @Test
+    fun `vue component with component-specific state`() = TestUtil.test { app, http ->
+        JavalinVue.stateFunction = { ctx -> mapOf<String, String>() }
+        app.get("/no-state", VueComponent("<test-component></test-component>"))
+        val noStateRes = http.getBody("/no-state")
+        app.get("/specific-state", VueComponent("<test-component></test-component>", mapOf("test" to "tast")))
+        val specificStateRes = http.getBody("/specific-state")
+        assertThat(noStateRes).contains("""state: {}""")
+        assertThat(specificStateRes).contains("""state: {"test":"tast"}""")
+    }
+
+    @Test
     fun `vue component works Javalin#error`() = TestUtil.test { app, http ->
         app.get("/") { it.status(404) }
         app.error(404, "html", VueComponent("<test-component></test-component>"))
