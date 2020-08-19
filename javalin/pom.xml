@@ -82,7 +82,7 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.jusecase</groupId>
+            <groupId>gg.jte</groupId>
             <artifactId>jte</artifactId>
             <optional>true</optional>
         </dependency>
