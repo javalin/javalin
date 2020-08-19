@@ -10,10 +10,10 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.FileRenderer
-import org.jusecase.jte.ContentType
-import org.jusecase.jte.TemplateEngine
-import org.jusecase.jte.output.StringOutput
-import org.jusecase.jte.resolve.DirectoryCodeResolver
+import gg.jte.ContentType
+import gg.jte.TemplateEngine
+import gg.jte.output.StringOutput
+import gg.jte.resolve.DirectoryCodeResolver
 import java.io.File
 
 object JavalinJte : FileRenderer {

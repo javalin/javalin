@@ -24,9 +24,9 @@ import org.jtwig.functions.FunctionRequest
 import org.jtwig.functions.SimpleJtwigFunction
 import org.jtwig.util.FunctionValueUtils
 import org.junit.Test
-import org.jusecase.jte.ContentType
-import org.jusecase.jte.TemplateEngine
-import org.jusecase.jte.resolve.ResourceCodeResolver
+import gg.jte.ContentType
+import gg.jte.TemplateEngine
+import gg.jte.resolve.ResourceCodeResolver
 import java.io.File
 
 class TestTemplates {
