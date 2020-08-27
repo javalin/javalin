@@ -8,7 +8,6 @@ package io.javalin.http
 
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
-import io.javalin.core.plugin.PluginNotFoundException
 import io.javalin.core.security.Role
 import io.javalin.core.util.CorsPlugin
 import io.javalin.core.util.Header
@@ -119,14 +118,9 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
-        val shouldWrap = handlerType.isHttpMethod()
-        val protectedHandler = if (shouldWrap) Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) } else handler
+        val protectedHandler = if (handlerType.isHttpMethod()) Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, protectedHandler, handler))
     }
 
-    private fun isCorsEnabled(config: JavalinConfig) = try {
-        config.getPlugin(CorsPlugin::class.java) != null
-    } catch (ignored: PluginNotFoundException) {
-        false
-    }
+    private fun isCorsEnabled(config: JavalinConfig) = config.inner.plugins[CorsPlugin::class.java] != null
 }
