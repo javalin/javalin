@@ -8,8 +8,9 @@ package io.javalin.http
 
 import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
-import io.javalin.core.security.CoreRoles
+import io.javalin.core.plugin.PluginNotFoundException
 import io.javalin.core.security.Role
+import io.javalin.core.util.CorsPlugin
 import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
@@ -51,6 +52,9 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources (will write response if found)
                     if (config.inner.resourceHandler?.handle(wrappedReq, JavalinResponseWrapper(rawRes, rwc)) == true) return@tryWithExceptionMapper
                     if (config.inner.singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
+                }
+                if (type == HandlerType.OPTIONS && isCorsEnabled(config)) { // CORS is enabled, so we return 200 for OPTIONS
+                    return@tryWithExceptionMapper
                 }
                 if (ctx.handlerType == HandlerType.BEFORE) { // no match, status will be 404 or 405 after this point
                     ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
@@ -115,9 +119,14 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
-        val shouldWrap = handlerType.isHttpMethod() && !roles.contains(CoreRoles.NO_WRAP)
+        val shouldWrap = handlerType.isHttpMethod()
         val protectedHandler = if (shouldWrap) Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, protectedHandler, handler))
     }
 
+    private fun isCorsEnabled(config: JavalinConfig) = try {
+        config.getPlugin(CorsPlugin::class.java) != null
+    } catch (ignored: PluginNotFoundException) {
+        false
+    }
 }
