@@ -79,7 +79,7 @@ class RouteMatcherPerformanceTest {
         )
 
         val oldEntries = routes.map { OldHandlerEntry(HandlerType.AFTER, it, Handler { }) }
-        val newEntries = routes.map { NewHandlerEntry(HandlerType.AFTER, it, Handler { }, Handler { }) }
+        val newEntries = routes.map { NewHandlerEntry(HandlerType.AFTER, it, false, Handler { }, Handler { }) }
 
         val testEntries = listOf(
                 "/test/1234/some/path/here",

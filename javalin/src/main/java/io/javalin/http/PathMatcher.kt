@@ -9,13 +9,13 @@ package io.javalin.http
 import io.javalin.core.PathParser
 import java.util.*
 
-data class HandlerEntry(val type: HandlerType, val path: String, val handler: Handler, val rawHandler: Handler) {
-    private val pathParser = PathParser(path)
+data class HandlerEntry(val type: HandlerType, val path: String, val ignoreTrailingSlashes: Boolean, val handler: Handler, val rawHandler: Handler) {
+    private val pathParser = PathParser(path, ignoreTrailingSlashes)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
 }
 
-class PathMatcher {
+class PathMatcher() {
 
     private val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
         it to arrayListOf()

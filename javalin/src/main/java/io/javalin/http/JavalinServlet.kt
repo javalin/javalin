@@ -119,7 +119,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
         val protectedHandler = if (handlerType.isHttpMethod()) Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) } else handler
-        matcher.add(HandlerEntry(handlerType, path, protectedHandler, handler))
+        matcher.add(HandlerEntry(handlerType, path, config.ignoreTrailingSlashes, protectedHandler, handler))
     }
 
     private fun isCorsEnabled(config: JavalinConfig) = config.inner.plugins[CorsPlugin::class.java] != null

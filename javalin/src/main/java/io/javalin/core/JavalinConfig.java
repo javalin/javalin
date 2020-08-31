@@ -51,6 +51,7 @@ public class JavalinConfig {
     public boolean precompressStaticFiles = false;
     public boolean showJavalinBanner = true;
     public boolean logIfServerNotStarted = true;
+    public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
     @NotNull public Long requestCacheSize = 4096L;
