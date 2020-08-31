@@ -38,12 +38,8 @@ class TestTrailingSlashes {
     fun `trailing slashes are treat as different url, if configuration is set - ApiBuilder`() {
         val javalin = Javalin.create { it.ignoreTrailingSlashes = false; }
         TestUtil.test(javalin) { app, http ->
-            app.routes {
-                path("a") {
-                    get { ctx -> ctx.result("a") }
-                    get("/") { ctx -> ctx.result("a-slash") }
-                }
-            }
+            app.get("/a") { ctx -> ctx.result("a") }
+            app.get("/a/") { ctx -> ctx.result("a-slash") }
             assertThat(http.getBody("/a")).isEqualTo("a")
             assertThat(http.getBody("/a/")).isEqualTo("a-slash")
         }
