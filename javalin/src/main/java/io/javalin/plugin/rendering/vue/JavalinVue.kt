@@ -55,8 +55,8 @@ object JavalinVue {
 
     internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
-        |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap())},
-        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap())},
+        |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap().mapKeys { escape(it.key) }.mapValues { escape(it.value) })},
+        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap().mapKeys { escape(it.key) }.mapValues { it.value.map { escape(it) } })},
         |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
         |    }""".trimMargin() + "\n</script>\n"
 
@@ -103,3 +103,14 @@ object PathMaster {
 }
 
 fun Path.readText() = String(Files.readAllBytes(this))
+
+fun escape(string: String?) = string?.toCharArray()?.map {
+    when (it) {
+        '<' -> "&lt;"
+        '>' -> "&gt;"
+        '&' -> "&amp;"
+        '"' -> "&quot;"
+        '\'' -> "&#x27;"
+        else -> it
+    }
+}?.joinToString("")
