@@ -111,6 +111,7 @@ fun escape(string: String?) = string?.toCharArray()?.map {
         '&' -> "&amp;"
         '"' -> "&quot;"
         '\'' -> "&#x27;"
+        '/' -> "&#x2F;"
         else -> it
     }
 }?.joinToString("")
