@@ -77,6 +77,18 @@ class TestJavalinVue {
     }
 
     @Test
+    fun `default params are escaped`() = TestUtil.test { app, http ->
+        val xss = "%3Cscript%3Ealert%281%29%3Cscript%3E"
+        app.get("/escaped", VueComponent("<test-component></test-component>"))
+        // keys
+        assertThat(http.getBody("/escaped?${xss}=value")).doesNotContain("<script>alert(1)<script>")
+        assertThat(http.getBody("/escaped?${xss}=value")).contains("&lt;script&gt;alert(1)&lt;script&gt;")
+        // values
+        assertThat(http.getBody("/escaped?key=${xss}")).doesNotContain("<script>alert(1)<script>")
+        assertThat(http.getBody("/escaped?key=${xss}")).contains("&lt;script&gt;alert(1)&lt;script&gt;")
+    }
+
+    @Test
     fun `component shorthand works`() = TestUtil.test { app, http ->
         app.get("/shorthand", VueComponent("test-component"))
         assertThat(http.getBody("/shorthand")).contains("<test-component></test-component>")
