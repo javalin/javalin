@@ -32,7 +32,10 @@ import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandler;
 import io.javalin.websocket.WsHandlerType;
+
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -230,7 +233,22 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin attribute(Class clazz, Object obj) {
-        config.inner.appAttributes.put(clazz, obj);
+        return attribute(clazz, Context.APP_ATTRIBUTE_DEFAULT_IDENTIFIER, obj);
+    }
+
+    /**
+     * Registers an attribute on the instance.
+     * Instance is available on th {@link Context} through {@link Context#appAttribute(Class)}
+     * and {@link Context#appAttribute(Class, String)}.
+     *
+     * Ex:
+     *    app.attribute(String.class, "username", "John");
+     *    app.attribute(String.class, "surname", "Smith");
+     *
+     * This method must be called before {@link Javalin#start()}
+     */
+    public Javalin attribute(Class<?> clazz, String identifier, Object object) {
+        config.inner.appAttributes.computeIfAbsent(clazz, k -> new HashMap<>()).put(identifier, object);
         return this;
     }
 
@@ -241,8 +259,22 @@ public class Javalin {
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
     public <T> T attribute(Class<T> clazz) {
-        return (T) config.inner.appAttributes.get(clazz);
+        return attribute(clazz, Context.APP_ATTRIBUTE_DEFAULT_IDENTIFIER);
     }
+
+    /**
+     * Retrieve an attribute stored on the instance.
+     * Available on the {@link Context} through {@link Context#appAttribute}.
+     *
+     * Ex:
+     *    app.attribute(String.class, "username").myMethod()
+     *    ctx.appAttribute(String.class, "surname").myMethod()
+     */
+    public <T> T attribute( Class<T> clazz, String identifier) {
+        final Map<String, Object> attributes = config.inner.appAttributes.get(clazz);
+        return attributes == null || attributes.isEmpty() ? null : (T) attributes.get(identifier);
+    }
+
 
     /**
      * Creates a temporary static instance in the scope of the endpointGroup.

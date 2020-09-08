@@ -61,7 +61,7 @@ public class JavalinConfig {
     // is to provide a cleaner API with dedicated setters
     public class Inner {
         @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new HashMap<>();
-        @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
+        @NotNull public Map<Class<?>, Map<String, Object>> appAttributes = new HashMap<>();
         @Nullable public RequestLogger requestLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;

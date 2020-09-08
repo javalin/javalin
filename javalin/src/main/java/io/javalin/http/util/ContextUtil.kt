@@ -68,7 +68,7 @@ object ContextUtil {
             matchedPath: String = "*",
             pathParamMap: Map<String, String> = mapOf(),
             handlerType: HandlerType = HandlerType.INVALID,
-            appAttributes: Map<Class<*>, Any> = mapOf()
+            appAttributes: Map<Class<*>, Map<String, Any>> = mapOf()
     ) = Context(request, response, appAttributes).apply {
         this.matchedPath = matchedPath
         this.pathParamMap = pathParamMap
