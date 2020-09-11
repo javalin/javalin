@@ -7,6 +7,7 @@
 package io.javalin.core.util
 
 import io.javalin.Javalin
+import io.javalin.apibuilder.CrudFunctionHandler
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.security.Role
@@ -221,6 +222,7 @@ object RouteOverviewUtil {
             // this is just guesswork...
             return when {
                 isClass -> (this as Class<*>).name + ".class"
+                isCrudFunction -> "ApiBuilder#crud::${(this as CrudFunctionHandler).function.value}"
                 isKotlinMethodReference -> {
                     val f = this.javaClass.getDeclaredField("function")
                             .apply { isAccessible = true }
