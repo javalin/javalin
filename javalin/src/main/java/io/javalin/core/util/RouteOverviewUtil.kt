@@ -143,23 +143,23 @@ object RouteOverviewUtil {
                         <td>Roles</td>
                     </tr>
                 </thead>
-                ${handlerInfo.map { (handlerType, path, handler, roles) ->
+                ${handlerInfo.map { handlerInfo ->
             """
-                    <tr class="method $handlerType">
-                        <td>$handlerType</span></td>
-                        <td>$path</td>
-                        <td><b>${handler.metaInfo}</b></td>
-                        <td>$roles</td>
+                    <tr class="method $handlerInfo.handlerType">
+                        <td>$handlerInfo.handlerType</span></td>
+                        <td>$handlerInfo.path</td>
+                        <td><b>${handlerInfo.handler.metaInfo}</b></td>
+                        <td>$handlerInfo.roles</td>
                     </tr>
                     """
         }.joinToString("")}
-                ${wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
+                ${wsHandlerInfo.map { wsHandlerInfo ->
             """
-                    <tr class="method $wsHandlerType">
-                        <td>$wsHandlerType</span></td>
-                        <td>$path</td>
-                        <td><b>${handler.metaInfo}</b></td>
-                        <td>$roles</td>
+                    <tr class="method $wsHandlerInfo.wsHandlerType">
+                        <td>$wsHandlerInfo.wsHandlerType</span></td>
+                        <td>$wsHandlerInfo.path</td>
+                        <td><b>${wsHandlerInfo.handler.metaInfo}</b></td>
+                        <td>$wsHandlerInfo.roles</td>
                     </tr>
                     """
         }.joinToString("")}
@@ -189,25 +189,25 @@ object RouteOverviewUtil {
         return """
             {
                 "handlers": [
-                ${handlerInfo.map { (handlerType, path, handler, roles) ->
+                ${handlerInfo.map { handlerInfo ->
             """
                     {
-                        "path": "$path",
-                        "handlerType": "$handlerType",
-                        "metaInfo": "$handler.metaInfo",
-                        "roles": "$roles"
+                        "path": "$handlerInfo.path",
+                        "handlerType": "$handlerInfo.handlerType",
+                        "metaInfo": "$handlerInfo.handler.metaInfo",
+                        "roles": "$handlerInfo.roles"
                     }
                     """
         }.joinToString(",")}
                 ],
                 "wsHandlers": [
-                ${wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
+                ${wsHandlerInfo.map { wsHandlerInfo ->
             """
                     {
-                        "path": "$path",
-                        "handlerType": "$wsHandlerType",
-                        "metaInfo": "$handler.metaInfo",
-                        "roles": "$roles"
+                        "path": "$wsHandlerInfo.path",
+                        "handlerType": "$wsHandlerInfo.wsHandlerType",
+                        "metaInfo": "$wsHandlerInfo.handler.metaInfo",
+                        "roles": "$wsHandlerInfo.roles"
                     }
                     """
         }.joinToString(",")}
