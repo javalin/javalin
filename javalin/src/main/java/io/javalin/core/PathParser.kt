@@ -8,10 +8,10 @@ package io.javalin.core
 
 import io.javalin.http.util.ContextUtil
 
-class PathParser(path: String) {
+class PathParser(path: String, ignoreTrailingSlashes: Boolean) {
 
     val segments: List<PathSegment> = path.split("/")
-            .filter { it.isNotEmpty() }
+            .filter { !ignoreTrailingSlashes || it.isNotEmpty() } //if not ignoreTrailingSlashes process every token, else only process not empty token
             .map {
                 when {
                     it.startsWith(":") -> PathSegment.Parameter(it.removePrefix(":"))

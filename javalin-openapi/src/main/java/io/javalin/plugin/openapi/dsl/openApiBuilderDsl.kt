@@ -27,7 +27,7 @@ fun overridePaths(
 ): List<HandlerMetaInfo> {
     return overridenPaths.plus(handlerMetaInfoList.filter { handler ->
         overridenPaths.none { overridenHandler ->
-            PathParser(overridenHandler.path).matches(handler.path) && overridenHandler.httpMethod == handler.httpMethod
+            PathParser(overridenHandler.path, true).matches(handler.path) && overridenHandler.httpMethod == handler.httpMethod
         }
     })
 }
@@ -45,7 +45,7 @@ fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options:
             .filter { it.extractDocumentation(options).isIgnored != true }
             .groupBy { it.path }
             .forEach { (url, metaInfos) ->
-                val pathParser = PathParser(url)
+                val pathParser = PathParser(url, true)
                 updatePath(pathParser.getOpenApiUrl()) {
                     applyMetaInfoList(options, pathParser, metaInfos)
                 }

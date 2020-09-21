@@ -37,7 +37,7 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
                 CreateSchemaOptions(
                         handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
                             options.ignoredPaths.none { (path, methods) ->
-                                PathParser(path).matches(handler.path) && methods.any { method ->
+                                PathParser(path, true).matches(handler.path) && methods.any { method ->
                                     // HttpMethod is implemented two times :(
                                     method.name == handler.httpMethod.name
                                 }
