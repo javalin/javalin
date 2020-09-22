@@ -6,10 +6,15 @@
 
 package io.javalin
 
+import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestUtil
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.nio.file.Paths
@@ -131,9 +136,30 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `webjars uses cdn when tagged with @cdnWebjar to`() = TestUtil.test { app, http ->
-        app.get("/unicode", VueComponent("<test-component></test-component>"))
-        assertThat(http.getBody("/unicode")).contains("""<script src="/webjars/swagger-ui/3.24.3/swagger-ui.css"></script>""")
+    fun `@cdnWebjar resolves to webjar on localhost`() = TestUtil.test { app, http ->
+        val ctx = mockk<Context>(relaxed = true)
+        every { ctx.url() } returns "http://localhost:1234/"
+        VueComponent("<test-component></test-component>").handle(ctx)
+        val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
+        assertThat(slot.captured).contains("""src="/webjars/""")
+    }
+
+    @Test
+    fun `@cdnWebjar resolves to cdn on non-localhost`() = TestUtil.test { app, http ->
+        val ctx = mockk<Context>(relaxed = true)
+        every { ctx.url() } returns "https://example.com"
+        VueComponent("<test-component></test-component>").handle(ctx)
+        val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
+        assertThat(slot.captured).contains("""src="https://cdn.jsdelivr.net/webjars/""")
+    }
+
+    @Test
+    fun `@cdnWebjar resolves to https even on non https hosts`() = TestUtil.test { app, http ->
+        val ctx = mockk<Context>(relaxed = true)
+        every { ctx.url() } returns "http://123.123.123.123:1234/"
+        VueComponent("<test-component></test-component>").handle(ctx)
+        val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
+        assertThat(slot.captured).contains("""src="https://cdn.jsdelivr.net/webjars/""")
     }
 
 }

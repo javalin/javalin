@@ -92,7 +92,9 @@
         <junit.benchmark.version>0.7.2</junit.benchmark.version>
         <junit.version>4.13</junit.version>
         <kotlin.openapi.dsl.version>0.20.2</kotlin.openapi.dsl.version>
-        <mockk.version>1.9.3.kotlin12</mockk.version>
+        <mockk.version>1.10.0</mockk.version>
+        <bytebuddy.version>1.10.15</bytebuddy.version>
+        <bytebuddyagent.version>1.10.15</bytebuddyagent.version>
         <okhttp.version>3.14.7</okhttp.version>
         <selenium.chrome.driver.version>3.141.59</selenium.chrome.driver.version>
         <unirest.version>1.4.9</unirest.version>
@@ -303,6 +305,16 @@
                 <groupId>io.mockk</groupId>
                 <artifactId>mockk</artifactId>
                 <version>${mockk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-agent</artifactId>
+                <version>${bytebuddyagent.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${bytebuddy.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
