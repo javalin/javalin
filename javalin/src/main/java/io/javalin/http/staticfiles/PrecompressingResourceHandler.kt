@@ -10,13 +10,14 @@ import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
+import java.util.concurrent.ConcurrentHashMap
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
 object PrecompressingResourceHandler {
 
-    val compressedFiles = HashMap<String, ByteArray>()
+    val compressedFiles = ConcurrentHashMap<String, ByteArray>()
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
     val excludedMimeTypes = setOf(
