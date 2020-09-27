@@ -15,7 +15,11 @@
  */
 package io.javalin.plugin.rendering.vue;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -54,7 +58,7 @@ public class VueDependencyResolver {
         paths.stream().filter(it -> it.toString().endsWith(".vue")) // only check vue files
                 .forEach(path -> {
                     try {
-                        String text = new String(Files.readAllBytes(path)); // read the entire file to memory
+                        String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8); // read the entire file to memory
                         Matcher res = componentRegex.matcher(text); // check for a vue component
                         if (res.find()) {
                             String component = res.group(1);
