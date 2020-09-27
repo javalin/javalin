@@ -43,15 +43,15 @@ object JavalinVue {
     internal fun walkPaths(): Set<Path> = Files.walk(vueDirPath, 10).collect(Collectors.toSet())
 
     internal val cachedPaths by lazy { walkPaths() }
-    internal val cachedLayout by lazy { createLayout(cachedPaths) }
+    internal val dependencyResolver by lazy{VueDependencyResolver(cachedPaths)}
 
-    internal fun createLayout(paths: Set<Path>) = paths
+    internal fun createLayout(paths: Set<Path>,html:String):String{ 
+            return paths
             .find { it.endsWith("vue/layout.html") }!!.readText()
             .replace("@componentRegistration", "@componentRegistration@serverState") // add state anchor for later
-            .replace("@componentRegistration", paths
-                    .filter { it.toString().endsWith(".vue") }
-                    .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
-            ).replaceWebjarsWithCdn()
+            .replace("@componentRegistration", html)
+            .replaceWebjarsWithCdn()
+    }
 
     internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
@@ -72,11 +72,12 @@ object JavalinVue {
 class VueComponent @JvmOverloads constructor(private val component: String, private val state: Any? = null) : Handler {
     override fun handle(ctx: Context) {
         JavalinVue.setRootDirPathIfUnset(ctx)
-        JavalinVue.useCdn = !ctx.isLocalhost()
+        JavalinVue.useCdn = !ctx.isLocalhost() 
         val routeComponent = if (component.startsWith("<")) component else "<$component></$component>"
         val paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
-        val view = if (ctx.isLocalhost()) JavalinVue.createLayout(paths) else JavalinVue.cachedLayout
         val componentName = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
+        val dependencyResolver = if (ctx.isLocalhost()) VueDependencyResolver(paths) else JavalinVue.dependencyResolver
+        val view = JavalinVue.createLayout(paths,dependencyResolver.buildHtml(componentName,ctx.isLocalhost()));
         if (!view.contains(componentName)) {
             ctx.result("Route component not found: $routeComponent")
             return
