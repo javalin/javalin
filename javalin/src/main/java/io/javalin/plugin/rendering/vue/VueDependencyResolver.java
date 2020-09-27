@@ -108,8 +108,8 @@ public class VueDependencyResolver {
      * @return a partial HTML string of the components needed for this page/view
      * if the component is found, an error string otherwise.
      */
-    public String buildHtml(String component, boolean isLocalhost) {
-        if (!isLocalhost && layoutCache.containsKey(component)) {
+    public String buildHtml(String component) {
+        if (layoutCache.containsKey(component)) {
             return layoutCache.get(component);
         }
         Set<String> components = new HashSet<>();
