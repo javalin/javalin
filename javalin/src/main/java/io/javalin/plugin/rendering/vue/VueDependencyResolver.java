@@ -15,8 +15,9 @@
  */
 package io.javalin.plugin.rendering.vue;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,8 +54,9 @@ public class VueDependencyResolver {
     private void buildMap(Set<Path> paths) {
         paths.stream().filter(it -> it.toString().endsWith(".vue")) // only check vue files
                 .forEach(path -> {
-                    try {
-                        String text = Files.readString(path); // read the entire file to memory
+                    File f = path.toFile();
+                    try ( FileInputStream fis = new FileInputStream(f)) {
+                        String text = new String(fis.readAllBytes()) ; // read the entire file to memory
                         Matcher res = componentRegex.matcher(text); // check for a vue component
                         if (res.find()) {
                             String component = res.group(1);
