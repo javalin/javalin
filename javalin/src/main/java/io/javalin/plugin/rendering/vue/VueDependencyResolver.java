@@ -91,13 +91,11 @@ public class VueDependencyResolver {
         } else {
             strippedComponent = component;
         }
-        if (!requiredComponents.contains(component)) {// if it has not already been resolved
-            requiredComponents.add(strippedComponent);// add it to the dependency list
-            Set<String> dependencies = getDependencies(strippedComponent); //get its dependencies
-            requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
-            for (String dependency : dependencies) { // resolve each dependency
-                resolve(dependency, requiredComponents);
-            }
+        requiredComponents.add(strippedComponent);// add it to the dependency list
+        Set<String> dependencies = getDependencies(strippedComponent); //get its dependencies
+        requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
+        for (String dependency : dependencies) { // resolve each dependency
+            resolve(dependency, requiredComponents);
         }
 
     }
