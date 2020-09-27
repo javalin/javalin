@@ -77,7 +77,7 @@ class VueComponent @JvmOverloads constructor(private val component: String, priv
         val paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
         val componentName = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
         val dependencyResolver = if (ctx.isLocalhost()) VueDependencyResolver(paths) else JavalinVue.dependencyResolver
-        val view = JavalinVue.createLayout(paths,dependencyResolver.buildHtml(componentName,ctx.isLocalhost()));
+        val view = JavalinVue.createLayout(paths,dependencyResolver.buildHtml(componentName));
         if (!view.contains(componentName)) {
             ctx.result("Route component not found: $routeComponent")
             return
