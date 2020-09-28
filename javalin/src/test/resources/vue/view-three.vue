@@ -4,3 +4,4 @@
 <script>
     Vue.component("view-three",{template:"#view-three"})
 </script>
+

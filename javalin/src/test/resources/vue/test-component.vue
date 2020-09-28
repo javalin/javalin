@@ -4,3 +4,4 @@
 <script>
     Vue.component("test-component", {template: "#test-component"});
 </script>
+

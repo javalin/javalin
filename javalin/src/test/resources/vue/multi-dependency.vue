@@ -8,3 +8,4 @@
     Vue.component('dependency-three',{template:"#dependency-three"});
     Vue.component('dependency-four',{template:"#dependency-four"});
 </script>
+

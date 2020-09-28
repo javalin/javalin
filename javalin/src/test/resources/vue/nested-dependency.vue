@@ -5,3 +5,4 @@
 <script>
     Vue.component('nested-dependency',{template:"#nested-dependency"})
 </script>
+

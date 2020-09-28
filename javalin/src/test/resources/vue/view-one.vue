@@ -4,3 +4,4 @@
 <script>
     Vue.component("view-one",{template:"#view-one"})
 </script>
+

@@ -4,3 +4,4 @@
 <script>
     Vue.component('dependency-two',{template:"#dependency-two"});
 </script>
+
