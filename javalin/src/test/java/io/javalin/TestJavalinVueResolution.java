@@ -18,8 +18,7 @@ package io.javalin;
 import io.javalin.plugin.rendering.vue.JavalinVue;
 import io.javalin.plugin.rendering.vue.VueComponent;
 import io.javalin.testing.TestUtil;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
 /**
@@ -38,15 +37,15 @@ public class TestJavalinVueResolution {
         TestUtil.test((server, httpUtil) -> {
             server.get("/single-view", new VueComponent("<view-one></view-one>"));
             String body = httpUtil.getBody("/single-view");
-            assertTrue(body.contains("<body><view-one></view-one></body>"));
-            assertFalse(body.contains("<view-two>"));
-            assertFalse(body.contains("<view-three>"));
-            assertFalse(body.contains("<view-nested-dependency>"));
-            assertTrue(body.contains("dependency-one"));
-            assertFalse(body.contains("dependency-two"));
-            assertFalse(body.contains("dependency-three"));
-            assertFalse(body.contains("dependency-four"));
-            assertFalse(body.contains("nested-dependency"));
+            assertThat(body).contains("<body><view-one></view-one></body>");
+            assertThat(body).doesNotContain("<view-two>");
+            assertThat(body).doesNotContain("<view-three>");
+            assertThat(body).doesNotContain("<view-nested-dependency>");
+            assertThat(body).contains("dependency-one");
+            assertThat(body).doesNotContain("dependency-two");
+            assertThat(body).doesNotContain("dependency-three");
+            assertThat(body).doesNotContain("dependency-four");
+            assertThat(body).doesNotContain("nested-dependency");
         });
     }
 
@@ -55,15 +54,15 @@ public class TestJavalinVueResolution {
         TestUtil.test((server, httpUtil) -> {
             server.get("/nested-view", new VueComponent("<view-nested-dependency></view-nested-dependency>"));
             String body = httpUtil.getBody("/nested-view");
-            assertFalse(body.contains("<view-one>"));
-            assertFalse(body.contains("<view-two>"));
-            assertFalse(body.contains("<view-three>"));
-            assertTrue(body.contains("<body><view-nested-dependency></view-nested-dependency></body>"));
-            assertTrue(body.contains("dependency-one"));
-            assertTrue(body.contains("dependency-two"));
-            assertFalse(body.contains("dependency-three"));
-            assertFalse(body.contains("dependency-four"));
-            assertTrue(body.contains("nested-dependency"));
+            assertThat(body).doesNotContain("<view-one>");
+            assertThat(body).doesNotContain("<view-two>");
+            assertThat(body).doesNotContain("<view-three>");
+            assertThat(body).contains("<body><view-nested-dependency></view-nested-dependency></body>");
+            assertThat(body).contains("dependency-one");
+            assertThat(body).contains("dependency-two");
+            assertThat(body).doesNotContain("dependency-three");
+            assertThat(body).doesNotContain("dependency-four");
+            assertThat(body).contains("nested-dependency");
         });
     }
 
@@ -72,27 +71,27 @@ public class TestJavalinVueResolution {
         TestUtil.test((server, httpUtil) -> {
             server.get("/multi-view-one", new VueComponent("<view-two></view-two>"));
             String body = httpUtil.getBody("/multi-view-one");
-            assertFalse(body.contains("<view-one>"));
-            assertTrue(body.contains("<body><view-two></view-two></body>"));
-            assertFalse(body.contains("<view-three>"));
-            assertFalse(body.contains("<view-nested-dependency>"));
-            assertFalse(body.contains("dependency-one"));
-            assertFalse(body.contains("dependency-two"));
-            assertTrue(body.contains("dependency-three"));
-            assertTrue(body.contains("dependency-four"));
-            assertFalse(body.contains("nested-dependency"));
+            assertThat(body).doesNotContain("<view-one>");
+            assertThat(body).contains("<body><view-two></view-two></body>");
+            assertThat(body).doesNotContain("<view-three>");
+            assertThat(body).doesNotContain("<view-nested-dependency>");
+            assertThat(body).doesNotContain("dependency-one");
+            assertThat(body).doesNotContain("dependency-two");
+            assertThat(body).contains("dependency-three");
+            assertThat(body).contains("dependency-four");
+            assertThat(body).doesNotContain("nested-dependency");
 
             server.get("/multi-view-two", new VueComponent("<view-three></view-three>"));
             body = httpUtil.getBody("/multi-view-two");
-            assertFalse(body.contains("<view-one>"));
-            assertFalse(body.contains("<view-two>"));
-            assertTrue(body.contains("<body><view-three></view-three></body>"));
-            assertFalse(body.contains("<view-nested-dependency>"));
-            assertFalse(body.contains("dependency-one"));
-            assertFalse(body.contains("dependency-two"));
-            assertTrue(body.contains("dependency-three"));
-            assertTrue(body.contains("dependency-four"));
-            assertFalse(body.contains("nested-dependency"));
+            assertThat(body).doesNotContain("<view-one>");
+            assertThat(body).doesNotContain("<view-two>");
+            assertThat(body).contains("<body><view-three></view-three></body>");
+            assertThat(body).doesNotContain("<view-nested-dependency>");
+            assertThat(body).doesNotContain("dependency-one");
+            assertThat(body).doesNotContain("dependency-two");
+            assertThat(body).contains("dependency-three");
+            assertThat(body).contains("dependency-four");
+            assertThat(body).doesNotContain("nested-dependency");
         });
     }
 
