@@ -37,7 +37,7 @@ public class TestJavalinVueResolution {
     public void resolveSingleDependencyTest() {
         TestUtil.test((server, httpUtil) -> {
             server.get("/single-view", new VueComponent("<view-one></view-one>"));
-            String body = httpUtil.get("/single-view").getBody();
+            String body = httpUtil.getBody("/single-view");
             assertTrue(body.contains("<body><view-one></view-one></body>"));
             assertFalse(body.contains("<view-two>"));
             assertFalse(body.contains("<view-three>"));
@@ -54,7 +54,7 @@ public class TestJavalinVueResolution {
     public void resolveNestedDependencyTest() {
         TestUtil.test((server, httpUtil) -> {
             server.get("/nested-view", new VueComponent("<view-nested-dependency></view-nested-dependency>"));
-            String body = httpUtil.get("/nested-view").getBody();
+            String body = httpUtil.getBody("/nested-view");
             assertFalse(body.contains("<view-one>"));
             assertFalse(body.contains("<view-two>"));
             assertFalse(body.contains("<view-three>"));
@@ -71,7 +71,7 @@ public class TestJavalinVueResolution {
     public void resolveMultiComponentFileDependencyTest() {
         TestUtil.test((server, httpUtil) -> {
             server.get("/multi-view-one", new VueComponent("<view-two></view-two>"));
-            String body = httpUtil.get("/multi-view-one").getBody();
+            String body = httpUtil.getBody("/multi-view-one");
             assertFalse(body.contains("<view-one>"));
             assertTrue(body.contains("<body><view-two></view-two></body>"));
             assertFalse(body.contains("<view-three>"));
@@ -83,7 +83,7 @@ public class TestJavalinVueResolution {
             assertFalse(body.contains("nested-dependency"));
 
             server.get("/multi-view-two", new VueComponent("<view-three></view-three>"));
-            body = httpUtil.get("/multi-view-two").getBody();
+            body = httpUtil.getBody("/multi-view-two");
             assertFalse(body.contains("<view-one>"));
             assertFalse(body.contains("<view-two>"));
             assertTrue(body.contains("<body><view-three></view-three></body>"));
