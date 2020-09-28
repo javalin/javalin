@@ -35,10 +35,16 @@ object JavalinVue {
     }
 
     @JvmField
+    var resolveDependencies = false
+
+    @JvmField
     var stateFunction: (Context) -> Any = { mapOf<String, String>() }
 
     @JvmField
     var cacheControl = "no-cache, no-store, must-revalidate"
+    
+    
+   
 
     internal fun walkPaths(): Set<Path> = Files.walk(vueDirPath, 10).collect(Collectors.toSet())
 
@@ -77,7 +83,7 @@ class VueComponent @JvmOverloads constructor(private val component: String, priv
         val paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
         val componentName = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
         val dependencyResolver = if (ctx.isLocalhost()) VueDependencyResolver(paths) else JavalinVue.dependencyResolver
-        val view = JavalinVue.createLayout(paths,dependencyResolver.buildHtml(componentName));
+        val view = JavalinVue.createLayout(paths,dependencyResolver.buildHtml(componentName,JavalinVue.resolveDependencies));
         if (!view.contains(componentName)) {
             ctx.result("Route component not found: $routeComponent")
             return

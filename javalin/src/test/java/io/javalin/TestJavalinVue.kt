@@ -23,6 +23,8 @@ class TestJavalinVue {
 
     init {
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+        
+        JavalinVue.resolveDependencies = false
     }
 
     data class User(val name: String, val email: String)
