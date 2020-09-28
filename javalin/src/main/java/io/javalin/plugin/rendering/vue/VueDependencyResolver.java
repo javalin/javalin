@@ -15,10 +15,7 @@
  */
 package io.javalin.plugin.rendering.vue;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,22 +43,25 @@ public class VueDependencyResolver {
     public VueDependencyResolver(Set<Path> paths) {
         componentsMap = new HashMap<>();
         buildMap(paths);
-        buildCompleteLayout(paths);
         layoutCache = new HashMap<>();
     }
 
     /**
-     * Builds a map of components and their file contents. This is done so that
+     * Builds a map of components and their file contents, in addition to the completeLayout. This is done so that
      * component dependency resolution is fast
      *
      * @param paths the file paths to check for components
      */
     private void buildMap(Set<Path> paths) {
+        StringBuilder builder = new StringBuilder();
         paths.stream().filter(it -> it.toString().endsWith(".vue")) // only check vue files
                 .forEach(path -> {
                     try {
 
                         String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8); // read the entire file to memory
+                        builder.append("\n<!-- ").append(path.getFileName()).append(" -->\n");
+                        builder.append(text);
+                        builder.append("\n");
                         Matcher res = componentRegex.matcher(text); // check for a vue component
                         while (res.find()) {
                             String component = res.group(1);
@@ -73,28 +73,9 @@ public class VueDependencyResolver {
                         Logger.getLogger(VueDependencyResolver.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 });
-    }
-
-    /**
-     * Builds a complete layout for no-cache mode
-     *
-     * @param paths the paths to build the layout from
-     */
-    private void buildCompleteLayout(Set<Path> paths) {
-        StringBuilder builder = new StringBuilder();
-        paths.stream().filter(it -> it.toString().endsWith(".vue")) // only check vue files
-                .forEach(path -> {
-                    try {
-                        String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-                        builder.append("<!-- ").append(path.getFileName()).append("-->\n");
-                        builder.append(text);
-                        builder.append("\n");
-                    } catch (IOException ex) {
-                        Logger.getLogger(VueDependencyResolver.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                });
         completeLayout = builder.toString();
     }
+
 
     /**
      * Resolve the dependencies for a required component based on the contents
