@@ -47,17 +47,20 @@ public class VueDependencyResolver {
     }
 
     /**
-     * Builds a map of components and their file contents, in addition to the completeLayout. This is done so that
-     * component dependency resolution is fast
+     * Builds a map of components and their file contents, in addition to the
+     * completeLayout. This is done so that component dependency resolution is
+     * fast
      *
      * @param paths the file paths to check for components
      */
     private void buildMap(Set<Path> paths) {
+        if (paths == null) {
+            throw new IllegalArgumentException("Paths Passed in Are null");
+        }
         StringBuilder builder = new StringBuilder();
         paths.stream().filter(it -> it.toString().endsWith(".vue")) // only check vue files
                 .forEach(path -> {
                     try {
-
                         String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8); // read the entire file to memory
                         builder.append("\n<!-- ").append(path.getFileName()).append(" -->\n");
                         builder.append(text);
@@ -71,11 +74,11 @@ public class VueDependencyResolver {
                         }
                     } catch (IOException ex) {
                         Logger.getLogger(VueDependencyResolver.class.getName()).log(Level.SEVERE, null, ex);
+                        throw new RuntimeException(ex);
                     }
                 });
         completeLayout = builder.toString();
     }
-
 
     /**
      * Resolve the dependencies for a required component based on the contents
@@ -86,12 +89,20 @@ public class VueDependencyResolver {
      * recursively pushed into
      */
     private void resolve(String component, Set<String> requiredComponents) {
+        if (component == null || component.length() < 1) {
+            throw new IllegalArgumentException("Component Passed is null");
+        }
+        if (requiredComponents == null) {
+            throw new IllegalArgumentException("Set of Required Components is null");
+        }
         String strippedComponent = "";
         // Get the name of the component without tags if tags were passed in
         if (component.startsWith("<")) {
             Matcher res = tagRegex.matcher(component);
             if (res.find()) {
                 strippedComponent = res.group(1);
+            } else {
+                throw new IllegalArgumentException(String.format("Could Not Strip Component %s", component));
             }
         } else {
             strippedComponent = component;
@@ -118,6 +129,9 @@ public class VueDependencyResolver {
         if (resolveDependencies) {
             if (layoutCache.containsKey(component)) {
                 return layoutCache.get(component);
+            }
+            if (component == null || component.length() < 1) {
+                throw new IllegalArgumentException("Component Passed is null");
             }
             Set<String> components = new HashSet<>();
             if (!componentsMap.containsKey(component)) {
