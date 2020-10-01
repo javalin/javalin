@@ -36,8 +36,7 @@ public class TestJavalinVueResolution {
     public void resolveSingleDependencyTest() {
         TestUtil.test((server, httpUtil) -> {
             server.exception(RuntimeException.class, (e, ctx) -> {
-                ctx.status(500);
-                ctx.result(e.getMessage());
+                  e.printStackTrace();
             });
             server.get("/single-view", new VueComponent("<view-one></view-one>"));
             String body = httpUtil.getBody("/single-view");
@@ -57,8 +56,7 @@ public class TestJavalinVueResolution {
     public void resolveNestedDependencyTest() {
         TestUtil.test((server, httpUtil) -> {
             server.exception(RuntimeException.class, (e, ctx) -> {
-                ctx.status(500);
-                ctx.result(e.getMessage());
+                e.printStackTrace();
             });
             server.get("/nested-view", new VueComponent("<view-nested-dependency></view-nested-dependency>"));
             String body = httpUtil.getBody("/nested-view");
@@ -78,7 +76,7 @@ public class TestJavalinVueResolution {
     public void resolveMultiComponentFileDependencyTest() {
         TestUtil.test((server, httpUtil) -> {
             server.exception(RuntimeException.class, (e, ctx) -> {
-                ctx.result(e.getMessage());
+                  e.printStackTrace();
             });
             server.get("/multi-view-one", new VueComponent("<view-two></view-two>"));
             String body = httpUtil.getBody("/multi-view-one");
