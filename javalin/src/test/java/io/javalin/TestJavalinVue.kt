@@ -16,13 +16,17 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Before
 import org.junit.Test
 import java.nio.file.Paths
 
 class TestJavalinVue {
 
-    init {
-        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+    @Before
+    fun setup() {
+        JavalinVue.isDev = null // reset
+        JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
+        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main -> src/test
     }
 
     data class User(val name: String, val email: String)
@@ -48,7 +52,6 @@ class TestJavalinVue {
 
     @Test
     fun `vue component without state`() = TestUtil.test { app, http ->
-        JavalinVue.stateFunction = { ctx -> mapOf<String, String>() }
         app.get("/no-state", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/no-state")
         assertThat(res).contains("""pathParams: {}""")
@@ -59,7 +62,6 @@ class TestJavalinVue {
 
     @Test
     fun `vue component with component-specific state`() = TestUtil.test { app, http ->
-        JavalinVue.stateFunction = { ctx -> mapOf<String, String>() }
         app.get("/no-state", VueComponent("<test-component></test-component>"))
         val noStateRes = http.getBody("/no-state")
         app.get("/specific-state", VueComponent("<test-component></test-component>", mapOf("test" to "tast")))
@@ -112,11 +114,10 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `classpath works`() = TestUtil.test { app, http ->
+    fun `classpath rootDirectory works`() = TestUtil.test { app, http ->
         JavalinVue.rootDirectory("/vue", Location.CLASSPATH)
         app.get("/classpath", VueComponent("test-component"))
         assertThat(http.getBody("/classpath")).contains("<test-component></test-component>")
-        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }
 
     @Test
@@ -124,7 +125,6 @@ class TestJavalinVue {
         JavalinVue.rootDirectory(Paths.get("src/test/resources/vue"))
         app.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("<test-component></test-component>")
-        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }
 
     @Test
@@ -132,7 +132,6 @@ class TestJavalinVue {
         JavalinVue.rootDirectory("/vue", Location.EXTERNAL)
         app.get("/fail", VueComponent("test-component"))
         assertThat(http.get("/fail").status).isEqualTo(500)
-        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }
 
     @Test
@@ -170,6 +169,7 @@ class TestJavalinVue {
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
         assertThat(slot.captured).contains("""<script>let a = "Always included"</script>""")
         assertThat(slot.captured).contains("""<script>let b = "Included if not dev"</script>""")
+        assertThat(slot.captured).doesNotContain("""<script>let b = "Included if dev"</script>""")
         assertThat(slot.captured).doesNotContain("""<script>@inlineFileDev("/vue/scripts-dev.js")</script>""")
         assertThat(slot.captured).doesNotContain("""<script>@inlineFile""")
     }
@@ -182,6 +182,7 @@ class TestJavalinVue {
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
         assertThat(slot.captured).contains("""<script>let a = "Always included"</script>""")
         assertThat(slot.captured).contains("""<script>let b = "Included if dev"</script>""")
+        assertThat(slot.captured).doesNotContain("""<script>let b = "Included if not dev"</script>""")
         assertThat(slot.captured).doesNotContain("""<script>@inlineFileNotDev("/vue/scripts-not-dev.js")</script>""")
         assertThat(slot.captured).doesNotContain("""<script>@inlineFile""")
     }
