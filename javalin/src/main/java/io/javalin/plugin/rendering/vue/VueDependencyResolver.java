@@ -84,31 +84,13 @@ public class VueDependencyResolver {
      * Resolve the dependencies for a required component based on the contents
      * of its file
      *
-     * @param component the name of the component
+     * @param component the name of the component, without tags
      * @param requiredComponents the set of required components to be
      * recursively pushed into
      */
     private void resolve(String component, Set<String> requiredComponents) {
-        if (component == null || component.length() < 1) {
-            throw new IllegalArgumentException("Component Passed is null");
-        }
-        if (requiredComponents == null) {
-            throw new IllegalArgumentException("Set of Required Components is null");
-        }
-        String strippedComponent = "";
-        // Get the name of the component without tags if tags were passed in
-        if (component.startsWith("<")) {
-            Matcher res = tagRegex.matcher(component);
-            if (res.find()) {
-                strippedComponent = res.group(1);
-            } else {
-                throw new IllegalArgumentException(String.format("Could Not Strip Component %s", component));
-            }
-        } else {
-            strippedComponent = component;
-        }
-        requiredComponents.add(strippedComponent);// add it to the dependency list
-        Set<String> dependencies = getDependencies(strippedComponent); //get its dependencies
+        requiredComponents.add(component);// add it to the dependency list
+        Set<String> dependencies = getDependencies(component); //get its dependencies
         requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
         dependencies.stream().forEach(dependency -> {
             // resolve each dependency
@@ -120,23 +102,27 @@ public class VueDependencyResolver {
     /**
      * Build the HTML of components needed for this component
      *
-     * @param component the component to build the HTMl for
+     * @param component the component to build the HTMl for .Should not have
+     * tags, only the name
      * @param resolveDependencies whether to resolve dependencies or not
      * @return a partial HTML string of the components needed for this page/view
      * if the component is found, an error string otherwise.
      */
     public String buildHtml(String component, boolean resolveDependencies) {
         if (resolveDependencies) {
-            if (layoutCache.containsKey(component)) {
-                return layoutCache.get(component);
-            }
             if (component == null || component.length() < 1) {
                 throw new IllegalArgumentException("Component Passed is null");
             }
-            Set<String> components = new HashSet<>();
-            if (!componentsMap.containsKey(component)) {
-                return "Component Not Found.";
+            if (component.startsWith("<")) {
+                throw new IllegalArgumentException(String.format("Component %s should be passed without brackets(name only)", component));
             }
+            if (!componentsMap.containsKey(component)) {
+                throw new IllegalArgumentException(String.format("Component %s not found", component));
+            }
+            if (layoutCache.containsKey(component)) {
+                return layoutCache.get(component);
+            }
+            Set<String> components = new HashSet<>();
             resolve(component, components);
             StringBuilder builder = new StringBuilder();
             components.stream()
