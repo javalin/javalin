@@ -113,7 +113,7 @@ object FileInliner {
 
     fun String.inlineFiles(paths: Set<Path>): String {
         val pathMap = paths.filterNot { it.toString().endsWith(".vue") } // vue files are inlined in @componentRegistration later
-                .associateBy { """"/vue${it.toString().replace("\\", "/").split("/vue")[1]}"""" } // normalize keys
+                .associateBy { """"/vue/${it.toString().replace("\\", "/").substringAfter("/vue/")}"""" } // normalize keys
         return this.split(newlineRegex).joinToString("\n") { line ->
             if (!line.contains("@inlineFile")) return@joinToString line // nothing to inline
             val matchingKey = pathMap.keys.find { line.contains(it) } ?: throw IllegalStateException("Invalid path found: $line")
