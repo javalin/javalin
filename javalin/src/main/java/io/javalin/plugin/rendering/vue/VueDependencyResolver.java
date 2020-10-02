@@ -92,10 +92,10 @@ public class VueDependencyResolver {
         requiredComponents.add(component);// add it to the dependency list
         Set<String> dependencies = getDependencies(component); //get its dependencies
         requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
-        for (String dependency : dependencies) {
+        dependencies.stream().forEach(dependency -> {
             // resolve each dependency
             resolve(dependency, requiredComponents);
-        }
+        });
 
     }
 
@@ -125,11 +125,11 @@ public class VueDependencyResolver {
             Set<String> components = new HashSet<>();
             resolve(component, components);
             StringBuilder builder = new StringBuilder();
-            for (String requiredComponent : components) {
+            components.stream().forEach(requiredComponent -> {
                 builder.append("<!-- ").append(requiredComponent).append("-->\n");
                 builder.append(componentsMap.get(requiredComponent));
                 builder.append("\n");
-            }
+            });
             String layout = builder.toString();
             layoutCache.put(component, layout);
             return layout;
