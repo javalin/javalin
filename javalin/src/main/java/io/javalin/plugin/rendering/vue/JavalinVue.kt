@@ -84,7 +84,7 @@ class VueComponent @JvmOverloads constructor(private val component: String, priv
         val paths = if (JavalinVue.isDev == true) JavalinVue.walkPaths() else JavalinVue.cachedPaths
         val componentName = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
         val dependencyResolver = if (JavalinVue.isDev == true) VueDependencyResolver(paths) else JavalinVue.dependencyResolver
-        val resolveDependencies = if(JavalineVue.resolveDependencies == true) true else false;
+        val resolveDependencies = if(JavalinVue.resolveDependencies == true) true else false;
         val view = JavalinVue.createLayout(paths,dependencyResolver.buildHtml(componentName,resolveDependencies));
         if (!view.contains(componentName)) {
             ctx.result("Route component not found: $routeComponent")
