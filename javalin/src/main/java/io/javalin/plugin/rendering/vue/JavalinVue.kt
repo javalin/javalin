@@ -12,6 +12,7 @@ import io.javalin.http.Handler
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil.isLocalhost
 import io.javalin.plugin.json.JavalinJson
+import io.javalin.plugin.rendering.vue.FileInliner.inlineFiles
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
@@ -20,9 +21,8 @@ import java.util.stream.Collectors
 
 object JavalinVue {
 
-    internal var useCdn = false
-
-    private var vueDirPath: Path? = null
+    internal var isDev: Boolean? = null
+    internal var vueDirPath: Path? = null
 
     @JvmStatic
     fun rootDirectory(path: String, location: Location) {
@@ -40,6 +40,9 @@ object JavalinVue {
     @JvmField
     var cacheControl = "no-cache, no-store, must-revalidate"
 
+    @JvmField
+    var isDevFunction: (Context) -> Boolean = { it.isLocalhost() }
+
     internal fun walkPaths(): Set<Path> = Files.walk(vueDirPath, 10).collect(Collectors.toSet())
 
     internal val cachedPaths by lazy { walkPaths() }
@@ -47,11 +50,12 @@ object JavalinVue {
 
     internal fun createLayout(paths: Set<Path>) = paths
             .find { it.endsWith("vue/layout.html") }!!.readText()
+            .inlineFiles(paths)
             .replace("@componentRegistration", "@componentRegistration@serverState") // add state anchor for later
             .replace("@componentRegistration", paths
                     .filter { it.toString().endsWith(".vue") }
-                    .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
-            ).replaceWebjarsWithCdn()
+                    .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() })
+            .replaceWebjarsWithCdn()
 
     internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
@@ -60,22 +64,19 @@ object JavalinVue {
         |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
         |    }""".trimMargin() + "\n</script>\n"
 
-    internal fun setRootDirPathIfUnset(ctx: Context) {
-        vueDirPath = vueDirPath ?: if (ctx.isLocalhost()) Paths.get("src/main/resources/vue") else PathMaster.classpathPath("/vue")
-    }
-
     private fun String.replaceWebjarsWithCdn() =
-            this.replace("@cdnWebjar/", if (useCdn) "https://cdn.jsdelivr.net/webjars/org.webjars.npm/" else "/webjars/")
+            this.replace("@cdnWebjar/", if (isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
 
 }
 
+
 class VueComponent @JvmOverloads constructor(private val component: String, private val state: Any? = null) : Handler {
     override fun handle(ctx: Context) {
-        JavalinVue.setRootDirPathIfUnset(ctx)
-        JavalinVue.useCdn = !ctx.isLocalhost()
+        JavalinVue.isDev = JavalinVue.isDev ?: JavalinVue.isDevFunction(ctx)
+        JavalinVue.vueDirPath = JavalinVue.vueDirPath ?: PathMaster.defaultLocation(JavalinVue.isDev)
         val routeComponent = if (component.startsWith("<")) component else "<$component></$component>"
-        val paths = if (ctx.isLocalhost()) JavalinVue.walkPaths() else JavalinVue.cachedPaths
-        val view = if (ctx.isLocalhost()) JavalinVue.createLayout(paths) else JavalinVue.cachedLayout
+        val paths = if (JavalinVue.isDev == true) JavalinVue.walkPaths() else JavalinVue.cachedPaths
+        val view = if (JavalinVue.isDev == true) JavalinVue.createLayout(paths) else JavalinVue.cachedLayout
         val componentName = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
         if (!view.contains(componentName)) {
             ctx.result("Route component not found: $routeComponent")
@@ -99,6 +100,30 @@ object PathMaster {
     fun classpathPath(path: String): Path = when {
         PathMaster::class.java.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path) // we're inside a jar
         else -> Paths.get(PathMaster::class.java.getResource(path).toURI()) // we're not in jar (probably running from IDE)
+    }
+
+    fun defaultLocation(isDev: Boolean?) = if (isDev == true) Paths.get("src/main/resources/vue") else classpathPath("/vue")
+}
+
+object FileInliner {
+    private val newlineRegex = Regex("\\r?\\n")
+    private val unconditionalRegex = Regex("""@inlineFile\(".*"\)""")
+    private val devRegex = Regex("""@inlineFileDev\(".*"\)""")
+    private val notDevRegex = Regex("""@inlineFileNotDev\(".*"\)""")
+
+    fun String.inlineFiles(paths: Set<Path>): String {
+        val pathMap = paths.filterNot { it.toString().endsWith(".vue") } // vue files are inlined in @componentRegistration later
+                .associateBy { """"/vue/${it.toString().replace("\\", "/").substringAfter("/vue/")}"""" } // normalize keys
+        return this.split(newlineRegex).joinToString("\n") { line ->
+            if (!line.contains("@inlineFile")) return@joinToString line // nothing to inline
+            val matchingKey = pathMap.keys.find { line.contains(it) } ?: throw IllegalStateException("Invalid path found: $line")
+            val matchingFileContent by lazy { pathMap[matchingKey]!!.readText() }
+            when {
+                devRegex.containsMatchIn(line) -> if (JavalinVue.isDev == true) line.replace(devRegex, matchingFileContent) else ""
+                notDevRegex.containsMatchIn(line) -> if (JavalinVue.isDev == false) line.replace(notDevRegex, matchingFileContent) else ""
+                else -> line.replace(unconditionalRegex, matchingFileContent)
+            }
+        }
     }
 }
 
