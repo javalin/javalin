@@ -13,6 +13,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil.isLocalhost
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.plugin.rendering.vue.FileInliner.inlineFiles
+import io.javalin.plugin.rendering.vue.JavalinVue.getAllDependencies
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
@@ -35,16 +36,13 @@ object JavalinVue {
     }
 
     @JvmField
-    var resolveDependencies = false
+    var optimizeDependencies = false
 
     @JvmField
     var stateFunction: (Context) -> Any = { mapOf<String, String>() }
 
     @JvmField
     var cacheControl = "no-cache, no-store, must-revalidate"
-    
-    
-   
 
     @JvmField
     var isDevFunction: (Context) -> Boolean = { it.isLocalhost() }
@@ -52,16 +50,19 @@ object JavalinVue {
     internal fun walkPaths(): Set<Path> = Files.walk(vueDirPath, 10).collect(Collectors.toSet())
 
     internal val cachedPaths by lazy { walkPaths() }
-    internal val dependencyResolver by lazy{VueDependencyResolver(cachedPaths)}
+    internal val cachedDependencyResolver by lazy { VueDependencyResolver(cachedPaths) }
 
-    internal fun createLayout(paths: Set<Path>,html:String):String{ 
-            return paths
-            .find { it.endsWith("vue/layout.html") }!!.readText()
-            .inlineFiles(paths)
-            .replace("@componentRegistration", "@componentRegistration@serverState") // add state anchor for later
-            .replace("@componentRegistration", html)
-            .replaceWebjarsWithCdn()
+    internal fun createLayout(paths: Set<Path>, componentDependencies: String): String {
+        return paths.find { it.endsWith("vue/layout.html") }!!.readText()
+                .inlineFiles(paths)
+                .replace("@componentRegistration", "@componentRegistration@serverState") // add state anchor for later
+                .replace("@componentRegistration", componentDependencies)
+                .replaceWebjarsWithCdn()
     }
+
+    internal fun getAllDependencies(paths: Set<Path>) = paths
+            .filter { it.toString().endsWith(".vue") }
+            .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
 
     internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
@@ -82,11 +83,10 @@ class VueComponent @JvmOverloads constructor(private val component: String, priv
         JavalinVue.vueDirPath = JavalinVue.vueDirPath ?: PathMaster.defaultLocation(JavalinVue.isDev)
         val routeComponent = if (component.startsWith("<")) component else "<$component></$component>"
         val paths = if (JavalinVue.isDev == true) JavalinVue.walkPaths() else JavalinVue.cachedPaths
-        val componentName = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
-        val dependencyResolver = if (JavalinVue.isDev == true) VueDependencyResolver(paths) else JavalinVue.dependencyResolver
-        val resolveDependencies = if(JavalinVue.resolveDependencies == true) true else false;
-        val view = JavalinVue.createLayout(paths,dependencyResolver.buildHtml(componentName,resolveDependencies));
-        if (!view.contains(componentName)) {
+        val componentId = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
+        val dependencyResolver by lazy { if (JavalinVue.isDev == true) VueDependencyResolver(paths) else JavalinVue.cachedDependencyResolver }
+        val view = JavalinVue.createLayout(paths, if (JavalinVue.optimizeDependencies) dependencyResolver.execute(componentId) else getAllDependencies(paths))
+        if (!view.contains(componentId)) {
             ctx.result("Route component not found: $routeComponent")
             return
         }

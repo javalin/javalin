@@ -25,25 +25,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- *
  * @author tareq
  */
 public class VueDependencyResolver {
 
     private final Map<String, String> componentsMap;
-    private final Map<String, String> layoutCache;
-    private String completeLayout;
+    private final Map<String, String> dependenciesCache;
     private final Pattern tagRegex = Pattern.compile("<\\s*([a-z|-]*)\\s*.*>");
     private final Pattern componentRegex = Pattern.compile("Vue.component\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
 
     public VueDependencyResolver(Set<Path> paths) {
         componentsMap = new HashMap<>();
         buildMap(paths);
-        layoutCache = new HashMap<>();
+        dependenciesCache = new HashMap<>();
     }
 
     /**
@@ -57,42 +55,37 @@ public class VueDependencyResolver {
         if (paths == null) {
             throw new IllegalArgumentException("Paths Passed in Are null");
         }
-        StringBuilder builder = new StringBuilder();
         paths.stream().filter(it -> it.toString().endsWith(".vue")) // only check vue files
-                .forEach(path -> {
-                    try {
-                        String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8); // read the entire file to memory
-                        builder.append("\n<!-- ").append(path.getFileName()).append(" -->\n");
-                        builder.append(text);
-                        builder.append("\n");
-                        Matcher res = componentRegex.matcher(text); // check for a vue component
-                        while (res.find()) {
-                            String component = res.group(1);
-                            if (component != null) {
-                                componentsMap.put(component, text); // load the entire file, bound to the component name to memory
-                            }
+            .forEach(path -> {
+                try {
+                    String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8); // read the entire file to memory
+                    Matcher res = componentRegex.matcher(text); // check for a vue component
+                    while (res.find()) {
+                        String component = res.group(1);
+                        if (component != null) {
+                            componentsMap.put(component, text); // load the entire file, bound to the component name to memory
                         }
-                    } catch (IOException ex) {
-                        Logger.getLogger(VueDependencyResolver.class.getName()).log(Level.SEVERE, null, ex);
-                        throw new RuntimeException(ex);
                     }
-                });
-        completeLayout = builder.toString();
+                } catch (IOException ex) {
+                    Logger.getLogger(VueDependencyResolver.class.getName()).log(Level.SEVERE, null, ex);
+                    throw new RuntimeException(ex);
+                }
+            });
     }
 
     /**
      * Resolve the dependencies for a required component based on the contents
      * of its file
      *
-     * @param component the name of the component, without tags
+     * @param component          the name of the component, without tags
      * @param requiredComponents the set of required components to be
-     * recursively pushed into
+     *                           recursively pushed into
      */
     private void resolve(String component, Set<String> requiredComponents) {
         requiredComponents.add(component);// add it to the dependency list
         Set<String> dependencies = getDependencies(component); //get its dependencies
         requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
-        dependencies.stream().forEach(dependency -> {
+        dependencies.forEach(dependency -> {
             // resolve each dependency
             resolve(dependency, requiredComponents);
         });
@@ -102,47 +95,36 @@ public class VueDependencyResolver {
     /**
      * Build the HTML of components needed for this component
      *
-     * @param component the component to build the HTMl for .Should not have
-     * tags, only the name
-     * @param resolveDependencies whether to resolve dependencies or not
+     * @param componentId the component to build the HTMl for .Should not have
+     *                  tags, only the name
      * @return a partial HTML string of the components needed for this page/view
      * if the component is found, an error string otherwise.
      */
-    public String buildHtml(String component, boolean resolveDependencies) {
-        if (resolveDependencies) {
-            if (component == null || component.length() < 1) {
-                throw new IllegalArgumentException("Component Passed is null");
-            }
-            if (component.startsWith("<")) {
-                throw new IllegalArgumentException(String.format("Component %s should be passed without brackets(name only)", component));
-            }
-            if (!componentsMap.containsKey(component)) {
-                throw new IllegalArgumentException(String.format("Component %s not found", component));
-            }
-            if (layoutCache.containsKey(component)) {
-                return layoutCache.get(component);
-            }
-            Set<String> components = new HashSet<>();
-            resolve(component, components);
-            StringBuilder builder = new StringBuilder();
-            components.stream().forEach(requiredComponent -> {
-                builder.append("<!-- ").append(requiredComponent).append("-->\n");
-                builder.append(componentsMap.get(requiredComponent));
-                builder.append("\n");
-            });
-            String layout = builder.toString();
-            layoutCache.put(component, layout);
-            return layout;
-        } else {
-            return completeLayout;
+    public String execute(String componentId) {
+        if (!componentsMap.containsKey(componentId)) {
+            throw new IllegalArgumentException(String.format("Component %s not found", componentId));
         }
+        if (dependenciesCache.containsKey(componentId)) {
+            return dependenciesCache.get(componentId);
+        }
+        Set<String> dependencies = new HashSet<>();
+        resolve(componentId, dependencies);
+        StringBuilder builder = new StringBuilder();
+        dependencies.forEach(dependency -> {
+            builder.append("<!-- ").append(dependency).append("-->\n");
+            builder.append(componentsMap.get(dependency));
+            builder.append("\n");
+        });
+        String layout = builder.toString();
+        dependenciesCache.put(componentId, layout);
+        return layout;
     }
 
     /**
      * Resolve the direct dependencies for a component
      *
      * @param component the component to resolve dependencies for. Should not
-     * have tags, only the name
+     *                  have tags, only the name
      * @return a set of dependencies.
      */
     private Set<String> getDependencies(String component) {
