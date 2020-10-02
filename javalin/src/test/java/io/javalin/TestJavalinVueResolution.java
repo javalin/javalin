@@ -33,7 +33,7 @@ public class TestJavalinVueResolution {
 
     @Before
     public void resetJavalinVue(){
-        JavalinVue.isDevFunction = (ctx)->{return null;};// reset
+        JavalinVue.isDevFunction = (ctx)->{return false;};// reset
         JavalinVue.stateFunction = (ctx)->{return new HashMap<String,String>();};
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL); // src/main -> src/test
         JavalinVue.resolveDependencies = true;
