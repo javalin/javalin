@@ -59,7 +59,7 @@ public class VueDependencyResolver {
         if (componentIdToDependencyContent.containsKey(componentId)) {
             return componentIdToDependencyContent.get(componentId);
         }
-        Set<String> dependencies = resolveTransativeDependencies(componentId);
+        Set<String> dependencies = resolveTransitiveDependencies(componentId);
 
         StringBuilder builder = new StringBuilder();
         dependencies.forEach(dependency -> {
@@ -80,14 +80,14 @@ public class VueDependencyResolver {
      * @param requiredComponents the set of required components to be
      * recursively pushed into
      */
-    private Set<String> resolveTransativeDependencies(final String componentId) {
+    private Set<String> resolveTransitiveDependencies(final String componentId) {
         Set<String> requiredComponents = new HashSet<>();
         requiredComponents.add(componentId);// add it to the dependency list
         Set<String> dependencies = getDependencies(componentId); //get its dependencies
         requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
         dependencies.forEach(dependency -> {
             // resolve each dependency
-            requiredComponents.addAll(resolveTransativeDependencies(dependency));
+            requiredComponents.addAll(resolveTransitiveDependencies(dependency));
         });
         return requiredComponents;
     }
