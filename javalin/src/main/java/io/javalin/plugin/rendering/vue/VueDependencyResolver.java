@@ -49,8 +49,8 @@ public class VueDependencyResolver {
      * Build the HTML of components needed for this component
      *
      * @param componentId the component-id to build the HTMl for.
-     * @return a HTML string of the components needed for this page/view
-     * if the component is found, an error string otherwise.
+     * @return a HTML string of the components needed for this page/view if the
+     * component is found, an error string otherwise.
      */
     public String resolve(final String componentId) {
         if (!componentIdToOwnContent.containsKey(componentId)) {
@@ -59,8 +59,8 @@ public class VueDependencyResolver {
         if (componentIdToDependencyContent.containsKey(componentId)) {
             return componentIdToDependencyContent.get(componentId);
         }
-        Set<String> dependencies = new HashSet<>();
-        resolve(componentId, dependencies);
+        Set<String> dependencies = resolveTransativeDependencies(componentId);
+
         StringBuilder builder = new StringBuilder();
         dependencies.forEach(dependency -> {
             builder.append("<!-- ").append(dependency).append("-->\n");
@@ -76,18 +76,20 @@ public class VueDependencyResolver {
      * Resolve the dependencies for a required component based on the contents
      * of its file
      *
-     * @param componentId          the name of the component, without tags
+     * @param componentId the name of the component, without tags
      * @param requiredComponents the set of required components to be
-     *                           recursively pushed into
+     * recursively pushed into
      */
-    private void resolve(final String componentId, final Set<String> requiredComponents) {
+    private Set<String> resolveTransativeDependencies(final String componentId) {
+        Set<String> requiredComponents = new HashSet<>();
         requiredComponents.add(componentId);// add it to the dependency list
         Set<String> dependencies = getDependencies(componentId); //get its dependencies
         requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
         dependencies.forEach(dependency -> {
             // resolve each dependency
-            resolve(dependency, requiredComponents);
+            requiredComponents.addAll(resolveTransativeDependencies(dependency));
         });
+        return requiredComponents;
     }
 
     /**
