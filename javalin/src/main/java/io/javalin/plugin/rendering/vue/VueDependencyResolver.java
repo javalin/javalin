@@ -15,16 +15,11 @@
  */
 package io.javalin.plugin.rendering.vue;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,107 +28,82 @@ import java.util.regex.Pattern;
  */
 public class VueDependencyResolver {
 
-    private final Map<String, String> componentsMap;
-    private final Map<String, String> dependenciesCache;
+    private final Map<String, String> componentIdToOwnContent; // {component-id: component-content}
+    private final Map<String, String> componentIdToDependencyContent; // {component-id: required-dependencies}
     private final Pattern tagRegex = Pattern.compile("<\\s*([a-z|-]*)\\s*.*>");
     private final Pattern componentRegex = Pattern.compile("Vue.component\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
 
     public VueDependencyResolver(Set<Path> paths) {
-        componentsMap = new HashMap<>();
-        buildMap(paths);
-        dependenciesCache = new HashMap<>();
-    }
-
-    /**
-     * Builds a map of components and their file contents, in addition to the
-     * completeLayout. This is done so that component dependency resolution is
-     * fast
-     *
-     * @param paths the file paths to check for components
-     */
-    private void buildMap(Set<Path> paths) {
-        if (paths == null) {
-            throw new IllegalArgumentException("Paths Passed in Are null");
-        }
-        paths.stream().filter(it -> it.toString().endsWith(".vue")) // only check vue files
-            .forEach(path -> {
-                try {
-                    String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8); // read the entire file to memory
-                    Matcher res = componentRegex.matcher(text); // check for a vue component
-                    while (res.find()) {
-                        String component = res.group(1);
-                        if (component != null) {
-                            componentsMap.put(component, text); // load the entire file, bound to the component name to memory
-                        }
-                    }
-                } catch (IOException ex) {
-                    Logger.getLogger(VueDependencyResolver.class.getName()).log(Level.SEVERE, null, ex);
-                    throw new RuntimeException(ex);
-                }
-            });
-    }
-
-    /**
-     * Resolve the dependencies for a required component based on the contents
-     * of its file
-     *
-     * @param component          the name of the component, without tags
-     * @param requiredComponents the set of required components to be
-     *                           recursively pushed into
-     */
-    private void resolve(String component, Set<String> requiredComponents) {
-        requiredComponents.add(component);// add it to the dependency list
-        Set<String> dependencies = getDependencies(component); //get its dependencies
-        requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
-        dependencies.forEach(dependency -> {
-            // resolve each dependency
-            resolve(dependency, requiredComponents);
+        componentIdToOwnContent = new HashMap<>();
+        componentIdToDependencyContent = new HashMap<>();
+        paths.stream().filter(JavalinVueKt::isVueFile).forEach(path -> {
+            String fileContent = JavalinVueKt.readText(path);
+            Matcher matcher = componentRegex.matcher(fileContent); // check for a vue component
+            while (matcher.find()) {
+                componentIdToOwnContent.put(matcher.group(1), fileContent); // cache the file content, bound to the component name
+            }
         });
-
     }
 
     /**
      * Build the HTML of components needed for this component
      *
-     * @param componentId the component to build the HTMl for .Should not have
-     *                  tags, only the name
-     * @return a partial HTML string of the components needed for this page/view
+     * @param componentId the component-id to build the HTMl for.
+     * @return a HTML string of the components needed for this page/view
      * if the component is found, an error string otherwise.
      */
-    public String execute(String componentId) {
-        if (!componentsMap.containsKey(componentId)) {
+    public String resolve(String componentId) {
+        if (!componentIdToOwnContent.containsKey(componentId)) {
             throw new IllegalArgumentException(String.format("Component %s not found", componentId));
         }
-        if (dependenciesCache.containsKey(componentId)) {
-            return dependenciesCache.get(componentId);
+        if (componentIdToDependencyContent.containsKey(componentId)) {
+            return componentIdToDependencyContent.get(componentId);
         }
         Set<String> dependencies = new HashSet<>();
         resolve(componentId, dependencies);
         StringBuilder builder = new StringBuilder();
         dependencies.forEach(dependency -> {
             builder.append("<!-- ").append(dependency).append("-->\n");
-            builder.append(componentsMap.get(dependency));
+            builder.append(componentIdToOwnContent.get(dependency));
             builder.append("\n");
         });
-        String layout = builder.toString();
-        dependenciesCache.put(componentId, layout);
-        return layout;
+        String allDependencies = builder.toString();
+        componentIdToDependencyContent.put(componentId, allDependencies);
+        return allDependencies;
+    }
+
+    /**
+     * Resolve the dependencies for a required component based on the contents
+     * of its file
+     *
+     * @param componentId          the name of the component, without tags
+     * @param requiredComponents the set of required components to be
+     *                           recursively pushed into
+     */
+    private void resolve(String componentId, Set<String> requiredComponents) {
+        requiredComponents.add(componentId);// add it to the dependency list
+        Set<String> dependencies = getDependencies(componentId); //get its dependencies
+        requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
+        dependencies.forEach(dependency -> {
+            // resolve each dependency
+            resolve(dependency, requiredComponents);
+        });
     }
 
     /**
      * Resolve the direct dependencies for a component
      *
-     * @param component the component to resolve dependencies for. Should not
-     *                  have tags, only the name
+     * @param componentId the component to resolve dependencies for.
      * @return a set of dependencies.
      */
-    private Set<String> getDependencies(String component) {
+    private Set<String> getDependencies(String componentId) {
         Set<String> dependencies = new HashSet<>();
-        Matcher res = tagRegex.matcher(componentsMap.get(component));//match for HTML tags
-        while (res.find()) {
-            String found = res.group(1);
-            if (found != null && !found.equals(component) && componentsMap.containsKey(found)) { // if it isnt the component and its in the component graph
-                dependencies.add(found);//add it to the list of dependencies
+        String componentContent = componentIdToOwnContent.get(componentId);
+        Matcher matcher = tagRegex.matcher(componentContent); //match for HTML tags
+        while (matcher.find()) {
+            String match = matcher.group(1);
+            if (!match.equals(componentId) && componentIdToOwnContent.containsKey(match)) { // if it isn't the component itself, and its in the component map
+                dependencies.add(match); //add it to the list of dependencies
             }
         }
         return dependencies;

@@ -35,6 +35,26 @@ public class TestJavalinVueResolution {
     }
 
     @Test
+    public void resoleAllDependenciesTest() {
+        TestUtil.test((server, httpUtil) -> {
+            JavalinVue.optimizeDependencies = false;
+            server.get("/non-optimized", new VueComponent("<test-component></test-component>"));
+            String body = httpUtil.getBody("/non-optimized");
+            assertThat(body).contains("<body><test-component></test-component></body>");
+            assertThat(body).contains("view-one");
+            assertThat(body).contains("view-two");
+            assertThat(body).contains("view-three");
+            assertThat(body).contains("dependency-one");
+            assertThat(body).contains("dependency-two");
+            assertThat(body).contains("dependency-three");
+            assertThat(body).contains("dependency-four");
+            assertThat(body).contains("nested-dependency");
+            assertThat(body).contains("view-nested-dependency");
+            assertThat(body).contains("multi-dependency");
+        });
+    }
+
+    @Test
     public void resolveSingleDependencyTest() {
         TestUtil.test((server, httpUtil) -> {
             server.get("/single-view", new VueComponent("<view-one></view-one>"));
