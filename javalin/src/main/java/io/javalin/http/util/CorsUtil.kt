@@ -9,7 +9,6 @@ package io.javalin.http.util
 import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import io.javalin.plugin.openapi.annotations.OpenApi
 
 class CorsBeforeHandler(private val origins: List<String>) : Handler {
     override fun handle(ctx: Context) {

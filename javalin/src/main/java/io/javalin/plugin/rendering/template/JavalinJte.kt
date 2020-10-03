@@ -6,14 +6,14 @@
 
 package io.javalin.plugin.rendering.template
 
-import io.javalin.core.util.OptionalDependency
-import io.javalin.core.util.Util
-import io.javalin.http.Context
-import io.javalin.plugin.rendering.FileRenderer
 import gg.jte.ContentType
 import gg.jte.TemplateEngine
 import gg.jte.output.StringOutput
 import gg.jte.resolve.DirectoryCodeResolver
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
+import io.javalin.http.Context
+import io.javalin.plugin.rendering.FileRenderer
 import java.io.File
 
 object JavalinJte : FileRenderer {
