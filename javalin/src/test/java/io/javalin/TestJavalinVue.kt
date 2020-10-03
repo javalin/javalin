@@ -25,7 +25,7 @@ class TestJavalinVue {
 
     @Before
     fun setup() {
-        JavalinVue.isDev = false // reset
+        JavalinVue.isDev = null // reset
         JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main -> src/test
         JavalinVue.optimizeDependencies = false
@@ -180,7 +180,6 @@ class TestJavalinVue {
 
     @Test
     fun `@inlineFile functionality works as expected if dev`() = TestUtil.test { app, http ->
-        JavalinVue.isDev = true // reset
         val ctx = mockk<Context>(relaxed = true)
         every { ctx.url() } returns "http://localhost:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
