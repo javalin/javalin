@@ -83,9 +83,9 @@ public class VueDependencyResolver {
     private Set<String> resolveTransitiveDependencies(final String componentId) {
         Set<String> requiredComponents = new HashSet<>();
         requiredComponents.add(componentId);// add it to the dependency list
-        Set<String> dependencies = getDependencies(componentId); //get its dependencies
-        requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
-        dependencies.forEach(dependency -> {
+        Set<String> directDependencies = resolveDirectDependencies(componentId); //get its dependencies
+        requiredComponents.addAll(directDependencies); //add all its dependencies  to the required components list
+        directDependencies.forEach(dependency -> {
             // resolve each dependency
             requiredComponents.addAll(resolveTransitiveDependencies(dependency));
         });
@@ -98,7 +98,7 @@ public class VueDependencyResolver {
      * @param componentId the component to resolve dependencies for.
      * @return a set of dependencies.
      */
-    private Set<String> getDependencies(final String componentId) {
+    private Set<String> resolveDirectDependencies(final String componentId) {
         Set<String> dependencies = new HashSet<>();
         String componentContent = componentIdToOwnContent.get(componentId);
         Matcher matcher = tagRegex.matcher(componentContent); //match for HTML tags
