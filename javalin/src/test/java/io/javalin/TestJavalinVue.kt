@@ -28,7 +28,7 @@ class TestJavalinVue {
         JavalinVue.isDev = false // reset
         JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main -> src/test
-        JavalinVue.resolveDependencies = false
+        JavalinVue.optimizeDependencies = false
     }
 
     data class User(val name: String, val email: String)
@@ -140,7 +140,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to webjar on localhost`() = TestUtil.test { app, http ->
         val ctx = mockk<Context>(relaxed = true)
-        JavalinVue.isDev = true // reset        
+        JavalinVue.isDev = true // reset
         every { ctx.url() } returns "http://localhost:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
@@ -180,7 +180,7 @@ class TestJavalinVue {
 
     @Test
     fun `@inlineFile functionality works as expected if dev`() = TestUtil.test { app, http ->
-        JavalinVue.isDev = true // reset        
+        JavalinVue.isDev = true // reset
         val ctx = mockk<Context>(relaxed = true)
         every { ctx.url() } returns "http://localhost:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)

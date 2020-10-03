@@ -15,29 +15,25 @@
  */
 package io.javalin;
 
+import io.javalin.http.staticfiles.Location;
 import io.javalin.plugin.rendering.vue.JavalinVue;
 import io.javalin.plugin.rendering.vue.VueComponent;
 import io.javalin.testing.TestUtil;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import io.javalin.http.staticfiles.Location;
-import java.util.HashMap;
 import org.junit.Before;
+import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
- *
  * @author tareq
  */
 public class TestJavalinVueResolution {
 
-
     @Before
-    public void resetJavalinVue(){
-        JavalinVue.isDevFunction = (ctx)->{return false;};// reset
-        JavalinVue.stateFunction = (ctx)->{return new HashMap<String,String>();};
+    public void resetJavalinVue() {
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL); // src/main -> src/test
-        JavalinVue.resolveDependencies = true;
+        JavalinVue.optimizeDependencies = true;
     }
+
     @Test
     public void resolveSingleDependencyTest() {
         TestUtil.test((server, httpUtil) -> {
