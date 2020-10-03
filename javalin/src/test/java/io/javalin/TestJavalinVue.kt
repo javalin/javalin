@@ -22,11 +22,13 @@ import java.nio.file.Paths
 
 class TestJavalinVue {
 
+
     @Before
     fun setup() {
         JavalinVue.isDev = null // reset
         JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main -> src/test
+        JavalinVue.optimizeDependencies = false
     }
 
     data class User(val name: String, val email: String)
@@ -129,6 +131,7 @@ class TestJavalinVue {
 
     @Test
     fun `non-existent folder fails`() = TestUtil.test { app, http ->
+        JavalinVue.isDev = true // reset
         JavalinVue.rootDirectory("/vue", Location.EXTERNAL)
         app.get("/fail", VueComponent("test-component"))
         assertThat(http.get("/fail").status).isEqualTo(500)
@@ -137,6 +140,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to webjar on localhost`() = TestUtil.test { app, http ->
         val ctx = mockk<Context>(relaxed = true)
+        JavalinVue.isDev = true // reset
         every { ctx.url() } returns "http://localhost:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
