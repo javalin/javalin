@@ -77,8 +77,7 @@ public class VueDependencyResolver {
      * of its file
      *
      * @param componentId the name of the component, without tags
-     * @param requiredComponents the set of required components to be
-     * recursively pushed into
+     * @return a Set of dependencies needed to render this component
      */
     private Set<String> resolveTransitiveDependencies(final String componentId) {
         Set<String> requiredComponents = new HashSet<>();
