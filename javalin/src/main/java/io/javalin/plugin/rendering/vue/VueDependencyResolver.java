@@ -33,7 +33,7 @@ public class VueDependencyResolver {
     private final Pattern tagRegex = Pattern.compile("<\\s*([a-z|-]*)\\s*.*>");
     private final Pattern componentRegex = Pattern.compile("Vue.component\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
 
-    public VueDependencyResolver(Set<Path> paths) {
+    public VueDependencyResolver(final Set<Path> paths) {
         componentIdToOwnContent = new HashMap<>();
         componentIdToDependencyContent = new HashMap<>();
         paths.stream().filter(JavalinVueKt::isVueFile).forEach(path -> {
@@ -52,7 +52,7 @@ public class VueDependencyResolver {
      * @return a HTML string of the components needed for this page/view
      * if the component is found, an error string otherwise.
      */
-    public String resolve(String componentId) {
+    public String resolve(final String componentId) {
         if (!componentIdToOwnContent.containsKey(componentId)) {
             throw new IllegalArgumentException(String.format("Component %s not found", componentId));
         }
@@ -80,7 +80,7 @@ public class VueDependencyResolver {
      * @param requiredComponents the set of required components to be
      *                           recursively pushed into
      */
-    private void resolve(String componentId, Set<String> requiredComponents) {
+    private void resolve(final String componentId, final Set<String> requiredComponents) {
         requiredComponents.add(componentId);// add it to the dependency list
         Set<String> dependencies = getDependencies(componentId); //get its dependencies
         requiredComponents.addAll(dependencies); //add all its dependencies  to the required components list
@@ -96,7 +96,7 @@ public class VueDependencyResolver {
      * @param componentId the component to resolve dependencies for.
      * @return a set of dependencies.
      */
-    private Set<String> getDependencies(String componentId) {
+    private Set<String> getDependencies(final String componentId) {
         Set<String> dependencies = new HashSet<>();
         String componentContent = componentIdToOwnContent.get(componentId);
         Matcher matcher = tagRegex.matcher(componentContent); //match for HTML tags
