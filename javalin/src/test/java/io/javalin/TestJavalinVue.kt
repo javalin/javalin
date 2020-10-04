@@ -171,7 +171,7 @@ class TestJavalinVue {
         every { ctx.url() } returns "http://123.123.123.123:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
-        assertThat(slot.captured).contains("""<script>let a = "Always included"</script>""")
+        assertThat(slot.captured).contains("""<script>let a = "Always included";let ${"\$"}a = "Dollar works"</script>""")
         assertThat(slot.captured).contains("""<script>let b = "Included if not dev"</script>""")
         assertThat(slot.captured).doesNotContain("""<script>let b = "Included if dev"</script>""")
         assertThat(slot.captured).doesNotContain("""<script>@inlineFileDev("/vue/scripts-dev.js")</script>""")
@@ -184,7 +184,7 @@ class TestJavalinVue {
         every { ctx.url() } returns "http://localhost:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
-        assertThat(slot.captured).contains("""<script>let a = "Always included"</script>""")
+        assertThat(slot.captured).contains("""<script>let a = "Always included";let ${"\$"}a = "Dollar works"</script>""")
         assertThat(slot.captured).contains("""<script>let b = "Included if dev"</script>""")
         assertThat(slot.captured).doesNotContain("""<script>let b = "Included if not dev"</script>""")
         assertThat(slot.captured).doesNotContain("""<script>@inlineFileNotDev("/vue/scripts-not-dev.js")</script>""")

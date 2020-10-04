@@ -18,6 +18,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.regex.Matcher
 import java.util.stream.Collectors
 
 object JavalinVue {
@@ -124,7 +125,7 @@ object FileInliner {
         return this.split(newlineRegex).joinToString("\n") { line ->
             if (!line.contains("@inlineFile")) return@joinToString line // nothing to inline
             val matchingKey = pathMap.keys.find { line.contains(it) } ?: throw IllegalStateException("Invalid path found: $line")
-            val matchingFileContent by lazy { pathMap[matchingKey]!!.readText() }
+            val matchingFileContent by lazy { Matcher.quoteReplacement(pathMap[matchingKey]!!.readText()) }
             when {
                 devRegex.containsMatchIn(line) -> if (JavalinVue.isDev == true) line.replace(devRegex, matchingFileContent) else ""
                 notDevRegex.containsMatchIn(line) -> if (JavalinVue.isDev == false) line.replace(notDevRegex, matchingFileContent) else ""
