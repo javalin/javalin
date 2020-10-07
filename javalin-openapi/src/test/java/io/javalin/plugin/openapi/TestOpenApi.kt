@@ -45,9 +45,14 @@ import java.time.Instant
 
 class Address(val street: String, val number: Int)
 
-class User(val name: String, val address: Address? = null)
+class User(val name: String, val address: Address? = null, val userType: UserType? = null)
 
 class Log(val timestamp: Instant, val message: String)
+
+enum class UserType{
+    ONE, TWO
+}
+
 
 fun createComplexExampleBaseConfiguration() = openapiDsl {
     info {
