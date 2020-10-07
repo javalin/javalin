@@ -874,7 +874,6 @@ val complexExampleJson = """
     },
     "/enums/{my-enum-path-param}" : {
       "get" : {
-        "tags" : [ "user" ],
         "summary" : "Get enums with myEnumPathParam",
         "operationId" : "getEnumsWithMyEnumPathParam",
         "parameters" : [ {
@@ -1160,31 +1159,8 @@ val overrideJson = """
   },
   "components" : {
     "schemas" : {
-      "Address" : {
-        "required" : [ "number", "street" ],
-        "type" : "object",
-        "properties" : {
-          "street" : {
-            "type" : "string"
-          },
-          "number" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "User" : {
-        "required" : [ "name" ],
-        "type" : "object",
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "address" : {
-            "$ref" : "#/components/schemas/Address"
-          }
-        }
-      }
+      "Address" : $addressOpenApiSchema,
+      "User" : $userOpenApiSchema
     }
   }
 }

@@ -260,6 +260,10 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
 
     app.get("/ignored", documented(document().ignore()) {})
 
+    app.get("/enums/:my-enum-path-param", documented(document()
+            .pathParam<UserType>("my-enum-path-param")
+            .queryParam<UserType>("my-enum-query-param")) {})
+
     return app
 }
 

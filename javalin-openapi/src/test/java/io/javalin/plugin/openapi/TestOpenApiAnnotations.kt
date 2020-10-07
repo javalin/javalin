@@ -295,7 +295,6 @@ fun getQueryParamListHandler(ctx: Context) {
 // endregion composed body
 
 @OpenApi(
-        tags = ["user"],
         pathParams = [
             OpenApiParam(name = "my-enum-path-param", type = UserType::class)
         ],
