@@ -167,4 +167,13 @@ class TestHttpResponseExceptions {
         )
         assertThat(http.htmlGet("/").body).isEqualTo("Only mapped for HTML")
     }
+
+    @Test
+    fun `can override HttpResponseExceptions`() = TestUtil.test { app, http ->
+        val randomNumberString = (Math.random() * 10000).toString()
+        app.get("/") { throw BadRequestResponse() }
+        app.exception(BadRequestResponse::class.java) { e, ctx -> ctx.result(randomNumberString) }
+        assertThat(http.getBody("/")).isEqualTo(randomNumberString)
+    }
+
 }
