@@ -117,4 +117,19 @@ public class TestJavalinVueResolution {
         });
     }
 
+    @Test
+    public void componentWithNumberTest() {
+        TestUtil.test((server, httpUtil) -> {
+            server.get("/multi-view-number", new VueComponent("<view-number-dependency></view-number-dependency>"));
+            String body = httpUtil.getBody("/multi-view-number");
+            assertThat(body).contains("<dependency-1></dependency-1>");
+            assertThat(body).contains("<dependency-1-foo></dependency-1-foo>");
+            assertThat(body).contains("Vue.component(\"view-number-dependency\",{template:\"#view-number-dependency\"})");
+            assertThat(body).contains("Vue.component('dependency-1',{template:\"#dependency-1\"})");
+            assertThat(body).contains("Vue.component('dependency-1-foo',{template:\"#dependency-1-foo\"})");
+            assertThat(body).doesNotContain("Vue.component('dependency-123',{template:\"#dependency-123\"})");
+            assertThat(body).doesNotContain("<dependency-123");
+        });
+    }
+
 }
