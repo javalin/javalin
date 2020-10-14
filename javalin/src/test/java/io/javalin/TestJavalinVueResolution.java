@@ -132,4 +132,18 @@ public class TestJavalinVueResolution {
         });
     }
 
+    @Test
+    public void componentWithMultilineComponentsUsageTest() {
+        TestUtil.test((server, httpUtil) -> {
+            server.get("/multiline-view-number", new VueComponent("<view-multiline-dependency></view-multiline-dependency>"));
+            String body = httpUtil.getBody("/multiline-view-number");
+            assertThat(body).contains("Vue.component(\"view-multiline-dependency\",{template:\"#view-multiline-dependency\"})");
+            assertThat(body).contains("Vue.component('dependency-1',{template:\"#dependency-1\"})");
+            assertThat(body).contains("Vue.component('dependency-1-foo',{template:\"#dependency-1-foo\"})");
+            assertThat(body).contains("Vue.component('dependency-one',{template:\"#dependency-one\"})");
+            assertThat(body).doesNotContain("Vue.component('dependency-123',{template:\"#dependency-123\"})");
+            assertThat(body).doesNotContain("<dependency-123");
+        });
+    }
+
 }

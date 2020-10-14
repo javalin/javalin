@@ -30,8 +30,8 @@ public class VueDependencyResolver {
 
     private final Map<String, String> componentIdToOwnContent; // {component-id: component-content}
     private final Map<String, String> componentIdToDependencyContent; // {component-id: required-dependencies}
-    private final Pattern tagRegex = Pattern.compile("<\\s*([a-z0-9|-]*)\\s*.*>");
-    private final Pattern componentRegex = Pattern.compile("Vue.component\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
+    private final Pattern tagRegex = Pattern.compile("<\\s*([a-z0-9|-]*).*?>", Pattern.DOTALL);
+    private final Pattern componentRegex = Pattern.compile("Vue.component\\s*\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
 
     public VueDependencyResolver(final Set<Path> paths) {
         componentIdToOwnContent = new HashMap<>();
