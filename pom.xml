@@ -76,7 +76,7 @@
         <pebble.version>3.1.2</pebble.version>
         <redoc.version>2.0.0-rc.23</redoc.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <swagger.models.version>2.1.2</swagger.models.version>
+        <swagger.core.version>2.1.4</swagger.core.version>
         <swagger.parser.version>2.0.19</swagger.parser.version>
         <swagger.ui.version>3.25.2</swagger.ui.version>
         <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
@@ -91,7 +91,7 @@
         <javax.servlet.api.version>3.1.0</javax.servlet.api.version>
         <junit.benchmark.version>0.7.2</junit.benchmark.version>
         <junit.version>4.13.1</junit.version>
-        <kotlin.openapi.dsl.version>0.20.2</kotlin.openapi.dsl.version>
+        <kotlin.openapi.dsl.version>1.0.0</kotlin.openapi.dsl.version>
         <mockk.version>1.10.0</mockk.version>
         <bytebuddy.version>1.10.15</bytebuddy.version>
         <bytebuddyagent.version>1.10.15</bytebuddyagent.version>
@@ -218,8 +218,13 @@
             </dependency>
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-core</artifactId>
+                <version>${swagger.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-models</artifactId>
-                <version>${swagger.models.version}</version>
+                <version>${swagger.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.swagger.parser.v3</groupId>
