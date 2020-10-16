@@ -27,13 +27,17 @@ import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
+
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
@@ -116,11 +120,19 @@ public class JavalinConfig {
         return addStaticFiles("/", path, location);
     }
 
+    public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location, @NotNull List<ContextHandler.AliasCheck> aliasChecks) {
+        return addStaticFiles("/", path, location, aliasChecks);
+    }
+
     public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location) {
+        return addStaticFiles(urlPathPrefix, path, location, Collections.emptyList());
+    }
+
+    public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location, @NotNull List<ContextHandler.AliasCheck> aliasChecks) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null)
             inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles);
-        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location));
+        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location, aliasChecks));
         return this;
     }
 
