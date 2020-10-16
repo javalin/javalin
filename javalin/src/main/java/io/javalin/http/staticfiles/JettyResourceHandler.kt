@@ -59,7 +59,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
                 if (baseResource != null) {
                     val caconicalPath = URIUtil.canonicalPath(path)
                     r = baseResource.addPath(caconicalPath)
-                    if (r != null && r.isAlias && (!checkAlias(path, r))) {
+                    if (r != null && r.isAlias && !checkAlias(path, r)) {
                         return null
                     }
                 }
@@ -106,7 +106,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
         for (handler in handlers) {
             try {
                 val resource = handler.getResource(target)
-                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler as ResourceHandler, target)) {
+                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
