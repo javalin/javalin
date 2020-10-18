@@ -59,7 +59,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, val alia
         }
     }
 
-    inner class AliasResourceHandler(private val urlPathPrefix: String, private val aliasCheck: AliasCheck?) : ResourceHandler() {
+    inner class AliasResourceHandler(private val urlPathPrefix: String, private val aliasCheck: AliasCheck) : ResourceHandler() {
         override fun getResource(path: String): Resource {
             val targetResource by lazy { path.removePrefix(urlPathPrefix) }
             return when {
@@ -92,7 +92,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, val alia
 
         private fun checkAlias(path: String?, resource: Resource): Boolean {
             if (resource.isAlias) {
-                if (aliasCheck != null && aliasCheck.check(path, resource)) {
+                if (aliasCheck.check(path, resource)) {
                     return true
                 }
                 return false
