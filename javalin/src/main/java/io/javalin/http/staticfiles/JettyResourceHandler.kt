@@ -46,39 +46,34 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, val alia
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
     }
 
-    inner class PrefixableHandler(private var urlPathPrefix: String) : ResourceHandler() {
+    open inner class PrefixableHandler(private var urlPathPrefix: String) : ResourceHandler() {
         override fun getResource(path: String): Resource {
             val targetResource by lazy { path.removePrefix(urlPathPrefix) }
             return when {
-                urlPathPrefix == "/" -> super.getResource(path) // same as regular ResourceHandler
-                targetResource == "" -> super.getResource("/") // directory without trailing '/'
+                urlPathPrefix == "/" -> getResourceFromPath(path)!!
+                targetResource == "" -> getResourceFromPath("/")!! // directory without trailing '/'
                 !path.startsWith(urlPathPrefix) -> EmptyResource.INSTANCE
                 !targetResource.startsWith("/") -> EmptyResource.INSTANCE
-                else -> super.getResource(targetResource)
+                else -> getResourceFromPath(targetResource)!!
             }
+        }
+
+        // same as regular ResourceHandler
+        open fun getResourceFromPath(path: String): Resource? {
+            return super.getResource(path)
         }
     }
 
-    inner class AliasResourceHandler(private val urlPathPrefix: String, private val aliasCheck: AliasCheck) : ResourceHandler() {
-        override fun getResource(path: String): Resource {
-            val targetResource by lazy { path.removePrefix(urlPathPrefix) }
-            return when {
-                urlPathPrefix == "/" -> getResourceWithAliasChecks(path)!!
-                targetResource == "" -> getResourceWithAliasChecks("/")!! // directory without trailing '/'
-                !path.startsWith(urlPathPrefix) -> EmptyResource.INSTANCE
-                !targetResource.startsWith("/") -> EmptyResource.INSTANCE
-                else -> getResourceWithAliasChecks(targetResource)!!
-            }
-        }
+    inner class AliasResourceHandler(urlPathPrefix: String, private val aliasCheck: AliasCheck) : PrefixableHandler(urlPathPrefix) {
 
         // same as regular ResourceHandler but with alias checks
-        private fun getResourceWithAliasChecks(path: String) : Resource? {
+        override fun getResourceFromPath(path: String) : Resource? {
             try {
                 var resource: Resource? = null
                 if (baseResource != null) {
                     val caconicalPath = URIUtil.canonicalPath(path)
                     resource = baseResource.addPath(caconicalPath)
-                    if (resource != null && resource.isAlias && !checkAlias(path, resource)) {
+                    if (resource != null && resource.isAlias && !aliasCheck.check(path, resource)) {
                         return null
                     }
                 }
@@ -87,19 +82,8 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, val alia
             } catch (ignored: java.lang.Exception) {
 
             }
-            return null;
+            return null
         }
-
-        private fun checkAlias(path: String?, resource: Resource): Boolean {
-            if (resource.isAlias) {
-                if (aliasCheck.check(path, resource)) {
-                    return true
-                }
-                return false
-            }
-            return true
-        }
-
     }
 
     private fun getResourcePath(staticFileConfig: StaticFileConfig): String {

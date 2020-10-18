@@ -77,7 +77,7 @@ class TestStaticFiles {
         }
     }
 
-    private fun createSimLink(targetPath: String, linkPath: String): File? {
+    private fun createSymLink(targetPath: String, linkPath: String): File? {
         val target = Paths.get(targetPath).toAbsolutePath()
         val link = Paths.get(linkPath).toAbsolutePath()
         // delete before creating new link
@@ -93,9 +93,9 @@ class TestStaticFiles {
 
     @Test
     fun `alias checks for static files should work`() {
-        val createdHtml = createSimLink("src/test/external/html.html", "src/test/external/linked_html.html")
+        val createdHtml = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
         if (createdHtml != null) {
-            val createdTxt = createSimLink("src/test/external/txt.txt", "src/test/external/linked_txt.txt")
+            val createdTxt = createSymLink("src/test/external/txt.txt", "src/test/external/linked_txt.txt")
             if (createdTxt != null) {
                 TestUtil.test(staticWithAliasResourceApp) { _, http ->
                     assertThat(http.get("/linked_html.html").status).isEqualTo(200)
@@ -109,7 +109,7 @@ class TestStaticFiles {
 
     @Test
     fun `if aliases are not specified returns 404 for linked static file`() {
-        val created = createSimLink("src/test/external/html.html", "src/test/external/linked_html.html")
+        val created = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
         if (created != null) {
             TestUtil.test(staticNoAliasCheckResourceApp) { _, http ->
                 assertThat(http.get("/linked_html.html").status).isEqualTo(404)
