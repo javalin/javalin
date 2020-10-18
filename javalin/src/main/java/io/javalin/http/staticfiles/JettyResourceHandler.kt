@@ -20,19 +20,24 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val precompressStaticFiles: Boolean = false, val aliasCheck: AliasCheck? = null) : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
-        val handler = if (config.path == "/webjars") WebjarHandler() else PrefixableHandler(config.urlPathPrefix, config.aliasChecks).apply {
-            resourceBase = getResourcePath(config)
-            isDirAllowed = false
-            isEtags = true
-            Javalin.log?.info("""Static file handler added:
+        val handler = if (config.path == "/webjars") {
+            WebjarHandler()
+        } else {
+            val handler = if (aliasCheck != null) AliasResourceHandler(config.urlPathPrefix, aliasCheck) else PrefixableHandler(config.urlPathPrefix)
+            handler.apply {
+                resourceBase = getResourcePath(config)
+                isDirAllowed = false
+                isEtags = true
+                Javalin.log?.info("""Static file handler added:
                 |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.path}", location: Location.${config.location}}
                 |    Resolved path: '${getResourcePath(config)}'
                 """.trimMargin())
+            }
         }
         handlers.add(handler.apply { start() })
     }
@@ -41,11 +46,24 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
     }
 
-    inner class PrefixableHandler(private var urlPathPrefix: String, private val aliasChecks: List<AliasCheck>) : ResourceHandler() {
+    inner class PrefixableHandler(private var urlPathPrefix: String) : ResourceHandler() {
         override fun getResource(path: String): Resource {
             val targetResource by lazy { path.removePrefix(urlPathPrefix) }
             return when {
-                urlPathPrefix == "/" -> getResourceWithAliasChecks(path)!! // same as regular ResourceHandler but with alias checks
+                urlPathPrefix == "/" -> super.getResource(path) // same as regular ResourceHandler
+                targetResource == "" -> super.getResource("/") // directory without trailing '/'
+                !path.startsWith(urlPathPrefix) -> EmptyResource.INSTANCE
+                !targetResource.startsWith("/") -> EmptyResource.INSTANCE
+                else -> super.getResource(targetResource)
+            }
+        }
+    }
+
+    inner class AliasResourceHandler(private val urlPathPrefix: String, private val aliasCheck: AliasCheck?) : ResourceHandler() {
+        override fun getResource(path: String): Resource {
+            val targetResource by lazy { path.removePrefix(urlPathPrefix) }
+            return when {
+                urlPathPrefix == "/" -> getResourceWithAliasChecks(path)!!
                 targetResource == "" -> getResourceWithAliasChecks("/")!! // directory without trailing '/'
                 !path.startsWith(urlPathPrefix) -> EmptyResource.INSTANCE
                 !targetResource.startsWith("/") -> EmptyResource.INSTANCE
@@ -53,19 +71,20 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
             }
         }
 
+        // same as regular ResourceHandler but with alias checks
         private fun getResourceWithAliasChecks(path: String) : Resource? {
             try {
-                var r: Resource? = null
+                var resource: Resource? = null
                 if (baseResource != null) {
                     val caconicalPath = URIUtil.canonicalPath(path)
-                    r = baseResource.addPath(caconicalPath)
-                    if (r != null && r.isAlias && !checkAlias(path, r)) {
+                    resource = baseResource.addPath(caconicalPath)
+                    if (resource != null && resource.isAlias && !checkAlias(path, resource)) {
                         return null
                     }
                 }
-                if ((r == null || !r.exists()) && path.endsWith("/jetty-dir.css")) r = stylesheet
-                return r!!
-            } catch (e: java.lang.Exception) {
+                if ((resource == null || !resource.exists()) && path.endsWith("/jetty-dir.css")) resource = stylesheet
+                return resource!!
+            } catch (ignored: java.lang.Exception) {
 
             }
             return null;
@@ -73,10 +92,8 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
 
         private fun checkAlias(path: String?, resource: Resource): Boolean {
             if (resource.isAlias) {
-                aliasChecks.forEach {
-                    if (it.check(path, resource)) {
-                        return true
-                    }
+                if (aliasCheck != null && aliasCheck.check(path, resource)) {
+                    return true
                 }
                 return false
             }

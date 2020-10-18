@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
 
 public class HelloWorldStaticFiles_linked {
 
@@ -23,7 +21,8 @@ public class HelloWorldStaticFiles_linked {
         createSimLink("src/test/external/html.html", "src/test/external/linked_html.html");
 
         Javalin.create(config -> {
-            config.addStaticFiles("src/test/external/", Location.EXTERNAL, Collections.singletonList(new ContextHandler.ApproveAliases()));
+            config.aliasCheckForStaticFiles = new ContextHandler.ApproveAliases();
+            config.addStaticFiles("src/test/external/", Location.EXTERNAL);
         }).start(7070);
     }
 

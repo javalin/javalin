@@ -53,6 +53,7 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean precompressStaticFiles = false;
+    public ContextHandler.AliasCheck aliasCheckForStaticFiles = null;
     public boolean showJavalinBanner = true;
     public boolean logIfServerNotStarted = true;
     public boolean ignoreTrailingSlashes = true;
@@ -120,19 +121,11 @@ public class JavalinConfig {
         return addStaticFiles("/", path, location);
     }
 
-    public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location, @NotNull List<ContextHandler.AliasCheck> aliasChecks) {
-        return addStaticFiles("/", path, location, aliasChecks);
-    }
-
     public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location) {
-        return addStaticFiles(urlPathPrefix, path, location, Collections.emptyList());
-    }
-
-    public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location, @NotNull List<ContextHandler.AliasCheck> aliasChecks) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null)
-            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles);
-        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location, aliasChecks));
+            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles, aliasCheckForStaticFiles);
+        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location));
         return this;
     }
 

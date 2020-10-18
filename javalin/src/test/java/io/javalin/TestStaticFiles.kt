@@ -14,7 +14,7 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
-import org.eclipse.jetty.server.handler.ContextHandler.ApproveAliases
+import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.Test
 import java.io.File
@@ -63,13 +63,15 @@ class TestStaticFiles {
         }
     }
 
-    private val staticAllowedAliasResourceApp: Javalin by lazy {
+    private val staticWithAliasResourceApp: Javalin by lazy {
         Javalin.create { servlet ->
-            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL, listOf(ApproveAliases()))
+            // block aliases for txt files
+            servlet.aliasCheckForStaticFiles = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
+            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
         }
     }
 
-    private val staticBlockedAliasResourceApp: Javalin by lazy {
+    private val staticNoAliasCheckResourceApp: Javalin by lazy {
         Javalin.create { servlet ->
             servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
         }
@@ -90,21 +92,26 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `if aliases are allowed returns 200 for linked static file`() {
-        val created = createSimLink("src/test/external/html.html", "src/test/external/linked_html.html")
-        if (created != null) {
-            TestUtil.test(staticAllowedAliasResourceApp) { _, http ->
-                assertThat(http.get("/linked_html.html").status).isEqualTo(200)
+    fun `alias checks for static files should work`() {
+        val createdHtml = createSimLink("src/test/external/html.html", "src/test/external/linked_html.html")
+        if (createdHtml != null) {
+            val createdTxt = createSimLink("src/test/external/txt.txt", "src/test/external/linked_txt.txt")
+            if (createdTxt != null) {
+                TestUtil.test(staticWithAliasResourceApp) { _, http ->
+                    assertThat(http.get("/linked_html.html").status).isEqualTo(200)
+                    assertThat(http.get("/linked_txt.txt").status).isEqualTo(404)
+                }
+                createdTxt.delete()
             }
-            created.delete()
+            createdHtml.delete()
         }
     }
 
     @Test
-    fun `if aliases are not allowed returns 404 for linked static file`() {
+    fun `if aliases are not specified returns 404 for linked static file`() {
         val created = createSimLink("src/test/external/html.html", "src/test/external/linked_html.html")
         if (created != null) {
-            TestUtil.test(staticBlockedAliasResourceApp) { _, http ->
+            TestUtil.test(staticNoAliasCheckResourceApp) { _, http ->
                 assertThat(http.get("/linked_html.html").status).isEqualTo(404)
             }
             created.delete()
