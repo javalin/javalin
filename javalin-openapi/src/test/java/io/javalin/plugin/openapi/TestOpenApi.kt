@@ -45,9 +45,14 @@ import java.time.Instant
 
 class Address(val street: String, val number: Int)
 
-class User(val name: String, val address: Address? = null)
+class User(val name: String, val address: Address? = null, val userType: UserType? = null)
 
 class Log(val timestamp: Instant, val message: String)
+
+enum class UserType{
+    ONE, TWO
+}
+
 
 fun createComplexExampleBaseConfiguration() = openapiDsl {
     info {
@@ -254,6 +259,10 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
     app.get("/resources/*", documented(getResourcesDocumentation) {})
 
     app.get("/ignored", documented(document().ignore()) {})
+
+    app.get("/enums/:my-enum-path-param", documented(document()
+            .pathParam<UserType>("my-enum-path-param")
+            .queryParam<UserType>("my-enum-query-param")) {})
 
     return app
 }

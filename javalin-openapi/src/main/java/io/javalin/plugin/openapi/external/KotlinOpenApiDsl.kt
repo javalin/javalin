@@ -104,9 +104,6 @@ internal data class FindSchemaResponse(
 )
 
 internal fun <T> findSchema(clazz: Class<T>): FindSchemaResponse? {
-    getEnumSchema(clazz)?.let {
-        return FindSchemaResponse(it)
-    }
     return when (clazz) {
         String::class.java -> FindSchemaResponse(StringSchema())
         Boolean::class.java -> FindSchemaResponse(BooleanSchema())
@@ -134,17 +131,6 @@ internal fun <T> findSchema(clazz: Class<T>): FindSchemaResponse? {
         }
     }
 }
-
-internal fun <T> getEnumSchema(clazz: Class<T>): Schema<*>? {
-    val values = clazz.enumConstants ?: return null
-
-    val schema = StringSchema()
-    for (enumVal in values) {
-        schema.addEnumItem(enumVal.toString())
-    }
-    return schema
-}
-
 
 internal fun <T> MediaType.example(clazz: Class<T>, value: T, init: Example.() -> Unit) {
     if (examples == null) {
