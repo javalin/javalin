@@ -11,26 +11,33 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 import org.eclipse.jetty.server.handler.ResourceHandler
+import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val precompressStaticFiles: Boolean = false, val aliasCheck: AliasCheck? = null) : io.javalin.http.staticfiles.ResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
-        val handler = if (config.path == "/webjars") WebjarHandler() else PrefixableHandler(config.urlPathPrefix).apply {
-            resourceBase = getResourcePath(config)
-            isDirAllowed = false
-            isEtags = true
-            Javalin.log?.info("""Static file handler added:
+        val handler = if (config.path == "/webjars") {
+            WebjarHandler()
+        } else {
+            val handler = if (aliasCheck != null) AliasResourceHandler(config.urlPathPrefix, aliasCheck) else PrefixableHandler(config.urlPathPrefix)
+            handler.apply {
+                resourceBase = getResourcePath(config)
+                isDirAllowed = false
+                isEtags = true
+                Javalin.log?.info("""Static file handler added:
                 |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.path}", location: Location.${config.location}}
                 |    Resolved path: '${getResourcePath(config)}'
                 """.trimMargin())
+            }
         }
         handlers.add(handler.apply { start() })
     }
@@ -39,16 +46,43 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
         override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
     }
 
-    inner class PrefixableHandler(private var urlPathPrefix: String) : ResourceHandler() {
+    open inner class PrefixableHandler(private var urlPathPrefix: String) : ResourceHandler() {
         override fun getResource(path: String): Resource {
             val targetResource by lazy { path.removePrefix(urlPathPrefix) }
             return when {
-                urlPathPrefix == "/" -> super.getResource(path) // same as regular ResourceHandler
-                targetResource == "" -> super.getResource("/") // directory without trailing '/'
+                urlPathPrefix == "/" -> getResourceFromPath(path)!!
+                targetResource == "" -> getResourceFromPath("/")!! // directory without trailing '/'
                 !path.startsWith(urlPathPrefix) -> EmptyResource.INSTANCE
                 !targetResource.startsWith("/") -> EmptyResource.INSTANCE
-                else -> super.getResource(targetResource)
+                else -> getResourceFromPath(targetResource)!!
             }
+        }
+
+        // same as regular ResourceHandler
+        open fun getResourceFromPath(path: String): Resource? {
+            return super.getResource(path)
+        }
+    }
+
+    inner class AliasResourceHandler(urlPathPrefix: String, private val aliasCheck: AliasCheck) : PrefixableHandler(urlPathPrefix) {
+
+        // same as regular ResourceHandler but with alias checks
+        override fun getResourceFromPath(path: String) : Resource? {
+            try {
+                var resource: Resource? = null
+                if (baseResource != null) {
+                    val caconicalPath = URIUtil.canonicalPath(path)
+                    resource = baseResource.addPath(caconicalPath)
+                    if (resource != null && resource.isAlias && !aliasCheck.check(path, resource)) {
+                        return null
+                    }
+                }
+                if ((resource == null || !resource.exists()) && path.endsWith("/jetty-dir.css")) resource = stylesheet
+                return resource!!
+            } catch (ignored: java.lang.Exception) {
+
+            }
+            return null
         }
     }
 

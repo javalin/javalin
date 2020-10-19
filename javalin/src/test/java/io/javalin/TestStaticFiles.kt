@@ -14,15 +14,15 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
+import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.Test
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
-import javax.servlet.DispatcherType
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
+import javax.servlet.*
 
 class TestStaticFiles {
 
@@ -60,6 +60,61 @@ class TestStaticFiles {
             it.configureServletContextHandler { handler ->
                 handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
+        }
+    }
+
+    private val staticWithAliasResourceApp: Javalin by lazy {
+        Javalin.create { servlet ->
+            // block aliases for txt files
+            servlet.aliasCheckForStaticFiles = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
+            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
+        }
+    }
+
+    private val staticNoAliasCheckResourceApp: Javalin by lazy {
+        Javalin.create { servlet ->
+            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
+        }
+    }
+
+    private fun createSymLink(targetPath: String, linkPath: String): File? {
+        val target = Paths.get(targetPath).toAbsolutePath()
+        val link = Paths.get(linkPath).toAbsolutePath()
+        // delete before creating new link
+        link.toFile().delete()
+        try {
+            Files.createSymbolicLink(link, target)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return null
+        }
+        return link.toFile()
+    }
+
+    @Test
+    fun `alias checks for static files should work`() {
+        val createdHtml = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
+        if (createdHtml != null) {
+            val createdTxt = createSymLink("src/test/external/txt.txt", "src/test/external/linked_txt.txt")
+            if (createdTxt != null) {
+                TestUtil.test(staticWithAliasResourceApp) { _, http ->
+                    assertThat(http.get("/linked_html.html").status).isEqualTo(200)
+                    assertThat(http.get("/linked_txt.txt").status).isEqualTo(404)
+                }
+                createdTxt.delete()
+            }
+            createdHtml.delete()
+        }
+    }
+
+    @Test
+    fun `if aliases are not specified returns 404 for linked static file`() {
+        val created = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
+        if (created != null) {
+            TestUtil.test(staticNoAliasCheckResourceApp) { _, http ->
+                assertThat(http.get("/linked_html.html").status).isEqualTo(404)
+            }
+            created.delete()
         }
     }
 

@@ -27,13 +27,17 @@ import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.websocket.WsHandler;
+
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
@@ -49,6 +53,7 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean precompressStaticFiles = false;
+    public ContextHandler.AliasCheck aliasCheckForStaticFiles = null;
     public boolean showJavalinBanner = true;
     public boolean logIfServerNotStarted = true;
     public boolean ignoreTrailingSlashes = true;
@@ -119,7 +124,7 @@ public class JavalinConfig {
     public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null)
-            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles);
+            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles, aliasCheckForStaticFiles);
         inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location));
         return this;
     }
