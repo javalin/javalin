@@ -34,11 +34,11 @@ class TestStaticFiles {
     private val defaultStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("/public") } } // classpath
     private val externalStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("src/test/external/", Location.EXTERNAL) } }
     private val multiLocationStaticResourceApp: Javalin by lazy {
-        Javalin.create { servlet ->
-            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
-            servlet.addStaticFiles("/public/immutable")
-            servlet.addStaticFiles("/public/protected")
-            servlet.addStaticFiles("/public/subdir")
+        Javalin.create {
+            it.addStaticFiles("src/test/external/", Location.EXTERNAL)
+            it.addStaticFiles("/public/immutable")
+            it.addStaticFiles("/public/protected")
+            it.addStaticFiles("/public/subdir")
         }
     }
     private val devLoggingApp: Javalin by lazy {
@@ -68,20 +68,6 @@ class TestStaticFiles {
         }
     }
 
-    private val staticWithAliasResourceApp: Javalin by lazy {
-        Javalin.create { servlet ->
-            // block aliases for txt files
-            servlet.aliasCheckForStaticFiles = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
-            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
-        }
-    }
-
-    private val staticNoAliasCheckResourceApp: Javalin by lazy {
-        Javalin.create { servlet ->
-            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
-        }
-    }
-
     private fun createSymLink(targetPath: String, linkPath: String): File? {
         val target = Paths.get(targetPath).toAbsolutePath()
         val link = Paths.get(linkPath).toAbsolutePath()
@@ -98,6 +84,13 @@ class TestStaticFiles {
 
     @Test
     fun `alias checks for static files should work`() {
+        val staticWithAliasResourceApp = Javalin.create {
+            // block aliases for txt files
+            it.aliasCheckForStaticFiles = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
+            it.addStaticFiles("src/test/external/", Location.EXTERNAL)
+            it.addStaticFiles("/url-prefix", "/public", Location.CLASSPATH)
+        }
+
         val createdHtml = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
         if (createdHtml != null) {
             val createdTxt = createSymLink("src/test/external/txt.txt", "src/test/external/linked_txt.txt")
@@ -105,6 +98,7 @@ class TestStaticFiles {
                 TestUtil.test(staticWithAliasResourceApp) { _, http ->
                     assertThat(http.get("/linked_html.html").status).isEqualTo(200)
                     assertThat(http.get("/linked_txt.txt").status).isEqualTo(404)
+                    assertThat(http.get("/url-prefix/styles.css").status).isEqualTo(200)
                 }
                 createdTxt.delete()
             }
@@ -114,6 +108,9 @@ class TestStaticFiles {
 
     @Test
     fun `if aliases are not specified returns 404 for linked static file`() {
+        val staticNoAliasCheckResourceApp = Javalin.create {
+            it.addStaticFiles("src/test/external/", Location.EXTERNAL)
+        }
         val created = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
         if (created != null) {
             TestUtil.test(staticNoAliasCheckResourceApp) { _, http ->
