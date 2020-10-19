@@ -28,8 +28,8 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private 
     override fun addStaticFileConfig(config: StaticFileConfig) {
         handlers.add(when {
             config.path == "/webjars" -> WebjarHandler()
-            aliasCheck == null -> PrefixableHandler(config)
-            else -> AliasHandler(config, aliasCheck)
+            aliasCheck != null -> AliasHandler(config, aliasCheck)
+            else -> PrefixableHandler(config)
         }.apply { start() })
     }
 
