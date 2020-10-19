@@ -37,6 +37,7 @@ class TestStaticFilesEdgeCases {
                     Javalin.create { it.addStaticFiles("src/test/external/empty", Location.CLASSPATH) }.start()
                 }
                 .withMessageStartingWith("Static resource directory with path: 'src/test/external/empty' does not exist.")
+                .withMessageEndingWith("Depending on your setup, empty folders might not get copied to classpath.")
     }
 
     @Test

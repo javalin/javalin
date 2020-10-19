@@ -11,6 +11,7 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
+import io.javalin.testing.TestLoggingUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
@@ -238,6 +239,12 @@ class TestStaticFiles {
             assertThat(http.get("/filtered-styles.css").status).isEqualTo(404) // direct access to a file in the subfolder is not allowed
             assertThat(http.get("/styles.css").status).isEqualTo(404) // access to other locations in /public is not allowed
         }
+    }
+
+    @Test
+    fun `logs handlers added on startup`() {
+        val logOutput = TestLoggingUtil.captureStdOut { TestUtil.test(multiLocationStaticResourceApp) { _, _ -> } }
+        assertThat(logOutput.split("Static file handler added").size - 1).isEqualTo(4)
     }
 
 }

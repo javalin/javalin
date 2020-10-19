@@ -20,8 +20,9 @@ import java.io.File
 import java.nio.file.AccessDeniedException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
-class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private val aliasCheck: AliasCheck? = null) : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private val aliasCheck: AliasCheck? = null) : JavalinResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
 
@@ -55,7 +56,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private 
                 }
             } catch (e: Exception) { // it's fine, we'll just 404
                 if (!Util.isClientAbortException(e)) {
-                    Javalin.log?.error("Exception occurred while handling static resource", e)
+                    Javalin.log?.info("Exception occurred while handling static resource", e)
                 }
             }
         }
@@ -75,28 +76,25 @@ private class WebjarHandler : ResourceHandler() {
 private open class PrefixableHandler(private val config: StaticFileConfig) : ResourceHandler() {
 
     init {
-        resourceBase = getResourcePath(config)
+        resourceBase = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
         Javalin.log?.info("""Static file handler added:
         |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.path}", location: Location.${config.location}}
-        |    Resolved path: '${getResourcePath(config)}'
+        |    Resolved path: '${getResourceBase(config)}'
         """.trimMargin())
     }
 
-    private fun getResourcePath(staticFileConfig: StaticFileConfig): String {
-        val nosuchdir = "Static resource directory with path: '${staticFileConfig.path}' does not exist."
-        if (staticFileConfig.location == Location.CLASSPATH) {
-            val classPathResource = Resource.newClassPathResource(staticFileConfig.path)
-            if (classPathResource == null) {
-                throw RuntimeException(nosuchdir + " Depending on your setup, empty folders might not get copied to classpath.")
-            }
-            return classPathResource.toString()
+    private fun getResourceBase(config: StaticFileConfig): String {
+        val noSuchDirMessage = "Static resource directory with path: '${config.path}' does not exist."
+        val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
+        if (config.location == Location.CLASSPATH) {
+            return Resource.newClassPathResource(config.path)?.toString() ?: throw RuntimeException("$noSuchDirMessage $classpathHint")
         }
-        if (!File(staticFileConfig.path).exists()) {
-            throw RuntimeException(nosuchdir)
+        if (!File(config.path).exists()) {
+            throw RuntimeException(noSuchDirMessage)
         }
-        return staticFileConfig.path
+        return config.path
     }
 
     override fun getResource(path: String): Resource {
