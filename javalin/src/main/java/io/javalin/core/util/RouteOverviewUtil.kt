@@ -143,8 +143,9 @@ object RouteOverviewUtil {
                         <td>Roles</td>
                     </tr>
                 </thead>
-                ${handlerInfo.map { (handlerType, path, handler, roles) ->
-            """
+                ${
+            handlerInfo.map { (handlerType, path, handler, roles) ->
+                """
                     <tr class="method $handlerType">
                         <td>$handlerType</span></td>
                         <td>$path</td>
@@ -152,9 +153,11 @@ object RouteOverviewUtil {
                         <td>$roles</td>
                     </tr>
                     """
-        }.joinToString("")}
-                ${wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
-            """
+            }.joinToString("")
+        }
+                ${
+            wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
+                """
                     <tr class="method $wsHandlerType">
                         <td>$wsHandlerType</span></td>
                         <td>$path</td>
@@ -162,7 +165,8 @@ object RouteOverviewUtil {
                         <td>$roles</td>
                     </tr>
                     """
-        }.joinToString("")}
+            }.joinToString("")
+        }
             </table>
             <script>
                 const cachedRows = Array.from(document.querySelectorAll("tbody tr"));
@@ -189,8 +193,9 @@ object RouteOverviewUtil {
         return """
             {
                 "handlers": [
-                ${handlerInfo.map { (handlerType, path, handler, roles) ->
-            """
+                ${
+            handlerInfo.map { (handlerType, path, handler, roles) ->
+                """
                     {
                         "path": "$path",
                         "handlerType": "$handlerType",
@@ -198,11 +203,13 @@ object RouteOverviewUtil {
                         "roles": "$roles"
                     }
                     """
-        }.joinToString(",")}
+            }.joinToString(",")
+        }
                 ],
                 "wsHandlers": [
-                ${wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
-            """
+                ${
+            wsHandlerInfo.map { (wsHandlerType, path, handler, roles) ->
+                """
                     {
                         "path": "$path",
                         "handlerType": "$wsHandlerType",
@@ -210,7 +217,8 @@ object RouteOverviewUtil {
                         "roles": "$roles"
                     }
                     """
-        }.joinToString(",")}
+            }.joinToString(",")
+        }
                 ]
             }
     """

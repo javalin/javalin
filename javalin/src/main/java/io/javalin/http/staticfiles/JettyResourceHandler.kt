@@ -67,7 +67,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, val alia
     inner class AliasResourceHandler(urlPathPrefix: String, private val aliasCheck: AliasCheck) : PrefixableHandler(urlPathPrefix) {
 
         // same as regular ResourceHandler but with alias checks
-        override fun getResourceFromPath(path: String) : Resource? {
+        override fun getResourceFromPath(path: String): Resource? {
             try {
                 var resource: Resource? = null
                 if (baseResource != null) {

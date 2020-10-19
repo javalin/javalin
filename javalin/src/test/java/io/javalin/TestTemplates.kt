@@ -9,6 +9,9 @@ package io.javalin
 
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.ClasspathLoader
+import gg.jte.ContentType
+import gg.jte.TemplateEngine
+import gg.jte.resolve.ResourceCodeResolver
 import io.javalin.plugin.rendering.FileRenderer
 import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.plugin.rendering.template.JavalinJte
@@ -24,9 +27,6 @@ import org.jtwig.functions.FunctionRequest
 import org.jtwig.functions.SimpleJtwigFunction
 import org.jtwig.util.FunctionValueUtils
 import org.junit.Test
-import gg.jte.ContentType
-import gg.jte.TemplateEngine
-import gg.jte.resolve.ResourceCodeResolver
 import java.io.File
 
 class TestTemplates {
@@ -148,7 +148,7 @@ class TestTemplates {
             JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
             app.get("/hello") { ctx -> ctx.render("test.jte", model("page", JteTestPage("hello", "world"))) }
             assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
-        } catch (e:UnsupportedClassVersionError) {
+        } catch (e: UnsupportedClassVersionError) {
             // jte does require JDK 11+ to work
         }
     }
@@ -159,7 +159,7 @@ class TestTemplates {
             JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
             app.get("/hello") { ctx -> ctx.render("multiple-params.jte", model("one", "hello", "two", "world")) }
             assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
-        } catch (e:UnsupportedClassVersionError) {
+        } catch (e: UnsupportedClassVersionError) {
             // jte does require JDK 11+ to work
         }
     }
@@ -195,5 +195,5 @@ class TestTemplates {
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello jTwig!</h1>")
     }
 
-    data class JteTestPage(val hello:String, val world:String)
+    data class JteTestPage(val hello: String, val world: String)
 }

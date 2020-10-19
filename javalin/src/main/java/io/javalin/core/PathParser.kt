@@ -23,8 +23,8 @@ class PathParser(path: String, ignoreTrailingSlashes: Boolean) {
     val pathParamNames = segments.filterIsInstance<PathSegment.Parameter>().map { it.name }
 
     //compute matchRegex suffix : if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
-    private val matchRegexSuffix = if(ignoreTrailingSlashes)"/?" else if(path.endsWith("/")) "/" else ""
-    private val matchRegex = ("^/${segments.joinToString("/") { it.asRegexString() }}"+matchRegexSuffix+"$").toRegex()
+    private val matchRegexSuffix = if (ignoreTrailingSlashes) "/?" else if (path.endsWith("/")) "/" else ""
+    private val matchRegex = ("^/${segments.joinToString("/") { it.asRegexString() }}" + matchRegexSuffix + "$").toRegex()
 
     private val pathParamRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
 

@@ -23,11 +23,8 @@ import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import org.junit.Assert.assertFalse
 import org.junit.Test
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicLong
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest

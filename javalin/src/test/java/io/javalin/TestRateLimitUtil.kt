@@ -49,7 +49,7 @@ class TestRateLimitUtil {
     @Test
     fun `millisecond rate-limiting works`() = TestUtil.test(testApp) { app, http ->
         repeat(3) {
-            Thread.sleep(5)
+            Thread.sleep(10)
             assertThat(http.get("/ms").status).isEqualTo(200)
         }
     }
