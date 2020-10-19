@@ -17,6 +17,7 @@ import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
+import java.nio.file.AccessDeniedException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -114,9 +115,8 @@ private open class PrefixableHandler(private val config: StaticFileConfig) : Res
 private class AliasHandler(config: StaticFileConfig, private val aliasCheck: AliasCheck) : PrefixableHandler(config) {
     override fun getResource(path: String): Resource {  // if this method throws, we get a 404
         val resource = baseResource?.addPath(URIUtil.canonicalPath(path))!!
-        return when {
-            resource.isAlias && aliasCheck.check(path, resource) -> resource
-            else -> super.getResource(path)
-        }
+        if (!resource.isAlias) return super.getResource(path) // treat as prefixablehandler
+        if (!aliasCheck.check(path, resource)) throw AccessDeniedException("Failed alias check")
+        return resource // passed check, return the resource
     }
 }
