@@ -11,7 +11,7 @@ import io.javalin.http.util.ContextUtil
 class PathParser(path: String, ignoreTrailingSlashes: Boolean) {
 
     val segments: List<PathSegment> = path.split("/")
-            .filter { !ignoreTrailingSlashes || it.isNotEmpty() } //if not ignoreTrailingSlashes process every token, else only process not empty token
+            .filter { it.isNotEmpty() }
             .map {
                 when {
                     it.startsWith(":") -> PathSegment.Parameter(it.removePrefix(":"))
@@ -22,7 +22,9 @@ class PathParser(path: String, ignoreTrailingSlashes: Boolean) {
 
     val pathParamNames = segments.filterIsInstance<PathSegment.Parameter>().map { it.name }
 
-    private val matchRegex = "^/${segments.joinToString("/") { it.asRegexString() }}/?$".toRegex()
+    //compute matchRegex suffix : if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
+    private val matchRegexSuffix = if(ignoreTrailingSlashes)"/?" else if(path.endsWith("/")) "/" else ""
+    private val matchRegex = ("^/${segments.joinToString("/") { it.asRegexString() }}"+matchRegexSuffix+"$").toRegex()
 
     private val pathParamRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
 
