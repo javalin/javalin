@@ -35,7 +35,6 @@ class TestStaticFiles {
     private val externalStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("src/test/external/", Location.EXTERNAL) } }
     private val multiLocationStaticResourceApp: Javalin by lazy {
         Javalin.create {
-            it.aliasCheckForStaticFiles = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
             it.addStaticFiles("src/test/external/", Location.EXTERNAL)
             it.addStaticFiles("/public/immutable")
             it.addStaticFiles("/public/protected")
@@ -44,7 +43,6 @@ class TestStaticFiles {
     }
     private val devLoggingApp: Javalin by lazy {
         Javalin.create {
-            it.aliasCheckForStaticFiles = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
             it.addStaticFiles("/public")
             it.enableDevLogging()
         }
