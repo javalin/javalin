@@ -88,6 +88,12 @@ class TestBodyReading {
         assertThat(response.body).isEqualTo("a: 1, as: [1]. b: 1, bs: [1, 2, 3]. c: 1=1, cs: [1=1]. d: , ds: []. e: , es: []. f: ( # ), fs: [( # )]. <g>: g, <g>s: [g]")
     }
 
+    @Test
+    fun `reading body as stream works`() = TestUtil.test { app, http ->
+        app.post("/body-stream-reader") { ctx -> ctx.result(ctx.bodyAsInputStream()) }
+        assertThat(http.post("/body-stream-reader").body("my-body").asString().body).isEqualTo("my-body")
+    }
+
     private fun urlEncode(text: String) = URLEncoder.encode(text, StandardCharsets.UTF_8.name())
 
 }

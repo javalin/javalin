@@ -45,6 +45,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
+    private val body by lazy {req.inputStream.readBytes()}
 
     /**
      * Registers an extension to the Context, which can be used later in the request-lifecycle.
@@ -126,7 +127,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * unless the InputStream is cached. By default, bodies up to 4kb are cached.
      * Use [io.javalin.core.JavalinConfig.requestCacheSize] to configure cache size.
      */
-    fun bodyAsBytes(): ByteArray = req.inputStream.readBytes()
+    fun bodyAsBytes(): ByteArray = body
 
     /**
      * Maps a JSON body to a Java/Kotlin class using JavalinJson.
@@ -134,6 +135,8 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * @return The mapped object
      */
     fun <T> bodyAsClass(clazz: Class<T>): T = bodyValidator(clazz).get()
+
+    fun bodyAsInputStream(): InputStream = body.inputStream()
 
     /**
      * Creates a [Validator] for the body() value, with the prefix "Request body as $clazz"
