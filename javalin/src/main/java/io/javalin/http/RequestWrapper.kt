@@ -13,7 +13,7 @@ import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletRequestWrapper
 
-class CachedRequestWrapper(request: HttpServletRequest, private val config: JavalinConfig) : HttpServletRequestWrapper(request) {
+class RequestWrapper(request: HttpServletRequest, private val config: JavalinConfig) : HttpServletRequestWrapper(request) {
 
     private val bodySize = this.contentLengthLong
 

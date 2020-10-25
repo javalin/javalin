@@ -29,7 +29,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
     override fun service(rawReq: HttpServletRequest, rawRes: HttpServletResponse) {
         try {
-            val wrappedReq = CachedRequestWrapper(rawReq, config) // cached for reading multiple times
+            val wrappedReq = RequestWrapper(rawReq, config)
             val type = HandlerType.fromServletRequest(wrappedReq)
             val rwc = ResponseWrapperContext(rawReq, config)
             val requestUri = wrappedReq.requestURI.removePrefix(wrappedReq.contextPath)
