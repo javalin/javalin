@@ -56,7 +56,9 @@ public class JavalinConfig {
     public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
-    @NotNull public Long requestCacheSize = 4096L;
+    //Left for backwards compatibility, please use maxRequestSize instead
+    @Deprecated @NotNull public Long requestCacheSize = 4096L;
+    public Long maxRequestSize;
     @NotNull public Long asyncRequestTimeout = 0L;
     @NotNull public Inner inner = new Inner();
 
