@@ -121,11 +121,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
 
     /** Gets the request body as a [ByteArray].
-     *
-     * Calling this method consumes the underlying InputStream. It will return the body
-     * as a [ByteArray] on the first call, and an empty array for subsequent calls,
-     * unless the InputStream is cached. By default, bodies up to 4kb are cached.
-     * Use [io.javalin.core.JavalinConfig.requestCacheSize] to configure cache size.
+     * Calling this method returns the body as a [ByteArray]. If [io.javalin.core.JavalinConfig.maxRequestSize]
+     * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
+     * with status 413 PAYLOAD_TOO_LARGE.
      */
     fun bodyAsBytes(): ByteArray = body
 
@@ -136,6 +134,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun <T> bodyAsClass(clazz: Class<T>): T = bodyValidator(clazz).get()
 
+    /**
+     * Gets the request body as a [InputStream]
+     */
     fun bodyAsInputStream(): InputStream = body.inputStream()
 
     /**
