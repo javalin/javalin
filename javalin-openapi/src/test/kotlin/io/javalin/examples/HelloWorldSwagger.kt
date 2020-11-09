@@ -13,6 +13,8 @@ import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.dsl.document
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.ui.ReDocOptions
+import io.javalin.plugin.openapi.ui.RedocOptionsObject
+import io.javalin.plugin.openapi.ui.RedocOptionsTheme
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
 
@@ -67,10 +69,16 @@ fun addUserHandler(ctx: Context) {
 fun main() {
     val app = Javalin.create {
         val openApiOptions = OpenApiOptions(Info().version("1.0").description("My Application"))
-                .path("/swagger-docs")
-                .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
-                .reDoc(ReDocOptions("/redoc").title("My ReDoc Documentation"))
-                .defaultDocumentation { documentation -> documentation.json<InternalServerErrorResponse>("500") }
+            .path("/swagger-docs")
+            .swagger(SwaggerOptions("/swagger").title("My Swagger Documentation"))
+            .reDoc(ReDocOptions("/redoc", RedocOptionsObject(
+                hideDownloadButton = true,
+                theme = RedocOptionsTheme(
+                    spacingUnit = 10,
+                    isTypographyOptimizeSpeed = true
+                )
+            )).title("My ReDoc Documentation"))
+            .defaultDocumentation { documentation -> documentation.json<InternalServerErrorResponse>("500") }
         it.registerPlugin(OpenApiPlugin(openApiOptions))
     }
 
