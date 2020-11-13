@@ -6,11 +6,15 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.annotations.OpenApi
-import org.intellij.lang.annotations.Language
 
-class ReDocOptions(path: String) : OpenApiUiOptions<ReDocOptions>(path) {
+class ReDocOptions @JvmOverloads constructor(
+    path: String,
+    internal val optionsObject: RedocOptionsObject = RedocOptionsObject()
+) : OpenApiUiOptions<ReDocOptions>(path) {
+    
     override val defaultTitle = "ReDoc"
 }
+
 
 internal class ReDocRenderer(private val openApiOptions: OpenApiOptions) : Handler {
     @OpenApi(ignore = true)
@@ -21,15 +25,15 @@ internal class ReDocRenderer(private val openApiOptions: OpenApiOptions) : Handl
     }
 }
 
-private fun createReDocHtml(ctx: Context, docsPath: String, options: ReDocOptions): String {
+private fun createReDocHtml(ctx: Context, docsPath: String, redocOptions: ReDocOptions): String {
     val publicBasePath = Util.getWebjarPublicPath(ctx, OptionalDependency.REDOC)
+    val options = redocOptions.optionsObject
 
-    @Language("html")
-    val html = """
+    return """
     |<!DOCTYPE html>
     |<html>
     |  <head>
-    |    <title>${options.createTitle()}</title>
+    |    <title>${redocOptions.createTitle()}</title>
     |    <!-- Needed for adaptive design -->
     |    <meta charset="utf-8"/>
     |    <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,10 +42,14 @@ private fun createReDocHtml(ctx: Context, docsPath: String, options: ReDocOption
     |    <style>body{margin:0;padding:0;}</style>
     |  </head>
     |  <body>
-    |    <redoc spec-url="$docsPath"></redoc>
-    |    <script src="$publicBasePath/bundles/redoc.standalone.js"> </script>
+    |  <redoc id='redoc'></redoc>
+    |  <script src="$publicBasePath/bundles/redoc.standalone.js"></script>
+    |  <script>
+    |   window.onload = () => {
+    |     Redoc.init('$docsPath', ${options.json()}, document.getElementById('redoc'))
+    |   }
+    | </script>
     |  </body>
     |</html>
     |""".trimMargin()
-    return html
 }
