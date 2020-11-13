@@ -27,15 +27,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    private static Javalin staticJavalin;
-    private static Deque<String> pathDeque = new ArrayDeque<>();
+    private static final ThreadLocal<Javalin> staticJavalin = new ThreadLocal<>();
+    private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
     public static void setStaticJavalin(@NotNull Javalin javalin) {
-        staticJavalin = javalin;
+        staticJavalin.set(javalin);
     }
 
     public static void clearStaticJavalin() {
-        staticJavalin = null;
+        staticJavalin.remove();
     }
 
     /**
@@ -46,20 +46,21 @@ public class ApiBuilder {
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
         path = path.startsWith("/") ? path : "/" + path;
-        pathDeque.addLast(path);
+        pathDeque.get().addLast(path);
         endpointGroup.addEndpoints();
-        pathDeque.removeLast();
+        pathDeque.get().removeLast();
     }
 
     public static String prefixPath(@NotNull String path) {
-        return String.join("", pathDeque) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
+        return String.join("", pathDeque.get()) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
     }
 
     public static Javalin staticInstance() {
-        if (staticJavalin == null) {
+        Javalin javalin = staticJavalin.get();
+        if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
-        return staticJavalin;
+        return javalin;
     }
 
     // ********************************************************************************************

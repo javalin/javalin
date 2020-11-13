@@ -253,8 +253,11 @@ public class Javalin {
      */
     public Javalin routes(@NotNull EndpointGroup endpointGroup) {
         ApiBuilder.setStaticJavalin(this);
-        endpointGroup.addEndpoints();
-        ApiBuilder.clearStaticJavalin();
+        try {
+            endpointGroup.addEndpoints();
+        } finally {
+            ApiBuilder.clearStaticJavalin();
+        }
         return this;
     }
 
