@@ -85,4 +85,26 @@ class TestRouting {
         assertThat(http.getBody("/test/")).isEqualTo("test")
     }
 
+    @Test
+    fun `non sub-path wildcard works for paths`() = TestUtil.test { app, http ->
+        app.get("/p") { it.result("GET") }
+        app.get("/p/test") { it.result("GET") }
+        assertThat(http.getBody("/p")).isEqualTo("GET")
+        assertThat(http.getBody("/p/test")).isEqualTo("GET")
+        app.after("/p*") { it.result((it.resultString() ?: "") + "AFTER") }
+        assertThat(http.getBody("/p")).isEqualTo("GETAFTER")
+        assertThat(http.getBody("/p/test")).isEqualTo("GETAFTER")
+    }
+
+    @Test
+    fun `non sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
+        app.get("/:pp") { it.result(it.resultString() + it.pathParam("pp")) }
+        app.get("/:pp/test") { it.result(it.resultString() + it.pathParam("pp")) }
+        assertThat(http.getBody("/123")).isEqualTo("null123")
+        assertThat(http.getBody("/123/test")).isEqualTo("null123")
+        app.before("/:pp*") { it.result("BEFORE") }
+        assertThat(http.getBody("/123")).isEqualTo("BEFORE123")
+        assertThat(http.getBody("/123/test")).isEqualTo("BEFORE123")
+    }
+
 }

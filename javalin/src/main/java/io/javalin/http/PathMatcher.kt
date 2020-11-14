@@ -15,7 +15,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val ignoreTrail
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
 }
 
-class PathMatcher() {
+class PathMatcher {
 
     private val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
         it to arrayListOf()
