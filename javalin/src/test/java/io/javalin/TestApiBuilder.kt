@@ -180,12 +180,26 @@ class TestApiBuilder {
     }
 
     @Test
+    fun `pathless CrudHandler works`() = TestUtil.test { app, http ->
+        app.routes {
+            path("/foo/bar/users/:user-id") {
+                crud(UserController())
+            }
+        }
+        assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
+        assertThat(Unirest.post(http.origin + "/foo/bar/users").asString().status).isEqualTo(201)
+        assertThat(Unirest.get(http.origin + "/foo/bar/users/myUser").asString().body).isEqualTo("My single user: myUser")
+        assertThat(Unirest.patch(http.origin + "/foo/bar/users/myUser").asString().status).isEqualTo(204)
+        assertThat(Unirest.delete(http.origin + "/foo/bar/users/myUser").asString().status).isEqualTo(204)
+    }
+
+    @Test
     fun `CrudHandler rejects resource in the middle`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
             app.routes {
                 crud("/foo/bar/:user-id/users", UserController())
             }
-        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path e.g. '/users/:user-id'")
+        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'")
     }
 
     @Test
@@ -194,7 +208,7 @@ class TestApiBuilder {
             app.routes {
                 crud("/foo/bar/users", UserController())
             }
-        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path e.g. '/users/:user-id'")
+        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'")
     }
 
     @Test
@@ -203,7 +217,7 @@ class TestApiBuilder {
             app.routes {
                 crud("/:user-id", UserController())
             }
-        }.withMessageStartingWith("CrudHandler requires a resource base at the beginning of the provided path e.g. '/users/:user-id'")
+        }.withMessageStartingWith("CrudHandler requires a path like '/resource/:resource-id'")
     }
 
     @Test
