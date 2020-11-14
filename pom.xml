@@ -67,7 +67,7 @@
         <freemarker.version>2.3.30</freemarker.version>
         <guava.version>28.2-jre</guava.version>
         <jackson.version>2.10.3</jackson.version>
-        <jetty.version>9.4.31.v20200723</jetty.version>
+        <jetty.version>9.4.34.v20201102</jetty.version>
         <jtwig.version>5.87.0.RELEASE</jtwig.version>
         <jvmbrotli.version>0.2.0</jvmbrotli.version>
         <logback.version>1.2.3</logback.version>
