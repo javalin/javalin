@@ -201,7 +201,7 @@ class TestTemplates {
     fun `state injection works`() = TestUtil.test { app, http ->
         JavalinRenderer.stateFunction =  {ctx-> state};
         app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-state.ftl", model("message", "Hello Freemarker!")) }
-        assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1>\n<h2>world</h2>\n<h3>bar</h3>\n")
+        assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1>\n<h2>world</h2>\n<h3>bar</h3>")
     }
 
     data class JteTestPage(val hello: String, val world: String)
