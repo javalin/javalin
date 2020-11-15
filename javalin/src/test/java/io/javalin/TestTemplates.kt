@@ -36,6 +36,8 @@ class TestTemplates {
         setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
     }
 
+    private val state =  mapOf<String,String>("foo" to "bar")
+
     @Test
     fun `velocity templates work`() = TestUtil.test { app, http ->
         JavalinVelocity.configure(defaultVelocityEngine)
@@ -76,6 +78,13 @@ class TestTemplates {
     fun `freemarker templates work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/templates/freemarker/test.ftl", model("message", "Hello Freemarker!")) }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Freemarker!</h1>")
+    }
+
+    @Test
+    fun `state injection works`() = TestUtil.test { app, http ->
+        JavalinRenderer.stateFunction =  {ctx-> state};
+        app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-state.ftl", model("message", "Hello Freemarker!")) }
+        assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1>\n<h2>world</h2>\n<h3>bar</h3>\n")
     }
 
     @Test
@@ -194,6 +203,5 @@ class TestTemplates {
         app.get("/hello") { ctx -> ctx.render("/templates/jtwig/multiple.dots.twig", model("message", "Hello jTwig!")) }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello jTwig!</h1>")
     }
-
     data class JteTestPage(val hello:String, val world:String)
 }
