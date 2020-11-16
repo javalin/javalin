@@ -14,4 +14,9 @@ object TemplateUtil {
         }
         return args.asSequence().chunked(2).associate { it[0] as String to it[1] }
     }
+
+    @JvmStatic
+    fun state(vararg args: Any?): Map<String, Any?> {
+        return model(*args);
+    }
 }

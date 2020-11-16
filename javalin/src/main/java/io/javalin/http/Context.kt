@@ -480,8 +480,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Determines the correct rendering-function based on the file extension.
      */
     @JvmOverloads
-    fun render(filePath: String, model: Map<String, Any?> = mutableMapOf()): Context {
-        return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
+    fun render(filePath: String, model: Map<String, Any?> = mutableMapOf(),state: Map<String, Any?> = mutableMapOf()): Context {
+        return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this,state))
     }
+
 
 }

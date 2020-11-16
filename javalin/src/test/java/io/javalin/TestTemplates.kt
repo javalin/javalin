@@ -19,6 +19,7 @@ import io.javalin.plugin.rendering.template.JavalinJtwig
 import io.javalin.plugin.rendering.template.JavalinPebble
 import io.javalin.plugin.rendering.template.JavalinVelocity
 import io.javalin.plugin.rendering.template.TemplateUtil.model
+import io.javalin.plugin.rendering.template.TemplateUtil.state
 import io.javalin.testing.TestUtil
 import org.apache.velocity.app.VelocityEngine
 import org.assertj.core.api.Assertions.assertThat
@@ -36,7 +37,7 @@ class TestTemplates {
         setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
     }
 
-    private val state =  mapOf<String,String>("foo" to "bar")
+    private val defaultState =  state("foo","bar")
 
     @Test
     fun `velocity templates work`() = TestUtil.test { app, http ->
@@ -199,14 +200,21 @@ class TestTemplates {
 
     @Test
     fun `state injection works`() = TestUtil.test { app, http ->
-        JavalinRenderer.stateFunction =  {ctx-> state};
+        JavalinRenderer.stateFunction =  {ctx-> defaultState};
         app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-state.ftl", model("message", "Hello Freemarker!")) }
         assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>bar</h3>")
     }
 
     @Test
+    fun `state injection override works`() = TestUtil.test { app, http ->
+        JavalinRenderer.stateFunction =  {ctx-> defaultState};
+        app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-state.ftl", model("message", "Hello Freemarker!"), state("foo","baz")) }
+        assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>baz</h3>")
+    }
+
+    @Test
     fun `query param array injection works`() = TestUtil.test { app, http ->
-        JavalinRenderer.stateFunction =  {ctx-> state};
+        JavalinRenderer.stateFunction =  {ctx-> defaultState};
         app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-query-param-array.ftl", model("message", "Hello Freemarker!")) }
         assertThat(http.getBody("/hello/world?im=good&im=awesome")).isEqualTo("<h1>good</h1><h2>awesome</h2>")
     }
