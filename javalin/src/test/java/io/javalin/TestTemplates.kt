@@ -204,5 +204,12 @@ class TestTemplates {
         assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>bar</h3>")
     }
 
+    @Test
+    fun `query param array injection works`() = TestUtil.test { app, http ->
+        JavalinRenderer.stateFunction =  {ctx-> state};
+        app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-query-param-array.ftl", model("message", "Hello Freemarker!")) }
+        assertThat(http.getBody("/hello/world?im=good&im=awesome")).isEqualTo("<h1>good</h1><h2>awesome</h2>")
+    }
+
     data class JteTestPage(val hello: String, val world: String)
 }

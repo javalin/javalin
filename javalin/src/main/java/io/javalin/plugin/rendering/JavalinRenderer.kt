@@ -33,15 +33,17 @@ object JavalinRenderer {
     }
 
     @JvmField
-    var stateFunction: (Context) -> Any = { mapOf<String, String>() }
+    var stateFunction: (Context) -> Any = { mapOf<String, Any>() }
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         val extension = if (filePath.hasTwoDots) filePath.doubleExtension else filePath.extension
         val renderer = extensions[extension]
                 ?: extensions[filePath.extension] // fallback to a non-double extension
-                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
-        val ctxMap = mapOf("queryParams" to ctx.queryParamMap().mapKeys { it.key }.mapValues { it.value.joinToString(",") },"pathParams" to  ctx.pathParamMap(),"state" to stateFunction(ctx));
-        return renderer.render(filePath,  model.plus("javalin" to ctxMap), ctx)
+                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.") 
+        val modelWithState = model.plus("queryParams" to ctx.queryParamMap().mapKeys { it.key }.mapValues { if(it.value.size > 1)  it.value else  it.value[0] })
+                .plus("pathParams" to  ctx.pathParamMap())
+                .plus("state" to stateFunction(ctx))
+        return renderer.render(filePath, modelWithState, ctx)
     }
 
     @JvmStatic
