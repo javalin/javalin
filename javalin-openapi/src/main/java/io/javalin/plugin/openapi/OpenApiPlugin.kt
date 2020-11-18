@@ -19,12 +19,12 @@ class OpenApiPlugin(private vararg val options: OpenApiOptions) : Plugin, Plugin
     private val handlerMap = mutableMapOf<String, OpenApiHandler>()
 
     override fun init(app: Javalin) {
-        if(options.isEmpty()){
+        if (options.isEmpty()) {
             throw IllegalArgumentException("The OpenApiPlugin requires at least one set of Options")
         }
         openApiHandler = OpenApiHandler(app, options.first())
         options.forEach {
-            it.path?.let{path ->
+            it.path?.let { path ->
                 handlerMap.putIfAbsent(path, OpenApiHandler(app, it))
             }
         }
@@ -32,7 +32,7 @@ class OpenApiPlugin(private vararg val options: OpenApiOptions) : Plugin, Plugin
 
     override fun apply(app: Javalin) {
         Util.ensureDependencyPresent(OptionalDependency.SWAGGER_CORE)
-        options.forEach {options ->
+        options.forEach { options ->
             if (options.path == null && (options.swagger != null || options.reDoc != null)) {
                 throw IllegalStateException("""
                 Swagger or ReDoc is enabled, but there is no endpoint available for the OpenApi schema.

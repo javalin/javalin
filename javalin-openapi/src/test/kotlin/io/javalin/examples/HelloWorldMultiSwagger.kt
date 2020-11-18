@@ -25,7 +25,7 @@ object ItemRepository {
     private val items = mutableListOf<Item>()
     fun getItems() = items.toList()
     fun getItem(id: Int) = items.find { it.id == id }
-    fun addItem(item:Item) = items.add(item)
+    fun addItem(item: Item) = items.add(item)
 }
 
 val getItemsDocs = document().jsonArray<User>("200") { it.description = "Returns all items" }
