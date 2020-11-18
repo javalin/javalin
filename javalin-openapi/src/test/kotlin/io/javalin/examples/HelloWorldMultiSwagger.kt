@@ -79,7 +79,7 @@ fun main() {
                 .path("/swagger-docs-items")
                 .swagger(SwaggerOptions("/swagger-items").title("My Swagger Documentation -- ITEMS only"))
                 .defaultDocumentation { documentation -> documentation.json<InternalServerErrorResponse>("500") }
-                .ignorePath("/users*").ignorePath("/users/*")
+                .ignorePath("/users*")
         it.registerPlugin(OpenApiPlugin(fullOpenApiOptions, itemsOnly))
     }
 
