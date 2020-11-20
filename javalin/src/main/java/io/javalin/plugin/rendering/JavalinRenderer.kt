@@ -32,12 +32,15 @@ object JavalinRenderer {
         register(JavalinJte, ".jte")
     }
 
+    @JvmField
+    var baseModelFunction: (Context) -> Map<String, Any?> = { mapOf<String, Any>() }
+
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         val extension = if (filePath.hasTwoDots) filePath.doubleExtension else filePath.extension
         val renderer = extensions[extension]
                 ?: extensions[filePath.extension] // fallback to a non-double extension
-                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
-        return renderer.render(filePath, model, ctx)
+                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.") 
+        return renderer.render(filePath, baseModelFunction(ctx) + model, ctx)//overrides the base model
     }
 
     @JvmStatic
