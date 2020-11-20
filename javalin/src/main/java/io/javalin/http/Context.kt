@@ -479,9 +479,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Also sets content-type to text/html.
      * Determines the correct rendering-function based on the file extension.
      */
+     @JvmOverloads
     fun render(filePath: String, model: Map<String, Any?> = mutableMapOf()): Context {
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
     }
-
 
 }
