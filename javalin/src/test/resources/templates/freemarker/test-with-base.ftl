@@ -1,0 +1,1 @@
+<h1>${queryParams.im[0]}</h1><h2>${pathParams.pp}</h2><h3>${foo}</h3>
