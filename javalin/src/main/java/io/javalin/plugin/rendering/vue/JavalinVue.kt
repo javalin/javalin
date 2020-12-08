@@ -69,7 +69,17 @@ object JavalinVue {
         |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap().mapKeys { escape(it.key) }.mapValues { escape(it.value) })},
         |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap().mapKeys { escape(it.key) }.mapValues { it.value.map { escape(it) } })},
         |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
-        |    }""".trimMargin() + "\n</script>\n"
+        |    }""".trimMargin() + "\n</script>\n" + escapeParams()
+
+    private fun escapeParams() = "\n<script>\n" + """
+        |    function ____decode(string) { // used for decoding HTML encoded params
+        |        let textArea = document.createElement("textarea");
+        |        textArea.innerHTML = string;
+        |        return textArea.value;
+        |    }
+        |    ["queryParams", "pathParams", "state"].forEach((key) => {
+        |        Vue.prototype.${"$"}javalin[key] = JSON.parse(____decode(JSON.stringify(Vue.prototype.${"$"}javalin[key])));
+        |    });""".trimMargin() + "\n</script>\n"
 
     private fun String.replaceWebjarsWithCdn() =
             this.replace("@cdnWebjar/", if (isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
