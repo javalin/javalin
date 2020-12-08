@@ -69,9 +69,9 @@ object JavalinVue {
         |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap().mapKeys { escape(it.key) }.mapValues { escape(it.value) })},
         |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap().mapKeys { escape(it.key) }.mapValues { it.value.map { escape(it) } })},
         |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
-        |    }""".trimMargin() + "\n</script>\n" + escapeParams()
+        |    }""".trimMargin() + "\n</script>\n" + decodeParams()
 
-    private fun escapeParams() = "\n<script>\n" + """
+    private fun decodeParams() = "\n<script>\n" + """
         |    function ____decode(string) { // used for decoding HTML encoded params
         |        let textArea = document.createElement("textarea");
         |        textArea.innerHTML = string;
