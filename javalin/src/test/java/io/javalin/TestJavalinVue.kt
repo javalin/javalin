@@ -22,13 +22,18 @@ import java.nio.file.Paths
 
 class TestJavalinVue {
 
-
     @Before
     fun setup() {
-        JavalinVue.isDev = null // reset
-        JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
-        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main -> src/test
-        JavalinVue.optimizeDependencies = false
+       before()
+    }
+
+    companion object {
+        fun before() {
+            JavalinVue.isDev = null // reset
+            JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
+            JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main -> src/test
+            JavalinVue.optimizeDependencies = false
+        }
     }
 
     data class User(val name: String, val email: String)

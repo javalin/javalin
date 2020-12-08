@@ -10,6 +10,7 @@ import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
 import io.javalin.core.util.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
+import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestLoggingUtil.captureStdOut
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
@@ -28,7 +29,7 @@ class TestWebBrowser {
 
     companion object {
 
-        lateinit var driver: WebDriver
+        lateinit var driver: ChromeDriver
 
         @BeforeClass
         @JvmStatic
@@ -95,6 +96,16 @@ class TestWebBrowser {
             assertThat(chunkCount).isEqualTo(expectedChunkCount)
             chunkSize = 128000
         }
+    }
+
+    @Test
+    fun `path params are not html-encoded on the Vue prototype`() = TestUtil.test { app, http ->
+        TestJavalinVue.before()
+        app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
+        driver.get(http.origin + "/vue/odd&co")
+        assertThat(driver.pageSource).contains("""pathParams: {"my-param":"odd&amp;co"},""")
+        val pathParams = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
+        assertThat(pathParams).isEqualTo("odd&co")
     }
 
 }
