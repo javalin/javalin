@@ -27,12 +27,15 @@ class PathParser(path: String, ignoreTrailingSlashes: Boolean) {
     private val matchRegex = ("^/${segments.joinToString("/") { it.asRegexString() }}" + matchRegexSuffix + "$").toRegex()
 
     private val pathParamRegex = matchRegex.pattern.replace("[^/]+?", "([^/]+?)").toRegex()
+    private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex(RegexOption.IGNORE_CASE)
 
     fun matches(url: String): Boolean = url matches matchRegex
 
     fun extractPathParams(url: String) = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
         name to ContextUtil.urlDecode(value)
     }.toMap()
+
+    fun extractSplats(url: String) = values(splatRegex, url).map { ContextUtil.urlDecode(it) }
 
     // Match and group values, then drop first element (the input string)
     private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
