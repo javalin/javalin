@@ -107,4 +107,26 @@ class TestRouting {
         assertThat(http.getBody("/123/test")).isEqualTo("BEFORE123")
     }
 
+    @Test
+    fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
+        app.get("/path/:path-param/*") { ctx -> ctx.result("/" + ctx.pathParam("path-param") + "/" + ctx.splat(0)) }
+        assertThat(http.getBody("/path/P/S")).isEqualTo("/P/S")
+    }
+
+    @Test
+    fun `utf-8 encoded splat works`() = TestUtil.test { app, http ->
+        app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
+        val responseBody = okHttp.getBody(http.origin + "/"
+                + URLEncoder.encode("java/kotlin", "UTF-8")
+                + "/path/"
+                + URLEncoder.encode("/java/kotlin", "UTF-8")
+        )
+        assertThat(responseBody).isEqualTo("java/kotlin/java/kotlin")
+    }
+
+    @Test
+    fun `getting splat-list works`() = TestUtil.test { app, http ->
+        app.get("/*/*/*") { ctx -> ctx.result(ctx.splats().toString()) }
+        assertThat(http.getBody("/1/2/3")).isEqualTo("[1, 2, 3]")
+    }
 }

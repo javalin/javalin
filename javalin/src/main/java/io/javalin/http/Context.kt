@@ -39,6 +39,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
+    @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
@@ -484,4 +485,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
     }
 
+    //
+    // Gets a splat by its index.
+    // Ex: If the handler path is /users/*
+    // and a browser GETs /users/123,
+    // splat(0) will return "123"
+    //
+    fun splat(splatNr: Int): String? = splatList[splatNr]
+
+    /** Gets a list of all the [splat] values. */
+    fun splats(): List<String> = Collections.unmodifiableList(splatList)
 }

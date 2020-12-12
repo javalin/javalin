@@ -13,6 +13,7 @@ data class HandlerEntry(val type: HandlerType, val path: String, val ignoreTrail
     private val pathParser = PathParser(path, ignoreTrailingSlashes)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
+    fun extractSplats(requestUri: String) = pathParser.extractSplats(requestUri)
 }
 
 class PathMatcher {
