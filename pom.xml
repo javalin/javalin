@@ -81,7 +81,7 @@
         <swagger.ui.version>3.25.2</swagger.ui.version>
         <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
         <velocity.version>2.2</velocity.version>
-        <jte.version>1.4.0</jte.version>
+        <jte.version>1.5.0</jte.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.15.0</assertj.version>
