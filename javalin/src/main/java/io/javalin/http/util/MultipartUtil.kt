@@ -33,7 +33,7 @@ object MultipartUtil {
     }
 
     fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> {
-        req.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")))
+        preUploadFunction(req)
         return req.parts.associate { part -> part.name to getPartValue(req, part.name) }
     }
 
