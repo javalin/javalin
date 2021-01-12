@@ -16,18 +16,18 @@ private val limiters = ConcurrentHashMap<TimeUnit, RateLimiter>()
 
 class RateLimiter(timeUnit: TimeUnit) {
 
-    private val handlerToIpToRequestCount = ConcurrentHashMap<String, ConcurrentHashMap<String, Int>>()
+    private val handlerToIpToRequestCount = ConcurrentHashMap<String, Int>()
 
     init {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
-            handlerToIpToRequestCount.forEach { (_, ipRequestCount) -> ipRequestCount.clear() }
+            handlerToIpToRequestCount.clear()
         }, /*delay=*/0,  /*period=*/1, timeUnit)
     }
 
     fun incrementCounter(ctx: Context, requestLimit: Int) {
-        val limiterName = ctx.method() + ctx.matchedPath()
-        handlerToIpToRequestCount.putIfAbsent(limiterName, ConcurrentHashMap())
-        handlerToIpToRequestCount[limiterName]!!.compute(ip(ctx)) { _, count ->
+        val limiterName = ip(ctx) + ctx.method() + ctx.matchedPath()
+
+        handlerToIpToRequestCount.compute(limiterName) { _, count ->
             when {
                 count == null -> 1
                 count < requestLimit -> count + 1
@@ -35,7 +35,6 @@ class RateLimiter(timeUnit: TimeUnit) {
             }
         }
     }
-
 }
 
 private fun ip(ctx: Context) = ctx.header("X-Forwarded-For")?.split(",")?.get(0) ?: ctx.ip()
@@ -50,6 +49,11 @@ class RateLimit(private val ctx: Context) {
     fun requestPerTimeUnit(numRequests: Int, timeUnit: TimeUnit) = try {
         limiters.computeIfAbsent(timeUnit) { RateLimiter(timeUnit) }.incrementCounter(ctx, numRequests)
     } catch (e: RuntimeException) {
-        throw HttpResponseException(429, "Rate limit exceeded - Server allows $numRequests requests per ${timeUnit.toString().toLowerCase().removeSuffix("s")}.")
+        throw HttpResponseException(
+            429,
+            "Rate limit exceeded - Server allows $numRequests requests per ${
+                timeUnit.toString().toLowerCase().removeSuffix("s")
+            }."
+        )
     }
 }
