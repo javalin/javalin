@@ -61,9 +61,12 @@ class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegi
             }))
 
             JettyServerThreadPoolMetrics(server.threadPool, tags).bindTo(registry)
+            app.events {
+                it.serverStarted {
+                    JettyConnectionMetrics.addToAllConnectors(server, registry, tags)
+                }
+            }
         }
-
-        JettyConnectionMetrics(registry, tags)
     }
 
     companion object {
