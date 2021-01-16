@@ -374,6 +374,8 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return this
     }
 
+    var writeCallback: ((Long, Long) -> Unit)? = null
+
     /** Writes the specified inputStream as a seekable stream */
     fun seekableStream(inputStream: InputStream, contentType: String) = SeekableWriter.write(this, inputStream, contentType)
 

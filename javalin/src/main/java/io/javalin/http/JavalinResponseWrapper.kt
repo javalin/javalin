@@ -33,8 +33,8 @@ class JavalinResponseWrapper(val res: HttpServletResponse, private val rwc: Resp
     private val outputStreamWrapper by lazy { OutputStreamWrapper(res, rwc) }
     override fun getOutputStream() = outputStreamWrapper
 
-    fun write(resultStream: InputStream?) {
-        if (resultStream == null) return
+    fun write(ctx: Context) {
+        val resultStream = ctx.resultStream() ?: return
         if (res.getHeader(ETAG) != null || (rwc.config.autogenerateEtags && rwc.type == HandlerType.GET)) {
             val serverEtag = res.getHeader(ETAG) ?: Util.getChecksumAndReset(resultStream) // calculate if not set
             res.setHeader(ETAG, serverEtag)
@@ -43,10 +43,29 @@ class JavalinResponseWrapper(val res: HttpServletResponse, private val rwc: Resp
                 return // don't write body
             }
         }
-        resultStream.copyTo(outputStreamWrapper)
+
+        resultStream.copyWithCallbackTo(outputStreamWrapper, callback = ctx.writeCallback)
         resultStream.close()
         outputStreamWrapper.finalize()
     }
+
+    private fun InputStream.copyWithCallbackTo(out: OutputStream, bufferSize: Int = DEFAULT_BUFFER_SIZE, callback: ((Long, Long) -> Unit)? = null): Long {
+        val all = this.available()
+
+        var bytesCopied: Long = 0
+        val buffer = ByteArray(bufferSize)
+        var bytes = read(buffer)
+        while (bytes >= 0) {
+            out.write(buffer, 0, bytes)
+            bytesCopied += bytes
+            bytes = read(buffer)
+
+            callback?.invoke(bytesCopied, all.toLong())
+        }
+
+        return bytesCopied
+    }
+
 
 }
 

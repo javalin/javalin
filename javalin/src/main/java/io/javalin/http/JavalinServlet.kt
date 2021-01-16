@@ -82,7 +82,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             if (ctx.resultFuture() == null) { // finish request synchronously
                 tryErrorHandlers()
                 tryAfterHandlers()
-                JavalinResponseWrapper(rawRes, rwc).write(ctx.resultStream())
+                JavalinResponseWrapper(rawRes, rwc).write(ctx)
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
             } else { // finish request asynchronously
                 val asyncContext = wrappedReq.startAsync().apply { timeout = config.asyncRequestTimeout }
@@ -101,7 +101,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     tryErrorHandlers()
                     tryAfterHandlers()
                     val asyncRes = asyncContext.response as HttpServletResponse
-                    JavalinResponseWrapper(asyncRes, rwc).write(ctx.resultStream())
+                    JavalinResponseWrapper(asyncRes, rwc).write(ctx)
                     config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
                     asyncContext.complete() // async lifecycle complete
                 }
