@@ -66,8 +66,8 @@ object JavalinVue {
 
     internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
-        |        pathParams: ${JavalinJson.toJson(ctx.pathParamMap().mapKeys { escape(it.key) }.mapValues { escape(it.value) })},
-        |        queryParams: ${JavalinJson.toJson(ctx.queryParamMap().mapKeys { escape(it.key) }.mapValues { it.value.map { escape(it) } })},
+        |        pathParams: `${htmlEscape(JavalinJson.toJson(ctx.pathParamMap()))}`,
+        |        queryParams: `${htmlEscape(JavalinJson.toJson(ctx.queryParamMap()))}`,
         |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
         |    }""".trimMargin() + "\n</script>\n" + decodeParams()
 
@@ -78,7 +78,7 @@ object JavalinVue {
         |        return textArea.value;
         |    }
         |    ["queryParams", "pathParams", "state"].forEach((key) => {
-        |        Vue.prototype.${"$"}javalin[key] = JSON.parse(____decode(JSON.stringify(Vue.prototype.${"$"}javalin[key])));
+        |        Vue.prototype.${"$"}javalin[key] = JSON.parse(____decode(Vue.prototype.${"$"}javalin[key]));
         |    });""".trimMargin() + "\n</script>\n"
 
     private fun String.replaceWebjarsWithCdn() =
@@ -148,7 +148,7 @@ object FileInliner {
 fun Path.readText() = String(Files.readAllBytes(this))
 fun Path.isVueFile() = this.toString().endsWith(".vue")
 
-fun escape(string: String?) = string?.toCharArray()?.map {
+fun htmlEscape(string: String?) = string?.toCharArray()?.map {
     when (it) {
         '<' -> "&lt;"
         '>' -> "&gt;"

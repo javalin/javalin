@@ -100,10 +100,12 @@ class TestWebBrowser {
 
     @Test
     fun `path params are not html-encoded on the Vue prototype`() = TestUtil.test { app, http ->
+        val q = "&quot;"
         TestJavalinVue.before()
         app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
         driver.get(http.origin + "/vue/odd&co")
-        assertThat(driver.pageSource).contains("""pathParams: {"my-param":"odd&amp;co"},""")
+        assertThat(driver.pageSource).contains("""pathParams: `{${q}my-param${q}:${q}odd&amp;co${q}}`,""")
+        println(driver.pageSource)
         val pathParams = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
         assertThat(pathParams).isEqualTo("odd&co")
     }
