@@ -77,7 +77,7 @@ object JavalinVue {
         |        textArea.innerHTML = string;
         |        return textArea.value;
         |    }
-        |    ["queryParams", "pathParams", "state"].forEach((key) => {
+        |    ["queryParams", "pathParams"].forEach((key) => {
         |        Vue.prototype.${"$"}javalin[key] = JSON.parse(____decode(Vue.prototype.${"$"}javalin[key]));
         |    });""".trimMargin() + "\n</script>\n"
 
