@@ -108,7 +108,7 @@ class TestJavalinVue {
     fun `quotes are handled correctly`() = TestUtil.test { app, http ->
         val q = "&quot;"
         app.get("/escaped", VueComponent("<test-component></test-component>"))
-        assertThat(http.getBody("""/escaped?test=%22cool%22""")).contains("""`{${q}test${q}:[${q}\${q}cool\${q}${q}]}`""")
+        assertThat(http.getBody("""/escaped?test=%22cool%22""")).contains("""`{${q}test${q}:[${q}\\${q}cool\\${q}${q}]}`""")
     }
 
     @Test

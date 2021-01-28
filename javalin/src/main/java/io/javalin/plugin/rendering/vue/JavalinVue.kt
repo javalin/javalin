@@ -64,10 +64,11 @@ object JavalinVue {
     internal fun getAllDependencies(paths: Set<Path>) = paths.filter { it.isVueFile() }
             .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
 
+    // replace("\\", "\\\\") because we need the backslash to remain after evaluating the string
     internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
-        |        pathParams: `${htmlEscape(JavalinJson.toJson(ctx.pathParamMap()))}`,
-        |        queryParams: `${htmlEscape(JavalinJson.toJson(ctx.queryParamMap()))}`,
+        |        pathParams: `${htmlEscape(JavalinJson.toJson(ctx.pathParamMap()))?.replace("\\", "\\\\")}`,
+        |        queryParams: `${htmlEscape(JavalinJson.toJson(ctx.queryParamMap()))?.replace("\\", "\\\\")}`,
         |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
         |    }""".trimMargin() + "\n</script>\n" + decodeParams()
 
