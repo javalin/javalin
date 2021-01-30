@@ -17,7 +17,8 @@ Javalin is more of a library than a framework. Some key points:
 General information:
 * The project webpage is [javalin.io](https://javalin.io) (repo for webpage is at [github.com/javalin/javalin.github.io](https://github.com/javalin/javalin.github.io)).
 * Documentation: [javalin.io/documentation](https://javalin.io/documentation)
-* Chat: https://gitter.im/javalin-io/general
+* Chat on Gitter: https://gitter.im/javalin-io/general
+* Chat on Discord: https://discord.gg/sgak4e5NKv
 * Contributions are very welcome: [CONTRIBUTING.md](https://github.com/tipsy/javalin/blob/master/CONTRIBUTING.md)
 * License summary: https://tldrlegal.com/license/apache-license-2.0-(apache-2.0)
 * Interesting issues: [/tipsy/javalin/issues?q=label:INFO](https://github.com/tipsy/javalin/issues?q=is%3Aissue+label%3AINFO)
