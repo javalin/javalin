@@ -24,14 +24,14 @@ class TestRateLimitUtil {
 
     @Test
     fun `rate limiting kicks in if number of requests exceeds rate limit`() = TestUtil.test(testApp) { app, http ->
-        repeat(10) { http.get("/") }
+        repeat(20) { http.get("/") }
         assertThat(http.get("/").status).isEqualTo(429)
         assertThat(http.get("/").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per hour.")
     }
 
     @Test
     fun `both path and HTTP method must match for rate limiting to kick in`() = TestUtil.test(testApp) { app, http ->
-        repeat(10) { http.get("/") }
+        repeat(20) { http.get("/") }
         assertThat(http.get("/").status).isEqualTo(429)
         assertThat(http.get("/test").status).isNotEqualTo(429)
         assertThat(http.post("/").asString().status).isNotEqualTo(429)
@@ -39,9 +39,9 @@ class TestRateLimitUtil {
 
     @Test
     fun `rate limit on dynamic path-params limits per endpoint, not per URL`() = TestUtil.test(testApp) { app, http ->
-        repeat(5) { http.get("/dynamic/1") }
-        repeat(5) { http.get("/dynamic/2") }
-        repeat(5) { http.get("/dynamic/3") }
+        repeat(10) { http.get("/dynamic/1") }
+        repeat(10) { http.get("/dynamic/2") }
+        repeat(10) { http.get("/dynamic/3") }
         assertThat(http.get("/dynamic/4").status).isEqualTo(429)
         assertThat(http.get("/dynamic/5").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per minute.")
     }
@@ -49,7 +49,7 @@ class TestRateLimitUtil {
     @Test
     fun `millisecond rate-limiting works`() = TestUtil.test(testApp) { app, http ->
         repeat(3) {
-            Thread.sleep(5)
+            Thread.sleep(10)
             assertThat(http.get("/ms").status).isEqualTo(200)
         }
     }

@@ -85,4 +85,48 @@ class TestRouting {
         assertThat(http.getBody("/test/")).isEqualTo("test")
     }
 
+    @Test
+    fun `non sub-path wildcard works for paths`() = TestUtil.test { app, http ->
+        app.get("/p") { it.result("GET") }
+        app.get("/p/test") { it.result("GET") }
+        assertThat(http.getBody("/p")).isEqualTo("GET")
+        assertThat(http.getBody("/p/test")).isEqualTo("GET")
+        app.after("/p*") { it.result((it.resultString() ?: "") + "AFTER") }
+        assertThat(http.getBody("/p")).isEqualTo("GETAFTER")
+        assertThat(http.getBody("/p/test")).isEqualTo("GETAFTER")
+    }
+
+    @Test
+    fun `non sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
+        app.get("/:pp") { it.result(it.resultString() + it.pathParam("pp")) }
+        app.get("/:pp/test") { it.result(it.resultString() + it.pathParam("pp")) }
+        assertThat(http.getBody("/123")).isEqualTo("null123")
+        assertThat(http.getBody("/123/test")).isEqualTo("null123")
+        app.before("/:pp*") { it.result("BEFORE") }
+        assertThat(http.getBody("/123")).isEqualTo("BEFORE123")
+        assertThat(http.getBody("/123/test")).isEqualTo("BEFORE123")
+    }
+
+    @Test
+    fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
+        app.get("/path/:path-param/*") { ctx -> ctx.result("/" + ctx.pathParam("path-param") + "/" + ctx.splat(0)) }
+        assertThat(http.getBody("/path/P/S")).isEqualTo("/P/S")
+    }
+
+    @Test
+    fun `utf-8 encoded splat works`() = TestUtil.test { app, http ->
+        app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
+        val responseBody = okHttp.getBody(http.origin + "/"
+                + URLEncoder.encode("java/kotlin", "UTF-8")
+                + "/path/"
+                + URLEncoder.encode("/java/kotlin", "UTF-8")
+        )
+        assertThat(responseBody).isEqualTo("java/kotlin/java/kotlin")
+    }
+
+    @Test
+    fun `getting splat-list works`() = TestUtil.test { app, http ->
+        app.get("/*/*/*") { ctx -> ctx.result(ctx.splats().toString()) }
+        assertThat(http.getBody("/1/2/3")).isEqualTo("[1, 2, 3]")
+    }
 }

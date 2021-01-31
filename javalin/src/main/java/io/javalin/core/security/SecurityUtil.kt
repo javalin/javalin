@@ -34,8 +34,6 @@ object SecurityUtil {
 
 }
 
-internal enum class CoreRoles : Role { NO_WRAP } // used to avoid wrapping CORS options
-
 /**
  * Auth credentials for basic HTTP authorization.
  * Contains the Base64 decoded [username] and [password] from the Authorization header.

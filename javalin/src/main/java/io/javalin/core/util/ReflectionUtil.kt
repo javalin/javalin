@@ -1,5 +1,6 @@
 package io.javalin.core.util
 
+import io.javalin.apibuilder.CrudFunctionHandler
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -37,6 +38,8 @@ internal val Any.implementingClassName: String? get() = this.javaClass.name
 internal val Any.isClass: Boolean get() = this is Class<*>
 
 internal val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
+
+internal val Any.isCrudFunction: Boolean get() = (this is CrudFunctionHandler)
 
 internal val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
 

@@ -26,6 +26,14 @@ object JavalinJackson {
         return (objectMapper ?: defaultObjectMapper)
     }
 
+    @JvmStatic
+    fun defaultObjectMapper(): ObjectMapper = try {
+        val className = OptionalDependency.JACKSON_KT.testClass
+        ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
+    } catch (e: ClassNotFoundException) {
+        ObjectMapper()
+    }
+
     fun toJson(`object`: Any): String {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
         return (objectMapper ?: defaultObjectMapper).writeValueAsString(`object`)
@@ -37,13 +45,6 @@ object JavalinJackson {
             Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
         }
         return (objectMapper ?: defaultObjectMapper).readValue(json, clazz)
-    }
-
-    private fun defaultObjectMapper(): ObjectMapper = try {
-        val className = OptionalDependency.JACKSON_KT.testClass
-        ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
-    } catch (e: ClassNotFoundException) {
-        ObjectMapper()
     }
 
 }

@@ -190,7 +190,7 @@ class TestValidation {
         app.get("/") { ctx ->
             val numberValidator = ctx.queryParam<Int>("number")
                     .check({ it > 12 }, "must be greater than 12.")
-                    .check({ it.rem(2) == 0}, "must be even.")
+                    .check({ it.rem(2) == 0 }, "must be even.")
 
             val stringValidator = ctx.queryParam<String>("first_name")
                     .check({ !it.contains("-") }, "cannot contain hyphens.")

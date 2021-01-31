@@ -253,8 +253,11 @@ public class Javalin {
      */
     public Javalin routes(@NotNull EndpointGroup endpointGroup) {
         ApiBuilder.setStaticJavalin(this);
-        endpointGroup.addEndpoints();
-        ApiBuilder.clearStaticJavalin();
+        try {
+            endpointGroup.addEndpoints();
+        } finally {
+            ApiBuilder.clearStaticJavalin();
+        }
         return this;
     }
 
@@ -302,6 +305,12 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
+        if (Util.isNonSubPathWildcard(path)) { // TODO: This should probably be made part of the actual path matching
+            // split into two handlers: one exact, and one sub-path with wildcard
+            String basePath = path.substring(0, path.length() - 1);
+            addHandler(handlerType, basePath, handler, roles);
+            return addHandler(handlerType, basePath + "/*", handler, roles);
+        }
         servlet.addHandler(handlerType, path, handler, roles);
         eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), handler, roles));
         return this;

@@ -11,59 +11,27 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 import org.eclipse.jetty.server.handler.ResourceHandler
+import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
+import java.nio.file.AccessDeniedException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
-class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.javalin.http.staticfiles.ResourceHandler {
+class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private val aliasCheck: AliasCheck? = null) : JavalinResourceHandler {
 
     val handlers = mutableListOf<ResourceHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
-        val handler = if (config.path == "/webjars") WebjarHandler() else PrefixableHandler(config.urlPathPrefix).apply {
-            resourceBase = getResourcePath(config)
-            isDirAllowed = false
-            isEtags = true
-            Javalin.log?.info("""Static file handler added:
-                |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.path}", location: Location.${config.location}}
-                |    Resolved path: '${getResourcePath(config)}'
-                """.trimMargin())
-        }
-        handlers.add(handler.apply { start() })
-    }
-
-    inner class WebjarHandler : ResourceHandler() {
-        override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
-    }
-
-    inner class PrefixableHandler(private var urlPathPrefix: String) : ResourceHandler() {
-        override fun getResource(path: String): Resource {
-            val targetResource by lazy { path.removePrefix(urlPathPrefix) }
-            return when {
-                urlPathPrefix == "/" -> super.getResource(path) // same as regular ResourceHandler
-                !path.startsWith(urlPathPrefix) -> EmptyResource.INSTANCE
-                !targetResource.startsWith("/") -> EmptyResource.INSTANCE
-                else -> super.getResource(targetResource)
-            }
-        }
-    }
-
-    private fun getResourcePath(staticFileConfig: StaticFileConfig): String {
-        val nosuchdir = "Static resource directory with path: '${staticFileConfig.path}' does not exist."
-        if (staticFileConfig.location == Location.CLASSPATH) {
-            val classPathResource = Resource.newClassPathResource(staticFileConfig.path)
-            if (classPathResource == null) {
-                throw RuntimeException(nosuchdir + " Depending on your setup, empty folders might not get copied to classpath.")
-            }
-            return classPathResource.toString()
-        }
-        if (!File(staticFileConfig.path).exists()) {
-            throw RuntimeException(nosuchdir)
-        }
-        return staticFileConfig.path
+        handlers.add(when {
+            config.path == "/webjars" -> WebjarHandler()
+            aliasCheck != null -> AliasHandler(config, aliasCheck)
+            else -> PrefixableHandler(config)
+        }.apply { start() })
     }
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
@@ -86,9 +54,9 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
                     (httpResponse as JavalinResponseWrapper).outputStream.finalize()
                     return true
                 }
-            } catch (e: Exception) { // it's fine
+            } catch (e: Exception) { // it's fine, we'll just 404
                 if (!Util.isClientAbortException(e)) {
-                    Javalin.log?.error("Exception occurred while handling static resource", e)
+                    Javalin.log?.info("Exception occurred while handling static resource", e)
                 }
             }
         }
@@ -99,5 +67,54 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false) : io.jav
 
     private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
             this != null && this.isDirectory && handler.getResource("${target.removeSuffix("/")}/index.html")?.exists() == true
+}
 
+private class WebjarHandler : ResourceHandler() {
+    override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
+}
+
+private open class PrefixableHandler(private val config: StaticFileConfig) : ResourceHandler() {
+
+    init {
+        resourceBase = getResourceBase(config)
+        isDirAllowed = false
+        isEtags = true
+        Javalin.log?.info("""Static file handler added:
+        |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.path}", location: Location.${config.location}}
+        |    Resolved path: '${getResourceBase(config)}'
+        """.trimMargin())
+    }
+
+    private fun getResourceBase(config: StaticFileConfig): String {
+        val noSuchDirMessage = "Static resource directory with path: '${config.path}' does not exist."
+        val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
+        if (config.location == Location.CLASSPATH) {
+            return Resource.newClassPathResource(config.path)?.toString() ?: throw RuntimeException("$noSuchDirMessage $classpathHint")
+        }
+        if (!File(config.path).exists()) {
+            throw RuntimeException(noSuchDirMessage)
+        }
+        return config.path
+    }
+
+    override fun getResource(path: String): Resource {
+        val targetResource by lazy { path.removePrefix(config.urlPathPrefix) }
+        return when {
+            config.urlPathPrefix == "/" -> super.getResource(path)!! // same as regular ResourceHandler
+            targetResource == "" -> super.getResource("/")!! // directory without trailing '/'
+            !path.startsWith(config.urlPathPrefix) -> EmptyResource.INSTANCE
+            !targetResource.startsWith("/") -> EmptyResource.INSTANCE
+            else -> super.getResource(targetResource)!!
+        }
+    }
+
+}
+
+private class AliasHandler(config: StaticFileConfig, private val aliasCheck: AliasCheck) : PrefixableHandler(config) {
+    override fun getResource(path: String): Resource {  // if this method throws, we get a 404
+        val resource = baseResource?.addPath(URIUtil.canonicalPath(path))!!
+        if (!resource.isAlias) return super.getResource(path) // treat as prefixablehandler
+        if (!aliasCheck.check(path, resource)) throw AccessDeniedException("Failed alias check")
+        return resource // passed check, return the resource
+    }
 }

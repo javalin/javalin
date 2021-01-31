@@ -23,11 +23,8 @@ import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import org.junit.Assert.assertFalse
 import org.junit.Test
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicLong
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
@@ -167,26 +164,6 @@ class TestCustomJetty {
             app.get("/") { ctx -> ctx.result("Hello Javalin World!") }
             assertThat(http.getBody("/api")).contains("Hello Javalin World!")
             assertThat(http.getBody("/other-servlet")).contains("Hello Servlet World!")
-        }
-    }
-
-    @Test
-    fun `no warnings in log file when adding static files to a custom server`() {
-        val baos = ByteArrayOutputStream()
-        val origErr = System.err
-        try {
-            System.setErr(PrintStream(baos))
-
-            Javalin.create {
-                it.server { Server() }
-                it.enableWebjars()
-            }
-
-            System.err.flush()
-
-            assertFalse(baos.toString().contains("WARN"))
-        } finally {
-            System.setErr(origErr)
         }
     }
 

@@ -294,6 +294,17 @@ fun getQueryParamListHandler(ctx: Context) {
 
 // endregion composed body
 
+@OpenApi(
+        pathParams = [
+            OpenApiParam(name = "my-enum-path-param", type = UserType::class)
+        ],
+        queryParams = [
+            OpenApiParam(name = "my-enum-query-param", type = UserType::class)
+        ]
+)
+fun getEnumParamsHandler(ctx: Context) {
+}
+
 class TestOpenApiAnnotations {
     @Test
     fun `createOpenApiSchema works with complexExample and annotations`() {
@@ -316,6 +327,7 @@ class TestOpenApiAnnotations {
         app.get("/upload-with-form-data", ::getUploadWithFormDataHandler)
         app.get("/resources/*", ::getResources)
         app.get("/ignore", ::getIgnore)
+        app.get("/enums/:my-enum-path-param", ::getEnumParamsHandler)
 
         val actual = JavalinOpenApi.createSchema(app)
 

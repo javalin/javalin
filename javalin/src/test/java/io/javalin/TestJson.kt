@@ -131,4 +131,16 @@ class TestJson {
         assertThat(SerializeableObject().value2).isEqualTo(mappedBack.value2)
     }
 
+    data class SerializeableDataClass(val value1: String, val value2: String)
+
+    @Test
+    fun `can use JavalinJson with a custom object-mapper on a kotlin data class`() {
+        val jacksonKtEnabledObjectMapper = JavalinJackson.defaultObjectMapper()
+        JavalinJackson.configure(jacksonKtEnabledObjectMapper) // override mapper
+        val mapped = JavalinJson.toJson(SerializeableDataClass("First value", "Second value"))
+        val mappedBack = JavalinJson.fromJson(mapped, SerializeableDataClass::class.java)
+        assertThat("First value").isEqualTo(mappedBack.value1)
+        assertThat("Second value").isEqualTo(mappedBack.value2)
+    }
+
 }

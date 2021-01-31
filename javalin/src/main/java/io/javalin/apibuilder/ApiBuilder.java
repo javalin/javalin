@@ -13,6 +13,7 @@ import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
 import io.javalin.websocket.WsHandler;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,15 +28,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    private static Javalin staticJavalin;
-    private static Deque<String> pathDeque = new ArrayDeque<>();
+    private static final ThreadLocal<Javalin> staticJavalin = new ThreadLocal<>();
+    private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
     public static void setStaticJavalin(@NotNull Javalin javalin) {
-        staticJavalin = javalin;
+        staticJavalin.set(javalin);
     }
 
     public static void clearStaticJavalin() {
-        staticJavalin = null;
+        staticJavalin.remove();
     }
 
     /**
@@ -46,20 +47,21 @@ public class ApiBuilder {
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
         path = path.startsWith("/") ? path : "/" + path;
-        pathDeque.addLast(path);
+        pathDeque.get().addLast(path);
         endpointGroup.addEndpoints();
-        pathDeque.removeLast();
+        pathDeque.get().removeLast();
     }
 
     public static String prefixPath(@NotNull String path) {
-        return String.join("", pathDeque) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
+        return String.join("", pathDeque.get()) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
     }
 
     public static Javalin staticInstance() {
-        if (staticJavalin == null) {
+        Javalin javalin = staticJavalin.get();
+        if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
-        return staticJavalin;
+        return javalin;
     }
 
     // ********************************************************************************************
@@ -463,40 +465,59 @@ public class ApiBuilder {
     // ********************************************************************************************
 
     /**
-     * Adds a CrudHandler handler to the specified path to the instance.
+     * Adds a CrudHandler handler to the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void crud(@NotNull CrudHandler crudHandler) {
+        crud("", crudHandler, new HashSet<>());
+    }
+
+    /**
+     * Adds a CrudHandler handler to the current path with the given roles to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void crud(@NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
+        crud("", crudHandler, permittedRoles);
+    }
+
+    /**
+     * Adds a CrudHandler handler to the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see CrudHandler
      */
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler) {
-        ApiBuilder.crud(path, crudHandler, new HashSet<>());
+        crud(path, crudHandler, new HashSet<>());
     }
 
     /**
-     * Adds a CrudHandler handler to the specified path with the given roles to the instance.
+     * Adds a CrudHandler handler to the specified path with the given roles to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see CrudHandler
      */
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
-        path = path.startsWith("/") ? path : "/" + path;
-        if (path.startsWith("/:")) {
-            throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path e.g. '/users/:user-id'");
+        String fullPath = prefixPath(path);
+        String[] subPaths = Arrays.stream(fullPath.split("/")).filter(it -> !it.isEmpty()).toArray(String[]::new);
+        if (subPaths.length < 2) {
+            throw new IllegalArgumentException("CrudHandler requires a path like '/resource/:resource-id'");
         }
-        if (!path.contains("/:") || path.lastIndexOf("/") > path.lastIndexOf("/:")) {
-            throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path e.g. '/users/:user-id'");
+        String resourceId = subPaths[subPaths.length - 1];
+        if (!resourceId.startsWith(":")) {
+            throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'");
         }
-        final String SEPARATOR = "/:";
-        String resourceBase = path.substring(0, path.lastIndexOf(SEPARATOR));
-        String resourceId = path.substring(path.lastIndexOf(SEPARATOR) + SEPARATOR.length());
-
+        if (subPaths[subPaths.length - 2].startsWith(":")) {
+            throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/:user-id'");
+        }
         Map<CrudFunction, Handler> crudFunctions = CrudHandlerKt.getCrudFunctions(crudHandler, resourceId);
-
-        String resourceIdPath = prefixPath(path);
-        String resourceBasePath = prefixPath(resourceBase);
-
-        staticInstance().get(resourceIdPath, crudFunctions.get(CrudFunction.GET_ONE), permittedRoles);
-        staticInstance().get(resourceBasePath, crudFunctions.get(CrudFunction.GET_ALL), permittedRoles);
-        staticInstance().post(resourceBasePath, crudFunctions.get(CrudFunction.CREATE), permittedRoles);
-        staticInstance().patch(resourceIdPath, crudFunctions.get(CrudFunction.UPDATE), permittedRoles);
-        staticInstance().delete(resourceIdPath, crudFunctions.get(CrudFunction.DELETE), permittedRoles);
+        staticInstance().get(fullPath, crudFunctions.get(CrudFunction.GET_ONE), permittedRoles);
+        staticInstance().get(fullPath.replace(resourceId, ""), crudFunctions.get(CrudFunction.GET_ALL), permittedRoles);
+        staticInstance().post(fullPath.replace(resourceId, ""), crudFunctions.get(CrudFunction.CREATE), permittedRoles);
+        staticInstance().patch(fullPath, crudFunctions.get(CrudFunction.UPDATE), permittedRoles);
+        staticInstance().delete(fullPath, crudFunctions.get(CrudFunction.DELETE), permittedRoles);
     }
 }

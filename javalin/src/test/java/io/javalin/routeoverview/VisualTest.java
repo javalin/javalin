@@ -15,6 +15,7 @@ import io.javalin.websocket.WsHandler;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
+import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.patch;
@@ -69,6 +70,7 @@ public class VisualTest {
                     delete(new HandlerImplementation());
                 });
             });
+            crud("/movies/:movie-id", new CrudHandlerImpl());
         });
     }
 

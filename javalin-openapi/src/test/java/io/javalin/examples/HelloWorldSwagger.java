@@ -18,6 +18,8 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
 import io.javalin.plugin.openapi.ui.ReDocOptions;
+import io.javalin.plugin.openapi.ui.RedocOptionsObject;
+import io.javalin.plugin.openapi.ui.RedocOptionsTheme;
 import io.javalin.plugin.openapi.ui.SwaggerOptions;
 import io.swagger.v3.oas.models.info.Info;
 
@@ -31,7 +33,15 @@ public class HelloWorldSwagger {
             .activateAnnotationScanningFor("io.javalin.examples")
             .path("/swagger-docs")
             .swagger(new SwaggerOptions("/swagger").title("My Swagger Documentation"))
-            .reDoc(new ReDocOptions("/redoc").title("My ReDoc Documentation"));
+            .reDoc(new ReDocOptions("/redoc", new RedocOptionsObject.Builder()
+                    .setHideDownloadButton(true)
+                    .setTheme(
+                            new RedocOptionsTheme.Builder()
+                                    .setSpacingUnit(10)
+                                    .setTypographyOptimizeSpeed(true)
+                                    .build()
+                    ).build()
+            ).title("My ReDoc Documentation"));
 
         Javalin app = Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions))).start(7070);
 

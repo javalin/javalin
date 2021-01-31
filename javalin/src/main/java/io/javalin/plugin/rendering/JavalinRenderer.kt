@@ -10,6 +10,7 @@ import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.markdown.JavalinCommonmark
 import io.javalin.plugin.rendering.template.JavalinFreemarker
+import io.javalin.plugin.rendering.template.JavalinJte
 import io.javalin.plugin.rendering.template.JavalinJtwig
 import io.javalin.plugin.rendering.template.JavalinMustache
 import io.javalin.plugin.rendering.template.JavalinPebble
@@ -28,14 +29,18 @@ object JavalinRenderer {
         register(JavalinPebble, ".peb", ".pebble")
         register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
         register(JavalinCommonmark, ".md", ".markdown")
+        register(JavalinJte, ".jte")
     }
+
+    @JvmField
+    var baseModelFunction: (Context) -> Map<String, Any?> = { mapOf<String, Any>() }
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         val extension = if (filePath.hasTwoDots) filePath.doubleExtension else filePath.extension
         val renderer = extensions[extension]
                 ?: extensions[filePath.extension] // fallback to a non-double extension
-                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
-        return renderer.render(filePath, model, ctx)
+                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.") 
+        return renderer.render(filePath, baseModelFunction(ctx) + model, ctx)//overrides the base model
     }
 
     @JvmStatic

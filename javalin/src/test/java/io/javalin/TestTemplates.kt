@@ -9,8 +9,12 @@ package io.javalin
 
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.ClasspathLoader
+import gg.jte.ContentType
+import gg.jte.TemplateEngine
+import gg.jte.resolve.ResourceCodeResolver
 import io.javalin.plugin.rendering.FileRenderer
 import io.javalin.plugin.rendering.JavalinRenderer
+import io.javalin.plugin.rendering.template.JavalinJte
 import io.javalin.plugin.rendering.template.JavalinJtwig
 import io.javalin.plugin.rendering.template.JavalinPebble
 import io.javalin.plugin.rendering.template.JavalinVelocity
@@ -23,6 +27,7 @@ import org.jtwig.functions.FunctionRequest
 import org.jtwig.functions.SimpleJtwigFunction
 import org.jtwig.util.FunctionValueUtils
 import org.junit.Test
+import java.io.File
 
 class TestTemplates {
 
@@ -30,6 +35,8 @@ class TestTemplates {
         setProperty("resource.loader", "class")
         setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
     }
+
+    private val defaultBaseModel =  model("foo","bar")
 
     @Test
     fun `velocity templates work`() = TestUtil.test { app, http ->
@@ -138,6 +145,28 @@ class TestTemplates {
     }
 
     @Test
+    fun `jte works`() = TestUtil.test { app, http ->
+        try {
+            JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
+            app.get("/hello") { ctx -> ctx.render("test.jte", model("page", JteTestPage("hello", "world"))) }
+            assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
+        } catch (e: UnsupportedClassVersionError) {
+            // jte does require JDK 11+ to work
+        }
+    }
+
+    @Test
+    fun `jte multiple params work`() = TestUtil.test { app, http ->
+        try {
+            JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
+            app.get("/hello") { ctx -> ctx.render("multiple-params.jte", model("one", "hello", "two", "world")) }
+            assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
+        } catch (e: UnsupportedClassVersionError) {
+            // jte does require JDK 11+ to work
+        }
+    }
+
+    @Test
     fun `markdown works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/markdown/test.md") }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Markdown!</h1>\n")
@@ -167,4 +196,20 @@ class TestTemplates {
         app.get("/hello") { ctx -> ctx.render("/templates/jtwig/multiple.dots.twig", model("message", "Hello jTwig!")) }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello jTwig!</h1>")
     }
+
+    @Test
+    fun `base Model works`() = TestUtil.test { app, http ->
+        JavalinRenderer.baseModelFunction =  {ctx-> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap())};
+        app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-base.ftl", model("message", "Hello Freemarker!")) }
+        assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>bar</h3>")
+    }
+
+    @Test
+    fun `base model overwrite works`() = TestUtil.test { app, http ->
+        JavalinRenderer.baseModelFunction =  {ctx-> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap())};
+        app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-base.ftl", model("foo", "baz")) }
+        assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>baz</h3>")
+    }
+
+    data class JteTestPage(val hello: String, val world: String)
 }

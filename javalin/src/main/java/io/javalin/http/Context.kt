@@ -39,12 +39,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
+    @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
+    private val body by lazy {req.inputStream.readBytes()}
 
     /**
      * Registers an extension to the Context, which can be used later in the request-lifecycle.
@@ -120,13 +122,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
 
     /** Gets the request body as a [ByteArray].
-     *
-     * Calling this method consumes the underlying InputStream. It will return the body
-     * as a [ByteArray] on the first call, and an empty array for subsequent calls,
-     * unless the InputStream is cached. By default, bodies up to 4kb are cached.
-     * Use [io.javalin.core.JavalinConfig.requestCacheSize] to configure cache size.
+     * Calling this method returns the body as a [ByteArray]. If [io.javalin.core.JavalinConfig.maxRequestSize]
+     * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
+     * with status 413 PAYLOAD_TOO_LARGE.
      */
-    fun bodyAsBytes(): ByteArray = req.inputStream.readBytes()
+    fun bodyAsBytes(): ByteArray = body
 
     /**
      * Maps a JSON body to a Java/Kotlin class using JavalinJson.
@@ -134,6 +134,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * @return The mapped object
      */
     fun <T> bodyAsClass(clazz: Class<T>): T = bodyValidator(clazz).get()
+
+    /**
+     * Gets the request body as a [InputStream]
+     */
+    fun bodyAsInputStream(): InputStream = body.inputStream()
 
     /**
      * Creates a [Validator] for the body() value, with the prefix "Request body as $clazz"
@@ -480,4 +485,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
     }
 
+    //
+    // Gets a splat by its index.
+    // Ex: If the handler path is /users/*
+    // and a browser GETs /users/123,
+    // splat(0) will return "123"
+    //
+    fun splat(splatNr: Int): String? = splatList[splatNr]
+
+    /** Gets a list of all the [splat] values. */
+    fun splats(): List<String> = Collections.unmodifiableList(splatList)
 }

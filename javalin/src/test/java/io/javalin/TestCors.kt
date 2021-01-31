@@ -84,4 +84,20 @@ class TestCors {
         }
     }
 
+
+    @Test
+    fun `enableCorsForAllOrigins allows options endpoint mapping`() {
+        val javalin = Javalin.create { it.enableCorsForAllOrigins() }
+        TestUtil.test(javalin) { app, http ->
+            app.options("/") { ctx -> ctx.result("Hello") }
+            val response = Unirest.options(http.origin)
+                    .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
+                    .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
+                    .asString()
+            assertThat(response.headers[ACCESS_CONTROL_ALLOW_HEADERS]!![0]).isEqualTo("123")
+            assertThat(response.headers[ACCESS_CONTROL_ALLOW_METHODS]!![0]).isEqualTo("TEST")
+            assertThat(response.body).isEqualTo("Hello")
+        }
+    }
+
 }

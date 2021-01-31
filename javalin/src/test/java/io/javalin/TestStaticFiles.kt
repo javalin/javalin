@@ -11,11 +11,17 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
+import io.javalin.testing.TestLoggingUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
+import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.Test
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 import javax.servlet.DispatcherType
 import javax.servlet.Filter
@@ -29,11 +35,11 @@ class TestStaticFiles {
     private val defaultStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("/public") } } // classpath
     private val externalStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("src/test/external/", Location.EXTERNAL) } }
     private val multiLocationStaticResourceApp: Javalin by lazy {
-        Javalin.create { servlet ->
-            servlet.addStaticFiles("src/test/external/", Location.EXTERNAL)
-            servlet.addStaticFiles("/public/immutable")
-            servlet.addStaticFiles("/public/protected")
-            servlet.addStaticFiles("/public/subdir")
+        Javalin.create {
+            it.addStaticFiles("src/test/external/", Location.EXTERNAL)
+            it.addStaticFiles("/public/immutable")
+            it.addStaticFiles("/public/protected")
+            it.addStaticFiles("/public/subdir")
         }
     }
     private val devLoggingApp: Javalin by lazy {
@@ -60,6 +66,58 @@ class TestStaticFiles {
             it.configureServletContextHandler { handler ->
                 handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
+        }
+    }
+
+    private fun createSymLink(targetPath: String, linkPath: String): File? {
+        val target = Paths.get(targetPath).toAbsolutePath()
+        val link = Paths.get(linkPath).toAbsolutePath()
+        // delete before creating new link
+        link.toFile().delete()
+        try {
+            Files.createSymbolicLink(link, target)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return null
+        }
+        return link.toFile()
+    }
+
+    @Test
+    fun `alias checks for static files should work`() {
+        val staticWithAliasResourceApp = Javalin.create {
+            // block aliases for txt files
+            it.aliasCheckForStaticFiles = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
+            it.addStaticFiles("src/test/external/", Location.EXTERNAL)
+            it.addStaticFiles("/url-prefix", "/public", Location.CLASSPATH)
+        }
+
+        val createdHtml = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
+        if (createdHtml != null) {
+            val createdTxt = createSymLink("src/test/external/txt.txt", "src/test/external/linked_txt.txt")
+            if (createdTxt != null) {
+                TestUtil.test(staticWithAliasResourceApp) { _, http ->
+                    assertThat(http.get("/linked_html.html").status).isEqualTo(200)
+                    assertThat(http.get("/linked_txt.txt").status).isEqualTo(404)
+                    assertThat(http.get("/url-prefix/styles.css").status).isEqualTo(200)
+                }
+                createdTxt.delete()
+            }
+            createdHtml.delete()
+        }
+    }
+
+    @Test
+    fun `if aliases are not specified returns 404 for linked static file`() {
+        val staticNoAliasCheckResourceApp = Javalin.create {
+            it.addStaticFiles("src/test/external/", Location.EXTERNAL)
+        }
+        val created = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
+        if (created != null) {
+            TestUtil.test(staticNoAliasCheckResourceApp) { _, http ->
+                assertThat(http.get("/linked_html.html").status).isEqualTo(404)
+            }
+            created.delete()
         }
     }
 
@@ -101,6 +159,8 @@ class TestStaticFiles {
     fun `directory root return welcome file if there is a welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/subdir/").status).isEqualTo(200)
         assertThat(http.getBody("/subdir/")).isEqualTo("<h1>Welcome file</h1>")
+        assertThat(http.get("/subdir").status).isEqualTo(200)
+        assertThat(http.getBody("/subdir")).isEqualTo("<h1>Welcome file</h1>")
     }
 
     @Test
@@ -179,6 +239,12 @@ class TestStaticFiles {
             assertThat(http.get("/filtered-styles.css").status).isEqualTo(404) // direct access to a file in the subfolder is not allowed
             assertThat(http.get("/styles.css").status).isEqualTo(404) // access to other locations in /public is not allowed
         }
+    }
+
+    @Test
+    fun `logs handlers added on startup`() {
+        val logOutput = TestLoggingUtil.captureStdOut { TestUtil.test(multiLocationStaticResourceApp) { _, _ -> } }
+        assertThat(logOutput.split("Static file handler added").size - 1).isEqualTo(4)
     }
 
 }

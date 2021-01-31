@@ -34,6 +34,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
@@ -49,11 +50,15 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean precompressStaticFiles = false;
+    public ContextHandler.AliasCheck aliasCheckForStaticFiles = null;
     public boolean showJavalinBanner = true;
     public boolean logIfServerNotStarted = true;
+    public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
-    @NotNull public Long requestCacheSize = 4096L;
+    //Left for backwards compatibility, please use maxRequestSize instead
+    @Deprecated @NotNull public Long requestCacheSize = 4096L;
+    public Long maxRequestSize;
     @NotNull public Long asyncRequestTimeout = 0L;
     @NotNull public Inner inner = new Inner();
 
@@ -118,7 +123,7 @@ public class JavalinConfig {
     public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null)
-            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles);
+            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles, aliasCheckForStaticFiles);
         inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location));
         return this;
     }

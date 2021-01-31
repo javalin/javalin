@@ -27,12 +27,14 @@ object HttpResponseExceptionMapper {
         } else {
             val result = if (e.details.isEmpty()) "${e.message}" else """
                 |${e.message}
-                |${e.details.map {
-                """
+                |${
+                e.details.map {
+                    """
                 |${it.key}:
                 |${it.value}
                 |"""
-            }.joinToString("")}""".trimMargin()
+                }.joinToString("")
+            }""".trimMargin()
             ctx.status(e.status).result(result)
         }
     }
