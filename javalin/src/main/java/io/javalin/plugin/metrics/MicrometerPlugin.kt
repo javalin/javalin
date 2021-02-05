@@ -27,8 +27,8 @@ import javax.servlet.http.HttpServletResponse
 class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegistry = Metrics.globalRegistry,
                                                  private val tags: Iterable<Tag> = Tags.empty(),
                                                  private val tagExceptionName: Boolean = false,
-                                                 private val tagRedirectResponses: Boolean = false,
-                                                 private val tagNotFoundResponses: Boolean = false) : Plugin {
+                                                 private val tagRedirectPaths: Boolean = false,
+                                                 private val tagNotFoundMappedPaths: Boolean = false) : Plugin {
     override fun apply(app: Javalin) {
         app.server()?.server()?.let { server ->
             if (tagExceptionName) {
@@ -52,10 +52,10 @@ class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegi
                             .map(HandlerEntry::path)
                             .map { path: String -> if (path == "/" || StringUtils.isBlank(path)) "root" else path }
                             .map { path: String ->
-                                if (!tagRedirectResponses && response.status in 300..399) "REDIRECTION" else path
+                                if (!tagRedirectPaths && response.status in 300..399) "REDIRECTION" else path
                             }
                             .map { path: String ->
-                                if (!tagNotFoundResponses && response.status == 404) "NOT_FOUND" else path
+                                if (!tagNotFoundMappedPaths && response.status == 404) "NOT_FOUND" else path
                             }
                             .orElse("NOT_FOUND")
                     return Tags.concat(

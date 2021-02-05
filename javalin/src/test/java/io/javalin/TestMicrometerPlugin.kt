@@ -12,6 +12,7 @@ import io.javalin.testing.HttpUtil
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestMicrometerPlugin {
@@ -81,7 +82,7 @@ class TestMicrometerPlugin {
 
     @Test
     fun `redirect tagged`() {
-        val app: Javalin = setupApp(tagRedirectResponses = true)
+        val app: Javalin = setupApp(tagRedirectPaths = true)
         val http = HttpUtil(app.port())
 
         app.get("/hello") { ctx -> ctx.result("Hello") }
@@ -92,6 +93,37 @@ class TestMicrometerPlugin {
                 .tag("method", "GET")
                 .tag("exception", "None")
                 .tag("status", "302")
+                .tag("outcome", "REDIRECTION")
+                .timer()
+        meterRegistry.get("jetty.server.requests")
+                .tag("uri", "/hello")
+                .tag("method", "GET")
+                .tag("exception", "None")
+                .tag("status", "200")
+                .tag("outcome", "SUCCESS")
+                .timer()
+
+        app.stop()
+    }
+
+    @Test
+    fun `etags tagged`() {
+        val app: Javalin = setupApp(tagRedirectPaths = true, autoGenerateEtags = true)
+        val http = HttpUtil(app.port())
+
+        app.get("/hello") { ctx -> ctx.result("Hello") }
+
+        val response = http.get("/hello")
+        val etag = response.headers["ETag"]?.first() ?: ""
+
+        val response2 = http.get("/hello", mapOf("If-None-Match" to etag))
+        assertThat(response2.status).isEqualTo(304)
+
+        meterRegistry.get("jetty.server.requests")
+                .tag("uri", "/hello")
+                .tag("method", "GET")
+                .tag("exception", "None")
+                .tag("status", "304")
                 .tag("outcome", "REDIRECTION")
                 .timer()
         meterRegistry.get("jetty.server.requests")
@@ -124,7 +156,7 @@ class TestMicrometerPlugin {
 
     @Test
     fun `not found tagged`() {
-        val app: Javalin = setupApp(tagNotFoundResponses = true)
+        val app: Javalin = setupApp(tagNotFoundMappedPaths = true)
         val http = HttpUtil(app.port())
 
         app.get("/hello/:name") { ctx ->
@@ -163,14 +195,18 @@ class TestMicrometerPlugin {
         app.stop()
     }
 
-    private fun setupApp(tagRedirectResponses: Boolean = false, tagNotFoundResponses: Boolean = false) =
+    private fun setupApp(tagRedirectPaths: Boolean = false,
+                         tagNotFoundMappedPaths: Boolean = false,
+                         autoGenerateEtags: Boolean? = null) =
             Javalin.create { config ->
                 config.registerPlugin(MicrometerPlugin(registry = meterRegistry,
                         tags = Tags.empty(),
                         tagExceptionName = true,
-                        tagRedirectResponses = tagRedirectResponses,
-                        tagNotFoundResponses = tagNotFoundResponses)
+                        tagRedirectPaths = tagRedirectPaths,
+                        tagNotFoundMappedPaths = tagNotFoundMappedPaths)
                 )
+                if (autoGenerateEtags != null) config.autogenerateEtags = autoGenerateEtags
+
                 // must manually delegate to Micrometer exception handler for exception tags to be correct
             }.start(0).exception(IllegalArgumentException::class.java) { e, ctx ->
                 MicrometerPlugin.EXCEPTION_HANDLER.handle(e, ctx)
