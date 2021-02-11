@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.gson.GsonBuilder
 import com.mashape.unirest.http.Unirest
-import io.javalin.http.body
+import io.javalin.http.context.body
 import io.javalin.plugin.json.FromJsonMapper
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JavalinJson

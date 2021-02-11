@@ -12,9 +12,9 @@ import io.javalin.core.validation.JavalinValidation
 import io.javalin.core.validation.Validator
 import io.javalin.core.validation.collectErrors
 import io.javalin.http.BadRequestResponse
-import io.javalin.http.formParam
-import io.javalin.http.pathParam
-import io.javalin.http.queryParam
+import io.javalin.http.context.formParam
+import io.javalin.http.context.pathParam
+import io.javalin.http.context.queryParam
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.testing.SerializeableObject
 import io.javalin.testing.TestUtil
