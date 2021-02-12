@@ -20,16 +20,12 @@ object MultipartUtil {
 
     fun getUploadedFiles(servletRequest: HttpServletRequest, partName: String): List<UploadedFile> {
         preUploadFunction(servletRequest)
-        return servletRequest.parts.filter { isFile(it) && it.name == partName }.map { filePart ->
-            UploadedFile(
-                    content = filePart.inputStream,
-                    contentType = filePart.contentType,
-                    contentLength = filePart.size.toInt(),
-                    filename = filePart.submittedFileName,
-                    extension = filePart.submittedFileName.replaceBeforeLast(".", ""),
-                    size = filePart.size
-            )
-        }
+        return servletRequest.parts.filter { isFile(it) && it.name == partName }.map(this::toUploadedFile)
+    }
+
+    fun getUploadedFiles(servletRequest: HttpServletRequest): List<UploadedFile> {
+        preUploadFunction(servletRequest)
+        return servletRequest.parts.filter(this::isFile).map(this::toUploadedFile)
     }
 
     fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> {
@@ -41,6 +37,17 @@ object MultipartUtil {
         return req.parts.filter { isField(it) && it.name == partName }.map { filePart ->
             filePart.inputStream.readBytes().toString(Charset.forName("UTF-8"))
         }.toList()
+    }
+
+    private fun toUploadedFile(filePart: Part): UploadedFile {
+        return UploadedFile(
+            content = filePart.inputStream,
+            contentType = filePart.contentType,
+            contentLength = filePart.size.toInt(),
+            filename = filePart.submittedFileName,
+            extension = filePart.submittedFileName.replaceBeforeLast(".", ""),
+            size = filePart.size
+        )
     }
 
     private fun isField(filePart: Part) = filePart.submittedFileName == null // this is what Apache FileUpload does ...

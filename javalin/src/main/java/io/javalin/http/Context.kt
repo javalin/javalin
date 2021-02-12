@@ -163,6 +163,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(req, fileName) else listOf()
     }
 
+    /** Gets a list of [UploadedFile]s, or empty list. */
+    fun uploadedFiles(): List<UploadedFile> {
+        return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(req) else listOf()
+    }
+
     /**
      * Gets a form param if it exists, else a default value (null if not specified explicitly).
      * Including a default value is mainly useful when calling from Java,
