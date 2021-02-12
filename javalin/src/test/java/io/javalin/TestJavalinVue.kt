@@ -8,7 +8,6 @@ package io.javalin
 
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.json.JavalinJson
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestUtil
@@ -25,7 +24,7 @@ class TestJavalinVue {
 
     @Before
     fun setup() {
-       before()
+        before()
     }
 
     companion object {

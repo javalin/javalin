@@ -18,18 +18,18 @@ object MultipartUtil {
         req.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")))
     }
 
-    fun getUploadedFiles(servletRequest: HttpServletRequest, partName: String): List<UploadedFile> {
-        preUploadFunction(servletRequest)
-        return servletRequest.parts.filter { isFile(it) && it.name == partName }.map(this::toUploadedFile)
+    fun getUploadedFiles(req: HttpServletRequest, partName: String): List<UploadedFile> {
+        preUploadFunction(req)
+        return req.parts.filter { isFile(it) && it.name == partName }.map(this::toUploadedFile)
     }
 
-    fun getUploadedFiles(servletRequest: HttpServletRequest): List<UploadedFile> {
-        preUploadFunction(servletRequest)
-        return servletRequest.parts.filter(this::isFile).map(this::toUploadedFile)
+    fun getUploadedFiles(req: HttpServletRequest): List<UploadedFile> {
+        preUploadFunction(req)
+        return req.parts.filter(this::isFile).map(this::toUploadedFile)
     }
 
     fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> {
-        req.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")))
+        preUploadFunction(req)
         return req.parts.associate { part -> part.name to getPartValue(req, part.name) }
     }
 
@@ -41,12 +41,12 @@ object MultipartUtil {
 
     private fun toUploadedFile(filePart: Part): UploadedFile {
         return UploadedFile(
-            content = filePart.inputStream,
-            contentType = filePart.contentType,
-            contentLength = filePart.size.toInt(),
-            filename = filePart.submittedFileName,
-            extension = filePart.submittedFileName.replaceBeforeLast(".", ""),
-            size = filePart.size
+                content = filePart.inputStream,
+                contentType = filePart.contentType,
+                contentLength = filePart.size.toInt(),
+                filename = filePart.submittedFileName,
+                extension = filePart.submittedFileName.replaceBeforeLast(".", ""),
+                size = filePart.size
         )
     }
 

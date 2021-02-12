@@ -46,7 +46,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
-    private val body by lazy {req.inputStream.readBytes()}
+    private val body by lazy { req.inputStream.readBytes() }
 
     /**
      * Registers an extension to the Context, which can be used later in the request-lifecycle.

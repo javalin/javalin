@@ -104,11 +104,11 @@ class TestMultipartForms {
             ctx.result(ctx.uploadedFiles().joinToString(", ") { it.filename })
         }
         val response = http.post("/test-upload")
-            .field("upload", File("src/test/resources/upload-test/image.png"))
-            .field("upload", File("src/test/resources/upload-test/sound.mp3"))
-            .field("upload", File("src/test/resources/upload-test/text.txt"))
-            .field("text-field", "text")
-            .asString()
+                .field("upload", File("src/test/resources/upload-test/image.png"))
+                .field("upload", File("src/test/resources/upload-test/sound.mp3"))
+                .field("upload", File("src/test/resources/upload-test/text.txt"))
+                .field("text-field", "text")
+                .asString()
         assertThat(response.body).isEqualTo("image.png, sound.mp3, text.txt")
     }
 
@@ -117,9 +117,9 @@ class TestMultipartForms {
         app.post("/test-upload") { ctx -> ctx.result(ctx.uploadedFiles().joinToString("\n")) }
 
         val response = http.post("/test-upload")
-            .header("content-type", "plain/text")
-            .body("")
-            .asString()
+                .header("content-type", "plain/text")
+                .body("")
+                .asString()
 
         assertThat(response.body).isEqualTo("")
     }

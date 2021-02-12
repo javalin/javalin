@@ -39,7 +39,7 @@ object JavalinRenderer {
         val extension = if (filePath.hasTwoDots) filePath.doubleExtension else filePath.extension
         val renderer = extensions[extension]
                 ?: extensions[filePath.extension] // fallback to a non-double extension
-                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.") 
+                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
         return renderer.render(filePath, baseModelFunction(ctx) + model, ctx)//overrides the base model
     }
 
