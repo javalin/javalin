@@ -14,6 +14,7 @@ import io.javalin.http.util.ContextUtil.isLocalhost
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.plugin.rendering.vue.FileInliner.inlineFiles
 import io.javalin.plugin.rendering.vue.JavalinVue.getAllDependencies
+import io.javalin.plugin.rendering.vue.JavalinVue.resourcesJarClass
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
@@ -47,6 +48,9 @@ object JavalinVue {
 
     @JvmField
     var isDevFunction: (Context) -> Boolean = { it.isLocalhost() }
+
+    @JvmField
+    var resourcesJarClass = PathMaster::class
 
     internal fun walkPaths(): Set<Path> = Files.walk(vueDirPath, 10).collect(Collectors.toSet())
 
@@ -108,17 +112,18 @@ class VueComponent @JvmOverloads constructor(private val component: String, priv
 
 object PathMaster {
     /**
-     * PathMaster::class.java.getResource("").toURI() means that this code will
-     * only work if the resources are in the same jar as Javalin (i.e. in a fat-jar/uber-jar).
+     * By default, resourcesJarClass is PathMaster::class, which means this code will only
+     * work if the resources are in the same jar as Javalin (i.e. in a fat-jar/uber-jar).
+     * You can change resourcesJarClass to whatever class suits your needs.
      *
      * Creating a filesystem is required since we want to "walk" the jar (see [JavalinVue.walkPaths])
      * to find all the .vue files.
      */
-    private val fileSystem by lazy { FileSystems.newFileSystem(PathMaster::class.java.getResource("").toURI(), emptyMap<String, Any>()) }
+    private val fileSystem by lazy { FileSystems.newFileSystem(resourcesJarClass.java.getResource("").toURI(), emptyMap<String, Any>()) }
 
     fun classpathPath(path: String): Path = when {
-        PathMaster::class.java.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path) // we're inside a jar
-        else -> Paths.get(PathMaster::class.java.getResource(path).toURI()) // we're not in jar (probably running from IDE)
+        resourcesJarClass.java.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path) // we're inside a jar
+        else -> Paths.get(resourcesJarClass.java.getResource(path).toURI()) // we're not in jar (probably running from IDE)
     }
 
     fun defaultLocation(isDev: Boolean?) = if (isDev == true) Paths.get("src/main/resources/vue") else classpathPath("/vue")
