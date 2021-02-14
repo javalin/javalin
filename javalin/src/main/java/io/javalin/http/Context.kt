@@ -113,14 +113,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the request body as a [String]. */
     fun body(): String = bodyAsBytes().toString(Charset.forName(characterEncoding))
 
-    /**
-     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
-     * JavalinJson can be configured to use any mapping library.
-     * @return The mapped object
-     */
-    @JvmSynthetic
-    inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
-
     /** Gets the request body as a [ByteArray].
      * Calling this method returns the body as a [ByteArray]. If [io.javalin.core.JavalinConfig.maxRequestSize]
      * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
@@ -183,10 +175,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @JvmOverloads
     fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'", key)
 
-    /** Reified version of [formParam] (Kotlin only) */
-    @JvmSynthetic
-    inline fun <reified T : Any> formParam(key: String, default: String? = null) = formParam(key, T::class.java, default)
-
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
 
@@ -209,10 +197,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Throws [BadRequestResponse] if validation fails.
      */
     fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'", key)
-
-    /** Reified version of [pathParam] (Kotlin only) */
-    @JvmSynthetic
-    inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)
 
     /** Gets a map of all the [pathParam] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
@@ -260,10 +244,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Creates a [Validator] for the header() value, with the prefix "Request header '$header' with the value '$value'" */
     fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), "Request header '$header' with value '${header(header)}'", header)
 
-    /** Reified version of [header] (Kotlin only) */
-    @JvmSynthetic
-    inline fun <reified T : Any> header(header: String) = header(header, T::class.java)
-
     /** Gets a map with all the header keys and values on the request. */
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
 
@@ -305,10 +285,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     @JvmOverloads
     fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'", key)
-
-    /** Reified version of [queryParam] (Kotlin only) */
-    @JvmSynthetic
-    inline fun <reified T : Any> queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
@@ -501,3 +477,4 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a list of all the [splat] values. */
     fun splats(): List<String> = Collections.unmodifiableList(splatList)
 }
+

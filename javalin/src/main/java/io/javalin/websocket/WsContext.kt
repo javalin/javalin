@@ -37,15 +37,9 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun queryParam(key: String, default: String? = null): String? = upgradeCtx.queryParam(key, default)
     fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = upgradeCtx.queryParam(key, clazz, default)
 
-    @JvmSynthetic
-    inline fun <reified T : Any> queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)
-
     fun pathParamMap(): Map<String, String> = upgradeCtx.pathParamMap()
     fun pathParam(key: String): String = upgradeCtx.pathParam(key)
     fun <T> pathParam(key: String, clazz: Class<T>) = upgradeCtx.pathParam(key, clazz)
-
-    @JvmSynthetic
-    inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)
 
     fun host() = upgradeReq.host // why can't we get this from upgradeCtx?
 
@@ -86,7 +80,4 @@ class WsBinaryMessageContext(sessionId: String, session: Session, private val da
 class WsMessageContext(sessionId: String, session: Session, private val message: String) : WsContext(sessionId, session) {
     fun message(): String = message
     fun <T> message(clazz: Class<T>): T = JavalinJson.fromJson(message, clazz)
-
-    @JvmSynthetic
-    inline fun <reified T : Any> message(): T = message(T::class.java)
 }

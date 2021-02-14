@@ -8,6 +8,8 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
+import io.javalin.http.context.body
+import io.javalin.http.context.pathParam
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.dsl.document
