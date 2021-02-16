@@ -127,10 +127,13 @@ object Util {
           |""".trimMargin())
     }
 
-    fun getChecksumAndReset(inputStream: InputStream): String {
+    fun getChecksumAndReset(inputStream: ByteArrayInputStream): String {
+        inputStream.mark(Int.MAX_VALUE) //it's all in memory so there is no readAheadLimit
         val cis = CheckedInputStream(inputStream, Adler32())
-        val out = ByteArrayOutputStream()
-        cis.copyTo(out)
+        var byte = cis.read()
+        while (byte > -1) {
+            byte = cis.read()
+        }
         inputStream.reset()
         return cis.checksum.value.toString()
     }
