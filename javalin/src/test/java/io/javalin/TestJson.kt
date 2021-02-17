@@ -56,7 +56,7 @@ class TestJson {
                 |    "title": "Internal server error",
                 |    "status": 500,
                 |    "type": "https://javalin.io/documentation#internalservererrorresponse",
-                |    "details": []
+                |    "details": {}
                 |}""".trimMargin())
     }
 

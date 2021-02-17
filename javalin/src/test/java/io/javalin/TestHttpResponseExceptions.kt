@@ -54,7 +54,7 @@ class TestHttpResponseExceptions {
                 |    "title": "Off limits!",
                 |    "status": 403,
                 |    "type": "https://javalin.io/documentation#forbiddenresponse",
-                |    "details": []
+                |    "details": {}
                 |}""".trimMargin()
         )
     }
@@ -70,7 +70,7 @@ class TestHttpResponseExceptions {
                 |    "title": "",
                 |    "status": 418,
                 |    "type": "https://javalin.io/documentation#error-responses",
-                |    "details": []
+                |    "details": {}
                 |}""".trimMargin()
         )
     }
@@ -149,7 +149,7 @@ class TestHttpResponseExceptions {
                 |    "title": "Forbidden",
                 |    "status": 403,
                 |    "type": "https://javalin.io/documentation#forbiddenresponse",
-                |    "details": []
+                |    "details": {}
                 |}""".trimMargin()
         )
     }
@@ -162,7 +162,7 @@ class TestHttpResponseExceptions {
                 |    "title": "Off limits!",
                 |    "status": 403,
                 |    "type": "https://javalin.io/documentation#forbiddenresponse",
-                |    "details": []
+                |    "details": {}
                 |}""".trimMargin()
         )
         assertThat(http.htmlGet("/").body).isEqualTo("Only mapped for HTML")
@@ -174,6 +174,18 @@ class TestHttpResponseExceptions {
         app.get("/") { throw BadRequestResponse() }
         app.exception(BadRequestResponse::class.java) { e, ctx -> ctx.result(randomNumberString) }
         assertThat(http.getBody("/")).isEqualTo(randomNumberString)
+    }
+
+    @Test
+    fun `details are displayed as a map in json`() = TestUtil.test { app, http ->
+        app.get("/") { throw ForbiddenResponse("Off limits!", mapOf("a" to "A", "b" to "B")) }
+        assertThat(http.jsonGet("/").body).isEqualTo("""{
+                |    "title": "Off limits!",
+                |    "status": 403,
+                |    "type": "https://javalin.io/documentation#forbiddenresponse",
+                |    "details": {"a":"A","b":"B"}
+                |}""".trimMargin()
+        )
     }
 
 }

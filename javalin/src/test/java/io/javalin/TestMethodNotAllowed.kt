@@ -31,7 +31,7 @@ class TestMethodNotAllowed {
             |    "title": "Method not allowed",
             |    "status": 405,
             |    "type": "https://javalin.io/documentation#methodnotallowedresponse",
-            |    "details": [{"availableMethods": "POST, PUT, DELETE"}]
+            |    "details": {"availableMethods":"POST, PUT, DELETE"}
             |}""".trimMargin()
         assertThat(http.jsonGet("/test").status).isEqualTo(HttpServletResponse.SC_METHOD_NOT_ALLOWED)
         assertThat(http.jsonGet("/test").body).isEqualTo(expectedJson)

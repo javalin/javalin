@@ -21,7 +21,7 @@ object HttpResponseExceptionMapper {
                 |    "title": "${e.message?.jsonEscape()}",
                 |    "status": ${e.status},
                 |    "type": "${getTypeUrl(e).toLowerCase()}",
-                |    "details": ${e.details.map { """{"${it.key}": "${it.value.jsonEscape()}"}""" }}
+                |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
                 |}""".trimMargin()
             ).contentType("application/json")
         } else {
