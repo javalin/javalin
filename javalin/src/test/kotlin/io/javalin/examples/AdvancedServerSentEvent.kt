@@ -13,7 +13,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
-fun main(args: Array<String>) {
+fun main() {
 
     val tp = QueuedThreadPool(8, 2, 60_000)
     val counterClients = ConcurrentLinkedQueue<SseClient>()

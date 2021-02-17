@@ -13,7 +13,7 @@ import io.javalin.plugin.json.JavalinJson
 import io.javalin.plugin.json.ToJsonMapper
 import java.util.*
 
-fun main(args: Array<String>) {
+fun main() {
 
     val gson = GsonBuilder().create()
 

@@ -8,7 +8,7 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 
-fun main(args: Array<String>) {
+fun main() {
     Javalin.create { it.addStaticFiles("/public") }.start(7070)
 }
 

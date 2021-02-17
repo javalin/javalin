@@ -8,7 +8,7 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 
-fun main(args: Array<String>) {
+fun main() {
     val app = Javalin.create().start(7070)
     app.get("/") { ctx -> ctx.result("Hello World") }
 }

@@ -9,7 +9,7 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.core.util.FileUtil
 
-fun main(args: Array<String>) {
+fun main() {
 
     Javalin.create().apply {
         get("/") { ctx ->

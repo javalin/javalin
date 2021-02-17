@@ -21,7 +21,7 @@ enum class MyRoles : Role {
     ROLE_ONE, ROLE_TWO, ROLE_THREE
 }
 
-fun main(args: Array<String>) {
+fun main() {
 
     val app = Javalin.create { it.accessManager(::accessManager) }.start(7070)
 

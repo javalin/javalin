@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
-fun main(args: Array<String>) {
+fun main() {
     val app = Javalin.create().start(7070)
 
     app.get("/image/:color/width/:width/height/:height") { ctx ->

@@ -9,7 +9,7 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.testing.TypedException
 
-fun main(args: Array<String>) {
+fun main() {
 
     Javalin.create().apply {
 
