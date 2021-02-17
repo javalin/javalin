@@ -87,7 +87,7 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.atlassian.commonmark</groupId>
+            <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
             <optional>true</optional>
         </dependency>
