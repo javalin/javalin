@@ -74,7 +74,7 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val 
         fun <T> create(clazz: Class<T>, value: String?, messagePrefix: String = "Value", key: String = "Parameter"): Validator<T> {
             return Validator(try {
                 val converter = JavalinValidation.converters[clazz] ?: throw MissingConverterException(clazz.simpleName)
-                if (value != null && value.isNotEmpty()) {
+                if (value != null) {
                     converter.invoke(value) ?: throw NullPointerException()
                 } else {
                     null
