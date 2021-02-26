@@ -43,10 +43,11 @@ interface PathParserSpec {
     val pathParamNames: List<String>
     fun matches(url: String): Boolean
     fun extractPathParams(url: String): Map<String, String>
+    fun extractSplats(url: String): List<String>
 }
 
-private class PathParserSpecImpl(path: String, options: PathParserOptions) : PathParserSpec {
-    val impl = PathParser2(path, options)
+private class PathParserSpecImpl(path: String, options: PathParserOptions, ignoreTrailingSlashes: Boolean) : PathParserSpec {
+    val impl = PathParser2(path, options, ignoreTrailingSlashes)
 
     override val segments: List<PathSegment2>
         get() = impl.segments
@@ -57,7 +58,8 @@ private class PathParserSpecImpl(path: String, options: PathParserOptions) : Pat
     override fun matches(url: String): Boolean = impl.matches(url)
 
     override fun extractPathParams(url: String): Map<String, String> = impl.extractPathParams(url)
+    override fun extractSplats(url: String): List<String> = impl.extractSplats(url)
 
 }
 
-fun createPathParser(path: String): PathParserSpec = PathParserSpecImpl(path, JavalinPathParser.parserOptions)
+fun createPathParser(path: String, ignoreTrailingSlashes: Boolean): PathParserSpec = PathParserSpecImpl(path, JavalinPathParser.parserOptions, ignoreTrailingSlashes)

@@ -24,7 +24,7 @@ data class PathParserOptions(
         val closingDelimiterType2: Char = '>'
 )
 
-class PathParser2(private val path: String, private val options: PathParserOptions) {
+class PathParser2(private val path: String, private val options: PathParserOptions, ignoreTrailingSlashes: Boolean) {
 
     private val adjacentViolations: List<String> = listOf(
             "*${options.openingDelimiterType1}",
@@ -141,15 +141,25 @@ class PathParser2(private val path: String, private val options: PathParserOptio
 
     internal val pathParamNames: List<String> = segments.map { it.pathParamNames() }.flatten()
 
-    private val matchRegex = "^/${segments.joinToString("/") { it.asRegexString() }}/?$".toRegex()
+    //compute matchRegex suffix : if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
+    private val regexSuffix = when {
+        ignoreTrailingSlashes -> "/?"
+        path.endsWith("/") -> "/"
+        else -> ""
+    }
 
-    private val pathParamRegex = "^/${segments.joinToString("/") { it.asGroupedRegexString() }}/?$".toRegex()
+    private val matchRegex = "^/${segments.joinToString("/") { it.asRegexString() }}$regexSuffix$".toRegex()
+
+    private val pathParamRegex = "^/${segments.joinToString("/") { it.asGroupedRegexString() }}$regexSuffix$".toRegex()
+    private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex(RegexOption.IGNORE_CASE)
 
     fun matches(url: String): Boolean = url matches matchRegex
 
     fun extractPathParams(url: String): Map<String, String> = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
         name to ContextUtil.urlDecode(value)
     }.toMap()
+
+    fun extractSplats(url: String) = values(splatRegex, url).map { ContextUtil.urlDecode(it) }
 
     // Match and group values, then drop first element (the input string)
     private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
