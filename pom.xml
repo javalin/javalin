@@ -93,8 +93,8 @@
         <junit.version>4.13.1</junit.version>
         <kotlin.openapi.dsl.version>1.0.0</kotlin.openapi.dsl.version>
         <mockk.version>1.10.0</mockk.version>
-        <bytebuddy.version>1.10.15</bytebuddy.version>
-        <bytebuddyagent.version>1.10.15</bytebuddyagent.version>
+        <bytebuddy.version>1.10.22</bytebuddy.version>
+        <bytebuddyagent.version>1.10.22</bytebuddyagent.version>
         <okhttp.version>3.14.7</okhttp.version>
         <selenium.chrome.driver.version>3.141.59</selenium.chrome.driver.version>
         <unirest.version>1.4.9</unirest.version>
