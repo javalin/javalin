@@ -42,7 +42,7 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context
             req.httpServletRequest.setAttribute(upgradeContextKey, ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
             req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, req.session?.attributeNames?.asSequence()?.associateWith { req.session.getAttribute(it) })
-            return@WebSocketCreator WsHandlerController(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
+            return@WebSocketCreator WsConnection(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         }
     }
 

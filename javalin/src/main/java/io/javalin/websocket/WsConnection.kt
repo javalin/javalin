@@ -17,11 +17,11 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * A special WebSocket handler which delegates the handling of the specific WebSocket event to the
- * matching custom handlers.
+ * Is instantiated for every WebSocket connection. It keeps the session and sessionId and handles incoming events by
+ * delegating to the registered before, endpoint, after and logger handlers.
  */
 @WebSocket
-class WsHandlerController(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsHandler?) {
+class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsHandler?) {
 
     private val sessionIds = ConcurrentHashMap<Session, String>()
 
