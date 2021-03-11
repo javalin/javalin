@@ -11,7 +11,7 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
-import io.javalin.websocket.WsHandler;
+import io.javalin.websocket.WsHandlers;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -374,7 +374,7 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
+    public static void ws(@NotNull String path, @NotNull Consumer<WsHandlers> ws) {
         staticInstance().ws(prefixPath(path), ws);
     }
 
@@ -384,7 +384,7 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull String path, @NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
+    public static void ws(@NotNull String path, @NotNull Consumer<WsHandlers> ws, @NotNull Set<Role> permittedRoles) {
         staticInstance().ws(prefixPath(path), ws, permittedRoles);
     }
 
@@ -394,7 +394,7 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull Consumer<WsHandler> ws) {
+    public static void ws(@NotNull Consumer<WsHandlers> ws) {
         staticInstance().ws(prefixPath(""), ws);
     }
 
@@ -404,7 +404,7 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
+    public static void ws(@NotNull Consumer<WsHandlers> ws, @NotNull Set<Role> permittedRoles) {
         staticInstance().ws(prefixPath(""), ws, permittedRoles);
     }
 
@@ -412,32 +412,32 @@ public class ApiBuilder {
      * Adds a WebSocket before handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
-        return staticInstance().wsBefore(prefixPath(path), wsHandler);
+    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsHandlers> wsHandlers) {
+        return staticInstance().wsBefore(prefixPath(path), wsHandlers);
     }
 
     /**
      * Adds a WebSocket before handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsBefore(@NotNull Consumer<WsHandler> wsHandler) {
-        return staticInstance().wsBefore(prefixPath("/*"), wsHandler);
+    public Javalin wsBefore(@NotNull Consumer<WsHandlers> wsHandlers) {
+        return staticInstance().wsBefore(prefixPath("/*"), wsHandlers);
     }
 
     /**
      * Adds a WebSocket after handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
-        return staticInstance().wsAfter(prefixPath(path), wsHandler);
+    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsHandlers> wsHandlers) {
+        return staticInstance().wsAfter(prefixPath(path), wsHandlers);
     }
 
     /**
      * Adds a WebSocket after handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsAfter(@NotNull Consumer<WsHandler> wsHandler) {
-        return staticInstance().wsAfter(prefixPath("/*"), wsHandler);
+    public Javalin wsAfter(@NotNull Consumer<WsHandlers> wsHandlers) {
+        return staticInstance().wsAfter(prefixPath("/*"), wsHandlers);
     }
 
     // ********************************************************************************************

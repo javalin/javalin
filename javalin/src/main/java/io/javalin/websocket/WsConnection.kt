@@ -20,47 +20,47 @@ import java.util.*
  * delegating to the registered before, endpoint, after and logger handlers.
  */
 @WebSocket
-class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsHandler?) {
+class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsHandlers?) {
 
     private val sessionId: String = UUID.randomUUID().toString()
 
     @OnWebSocketConnect
     fun onConnect(session: Session) {
         val ctx = WsConnectContext(sessionId, session)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsConnectHandler?.handleConnect(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsConnectHandler?.handleConnect(ctx) }
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsConnectHandler?.handleConnect(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsConnectHandler?.handleConnect(ctx) }
         wsLogger?.wsConnectHandler?.handleConnect(ctx)
     }
 
     @OnWebSocketMessage
     fun onMessage(session: Session, message: String) {
         val ctx = WsMessageContext(sessionId, session, message)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsMessageHandler?.handleMessage(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsMessageHandler?.handleMessage(ctx) }
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsMessageHandler?.handleMessage(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsMessageHandler?.handleMessage(ctx) }
         wsLogger?.wsMessageHandler?.handleMessage(ctx)
     }
 
     @OnWebSocketMessage
     fun onMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
         val ctx = WsBinaryMessageContext(sessionId, session, buffer, offset, length)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
     }
 
     @OnWebSocketClose
     fun onClose(session: Session, statusCode: Int, reason: String?) {
         val ctx = WsCloseContext(sessionId, session, statusCode, reason)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsCloseHandler?.handleClose(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsCloseHandler?.handleClose(ctx) }
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsCloseHandler?.handleClose(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsCloseHandler?.handleClose(ctx) }
         wsLogger?.wsCloseHandler?.handleClose(ctx)
     }
 
     @OnWebSocketError
     fun onError(session: Session, throwable: Throwable?) {
         val ctx = WsErrorContext(sessionId, session, throwable)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsErrorHandler?.handleError(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsErrorHandler?.handleError(ctx) }
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsErrorHandler?.handleError(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsErrorHandler?.handleError(ctx) }
         wsLogger?.wsErrorHandler?.handleError(ctx)
     }
 
