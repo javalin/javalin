@@ -36,8 +36,8 @@ public class VueDependencyResolver {
     public VueDependencyResolver(final Set<Path> paths) {
         componentIdToOwnContent = new HashMap<>();
         componentIdToDependencyContent = new HashMap<>();
-        paths.stream().filter(JavalinVueKt::isVueFile).forEach(path -> {
-            String fileContent = JavalinVueKt.readText(path);
+        paths.stream().filter(VueComponentKt::isVueFile).forEach(path -> {
+            String fileContent = VueComponentKt.readText(path);
             Matcher matcher = componentRegex.matcher(fileContent); // check for a vue component
             while (matcher.find()) {
                 componentIdToOwnContent.put(matcher.group(1), fileContent); // cache the file content, bound to the component name
@@ -63,7 +63,7 @@ public class VueDependencyResolver {
 
         StringBuilder builder = new StringBuilder();
         dependencies.forEach(dependency -> {
-            builder.append("<!-- ").append(dependency).append("-->\n");
+            builder.append("<!-- ").append(dependency).append(" -->\n");
             builder.append(componentIdToOwnContent.get(dependency));
             builder.append("\n");
         });
@@ -82,8 +82,8 @@ public class VueDependencyResolver {
     private Set<String> resolveTransitiveDependencies(final String componentId) {
         Set<String> requiredComponents = new HashSet<>();
         requiredComponents.add(componentId);// add it to the dependency list
-        Set<String> directDependencies = resolveDirectDependencies(componentId); //get its dependencies
-        requiredComponents.addAll(directDependencies); //add all its dependencies  to the required components list
+        Set<String> directDependencies = resolveDirectDependencies(componentId); // get its dependencies
+        requiredComponents.addAll(directDependencies); // add all its dependencies  to the required components list
         directDependencies.forEach(dependency -> {
             // resolve each dependency
             requiredComponents.addAll(resolveTransitiveDependencies(dependency));
@@ -100,11 +100,11 @@ public class VueDependencyResolver {
     private Set<String> resolveDirectDependencies(final String componentId) {
         Set<String> dependencies = new HashSet<>();
         String componentContent = componentIdToOwnContent.get(componentId);
-        Matcher matcher = tagRegex.matcher(componentContent); //match for HTML tags
+        Matcher matcher = tagRegex.matcher(componentContent); // match for HTML tags
         while (matcher.find()) {
             String match = matcher.group(1);
             if (!match.equals(componentId) && componentIdToOwnContent.containsKey(match)) { // if it isn't the component itself, and its in the component map
-                dependencies.add(match); //add it to the list of dependencies
+                dependencies.add(match); // add it to the list of dependencies
             }
         }
         return dependencies;
