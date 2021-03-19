@@ -14,6 +14,7 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
+import io.javalin.http.util.ContextUtil.maxRequestSizeKey
 import io.javalin.http.util.MethodNotAllowedUtil
 import java.io.InputStream
 import java.util.concurrent.CompletionException
@@ -27,13 +28,13 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     val exceptionMapper = ExceptionMapper()
     val errorMapper = ErrorMapper()
 
-    override fun service(rawReq: HttpServletRequest, rawRes: HttpServletResponse) {
+    override fun service(req: HttpServletRequest, res: HttpServletResponse) {
         try {
-            val wrappedReq = RequestWrapper(rawReq, config)
-            val type = HandlerType.fromServletRequest(wrappedReq)
-            val rwc = ResponseWrapperContext(rawReq, config)
-            val requestUri = wrappedReq.requestURI.removePrefix(wrappedReq.contextPath)
-            val ctx = Context(wrappedReq, rawRes, config.inner.appAttributes)
+            val type = HandlerType.fromServletRequest(req)
+            val rwc = ResponseWrapperContext(req, config)
+            val requestUri = req.requestURI.removePrefix(req.contextPath)
+            val ctx = Context(req, res, config.inner.appAttributes)
+            ctx.attribute(maxRequestSizeKey, config.maxRequestSize)
 
             fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 
@@ -49,7 +50,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     return@tryWithExceptionMapper // return 200, there is a get handler
                 }
                 if (type == HandlerType.HEAD || type == HandlerType.GET) { // let Jetty check for static resources (will write response if found)
-                    if (config.inner.resourceHandler?.handle(wrappedReq, JavalinResponseWrapper(rawRes, rwc)) == true) return@tryWithExceptionMapper
+                    if (config.inner.resourceHandler?.handle(req, JavalinResponseWrapper(res, rwc)) == true) return@tryWithExceptionMapper
                     if (config.inner.singlePageHandler.handle(ctx)) return@tryWithExceptionMapper
                 }
                 if (type == HandlerType.OPTIONS && isCorsEnabled(config)) { // CORS is enabled, so we return 200 for OPTIONS
@@ -82,10 +83,10 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             if (ctx.resultFuture() == null) { // finish request synchronously
                 tryErrorHandlers()
                 tryAfterHandlers()
-                JavalinResponseWrapper(rawRes, rwc).write(ctx.resultStream())
+                JavalinResponseWrapper(res, rwc).write(ctx.resultStream())
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
             } else { // finish request asynchronously
-                val asyncContext = wrappedReq.startAsync().apply { timeout = config.asyncRequestTimeout }
+                val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
                 ctx.resultFuture()!!.exceptionally { throwable ->
                     if (throwable is CompletionException && throwable.cause is Exception) {
                         exceptionMapper.handle(throwable.cause as Exception, ctx)
@@ -109,7 +110,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             Unit // return void
         } catch (t: Throwable) {
             if (!Util.isClientAbortException(t)) {
-                rawRes.status = 500
+                res.status = 500
                 Javalin.log?.error("Exception occurred while servicing http-request", t)
             }
         }

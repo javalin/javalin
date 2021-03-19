@@ -6,14 +6,18 @@
 
 package io.javalin.http.util
 
+import io.javalin.Javalin
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.HandlerEntry
 import io.javalin.http.HandlerType
+import io.javalin.http.HttpResponseException
+import org.eclipse.jetty.http.HttpStatus
 import java.net.URL
 import java.net.URLDecoder
 import java.util.*
+import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -88,5 +92,15 @@ object ContextUtil {
         this.pathParamMap = ctx.pathParamMap
         this.matchedPath = ctx.matchedPath
     }
+
+    fun Context.throwPayloadTooLargeIfPayloadTooLarge() {
+        val maxRequestSize = this.attribute<Long>(maxRequestSizeKey)!!
+        if (this.req.contentLength > maxRequestSize) {
+            Javalin.log?.warn("Body greater than max size ($maxRequestSize bytes)")
+            throw HttpResponseException(HttpStatus.PAYLOAD_TOO_LARGE_413, "Payload too large")
+        }
+    }
+
+    const val maxRequestSizeKey = "javalin-max-request-size"
 
 }

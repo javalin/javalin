@@ -12,6 +12,7 @@ import io.javalin.core.util.Header
 import io.javalin.core.validation.BodyValidator
 import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
+import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
@@ -46,7 +47,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
-    private val body by lazy { req.inputStream.readBytes() }
+    private val body by lazy {
+        this.throwPayloadTooLargeIfPayloadTooLarge()
+        req.inputStream.readBytes()
+    }
 
     /**
      * Registers an extension to the Context, which can be used later in the request-lifecycle.
@@ -130,7 +134,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /**
      * Gets the request body as a [InputStream]
      */
-    fun bodyAsInputStream(): InputStream = body.inputStream()
+    fun bodyAsInputStream(): InputStream = req.inputStream
 
     /**
      * Creates a [Validator] for the body() value, with the prefix "Request body as $clazz"
