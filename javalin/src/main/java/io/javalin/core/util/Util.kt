@@ -11,9 +11,7 @@ import io.javalin.core.JavalinServer
 import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.InputStream
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*

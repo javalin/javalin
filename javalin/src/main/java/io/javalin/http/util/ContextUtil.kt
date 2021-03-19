@@ -17,7 +17,6 @@ import org.eclipse.jetty.http.HttpStatus
 import java.net.URL
 import java.net.URLDecoder
 import java.util.*
-import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 

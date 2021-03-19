@@ -76,8 +76,7 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
     }
 
     fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsHandlers>, permittedRoles: Set<Role>) {
-        wsPathMatcher.add(WsEntry(handlerType, path, config.ignoreTrailingSlashes, WsHandlers()
-            .apply { ws.accept(this) }, permittedRoles))
+        wsPathMatcher.add(WsEntry(handlerType, path, config.ignoreTrailingSlashes, WsHandlers().apply { ws.accept(this) }, permittedRoles))
     }
 }
 

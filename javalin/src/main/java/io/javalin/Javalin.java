@@ -30,8 +30,8 @@ import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsExceptionHandler;
-import io.javalin.websocket.WsHandlers;
 import io.javalin.websocket.WsHandlerType;
+import io.javalin.websocket.WsHandlers;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -73,7 +73,8 @@ public class Javalin {
      * @see Javalin#create(Consumer)
      */
     public static Javalin create() {
-        return create(config -> {});
+        return create(config -> {
+        });
     }
 
     /**
@@ -102,7 +103,8 @@ public class Javalin {
 
     // Create a standalone (non-jetty dependent) Javalin
     public static Javalin createStandalone() {
-        return createStandalone(config -> {});
+        return createStandalone(config -> {
+        });
     }
 
     // Get JavalinServlet (for use in standalone mode)
