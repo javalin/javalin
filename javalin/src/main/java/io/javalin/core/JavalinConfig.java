@@ -43,9 +43,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class JavalinConfig {
     // @formatter:off
-    public static Consumer<JavalinConfig> noopConfig = JavalinConfig -> {}; // no change from default
-    //Left here for backwards compatibility only. Please use CompressionStrategy instead
-    @Deprecated public boolean dynamicGzip = true;
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
@@ -56,9 +53,7 @@ public class JavalinConfig {
     public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
-    //Left for backwards compatibility, please use maxRequestSize instead
-    @Deprecated @NotNull public Long requestCacheSize = 4096L;
-    public Long maxRequestSize;
+    public Long maxRequestSize = 1_000_000L; // server will not accept payloads larger than 1mb by default
     @NotNull public Long asyncRequestTimeout = 0L;
     @NotNull public Inner inner = new Inner();
 
@@ -203,11 +198,6 @@ public class JavalinConfig {
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
-
-        //Backwards compatibility. If deprecated dynamicGzip flag is set to false, disable compression.
-        if (!config.dynamicGzip) {
-            config.inner.compressionStrategy = CompressionStrategy.NONE;
-        }
 
         AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);
         app.events(listener -> {

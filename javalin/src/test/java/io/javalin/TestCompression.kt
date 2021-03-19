@@ -149,8 +149,6 @@ class TestCompression {
         assertThat(getResponse(http.origin, "/html.html", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
     }
 
-    /* Test for backwards compatibility. Ensures that the old dynamicGzip boolean is respected
-       when a CompressionStrategy is not set */
     @Test
     fun `does gzip when CompressionStrategy not set`() {
         val defaultApp = Javalin.create {

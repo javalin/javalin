@@ -43,7 +43,6 @@ object MultipartUtil {
         return UploadedFile(
                 content = filePart.inputStream,
                 contentType = filePart.contentType,
-                contentLength = filePart.size.toInt(),
                 filename = filePart.submittedFileName,
                 extension = filePart.submittedFileName.replaceBeforeLast(".", ""),
                 size = filePart.size

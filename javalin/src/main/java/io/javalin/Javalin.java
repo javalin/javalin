@@ -73,7 +73,7 @@ public class Javalin {
      * @see Javalin#create(Consumer)
      */
     public static Javalin create() {
-        return create(JavalinConfig.noopConfig);
+        return create(config -> {});
     }
 
     /**
@@ -102,7 +102,7 @@ public class Javalin {
 
     // Create a standalone (non-jetty dependent) Javalin
     public static Javalin createStandalone() {
-        return createStandalone(JavalinConfig.noopConfig);
+        return createStandalone(config -> {});
     }
 
     // Get JavalinServlet (for use in standalone mode)
