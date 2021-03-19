@@ -42,7 +42,7 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context
             req.httpServletRequest.setAttribute(upgradeContextKey, ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
             req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, req.session?.attributeNames?.asSequence()?.associateWith { req.session.getAttribute(it) })
-            return@WebSocketCreator WsHandlerController(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
+            return@WebSocketCreator WsConnection(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         }
     }
 
@@ -75,8 +75,9 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
         }
     }
 
-    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsHandler>, permittedRoles: Set<Role>) {
-        wsPathMatcher.add(WsEntry(handlerType, path, config.ignoreTrailingSlashes, WsHandler().apply { ws.accept(this) }, permittedRoles))
+    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsHandlers>, permittedRoles: Set<Role>) {
+        wsPathMatcher.add(WsEntry(handlerType, path, config.ignoreTrailingSlashes, WsHandlers()
+            .apply { ws.accept(this) }, permittedRoles))
     }
 }
 

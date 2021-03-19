@@ -11,7 +11,7 @@ import io.javalin.core.util.RouteOverviewPlugin;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
-import io.javalin.websocket.WsHandler;
+import io.javalin.websocket.WsHandlers;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
@@ -74,8 +74,8 @@ public class VisualTest {
         });
     }
 
-    private static void wsMethodRef(WsHandler wsHandler) {
-        wsHandler.onConnect(ctx -> ctx.session.getRemote().sendString("Connected!"));
+    private static void wsMethodRef(WsHandlers wsHandlers) {
+        wsHandlers.onConnect(ctx -> ctx.session.getRemote().sendString("Connected!"));
     }
 
     private static void methodReference(Context context) {

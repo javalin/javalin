@@ -14,56 +14,53 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 
 /**
- * A special WebSocket handler which delegates the handling of the specific WebSocket event to the
- * matching custom handlers.
+ * Is instantiated for every WebSocket connection. It keeps the session and sessionId and handles incoming events by
+ * delegating to the registered before, endpoint, after and logger handlers.
  */
 @WebSocket
-class WsHandlerController(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsHandler?) {
+class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionMapper, val wsLogger: WsHandlers?) {
 
-    private val sessionIds = ConcurrentHashMap<Session, String>()
+    private val sessionId: String = UUID.randomUUID().toString()
 
     @OnWebSocketConnect
     fun onConnect(session: Session) {
-        sessionIds[session] = UUID.randomUUID().toString() // associate a unique ID with this new session
-        val ctx = WsConnectContext(sessionIds[session]!!, session)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsConnectHandler?.handleConnect(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsConnectHandler?.handleConnect(ctx) }
+        val ctx = WsConnectContext(sessionId, session)
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsConnectHandler?.handleConnect(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsConnectHandler?.handleConnect(ctx) }
         wsLogger?.wsConnectHandler?.handleConnect(ctx)
     }
 
     @OnWebSocketMessage
     fun onMessage(session: Session, message: String) {
-        val ctx = WsMessageContext(sessionIds[session]!!, session, message)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsMessageHandler?.handleMessage(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsMessageHandler?.handleMessage(ctx) }
+        val ctx = WsMessageContext(sessionId, session, message)
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsMessageHandler?.handleMessage(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsMessageHandler?.handleMessage(ctx) }
         wsLogger?.wsMessageHandler?.handleMessage(ctx)
     }
 
     @OnWebSocketMessage
     fun onMessage(session: Session, buffer: ByteArray, offset: Int, length: Int) {
-        val ctx = WsBinaryMessageContext(sessionIds[session]!!, session, buffer, offset, length)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
+        val ctx = WsBinaryMessageContext(sessionId, session, buffer, offset, length)
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsBinaryMessageHandler?.handleBinaryMessage(ctx) }
         wsLogger?.wsBinaryMessageHandler?.handleBinaryMessage(ctx)
     }
 
     @OnWebSocketClose
     fun onClose(session: Session, statusCode: Int, reason: String?) {
-        val ctx = WsCloseContext(sessionIds[session]!!, session, statusCode, reason)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsCloseHandler?.handleClose(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsCloseHandler?.handleClose(ctx) }
+        val ctx = WsCloseContext(sessionId, session, statusCode, reason)
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsCloseHandler?.handleClose(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsCloseHandler?.handleClose(ctx) }
         wsLogger?.wsCloseHandler?.handleClose(ctx)
-        sessionIds.remove(session) // the socket has been closed, we no longer need to keep track of the session ID
     }
 
     @OnWebSocketError
     fun onError(session: Session, throwable: Throwable?) {
-        val ctx = WsErrorContext(sessionIds[session]!!, session, throwable)
-        tryBeforeAndEndpointHandlers(ctx) { it.handler.wsErrorHandler?.handleError(ctx) }
-        tryAfterHandlers(ctx) { it.handler.wsErrorHandler?.handleError(ctx) }
+        val ctx = WsErrorContext(sessionId, session, throwable)
+        tryBeforeAndEndpointHandlers(ctx) { it.handlers.wsErrorHandler?.handleError(ctx) }
+        tryAfterHandlers(ctx) { it.handlers.wsErrorHandler?.handleError(ctx) }
         wsLogger?.wsErrorHandler?.handleError(ctx)
     }
 
