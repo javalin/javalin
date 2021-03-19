@@ -52,22 +52,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         req.inputStream.readBytes()
     }
 
-    /**
-     * Registers an extension to the Context, which can be used later in the request-lifecycle.
-     * This method is mainly useful when calling from Java, as Kotlin has native extension methods.
-     *
-     * Ex: ctx.register(MyExt.class, myExtInstance())
-     */
-    fun register(clazz: Class<*>, value: Any) = req.setAttribute("ctx-ext-${clazz.canonicalName}", value)
-
-    /**
-     * Use an extension stored in the Context.
-     * This method is mainly useful when calling from Java as Kotlin has native extension methods.
-     *
-     * Ex: ctx.use(MyExt.class).myMethod()
-     */
-    fun <T> use(clazz: Class<T>): T = req.getAttribute("ctx-ext-${clazz.canonicalName}") as T
-
     /** Gets an attribute from the Javalin instance serving the request */
     fun <T> appAttribute(clazz: Class<T>): T = appAttributes[clazz] as T
 
