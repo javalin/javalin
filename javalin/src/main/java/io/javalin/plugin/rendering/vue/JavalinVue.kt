@@ -21,7 +21,7 @@ object JavalinVue {
     internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
     @JvmField var isDevFunction: (Context) -> Boolean = { it.isLocalhost() } // used to set isDev, will be called once
     @JvmField var optimizeDependencies = true // only include required components for the route component
-    @JvmField var resourcesJarClass = PathMaster::class // can be any class in the jar to look for resources in
+    @JvmField var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
     @JvmField var stateFunction: (Context) -> Any = { mapOf<String, String>() } // global state that is injected into all VueComponents
     @JvmField var cacheControl = "no-cache, no-store, must-revalidate"
     @JvmField var rootDirectory: Path? = null // is set on first request (if not configured)
@@ -41,11 +41,11 @@ object JavalinVue {
  */
 object PathMaster {
     /** We create a filesystem to "walk" the jar ([JavalinVue.walkPaths]) to find all the .vue files. */
-    private val fileSystem by lazy { FileSystems.newFileSystem(jarClass.java.getResource("").toURI(), emptyMap<String, Any>()) }
+    private val fileSystem by lazy { FileSystems.newFileSystem(jarClass.getResource("").toURI(), emptyMap<String, Any>()) }
 
     fun classpathPath(path: String): Path = when {
-        jarClass.java.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path) // we're inside a jar
-        else -> Paths.get(jarClass.java.getResource(path).toURI()) // we're not in jar (probably running from IDE)
+        jarClass.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path) // we're inside a jar
+        else -> Paths.get(jarClass.getResource(path).toURI()) // we're not in jar (probably running from IDE)
     }
 
     fun defaultLocation(isDev: Boolean?) = if (isDev == true) Paths.get("src/main/resources/vue") else classpathPath("/vue")
