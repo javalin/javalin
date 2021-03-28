@@ -35,7 +35,7 @@ object JavalinVue {
     @JvmStatic internal var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
 
     // For completeness, you may add this convenient version for String based path setup
-    @JvmStatic fun rootDirectory(path: String) { rootDirectory = Path.of(path) }
+    @JvmStatic fun rootDirectory(path: String) { rootDirectory = Paths.get(path) }
 
     // The user can either use the property value setter for external path or this function for classpath related values, but giving the
     // class and the path at the same time
