@@ -30,7 +30,7 @@ public class TestJavalinVueResolution {
 
     @Before
     public void resetJavalinVue() {
-        JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL); // src/main -> src/test
+        JavalinVue.rootDirectory("src/test/resources/vue"); // src/main -> src/test
         JavalinVue.optimizeDependencies = true;
     }
 
