@@ -33,6 +33,10 @@ object JavalinVue {
 
     // Making this private and only settable by rootDirectory()
     @JvmStatic internal var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
+
+    // For completeness, you may add this convenient version for String based path setup
+    @JvmStatic fun rootDirectory(path: String) { rootDirectory = Path.of(path) }
+
     // The user can either use the property value setter for external path or this function for classpath related values, but giving the
     // class and the path at the same time
     @JvmStatic fun rootDirectory(path: String, resourcesJarClass: Class<*> = PathMaster::class.java) {
@@ -53,12 +57,18 @@ object JavalinVue {
  */
 object PathMaster {
     /** We create a filesystem to "walk" the jar ([JavalinVue.walkPaths]) to find all the .vue files. */
-    private val fileSystem by lazy { FileSystems.newFileSystem(jarClass.getResource("").toURI(), emptyMap<String, Any>()) }
+    private val fileSystem by lazy {
+        FileSystems.newFileSystem(
+            jarClass.getResource("").toURI(),
+            emptyMap<String, Any>()
+        )
+    }
 
     fun classpathPath(path: String): Path = when {
         jarClass.getResource(path).toURI().scheme == "jar" -> fileSystem.getPath(path) // we're inside a jar
         else -> Paths.get(jarClass.getResource(path).toURI()) // we're not in jar (probably running from IDE)
     }
 
-    fun defaultLocation(isDev: Boolean?) = if (isDev == true) Paths.get("src/main/resources/vue") else classpathPath("/vue")
+    fun defaultLocation(isDev: Boolean?) =
+        if (isDev == true) Paths.get("src/main/resources/vue") else classpathPath("/vue")
 }
