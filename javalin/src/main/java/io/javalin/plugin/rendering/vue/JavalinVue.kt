@@ -7,7 +7,6 @@
 package io.javalin.plugin.rendering.vue
 
 import io.javalin.http.Context
-import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil.isLocalhost
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -21,13 +20,26 @@ object JavalinVue {
     internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
     @JvmField var isDevFunction: (Context) -> Boolean = { it.isLocalhost() } // used to set isDev, will be called once
     @JvmField var optimizeDependencies = true // only include required components for the route component
-    @JvmField var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
     @JvmField var stateFunction: (Context) -> Any = { mapOf<String, String>() } // global state that is injected into all VueComponents
     @JvmField var cacheControl = "no-cache, no-store, must-revalidate"
     @JvmField var rootDirectory: Path? = null // is set on first request (if not configured)
-    @JvmStatic fun rootDirectory(path: String, location: Location) {
-        rootDirectory = if (location == Location.CLASSPATH) PathMaster.classpathPath(path) else Paths.get(path)
+    // Balage's note:
+    // I think it is dangerous for CLASSPATH mode: if you set first the rootDirectory it will be calculated using
+    // the Path finder as "jarClass". And even if you override the resourcesJarClass, it will not be recalculated!
+    // If you wish to keep it backward compatible, this may be made deprecated instead
+//    @JvmStatic fun rootDirectory(path: String, location: Location) {
+//        rootDirectory = if (location == Location.CLASSPATH) PathMaster.classpathPath(path) else Paths.get(path)
+//    }
+
+    // Making this private and only settable by rootDirectory()
+    @JvmStatic internal var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
+    // The user can either use the property value setter for external path or this function for classpath related values, but giving the
+    // class and the path at the same time
+    @JvmStatic fun rootDirectory(path: String, resourcesJarClass: Class<*> = PathMaster::class.java) {
+        this.resourcesJarClass = resourcesJarClass
+        rootDirectory = PathMaster.classpathPath(path)
     }
+
     internal fun walkPaths(): Set<Path> = Files.walk(rootDirectory, 20).collect(Collectors.toSet())
     internal val cachedPaths by lazy { walkPaths() }
     internal val cachedDependencyResolver by lazy { VueDependencyResolver(cachedPaths) }
