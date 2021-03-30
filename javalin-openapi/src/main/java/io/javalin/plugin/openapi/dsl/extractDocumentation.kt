@@ -103,8 +103,9 @@ private val HandlerMetaInfo.methodReferenceOfHandler: Method?
             when {
                 handlerReflection.isClass -> (handler as Class<*>).methods[0]
                 handlerReflection.isKotlinMethodReference -> {
-                    val functionValue = handlerReflection.getFieldValue("function") as KFunction<*>
-                    functionValue.javaMethod
+                    val field = handlerReflection.obj.javaClass.declaredFields.single()
+                    field.isAccessible = true
+                    (field.get(handlerReflection.obj) as KFunction<*>).javaMethod
                 }
                 handlerReflection.isKotlinAnonymousLambda -> null // Cannot be parsed
                 handlerReflection.isJavaNonStaticMethodReference -> methodReferenceOfNonStaticJavaHandler
