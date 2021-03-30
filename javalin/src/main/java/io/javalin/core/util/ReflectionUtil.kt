@@ -41,7 +41,7 @@ internal val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosi
 
 internal val Any.isCrudFunction: Boolean get() = (this is CrudFunctionHandler)
 
-internal val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.any { it.name == "function" }
+internal val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.count { it.name == "function" || it.name == "\$tmp0" } == 1
 
 internal val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
 
