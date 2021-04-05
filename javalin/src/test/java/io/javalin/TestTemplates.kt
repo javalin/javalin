@@ -12,7 +12,6 @@ import com.mitchellbosecke.pebble.loader.ClasspathLoader
 import gg.jte.ContentType
 import gg.jte.TemplateEngine
 import gg.jte.resolve.ResourceCodeResolver
-import io.javalin.plugin.rendering.FileRenderer
 import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.plugin.rendering.template.JavalinJte
 import io.javalin.plugin.rendering.template.JavalinJtwig
@@ -186,7 +185,7 @@ class TestTemplates {
 
     @Test
     fun `registering custom renderer works`() = TestUtil.test { app, http ->
-        JavalinRenderer.register(FileRenderer { _, _, _ -> "Hah." }, ".lol")
+        JavalinRenderer.register({ _, _, _ -> "Hah." }, ".lol")
         app.get("/hello") { ctx -> ctx.render("/markdown/test.lol") }
         assertThat(http.getBody("/hello")).isEqualTo("Hah.")
     }
@@ -205,14 +204,14 @@ class TestTemplates {
 
     @Test
     fun `base Model works`() = TestUtil.test { app, http ->
-        JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap()) };
+        JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap()) }
         app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-base.ftl", model("message", "Hello Freemarker!")) }
         assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>bar</h3>")
     }
 
     @Test
     fun `base model overwrite works`() = TestUtil.test { app, http ->
-        JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap()) };
+        JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap()) }
         app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-base.ftl", model("foo", "baz")) }
         assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>baz</h3>")
     }
