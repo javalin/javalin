@@ -87,6 +87,11 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>gg.jte</groupId>
+            <artifactId>jte-kotlin</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
             <optional>true</optional>

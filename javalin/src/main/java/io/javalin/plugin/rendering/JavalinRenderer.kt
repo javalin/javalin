@@ -29,7 +29,7 @@ object JavalinRenderer {
         register(JavalinPebble, ".peb", ".pebble")
         register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
         register(JavalinCommonmark, ".md", ".markdown")
-        register(JavalinJte, ".jte")
+        register(JavalinJte, ".jte", ".kte")
     }
 
     @JvmField
