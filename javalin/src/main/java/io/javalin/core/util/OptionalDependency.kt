@@ -26,5 +26,5 @@ enum class OptionalDependency(val displayName: String, val testClass: String, va
     SWAGGER_CORE("Swagger Core", "io.swagger.v3.oas.models.OpenAPI", "io.swagger.core.v3", "swagger-models", "2.1.6"),
     CLASS_GRAPH("ClassGraph", "io.github.classgraph.ClassGraph", "io.github.classgraph", "classgraph", "4.8.102"),
     JVMBROTLI("Jvm-Brotli", "com.nixxcode.jvmbrotli.common.BrotliLoader", "com.nixxcode.jvmbrotli", "jvmbrotli", "0.2.0"),
-    JTE("jte", "gg.jte.TemplateEngine", "gg.jte", "jte", "1.6.0"),
+    JTE("jte", "gg.jte.TemplateEngine", "gg.jte", "jte", "1.9.0"),
 }
