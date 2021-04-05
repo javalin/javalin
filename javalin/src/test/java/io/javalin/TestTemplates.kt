@@ -159,6 +159,20 @@ class TestTemplates {
     }
 
     @Test
+    fun `jte kotlin works`() = TestUtil.test { app, http ->
+        JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
+        app.get("/hello") { ctx -> ctx.render("test.kte", model("page", JteTestPage("hello", "world"))) }
+        assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
+    }
+
+    @Test
+    fun `jte kotlin multiple params work`() = TestUtil.test { app, http ->
+        JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
+        app.get("/hello") { ctx -> ctx.render("multiple-params.kte", model("one", "hello", "two", "world")) }
+        assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
+    }
+
+    @Test
     fun `markdown works`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("/markdown/test.md") }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Markdown!</h1>\n")

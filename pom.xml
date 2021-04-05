@@ -207,6 +207,11 @@
                 <version>${jte.version}</version>
             </dependency>
             <dependency>
+                <groupId>gg.jte</groupId>
+                <artifactId>jte-kotlin</artifactId>
+                <version>${jte.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.commonmark</groupId>
                 <artifactId>commonmark</artifactId>
                 <version>${commonmark.version}</version>
