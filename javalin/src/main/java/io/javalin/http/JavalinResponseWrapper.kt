@@ -35,16 +35,26 @@ class JavalinResponseWrapper(val res: HttpServletResponse, private val rwc: Resp
 
     fun write(resultStream: InputStream?) {
         if (resultStream == null) return
+        var inputStream = resultStream
         if (res.getHeader(ETAG) != null || (rwc.config.autogenerateEtags && rwc.type == HandlerType.GET)) {
-            val serverEtag = res.getHeader(ETAG) ?: Util.getChecksumAndReset(resultStream) // calculate if not set
+            val serverEtag: String
+            if (res.getHeader(ETAG) != null) {
+                serverEtag = res.getHeader(ETAG)
+            } else {
+                //we must load and wrap the whole input stream into memory in order to generate the etag based on the whole content
+                inputStream = resultStream.readBytes().inputStream()
+                resultStream.close() //close original stream, it was already copied to byte array
+                serverEtag = Util.getChecksumAndReset(inputStream)
+            }
             res.setHeader(ETAG, serverEtag)
             if (serverEtag == rwc.clientEtag) {
                 res.status = 304
+                inputStream.close()
                 return // don't write body
             }
         }
-        resultStream.copyTo(outputStreamWrapper)
-        resultStream.close()
+        inputStream.copyTo(outputStreamWrapper)
+        inputStream.close()
         outputStreamWrapper.finalize()
     }
 
