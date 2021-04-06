@@ -19,6 +19,7 @@ import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.Base64
 import java.util.regex.Matcher
 import java.util.stream.Collectors
 
@@ -26,6 +27,8 @@ object JavalinVue {
 
     internal var isDev: Boolean? = null
     internal var vueDirPath: Path? = null
+
+    private val base64Encoder = Base64.getEncoder()
 
     @JvmStatic
     fun rootDirectory(path: String, location: Location) {
@@ -71,19 +74,14 @@ object JavalinVue {
     // replace("\\", "\\\\") because we need the backslash to remain after evaluating the string
     internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
         |    Vue.prototype.${"$"}javalin = {
-        |        pathParams: `${htmlEscape(JavalinJson.toJson(ctx.pathParamMap()))?.replace("\\", "\\\\")}`,
-        |        queryParams: `${htmlEscape(JavalinJson.toJson(ctx.queryParamMap()))?.replace("\\", "\\\\")}`,
-        |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
+        |        pathParams: "${base64Encoder.encodeToString(JavalinJson.toJson(ctx.pathParamMap()).toByteArray(Charsets.UTF_8))}",
+        |        queryParams: "${base64Encoder.encodeToString(JavalinJson.toJson(ctx.queryParamMap()).toByteArray(Charsets.UTF_8))}",
+        |        state: "${base64Encoder.encodeToString(JavalinJson.toJson(state ?: stateFunction(ctx)).toByteArray(Charsets.UTF_8))}"
         |    }""".trimMargin() + "\n</script>\n" + decodeParams()
 
     private fun decodeParams() = "\n<script>\n" + """
-        |    function ____decode(string) { // used for decoding HTML encoded params
-        |        let textArea = document.createElement("textarea");
-        |        textArea.innerHTML = string;
-        |        return textArea.value;
-        |    }
-        |    ["queryParams", "pathParams"].forEach((key) => {
-        |        Vue.prototype.${"$"}javalin[key] = JSON.parse(____decode(Vue.prototype.${"$"}javalin[key]));
+        |    ["queryParams", "pathParams", "state"].forEach((key) => {
+        |        Vue.prototype.${"$"}javalin[key] = JSON.parse(atob(Vue.prototype.${"$"}javalin[key]));
         |    });""".trimMargin() + "\n</script>\n"
 
     private fun String.replaceWebjarsWithCdn() =
@@ -154,14 +152,3 @@ object FileInliner {
 fun Path.readText() = String(Files.readAllBytes(this))
 fun Path.isVueFile() = this.toString().endsWith(".vue")
 
-fun htmlEscape(string: String?) = string?.toCharArray()?.map {
-    when (it) {
-        '<' -> "&lt;"
-        '>' -> "&gt;"
-        '&' -> "&amp;"
-        '"' -> "&quot;"
-        '\'' -> "&#x27;"
-        '/' -> "&#x2F;"
-        else -> it
-    }
-}?.joinToString("")
