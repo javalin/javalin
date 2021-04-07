@@ -83,7 +83,7 @@ object JavalinVue {
     // Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".
     // All other encodings are implemented correctly, therefore we can simply replace the character in the encoded String.
     private fun String.uriEncodeForJavascript() =
-        URLEncoder.encode(this, Charsets.UTF_8).replace("+","%20")
+        URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+","%20")
 
     private fun String.replaceWebjarsWithCdn() =
             this.replace("@cdnWebjar/", if (isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
