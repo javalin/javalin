@@ -124,4 +124,22 @@ class TestWebBrowser {
         assertThat(stateValue).isEqualTo(testValue)
     }
 
+    @Test
+    fun `utf8 characters in state and parameters`() = TestUtil.test { app, http ->
+        TestJavalinVue.before()
+        val testValue = "some value with weird ✔️ \uD83C\uDF89 characters in it"
+        JavalinVue.stateFunction = {
+            mapOf("some_key" to testValue)
+        }
+        app.get("/script_in_state/:param", VueComponent("<test-component></test-component>"))
+        driver.get(http.origin + "/script_in_state/my_path_param_with_\uD83D\uDE80?☕=\uD83D\uDC95")
+        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
+        val queryParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.queryParams["☕"]""") as List<String>
+
+        assertThat(stateValue).isEqualTo(testValue)
+        assertThat(pathParam).isEqualTo("my_path_param_with_\uD83D\uDE80")
+        assertThat(queryParam).isEqualTo(listOf("\uD83D\uDC95"))
+    }
+
 }
