@@ -19,7 +19,6 @@ import org.junit.AfterClass
 import org.junit.Assume
 import org.junit.BeforeClass
 import org.junit.Test
-import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import java.io.File
@@ -140,6 +139,25 @@ class TestWebBrowser {
         assertThat(stateValue).isEqualTo(testValue)
         assertThat(pathParam).isEqualTo("my_path_param_with_\uD83D\uDE80")
         assertThat(queryParam).isEqualTo(listOf("\uD83D\uDC95"))
+    }
+
+    @Test
+    fun `problematic characters in state and parameters`() = TestUtil.test { app, http ->
+        TestJavalinVue.before()
+        val testValue = "-_.!~*'()"
+        println(testValue)
+        JavalinVue.stateFunction = {
+            mapOf("some_key" to testValue)
+        }
+        app.get("/script_in_state/:param", VueComponent("<test-component></test-component>"))
+        driver.get(http.origin + "/script_in_state/$testValue?my_key=$testValue")
+        val stateValue = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+        val pathParam = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
+        val queryParam = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.queryParams["my_key"]""") as List<String>
+
+        assertThat(stateValue).isEqualTo(testValue)
+        assertThat(pathParam).isEqualTo(testValue)
+        assertThat(queryParam).isEqualTo(listOf(testValue))
     }
 
 }
