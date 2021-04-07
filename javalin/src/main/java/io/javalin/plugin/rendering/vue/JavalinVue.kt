@@ -15,11 +15,11 @@ import io.javalin.plugin.json.JavalinJson
 import io.javalin.plugin.rendering.vue.FileInliner.inlineFiles
 import io.javalin.plugin.rendering.vue.JavalinVue.getAllDependencies
 import io.javalin.plugin.rendering.vue.JavalinVue.resourcesJarClass
+import java.net.URLEncoder
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.Base64
 import java.util.regex.Matcher
 import java.util.stream.Collectors
 
@@ -27,8 +27,6 @@ object JavalinVue {
 
     internal var isDev: Boolean? = null
     internal var vueDirPath: Path? = null
-
-    private val base64Encoder = Base64.getEncoder()
 
     @JvmStatic
     fun rootDirectory(path: String, location: Location) {
@@ -71,18 +69,21 @@ object JavalinVue {
     internal fun getAllDependencies(paths: Set<Path>) = paths.filter { it.isVueFile() }
             .joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
 
-    // replace("\\", "\\\\") because we need the backslash to remain after evaluating the string
-    internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" + """
-        |    Vue.prototype.${"$"}javalin = {
-        |        pathParams: "${base64Encoder.encodeToString(JavalinJson.toJson(ctx.pathParamMap()).toByteArray(Charsets.UTF_8))}",
-        |        queryParams: "${base64Encoder.encodeToString(JavalinJson.toJson(ctx.queryParamMap()).toByteArray(Charsets.UTF_8))}",
-        |        state: "${base64Encoder.encodeToString(JavalinJson.toJson(state ?: stateFunction(ctx)).toByteArray(Charsets.UTF_8))}"
-        |    }""".trimMargin() + "\n</script>\n" + decodeParams()
+    internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
+        "Vue.prototype.\$javalin = JSON.parse(decodeURIComponent(\"${
+            JavalinJson.toJson(
+                mapOf(
+                    "pathParams" to ctx.pathParamMap(),
+                    "queryParams" to ctx.queryParamMap(),
+                    "state" to (state ?: stateFunction(ctx))
+                )
+            ).uriEncodeForJavascript()}\"))\n</script>\n"
 
-    private fun decodeParams() = "\n<script>\n" + """
-        |    ["queryParams", "pathParams", "state"].forEach((key) => {
-        |        Vue.prototype.${"$"}javalin[key] = JSON.parse(atob(Vue.prototype.${"$"}javalin[key]));
-        |    });""".trimMargin() + "\n</script>\n"
+    // Unfortunately, Java's URLEncoder does not encode the space character in the same way as Javascript.
+    // Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".
+    // All other encodings are implemented correctly, therefore we can simply replace the character in the encoded String.
+    private fun String.uriEncodeForJavascript() =
+        URLEncoder.encode(this, Charsets.UTF_8).replace("+","%20")
 
     private fun String.replaceWebjarsWithCdn() =
             this.replace("@cdnWebjar/", if (isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
