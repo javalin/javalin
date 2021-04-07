@@ -18,6 +18,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
+import java.net.URLEncoder
 import java.nio.file.Paths
 
 class TestJavalinVue {
@@ -42,10 +43,12 @@ class TestJavalinVue {
 
     private val state = State(User("tipsy", "tipsy@tipsy.tipsy"), Role("Maintainer"))
 
+    private fun String.uriEncodeForJavascript() =
+        URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+","%20")
+
     @Test
     fun `vue component with state`() = TestUtil.test { app, http ->
-        // This is just encodeURIComponent('{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}')
-        val encodedState = "%7B%22pathParams%22%3A%7B%22my-param%22%3A%22test-path-param%22%7D%2C%22queryParams%22%3A%7B%22qp%22%3A%5B%22test-query-param%22%5D%7D%2C%22state%22%3A%7B%22user%22%3A%7B%22name%22%3A%22tipsy%22%2C%22email%22%3A%22tipsy%40tipsy.tipsy%22%7D%2C%22role%22%3A%7B%22name%22%3A%22Maintainer%22%7D%7D%7D"
+        val encodedState = """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { ctx -> state }
         app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/vue/test-path-param?qp=test-query-param")
@@ -56,8 +59,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue component without state`() = TestUtil.test { app, http ->
-        // This is just encodeURIComponent('{"pathParams":{},"queryParams":{},"state":{}}')
-        val encodedEmptyState = "%7B%22pathParams%22%3A%7B%7D%2C%22queryParams%22%3A%7B%7D%2C%22state%22%3A%7B%7D%7D"
+        val encodedEmptyState = """{"pathParams":{},"queryParams":{},"state":{}}""".uriEncodeForJavascript()
 
         app.get("/no-state", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/no-state")
@@ -67,11 +69,9 @@ class TestJavalinVue {
 
     @Test
     fun `vue component with component-specific state`() = TestUtil.test { app, http ->
-        // This is just encodeURIComponent('{"pathParams":{},"queryParams":{},"state":{}}')
-        val encodedEmptyState = "%7B%22pathParams%22%3A%7B%7D%2C%22queryParams%22%3A%7B%7D%2C%22state%22%3A%7B%7D%7D"
+        val encodedEmptyState = """{"pathParams":{},"queryParams":{},"state":{}}""".uriEncodeForJavascript()
 
-        // This is just encodeURIComponent('{"pathParams":{},"queryParams":{},"state":{"test":"tast"}}')
-        val encodedTestState = "%7B%22pathParams%22%3A%7B%7D%2C%22queryParams%22%3A%7B%7D%2C%22state%22%3A%7B%22test%22%3A%22tast%22%7D%7D"
+        val encodedTestState = """{"pathParams":{},"queryParams":{},"state":{"test":"tast"}}""".uriEncodeForJavascript()
 
         app.get("/no-state", VueComponent("<test-component></test-component>"))
         val noStateRes = http.getBody("/no-state")
@@ -108,8 +108,7 @@ class TestJavalinVue {
 
     @Test
     fun `quotes are handled correctly`() = TestUtil.test { app, http ->
-        // This is just encodeURIComponent('"test":["\\"cool\\""]')
-        val encodedTestObject = "%22test%22%3A%5B%22%5C%22cool%5C%22%22%5D"
+        val encodedTestObject = """"test":["\"cool\""]""".uriEncodeForJavascript()
         app.get("/escaped", VueComponent("<test-component></test-component>"))
 
         assertThat(http.getBody("""/escaped?test=%22cool%22""")).contains(encodedTestObject)
