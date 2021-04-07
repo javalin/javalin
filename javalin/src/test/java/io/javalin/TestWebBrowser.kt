@@ -18,6 +18,7 @@ import org.junit.AfterClass
 import org.junit.Assume
 import org.junit.BeforeClass
 import org.junit.Test
+import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import java.io.File
@@ -99,11 +100,10 @@ class TestWebBrowser {
 
     @Test
     fun `path params are not html-encoded on the Vue prototype`() = TestUtil.test { app, http ->
-        val q = "&quot;"
         TestJavalinVue.before()
         app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
         driver.get(http.origin + "/vue/odd&co")
-        assertThat(driver.pageSource).contains("""pathParams: `{${q}my-param${q}:${q}odd&amp;co${q}}`,""")
+
         val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
         assertThat(pathParam).isEqualTo("odd&co")
         val nullParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.queryParams["my-param"]""") as String?
