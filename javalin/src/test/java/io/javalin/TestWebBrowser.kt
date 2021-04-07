@@ -10,6 +10,7 @@ import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
 import io.javalin.core.util.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
+import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestLoggingUtil.captureStdOut
 import io.javalin.testing.TestUtil
@@ -108,6 +109,19 @@ class TestWebBrowser {
         assertThat(pathParam).isEqualTo("odd&co")
         val nullParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.queryParams["my-param"]""") as String?
         assertThat(nullParam).isNull()
+    }
+
+    @Test
+    fun `script tags in state function does not break page rendering`() = TestUtil.test { app, http ->
+        TestJavalinVue.before()
+        val testValue = "some value with <script></script> tags in it"
+        JavalinVue.stateFunction = {
+            mapOf("some_key" to testValue)
+        }
+        app.get("/script_in_state", VueComponent("<test-component></test-component>"))
+        driver.get(http.origin + "/script_in_state")
+        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+        assertThat(stateValue).isEqualTo(testValue)
     }
 
 }
