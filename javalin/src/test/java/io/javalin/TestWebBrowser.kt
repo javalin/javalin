@@ -145,7 +145,7 @@ class TestWebBrowser {
     fun `problematic characters in state and parameters`() = TestUtil.test { app, http ->
         TestJavalinVue.before()
         val testValue = "-_.!~*'()"
-        println(testValue)
+
         JavalinVue.stateFunction = {
             mapOf("some_key" to testValue)
         }
