@@ -18,6 +18,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
+import java.net.URLEncoder
 import java.nio.file.Paths
 
 class TestJavalinVue {
@@ -42,40 +43,42 @@ class TestJavalinVue {
 
     private val state = State(User("tipsy", "tipsy@tipsy.tipsy"), Role("Maintainer"))
 
+    private fun String.uriEncodeForJavascript() =
+        URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+","%20")
+
     @Test
     fun `vue component with state`() = TestUtil.test { app, http ->
-        val q = "&quot;"
+        val encodedState = """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { ctx -> state }
         app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/vue/test-path-param?qp=test-query-param")
-        assertThat(res).contains("""
-                |    Vue.prototype.${"$"}javalin = {
-                |        pathParams: `{${q}my-param${q}:${q}test-path-param${q}}`,
-                |        queryParams: `{${q}qp${q}:[${q}test-query-param${q}]}`,
-                |        state: {"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}
-                |    }""".trimMargin())
+        assertThat(res).contains(encodedState)
         assertThat(res).contains("""Vue.component("test-component", {template: "#test-component"});""")
         assertThat(res).contains("<body><test-component></test-component></body>")
     }
 
     @Test
     fun `vue component without state`() = TestUtil.test { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"queryParams":{},"state":{}}""".uriEncodeForJavascript()
+
         app.get("/no-state", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/no-state")
-        assertThat(res).contains("""pathParams: `{}`""")
-        assertThat(res).contains("""queryParams: `{}`""")
-        assertThat(res).contains("""state: {}""")
+        assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
     }
 
     @Test
     fun `vue component with component-specific state`() = TestUtil.test { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"queryParams":{},"state":{}}""".uriEncodeForJavascript()
+
+        val encodedTestState = """{"pathParams":{},"queryParams":{},"state":{"test":"tast"}}""".uriEncodeForJavascript()
+
         app.get("/no-state", VueComponent("<test-component></test-component>"))
         val noStateRes = http.getBody("/no-state")
         app.get("/specific-state", VueComponent("<test-component></test-component>", mapOf("test" to "tast")))
         val specificStateRes = http.getBody("/specific-state")
-        assertThat(noStateRes).contains("""state: {}""")
-        assertThat(specificStateRes).contains("""state: {"test":"tast"}""")
+        assertThat(noStateRes).contains(encodedEmptyState)
+        assertThat(specificStateRes).contains(encodedTestState)
     }
 
     @Test
@@ -93,21 +96,22 @@ class TestJavalinVue {
 
     @Test
     fun `default params are escaped`() = TestUtil.test { app, http ->
-        val xss = "%3Cscript%3Ealert%281%29%3Cscript%3E"
+        val encodedXSS = "%3Cscript%3Ealert%281%29%3Cscript%3E"
         app.get("/escaped", VueComponent("<test-component></test-component>"))
         // keys
-        assertThat(http.getBody("/escaped?${xss}=value")).doesNotContain("<script>alert(1)<script>")
-        assertThat(http.getBody("/escaped?${xss}=value")).contains("&lt;script&gt;alert(1)&lt;script&gt;")
+        assertThat(http.getBody("/escaped?${encodedXSS}=value")).doesNotContain("<script>alert(1)<script>")
+        assertThat(http.getBody("/escaped?${encodedXSS}=value")).contains(encodedXSS)
         // values
-        assertThat(http.getBody("/escaped?key=${xss}")).doesNotContain("<script>alert(1)<script>")
-        assertThat(http.getBody("/escaped?key=${xss}")).contains("&lt;script&gt;alert(1)&lt;script&gt;")
+        assertThat(http.getBody("/escaped?key=${encodedXSS}")).doesNotContain("<script>alert(1)<script>")
+        assertThat(http.getBody("/escaped?key=${encodedXSS}")).contains(encodedXSS)
     }
 
     @Test
     fun `quotes are handled correctly`() = TestUtil.test { app, http ->
-        val q = "&quot;"
+        val encodedTestObject = """"test":["\"cool\""]""".uriEncodeForJavascript()
         app.get("/escaped", VueComponent("<test-component></test-component>"))
-        assertThat(http.getBody("""/escaped?test=%22cool%22""")).contains("""`{${q}test${q}:[${q}\\${q}cool\\${q}${q}]}`""")
+
+        assertThat(http.getBody("""/escaped?test=%22cool%22""")).contains(encodedTestObject)
     }
 
     @Test

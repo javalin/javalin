@@ -10,6 +10,7 @@ import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
 import io.javalin.core.util.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
+import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestLoggingUtil.captureStdOut
 import io.javalin.testing.TestUtil
@@ -99,15 +100,64 @@ class TestWebBrowser {
 
     @Test
     fun `path params are not html-encoded on the Vue prototype`() = TestUtil.test { app, http ->
-        val q = "&quot;"
         TestJavalinVue.before()
         app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
         driver.get(http.origin + "/vue/odd&co")
-        assertThat(driver.pageSource).contains("""pathParams: `{${q}my-param${q}:${q}odd&amp;co${q}}`,""")
+
         val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
         assertThat(pathParam).isEqualTo("odd&co")
         val nullParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.queryParams["my-param"]""") as String?
         assertThat(nullParam).isNull()
+    }
+
+    @Test
+    fun `script tags in state function does not break page rendering`() = TestUtil.test { app, http ->
+        TestJavalinVue.before()
+        val testValue = "some value with <script></script> tags in it"
+        JavalinVue.stateFunction = {
+            mapOf("some_key" to testValue)
+        }
+        app.get("/script_in_state", VueComponent("<test-component></test-component>"))
+        driver.get(http.origin + "/script_in_state")
+        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+        assertThat(stateValue).isEqualTo(testValue)
+    }
+
+    @Test
+    fun `utf8 characters in state and parameters`() = TestUtil.test { app, http ->
+        TestJavalinVue.before()
+        val testValue = "some value with weird ✔️ \uD83C\uDF89 characters in it"
+        JavalinVue.stateFunction = {
+            mapOf("some_key" to testValue)
+        }
+        app.get("/script_in_state/:param", VueComponent("<test-component></test-component>"))
+        driver.get(http.origin + "/script_in_state/my_path_param_with_\uD83D\uDE80?☕=\uD83D\uDC95")
+        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
+        val queryParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.queryParams["☕"]""") as List<String>
+
+        assertThat(stateValue).isEqualTo(testValue)
+        assertThat(pathParam).isEqualTo("my_path_param_with_\uD83D\uDE80")
+        assertThat(queryParam).isEqualTo(listOf("\uD83D\uDC95"))
+    }
+
+    @Test
+    fun `problematic characters in state and parameters`() = TestUtil.test { app, http ->
+        TestJavalinVue.before()
+        val testValue = "-_.!~*'()"
+
+        JavalinVue.stateFunction = {
+            mapOf("some_key" to testValue)
+        }
+        app.get("/script_in_state/:param", VueComponent("<test-component></test-component>"))
+        driver.get(http.origin + "/script_in_state/$testValue?my_key=$testValue")
+        val stateValue = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+        val pathParam = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
+        val queryParam = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.queryParams["my_key"]""") as List<String>
+
+        assertThat(stateValue).isEqualTo(testValue)
+        assertThat(pathParam).isEqualTo(testValue)
+        assertThat(queryParam).isEqualTo(listOf(testValue))
     }
 
 }
