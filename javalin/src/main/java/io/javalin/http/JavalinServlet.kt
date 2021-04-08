@@ -106,21 +106,21 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
                     asyncContext.complete() // async lifecycle complete
                 }.exceptionally { t ->
-                    if (!Util.isClientAbortException(t)) {
-                        res.status = 500
-                        Javalin.log?.error("Exception occurred while servicing http-request", t)
-                    }
+                    handleUnexpectedThrowable(t, res)
                     asyncContext.complete() // async lifecycle complete
                     null
                 }
             }
             Unit // return void
         } catch (t: Throwable) {
-            if (!Util.isClientAbortException(t)) {
-                res.status = 500
-                Javalin.log?.error("Exception occurred while servicing http-request", t)
-            }
+            handleUnexpectedThrowable(t, res)
         }
+    }
+
+    private fun handleUnexpectedThrowable(t: Throwable, res: HttpServletResponse) {
+        if (Util.isClientAbortException(t)) return // aborts can be ignored
+        res.status = 500
+        Javalin.log?.error("Exception occurred while servicing http-request", t)
     }
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
