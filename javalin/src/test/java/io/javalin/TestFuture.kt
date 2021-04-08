@@ -1,8 +1,13 @@
 package io.javalin
 
+import com.mashape.unirest.http.exceptions.UnirestException
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.Test
+import java.io.IOException
+import java.io.InputStream
+import java.net.SocketTimeoutException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -86,6 +91,16 @@ class TestFuture {
         assertThat(http.getBody("/test-future")).isEqualTo("Overridden")
     }
 
+    @Test
+    fun `future throws when stream throws`() = TestUtil.test { app, http ->
+        app.get("/test-future") { ctx -> ctx.result(getFutureFailingStream()) }
+        try {
+            assertThat(http.get("/test-future").status).isEqualTo(500)
+        } catch (e: UnirestException) { // We need to catch Unirest's exception, as TestUtil swallows it
+            fail("Unirest is not supposed to throw", e)
+        }
+    }
+
     private fun getFuture(result: String?): CompletableFuture<String> {
         val future = CompletableFuture<String>()
         Executors.newSingleThreadScheduledExecutor().schedule({
@@ -100,6 +115,19 @@ class TestFuture {
 
     private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {
         return CompletableFuture.supplyAsync({ throw failure })
+    }
+
+    private fun getFutureFailingStream(): CompletableFuture<InputStream> {
+        val future = CompletableFuture<InputStream>()
+        Executors.newSingleThreadScheduledExecutor().schedule({
+            val stream = object : InputStream() {
+                override fun read(): Int {
+                    throw IOException()
+                }
+            }
+            future.complete(stream)
+        }, 10, TimeUnit.MILLISECONDS)
+        return future
     }
 
 }
