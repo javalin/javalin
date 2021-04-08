@@ -105,6 +105,13 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     JavalinResponseWrapper(asyncRes, rwc).write(ctx.resultStream())
                     config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
                     asyncContext.complete() // async lifecycle complete
+                }.exceptionally { t ->
+                    if (!Util.isClientAbortException(t)) {
+                        res.status = 500
+                        Javalin.log?.error("Exception occurred while servicing http-request", t)
+                    }
+                    asyncContext.complete() // async lifecycle complete
+                    null
                 }
             }
             Unit // return void
