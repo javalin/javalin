@@ -41,6 +41,8 @@ class VueComponent @JvmOverloads constructor(val component: String, val state: A
     }
 }
 
+private fun Set<Path>.joinVueFiles() = this.filter { it.isVueFile() }.joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
+
 object FileInliner {
     private val newlineRegex = Regex("\\r?\\n")
     private val unconditionalRegex = Regex("""@inlineFile\(".*"\)""")
@@ -62,23 +64,21 @@ object FileInliner {
     }
 }
 
-private fun Set<Path>.joinVueFiles() = this.filter { it.isVueFile() }.joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
-
 internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
         "Vue.prototype.\$javalin = JSON.parse(decodeURIComponent(\"${
-            JavalinJson.toJson(
-                mapOf(
-                    "pathParams" to ctx.pathParamMap(),
-                    "queryParams" to ctx.queryParamMap(),
-                    "state" to (state ?: stateFunction(ctx))
-                )
-            ).uriEncodeForJavascript()}\"))\n</script>\n"
+            urlEncodeForJavascript(JavalinJson.toJson(
+                    mapOf(
+                            "pathParams" to ctx.pathParamMap(),
+                            "queryParams" to ctx.queryParamMap(),
+                            "state" to (state ?: stateFunction(ctx))
+                    )
+            ))
+        }\"))\n</script>\n"
 
 // Unfortunately, Java's URLEncoder does not encode the space character in the same way as Javascript.
 // Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".
 // All other encodings are implemented correctly, therefore we can simply replace the character in the encoded String.
-private fun String.uriEncodeForJavascript() =
-    URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+","%20")
+private fun urlEncodeForJavascript(string: String) = URLEncoder.encode(string, Charsets.UTF_8.name()).replace("+", "%20")
 
 internal fun Path.readText() = String(Files.readAllBytes(this))
 internal fun Path.isVueFile() = this.toString().endsWith(".vue")
