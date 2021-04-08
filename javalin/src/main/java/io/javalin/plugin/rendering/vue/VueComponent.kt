@@ -15,6 +15,7 @@ import io.javalin.plugin.rendering.vue.JavalinVue.optimizeDependencies
 import io.javalin.plugin.rendering.vue.JavalinVue.rootDirectory
 import io.javalin.plugin.rendering.vue.JavalinVue.stateFunction
 import io.javalin.plugin.rendering.vue.JavalinVue.walkPaths
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.regex.Matcher
@@ -63,38 +64,21 @@ object FileInliner {
 
 private fun Set<Path>.joinVueFiles() = this.filter { it.isVueFile() }.joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
 
-internal fun getState(ctx: Context, state: Any?): String {
+internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
+        "Vue.prototype.\$javalin = JSON.parse(decodeURIComponent(\"${
+            JavalinJson.toJson(
+                mapOf(
+                    "pathParams" to ctx.pathParamMap(),
+                    "queryParams" to ctx.queryParamMap(),
+                    "state" to (state ?: stateFunction(ctx))
+                )
+            ).uriEncodeForJavascript()}\"))\n</script>\n"
 
-    fun htmlEscape(string: String?) = string?.toCharArray()?.map {
-        when (it) {
-            '<' -> "&lt;"
-            '>' -> "&gt;"
-            '&' -> "&amp;"
-            '"' -> "&quot;"
-            '\'' -> "&#x27;"
-            '/' -> "&#x2F;"
-            else -> it
-        }
-    }?.joinToString("")
-
-    fun decodeParams() = "\n<script>\n" + """
-        |    function ____decode(string) { // used for decoding HTML encoded params
-        |        let textArea = document.createElement("textarea");
-        |        textArea.innerHTML = string;
-        |        return textArea.value;
-        |    }
-        |    ["queryParams", "pathParams"].forEach((key) => {
-        |        Vue.prototype.${"$"}javalin[key] = JSON.parse(____decode(Vue.prototype.${"$"}javalin[key]));
-        |    });""".trimMargin() + "\n</script>\n"
-
-    // replace("\\", "\\\\") because we need the backslash to remain after evaluating the string
-    return "\n<script>\n" + """
-        |    Vue.prototype.${"$"}javalin = {
-        |        pathParams: `${htmlEscape(JavalinJson.toJson(ctx.pathParamMap()))?.replace("\\", "\\\\")}`,
-        |        queryParams: `${htmlEscape(JavalinJson.toJson(ctx.queryParamMap()))?.replace("\\", "\\\\")}`,
-        |        state: ${JavalinJson.toJson(state ?: stateFunction(ctx))}
-        |    }""".trimMargin() + "\n</script>\n" + decodeParams()
-}
+// Unfortunately, Java's URLEncoder does not encode the space character in the same way as Javascript.
+// Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".
+// All other encodings are implemented correctly, therefore we can simply replace the character in the encoded String.
+private fun String.uriEncodeForJavascript() =
+    URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+","%20")
 
 internal fun Path.readText() = String(Files.readAllBytes(this))
 internal fun Path.isVueFile() = this.toString().endsWith(".vue")
