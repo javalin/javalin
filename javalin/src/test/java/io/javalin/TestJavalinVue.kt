@@ -30,6 +30,8 @@ class TestJavalinVue {
 
     companion object {
         fun before() {
+            JavalinVue.vueAppName = "Vue"
+            JavalinVue.isVue3 = false
             JavalinVue.isDev = null // reset
             JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
             JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main -> src/test
@@ -55,6 +57,7 @@ class TestJavalinVue {
         assertThat(res).contains(encodedState)
         assertThat(res).contains("""Vue.component("test-component", {template: "#test-component"});""")
         assertThat(res).contains("<body><test-component></test-component></body>")
+        assertThat(res).contains("Vue.prototype.\$javalin")
     }
 
     @Test
@@ -65,6 +68,35 @@ class TestJavalinVue {
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
+        assertThat(res).contains("Vue.prototype.\$javalin")
+    }
+
+    @Test
+    fun `vue3 component without state`() = TestUtil.test { app, http ->
+        JavalinVue.vueAppName = "app"
+        JavalinVue.isVue3 = true
+        val encodedEmptyState = """{"pathParams":{},"queryParams":{},"state":{}}""".uriEncodeForJavascript()
+
+        app.get("/no-state", VueComponent("<test-component-3></test-component-3>"))
+        val res = http.getBody("/no-state")
+        assertThat(res).contains(encodedEmptyState)
+        assertThat(res).contains("<body><test-component-3></test-component-3></body>")
+        assertThat(res).contains("app.config.globalProperties.\$javalin")
+}
+
+
+    @Test
+    fun `vue3 component with state`() = TestUtil.test { app, http ->
+        JavalinVue.vueAppName = "app"
+        JavalinVue.isVue3 = true
+        val encodedState = """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
+        JavalinVue.stateFunction = { ctx -> state }
+        app.get("/vue/:my-param", VueComponent("<test-component-3></test-component-3>"))
+        val res = http.getBody("/vue/test-path-param?qp=test-query-param")
+        assertThat(res).contains(encodedState)
+        assertThat(res).contains("""app.component("test-component-3", {template: "#test-component-3"});""")
+        assertThat(res).contains("<body><test-component-3></test-component-3></body>")
+        assertThat(res).contains("app.config.globalProperties.\$javalin")
     }
 
     @Test

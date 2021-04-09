@@ -30,6 +30,8 @@ public class TestJavalinVueResolution {
 
     @Before
     public void resetJavalinVue() {
+        JavalinVue.isVue3 = false;
+        JavalinVue.vueAppName = "Vue";
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL); // src/main -> src/test
         JavalinVue.optimizeDependencies = true;
     }

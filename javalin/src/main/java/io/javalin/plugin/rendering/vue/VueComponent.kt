@@ -26,7 +26,7 @@ class VueComponent @JvmOverloads constructor(val component: String, val state: A
         rootDirectory = rootDirectory ?: PathMaster.defaultLocation(isDev)
         val routeComponent = if (component.startsWith("<")) component else "<$component></$component>"
         val allFiles = if (isDev == true) walkPaths() else cachedPaths
-        val resolver by lazy { if (isDev == true) VueDependencyResolver(allFiles) else cachedDependencyResolver }
+        val resolver by lazy { if (isDev == true) VueDependencyResolver(allFiles,JavalinVue.vueAppName) else cachedDependencyResolver }
         val componentId = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
         val dependencies = if (optimizeDependencies) resolver.resolve(componentId) else allFiles.joinVueFiles()
         if (componentId !in dependencies) throw InternalServerErrorResponse("Route component not found: $routeComponent")
@@ -65,7 +65,7 @@ object FileInliner {
 }
 
 internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
-        "Vue.prototype.\$javalin = JSON.parse(decodeURIComponent(\"${
+        "${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent(\"${
             urlEncodeForJavascript(JavalinJson.toJson(
                     mapOf(
                             "pathParams" to ctx.pathParamMap(),
@@ -79,6 +79,6 @@ internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
 // Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".
 // All other encodings are implemented correctly, therefore we can simply replace the character in the encoded String.
 private fun urlEncodeForJavascript(string: String) = URLEncoder.encode(string, Charsets.UTF_8.name()).replace("+", "%20")
-
+private fun prototypeOrGlobalConfig() = if(JavalinVue.isVue3 == true) "${JavalinVue.vueAppName}.config.globalProperties" else "${JavalinVue.vueAppName}.prototype"
 internal fun Path.readText() = String(Files.readAllBytes(this))
 internal fun Path.isVueFile() = this.toString().endsWith(".vue")
