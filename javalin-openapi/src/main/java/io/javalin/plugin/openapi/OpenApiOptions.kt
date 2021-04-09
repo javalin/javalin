@@ -67,6 +67,12 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
     var ignoredPaths: MutableList<Pair<String, List<HttpMethod>>> = mutableListOf()
 
     /**
+     * A list of the only paths which will be considered as part of the OpenAPI documentation.  If this list is empty
+     * it will be considered as meaning that all paths should be included with the exception of the ignored paths
+     */
+    val includedPaths: MutableList<Pair<String, List<HttpMethod>>> = mutableListOf()
+
+    /**
      * Validate the generated schema with the swagger parser
      * (prints warnings if schema is invalid)
      */
@@ -127,6 +133,16 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
 
     fun ignorePath(path: String, vararg httpMethod: HttpMethod) = apply {
         ignoredPaths.add(Pair(path, httpMethod.asList().ifEmpty { HttpMethod.values().asList() }))
+    }
+
+    /**
+     * adds the given path and methods to the list of paths which should be scanned by OpenAPI
+     *
+     * @param path : the path to include in the paths to scan
+     * @param httpMethod : the list of http methods to include in the scan (as a vararg)
+     */
+    fun includePath(path: String, vararg httpMethod: HttpMethod) = apply {
+        includedPaths.add(Pair(path, httpMethod.asList().ifEmpty { HttpMethod.values().asList() }))
     }
 }
 

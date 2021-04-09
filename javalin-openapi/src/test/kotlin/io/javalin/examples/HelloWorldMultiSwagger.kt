@@ -82,7 +82,13 @@ fun main() {
                 .swagger(SwaggerOptions("/swagger-items").title("My Swagger Documentation -- ITEMS only"))
                 .defaultDocumentation { documentation -> documentation.json<InternalServerErrorResponse>("500") }
                 .ignorePath("/users*")
-        it.registerPlugin(OpenApiPlugin(fullOpenApiOptions, itemsOnly))
+        val includeOnly = OpenApiOptions(Info().version("1.0").description("My Application"))
+            .path("/swagger-docs-includeonly")
+            .swagger(SwaggerOptions("/swagger-includeonly").title("My Swagger Documentation -- included paths only"))
+            .defaultDocumentation { documentation -> documentation.json<InternalServerErrorResponse>("500") }
+            .includePath("/items/*")
+
+        it.registerPlugin(OpenApiPlugin(fullOpenApiOptions, itemsOnly, includeOnly))
     }
 
     with(app) {

@@ -35,14 +35,7 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     fun createOpenAPISchema(): OpenAPI {
         val schema = JavalinOpenApi.createSchema(
                 CreateSchemaOptions(
-                        handlerMetaInfoList = handlerMetaInfoList.filter { handler ->
-                            options.ignoredPaths.none { (path, methods) ->
-                                PathParser(path, true).matches(handler.path) && methods.any { method ->
-                                    // HttpMethod is implemented two times :(
-                                    method.name == handler.httpMethod.name
-                                }
-                            }
-                        },
+                        handlerMetaInfoList = handlerMetaInfoList.filter(::matchesInclusionCriteria),
                         initialConfigurationCreator = options.initialConfigurationCreator,
                         default = options.default,
                         modelConverterFactory = options.modelConverterFactory,
@@ -65,6 +58,45 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
         }
 
         return schema
+    }
+
+    /**
+     * This function returns true if the given handler matches the inclusion and exclusion criteria provided when
+     * configuring the OpenAPI options.  Specifically, the logic works as follows
+     *
+     * 1. By default a path is always included unless we have specified explicit inclusion criteria
+     * 2. If explicit inclusion criteria are specified then a path is only included if it matches
+     * 3. Regardless of whether we are using explicit inclusion criteria or not, exclusion criteria take preference so
+     *    that a path which is both explicitly included and excluded will end up being excluded.  This is simply down
+     *    to security - deny criteria should always be considered "higher priority" than allow criteria
+     *
+     * @param handler : the handler we want to know if matches the inclusion criteria
+     */
+    private fun matchesInclusionCriteria(handler: HandlerMetaInfo): Boolean{
+        //by default all paths are included
+        var included = true
+
+        //but if we have explicitly set an include path then the handler is only included in OpenAPI if the path and
+        //method have been explicitly specified
+        if(options.includedPaths.isNotEmpty()){
+            included = options.includedPaths.any { (path, methods) ->
+                PathParser(path, true).matches(handler.path) && methods.any { method ->
+                    // HttpMethod is implemented two times :(
+                    method.name == handler.httpMethod.name
+                }
+            }
+        }
+
+        //a path is excluded if the path and methods are included in the list of excluded paths
+        val excluded = !options.ignoredPaths.none { (path, methods) ->
+            PathParser(path, true).matches(handler.path) && methods.any { method ->
+                // HttpMethod is implemented two times :(
+                method.name == handler.httpMethod.name
+            }
+        }
+
+        //and finally a handler should be included if it is included and not explicitly excluded
+        return included && !excluded
     }
 
     // This function is synchronized because an attacker can trigger the openapi schema generation very often
