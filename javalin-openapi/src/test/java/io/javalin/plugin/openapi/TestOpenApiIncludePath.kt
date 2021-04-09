@@ -25,7 +25,7 @@ class TestOpenApiIncludePath {
         }
         defaultApp.get("path1", documented(path1Documentation()) { it -> it.result("path1") })
         defaultApp.get("path2", documented(path2Documentation()) { it -> it.result("path2") })
-        defaultApp.get("path3", documented(path2Documentation()) { it -> it.result("path3") })
+        defaultApp.get("path3", documented(path3Documentation()) { it -> it.result("path3") })
 
         val includedApp = Javalin.create {
             it.registerPlugin(
@@ -40,7 +40,7 @@ class TestOpenApiIncludePath {
         }
         includedApp.get("path1", documented(path1Documentation()) { it -> it.result("path1") })
         includedApp.get("path2", documented(path2Documentation()) { it -> it.result("path2") })
-        includedApp.get("path3", documented(path2Documentation()) { it -> it.result("path2") })
+        includedApp.get("path3", documented(path3Documentation()) { it -> it.result("path2") })
 
         val defaultSchema = JavalinOpenApi.createSchema(defaultApp).toString().toLowerCase()
         val includedSchema = JavalinOpenApi.createSchema(includedApp).toString().toLowerCase()
@@ -60,4 +60,5 @@ class TestOpenApiIncludePath {
 
     private fun path1Documentation() = document().operation { it.summary="path1" }.result<String>("200")
     private fun path2Documentation() = document().operation { it.summary="path2" }.result<String>("200")
+    private fun path3Documentation() = document().operation { it.summary="path3" }.result<String>("200")
 }
