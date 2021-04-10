@@ -31,11 +31,14 @@ public class VueDependencyResolver {
     private final Map<String, String> componentIdToOwnContent; // {component-id: component-content}
     private final Map<String, String> componentIdToDependencyContent; // {component-id: required-dependencies}
     private final Pattern tagRegex = Pattern.compile("<\\s*([a-z0-9|-]*).*?>", Pattern.DOTALL);
-    private final Pattern componentRegex = Pattern.compile("Vue.component\\s*\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
+    private final Pattern componentRegex;
+    private final String appName;
 
-    public VueDependencyResolver(final Set<Path> paths) {
+    public VueDependencyResolver(final Set<Path> paths, String appVarName) {
+        appName = appVarName;
         componentIdToOwnContent = new HashMap<>();
         componentIdToDependencyContent = new HashMap<>();
+        componentRegex = Pattern.compile(appVarName + ".component\\s*\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
         paths.stream().filter(VueComponentKt::isVueFile).forEach(path -> {
             String fileContent = VueComponentKt.readText(path);
             Matcher matcher = componentRegex.matcher(fileContent); // check for a vue component
@@ -54,7 +57,7 @@ public class VueDependencyResolver {
      */
     public String resolve(final String componentId) {
         if (!componentIdToOwnContent.containsKey(componentId)) {
-            throw new IllegalArgumentException(String.format("Component %s not found", componentId));
+            throw new IllegalArgumentException(String.format("Component %s not found in app %s", componentId, appName));
         }
         if (componentIdToDependencyContent.containsKey(componentId)) {
             return componentIdToDependencyContent.get(componentId);
