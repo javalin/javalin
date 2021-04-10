@@ -33,7 +33,6 @@ public class TestJavalinVueResolution {
     public void resetJavalinVue() {
         JavalinVue.vueVersion = VueVersion.VUE_2;
         JavalinVue.vueAppName("Vue");
-        JavalinVue.isDevFunction = (ctx) -> true;
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL); // src/main -> src/test
         JavalinVue.optimizeDependencies = true;
     }
