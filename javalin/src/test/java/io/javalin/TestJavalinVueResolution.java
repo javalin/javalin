@@ -33,6 +33,7 @@ public class TestJavalinVueResolution {
     public void resetJavalinVue() {
         JavalinVue.vueVersion = VueVersion.VUE_2;
         JavalinVue.vueAppName("Vue");
+        JavalinVue.isDevFunction = (ctx) -> true;
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL); // src/main -> src/test
         JavalinVue.optimizeDependencies = true;
     }
@@ -71,6 +72,35 @@ public class TestJavalinVueResolution {
             assertThat(body).doesNotContain("dependency-three");
             assertThat(body).doesNotContain("dependency-four");
             assertThat(body).doesNotContain("nested-dependency");
+        });
+    }
+
+    @Test
+    public void resolveVue3DependencyTest() {
+        TestUtil.test((server, httpUtil) -> {
+            JavalinVue.vueVersion = VueVersion.VUE_3;
+            JavalinVue.vueAppName("app");
+            server.get("/single-view", new VueComponent("<view-one-3></view-one-3>"));
+            String body = httpUtil.getBody("/single-view");
+            assertThat(body).contains("<body><view-one-3></view-one-3></body>");
+            assertThat(body).doesNotContain("<view-two-3>");
+            assertThat(body).doesNotContain("<view-three-3>");
+            assertThat(body).doesNotContain("<view-nested-dependency-3>");
+            assertThat(body).doesNotContain("<view-two>");
+            assertThat(body).doesNotContain("<view-three>");
+            assertThat(body).doesNotContain("<view-nested-dependency>");
+            assertThat(body).contains("dependency-one");
+            assertThat(body).contains("dependency-one-3");
+            assertThat(body).doesNotContain("dependency-two");
+            assertThat(body).doesNotContain("dependency-three");
+            assertThat(body).doesNotContain("dependency-four");
+            assertThat(body).doesNotContain("nested-dependency");
+            assertThat(body).doesNotContain("dependency-two-3");
+            assertThat(body).doesNotContain("dependency-three");
+            assertThat(body).doesNotContain("dependency-four");
+            assertThat(body).doesNotContain("nested-dependency");
+            assertThat(body).doesNotContain("Vue.component");
+            assertThat(body).contains("app.component");
         });
     }
 

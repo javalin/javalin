@@ -32,7 +32,7 @@ public class VueDependencyResolver {
     private final Map<String, String> componentIdToDependencyContent; // {component-id: required-dependencies}
     private final Pattern tagRegex = Pattern.compile("<\\s*([a-z0-9|-]*).*?>", Pattern.DOTALL);
     private final Pattern componentRegex;
-    private String appName;
+    private final String appName;
 
     public VueDependencyResolver(final Set<Path> paths, String appVarName) {
         appName = appVarName;
