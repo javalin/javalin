@@ -18,6 +18,7 @@ package io.javalin;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.plugin.rendering.vue.JavalinVue;
 import io.javalin.plugin.rendering.vue.VueComponent;
+import io.javalin.plugin.rendering.vue.VueVersion;
 import io.javalin.testing.TestUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,8 +31,8 @@ public class TestJavalinVueResolution {
 
     @Before
     public void resetJavalinVue() {
-        JavalinVue.isVue3 = false;
-        JavalinVue.vueAppName = "Vue";
+        JavalinVue.vueVersion = VueVersion.VUE_2;
+        JavalinVue.vueAppName("Vue");
         JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL); // src/main -> src/test
         JavalinVue.optimizeDependencies = true;
     }
