@@ -31,7 +31,7 @@ class TestJavalinVue {
 
     companion object {
         fun before() {
-            JavalinVue.vueAppName("Vue")
+            JavalinVue.vueAppName = "Vue"
             JavalinVue.vueVersion = VueVersion.VUE_2
             JavalinVue.isDev = null // reset
             JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
@@ -74,8 +74,8 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component without state`() = TestUtil.test { app, http ->
-        JavalinVue.vueAppName("app")
         JavalinVue.vueVersion = VueVersion.VUE_3
+        JavalinVue.vueAppName("app")
         val encodedEmptyState = """{"pathParams":{},"queryParams":{},"state":{}}""".uriEncodeForJavascript()
 
         app.get("/no-state", VueComponent("<test-component-3></test-component-3>"))
@@ -88,8 +88,8 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component with state`() = TestUtil.test { app, http ->
-        JavalinVue.vueAppName("app")
         JavalinVue.vueVersion = VueVersion.VUE_3
+        JavalinVue.vueAppName("app")
         val encodedState = """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { ctx -> state }
         app.get("/vue/:my-param", VueComponent("<test-component-3></test-component-3>"))

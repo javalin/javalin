@@ -16,11 +16,7 @@ import java.nio.file.Paths
 import java.util.stream.Collectors
 import io.javalin.plugin.rendering.vue.JavalinVue.resourcesJarClass as jarClass
 
-enum class VueVersion{
-    VUE_2,
-    VUE_3
-}
-
+enum class VueVersion { VUE_2, VUE_3 }
 
 object JavalinVue {
     // @formatter:off
@@ -30,24 +26,20 @@ object JavalinVue {
     @JvmField var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
     @JvmField var stateFunction: (Context) -> Any = { mapOf<String, String>() } // global state that is injected into all VueComponents
     @JvmField var cacheControl = "no-cache, no-store, must-revalidate"
-    internal var vueAppName = "Vue"
-    @JvmField var vueVersion = VueVersion.VUE_2
     @JvmField var rootDirectory: Path? = null // is set on first request (if not configured)
     @JvmStatic fun rootDirectory(path: String, location: Location) {
         rootDirectory = if (location == Location.CLASSPATH) PathMaster.classpathPath(path) else Paths.get(path)
     }
-    @JvmStatic fun vueAppName():String{
-        return if(JavalinVue.vueVersion == VueVersion.VUE_3) vueAppName else "Vue"
+    @JvmField var vueVersion = VueVersion.VUE_2
+    internal var vueAppName = "Vue" // only relevant for Vue 3 apps
+    @JvmStatic fun vueAppName(appName: String) {
+        vueAppName = if (vueVersion == VueVersion.VUE_3) appName else throw IllegalStateException("Only supported when 'vueVersion' is 'VUE_3'")
     }
-    @JvmStatic fun vueAppName(name : String){
-        JavalinVue.vueAppName = name;
-    }
-    internal fun walkPaths(): Set<Path> = Files.walk(rootDirectory, 20).collect(Collectors.toSet())
-    internal val cachedPaths by lazy { walkPaths() }
-    internal val cachedDependencyResolver by lazy { VueDependencyResolver(cachedPaths,JavalinVue.vueAppName()) }
     // @formatter:on
+    fun walkPaths(): Set<Path> = Files.walk(rootDirectory, 20).collect(Collectors.toSet())
+    internal val cachedPaths by lazy { walkPaths() }
+    internal val cachedDependencyResolver by lazy { VueDependencyResolver(cachedPaths, vueAppName) }
 }
-
 
 /**
  * By default, [jarClass] is PathMaster::class, which means this code will only
