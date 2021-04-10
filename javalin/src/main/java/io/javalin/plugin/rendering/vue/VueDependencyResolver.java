@@ -31,13 +31,16 @@ public class VueDependencyResolver {
     private final Map<String, String> componentIdToOwnContent; // {component-id: component-content}
     private final Map<String, String> componentIdToDependencyContent; // {component-id: required-dependencies}
     private final Pattern tagRegex = Pattern.compile("<\\s*([a-z0-9|-]*).*?>", Pattern.DOTALL);
-    private final Pattern componentRegex = Pattern.compile("Vue.component\\s*\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
+    private final Pattern componentRegex;
+    private final String appName;
 
-    public VueDependencyResolver(final Set<Path> paths) {
+    public VueDependencyResolver(final Set<Path> paths, String appVarName) {
+        appName = appVarName;
         componentIdToOwnContent = new HashMap<>();
         componentIdToDependencyContent = new HashMap<>();
-        paths.stream().filter(JavalinVueKt::isVueFile).forEach(path -> {
-            String fileContent = JavalinVueKt.readText(path);
+        componentRegex = Pattern.compile(appVarName + ".component\\s*\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
+        paths.stream().filter(VueComponentKt::isVueFile).forEach(path -> {
+            String fileContent = VueComponentKt.readText(path);
             Matcher matcher = componentRegex.matcher(fileContent); // check for a vue component
             while (matcher.find()) {
                 componentIdToOwnContent.put(matcher.group(1), fileContent); // cache the file content, bound to the component name
@@ -54,7 +57,7 @@ public class VueDependencyResolver {
      */
     public String resolve(final String componentId) {
         if (!componentIdToOwnContent.containsKey(componentId)) {
-            throw new IllegalArgumentException(String.format("Component %s not found", componentId));
+            throw new IllegalArgumentException(String.format("Component %s not found in app %s", componentId, appName));
         }
         if (componentIdToDependencyContent.containsKey(componentId)) {
             return componentIdToDependencyContent.get(componentId);
@@ -63,7 +66,7 @@ public class VueDependencyResolver {
 
         StringBuilder builder = new StringBuilder();
         dependencies.forEach(dependency -> {
-            builder.append("<!-- ").append(dependency).append("-->\n");
+            builder.append("<!-- ").append(dependency).append(" -->\n");
             builder.append(componentIdToOwnContent.get(dependency));
             builder.append("\n");
         });
@@ -82,8 +85,8 @@ public class VueDependencyResolver {
     private Set<String> resolveTransitiveDependencies(final String componentId) {
         Set<String> requiredComponents = new HashSet<>();
         requiredComponents.add(componentId);// add it to the dependency list
-        Set<String> directDependencies = resolveDirectDependencies(componentId); //get its dependencies
-        requiredComponents.addAll(directDependencies); //add all its dependencies  to the required components list
+        Set<String> directDependencies = resolveDirectDependencies(componentId); // get its dependencies
+        requiredComponents.addAll(directDependencies); // add all its dependencies  to the required components list
         directDependencies.forEach(dependency -> {
             // resolve each dependency
             requiredComponents.addAll(resolveTransitiveDependencies(dependency));
@@ -100,11 +103,11 @@ public class VueDependencyResolver {
     private Set<String> resolveDirectDependencies(final String componentId) {
         Set<String> dependencies = new HashSet<>();
         String componentContent = componentIdToOwnContent.get(componentId);
-        Matcher matcher = tagRegex.matcher(componentContent); //match for HTML tags
+        Matcher matcher = tagRegex.matcher(componentContent); // match for HTML tags
         while (matcher.find()) {
             String match = matcher.group(1);
             if (!match.equals(componentId) && componentIdToOwnContent.containsKey(match)) { // if it isn't the component itself, and its in the component map
-                dependencies.add(match); //add it to the list of dependencies
+                dependencies.add(match); // add it to the list of dependencies
             }
         }
         return dependencies;
