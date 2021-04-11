@@ -459,6 +459,36 @@ val provideRouteExampleJson = """
 """.formatJson()
 
 @Language("JSON")
+val serverListingAddedExample = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "http://example.example.com"
+      }
+    ],
+    "paths": {
+      "/test": {
+        "get": {
+          "summary": "Get test",
+          "operationId": "getTest",
+          "responses" : {
+            "200" : {
+              "description" : "Default response"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+@Language("JSON")
 val complexExampleJson = """
 {
   "openapi": "3.0.1",

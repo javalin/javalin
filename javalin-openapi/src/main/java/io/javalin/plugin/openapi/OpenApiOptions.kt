@@ -53,6 +53,13 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
      */
     var toJsonMapper: ToJsonMapper by LazyDefaultValue { JacksonToJsonMapper(jacksonMapper) }
     /**
+     * Function that allows modification of the OpenAPI model before it is sent to the client.
+     * Since the OpenAPI model is mutable, care should be taken to make sure any modifications
+     * are idempotent.  If this is not possible, caching of the model may be disabled, but this
+     * incurs a performance penalty.
+     */
+    var responseModifier: OpenApiModelModifier by LazyDefaultValue { NoOpOpenApiModelModifier() }
+    /**
      * A list of package prefixes to scan for annotations.
      */
     var packagePrefixesToScan = mutableSetOf<String>()
@@ -77,10 +84,18 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
      * (prints warnings if schema is invalid)
      */
     var validateSchema: Boolean = false
+    /**
+     * Flag indicating whether or not the generated schema should be cached.  Caching is enabled by default.
+     */
+    var cacheSchema:  Boolean = true;
 
     constructor(info: Info) : this(InitialConfigurationCreator { OpenAPI().info(info) })
 
     fun path(value: String) = apply { path = value }
+
+    fun disableCaching() = apply { cacheSchema = false }
+
+    fun responseModifier(value: OpenApiModelModifier) = apply { responseModifier = value }
 
     fun swagger(value: SwaggerOptions) = apply { swagger = value }
 

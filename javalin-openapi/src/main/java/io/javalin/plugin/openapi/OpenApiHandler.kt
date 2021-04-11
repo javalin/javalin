@@ -104,6 +104,9 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
     // See https://github.com/tipsy/javalin/pull/736#discussion_r322016515
     @Synchronized
     private fun initializeSchemaSynchronized(): OpenAPI {
+        if (!options.cacheSchema) {
+            return createOpenAPISchema()
+        }
         return (schema ?: createOpenAPISchema()).apply { schema = this }
     }
 
@@ -112,6 +115,6 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
         ctx.contentType(ContentType.JSON)
         ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         ctx.header(Header.ACCESS_CONTROL_ALLOW_METHODS, "GET")
-        ctx.result(options.toJsonMapper.map(initializeSchemaSynchronized()))
+        ctx.result(options.toJsonMapper.map(options.responseModifier.apply(ctx, initializeSchemaSynchronized())))
     }
 }

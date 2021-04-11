@@ -38,6 +38,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
+import io.swagger.v3.oas.models.servers.Server
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
@@ -589,6 +590,62 @@ class TestOpenApi {
             val actual = http.jsonGet("/docs/swagger.json").body
 
             assertThat(actual).isEqualTo(provideRouteExampleJson)
+        }
+    }
+
+    @Test
+    fun `openApiOptions provides a way to add context dependent information to the schema`() {
+        val modifier = object : OpenApiModelModifier {
+            override fun apply(ctx: Context, model: OpenAPI): OpenAPI = model.servers(listOf(Server().url("http://example.example.com")))
+        }
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions {
+                OpenAPI().info(Info().apply {
+                    title = "Example"
+                    version = "1.0.0"
+                })
+            }.path("/docs/swagger.json")
+            .responseModifier(modifier)
+            ))
+        }) { app, http ->
+            app.get("/test") {}
+
+            val actual = http.jsonGet("/docs/swagger.json").body
+
+            assertThat(actual).isEqualTo(serverListingAddedExample)
+        }
+    }
+
+    @Test
+    fun `openApiOptions allows user to choose between using cached and uncached OpenAPI model`() {
+        val modifier = object : OpenApiModelModifier {
+            override fun apply(ctx: Context, model: OpenAPI): OpenAPI {
+                val servers = model.servers ?: ArrayList()
+                servers.add(Server().url("http://example.example.com"))
+                model.servers(servers)
+                return model
+            }
+        }
+        TestUtil.test(Javalin.create {
+            it.registerPlugin(OpenApiPlugin(OpenApiOptions {
+                OpenAPI().info(Info().apply {
+                    title = "Example"
+                    version = "1.0.0"
+                })
+            }.path("/docs/swagger.json")
+            .responseModifier(modifier)
+            .disableCaching()
+            ))
+        }) { app, http ->
+            app.get("/test") {}
+
+            var actual = http.jsonGet("/docs/swagger.json").body
+
+            assertThat(actual).withFailMessage("First request").isEqualTo(serverListingAddedExample)
+
+            actual = http.jsonGet("/docs/swagger.json").body
+
+            assertThat(actual).withFailMessage("Second request").isEqualTo(serverListingAddedExample)
         }
     }
 
