@@ -31,7 +31,7 @@ import io.javalin.http.sse.SseHandler;
 import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
-import io.javalin.websocket.WsHandlers;
+import io.javalin.websocket.WsConfig;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -549,7 +549,7 @@ public class Javalin {
      * Adds a specific WebSocket handler for the given path to the instance.
      * Requires an access manager to be set on the instance.
      */
-    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsHandlers> wsHandlers, @NotNull Set<Role> roles) {
+    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsHandlers, @NotNull Set<Role> roles) {
         wsServlet.addHandler(handlerType, path, wsHandlers, roles);
         eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsHandlers, roles));
         return this;
@@ -558,7 +558,7 @@ public class Javalin {
     /**
      * Adds a specific WebSocket handler for the given path to the instance.
      */
-    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsHandlers> wsHandlers) {
+    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsHandlers) {
         return addWsHandler(handlerType, path, wsHandlers, new HashSet<>());
     }
 
@@ -567,7 +567,7 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandlers> ws) {
+    public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws) {
         return ws(path, ws, new HashSet<>());
     }
 
@@ -578,35 +578,35 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public Javalin ws(@NotNull String path, @NotNull Consumer<WsHandlers> ws, @NotNull Set<Role> permittedRoles) {
+    public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull Set<Role> permittedRoles) {
         return addWsHandler(WsHandlerType.WEBSOCKET, path, ws, permittedRoles);
     }
 
     /**
      * Adds a WebSocket before handler for the specified path to the instance.
      */
-    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsHandlers> wsHandlers) {
+    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsHandlers) {
         return addWsHandler(WsHandlerType.WS_BEFORE, path, wsHandlers);
     }
 
     /**
      * Adds a WebSocket before handler for all routes in the instance.
      */
-    public Javalin wsBefore(@NotNull Consumer<WsHandlers> wsHandlers) {
+    public Javalin wsBefore(@NotNull Consumer<WsConfig> wsHandlers) {
         return wsBefore("*", wsHandlers);
     }
 
     /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
-    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsHandlers> wsHandlers) {
+    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsHandlers) {
         return addWsHandler(WsHandlerType.WS_AFTER, path, wsHandlers);
     }
 
     /**
      * Adds a WebSocket after handler for all routes in the instance.
      */
-    public Javalin wsAfter(@NotNull Consumer<WsHandlers> wsHandlers) {
+    public Javalin wsAfter(@NotNull Consumer<WsConfig> wsHandlers) {
         return wsAfter("*", wsHandlers);
     }
 

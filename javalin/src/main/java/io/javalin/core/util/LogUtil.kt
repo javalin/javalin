@@ -11,7 +11,7 @@ import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.PathMatcher
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.WsHandlers
+import io.javalin.websocket.WsConfig
 import java.util.*
 
 object LogUtil {
@@ -73,7 +73,7 @@ object LogUtil {
     fun executionTimeMs(ctx: Context) = (System.nanoTime() - ctx.attribute<Long>("javalin-request-log-start-time")!!) / 1000000f
 
     @JvmStatic
-    fun wsDevLogger(ws: WsHandlers) {
+    fun wsDevLogger(ws: WsConfig) {
         ws.onConnect { ctx -> ctx.logEvent("onConnect") }
         ws.onMessage { ctx -> ctx.logEvent("onMessage", "Message (next line):\n${ctx.message()}") }
         ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Offset: ${ctx.offset()}, Length: ${ctx.length()}\nMessage (next line):\n${ctx.data()}") }
