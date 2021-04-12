@@ -87,7 +87,7 @@ public class Javalin {
      */
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
-        JavalinConfig.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
+        JavalinConfig.Companion.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
         if (app.config.logIfServerNotStarted) {
             Util.logIfServerNotStarted(app.server);
         }
@@ -97,7 +97,7 @@ public class Javalin {
     // Create a standalone (non-jetty dependent) Javalin with the supplied config
     public static Javalin createStandalone(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin(null, null);
-        JavalinConfig.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
+        JavalinConfig.Companion.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
         return app;
     }
 
@@ -231,7 +231,7 @@ public class Javalin {
      * Ex: app.attribute(MyExt.class, myExtInstance())
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin attribute(Class clazz, Object obj) {
+    public <T> Javalin attribute(Class<T> clazz, Object obj) {
         config.inner.appAttributes.put(clazz, obj);
         return this;
     }

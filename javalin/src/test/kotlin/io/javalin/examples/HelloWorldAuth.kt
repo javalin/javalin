@@ -37,7 +37,7 @@ fun main() {
 
 }
 
-private fun accessManager(handler: Handler, ctx: Context, permittedRoles: MutableSet<Role>) {
+private fun accessManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
     val userRole = ctx.queryParam("role")
     if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
         handler.handle(ctx)
