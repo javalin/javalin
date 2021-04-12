@@ -412,32 +412,32 @@ public class ApiBuilder {
      * Adds a WebSocket before handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsHandlers) {
-        return staticInstance().wsBefore(prefixPath(path), wsHandlers);
+    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+        return staticInstance().wsBefore(prefixPath(path), wsConfig);
     }
 
     /**
      * Adds a WebSocket before handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsBefore(@NotNull Consumer<WsConfig> wsHandlers) {
-        return staticInstance().wsBefore(prefixPath("/*"), wsHandlers);
+    public Javalin wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
+        return staticInstance().wsBefore(prefixPath("/*"), wsConfig);
     }
 
     /**
      * Adds a WebSocket after handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsHandlers) {
-        return staticInstance().wsAfter(prefixPath(path), wsHandlers);
+    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+        return staticInstance().wsAfter(prefixPath(path), wsConfig);
     }
 
     /**
      * Adds a WebSocket after handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsAfter(@NotNull Consumer<WsConfig> wsHandlers) {
-        return staticInstance().wsAfter(prefixPath("/*"), wsHandlers);
+    public Javalin wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
+        return staticInstance().wsAfter(prefixPath("/*"), wsConfig);
     }
 
     // ********************************************************************************************
