@@ -32,7 +32,7 @@ object LogUtil {
                         |    Body: ${if (isMultipart()) "Multipart data ..." else body()}
                         |    QueryString: ${queryString()}
                         |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.toString() }}
-                        |    FormParams: ${formParamMap().mapValues { (_, v) -> v.toString() }}
+                        |    FormParams: ${(if (body().probablyFormData()) formParamMap() else mapOf()).mapValues { (_, v) -> v.toString() }}
                         |Response: [${status()}], execution took ${Formatter(Locale.US).format("%.2f", time)} ms
                         |    Headers: $resHeaders
                         |    ${resBody(ctx)}
@@ -41,6 +41,8 @@ object LogUtil {
     } catch (e: Exception) {
         Javalin.log?.info("An exception occurred while logging debug-info", e)
     }
+    
+    private fun String.probablyFormData() = this.trim().firstOrNull()?.isLetter() == true && this.split("=").size >= 2
 
     private fun resBody(ctx: Context): String {
         val staticFile = ctx.req.getAttribute("handled-as-static-file") == true
