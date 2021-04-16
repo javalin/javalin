@@ -198,7 +198,7 @@ class JavalinConfig {
     }
 
     companion object {
-        fun applyUserConfig(app: Javalin, config: JavalinConfig, userConfig: Consumer<JavalinConfig?>) {
+        fun applyUserConfig(app: Javalin, config: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
             userConfig.accept(config) // apply user config to the default config
             val anyHandlerAdded = AtomicBoolean(false)
             app.events { listener: EventListener ->

@@ -29,7 +29,7 @@ class TestAppAttributes {
 
     @Test
     fun `app attributes can be accessed through the app`() = TestUtil.test(attributedJavalin) { app, _ ->
-        assertThat(app.attribute(MyOtherThing::class.java).test).isEqualTo("Test")
+        assertThat(app.attribute(MyOtherThing::class.java)?.test).isEqualTo("Test")
     }
 
     @Test

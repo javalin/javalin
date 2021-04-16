@@ -3,7 +3,7 @@ package io.javalin.http.sse
 import io.javalin.http.Context
 
 class SseClient(@JvmField val ctx: Context) {
-    
+
     private val emitter: Emitter = Emitter(ctx.req.asyncContext)
     private var closeCallback: Runnable? = null
 
@@ -11,8 +11,9 @@ class SseClient(@JvmField val ctx: Context) {
         this.closeCallback = closeCallback
     }
 
-    @JvmOverloads
-    fun sendEvent(event: String = "message", data: String, id: String? = null) {
+    fun sendEvent(data: String) = sendEvent("message", data)
+    fun sendEvent(event: String, data: String) = sendEvent(event, data, null)
+    fun sendEvent(event: String, data: String, id: String?) {
         emitter.emit(event, data, id)
         if (emitter.isClose() && closeCallback != null) {
             closeCallback!!.run()

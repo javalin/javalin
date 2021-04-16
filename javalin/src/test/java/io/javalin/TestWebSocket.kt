@@ -41,7 +41,7 @@ class TestWebSocket {
         if (this.attribute(TestLogger::class.java) == null) {
             this.attribute(TestLogger::class.java, TestLogger(ArrayList()))
         }
-        return this.attribute(TestLogger::class.java)
+        return this.attribute(TestLogger::class.java)!!
     }
 
     fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
