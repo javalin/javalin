@@ -26,7 +26,7 @@ import io.javalin.http.staticfiles.JettyResourceHandler;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
-import io.javalin.websocket.WsHandlers;
+import io.javalin.websocket.WsConfig;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -68,7 +68,7 @@ public class JavalinConfig {
         @NotNull public SinglePageHandler singlePageHandler = new SinglePageHandler();
         @Nullable public SessionHandler sessionHandler = null;
         @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig = null;
-        @Nullable public WsHandlers wsLogger = null;
+        @Nullable public WsConfig wsLogger = null;
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
         @NotNull public CompressionStrategy compressionStrategy = CompressionStrategy.GZIP;
@@ -169,8 +169,8 @@ public class JavalinConfig {
         return this;
     }
 
-    public JavalinConfig wsLogger(@NotNull Consumer<WsHandlers> ws) {
-        WsHandlers logger = new WsHandlers();
+    public JavalinConfig wsLogger(@NotNull Consumer<WsConfig> ws) {
+        WsConfig logger = new WsConfig();
         ws.accept(logger);
         inner.wsLogger = logger;
         return this;

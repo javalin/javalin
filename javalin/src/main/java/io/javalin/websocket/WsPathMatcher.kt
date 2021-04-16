@@ -10,7 +10,7 @@ import io.javalin.core.PathParser
 import io.javalin.core.security.Role
 import java.util.*
 
-data class WsEntry(val type: WsHandlerType, val path: String, val ignoreTrailingSlashes: Boolean, val handlers: WsHandlers, val permittedRoles: Set<Role>) {
+data class WsEntry(val type: WsHandlerType, val path: String, val ignoreTrailingSlashes: Boolean, val wsConfig: WsConfig, val permittedRoles: Set<Role>) {
     private val pathParser = PathParser(path, ignoreTrailingSlashes)
     fun matches(path: String) = pathParser.matches(path)
     fun extractPathParams(path: String) = pathParser.extractPathParams(path)

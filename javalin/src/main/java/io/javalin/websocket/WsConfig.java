@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Holds the different WebSocket handlers for a specific {@link WsEntry} or the WebSocket logger.
  */
-public class WsHandlers {
+public class WsConfig {
 
     WsConnectHandler wsConnectHandler = null;
     WsMessageHandler wsMessageHandler = null;
