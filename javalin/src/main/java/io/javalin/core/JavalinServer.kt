@@ -107,13 +107,22 @@ object JettyUtil {
         setAttribute("is-default-server", true)
     }
 
+    @JvmField
+    var logDuringStartup = false
+
     @JvmStatic
     fun disableJettyLogger() {
+        if (logDuringStartup) return
         defaultLogger = defaultLogger ?: org.eclipse.jetty.util.log.Log.getLog()
         org.eclipse.jetty.util.log.Log.setLog(NoopLogger())
     }
 
-    fun reEnableJettyLogger() = org.eclipse.jetty.util.log.Log.setLog(defaultLogger)
+    fun reEnableJettyLogger() {
+        if (logDuringStartup) return
+        org.eclipse.jetty.util.log.Log.setLog(defaultLogger)
+    }
+
+
 
 }
 
