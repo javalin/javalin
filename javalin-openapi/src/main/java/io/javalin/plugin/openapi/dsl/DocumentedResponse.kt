@@ -1,19 +1,19 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.http.HttpCode
 import io.javalin.plugin.openapi.external.findSchema
 import io.javalin.plugin.openapi.external.mediaTypeRef
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.ComposedSchema
 import io.swagger.v3.oas.models.responses.ApiResponse
-import org.eclipse.jetty.http.HttpStatus
 
 class DocumentedResponse(
         val status: String,
         val content: List<DocumentedContent>
 )
 
-fun DocumentedResponse.getStatusMessage() = status.toIntOrNull()?.let { HttpStatus.getMessage(it) } ?: ""
+fun DocumentedResponse.getStatusMessage() = status.toIntOrNull()?.let { HttpCode.messageFor(it) } ?: ""
 
 fun ApiResponse.applyDocumentedResponse(documentedResponse: DocumentedResponse) {
     description = description ?: documentedResponse.getStatusMessage()
