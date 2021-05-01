@@ -10,6 +10,7 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.core.security.BasicAuthFilter
 import io.javalin.core.util.Header
 import io.javalin.http.context.header
+import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -249,7 +250,7 @@ class TestRequest {
     fun `basic auth filter plugin works`() {
         val basicauthApp = Javalin.create {
             it.registerPlugin(BasicAuthFilter("u", "p"))
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
         }.get("/hellopath") { it.result("Hello") }
         TestUtil.test(basicauthApp) { app, http ->
             assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")

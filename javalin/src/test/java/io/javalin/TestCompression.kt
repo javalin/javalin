@@ -15,6 +15,7 @@ import io.javalin.core.util.FileUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.http.OutputStreamWrapper
+import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import okhttp3.Headers
 import okhttp3.OkHttpClient
@@ -42,20 +43,20 @@ class TestCompression {
     val fullCompressionApp by lazy {
         Javalin.create {
             it.compressionStrategy(Brotli(), Gzip())
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
     }
 
     val brotliDisabledApp by lazy {
         Javalin.create {
             it.compressionStrategy(null, Gzip())
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
     }
 
     val etagApp by lazy {
         Javalin.create {
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
             it.autogenerateEtags = true
         }.addTestEndpoints()
     }
@@ -113,7 +114,7 @@ class TestCompression {
     fun `doesn't gzip when gzip is disabled`() {
         val gzipDisabledApp = Javalin.create {
             it.compressionStrategy(Brotli(), null)
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
         TestUtil.test(gzipDisabledApp) { _, http ->
             assertThat(getResponse(http.origin, "/huge", "gzip").headers().get(Header.CONTENT_ENCODING)).isNull()
@@ -152,7 +153,7 @@ class TestCompression {
     @Test
     fun `does gzip when CompressionStrategy not set`() {
         val defaultApp = Javalin.create {
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
         TestUtil.test(defaultApp) { _, http ->
             assertThat(getResponse(http.origin, "/huge", "br, gzip").headers().get(Header.CONTENT_ENCODING)).isEqualTo("gzip")
@@ -258,7 +259,7 @@ class TestCompression {
     fun `doesn't compress media files`() {
         val mediaTestApp = Javalin.create {
             it.compressionStrategy(null, Gzip())
-            it.addStaticFiles("/upload-test")
+            it.addStaticFiles("/upload-test", Location.CLASSPATH)
         }
         TestUtil.test(mediaTestApp) { _, http ->
             assertUncompressedResponse(http.origin, "/image.png")
@@ -270,7 +271,7 @@ class TestCompression {
     fun `doesn't compress pre-compressed files`() {
         val preCompressedTestApp = Javalin.create {
             it.compressionStrategy(null, Gzip())
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
             it.enableWebjars()
         }
         TestUtil.test(preCompressedTestApp) { _, http ->

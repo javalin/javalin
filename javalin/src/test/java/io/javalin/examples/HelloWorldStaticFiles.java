@@ -8,12 +8,13 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
 
 public class HelloWorldStaticFiles {
 
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.addStaticFiles("/public");
+            config.addStaticFiles("/public", Location.CLASSPATH);
         }).start(7070);
     }
 

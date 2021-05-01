@@ -27,7 +27,7 @@ class TestConfiguration {
             // JavalinServlet
             it.addSinglePageRoot("/", "/public/html.html")
             it.addSinglePageRoot("/", "src/test/resources/public/html.html", Location.EXTERNAL)
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
             it.addStaticFiles("src/test/resources/public", Location.EXTERNAL)
             it.asyncRequestTimeout = 10_000L
             it.autogenerateEtags = true

@@ -6,15 +6,17 @@
  * @author: Plasmoxy
  */
 
-package io.javalin
+package io.javalin.staticfiles
 
+import io.javalin.Javalin
+import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestStaticDirectorySlash {
 
-    private val normalJavalin: Javalin by lazy { Javalin.create { it.addStaticFiles("public") } }
+    private val normalJavalin: Javalin by lazy { Javalin.create { it.addStaticFiles("public", Location.CLASSPATH) } }
 
     @Test
     fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { _, http ->

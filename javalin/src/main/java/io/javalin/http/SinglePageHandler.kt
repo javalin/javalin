@@ -27,16 +27,16 @@ class SinglePageHandler {
     private val pathPageMap = mutableMapOf<String, String>()
     private val pathCustomHandlerMap = mutableMapOf<String, Handler>()
 
-    fun add(path: String, filePath: String, location: Location) {
-        pathUrlMap[path] = when (location) {
+    fun add(hostedPath: String, filePath: String, location: Location) {
+        pathUrlMap[hostedPath] = when (location) {
             Location.CLASSPATH -> Util.getResourceUrl(filePath.removePrefix("/")) ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
             Location.EXTERNAL -> Util.getFileUrl(filePath) ?: throw IllegalArgumentException("External file at '$filePath' not found.")
         }
-        pathPageMap[path] = pathUrlMap[path]!!.readText()
+        pathPageMap[hostedPath] = pathUrlMap[hostedPath]!!.readText()
     }
 
-    fun add(path: String, customHandler: Handler) {
-        pathCustomHandlerMap[path] = customHandler
+    fun add(hostedPath: String, customHandler: Handler) {
+        pathCustomHandlerMap[hostedPath] = customHandler
     }
 
     fun handle(ctx: Context): Boolean {
@@ -51,8 +51,8 @@ class SinglePageHandler {
                     return true
                 }
             }
-            for ((path, customHandler) in pathCustomHandlerMap) {
-                if (ctx.path().startsWith(path)) {
+            for ((hostedPath, customHandler) in pathCustomHandlerMap) {
+                if (ctx.path().startsWith(hostedPath)) {
                     customHandler.handle(ctx)
                     return true
                 }

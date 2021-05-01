@@ -4,8 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  *
  */
-package io.javalin
+package io.javalin.staticfiles
 
+import io.javalin.Javalin
 import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
@@ -24,12 +25,20 @@ class TestStaticFilesPrecompressor {
     private val swaggerBasePath = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}"
 
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
-        Javalin.create { config ->
-            config.precompressStaticFiles = true
-            config.compressionStrategy(Brotli(), Gzip())
-            config.enableWebjars()
-            config.addStaticFiles("/public/immutable")
-            config.addStaticFiles("/public/protected")
+        Javalin.create { javalin ->
+            javalin.compressionStrategy(Brotli(), Gzip())
+            javalin.addStaticFiles { staticFiles ->
+                staticFiles.directory = "META-INF/resources/webjars"
+                staticFiles.precompress = true
+            }
+            javalin.addStaticFiles { staticFiles ->
+                staticFiles.directory = "/public/immutable"
+                staticFiles.precompress = true
+            }
+            javalin.addStaticFiles { staticFiles ->
+                staticFiles.directory = "/public/protected"
+                staticFiles.precompress = true
+            }
         }
     }
 

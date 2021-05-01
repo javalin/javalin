@@ -18,6 +18,7 @@ import io.javalin.core.plugin.PluginNotFoundException;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.CorsPlugin;
+import io.javalin.core.util.Header;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
@@ -46,8 +47,6 @@ public class JavalinConfig {
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
-    public boolean precompressStaticFiles = false;
-    public ContextHandler.AliasCheck aliasCheckForStaticFiles = null;
     public boolean showJavalinBanner = true;
     public boolean logIfServerNotStarted = true;
     public boolean ignoreTrailingSlashes = true;
@@ -104,37 +103,42 @@ public class JavalinConfig {
     }
 
     public JavalinConfig enableWebjars() {
-        return addStaticFiles("/webjars", Location.CLASSPATH);
+        return addStaticFiles(staticFiles -> {
+            staticFiles.directory = "META-INF/resources/webjars";
+            staticFiles.headers.put(Header.CACHE_CONTROL, "max-age=31622400");
+        });
     }
 
-    public JavalinConfig addStaticFiles(@NotNull String classpathPath) {
-        return addStaticFiles(classpathPath, Location.CLASSPATH);
+    public JavalinConfig addStaticFiles(@NotNull String directory, @NotNull Location location) {
+        return addStaticFiles(staticFiles -> {
+            staticFiles.directory = directory;
+            staticFiles.location = location;
+        });
     }
 
-    public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location) {
-        return addStaticFiles("/", path, location);
-    }
-
-    public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location) {
+    public JavalinConfig addStaticFiles(@NotNull Consumer<StaticFileConfig> userConfig) {
         JettyUtil.disableJettyLogger();
-        if (inner.resourceHandler == null)
-            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles, aliasCheckForStaticFiles);
-        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location));
+        if (inner.resourceHandler == null) {
+            inner.resourceHandler = new JettyResourceHandler();
+        }
+        StaticFileConfig finalConfig = new StaticFileConfig();
+        userConfig.accept(finalConfig);
+        inner.resourceHandler.addStaticFileConfig(finalConfig);
         return this;
     }
 
-    public JavalinConfig addSinglePageRoot(@NotNull String path, @NotNull String filePath) {
-        addSinglePageRoot(path, filePath, Location.CLASSPATH);
+    public JavalinConfig addSinglePageRoot(@NotNull String hostedPath, @NotNull String filePath) {
+        addSinglePageRoot(hostedPath, filePath, Location.CLASSPATH);
         return this;
     }
 
-    public JavalinConfig addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
-        inner.singlePageHandler.add(path, filePath, location);
+    public JavalinConfig addSinglePageRoot(@NotNull String hostedPath, @NotNull String filePath, @NotNull Location location) {
+        inner.singlePageHandler.add(hostedPath, filePath, location);
         return this;
     }
 
-    public JavalinConfig addSinglePageHandler(@NotNull String path, @NotNull Handler customHandler) {
-        inner.singlePageHandler.add(path, customHandler);
+    public JavalinConfig addSinglePageHandler(@NotNull String hostedPath, @NotNull Handler customHandler) {
+        inner.singlePageHandler.add(hostedPath, customHandler);
         return this;
     }
 

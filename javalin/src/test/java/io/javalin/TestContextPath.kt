@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.core.util.Util
+import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -61,7 +62,7 @@ class TestContextPath {
     @Test
     fun `static-files work with context-path`() {
         val javalin = Javalin.create { servlet ->
-            servlet.addStaticFiles("/public")
+            servlet.addStaticFiles("/public", Location.CLASSPATH)
             servlet.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->
@@ -73,7 +74,7 @@ class TestContextPath {
     @Test
     fun `welcome-files work with context-path`() {
         val javalin = Javalin.create { servlet ->
-            servlet.addStaticFiles("/public")
+            servlet.addStaticFiles("/public", Location.CLASSPATH)
             servlet.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->
