@@ -19,7 +19,7 @@ class TestStaticFilesEdgeCases {
     @Test
     fun `server doesn't start for non-existent classpath folder`() {
         assertThatExceptionOfType(RuntimeException::class.java)
-                .isThrownBy { Javalin.create { it.addStaticFiles("classpath-fake-folder") }.start() }
+                .isThrownBy { Javalin.create { it.addStaticFiles("classpath-fake-folder", Location.CLASSPATH) }.start() }
                 .withMessageStartingWith("Static resource directory with path: 'classpath-fake-folder' does not exist.")
     }
 

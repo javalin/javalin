@@ -101,35 +101,25 @@ public class JavalinConfig {
         return this;
     }
 
-
     public JavalinConfig enableWebjars() {
         return addStaticFiles("/webjars", Location.CLASSPATH);
     }
 
-    //TODO: REMOVE THIS SHIT
-    public JavalinConfig addStaticFiles(@NotNull StaticFileConfig config) {
+    public JavalinConfig addStaticFiles(@NotNull String directory, @NotNull Location location) {
+        return addStaticFiles(staticFileConfig -> {
+            staticFileConfig.directory = directory;
+            staticFileConfig.location = location;
+        });
+    }
+
+    public JavalinConfig addStaticFiles(@NotNull Consumer<StaticFileConfig> userConfig) {
         JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null) {
             inner.resourceHandler = new JettyResourceHandler();
         }
+        StaticFileConfig config = new StaticFileConfig();
+        userConfig.accept(config);
         inner.resourceHandler.addStaticFileConfig(config);
-        return this;
-    }
-
-    public JavalinConfig addStaticFiles(@NotNull String classpathPath) {
-        return addStaticFiles(classpathPath, Location.CLASSPATH);
-    }
-
-    public JavalinConfig addStaticFiles(@NotNull String path, @NotNull Location location) {
-        return addStaticFiles("/", path, location);
-    }
-
-    public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location) {
-        JettyUtil.disableJettyLogger();
-        if (inner.resourceHandler == null) {
-            inner.resourceHandler = new JettyResourceHandler();
-        }
-        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location, false, null));
         return this;
     }
 

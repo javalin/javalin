@@ -29,7 +29,7 @@ class JettyResourceHandler : JavalinResourceHandler {
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
         handlers.add(when {
-            config.path == "/webjars" -> WebjarHandler(config)
+            config.directory == "/webjars" -> WebjarHandler(config)
             config.aliasCheck != null -> AliasHandler(config)
             else -> PrefixableHandler(config)
         }.apply { start() })
@@ -46,7 +46,7 @@ class JettyResourceHandler : JavalinResourceHandler {
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
-                    if (handler.config.precompressStaticFiles && PrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
+                    if (handler.config.precompress && PrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
                         return true
                     }
                     httpResponse.contentType = null
@@ -81,21 +81,21 @@ private open class PrefixableHandler(config: StaticFileConfig) : ConfigResourceH
         isDirAllowed = false
         isEtags = true
         Javalin.log?.info("""Static file handler added:
-        |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.path}", location: Location.${config.location}}
+        |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.directory}", location: Location.${config.location}}
         |    Resolved path: '${getResourceBase(config)}'
         """.trimMargin())
     }
 
     private fun getResourceBase(config: StaticFileConfig): String {
-        val noSuchDirMessage = "Static resource directory with path: '${config.path}' does not exist."
+        val noSuchDirMessage = "Static resource directory with path: '${config.directory}' does not exist."
         val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
         if (config.location == Location.CLASSPATH) {
-            return Resource.newClassPathResource(config.path)?.toString() ?: throw RuntimeException("$noSuchDirMessage $classpathHint")
+            return Resource.newClassPathResource(config.directory)?.toString() ?: throw RuntimeException("$noSuchDirMessage $classpathHint")
         }
-        if (!File(config.path).exists()) {
+        if (!File(config.directory).exists()) {
             throw RuntimeException(noSuchDirMessage)
         }
-        return config.path
+        return config.directory
     }
 
     override fun getResource(path: String): Resource {

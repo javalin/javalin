@@ -7,8 +7,9 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
+import io.javalin.http.staticfiles.Location
 
 fun main() {
-    Javalin.create { it.addStaticFiles("/public") }.start(7070)
+    Javalin.create { it.addStaticFiles("/public", Location.CLASSPATH) }.start(7070)
 }
 

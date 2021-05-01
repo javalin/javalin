@@ -34,19 +34,19 @@ import javax.servlet.ServletResponse
 
 class TestStaticFiles {
 
-    private val defaultStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("/public") } } // classpath
+    private val defaultStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("/public", Location.CLASSPATH) } }
     private val externalStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("src/test/external/", Location.EXTERNAL) } }
     private val multiLocationStaticResourceApp: Javalin by lazy {
         Javalin.create {
             it.addStaticFiles("src/test/external/", Location.EXTERNAL)
-            it.addStaticFiles("/public/immutable")
-            it.addStaticFiles("/public/protected")
-            it.addStaticFiles("/public/subdir")
+            it.addStaticFiles("/public/immutable", Location.CLASSPATH)
+            it.addStaticFiles("/public/protected", Location.CLASSPATH)
+            it.addStaticFiles("/public/subdir", Location.CLASSPATH)
         }
     }
     private val devLoggingApp: Javalin by lazy {
         Javalin.create {
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
             it.enableDevLogging()
         }
     }
@@ -64,7 +64,7 @@ class TestStaticFiles {
                 override fun destroy() {
                 }
             }
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
             it.configureServletContextHandler { handler ->
                 handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
@@ -90,8 +90,15 @@ class TestStaticFiles {
         val staticWithAliasResourceApp = Javalin.create {
             // block aliases for txt files
             val aliasCheck = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
-            it.addStaticFiles(StaticFileConfig("", "src/test/external/", Location.EXTERNAL, false, aliasCheck))
-            it.addStaticFiles(StaticFileConfig("/url-prefix", "/public", Location.CLASSPATH, false, aliasCheck))
+            it.addStaticFiles {
+                it.aliasCheck = aliasCheck
+                it.directory = "src/test/external/"
+                it.location = Location.EXTERNAL
+            }
+            it.addStaticFiles {
+                it.urlPathPrefix = "/url-prefix"
+                it.aliasCheck = aliasCheck
+            }
         }
 
         val createdHtml = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
@@ -222,8 +229,12 @@ class TestStaticFiles {
     @Test
     fun `serving from custom url path works`() {
         TestUtil.test(Javalin.create { servlet ->
-            servlet.addStaticFiles("/public")
-            servlet.addStaticFiles("/url-prefix", "/public", Location.CLASSPATH)
+            servlet.addStaticFiles("/public", Location.CLASSPATH)
+            servlet.addStaticFiles {
+                it.urlPathPrefix = "/url-prefix"
+                it.directory = "/public"
+                it.location = Location.CLASSPATH
+            }
         }) { _, http ->
             assertThat(http.get("/styles.css").status).isEqualTo(200)
             assertThat(http.get("/url-prefix/styles.css").status).isEqualTo(200)
@@ -235,7 +246,11 @@ class TestStaticFiles {
         TestUtil.test(Javalin.create { servlet ->
             // effectively equivalent to servlet.addStaticFiles("/public", Location.CLASSPATH)
             // but with benefit of additional "filtering": only requests matching /assets/* will be matched against static resources handler
-            servlet.addStaticFiles("/assets", "/public/assets", Location.CLASSPATH)
+            servlet.addStaticFiles {
+                it.urlPathPrefix = "/assets"
+                it.directory = "/public/assets"
+                it.location = Location.CLASSPATH
+            }
         }) { _, http ->
             assertThat(http.get("/assets/filtered-styles.css").status).isEqualTo(200) // access to urls matching /assets/* is allowed
             assertThat(http.get("/filtered-styles.css").status).isEqualTo(404) // direct access to a file in the subfolder is not allowed

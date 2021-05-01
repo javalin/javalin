@@ -22,7 +22,7 @@ class TestSinglePageMode {
 
     private val rootSinglePageApp_classPath: Javalin by lazy {
         Javalin.create {
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
             it.addSinglePageRoot("/", "/public/html.html")
             it.enableWebjars()
         }
@@ -30,7 +30,7 @@ class TestSinglePageMode {
 
     private val dualSinglePageApp_classPath: Javalin by lazy {
         Javalin.create {
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
             it.addSinglePageRoot("/admin", "/public/protected/secret.html")
             it.addSinglePageRoot("/public", "/public/html.html")
         }
@@ -53,7 +53,7 @@ class TestSinglePageMode {
 
     private val mixedSinglePageHandlerApp: Javalin by lazy {
         Javalin.create {
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
             it.addSinglePageRoot("/public", "/public/html.html")
             it.addSinglePageHandler("/public") { ctx: Context -> ctx.result("Will never be seen") }
             it.addSinglePageHandler("/special") { ctx: Context ->

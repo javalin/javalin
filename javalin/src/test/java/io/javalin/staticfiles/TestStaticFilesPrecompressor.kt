@@ -11,9 +11,7 @@ import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
-import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.PrecompressingResourceHandler
-import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
@@ -27,11 +25,20 @@ class TestStaticFilesPrecompressor {
     private val swaggerBasePath = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}"
 
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
-        Javalin.create { config ->
-            config.compressionStrategy(Brotli(), Gzip())
-            config.addStaticFiles(StaticFileConfig("/", "/webjars", Location.CLASSPATH, true, null))
-            config.addStaticFiles(StaticFileConfig("/", "/public/immutable", Location.CLASSPATH, true, null))
-            config.addStaticFiles(StaticFileConfig("/", "/public/protected", Location.CLASSPATH, true, null))
+        Javalin.create { javalin ->
+            javalin.compressionStrategy(Brotli(), Gzip())
+            javalin.addStaticFiles { staticFiles ->
+                staticFiles.directory = "/webjars"
+                staticFiles.precompress = true
+            }
+            javalin.addStaticFiles { staticFiles ->
+                staticFiles.directory = "/public/immutable"
+                staticFiles.precompress = true
+            }
+            javalin.addStaticFiles { staticFiles ->
+                staticFiles.directory = "/public/protected"
+                staticFiles.precompress = true
+            }
         }
     }
 
