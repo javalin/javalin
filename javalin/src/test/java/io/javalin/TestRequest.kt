@@ -43,6 +43,15 @@ class TestRequest {
     }
 
     @Test
+    fun `session-attribute can be consumed easily`() = TestUtil.test { app, http ->
+        app.get("/store-attr") { it.sessionAttribute("attr", "Rowin") }
+        app.get("/read-attr") { it.result(it.sessionAttribute("attr", consume = true) ?: "Consumed") }
+        http.getBody("/store-attr") // store the attribute
+        assertThat(http.getBody("/read-attr")).isEqualTo("Rowin") // read (and consume) the attribute
+        assertThat(http.getBody("/read-attr")).isEqualTo("Consumed") // fallback
+    }
+
+    @Test
     fun `session-attribute-map works`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx ->
             ctx.sessionAttribute("test", "tast")

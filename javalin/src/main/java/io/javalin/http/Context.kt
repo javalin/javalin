@@ -290,7 +290,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun sessionAttribute(key: String, value: Any?) = req.session.setAttribute(key, value)
 
     /** Gets specified attribute from the user session, or null. */
-    fun <T> sessionAttribute(key: String): T? = req.session.getAttribute(key) as? T
+    @JvmOverloads
+    fun <T> sessionAttribute(key: String, consume: Boolean = false): T? =
+            (req.session.getAttribute(key) as? T).also { if (consume) this.sessionAttribute(key, null) }
 
     /** Gets a map of all the attributes in the user session. */
     fun <T> sessionAttributeMap(): Map<String, T?> = req.session.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
