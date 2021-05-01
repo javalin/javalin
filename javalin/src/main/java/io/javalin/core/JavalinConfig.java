@@ -103,16 +103,16 @@ public class JavalinConfig {
     }
 
     public JavalinConfig enableWebjars() {
-        return addStaticFiles(staticFileConfig -> {
-            staticFileConfig.directory = "/webjars";
-            staticFileConfig.headers.put(Header.CACHE_CONTROL, "max-age=31622400");
+        return addStaticFiles(staticFiles -> {
+            staticFiles.directory = "/webjars";
+            staticFiles.headers.put(Header.CACHE_CONTROL, "max-age=31622400");
         });
     }
 
     public JavalinConfig addStaticFiles(@NotNull String directory, @NotNull Location location) {
-        return addStaticFiles(staticFileConfig -> {
-            staticFileConfig.directory = directory;
-            staticFileConfig.location = location;
+        return addStaticFiles(staticFiles -> {
+            staticFiles.directory = directory;
+            staticFiles.location = location;
         });
     }
 
@@ -121,24 +121,24 @@ public class JavalinConfig {
         if (inner.resourceHandler == null) {
             inner.resourceHandler = new JettyResourceHandler();
         }
-        StaticFileConfig config = new StaticFileConfig();
-        userConfig.accept(config);
-        inner.resourceHandler.addStaticFileConfig(config);
+        StaticFileConfig finalConfig = new StaticFileConfig();
+        userConfig.accept(finalConfig);
+        inner.resourceHandler.addStaticFileConfig(finalConfig);
         return this;
     }
 
-    public JavalinConfig addSinglePageRoot(@NotNull String path, @NotNull String filePath) {
-        addSinglePageRoot(path, filePath, Location.CLASSPATH);
+    public JavalinConfig addSinglePageRoot(@NotNull String hostedPath, @NotNull String filePath) {
+        addSinglePageRoot(hostedPath, filePath, Location.CLASSPATH);
         return this;
     }
 
-    public JavalinConfig addSinglePageRoot(@NotNull String path, @NotNull String filePath, @NotNull Location location) {
-        inner.singlePageHandler.add(path, filePath, location);
+    public JavalinConfig addSinglePageRoot(@NotNull String hostedPath, @NotNull String filePath, @NotNull Location location) {
+        inner.singlePageHandler.add(hostedPath, filePath, location);
         return this;
     }
 
-    public JavalinConfig addSinglePageHandler(@NotNull String path, @NotNull Handler customHandler) {
-        inner.singlePageHandler.add(path, customHandler);
+    public JavalinConfig addSinglePageHandler(@NotNull String hostedPath, @NotNull Handler customHandler) {
+        inner.singlePageHandler.add(hostedPath, customHandler);
         return this;
     }
 
