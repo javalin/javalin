@@ -43,7 +43,7 @@ class TestStaticFiles {
             it.addStaticFiles("/public/subdir", Location.CLASSPATH)
         }
     }
-    private val customHeaderApp: Javalin by lazy { Javalin.create { it.addStaticFiles{ it.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400")} } }
+    private val customHeaderApp: Javalin by lazy { Javalin.create { it.addStaticFiles { it.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400") } } }
     private val devLoggingApp: Javalin by lazy {
         Javalin.create {
             it.enableDevLogging()
@@ -228,12 +228,12 @@ class TestStaticFiles {
 
     @Test
     fun `serving from custom url path works`() {
-        TestUtil.test(Javalin.create { servlet ->
-            servlet.addStaticFiles("/public", Location.CLASSPATH)
-            servlet.addStaticFiles {
-                it.hostedPath = "/url-prefix"
-                it.directory = "/public"
-                it.location = Location.CLASSPATH
+        TestUtil.test(Javalin.create { javalin ->
+            javalin.addStaticFiles("/public", Location.CLASSPATH)
+            javalin.addStaticFiles { staticFiles ->
+                staticFiles.hostedPath = "/url-prefix"
+                staticFiles.directory = "/public"
+                staticFiles.location = Location.CLASSPATH
             }
         }) { _, http ->
             assertThat(http.get("/styles.css").status).isEqualTo(200)

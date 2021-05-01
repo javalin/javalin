@@ -9,8 +9,8 @@ package io.javalin
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.rendering.vue.JavalinVue
-import io.javalin.plugin.rendering.vue.VueVersion
 import io.javalin.plugin.rendering.vue.VueComponent
+import io.javalin.plugin.rendering.vue.VueVersion
 import io.javalin.testing.TestUtil
 import io.mockk.every
 import io.mockk.mockk
@@ -47,7 +47,7 @@ class TestJavalinVue {
     private val state = State(User("tipsy", "tipsy@tipsy.tipsy"), Role("Maintainer"))
 
     private fun String.uriEncodeForJavascript() =
-        URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+","%20")
+            URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+", "%20")
 
     @Test
     fun `vue component with state`() = TestUtil.test { app, http ->
@@ -83,7 +83,7 @@ class TestJavalinVue {
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component-3></test-component-3></body>")
         assertThat(res).contains("app.config.globalProperties.\$javalin")
-}
+    }
 
 
     @Test

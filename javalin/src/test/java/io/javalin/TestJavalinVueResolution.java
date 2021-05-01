@@ -15,7 +15,6 @@
  */
 package io.javalin;
 
-import io.javalin.http.staticfiles.Location;
 import io.javalin.plugin.rendering.vue.JavalinVue;
 import io.javalin.plugin.rendering.vue.VueComponent;
 import io.javalin.plugin.rendering.vue.VueVersion;

@@ -7,7 +7,6 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.Test
 import java.io.IOException
 import java.io.InputStream
-import java.net.SocketTimeoutException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
