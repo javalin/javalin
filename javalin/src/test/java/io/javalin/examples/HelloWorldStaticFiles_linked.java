@@ -8,6 +8,7 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
+import io.javalin.http.staticfiles.StaticFileConfig;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,8 +21,7 @@ public class HelloWorldStaticFiles_linked {
         createSymLink("src/test/external/html.html", "src/test/external/linked_html.html");
 
         Javalin.create(config -> {
-            config.aliasCheckForStaticFiles = new ContextHandler.ApproveAliases();
-            config.addStaticFiles("src/test/external/", Location.EXTERNAL);
+            config.addStaticFiles(new StaticFileConfig("", "src/test/external/", Location.EXTERNAL, false, new ContextHandler.ApproveAliases()));
         }).start(7070);
     }
 

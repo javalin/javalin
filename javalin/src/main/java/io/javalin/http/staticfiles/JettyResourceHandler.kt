@@ -11,7 +11,6 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.util.URIUtil
 import org.eclipse.jetty.util.resource.EmptyResource
@@ -22,14 +21,16 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
-class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private val aliasCheck: AliasCheck? = null) : JavalinResourceHandler {
+open class ConfigResourceHandler(val config: StaticFileConfig) : ResourceHandler()
 
-    val handlers = mutableListOf<ResourceHandler>()
+class JettyResourceHandler : JavalinResourceHandler {
+
+    val handlers = mutableListOf<ConfigResourceHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
         handlers.add(when {
-            config.path == "/webjars" -> WebjarHandler()
-            aliasCheck != null -> AliasHandler(config, aliasCheck)
+            config.path == "/webjars" -> WebjarHandler(config)
+            config.aliasCheck != null -> AliasHandler(config)
             else -> PrefixableHandler(config)
         }.apply { start() })
     }
@@ -45,7 +46,7 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private 
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
                     // if the HTTP response already has a content type set
-                    if (precompressStaticFiles && PrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
+                    if (handler.config.precompressStaticFiles && PrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
                         return true
                     }
                     httpResponse.contentType = null
@@ -69,11 +70,11 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private 
             this != null && this.isDirectory && handler.getResource("${target.removeSuffix("/")}/index.html")?.exists() == true
 }
 
-private class WebjarHandler : ResourceHandler() {
+private class WebjarHandler(config: StaticFileConfig) : ConfigResourceHandler(config) {
     override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
 }
 
-private open class PrefixableHandler(private val config: StaticFileConfig) : ResourceHandler() {
+private open class PrefixableHandler(config: StaticFileConfig) : ConfigResourceHandler(config) {
 
     init {
         resourceBase = getResourceBase(config)
@@ -110,11 +111,11 @@ private open class PrefixableHandler(private val config: StaticFileConfig) : Res
 
 }
 
-private class AliasHandler(config: StaticFileConfig, private val aliasCheck: AliasCheck) : PrefixableHandler(config) {
+private class AliasHandler(config: StaticFileConfig) : PrefixableHandler(config) {
     override fun getResource(path: String): Resource {  // if this method throws, we get a 404
         val resource = baseResource?.addPath(URIUtil.canonicalPath(path))!!
         if (!resource.isAlias) return super.getResource(path) // treat as prefixablehandler
-        if (!aliasCheck.check(path, resource)) throw AccessDeniedException("Failed alias check")
+        if (!config.aliasCheck!!.check(path, resource)) throw AccessDeniedException("Failed alias check")
         return resource // passed check, return the resource
     }
 }

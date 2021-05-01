@@ -6,8 +6,9 @@
  * @author: Plasmoxy
  */
 
-package io.javalin
+package io.javalin.staticfiles
 
+import io.javalin.Javalin
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test

@@ -46,8 +46,6 @@ public class JavalinConfig {
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
-    public boolean precompressStaticFiles = false;
-    public ContextHandler.AliasCheck aliasCheckForStaticFiles = null;
     public boolean showJavalinBanner = true;
     public boolean logIfServerNotStarted = true;
     public boolean ignoreTrailingSlashes = true;
@@ -103,8 +101,19 @@ public class JavalinConfig {
         return this;
     }
 
+
     public JavalinConfig enableWebjars() {
         return addStaticFiles("/webjars", Location.CLASSPATH);
+    }
+
+    //TODO: REMOVE THIS SHIT
+    public JavalinConfig addStaticFiles(@NotNull StaticFileConfig config) {
+        JettyUtil.disableJettyLogger();
+        if (inner.resourceHandler == null) {
+            inner.resourceHandler = new JettyResourceHandler();
+        }
+        inner.resourceHandler.addStaticFileConfig(config);
+        return this;
     }
 
     public JavalinConfig addStaticFiles(@NotNull String classpathPath) {
@@ -117,9 +126,10 @@ public class JavalinConfig {
 
     public JavalinConfig addStaticFiles(@NotNull String urlPathPrefix, @NotNull String path, @NotNull Location location) {
         JettyUtil.disableJettyLogger();
-        if (inner.resourceHandler == null)
-            inner.resourceHandler = new JettyResourceHandler(precompressStaticFiles, aliasCheckForStaticFiles);
-        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location));
+        if (inner.resourceHandler == null) {
+            inner.resourceHandler = new JettyResourceHandler();
+        }
+        inner.resourceHandler.addStaticFileConfig(new StaticFileConfig(urlPathPrefix, path, location, false, null));
         return this;
     }
 

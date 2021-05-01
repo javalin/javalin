@@ -5,12 +5,14 @@
  *
  */
 
-package io.javalin
+package io.javalin.staticfiles
 
+import io.javalin.Javalin
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
+import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.testing.TestLoggingUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -87,9 +89,9 @@ class TestStaticFiles {
     fun `alias checks for static files should work`() {
         val staticWithAliasResourceApp = Javalin.create {
             // block aliases for txt files
-            it.aliasCheckForStaticFiles = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
-            it.addStaticFiles("src/test/external/", Location.EXTERNAL)
-            it.addStaticFiles("/url-prefix", "/public", Location.CLASSPATH)
+            val aliasCheck = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
+            it.addStaticFiles(StaticFileConfig("", "src/test/external/", Location.EXTERNAL, false, aliasCheck))
+            it.addStaticFiles(StaticFileConfig("/url-prefix", "/public", Location.CLASSPATH, false, aliasCheck))
         }
 
         val createdHtml = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")

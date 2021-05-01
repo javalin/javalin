@@ -4,13 +4,16 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  *
  */
-package io.javalin
+package io.javalin.staticfiles
 
+import io.javalin.Javalin
 import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
+import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.PrecompressingResourceHandler
+import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
@@ -25,11 +28,10 @@ class TestStaticFilesPrecompressor {
 
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
         Javalin.create { config ->
-            config.precompressStaticFiles = true
             config.compressionStrategy(Brotli(), Gzip())
-            config.enableWebjars()
-            config.addStaticFiles("/public/immutable")
-            config.addStaticFiles("/public/protected")
+            config.addStaticFiles(StaticFileConfig("/", "/webjars", Location.CLASSPATH, true, null))
+            config.addStaticFiles(StaticFileConfig("/", "/public/immutable", Location.CLASSPATH, true, null))
+            config.addStaticFiles(StaticFileConfig("/", "/public/protected", Location.CLASSPATH, true, null))
         }
     }
 

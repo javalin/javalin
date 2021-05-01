@@ -4,8 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin
+package io.javalin.staticfiles
 
+import io.javalin.Javalin
 import io.javalin.core.util.FileUtil
 import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
