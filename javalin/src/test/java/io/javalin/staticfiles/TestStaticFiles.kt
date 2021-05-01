@@ -44,10 +44,11 @@ class TestStaticFiles {
             it.addStaticFiles("/public/subdir", Location.CLASSPATH)
         }
     }
+    private val customHeaderApp: Javalin by lazy { Javalin.create { it.addStaticFiles{ it.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400")} } }
     private val devLoggingApp: Javalin by lazy {
         Javalin.create {
-            it.addStaticFiles("/public", Location.CLASSPATH)
             it.enableDevLogging()
+            it.addStaticFiles("/public", Location.CLASSPATH)
         }
     }
 
@@ -178,7 +179,7 @@ class TestStaticFiles {
     }
 
     @Test
-    fun `expires is set to 1 year for files in immutable directory`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
+    fun `can set custom headers`() = TestUtil.test(customHeaderApp) { _, http ->
         assertThat(http.get("/immutable/library-1.0.0.min.js").headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=31622400")
     }
 

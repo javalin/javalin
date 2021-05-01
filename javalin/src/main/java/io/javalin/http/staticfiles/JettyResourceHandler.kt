@@ -7,7 +7,6 @@
 package io.javalin.http.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
@@ -42,14 +41,11 @@ class JettyResourceHandler : JavalinResourceHandler {
             try {
                 val resource = handler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
-                    val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
-                    httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
-                    // Remove the default content type because Jetty will not set the correct one
-                    // if the HTTP response already has a content type set
+                    handler.config.headers.forEach { httpResponse.setHeader(it.key, it.value) }
                     if (handler.config.precompress && PrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
                         return true
                     }
-                    httpResponse.contentType = null
+                    httpResponse.contentType = null // Jetty will only set the content-type if it's null
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
                     (httpResponse as JavalinResponseWrapper).outputStream.finalize()

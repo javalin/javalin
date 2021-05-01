@@ -18,6 +18,7 @@ import io.javalin.core.plugin.PluginNotFoundException;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.CorsPlugin;
+import io.javalin.core.util.Header;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
@@ -102,7 +103,10 @@ public class JavalinConfig {
     }
 
     public JavalinConfig enableWebjars() {
-        return addStaticFiles("/webjars", Location.CLASSPATH);
+        return addStaticFiles(staticFileConfig -> {
+            staticFileConfig.directory = "/webjars";
+            staticFileConfig.headers.put(Header.CACHE_CONTROL, "max-age=31622400");
+        });
     }
 
     public JavalinConfig addStaticFiles(@NotNull String directory, @NotNull Location location) {
