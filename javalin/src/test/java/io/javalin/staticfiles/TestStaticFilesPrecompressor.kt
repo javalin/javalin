@@ -28,7 +28,7 @@ class TestStaticFilesPrecompressor {
         Javalin.create { javalin ->
             javalin.compressionStrategy(Brotli(), Gzip())
             javalin.addStaticFiles { staticFiles ->
-                staticFiles.directory = "/webjars"
+                staticFiles.directory = "META-INF/resources/webjars"
                 staticFiles.precompress = true
             }
             javalin.addStaticFiles { staticFiles ->

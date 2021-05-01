@@ -20,18 +20,12 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
-open class ConfigResourceHandler(val config: StaticFileConfig) : ResourceHandler()
-
 class JettyResourceHandler : JavalinResourceHandler {
 
-    val handlers = mutableListOf<ConfigResourceHandler>()
+    val handlers = mutableListOf<ConfigurableHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {
-        handlers.add(when {
-            config.directory == "/webjars" -> WebjarHandler(config)
-            config.aliasCheck != null -> AliasHandler(config)
-            else -> PrefixableHandler(config)
-        }.apply { start() })
+        handlers.add(ConfigurableHandler(config).apply { start() })
     }
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
@@ -66,11 +60,7 @@ class JettyResourceHandler : JavalinResourceHandler {
             this != null && this.isDirectory && handler.getResource("${target.removeSuffix("/")}/index.html")?.exists() == true
 }
 
-private class WebjarHandler(config: StaticFileConfig) : ConfigResourceHandler(config) {
-    override fun getResource(path: String) = Resource.newClassPathResource("META-INF/resources$path") ?: super.getResource(path)
-}
-
-private open class PrefixableHandler(config: StaticFileConfig) : ConfigResourceHandler(config) {
+open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler() {
 
     init {
         resourceBase = getResourceBase(config)
@@ -80,6 +70,19 @@ private open class PrefixableHandler(config: StaticFileConfig) : ConfigResourceH
         |    {hostedPath: "${config.hostedPath}", directory: "${config.directory}", location: Location.${config.location}}
         |    Resolved path: '${getResourceBase(config)}'
         """.trimMargin())
+    }
+
+    override fun getResource(path: String): Resource {
+        val aliasResource by lazy { baseResource!!.addPath(URIUtil.canonicalPath(path)) }
+        return when {
+            config.directory == "META-INF/resources/webjars" ->
+                Resource.newClassPathResource("META-INF/resources$path")
+            config.aliasCheck != null && aliasResource.isAlias ->
+                if (config.aliasCheck.check(path, aliasResource)) aliasResource else throw AccessDeniedException("Failed alias check")
+            config.hostedPath == "/" -> super.getResource(path) // same as regular ResourceHandler
+            path.startsWith(config.hostedPath) -> super.getResource(path.removePrefix(config.hostedPath))
+            else -> EmptyResource.INSTANCE // files that don't start with hostedPath should not be accessible
+        }
     }
 
     private fun getResourceBase(config: StaticFileConfig): String {
@@ -94,24 +97,4 @@ private open class PrefixableHandler(config: StaticFileConfig) : ConfigResourceH
         return config.directory
     }
 
-    override fun getResource(path: String): Resource {
-        val targetResource by lazy { path.removePrefix(config.hostedPath) }
-        return when {
-            config.hostedPath == "/" -> super.getResource(path)!! // same as regular ResourceHandler
-            targetResource == "" -> super.getResource("/")!! // directory without trailing '/'
-            !path.startsWith(config.hostedPath) -> EmptyResource.INSTANCE
-            !targetResource.startsWith("/") -> EmptyResource.INSTANCE
-            else -> super.getResource(targetResource)!!
-        }
-    }
-
-}
-
-private class AliasHandler(config: StaticFileConfig) : PrefixableHandler(config) {
-    override fun getResource(path: String): Resource {  // if this method throws, we get a 404
-        val resource = baseResource?.addPath(URIUtil.canonicalPath(path))!!
-        if (!resource.isAlias) return super.getResource(path) // treat as prefixablehandler
-        if (!config.aliasCheck!!.check(path, resource)) throw AccessDeniedException("Failed alias check")
-        return resource // passed check, return the resource
-    }
 }

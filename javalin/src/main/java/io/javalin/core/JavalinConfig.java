@@ -104,7 +104,7 @@ public class JavalinConfig {
 
     public JavalinConfig enableWebjars() {
         return addStaticFiles(staticFiles -> {
-            staticFiles.directory = "/webjars";
+            staticFiles.directory = "META-INF/resources/webjars";
             staticFiles.headers.put(Header.CACHE_CONTROL, "max-age=31622400");
         });
     }
