@@ -10,8 +10,8 @@ import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.PathMatcher
-import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsConfig
+import io.javalin.websocket.WsContext
 import java.util.*
 
 object LogUtil {

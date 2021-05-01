@@ -122,8 +122,6 @@ object JettyUtil {
         org.eclipse.jetty.util.log.Log.setLog(defaultLogger)
     }
 
-
-
 }
 
 class NoopLogger : org.eclipse.jetty.util.log.Logger {

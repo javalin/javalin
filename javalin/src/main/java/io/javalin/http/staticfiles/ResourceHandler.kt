@@ -1,6 +1,5 @@
 package io.javalin.http.staticfiles
 
-import org.eclipse.jetty.server.handler.ContextHandler
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 

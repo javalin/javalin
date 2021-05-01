@@ -35,7 +35,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
