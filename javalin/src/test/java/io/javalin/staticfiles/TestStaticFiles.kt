@@ -12,7 +12,6 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
-import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.testing.TestLoggingUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -97,7 +96,7 @@ class TestStaticFiles {
                 it.location = Location.EXTERNAL
             }
             it.addStaticFiles {
-                it.urlPathPrefix = "/url-prefix"
+                it.hostedPath = "/url-prefix"
                 it.aliasCheck = aliasCheck
             }
         }
@@ -232,7 +231,7 @@ class TestStaticFiles {
         TestUtil.test(Javalin.create { servlet ->
             servlet.addStaticFiles("/public", Location.CLASSPATH)
             servlet.addStaticFiles {
-                it.urlPathPrefix = "/url-prefix"
+                it.hostedPath = "/url-prefix"
                 it.directory = "/public"
                 it.location = Location.CLASSPATH
             }
@@ -248,7 +247,7 @@ class TestStaticFiles {
             // effectively equivalent to servlet.addStaticFiles("/public", Location.CLASSPATH)
             // but with benefit of additional "filtering": only requests matching /assets/* will be matched against static resources handler
             servlet.addStaticFiles {
-                it.urlPathPrefix = "/assets"
+                it.hostedPath = "/assets"
                 it.directory = "/public/assets"
                 it.location = Location.CLASSPATH
             }

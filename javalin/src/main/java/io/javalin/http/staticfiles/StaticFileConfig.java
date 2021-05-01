@@ -9,7 +9,7 @@ import static java.util.stream.Collectors.toMap;
 
 public class StaticFileConfig {
     // @formatter:off
-    public @NotNull String urlPathPrefix = "/";
+    public @NotNull String hostedPath = "/";
     public @NotNull String directory = "/public";
     public @NotNull Location location = Location.CLASSPATH;
     public boolean precompress = false;

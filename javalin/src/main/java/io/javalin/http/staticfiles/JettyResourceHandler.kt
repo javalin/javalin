@@ -77,7 +77,7 @@ private open class PrefixableHandler(config: StaticFileConfig) : ConfigResourceH
         isDirAllowed = false
         isEtags = true
         Javalin.log?.info("""Static file handler added:
-        |    {urlPathPrefix: "${config.urlPathPrefix}", path: "${config.directory}", location: Location.${config.location}}
+        |    {hostedPath: "${config.hostedPath}", directory: "${config.directory}", location: Location.${config.location}}
         |    Resolved path: '${getResourceBase(config)}'
         """.trimMargin())
     }
@@ -95,11 +95,11 @@ private open class PrefixableHandler(config: StaticFileConfig) : ConfigResourceH
     }
 
     override fun getResource(path: String): Resource {
-        val targetResource by lazy { path.removePrefix(config.urlPathPrefix) }
+        val targetResource by lazy { path.removePrefix(config.hostedPath) }
         return when {
-            config.urlPathPrefix == "/" -> super.getResource(path)!! // same as regular ResourceHandler
+            config.hostedPath == "/" -> super.getResource(path)!! // same as regular ResourceHandler
             targetResource == "" -> super.getResource("/")!! // directory without trailing '/'
-            !path.startsWith(config.urlPathPrefix) -> EmptyResource.INSTANCE
+            !path.startsWith(config.hostedPath) -> EmptyResource.INSTANCE
             !targetResource.startsWith("/") -> EmptyResource.INSTANCE
             else -> super.getResource(targetResource)!!
         }
