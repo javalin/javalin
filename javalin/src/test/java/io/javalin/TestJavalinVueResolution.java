@@ -74,8 +74,7 @@ public class TestJavalinVueResolution {
     @Test
     public void resolveVue3DependencyTest() {
         TestUtil.test((server, httpUtil) -> {
-            JavalinVue.vueVersion = VueVersion.VUE_3;
-            JavalinVue.vueAppName("app");
+            JavalinVue.vueVersion(vueVersion -> vueVersion.vue3("app"));
             server.get("/single-view", new VueComponent("<view-one-3></view-one-3>"));
             String body = httpUtil.getBody("/single-view");
             assertThat(body).contains("<body><view-one-3></view-one-3></body>");

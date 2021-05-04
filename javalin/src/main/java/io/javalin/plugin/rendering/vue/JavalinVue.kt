@@ -7,12 +7,12 @@
 package io.javalin.plugin.rendering.vue
 
 import io.javalin.http.Context
-import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil.isLocalhost
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.function.Consumer
 import java.util.stream.Collectors
 import io.javalin.plugin.rendering.vue.JavalinVue.resourcesJarClass as jarClass
 
@@ -20,21 +20,22 @@ enum class VueVersion { VUE_2, VUE_3 }
 
 object JavalinVue {
     // @formatter:off
+    internal var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
+    internal var rootDirectory: Path? = null // is set on first request (if not configured)
+    @JvmStatic fun vueDirectory(config: Consumer<VueDirConfig>) = config.accept(VueDirConfig()) // configures the two internal variables above
+
+    internal var vueVersion = VueVersion.VUE_2
+    internal var vueAppName = "Vue" // only relevant for Vue 3 apps
+    @JvmStatic fun vueVersion(config: Consumer<VueVersionConfig>) = config.accept(VueVersionConfig()) // configures the two internal variables above
+
     internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
     @JvmField var isDevFunction: (Context) -> Boolean = { it.isLocalhost() } // used to set isDev, will be called once
+
     @JvmField var optimizeDependencies = true // only include required components for the route component
-    @JvmField var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
+
     @JvmField var stateFunction: (Context) -> Any = { mapOf<String, String>() } // global state that is injected into all VueComponents
+
     @JvmField var cacheControl = "no-cache, no-store, must-revalidate"
-    @JvmField var rootDirectory: Path? = null // is set on first request (if not configured)
-    @JvmStatic fun rootDirectory(path: String, location: Location) {
-        rootDirectory = if (location == Location.CLASSPATH) PathMaster.classpathPath(path) else Paths.get(path)
-    }
-    @JvmField var vueVersion = VueVersion.VUE_2
-    internal var vueAppName = "Vue" // only relevant for Vue 3 apps
-    @JvmStatic fun vueAppName(appName: String) {
-        vueAppName = if (vueVersion == VueVersion.VUE_3) appName else throw IllegalStateException("Only supported when 'vueVersion' is 'VUE_3'")
-    }
     // @formatter:on
     fun walkPaths(): Set<Path> = Files.walk(rootDirectory, 20).collect(Collectors.toSet())
     internal val cachedPaths by lazy { walkPaths() }
