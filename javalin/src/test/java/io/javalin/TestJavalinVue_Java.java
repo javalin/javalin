@@ -1,7 +1,6 @@
 package io.javalin;
 
 import io.javalin.plugin.rendering.vue.JavalinVue;
-import io.javalin.plugin.rendering.vue.VueVersion;
 import io.javalin.plugin.rendering.vue.VueVersionConfig;
 import java.util.HashMap;
 import org.junit.Test;
@@ -19,6 +18,7 @@ public class TestJavalinVue_Java {
         JavalinVue.vueDirectory(vueDir -> vueDir.externalPath("/vue"));
         JavalinVue.vueVersion(VueVersionConfig::vue2);
         JavalinVue.vueVersion(vueVersion -> vueVersion.vue3("MyApp"));
+        TestJavalinVue.Companion.before(); // reset
     }
 
 }
