@@ -7,10 +7,8 @@
 package io.javalin
 
 import io.javalin.http.Context
-import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
-import io.javalin.plugin.rendering.vue.VueVersion
 import io.javalin.testing.TestUtil
 import io.mockk.every
 import io.mockk.mockk
@@ -31,12 +29,13 @@ class TestJavalinVue {
 
     companion object {
         fun before() {
-            JavalinVue.vueAppName = "Vue"
-            JavalinVue.vueVersion = VueVersion.VUE_2
-            JavalinVue.isDev = null // reset
-            JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
-            JavalinVue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main -> src/test
-            JavalinVue.optimizeDependencies = false
+            with(JavalinVue) {
+                vueVersion { it.vue2() }
+                isDev = null // reset
+                stateFunction = { ctx -> mapOf<String, String>() } // reset
+                rootDirectory { it.externalPath("src/test/resources/vue") } // src/main ->
+                optimizeDependencies = false
+            }
         }
     }
 
@@ -74,8 +73,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component without state`() = TestUtil.test { app, http ->
-        JavalinVue.vueVersion = VueVersion.VUE_3
-        JavalinVue.vueAppName("app")
+        JavalinVue.vueVersion { it.vue3("app") }
         val encodedEmptyState = """{"pathParams":{},"queryParams":{},"state":{}}""".uriEncodeForJavascript()
 
         app.get("/no-state", VueComponent("<test-component-3></test-component-3>"))
@@ -88,8 +86,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component with state`() = TestUtil.test { app, http ->
-        JavalinVue.vueVersion = VueVersion.VUE_3
-        JavalinVue.vueAppName("app")
+        JavalinVue.vueVersion { it.vue3("app") }
         val encodedState = """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { ctx -> state }
         app.get("/vue/:my-param", VueComponent("<test-component-3></test-component-3>"))
@@ -167,7 +164,7 @@ class TestJavalinVue {
 
     @Test
     fun `classpath rootDirectory works`() = TestUtil.test { app, http ->
-        JavalinVue.rootDirectory("/vue", Location.CLASSPATH)
+        JavalinVue.rootDirectory { it.classpathPath("/vue") }
         app.get("/classpath", VueComponent("test-component"))
         assertThat(http.getBody("/classpath")).contains("<test-component></test-component>")
     }
@@ -182,7 +179,7 @@ class TestJavalinVue {
     @Test
     fun `non-existent folder fails`() = TestUtil.test { app, http ->
         JavalinVue.isDev = true // reset
-        JavalinVue.rootDirectory("/vue", Location.EXTERNAL)
+        JavalinVue.rootDirectory { it.externalPath("/vue") }
         app.get("/fail", VueComponent("test-component"))
         assertThat(http.get("/fail").status).isEqualTo(500)
     }
