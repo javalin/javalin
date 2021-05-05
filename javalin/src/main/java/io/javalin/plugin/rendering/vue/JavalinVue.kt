@@ -22,7 +22,7 @@ object JavalinVue {
     // @formatter:off
     internal var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
     internal var rootDirectory: Path? = null // is set on first request (if not configured)
-    @JvmStatic fun vueDirectory(config: Consumer<VueDirConfig>) = config.accept(VueDirConfig()) // configures the two internal variables above
+    @JvmStatic fun rootDirectory(config: Consumer<VueDirConfig>) = config.accept(VueDirConfig()) // configures the two internal variables above
 
     internal var vueVersion = VueVersion.VUE_2
     internal var vueAppName = "Vue" // only relevant for Vue 3 apps

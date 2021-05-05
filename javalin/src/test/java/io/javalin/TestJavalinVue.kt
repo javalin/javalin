@@ -9,7 +9,6 @@ package io.javalin
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
-import io.javalin.plugin.rendering.vue.VueVersion
 import io.javalin.testing.TestUtil
 import io.mockk.every
 import io.mockk.mockk
@@ -30,11 +29,13 @@ class TestJavalinVue {
 
     companion object {
         fun before() {
-            JavalinVue.vueVersion { it.vue2() }
-            JavalinVue.isDev = null // reset
-            JavalinVue.stateFunction = { ctx -> mapOf<String, String>() } // reset
-            JavalinVue.vueDirectory { it.externalPath("src/test/resources/vue") } // src/main -> src/test
-            JavalinVue.optimizeDependencies = false
+            with(JavalinVue) {
+                vueVersion { it.vue2() }
+                isDev = null // reset
+                stateFunction = { ctx -> mapOf<String, String>() } // reset
+                rootDirectory { it.externalPath("src/test/resources/vue") } // src/main ->
+                optimizeDependencies = false
+            }
         }
     }
 
@@ -163,7 +164,7 @@ class TestJavalinVue {
 
     @Test
     fun `classpath rootDirectory works`() = TestUtil.test { app, http ->
-        JavalinVue.vueDirectory { it.classpathPath("/vue") }
+        JavalinVue.rootDirectory { it.classpathPath("/vue") }
         app.get("/classpath", VueComponent("test-component"))
         assertThat(http.getBody("/classpath")).contains("<test-component></test-component>")
     }
@@ -178,7 +179,7 @@ class TestJavalinVue {
     @Test
     fun `non-existent folder fails`() = TestUtil.test { app, http ->
         JavalinVue.isDev = true // reset
-        JavalinVue.vueDirectory { it.externalPath("/vue") }
+        JavalinVue.rootDirectory { it.externalPath("/vue") }
         app.get("/fail", VueComponent("test-component"))
         assertThat(http.get("/fail").status).isEqualTo(500)
     }
