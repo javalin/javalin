@@ -25,7 +25,7 @@ object JavalinRenderer {
         register(JavalinVelocity, ".vm", ".vtl")
         register(JavalinFreemarker, ".ftl")
         register(JavalinMustache, ".mustache")
-        register(JavalinJtwig, ".jtwig", ".twig", ".html.twig")
+        register(JavalinJtwig, ".jtwig", ".twig")
         register(JavalinPebble, ".peb", ".pebble")
         register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
         register(JavalinCommonmark, ".md", ".markdown")
@@ -36,10 +36,7 @@ object JavalinRenderer {
     var baseModelFunction: (Context) -> Map<String, Any?> = { mapOf<String, Any>() }
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>, ctx: Context): String {
-        val extension = if (filePath.hasTwoDots) filePath.doubleExtension else filePath.extension
-        val renderer = extensions[extension]
-                ?: extensions[filePath.extension] // fallback to a non-double extension
-                ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
+        val renderer = extensions[filePath.extension] ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
         return renderer.render(filePath, baseModelFunction(ctx) + model, ctx)//overrides the base model
     }
 
@@ -52,6 +49,4 @@ object JavalinRenderer {
     }
 
     private val String.extension: String get() = this.replaceBeforeLast(".", "")
-    private val String.doubleExtension: String get() = this.substringBeforeLast(".", "").extension + this.extension
-    private val String.hasTwoDots: Boolean get() = this.count { it == '.' } > 1
 }
