@@ -57,7 +57,7 @@ public class JavalinConfig {
 
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
-    public class Inner {
+    public static class Inner {
         @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new HashMap<>();
         @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
         @Nullable public RequestLogger requestLogger = null;
