@@ -104,7 +104,7 @@ class TestHttpResponseExceptions {
             val future = CompletableFuture<String>()
             Executors.newSingleThreadScheduledExecutor().schedule({
                 future.completeExceptionally(UnauthorizedResponse())
-            }, 10, TimeUnit.MILLISECONDS)
+            }, 0, TimeUnit.MILLISECONDS)
             return future
         }
         app.get("/completed-future-route") { ctx -> ctx.result(getExceptionallyCompletingFuture()) }
@@ -131,7 +131,7 @@ class TestHttpResponseExceptions {
             val future = CompletableFuture<String>()
             Executors.newSingleThreadScheduledExecutor().schedule({
                 future.completeExceptionally(IllegalStateException("Unexpected message"))
-            }, 10, TimeUnit.MILLISECONDS)
+            }, 0, TimeUnit.MILLISECONDS)
             return future
         }
         app.get("/completed-future-route") { ctx -> ctx.result(getUnexpectedExceptionallyCompletingFuture()) }
