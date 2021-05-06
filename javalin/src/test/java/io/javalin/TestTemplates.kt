@@ -12,6 +12,7 @@ import com.mitchellbosecke.pebble.loader.ClasspathLoader
 import gg.jte.ContentType
 import gg.jte.TemplateEngine
 import gg.jte.resolve.ResourceCodeResolver
+import io.javalin.jte.PrecompileJteTestClasses
 import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.plugin.rendering.template.JavalinJte
 import io.javalin.plugin.rendering.template.JavalinJtwig
@@ -145,29 +146,29 @@ class TestTemplates {
 
     @Test
     fun `jte works`() = TestUtil.test { app, http ->
-        JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
+        JavalinJte.configure(TemplateEngine.createPrecompiled(null, ContentType.Html, null, PrecompileJteTestClasses.PACKAGE_NAME))
         app.get("/hello") { ctx -> ctx.render("test.jte", model("page", JteTestPage("hello", "world"))) }
         assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
     }
 
     @Test
     fun `jte multiple params work`() = TestUtil.test { app, http ->
-        JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
+        JavalinJte.configure(TemplateEngine.createPrecompiled(null, ContentType.Html, null, PrecompileJteTestClasses.PACKAGE_NAME))
         app.get("/hello") { ctx -> ctx.render("multiple-params.jte", model("one", "hello", "two", "world")) }
         assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
     }
 
     @Test
     fun `jte kotlin works`() = TestUtil.test { app, http ->
-        JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
-        app.get("/hello") { ctx -> ctx.render("test.kte", model("page", JteTestPage("hello", "world"))) }
+        JavalinJte.configure(TemplateEngine.createPrecompiled(null, ContentType.Html, null, PrecompileJteTestClasses.PACKAGE_NAME))
+        app.get("/hello") { ctx -> ctx.render("kte/test.kte", model("page", JteTestPage("hello", "world"))) }
         assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
     }
 
     @Test
     fun `jte kotlin multiple params work`() = TestUtil.test { app, http ->
-        JavalinJte.configure(TemplateEngine.create(ResourceCodeResolver("templates/jte"), File("target/jte").toPath(), ContentType.Html))
-        app.get("/hello") { ctx -> ctx.render("multiple-params.kte", model("one", "hello", "two", "world")) }
+        JavalinJte.configure(TemplateEngine.createPrecompiled(null, ContentType.Html, null, PrecompileJteTestClasses.PACKAGE_NAME))
+        app.get("/hello") { ctx -> ctx.render("kte/multiple-params.kte", model("one", "hello", "two", "world")) }
         assertThat(http.getBody("/hello")).isEqualToIgnoringNewLines("<h1>hello world!</h1>")
     }
 
