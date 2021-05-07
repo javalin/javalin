@@ -6,11 +6,11 @@
 
 package io.javalin.http
 
-import io.javalin.core.PathParser
+import io.javalin.core.createPathParser
 import java.util.*
 
 data class HandlerEntry(val type: HandlerType, val path: String, val ignoreTrailingSlashes: Boolean, val handler: Handler, val rawHandler: Handler) {
-    private val pathParser = PathParser(path, ignoreTrailingSlashes)
+    private val pathParser = createPathParser(path, ignoreTrailingSlashes)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
     fun extractSplats(requestUri: String) = pathParser.extractSplats(requestUri)
