@@ -24,11 +24,10 @@ data class PathParserOptions(
         val closingDelimiterType2: Char = '>'
 )
 
-class PathParser2(private val path: String, private val options: PathParserOptions, ignoreTrailingSlashes: Boolean) {
+class PathParser2(private val rawPath: String, private val options: PathParserOptions, ignoreTrailingSlashes: Boolean) {
 
     private val adjacentViolations: List<String> = listOf(
             "*${options.openingDelimiterType1}",
-            "${options.closingDelimiterType1}*",
             "*${options.openingDelimiterType2}",
             "${options.closingDelimiterType2}*"
     )
@@ -40,6 +39,9 @@ class PathParser2(private val path: String, private val options: PathParserOptio
             options.closingDelimiterType2
     )
 
+    private val matchEverySubPath: Boolean = rawPath.endsWith("**")
+    private val path: String = rawPath.removeSuffix("**")
+
     internal val segments: List<PathSegment2> = path.split("/")
             .filter { it.isNotEmpty() }
             .map(::convertSegment)
@@ -49,10 +51,10 @@ class PathParser2(private val path: String, private val options: PathParserOptio
         val wildcards = segment.count { it == '*' }
         // avoid parsing malformed paths
         if (brackets % 2 != 0 && !options.allowOptionalClosingDelimiter) {
-            throw MissingBracketsException(segment, path)
+            throw MissingBracketsException(segment, rawPath)
         }
         if (adjacentViolations.any { it in segment }) {
-            throw WildcardBracketAdjacentException(segment, path)
+            throw WildcardBracketAdjacentException(segment, rawPath)
         }
 
         // early return for the most common scenarios
@@ -87,7 +89,7 @@ class PathParser2(private val path: String, private val options: PathParserOptio
                             state = ParserState.INSIDE_BRACKET_TYPE_2
                             null
                         }
-                        options.closingDelimiterType1, options.closingDelimiterType2 -> throw MissingBracketsException(segment, path) // cannot start with a closing delimiter
+                        options.closingDelimiterType1, options.closingDelimiterType2 -> throw MissingBracketsException(segment, rawPath) // cannot start with a closing delimiter
                         else -> PathSegment2.Normal(char.toString()) // the single characters will be merged later
                     }
                 }
@@ -99,7 +101,7 @@ class PathParser2(private val path: String, private val options: PathParserOptio
                             pathNameAccumulator.clear()
                             PathSegment2.Parameter.SlashIgnoringParameter(name)
                         }
-                        options.openingDelimiterType1, options.openingDelimiterType2, options.closingDelimiterType2 -> throw MissingBracketsException(segment, path) // cannot start another variable inside a variable
+                        options.openingDelimiterType1, options.openingDelimiterType2, options.closingDelimiterType2 -> throw MissingBracketsException(segment, rawPath) // cannot start another variable inside a variable
                         // wildcard is also okay inside a variable name
                         else -> {
                             pathNameAccumulator += char
@@ -115,7 +117,7 @@ class PathParser2(private val path: String, private val options: PathParserOptio
                             pathNameAccumulator.clear()
                             PathSegment2.Parameter.SlashAcceptingParameter(name)
                         }
-                        options.openingDelimiterType1, options.openingDelimiterType2, options.closingDelimiterType1 -> throw MissingBracketsException(segment, path) // cannot start another variable inside a variable
+                        options.openingDelimiterType1, options.openingDelimiterType2, options.closingDelimiterType1 -> throw MissingBracketsException(segment, rawPath) // cannot start another variable inside a variable
                         // wildcard is also okay inside a variable name
                         else -> {
                             pathNameAccumulator += char
@@ -144,51 +146,99 @@ class PathParser2(private val path: String, private val options: PathParserOptio
     //compute matchRegex suffix : if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
     private val regexSuffix = when {
         ignoreTrailingSlashes -> "/?"
-        path.endsWith("/") -> "/"
+        rawPath.endsWith("/") -> "/"
         else -> ""
     }
 
-    private val matchRegex = "^/${segments.joinToString("/") { it.asRegexString() }}$regexSuffix$".toRegex()
+    private val matchRegex = constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asRegexString() }
+    private val pathParamRegex = constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
+    private val splatRegex = constructRegexList(matchEverySubPath, segments, regexSuffix, setOf(RegexOption.IGNORE_CASE)) {it.asSplatRegexString()}
 
-    private val pathParamRegex = "^/${segments.joinToString("/") { it.asGroupedRegexString() }}$regexSuffix$".toRegex()
-    private val splatRegex = matchRegex.pattern.replace(".*?", "(.*?)").toRegex(RegexOption.IGNORE_CASE)
+    fun matches(url: String): Boolean = matchRegex.any { url matches it }
 
-    fun matches(url: String): Boolean = url matches matchRegex
+    fun extractPathParams(url: String): Map<String, String> {
+        val index = matchRegex.indexOfFirst { url matches it }
+        return pathParamNames.zip(values(pathParamRegex[index], url)) { name, value ->
+            name to ContextUtil.urlDecode(value)
+        }.toMap()
+    }
 
-    fun extractPathParams(url: String): Map<String, String> = pathParamNames.zip(values(pathParamRegex, url)) { name, value ->
-        name to ContextUtil.urlDecode(value)
-    }.toMap()
-
-    fun extractSplats(url: String) = values(splatRegex, url).map { ContextUtil.urlDecode(it) }
+    fun extractSplats(url: String): List<String> {
+        val index = matchRegex.indexOfFirst { url matches it }
+        return values(splatRegex[index], url).map { ContextUtil.urlDecode(it) }
+    }
 
     // Match and group values, then drop first element (the input string)
     private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
 }
 
+private fun constructRegexList(
+    matchEverySubPath: Boolean,
+    segments: List<PathSegment2>,
+    regexSuffix: String,
+    regexOptions: Set<RegexOption> = emptySet(),
+    mapper: (PathSegment2) -> String
+): List<Regex> {
+    fun addRegexForExtraWildcard(): List<Regex> {
+        return if (matchEverySubPath) {
+            listOf(constructRegex(segments + PathSegment2.Wildcard, regexSuffix, regexOptions, mapper))
+        } else {
+            emptyList()
+        }
+    }
+
+    return listOf(constructRegex(segments, regexSuffix, regexOptions, mapper)) + addRegexForExtraWildcard()
+}
+
+private fun constructRegex(
+    segments: List<PathSegment2>,
+    regexSuffix: String,
+    regexOptions: Set<RegexOption> = emptySet(),
+    mapper: (PathSegment2) -> String
+): Regex {
+    return buildString {
+        append("^/")
+        append(segments.joinToString(separator = "/", transform = mapper))
+        append(regexSuffix)
+        append("$")
+    }.toRegex(regexOptions)
+}
+
+private fun String.grouped() = "($this)"
+
 sealed class PathSegment2 {
 
     internal abstract fun asRegexString(): String
 
-    internal open fun asGroupedRegexString(): String = asRegexString()
+    internal abstract fun asGroupedRegexString(): String
+
+    internal abstract fun asSplatRegexString(): String
 
     class Normal(val content: String) : PathSegment2() {
+        // do not group static content
         override fun asRegexString(): String = content
+        override fun asGroupedRegexString(): String = content
+        override fun asSplatRegexString(): String = content
     }
 
     sealed class Parameter(val name: String) : PathSegment2() {
         class SlashIgnoringParameter(name: String) : Parameter(name) {
             override fun asRegexString(): String = "[^/]+?" // Accept everything except slash
-            override fun asGroupedRegexString(): String = "(${asRegexString()})"
+            override fun asGroupedRegexString(): String = asRegexString().grouped()
+            override fun asSplatRegexString(): String = asRegexString()
         }
 
         class SlashAcceptingParameter(name: String) : Parameter(name) {
             override fun asRegexString(): String = ".+?" // Accept everything
-            override fun asGroupedRegexString(): String = "(${asRegexString()})"
+            override fun asGroupedRegexString(): String = asRegexString().grouped()
+            override fun asSplatRegexString(): String = asRegexString()
         }
     }
 
     object Wildcard : PathSegment2() {
         override fun asRegexString(): String = ".*?" // Accept everything
+        override fun asGroupedRegexString(): String = asRegexString()
+        override fun asSplatRegexString(): String = asRegexString().grouped()
     }
 
     class MultipleSegments(segments: List<PathSegment2>) : PathSegment2() {
@@ -202,8 +252,10 @@ sealed class PathSegment2 {
 
         private val regex: String = innerSegments.joinToString(separator = "") { it.asRegexString() }
         private val groupedRegex: String = innerSegments.joinToString(separator = "") { it.asGroupedRegexString() }
+        private val splatRegex: String = innerSegments.joinToString(separator = "") { it.asSplatRegexString() }
         override fun asRegexString(): String = regex
         override fun asGroupedRegexString(): String = groupedRegex
+        override fun asSplatRegexString(): String = splatRegex
     }
 }
 

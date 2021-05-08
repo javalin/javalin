@@ -28,9 +28,6 @@ object Util {
     @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
 
-    @JvmStatic
-    fun isNonSubPathWildcard(path: String) = path.length > 1 && path.endsWith("*") && !path.endsWith("/*") // e.g. /my/:path*
-
     private fun classExists(className: String) = try {
         Class.forName(className)
         true

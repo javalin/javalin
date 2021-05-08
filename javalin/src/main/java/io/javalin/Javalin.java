@@ -301,12 +301,6 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-        if (Util.isNonSubPathWildcard(path)) { // TODO: This should probably be made part of the actual path matching
-            // split into two handlers: one exact, and one sub-path with wildcard
-            String basePath = path.substring(0, path.length() - 1);
-            addHandler(handlerType, basePath, handler, roles);
-            return addHandler(handlerType, basePath + "/*", handler, roles);
-        }
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
         javalinServlet.addHandler(handlerType, path, handler, roleSet);
         eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), handler, roleSet));

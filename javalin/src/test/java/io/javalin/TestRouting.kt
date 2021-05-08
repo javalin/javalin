@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.core.JavalinPathParser
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -91,18 +92,19 @@ class TestRouting {
         app.get("/p/test") { it.result("GET") }
         assertThat(http.getBody("/p")).isEqualTo("GET")
         assertThat(http.getBody("/p/test")).isEqualTo("GET")
-        app.after("/p*") { it.result((it.resultString() ?: "") + "AFTER") }
+        app.after("/p**") { it.result((it.resultString() ?: "") + "AFTER") }
         assertThat(http.getBody("/p")).isEqualTo("GETAFTER")
         assertThat(http.getBody("/p/test")).isEqualTo("GETAFTER")
     }
 
     @Test
     fun `non sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
-        app.get("/:pp") { it.result(it.resultString() + it.pathParam("pp")) }
-        app.get("/:pp/test") { it.result(it.resultString() + it.pathParam("pp")) }
+        JavalinPathParser.useBracketsBasedParser()
+        app.get("/{pp}") { it.result(it.resultString() + it.pathParam("pp")) }
+        app.get("/{pp}/test") { it.result(it.resultString() + it.pathParam("pp")) }
         assertThat(http.getBody("/123")).isEqualTo("null123")
         assertThat(http.getBody("/123/test")).isEqualTo("null123")
-        app.before("/:pp*") { it.result("BEFORE") }
+        app.before("/{pp}**") { it.result("BEFORE") }
         assertThat(http.getBody("/123")).isEqualTo("BEFORE123")
         assertThat(http.getBody("/123/test")).isEqualTo("BEFORE123")
     }
