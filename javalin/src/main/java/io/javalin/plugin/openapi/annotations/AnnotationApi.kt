@@ -1,6 +1,6 @@
 package io.javalin.plugin.openapi.annotations
 
-import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import kotlin.reflect.KClass
 
 /**
@@ -145,7 +145,7 @@ fun OpenApi.warnUserIfPathParameterIsMissingInPath(parentClass: Class<*>) {
     val pathParamsPlaceholderNotInPath = pathParamsPlaceholders.filter { !path.contains(it) }
 
     if (pathParamsPlaceholderNotInPath.size > 0) {
-        Javalin.log.warn(
+        JavalinLogger.warn(
                 formatMissingPathParamsPlaceholderWarningMessage(parentClass, pathParamsPlaceholderNotInPath)
         )
     }

@@ -6,9 +6,9 @@
 
 package io.javalin.http.util
 
-import io.javalin.Javalin
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
+import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
 import io.javalin.http.HandlerEntry
 import io.javalin.http.HandlerType
@@ -95,7 +95,7 @@ object ContextUtil {
     fun Context.throwPayloadTooLargeIfPayloadTooLarge() {
         val maxRequestSize = this.attribute<Long>(maxRequestSizeKey)!!
         if (this.req.contentLength > maxRequestSize) {
-            Javalin.log?.warn("Body greater than max size ($maxRequestSize bytes)")
+            JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
             throw HttpResponseException(HttpStatus.PAYLOAD_TOO_LARGE_413, "Payload too large")
         }
     }

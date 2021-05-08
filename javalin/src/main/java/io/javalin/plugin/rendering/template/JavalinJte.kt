@@ -20,6 +20,7 @@ import java.io.File
 object JavalinJte : FileRenderer {
 
     internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
+
     @JvmField
     var isDevFunction: (Context) -> Boolean = { it.isLocalhost() } // used to set isDev, will be called once
 

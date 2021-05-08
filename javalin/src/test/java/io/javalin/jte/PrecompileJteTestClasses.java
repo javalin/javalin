@@ -3,7 +3,6 @@ package io.javalin.jte;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.resolve.DirectoryCodeResolver;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

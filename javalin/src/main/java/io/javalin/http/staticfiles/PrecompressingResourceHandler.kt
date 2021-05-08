@@ -1,7 +1,7 @@
 package io.javalin.http.staticfiles
 
-import io.javalin.Javalin
 import io.javalin.core.util.Header
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.http.LeveledBrotliStream
@@ -64,7 +64,7 @@ object PrecompressingResourceHandler {
 
     private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray? {
         if (resource.length() > resourceMaxSize) {
-            Javalin.log?.warn("Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
+            JavalinLogger.warn("Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
                     "You can configure the max size with `PrecompressingResourceHandler.resourceMaxSize = newMaxSize`.")
             return null
         }

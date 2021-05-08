@@ -11,7 +11,6 @@ import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.loader.ClasspathLoader
 import gg.jte.ContentType
 import gg.jte.TemplateEngine
-import gg.jte.resolve.ResourceCodeResolver
 import io.javalin.jte.PrecompileJteTestClasses
 import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.plugin.rendering.template.JavalinJte
@@ -27,7 +26,6 @@ import org.jtwig.functions.FunctionRequest
 import org.jtwig.functions.SimpleJtwigFunction
 import org.jtwig.util.FunctionValueUtils
 import org.junit.Test
-import java.io.File
 
 class TestTemplates {
 

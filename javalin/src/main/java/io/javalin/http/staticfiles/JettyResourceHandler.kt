@@ -6,7 +6,7 @@
 
 package io.javalin.http.staticfiles
 
-import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
 import org.eclipse.jetty.server.Request
@@ -47,7 +47,7 @@ class JettyResourceHandler : JavalinResourceHandler {
                 }
             } catch (e: Exception) { // it's fine, we'll just 404
                 if (!Util.isClientAbortException(e)) {
-                    Javalin.log?.info("Exception occurred while handling static resource", e)
+                    JavalinLogger.info("Exception occurred while handling static resource", e)
                 }
             }
         }
@@ -66,7 +66,7 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
         resourceBase = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
-        Javalin.log?.info("""Static file handler added:
+        JavalinLogger.info("""Static file handler added:
         |    {hostedPath: "${config.hostedPath}", directory: "${config.directory}", location: Location.${config.location}}
         |    Resolved path: '${getResourceBase(config)}'
         """.trimMargin())

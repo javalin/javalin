@@ -1,7 +1,7 @@
 package io.javalin.core.compression
 
 import com.nixxcode.jvmbrotli.common.BrotliLoader
-import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 
@@ -44,7 +44,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         if (brotliAvailable) {
             return brotli
         } else {
-            Javalin.log?.warn("""${"\n"}
+            JavalinLogger.warn("""${"\n"}
                 Failed to enable Brotli compression, because the jvm-brotli native library couldn't be loaded.
                 jvm-brotli is currently only supported on Windows, Linux and Mac OSX.
                 If you are running Javalin on a supported system, but are still getting this error,

@@ -17,7 +17,6 @@ package io.javalin;
 
 import io.javalin.plugin.rendering.vue.JavalinVue;
 import io.javalin.plugin.rendering.vue.VueComponent;
-import io.javalin.plugin.rendering.vue.VueVersion;
 import io.javalin.testing.TestUtil;
 import org.junit.Before;
 import org.junit.Test;

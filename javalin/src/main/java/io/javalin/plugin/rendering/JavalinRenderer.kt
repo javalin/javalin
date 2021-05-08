@@ -6,7 +6,7 @@
 
 package io.javalin.plugin.rendering
 
-import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.markdown.JavalinCommonmark
 import io.javalin.plugin.rendering.template.JavalinFreemarker
@@ -43,7 +43,7 @@ object JavalinRenderer {
     @JvmStatic
     fun register(fileRenderer: FileRenderer, vararg ext: String) = ext.forEach {
         if (extensions[it] != null) {
-            Javalin.log?.info("'$it' is already registered to ${extensions[it]!!.javaClass}. Overriding.")
+            JavalinLogger.info("'$it' is already registered to ${extensions[it]!!.javaClass}. Overriding.")
         }
         extensions[it] = fileRenderer
     }

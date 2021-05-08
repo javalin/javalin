@@ -6,7 +6,7 @@
 
 package io.javalin.http
 
-import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
 
 class ExceptionMapper {
@@ -22,7 +22,7 @@ class ExceptionMapper {
             if (exceptionHandler != null) {
                 exceptionHandler.handle(exception, ctx)
             } else {
-                Javalin.log?.warn("Uncaught exception", exception)
+                JavalinLogger.warn("Uncaught exception", exception)
                 HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
             }
         }

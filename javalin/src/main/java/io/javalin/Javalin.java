@@ -19,6 +19,7 @@ import io.javalin.core.event.JavalinEvent;
 import io.javalin.core.event.WsHandlerMetaInfo;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
+import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
 import io.javalin.http.Context;
 import io.javalin.http.ErrorMapperKt;
@@ -37,13 +38,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("unchecked")
 public class Javalin {
-
-    public static Logger log = LoggerFactory.getLogger(Javalin.class);
 
     /**
      * Do not use this field unless you know what you're doing.
@@ -173,12 +170,12 @@ public class Javalin {
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
-            Javalin.log.info("Starting Javalin ...");
+            JavalinLogger.info("Starting Javalin ...");
             server.start(wsServlet);
-            Javalin.log.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
+            JavalinLogger.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
-            Javalin.log.error("Failed to start Javalin");
+            JavalinLogger.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
             if (Boolean.TRUE.equals(server.server().getAttribute("is-default-server"))) {
                 stop();// stop if server is default server; otherwise, the caller is responsible to stop
@@ -199,14 +196,14 @@ public class Javalin {
      * @return stopped application instance.
      */
     public Javalin stop() {
-        log.info("Stopping Javalin ...");
+        JavalinLogger.info("Stopping Javalin ...");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         try {
             server.server().stop();
         } catch (Exception e) {
-            log.error("Javalin failed to stop gracefully", e);
+            JavalinLogger.error("Javalin failed to stop gracefully", e);
         }
-        log.info("Javalin has stopped");
+        JavalinLogger.info("Javalin has stopped");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
         return this;
     }
@@ -231,7 +228,7 @@ public class Javalin {
      * Ex: app.attribute(MyExt.class, myExtInstance())
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin attribute(Class clazz, Object obj) {
+    public Javalin attribute(Class<?> clazz, Object obj) {
         config.inner.appAttributes.put(clazz, obj);
         return this;
     }

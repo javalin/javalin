@@ -6,11 +6,11 @@
 
 package io.javalin.http
 
-import io.javalin.Javalin
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.Role
 import io.javalin.core.util.CorsPlugin
 import io.javalin.core.util.Header
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
@@ -120,7 +120,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     private fun handleUnexpectedThrowable(t: Throwable, res: HttpServletResponse) {
         if (Util.isClientAbortException(t)) return // aborts can be ignored
         res.status = 500
-        Javalin.log?.error("Exception occurred while servicing http-request", t)
+        JavalinLogger.error("Exception occurred while servicing http-request", t)
     }
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()

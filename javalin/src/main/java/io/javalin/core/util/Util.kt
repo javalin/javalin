@@ -6,7 +6,6 @@
 
 package io.javalin.core.util
 
-import io.javalin.Javalin
 import io.javalin.core.JavalinServer
 import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
@@ -64,7 +63,7 @@ object Util {
             if (startupCheck) {
                 throw IllegalStateException(message)
             } else {
-                Javalin.log?.warn(message)
+                JavalinLogger.warn(message)
                 throw InternalServerErrorResponse(message)
             }
         }
@@ -114,7 +113,7 @@ object Util {
 
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
-        if (showBanner) Javalin.log?.info("\n" + """
+        if (showBanner) JavalinLogger.info("\n" + """
           |           __                      __ _
           |          / /____ _ _   __ ____ _ / /(_)____
           |     __  / // __ `/| | / // __ `// // // __ \
@@ -148,7 +147,7 @@ object Util {
     fun assertWebjarInstalled(dependency: OptionalDependency) = try {
         getWebjarResourceUrl(dependency)
     } catch (e: Exception) {
-        Javalin.log?.warn(missingDependencyMessage(dependency))
+        JavalinLogger.warn(missingDependencyMessage(dependency))
     }
 
     @JvmStatic
@@ -184,9 +183,9 @@ object Util {
     fun logIfServerNotStarted(server: JavalinServer) = Thread {
         Thread.sleep(5000)
         if (!server.started && logIfNotStarted) {
-            Javalin.log?.info("It looks like you created a Javalin instance, but you never started it.")
-            Javalin.log?.info("Try: Javalin app = Javalin.create().start();")
-            Javalin.log?.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+            JavalinLogger.info("It looks like you created a Javalin instance, but you never started it.")
+            JavalinLogger.info("Try: Javalin app = Javalin.create().start();")
+            JavalinLogger.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
         }
     }.start()
 

@@ -6,7 +6,7 @@
 
 package io.javalin.core
 
-import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.LowResourceMonitor
@@ -63,11 +63,11 @@ class JavalinServer(val config: JavalinConfig) {
         }.start()
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
-            Javalin.log?.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
+            JavalinLogger.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
         }
 
         server().connectors.filter { it !is ServerConnector }.forEach {
-            Javalin.log?.info("Binding to: $it")
+            JavalinLogger.info("Binding to: $it")
         }
 
         JettyUtil.reEnableJettyLogger()
