@@ -42,10 +42,12 @@ class GraphQLHandler(val options: GraphQLOptions) {
     private fun genericExecute(body: Map<*, *>): GraphQLRun {
         val query = body.get("query").toString()
         val variables: Map<String, Any> = if (body["variables"] == null) emptyMap() else body["variables"] as Map<String, Any>
+        val operationName = body.get("operationName")?.toString()
 
         return GraphQLRun(graphQL)
                 .withQuery(query)
                 .withVariables(variables)
+                .withOperationName(operationName)
                 .withContext(options.context);
     }
 
