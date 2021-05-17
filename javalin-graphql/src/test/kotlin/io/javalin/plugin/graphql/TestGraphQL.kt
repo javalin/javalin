@@ -9,6 +9,7 @@ import io.javalin.plugin.graphql.helpers.SubscriptionExample
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertFalse
 import org.assertj.core.api.Assertions.assertThat
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
@@ -39,6 +40,19 @@ class TestGraphQL {
         val mutation = "mutation { changeMessage(newMessage: \\\"$newMessage\\\") }"
         val json = sendPetition(httpUtil,  "{\"query\": \"$mutation\"}")
         assertEquals(json.getJSONObject("data").getString("changeMessage"), newMessage)
+    }
+
+    @Test
+    fun multiQuery() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
+        val queries = "query X { hello } query Y { echo(message: \\\"$newMessage\\\") }"
+
+        val jsonX = sendPetition(httpUtil, "{\"query\": \"$queries\", \"operationName\": \"X\"}")
+        assertEquals(jsonX.getJSONObject("data").getString("hello"), message)
+        assertFalse(jsonX.getJSONObject("data").has("echo"))
+
+        val jsonY = sendPetition(httpUtil, "{\"query\": \"$queries\", \"operationName\": \"Y\"}")
+        assertFalse(jsonY.getJSONObject("data").has("hello"))
+        assertEquals(jsonY.getJSONObject("data").getString("echo"), newMessage)
     }
 
     @Test
