@@ -19,7 +19,7 @@ import java.net.URLEncoder
 class TestRouting {
 
     private val okHttp = OkHttpClient().newBuilder().build()
-    fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body()!!.string()
+    fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
 
     @Test
     fun `wildcard first works`() = TestUtil.test { app, http ->
