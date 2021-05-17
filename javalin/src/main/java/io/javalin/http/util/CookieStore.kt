@@ -19,6 +19,8 @@ class CookieStore(cookie: String?) {
 
     private val cookieMap = deserialize(cookie)
 
+    fun isEmpty() = cookieMap.isEmpty()
+
     fun serializeToCookie() = Cookie(COOKIE_NAME, serialize(cookieMap)).apply { path = "/" }
 
     operator fun <T> get(key: String) = cookieMap[key] as T

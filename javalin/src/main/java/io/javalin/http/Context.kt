@@ -44,6 +44,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
+    private var cookieStoreChanged = false
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
@@ -68,7 +69,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun cookieStore(key: String, value: Any) {
         cookieStore[key] = value
-        cookie(cookieStore.serializeToCookie())
+        cookieStoreChanged = true
     }
 
     /**
@@ -77,7 +78,19 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun clearCookieStore() {
         cookieStore.clear()
-        removeCookie(CookieStore.COOKIE_NAME)
+        cookieStoreChanged = true
+    }
+
+    internal fun commitCookieStore() {
+        if (cookieStoreChanged) {
+            if (cookieStore.isEmpty()) {
+                removeCookie(CookieStore.COOKIE_NAME)
+            }
+            else
+            {
+                cookie(cookieStore.serializeToCookie())
+            }
+        }
     }
 
     /**
