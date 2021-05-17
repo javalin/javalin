@@ -15,22 +15,24 @@ public class HttpClient {
         this.origin = "http://localhost:" + port;
     }
 
-    public Response get(String path) throws IOException {
-        Request request = new Request.Builder()
-            .url(origin + path)
-            .get()
-            .build();
+    public Response request(Request request) throws IOException {
         return okHttp.newCall(request).execute();
+    }
+
+    public Response request(String path, Consumer<Request.Builder> userBuilder) throws IOException {
+        Request.Builder finalBuilder = new Request.Builder();
+        userBuilder.accept(finalBuilder);
+        return request(finalBuilder.url(origin + path).build());
+    }
+
+    public Response get(String path) throws IOException {
+        return request(path, Request.Builder::get);
     }
 
     public String getBody(String path) throws IOException {
         return get(path).body().string();
     }
 
-    public Response request(String path, Consumer<Request.Builder> userBuilder) throws IOException {
-        Request.Builder finalBuilder = new Request.Builder();
-        userBuilder.accept(finalBuilder);
-        return okHttp.newCall(finalBuilder.url(origin + path).build()).execute();
-    }
+
 
 }
