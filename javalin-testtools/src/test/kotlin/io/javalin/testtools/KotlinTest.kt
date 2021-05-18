@@ -52,4 +52,10 @@ class KotlinTest {
         assertThat(stdOut).contains("logger was called")
     }
 
+    @Test
+    fun `testing full app works`() = TestUtil.test(KotlinApp.app) { server, client ->
+        assertThat(client.getBody("/hello")).isEqualTo("Hello, app!");
+        assertThat(client.getBody("/hello/")).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
+    }
+
 }

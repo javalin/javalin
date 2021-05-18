@@ -62,4 +62,12 @@ public class JavaTest {
         });
     }
 
+    @Test
+    public void testing_full_app_works() {
+        TestUtil.test(JavaApp.app, (server, client) -> {
+            assertThat(client.getBody("/hello")).isEqualTo("Hello, app!");
+            assertThat(client.getBody("/hello/")).isEqualTo("Not found"); // JavaApp.app won't ignore trailing slashes
+        });
+    }
+
 }
