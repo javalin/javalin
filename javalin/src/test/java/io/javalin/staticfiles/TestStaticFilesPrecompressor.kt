@@ -72,8 +72,8 @@ class TestStaticFilesPrecompressor {
         assertThat(PrecompressingResourceHandler.compressedFiles.size <= oldSize + 1)
     }
 
-    private fun Response.contentLength() = this.headers().get(Header.CONTENT_LENGTH)
-    private fun Response.contentEncoding() = this.headers().get(Header.CONTENT_ENCODING)
+    private fun Response.contentLength() = this.headers.get(Header.CONTENT_LENGTH)
+    private fun Response.contentEncoding() = this.headers.get(Header.CONTENT_ENCODING)
 
     private fun HttpUtil.getFile(url: String, encoding: String) =
             OkHttpClient().newCall(Request.Builder()

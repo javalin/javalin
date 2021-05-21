@@ -420,7 +420,12 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context {
         cookie.path = cookie.path ?: "/"
-        res.addCookie(cookie)
+        res.addCookie(cookie) // we rely on this method for formatting the header
+        (res.getHeaders(Header.SET_COOKIE) ?: listOf()).toMutableList().let { cookies -> // mutable list of all cookies
+            cookies.removeIf { it.startsWith("${cookie.name}=") && !it.contains(cookie.value) } // remove old cookie if duplicate name
+            cookies.removeFirst()?.let { res.setHeader(Header.SET_COOKIE, it) } // remove first cookie and use it to clear the header
+            cookies.forEach { res.addHeader(Header.SET_COOKIE, it) } // add all remaining cookies
+        }
         return this
     }
 
