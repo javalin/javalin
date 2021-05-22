@@ -57,7 +57,7 @@
 
         <!-- PLUGINS -->
         <compiler.plugin.version>3.8.1</compiler.plugin.version>
-        <dokka.plugin.version>1.4.10.2</dokka.plugin.version>
+        <dokka.plugin.version>1.4.32</dokka.plugin.version>
         <gpg.plugin.version>1.6</gpg.plugin.version>
         <jar.plugin.version>3.2.0</jar.plugin.version>
         <surefire.plugin.version>3.0.0-M5</surefire.plugin.version>
