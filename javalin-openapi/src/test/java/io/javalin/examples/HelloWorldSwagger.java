@@ -34,13 +34,13 @@ public class HelloWorldSwagger {
             .path("/swagger-docs")
             .swagger(new SwaggerOptions("/swagger").title("My Swagger Documentation"))
             .reDoc(new ReDocOptions("/redoc", new RedocOptionsObject.Builder()
-                    .setHideDownloadButton(true)
-                    .setTheme(
-                            new RedocOptionsTheme.Builder()
-                                    .setSpacingUnit(10)
-                                    .setTypographyOptimizeSpeed(true)
-                                    .build()
-                    ).build()
+                .setHideDownloadButton(true)
+                .setTheme(
+                    new RedocOptionsTheme.Builder()
+                        .setSpacingUnit(10)
+                        .setTypographyOptimizeSpeed(true)
+                        .build()
+                ).build()
             ).title("My ReDoc Documentation"));
 
         Javalin app = Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions))).start(7070);

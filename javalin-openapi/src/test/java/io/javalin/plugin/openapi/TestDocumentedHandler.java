@@ -1,20 +1,18 @@
 package io.javalin.plugin.openapi;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import io.javalin.http.Handler;
 import io.javalin.plugin.openapi.dsl.DocumentedHandler;
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 public class TestDocumentedHandler {
 
     @Test
     public void testInheritance() {
-        final DocumentedHandler defaultHandler = new DocumentedHandler(new OpenApiDocumentation(), ctx -> { });
+        final DocumentedHandler defaultHandler = new DocumentedHandler(new OpenApiDocumentation(), ctx -> {
+        });
         assertTrue("actual: " + defaultHandler.toString(), defaultHandler.toString().startsWith("io.javalin.plugin.openapi.dsl.DocumentedHandler"));
 
         final DocumentedHandler customHandler = new CustomDocumentedHandler(new OpenApiDocumentation(), ctx -> {

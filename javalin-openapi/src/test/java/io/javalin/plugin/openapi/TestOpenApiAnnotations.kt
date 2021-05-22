@@ -21,7 +21,6 @@ import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import io.javalin.plugin.openapi.annotations.OpenApiSecurity
 import io.javalin.plugin.openapi.utils.VersionIssuesUtil
-import org.junit.Ignore
 import org.junit.Test
 
 // region complexExampleWithAnnotationsHandler
