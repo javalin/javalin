@@ -83,7 +83,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             if (ctx.resultFuture() == null) { // finish request synchronously
                 tryErrorHandlers()
                 tryAfterHandlers()
-                ctx.commitCookieStore()
                 JavalinResponseWrapper(res, rwc).write(ctx.resultStream())
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
             } else { // finish request asynchronously
@@ -102,7 +101,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     }
                     tryErrorHandlers()
                     tryAfterHandlers()
-                    ctx.commitCookieStore()
                     val asyncRes = asyncContext.response as HttpServletResponse
                     JavalinResponseWrapper(asyncRes, rwc).write(ctx.resultStream())
                     config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
