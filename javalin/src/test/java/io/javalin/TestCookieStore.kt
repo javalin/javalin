@@ -98,4 +98,13 @@ class TestCookieStore {
         assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).startsWith(CookieStore.COOKIE_NAME)
     }
 
+    @Test
+    fun `cookieStore cookie should not be duplicated`() = TestUtil.test { app, http ->
+        app.get("/test") { ctx ->
+           ctx.cookieStore("first", "hello")
+           ctx.cookieStore("second", "world")
+        }
+        val headers = http.get("/test").getHeaders()
+        assertThat(headers.get("Set-Cookie")).hasSize(1)
+    }
 }
