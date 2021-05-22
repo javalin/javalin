@@ -51,8 +51,8 @@
         <java.version>1.8</java.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.4.30</kotlin.version>
-        <kotlin.compiler.jvmTarget>1.6</kotlin.compiler.jvmTarget> <!-- This is 1.6 on purpose, don't bump -->
+        <kotlin.version>1.5.0</kotlin.version>
+        <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
         <!-- PLUGINS -->

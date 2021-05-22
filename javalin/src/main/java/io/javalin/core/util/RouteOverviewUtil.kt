@@ -228,14 +228,18 @@ object RouteOverviewUtil {
     val Any.metaInfo: String
         get() {
             // this is just guesswork...
+            // every new version of Java or Kotlin seems to break something here
             return when {
                 isClass -> (this as Class<*>).name + ".class"
                 isCrudFunction -> "ApiBuilder#crud::${(this as CrudFunctionHandler).function.value}"
                 isKotlinMethodReference -> {
-                    val f = this.javaClass.getDeclaredField("function")
-                            .apply { isAccessible = true }
-                            .get(this)
-                    f.runMethod("getOwner").runMethod("getJClass").runMethod("getName").toString() + "::" + f.runMethod("getName")
+                    val fieldName = this.javaClass.declaredFields.find { it.name == "function" || it.name == "\$tmp0" }!!.name
+                    val field = this.javaClass.getDeclaredField(fieldName).apply { isAccessible = true }.get(this)
+                    when (fieldName) {
+                        "function" -> field.runMethod("getOwner").runMethod("getJClass").runMethod("getName").toString() + "::" + field.runMethod("getName")
+                        else -> "${field.implementingClassName}::$lambdaSign"
+                    }
+
                 }
                 isKotlinAnonymousLambda -> parentClass.name + "::" + lambdaSign
                 isKotlinField -> parentClass.name + "." + kotlinFieldName
