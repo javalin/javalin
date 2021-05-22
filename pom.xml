@@ -193,11 +193,6 @@
                 <version>${mustache.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.jtwig</groupId>
-                <artifactId>jtwig-core</artifactId>
-                <version>${jtwig.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>io.pebbletemplates</groupId>
                 <artifactId>pebble</artifactId>
                 <version>${pebble.version}</version>
