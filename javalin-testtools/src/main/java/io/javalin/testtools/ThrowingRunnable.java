@@ -5,12 +5,12 @@ public interface ThrowingRunnable extends Runnable {
     @Override
     default void run() {
         try {
-            tryRun();
+            runThrows();
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    void tryRun() throws Exception;
+    void runThrows() throws Exception;
 }
