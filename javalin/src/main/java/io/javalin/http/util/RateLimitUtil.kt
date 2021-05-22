@@ -38,14 +38,17 @@ class RateLimiter(val timeUnit: TimeUnit) {
     }
 }
 
-class RateLimit(private val ctx: Context) {
+object NaiveRateLimit {
     /**
-     * Simple key/count rate-limiting, activated by calling it in a [io.javalin.http.Handler].
+     * Naive in-memory key/count rate-limiting, activated by calling it in a [io.javalin.http.Handler].
      * All counters are cleared every [timeUnit].
-     * You can change the key by changing [RateLimitUtil.keyFunction], the default is ip + method + path
+     * You can change the key by changing [RateLimitUtil.keyFunction] - the default is ip + method + path
      * @throws HttpResponseException if the counter exceeds [numRequests] per [timeUnit]
+     *
+     * Please consider a different solution for anything but the most basic of needs.
      */
-    fun requestPerTimeUnit(numRequests: Int, timeUnit: TimeUnit) {
+    @JvmStatic
+    fun requestPerTimeUnit(ctx: Context, numRequests: Int, timeUnit: TimeUnit) {
         RateLimitUtil.limiters.computeIfAbsent(timeUnit) { RateLimiter(timeUnit) }.incrementCounter(ctx, numRequests)
     }
 }

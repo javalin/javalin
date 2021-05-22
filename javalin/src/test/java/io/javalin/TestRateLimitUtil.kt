@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.http.util.RateLimit
+import io.javalin.http.util.NaiveRateLimit
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -16,9 +16,9 @@ class TestRateLimitUtil {
 
     private val testApp by lazy {
         Javalin.create()
-                .get("/") { RateLimit(it).requestPerTimeUnit(5, TimeUnit.HOURS) }
-                .get("/dynamic/:path") { RateLimit(it).requestPerTimeUnit(5, TimeUnit.MINUTES) }
-                .get("/ms") { RateLimit(it).requestPerTimeUnit(1, TimeUnit.MILLISECONDS) }
+                .get("/") { NaiveRateLimit.requestPerTimeUnit(it, 5, TimeUnit.HOURS) }
+                .get("/dynamic/:path") { NaiveRateLimit.requestPerTimeUnit(it, 5, TimeUnit.MINUTES) }
+                .get("/ms") { NaiveRateLimit.requestPerTimeUnit(it, 1, TimeUnit.MILLISECONDS) }
                 .post("/") { }
     }
 
