@@ -3,16 +3,25 @@ package io.javalin.plugin.openapi
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.plugin.openapi.ui.ReDocRenderer
 import io.javalin.plugin.openapi.ui.SwaggerRenderer
+import io.javalin.plugin.openapi.utils.VersionIssuesUtil
 
 /**
  * Plugin for the the automatic generation of an open api schema.
  * The schema can be extracted with [JavalinOpenApi.createSchema].
  */
 class OpenApiPlugin(private vararg val options: OpenApiOptions) : Plugin, PluginLifecycleInit {
+
+    init {
+        if (VersionIssuesUtil.warning != null) {
+            JavalinLogger.warn("${VersionIssuesUtil.warning} - the OpenAPI plugin will not work properly. " +
+                    "Please visit https://github.com/tipsy/javalin/issues/1193 if you want to help fix this issue.")
+        }
+    }
 
     lateinit var openApiHandler: OpenApiHandler
 

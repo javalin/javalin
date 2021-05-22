@@ -50,7 +50,7 @@ class User(val name: String, val address: Address? = null, val userType: UserTyp
 
 class Log(val timestamp: Instant, val message: String)
 
-enum class UserType{
+enum class UserType {
     ONE, TWO
 }
 
@@ -605,7 +605,7 @@ class TestOpenApi {
                     version = "1.0.0"
                 })
             }.path("/docs/swagger.json")
-            .responseModifier(modifier)
+                    .responseModifier(modifier)
             ))
         }) { app, http ->
             app.get("/test") {}
@@ -633,8 +633,8 @@ class TestOpenApi {
                     version = "1.0.0"
                 })
             }.path("/docs/swagger.json")
-            .responseModifier(modifier)
-            .disableCaching()
+                    .responseModifier(modifier)
+                    .disableCaching()
             ))
         }) { app, http ->
             app.get("/test") {}

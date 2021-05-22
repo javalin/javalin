@@ -8,8 +8,7 @@ package io.javalin.routeoverview
 
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.MatcherAssert.assertThat
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 // class/object/companion object
@@ -23,27 +22,44 @@ class TestRouteOverview_Kotlin {
 
     @Test
     fun `field works`() {
-        assertThat(Util.getMetaInfo(ObjectHandlers.lambdaField), `is`("io.javalin.routeoverview.ObjectHandlers.lambdaField"))
-        assertThat(Util.getMetaInfo(ClassHandlers().lambdaField), `is`("io.javalin.routeoverview.ClassHandlers.lambdaField"))
-        assertThat(Util.getMetaInfo(standAloneField), `is`("io.javalin.routeoverview.TestRouteOverview_KotlinKt.standAloneField"))
+        assertThat(Util.getMetaInfo(ObjectHandlers.lambdaField)).isIn(setOf(
+                "io.javalin.routeoverview.ClassHandlers::??? (anonymous lambda)", // JDK >= 15
+                "io.javalin.routeoverview.ObjectHandlers.lambdaField", // JDK < 15
+        ))
+        assertThat(Util.getMetaInfo(ClassHandlers().lambdaField)).isIn(setOf(
+                "io.javalin.routeoverview.ClassHandlers.lambdaField",
+                "io.javalin.routeoverview.ClassHandlers::??? (anonymous lambda)"
+        ))
+        assertThat(Util.getMetaInfo(standAloneField)).isEqualTo("io.javalin.routeoverview.TestRouteOverview_KotlinKt.standAloneField")
     }
 
     @Test
     fun `class works`() {
-        assertThat(Util.getMetaInfo(ObjectHandlers.ImplementingClass()), `is`("io.javalin.routeoverview.ObjectHandlers\$ImplementingClass.class"))
-        assertThat(Util.getMetaInfo(HandlerImplementation()), `is`("io.javalin.routeoverview.HandlerImplementation.class"))
+        assertThat(Util.getMetaInfo(ObjectHandlers.ImplementingClass())).isEqualTo("io.javalin.routeoverview.ObjectHandlers\$ImplementingClass.class")
+        assertThat(Util.getMetaInfo(HandlerImplementation())).isEqualTo("io.javalin.routeoverview.HandlerImplementation.class")
     }
 
     @Test
-    fun `method reference works`() {
-        assertThat(Util.getMetaInfo(ObjectHandlers::methodReference), `is`("io.javalin.routeoverview.ObjectHandlers::methodReference"))
-        assertThat(Util.getMetaInfo(ClassHandlers()::methodReference), `is`("io.javalin.routeoverview.ClassHandlers::methodReference"))
-        assertThat(Util.getMetaInfo(::standAloneMethod), `is`("io.javalin.routeoverview.TestRouteOverview_KotlinKt::standAloneMethod"))
+    fun `method reference works`() { // this is ridiculous...
+        assertThat(Util.getMetaInfo(ObjectHandlers::methodReference)).isIn(setOf(
+                "io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)", // JDK >= 15
+                "io.javalin.routeoverview.ObjectHandlers::??? (anonymous lambda)", // Kotlin >= 1.5
+                "io.javalin.routeoverview.ObjectHandlers::methodReference" // Kotlin < 1.5
+        ))
+        assertThat(Util.getMetaInfo(ClassHandlers()::methodReference)).isIn(setOf(
+                "io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)", // JDK >= 15
+                "io.javalin.routeoverview.ClassHandlers::??? (anonymous lambda)", // Kotlin >= 1.5
+                "io.javalin.routeoverview.ClassHandlers::methodReference" // Kotlin < 1.5
+        ))
+        assertThat(Util.getMetaInfo(::standAloneMethod)).isIn(setOf(
+                "io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)", // Kotlin >= 1.5
+                "io.javalin.routeoverview.TestRouteOverview_KotlinKt::standAloneMethod" // Kotlin < 1.5
+        ))
     }
 
     @Test
     fun `lambda works`() {
-        assertThat(Util.getMetaInfo({}), `is`("io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)"))
+        assertThat(Util.getMetaInfo({})).isEqualTo("io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)")
     }
 
 }

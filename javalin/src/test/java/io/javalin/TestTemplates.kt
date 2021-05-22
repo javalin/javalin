@@ -14,17 +14,12 @@ import gg.jte.TemplateEngine
 import io.javalin.jte.PrecompileJteTestClasses
 import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.plugin.rendering.template.JavalinJte
-import io.javalin.plugin.rendering.template.JavalinJtwig
 import io.javalin.plugin.rendering.template.JavalinPebble
 import io.javalin.plugin.rendering.template.JavalinVelocity
 import io.javalin.plugin.rendering.template.TemplateUtil.model
 import io.javalin.testing.TestUtil
 import org.apache.velocity.app.VelocityEngine
 import org.assertj.core.api.Assertions.assertThat
-import org.jtwig.environment.EnvironmentConfigurationBuilder
-import org.jtwig.functions.FunctionRequest
-import org.jtwig.functions.SimpleJtwigFunction
-import org.jtwig.util.FunctionValueUtils
 import org.junit.Test
 
 class TestTemplates {
@@ -120,29 +115,6 @@ class TestTemplates {
     }
 
     @Test
-    fun `jTwig templates work`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.render("/templates/jtwig/test.jtwig", model("message", "Hello jTwig!")) }
-        assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello jTwig!</h1>")
-    }
-
-    @Test
-    fun `jTwig custom engine works`() = TestUtil.test { app, http ->
-        JavalinJtwig.configure(EnvironmentConfigurationBuilder.configuration().functions()
-                .add(object : SimpleJtwigFunction() {
-                    override fun name() = "javalin"
-                    override fun execute(request: FunctionRequest): Any {
-                        request.maximumNumberOfArguments(1).minimumNumberOfArguments(1)
-                        return FunctionValueUtils.getString(request, 0)
-                    }
-                })
-                .and()
-                .build()
-        )
-        app.get("/quiz") { ctx -> ctx.render("/templates/jtwig/custom.jtwig") }
-        assertThat(http.getBody("/quiz")).isEqualTo("<h1>Javalin is the best framework you will ever get</h1>")
-    }
-
-    @Test
     fun `jte works`() = TestUtil.test { app, http ->
         JavalinJte.configure(TemplateEngine.createPrecompiled(null, ContentType.Html, null, PrecompileJteTestClasses.PACKAGE_NAME))
         app.get("/hello") { ctx -> ctx.render("test.jte", model("page", JteTestPage("hello", "world"))) }
@@ -187,12 +159,6 @@ class TestTemplates {
         JavalinRenderer.register({ _, _, _ -> "Hah." }, ".lol")
         app.get("/hello") { ctx -> ctx.render("/markdown/test.lol") }
         assertThat(http.getBody("/hello")).isEqualTo("Hah.")
-    }
-
-    @Test
-    fun `multiple dots in filenames are okay`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.render("/templates/jtwig/multiple.dots.twig", model("message", "Hello jTwig!")) }
-        assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello jTwig!</h1>")
     }
 
     @Test

@@ -72,11 +72,6 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.jtwig</groupId>
-            <artifactId>jtwig-core</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>io.pebbletemplates</groupId>
             <artifactId>pebble</artifactId>
             <optional>true</optional>

@@ -10,17 +10,17 @@ import org.junit.Test
 
 class TestOpenApiIncludePath {
     @Test
-    /**
-     * The aim of this test is to show that using the "includePath" method correctly only includes the selected paths
-     */
+            /**
+             * The aim of this test is to show that using the "includePath" method correctly only includes the selected paths
+             */
     fun testIncludedMethods() {
         val defaultApp = Javalin.create {
             it.registerPlugin(
-                OpenApiPlugin(
-                    OpenApiOptions {
-                        OpenAPI().info(Info().title("Example").version("1.0.0"))
-                    }
-                )
+                    OpenApiPlugin(
+                            OpenApiOptions {
+                                OpenAPI().info(Info().title("Example").version("1.0.0"))
+                            }
+                    )
             )
         }
         defaultApp.get("path1", documented(path1Documentation()) { it -> it.result("path1") })
@@ -29,13 +29,13 @@ class TestOpenApiIncludePath {
 
         val includedApp = Javalin.create {
             it.registerPlugin(
-                OpenApiPlugin(
-                    OpenApiOptions {
-                        OpenAPI().info(Info().title("Example").version("1.0.0"))
-                    }
-                    .includePath("path1")
-                    .includePath("path2")
-                )
+                    OpenApiPlugin(
+                            OpenApiOptions {
+                                OpenAPI().info(Info().title("Example").version("1.0.0"))
+                            }
+                                    .includePath("path1")
+                                    .includePath("path2")
+                    )
             )
         }
         includedApp.get("path1", documented(path1Documentation()) { it -> it.result("path1") })
@@ -58,7 +58,7 @@ class TestOpenApiIncludePath {
 
     }
 
-    private fun path1Documentation() = document().operation { it.summary="path1" }.result<String>("200")
-    private fun path2Documentation() = document().operation { it.summary="path2" }.result<String>("200")
-    private fun path3Documentation() = document().operation { it.summary="path3" }.result<String>("200")
+    private fun path1Documentation() = document().operation { it.summary = "path1" }.result<String>("200")
+    private fun path2Documentation() = document().operation { it.summary = "path2" }.result<String>("200")
+    private fun path3Documentation() = document().operation { it.summary = "path3" }.result<String>("200")
 }

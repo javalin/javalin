@@ -11,7 +11,6 @@ import io.javalin.http.Context
 import io.javalin.plugin.rendering.markdown.JavalinCommonmark
 import io.javalin.plugin.rendering.template.JavalinFreemarker
 import io.javalin.plugin.rendering.template.JavalinJte
-import io.javalin.plugin.rendering.template.JavalinJtwig
 import io.javalin.plugin.rendering.template.JavalinMustache
 import io.javalin.plugin.rendering.template.JavalinPebble
 import io.javalin.plugin.rendering.template.JavalinThymeleaf
@@ -25,7 +24,6 @@ object JavalinRenderer {
         register(JavalinVelocity, ".vm", ".vtl")
         register(JavalinFreemarker, ".ftl")
         register(JavalinMustache, ".mustache")
-        register(JavalinJtwig, ".jtwig", ".twig")
         register(JavalinPebble, ".peb", ".pebble")
         register(JavalinThymeleaf, ".html", ".tl", ".thyme", ".thymeleaf")
         register(JavalinCommonmark, ".md", ".markdown")
