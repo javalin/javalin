@@ -20,6 +20,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import io.javalin.plugin.openapi.annotations.OpenApiSecurity
+import io.javalin.plugin.openapi.utils.VersionIssuesUtil
 import org.junit.Ignore
 import org.junit.Test
 
@@ -308,8 +309,10 @@ fun getEnumParamsHandler(ctx: Context) {
 
 class TestOpenApiAnnotations {
     @Test
-    @Ignore // TODO: We have to either find a way to fix this, or scrap this functionality
     fun `createOpenApiSchema works with complexExample and annotations`() {
+        if (VersionIssuesUtil.hasIssue) {
+            return  // TODO: We have to either find a way to fix this, or scrap this functionality
+        }
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(::createComplexExampleBaseConfiguration)))
         }
@@ -380,16 +383,20 @@ class TestOpenApiAnnotations {
     }
 
     @Test
-    @Ignore // TODO: We have to either find a way to fix this, or scrap this functionality
     fun `createOpenApiSchema with query param bean`() {
+        if (VersionIssuesUtil.hasIssue) {
+            return  // TODO: We have to either find a way to fix this, or scrap this functionality
+        }
         val actual = extractSchemaForTest {
             it.get("/test", ::getQueryParamBeanHandler)
         }.assertEqualTo(queryBeanExample)
     }
 
     @Test
-    @Ignore // TODO: We have to either find a way to fix this, or scrap this functionality
     fun `createOpenApiSchema with repeatable query param`() {
+        if (VersionIssuesUtil.hasIssue) {
+            return  // TODO: We have to either find a way to fix this, or scrap this functionality
+        }
         extractSchemaForTest {
             it.get("/test", ::getQueryParamListHandler)
         }.assertEqualTo(simpleExampleWithRepeatableQueryParam)
@@ -403,8 +410,10 @@ class TestOpenApiAnnotations {
     }
 
     @Test
-    @Ignore // TODO: We have to either find a way to fix this, or scrap this functionality
     fun `createOpenApiSchema with kotlin function`() {
+        if (VersionIssuesUtil.hasIssue) {
+            return  // TODO: We have to either find a way to fix this, or scrap this functionality
+        }
         extractSchemaForTest {
             it.get("/test", ::kotlinFunctionHandler)
         }.assertEqualTo(simpleExample)
@@ -425,8 +434,10 @@ class TestOpenApiAnnotations {
     }
 
     @Test
-    @Ignore // TODO: We have to either find a way to fix this, or scrap this functionality
     fun `createOpenApiSchema works with composed body and response`() {
+        if (VersionIssuesUtil.hasIssue) {
+            return  // TODO: We have to either find a way to fix this, or scrap this functionality
+        }
         extractSchemaForTest {
             it.get("/composed-body/any-of", ::getBodyAnyOfHandler)
             it.get("/composed-body/one-of", ::getBodyOneOfHandler)

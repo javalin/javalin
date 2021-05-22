@@ -8,6 +8,7 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.plugin.openapi.ui.ReDocRenderer
 import io.javalin.plugin.openapi.ui.SwaggerRenderer
+import io.javalin.plugin.openapi.utils.VersionIssuesUtil
 
 /**
  * Plugin for the the automatic generation of an open api schema.
@@ -16,21 +17,9 @@ import io.javalin.plugin.openapi.ui.SwaggerRenderer
 class OpenApiPlugin(private vararg val options: OpenApiOptions) : Plugin, PluginLifecycleInit {
 
     init {
-        try {
-            val javaVersion = System.getProperty("java.version").split(".")[0].toInt()
-            val kotlinVersion = KotlinVersion.CURRENT.minor // let's face it, to JetBrains minor means major
-            val warning = when {
-                javaVersion >= 15 && kotlinVersion >= 5 -> "JDK15 and Kotlin 1.5 break reflection in different ways"
-                javaVersion >= 15 -> "JDK 15 has a breaking change to reflection"
-                kotlinVersion >= 5 -> "Kotlin 1.5 has a breaking change to reflection"
-                else -> null
-            }
-            if (warning != null) {
-                JavalinLogger.warn("$warning - the OpenAPI plugin will not work properly. " +
-                        "Please visit https://github.com/tipsy/javalin/issues/1193 if you want to help fix this issue.")
-            }
-        } catch (e: Exception) {
-            // it's the thought that counts
+        if (VersionIssuesUtil.warning != null) {
+            JavalinLogger.warn("${VersionIssuesUtil.warning} - the OpenAPI plugin will not work properly. " +
+                    "Please visit https://github.com/tipsy/javalin/issues/1193 if you want to help fix this issue.")
         }
     }
 
