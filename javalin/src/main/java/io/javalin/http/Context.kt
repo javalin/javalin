@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-@Suppress("UNCHECKED_CAST")
+// don't suppress warnings, since annotated classes are ignored by dokka (yeah...)
 open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<Class<*>, Any> = mapOf()) {
 
     // @formatter:off
