@@ -22,7 +22,7 @@ import java.net.URLEncoder
 class TestRoutingBracketsBasedParser {
 
     private val okHttp = OkHttpClient().newBuilder().build()
-    fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body()!!.string()
+    fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
 
     @Before
     fun setup() {
