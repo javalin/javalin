@@ -71,7 +71,7 @@ object LoomUtil {
         false
     }
 
-    fun getExecutor(): ExecutorService {
+    fun getExecutorService(): ExecutorService {
         if (!loomAvailable) {
             throw IllegalStateException("Your Java version (${System.getProperty("java.version")}) doesn't support Loom")
         }
@@ -82,7 +82,7 @@ object LoomUtil {
 
 class LoomThreadPool : ThreadPool {
 
-    private val executorService: ExecutorService = LoomUtil.getExecutor()
+    private val executorService = LoomUtil.getExecutorService()
 
     override fun execute(command: Runnable) {
         executorService.submit(command)
