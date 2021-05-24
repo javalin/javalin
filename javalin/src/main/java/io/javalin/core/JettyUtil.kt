@@ -2,6 +2,7 @@ package io.javalin.core
 
 import io.javalin.core.LoomUtil.loomAvailable
 import io.javalin.core.LoomUtil.useLoomThreadPool
+import io.javalin.core.util.JavalinLogger
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.StatisticsHandler
@@ -76,6 +77,7 @@ object LoomUtil {
         if (!loomAvailable()) {
             throw IllegalStateException("Your SDK (${System.getProperty("java.version")}) doesn't support Loom")
         }
+        JavalinLogger.info("Loom is available, using Virtual ThreadPool... Neat!")
         return Executors::class.java.getMethod("newVirtualThreadExecutor").invoke(Executors::class.java) as ExecutorService
     }
 }
