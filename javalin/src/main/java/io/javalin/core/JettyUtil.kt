@@ -22,7 +22,12 @@ object JettyUtil {
         setAttribute("is-default-server", true)
     }
 
-    private fun defaultThreadPool() = if (useLoomThreadPool && loomAvailable) LoomThreadPool() else QueuedThreadPool(250, 8, 60_000)
+    private fun defaultThreadPool() = if (useLoomThreadPool && loomAvailable) {
+        JavalinLogger.info("Loom is available, using Virtual ThreadPool... Neat!")
+        LoomThreadPool()
+    } else {
+        QueuedThreadPool(250, 8, 60_000)
+    }
 
     @JvmField
     var logDuringStartup = false
@@ -75,7 +80,6 @@ object LoomUtil {
         if (!loomAvailable) {
             throw IllegalStateException("Your Java version (${System.getProperty("java.version")}) doesn't support Loom")
         }
-        JavalinLogger.info("Loom is available, using Virtual ThreadPool... Neat!")
         return Executors::class.java.getMethod("newVirtualThreadExecutor").invoke(Executors::class.java) as ExecutorService
     }
 }
