@@ -170,7 +170,7 @@ class TestCustomJetty {
 
     @Test
     fun `default server uses loom if available`() {
-        if (!LoomUtil.loomAvailable()) return;
+        if (!LoomUtil.loomAvailable) return;
         val log = TestUtil.captureStdOut {
             Javalin.create().start().stop()
         }

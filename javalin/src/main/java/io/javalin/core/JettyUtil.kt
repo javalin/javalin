@@ -8,7 +8,6 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
-import java.lang.IllegalStateException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -23,7 +22,7 @@ object JettyUtil {
         setAttribute("is-default-server", true)
     }
 
-    private fun defaultThreadPool() = if (useLoomThreadPool && loomAvailable()) LoomThreadPool() else QueuedThreadPool(250, 8, 60_000)
+    private fun defaultThreadPool() = if (useLoomThreadPool && loomAvailable) LoomThreadPool() else QueuedThreadPool(250, 8, 60_000)
 
     @JvmField
     var logDuringStartup = false
@@ -65,8 +64,7 @@ object LoomUtil {
 
     @JvmField
     var useLoomThreadPool = true
-
-    fun loomAvailable() = System.getProperty("java.version").contains("loom", ignoreCase = true) || try {
+    val loomAvailable = System.getProperty("java.version").contains("loom", ignoreCase = true) || try {
         Thread::class.java.getDeclaredMethod("startVirtualThread", Runnable::class.java)
         true
     } catch (e: Exception) {
@@ -74,8 +72,8 @@ object LoomUtil {
     }
 
     fun getExecutor(): ExecutorService {
-        if (!loomAvailable()) {
-            throw IllegalStateException("Your SDK (${System.getProperty("java.version")}) doesn't support Loom")
+        if (!loomAvailable) {
+            throw IllegalStateException("Your Java version (${System.getProperty("java.version")}) doesn't support Loom")
         }
         JavalinLogger.info("Loom is available, using Virtual ThreadPool... Neat!")
         return Executors::class.java.getMethod("newVirtualThreadExecutor").invoke(Executors::class.java) as ExecutorService
