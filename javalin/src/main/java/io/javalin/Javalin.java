@@ -172,6 +172,7 @@ public class Javalin {
         try {
             JavalinLogger.info("Starting Javalin ...");
             server.start(wsServlet);
+            Util.logJavalinVersion();
             JavalinLogger.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {

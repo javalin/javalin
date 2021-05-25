@@ -114,14 +114,25 @@ object Util {
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
         if (showBanner) JavalinLogger.info("\n" + """
-          |           __                      __ _
-          |          / /____ _ _   __ ____ _ / /(_)____
-          |     __  / // __ `/| | / // __ `// // // __ \
-          |    / /_/ // /_/ / | |/ // /_/ // // // / / /
-          |    \____/ \__,_/  |___/ \__,_//_//_//_/ /_/
+          |       __                      __ _            __ __
+          |      / /____ _ _   __ ____ _ / /(_)____      / // /
+          | __  / // __ `/| | / // __ `// // // __ \    / // /_
+          |/ /_/ // /_/ / | |/ // /_/ // // // / / /   /__  __/
+          |\____/ \__,_/  |___/ \__,_//_//_//_/ /_/      /_/
           |
-          |        https://javalin.io/documentation
+          |          https://javalin.io/documentation
           |""".trimMargin())
+    }
+
+    @JvmStatic
+    fun logJavalinVersion() = try {
+        val properties = Properties().also {
+            val propertiesPath = "META-INF/maven/io.javalin/javalin/pom.properties"
+            it.load(this.javaClass.classLoader.getResourceAsStream(propertiesPath))
+        }
+        JavalinLogger.info("You are running Javalin ${properties.getProperty("version")!!}.") // throw if null
+    } catch (e: Exception) {
+        // it's not that important
     }
 
     fun getChecksumAndReset(inputStream: ByteArrayInputStream): String {
