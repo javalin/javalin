@@ -238,4 +238,11 @@ class TestJavalinVue {
         assertThat(slot.captured).doesNotContain("""<script>@inlineFile""")
     }
 
+    @Test
+    fun `LoadableData class is included`() = TestUtil.test { app, http ->
+        app.get("/shorthand", VueComponent("test-component"))
+        val response = http.getBody("/shorthand")
+        assertThat(response).contains("LoadableData")
+    }
+
 }

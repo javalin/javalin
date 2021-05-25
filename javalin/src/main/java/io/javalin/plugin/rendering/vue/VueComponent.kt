@@ -32,9 +32,10 @@ class VueComponent @JvmOverloads constructor(val component: String, val state: A
         if (componentId !in dependencies) throw InternalServerErrorResponse("Route component not found: $routeComponent")
         ctx.html(allFiles.find { it.endsWith("vue/layout.html") }!!.readText() // we start with the layout file
                 .inlineFiles(allFiles.filterNot { it.isVueFile() }) // we then inline css/js files
-                .replace("@componentRegistration", "@componentRegistration@serverState") // add @serverState anchor for later
+                .replace("@componentRegistration", "@loadableData@componentRegistration@serverState") // add anchors for later
+                .replace("@loadableData", loadableDataScript) // add loadable data class
                 .replace("@componentRegistration", dependencies) // add all dependencies
-                .replace("@serverState", getState(ctx, state)) // add the way too complex state
+                .replace("@serverState", getState(ctx, state)) // add escaped params and state
                 .replace("@routeComponent", routeComponent) // finally, add the route component itself
                 .replace("@cdnWebjar/", if (isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
         ).header(Header.CACHE_CONTROL, cacheControl)
