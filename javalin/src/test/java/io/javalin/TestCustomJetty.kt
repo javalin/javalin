@@ -8,6 +8,7 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
+import io.javalin.core.LoomUtil
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -165,6 +166,15 @@ class TestCustomJetty {
             assertThat(http.getBody("/api")).contains("Hello Javalin World!")
             assertThat(http.getBody("/other-servlet")).contains("Hello Servlet World!")
         }
+    }
+
+    @Test
+    fun `default server uses loom if available`() {
+        if (!LoomUtil.loomAvailable) return;
+        val log = TestUtil.captureStdOut {
+            Javalin.create().start().stop()
+        }
+        assertThat(log).contains("Loom is available, using Virtual ThreadPool... Neat!")
     }
 
 }
