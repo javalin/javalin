@@ -18,7 +18,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>4.0.0.ALPHA2</version>
+    <version>4.0.0.ALPHA3-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
