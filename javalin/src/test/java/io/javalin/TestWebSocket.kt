@@ -49,14 +49,14 @@ class TestWebSocket {
     fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
 
     fun javalinWithWsLogger() = Javalin.create().apply {
-        this.config.wsLogger { ws ->
+        this._conf.wsLogger { ws ->
             ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
             ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
         }
     }
 
     fun accessManagedJavalin() = Javalin.create().apply {
-        this.config.accessManager { handler, ctx, permittedRoles ->
+        this._conf.accessManager { handler, ctx, permittedRoles ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("allowed") == "true" -> {

@@ -63,7 +63,7 @@ class OpenApiPlugin(private vararg val options: OpenApiOptions) : Plugin, Plugin
                 }
 
                 if (options.swagger != null || options.reDoc != null) {
-                    app.config.enableWebjars()
+                    app._conf.enableWebjars()
                 }
             }
 

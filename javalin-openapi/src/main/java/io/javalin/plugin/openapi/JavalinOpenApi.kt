@@ -35,7 +35,7 @@ object JavalinOpenApi {
     @JvmStatic
     fun createSchema(javalin: Javalin): OpenAPI {
         val handler = try {
-            javalin.config.getPlugin(OpenApiPlugin::class.java).openApiHandler
+            javalin._conf.getPlugin(OpenApiPlugin::class.java).openApiHandler
         } catch (e: PluginNotFoundException) {
             throw IllegalStateException("You need to register the \"OpenApiPlugin\" before you can create the OpenAPI schema")
         }

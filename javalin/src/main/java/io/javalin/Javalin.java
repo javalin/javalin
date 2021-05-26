@@ -46,17 +46,17 @@ public class Javalin {
      * Do not use this field unless you know what you're doing.
      * Application config should be declared in {@link Javalin#create(Consumer)}
      */
-    public JavalinConfig config = new JavalinConfig();
+    public JavalinConfig _conf = new JavalinConfig();
 
     protected JavalinServer server; // null in standalone-mode
     protected JavalinWsServlet wsServlet; // null in standalone-mode
-    protected JavalinServlet servlet = new JavalinServlet(config);
+    protected JavalinServlet servlet = new JavalinServlet(_conf);
 
     protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
-        this.server = new JavalinServer(config);
-        this.wsServlet = new JavalinWsServlet(config, servlet);
+        this.server = new JavalinServer(_conf);
+        this.wsServlet = new JavalinWsServlet(_conf, servlet);
     }
 
     public Javalin(JavalinServer server, JavalinWsServlet wsServlet) {
@@ -84,8 +84,8 @@ public class Javalin {
      */
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
-        JavalinConfig.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
-        if (app.config.logIfServerNotStarted) {
+        JavalinConfig.applyUserConfig(app, app._conf, config); // mutates app.config and app (adds http-handlers)
+        if (app._conf.logIfServerNotStarted) {
             Util.logIfServerNotStarted(app.server);
         }
         return app;
@@ -94,7 +94,7 @@ public class Javalin {
     // Create a standalone (non-jetty dependent) Javalin with the supplied config
     public static Javalin createStandalone(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin(null, null);
-        JavalinConfig.applyUserConfig(app, app.config, config); // mutates app.config and app (adds http-handlers)
+        JavalinConfig.applyUserConfig(app, app._conf, config); // mutates app.config and app (adds http-handlers)
         return app;
     }
 
@@ -158,7 +158,7 @@ public class Javalin {
      * @see Javalin#create()
      */
     public Javalin start() {
-        Util.logJavalinBanner(this.config.showJavalinBanner);
+        Util.logJavalinBanner(this._conf.showJavalinBanner);
         JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
         if (server.getStarted()) {
@@ -230,7 +230,7 @@ public class Javalin {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin attribute(Class<?> clazz, Object obj) {
-        config.inner.appAttributes.put(clazz, obj);
+        _conf.inner.appAttributes.put(clazz, obj);
         return this;
     }
 
@@ -241,7 +241,7 @@ public class Javalin {
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
     public <T> T attribute(Class<T> clazz) {
-        return (T) config.inner.appAttributes.get(clazz);
+        return (T) _conf.inner.appAttributes.get(clazz);
     }
 
     /**

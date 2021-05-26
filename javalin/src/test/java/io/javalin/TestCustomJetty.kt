@@ -159,8 +159,10 @@ class TestCustomJetty {
                 })
             }
         }
-        val javalin = Javalin.create { it.server { newServer } }
-        javalin.config.contextPath = "/api"
+        val javalin = Javalin.create {
+            it.server { newServer }
+            it.contextPath = "/api"
+        }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello Javalin World!") }
             assertThat(http.getBody("/api")).contains("Hello Javalin World!")
