@@ -212,7 +212,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> attribute(key: String): T? = req.getAttribute(key) as? T
 
     /** Gets a map with all the attribute keys and values on the request. */
-    fun <T> attributeMap(): Map<String, T?> = req.attributeNames.asSequence().associate { it to attribute<T>(it) }
+    fun attributeMap(): Map<String, Any?> = req.attributeNames.asSequence().associateWith { attribute(it) as Any? }
 
     /** Gets the request content length. */
     fun contentLength(): Int = req.contentLength
@@ -294,8 +294,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> sessionAttribute(key: String, consume: Boolean = false): T? =
             (req.session.getAttribute(key) as? T).also { if (consume) this.sessionAttribute(key, null) }
 
+    /** Sets an attribute for the user session, and caches it on the request */
+    fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, req)
+
+    /** Gets specified attribute from the from request attribute cache, or the user session, or null. */
+    fun <T> cachedSessionAttribute(key: String): T? = ContextUtil.getCachedRequestAttributeOrSessionAttribute(key, req)
+
     /** Gets a map of all the attributes in the user session. */
-    fun <T> sessionAttributeMap(): Map<String, T?> = req.session.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
+    fun sessionAttributeMap(): Map<String, Any?> = req.session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
 
     /** Gets the request url. */
     fun url(): String = req.requestURL.toString()

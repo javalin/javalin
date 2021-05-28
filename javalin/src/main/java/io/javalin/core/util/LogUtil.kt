@@ -64,7 +64,8 @@ object LogUtil {
         }
     }
 
-    fun setup(ctx: Context, matcher: PathMatcher) {
+    fun setup(ctx: Context, matcher: PathMatcher, hasRequestLogger: Boolean) {
+        if (!hasRequestLogger) return
         ctx.attribute("javalin-request-log-matcher", matcher)
         ctx.attribute("javalin-request-log-start-time", System.nanoTime())
     }

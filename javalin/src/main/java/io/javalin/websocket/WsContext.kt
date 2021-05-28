@@ -51,7 +51,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
     fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
-    fun <T> attributeMap(): Map<String, T?> = upgradeCtx.attributeMap()
+    fun attributeMap(): Map<String, Any?> = upgradeCtx.attributeMap()
 
     fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
     fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()

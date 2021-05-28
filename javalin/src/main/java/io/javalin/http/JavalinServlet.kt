@@ -76,7 +76,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 }
             }
 
-            LogUtil.setup(ctx, matcher) // start request lifecycle
+            LogUtil.setup(ctx, matcher, config.inner.requestLogger != null) // start request lifecycle
             ctx.header(Header.SERVER, "Javalin")
             ctx.contentType(config.defaultContentType)
             tryBeforeAndEndpointHandlers()
