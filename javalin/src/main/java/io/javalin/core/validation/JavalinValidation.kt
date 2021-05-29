@@ -34,26 +34,12 @@ object JavalinValidation {
     fun register(clazz: Class<*>, converter: (String) -> Any?) = converters.put(clazz, converter)
 
     @JvmStatic
-    fun collectErrors(vararg validators: Validator<*>): Map<String, List<String>> {
-        return collectErrors(validators.toList())
-    }
+    fun collectErrors(vararg validators: Validator<*>) = collectErrors(validators.toList())
 
     @JvmStatic
-    fun collectErrors(validators: Iterable<Validator<*>>): Map<String, List<String>> {
-        val allErrors = mutableMapOf<String, MutableList<String>>()
-        validators.forEach { validator ->
-            validator.errors().forEach { (fieldName, errorMessages) ->
-                if (allErrors[fieldName] != null) {
-                    allErrors[fieldName]?.addAll(errorMessages)
-                } else {
-                    allErrors[fieldName] = errorMessages.toMutableList()
-                }
-            }
-        }
-        return allErrors
-    }
+    fun collectErrors(validators: Iterable<Validator<*>>): Map<String, List<String>> =
+        validators.flatMap { it.errors().entries }.associate { it.key to it.value }
 }
 
-fun Iterable<Validator<*>>.collectErrors(): Map<String, List<String>> {
-    return JavalinValidation.collectErrors(this)
-}
+fun Iterable<Validator<*>>.collectErrors(): Map<String, List<String>> =
+    JavalinValidation.collectErrors(this)
