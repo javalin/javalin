@@ -8,35 +8,29 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
-data class Rule<T>(val fieldName: String, val check: (T) -> Boolean, val invalidMessage: String)
+/**
+ * The non-nullable [Validator] uses [NullableRule] rules, but checks if value is null before calling them.
+ * The [check] method wraps its non-nullable predicate in a nullable predicate
+ */
 open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val key: String = "Parameter") {
 
-    val rules = mutableSetOf<Rule<T>>()
+    val rules = mutableSetOf<NullableRule<T>>()
 
     fun allowNullable() = NullableValidator(value, messagePrefix, key)
 
     @JvmOverloads
     fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): Validator<T> {
-        rules.add(Rule(key, predicate, errorMessage))
+        rules.add(NullableRule(key, { predicate(it!!) }, errorMessage))
         return this
     }
 
-    fun get(): T {
-        if (value == null) throw BadRequestResponse("$messagePrefix cannot be null or empty")
-        val failedRule = rules.find { !it.check(value) }
-        return if (failedRule == null) value else throw BadRequestResponse("$messagePrefix invalid - ${failedRule.invalidMessage}")
+    fun get(): T = when {
+        value == null -> throw BadRequestResponse("$messagePrefix cannot be null or empty")
+        rules.allValid(value) -> value
+        else -> throw BadRequestResponse("$messagePrefix invalid - ${rules.firstErrorMsg(value)}")
     }
 
-    fun errors(): MutableMap<String, MutableList<String>> {
-        val errors = mutableMapOf<String, MutableList<String>>()
-        rules.forEach { rule ->
-            if (value != null && !rule.check(value)) {
-                errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
-                errors[rule.fieldName]!!.add(rule.invalidMessage)
-            }
-        }
-        return errors
-    }
+    fun errors() = rules.getErrors(value)
 
     companion object {
         @JvmStatic

@@ -8,7 +8,6 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
-data class NullableRule<T>(val fieldName: String, val check: (T?) -> Boolean, val invalidMessage: String)
 open class NullableValidator<T>(val value: T?, val messagePrefix: String = "Value", val key: String = "Parameter") {
 
     val rules = mutableSetOf<NullableRule<T>>()
@@ -19,20 +18,11 @@ open class NullableValidator<T>(val value: T?, val messagePrefix: String = "Valu
         return this
     }
 
-    fun get(): T? {
-        val failedRule = rules.find { !it.check(value) }
-        return if (failedRule == null) value else throw BadRequestResponse("$messagePrefix invalid - ${failedRule.invalidMessage}")
+    fun get(): T? = when {
+        rules.allValid(value) -> value
+        else -> throw BadRequestResponse("$messagePrefix invalid - ${rules.firstErrorMsg(value)}")
     }
 
-    fun errors(): MutableMap<String, MutableList<String>> {
-        val errors = mutableMapOf<String, MutableList<String>>()
-        rules.forEach { rule ->
-            if (value != null && !rule.check(value)) {
-                errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
-                errors[rule.fieldName]!!.add(rule.invalidMessage)
-            }
-        }
-        return errors
-    }
+    fun errors() = rules.getErrors(value)
 
 }
