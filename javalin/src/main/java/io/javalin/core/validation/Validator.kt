@@ -8,6 +8,7 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
+data class Rule<T>(val fieldName: String, val check: (T) -> Boolean, val invalidMessage: String)
 open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val key: String = "Parameter") {
 
     val rules = mutableSetOf<Rule<T>>()

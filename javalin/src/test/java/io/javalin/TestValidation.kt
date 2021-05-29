@@ -102,6 +102,21 @@ class TestValidation {
     }
 
     @Test
+    fun `custom converter works for null when nullable`() = TestUtil.test { app, http ->
+        JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
+        app.get("/instant") { ctx ->
+            val fromDate = ctx.queryParam<Instant>("from").get()
+            val toDate = ctx.queryParam<Instant>("to")
+                .allowNullable()
+                .check({ it == null || it.isAfter(fromDate) }, "'to' has to null or after 'from'")
+                .get()
+            ctx.json(toDate == null || toDate.isAfter(fromDate))
+        }
+        assertThat(http.get("/instant?from=1262347200000").body).isEqualTo("true")
+        assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
+    }
+
+    @Test
     fun `custom converter returns null`() = TestUtil.test { app, http ->
         JavalinValidation.register(Instant::class.java) { null }
         app.get("/instant") { it.queryParam<Instant>("from").get() }
