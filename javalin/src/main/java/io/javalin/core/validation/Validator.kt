@@ -8,16 +8,14 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
+data class Rule<T>(val fieldName: String, val test: (T) -> Boolean, val invalidMessage: String)
+
 open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val key: String = "Parameter") {
 
-    data class Rule<T>(val fieldName: String, val test: (T) -> Boolean, val invalidMessage: String)
-
-    protected open var errors: MutableMap<String, MutableList<String>>? = null
-
-    protected val rules = mutableSetOf<Rule<T>>()
+    val rules = mutableSetOf<Rule<T>>()
 
     @JvmOverloads
-    open fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): Validator<T> {
+    fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): Validator<T> {
         rules.add(Rule(key, predicate, errorMessage))
         return this
     }
@@ -30,83 +28,39 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val 
         return rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse("$messagePrefix invalid - ${it.invalidMessage}") } ?: value
     }
 
-    open fun isValid(): Boolean {
-        if (errors == null) {
-            validate()
-        }
-        return errors!!.isEmpty()
-    }
-
-    open fun hasError(): Boolean {
-        if (errors == null) {
-            validate()
-        }
-        return errors!!.isNotEmpty()
-    }
-
-    open fun errors(): Map<String, List<String>> {
-        if (errors == null) {
-            validate()
-        }
-        return errors!!
-    }
-
-    protected open fun validate() {
-        errors = mutableMapOf()
+    fun errors(): MutableMap<String, MutableList<String>> {
+        val errors = mutableMapOf<String, MutableList<String>>()
         rules.forEach { rule ->
             if (value != null) {
-                try {
-                    if (!rule.test.invoke(value)) {
-                        if (!errors!!.containsKey(rule.fieldName)) {
-                            errors!![rule.fieldName] = mutableListOf()
-                        }
-                        errors!![rule.fieldName]?.add(rule.invalidMessage)
+                if (!rule.test.invoke(value)) {
+                    if (rule.fieldName !in errors.keys) {
+                        errors[rule.fieldName] = mutableListOf()
                     }
-                } catch (ignore: NullPointerException) {
+                    errors[rule.fieldName]?.add(rule.invalidMessage)
                 }
             }
         }
+        return errors
     }
 
     companion object {
         @JvmStatic
         @JvmOverloads
         fun <T> create(clazz: Class<T>, value: String?, messagePrefix: String = "Value", key: String = "Parameter"): Validator<T> {
-            return Validator(try {
-                val converter = JavalinValidation.converters[clazz] ?: throw MissingConverterException(clazz.simpleName)
-                if (value != null) {
-                    converter.invoke(value) ?: throw NullPointerException()
-                } else {
-                    null
-                }
-            } catch (e: Exception) {
-                if (e is MissingConverterException) throw e
-                throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
-            } as T, messagePrefix, key)
-        }
-
-        @JvmStatic
-        fun collectErrors(vararg validators: Validator<*>): Map<String, List<String>> {
-            return collectErrors(validators.toList())
-        }
-
-        @JvmStatic
-        fun collectErrors(validators: Iterable<Validator<*>>): Map<String, List<String>> {
-            val allErrors = mutableMapOf<String, MutableList<String>>()
-            validators.forEach { validator ->
-                validator.errors().forEach { (fieldName, errorMessages) ->
-                    if (allErrors[fieldName] != null) {
-                        allErrors[fieldName]?.addAll(errorMessages)
+            return Validator(
+                try {
+                    val converter = JavalinValidation.converters[clazz] ?: throw MissingConverterException(clazz.simpleName)
+                    if (value != null) {
+                        converter.invoke(value) ?: throw NullPointerException()
                     } else {
-                        allErrors[fieldName] = errorMessages.toMutableList()
+                        null
                     }
-                }
-            }
-            return allErrors
+                } catch (e: Exception) {
+                    if (e is MissingConverterException) throw e
+                    throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
+                } as T, messagePrefix, key
+            )
         }
-    }
-}
 
-fun Iterable<Validator<*>>.collectErrors(): Map<String, List<String>> {
-    return Validator.collectErrors(this)
+    }
 }
