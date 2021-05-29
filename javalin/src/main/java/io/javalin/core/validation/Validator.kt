@@ -23,7 +23,8 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val 
 
     fun get(): T {
         if (value == null) throw BadRequestResponse("$messagePrefix cannot be null or empty")
-        return rules.find { !it.check(value) }?.let { throw BadRequestResponse("$messagePrefix invalid - ${it.invalidMessage}") } ?: value
+        val failedRule = rules.find { !it.check(value) }
+        return if (failedRule == null) value else throw BadRequestResponse("$messagePrefix invalid - ${failedRule.invalidMessage}")
     }
 
     fun errors(): MutableMap<String, MutableList<String>> {

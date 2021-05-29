@@ -20,8 +20,8 @@ open class NullableValidator<T>(val value: T?, val messagePrefix: String = "Valu
     }
 
     fun get(): T? {
-        val failedRuled = rules.find { !it.check(value) }
-        return if (failedRuled == null) value else throw BadRequestResponse("$messagePrefix invalid - ${failedRuled.invalidMessage}")
+        val failedRule = rules.find { !it.check(value) }
+        return if (failedRule == null) value else throw BadRequestResponse("$messagePrefix invalid - ${failedRule.invalidMessage}")
     }
 
     fun errors(): MutableMap<String, MutableList<String>> {
