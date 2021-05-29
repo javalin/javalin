@@ -8,8 +8,6 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
-data class Rule<T>(val fieldName: String, val test: (T) -> Boolean, val invalidMessage: String)
-
 open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val key: String = "Parameter") {
 
     val rules = mutableSetOf<Rule<T>>()
@@ -22,22 +20,17 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val 
 
     //These two options will fail fast but only provide the first failure.
     fun get(): T = getOrNull() ?: throw BadRequestResponse("$messagePrefix cannot be null or empty")
-
     fun getOrNull(): T? {
         if (value == null) return null
-        return rules.find { !it.test.invoke(value) }?.let { throw BadRequestResponse("$messagePrefix invalid - ${it.invalidMessage}") } ?: value
+        return rules.find { !it.check(value) }?.let { throw BadRequestResponse("$messagePrefix invalid - ${it.invalidMessage}") } ?: value
     }
 
     fun errors(): MutableMap<String, MutableList<String>> {
         val errors = mutableMapOf<String, MutableList<String>>()
         rules.forEach { rule ->
-            if (value != null) {
-                if (!rule.test.invoke(value)) {
-                    if (rule.fieldName !in errors.keys) {
-                        errors[rule.fieldName] = mutableListOf()
-                    }
-                    errors[rule.fieldName]?.add(rule.invalidMessage)
-                }
+            if (value != null && !rule.check(value)) {
+                errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
+                errors[rule.fieldName]!!.add(rule.invalidMessage)
             }
         }
         return errors
