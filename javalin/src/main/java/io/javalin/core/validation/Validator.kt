@@ -21,10 +21,8 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val 
         return this
     }
 
-    //These two options will fail fast but only provide the first failure.
-    fun get(): T = getOrNull() ?: throw BadRequestResponse("$messagePrefix cannot be null or empty")
-    fun getOrNull(): T? {
-        if (value == null) return null
+    fun get(): T {
+        if (value == null) throw BadRequestResponse("$messagePrefix cannot be null or empty")
         return rules.find { !it.check(value) }?.let { throw BadRequestResponse("$messagePrefix invalid - ${it.invalidMessage}") } ?: value
     }
 
