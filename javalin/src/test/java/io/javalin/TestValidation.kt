@@ -93,8 +93,8 @@ class TestValidation {
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParam<Instant>("from").get()
             val toDate = ctx.queryParam<Instant>("to")
-                    .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
-                    .get()
+                .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
+                .get()
             ctx.json(toDate.isAfter(fromDate))
         }
         assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
@@ -121,8 +121,8 @@ class TestValidation {
     fun `validatedBody works`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializeableObject>()
-                    .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
-                    .get()
+                .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
+                .get()
             ctx.result(obj.value1)
         }
         val invalidJson = JavalinJson.toJson(SerializeableObject())
@@ -150,7 +150,7 @@ class TestValidation {
     @Test
     fun `optional query param value works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myInt: Int? = ctx.queryParam<Int>("my-qp").getOrNull()
+            val myInt: Int? = ctx.queryParam<Int>("my-qp").allowNullable().get()
             assertThat(myInt).isEqualTo(null)
         }
         assertThat(http.get("/").status).isEqualTo(200)
@@ -160,8 +160,9 @@ class TestValidation {
     fun `optional query param value with check works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val id: Int? = ctx.queryParam<Int>("id")
-                    .check({ it > 10 }, "id was not greater than 10")
-                    .getOrNull()
+                .allowNullable()
+                .check({ if (it != null) it > 10 else true }, "id was not greater than 10")
+                .get()
 
             if (id != null) {
                 ctx.result(id.toString())
@@ -170,20 +171,20 @@ class TestValidation {
 
         // Test valid param
         http.get("/?id=20").apply {
-            assertThat(status).isEqualTo(200)
             assertThat(body).isEqualTo("20")
+            assertThat(status).isEqualTo(200)
         }
 
         // Test invalid param
         http.get("/?id=4").apply {
-            assertThat(status).isEqualTo(400)
             assertThat(body).isEqualTo("Query parameter 'id' with value '4' invalid - id was not greater than 10")
+            assertThat(status).isEqualTo(400)
         }
 
         // test valid missing param
         http.get("/").apply {
-            assertThat(status).isEqualTo(200)
             assertThat(body).isEqualTo("")
+            assertThat(status).isEqualTo(200)
         }
     }
 
@@ -192,12 +193,12 @@ class TestValidation {
 
         app.get("/") { ctx ->
             val numberValidator = ctx.queryParam<Int>("number")
-                    .check({ it > 12 }, "must be greater than 12.")
-                    .check({ it.rem(2) == 0 }, "must be even.")
+                .check({ it > 12 }, "must be greater than 12.")
+                .check({ it.rem(2) == 0 }, "must be even.")
 
             val stringValidator = ctx.queryParam<String>("first_name")
-                    .check({ !it.contains("-") }, "cannot contain hyphens.")
-                    .check({ it.length < 10 }, "cannot be longer than 10 characters.")
+                .check({ !it.contains("-") }, "cannot contain hyphens.")
+                .check({ it.length < 10 }, "cannot be longer than 10 characters.")
 
             ctx.json(listOf(numberValidator, stringValidator).collectErrors())
         }
@@ -222,9 +223,9 @@ class TestValidation {
     fun `body validator with check and retrieve errors`() = TestUtil.test { app, http ->
         app.post("/") { ctx ->
             val errors = ctx.bodyValidator<Map<String, String>>()
-                    .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
-                    .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
-                    .errors()
+                .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
+                .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
+                .errors()
 
             ctx.json(errors)
         }

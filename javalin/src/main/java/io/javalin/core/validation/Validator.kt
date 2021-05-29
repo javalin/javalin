@@ -12,6 +12,8 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val 
 
     val rules = mutableSetOf<Rule<T>>()
 
+    fun allowNullable() = NullableValidator(value, messagePrefix, key)
+
     @JvmOverloads
     fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): Validator<T> {
         rules.add(Rule(key, predicate, errorMessage))
