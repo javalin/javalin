@@ -25,6 +25,11 @@ object JavalinValidation {
             String::class.java to { s -> s }
     )
 
+    fun <T> convertValue(clazz: Class<T>, value: String?): T {
+        val converter = converters[clazz] ?: throw MissingConverterException(clazz.simpleName)
+        return (if (value != null) converter.invoke(value) else null) as T
+    }
+
     @JvmStatic
     fun register(clazz: Class<*>, converter: (String) -> Any?) = converters.put(clazz, converter)
 

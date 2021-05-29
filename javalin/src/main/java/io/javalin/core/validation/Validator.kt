@@ -42,21 +42,12 @@ open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val 
     companion object {
         @JvmStatic
         @JvmOverloads
-        fun <T> create(clazz: Class<T>, value: String?, messagePrefix: String = "Value", key: String = "Parameter"): Validator<T> {
-            return Validator(
-                try {
-                    val converter = JavalinValidation.converters[clazz] ?: throw MissingConverterException(clazz.simpleName)
-                    if (value != null) {
-                        converter.invoke(value) ?: throw NullPointerException()
-                    } else {
-                        null
-                    }
-                } catch (e: Exception) {
-                    if (e is MissingConverterException) throw e
-                    throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
-                } as T, messagePrefix, key
-            )
+        fun <T> create(clazz: Class<T>, value: String?, messagePrefix: String = "Value", key: String = "Parameter") = try {
+            Validator(JavalinValidation.convertValue(clazz, value), messagePrefix, key)
+        } catch (e: Exception) {
+            if (e is MissingConverterException) throw e
+            throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
         }
-
     }
+
 }
