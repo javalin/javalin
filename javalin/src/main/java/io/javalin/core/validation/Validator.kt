@@ -16,27 +16,19 @@ enum class ValidationError { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, CUSTOM_CH
  * The non-nullable [Validator] uses [NullableRule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
  */
-open class Validator<T>(val value: T?, val fieldName: String) {
-
-    val rules = mutableSetOf<NullableRule<T>>()
+open class Validator<T>(value: T?, val fieldName: String) : BaseValidator<T>(value) {
 
     fun allowNullable() = NullableValidator(value, fieldName)
 
-    fun check(predicate: (T) -> Boolean, errorMessage: String): Validator<T> {
-        rules.add(NullableRule(fieldName, { predicate(it!!) }, errorMessage))
-        return this
-    }
+    fun check(predicate: (T) -> Boolean, errorMessage: String) =
+        addRule(fieldName, { predicate(it!!) }, errorMessage) as Validator<T>
 
-    fun get(): T = when {
-        value == null -> {
-            JavalinLogger.info("Parameter '${fieldName}' cannot be null")
-            throw BadRequestResponse(ValidationError.NULLCHECK_FAILED.name)
-        }
-        rules.allValid(value) -> value
-        else -> throw BadRequestResponse(rules.firstErrorMsg(value) ?: ValidationError.CUSTOM_CHECK_FAILED.name)
+    override fun get(): T = if (value == null) {
+        JavalinLogger.info("Parameter '${fieldName}' cannot be null")
+        throw BadRequestResponse(ValidationError.NULLCHECK_FAILED.name)
+    } else {
+        super.get()!!
     }
-
-    fun errors() = rules.getErrors(value)
 
     companion object {
         @JvmStatic

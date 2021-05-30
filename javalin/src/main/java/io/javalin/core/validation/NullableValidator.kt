@@ -6,22 +6,7 @@
 
 package io.javalin.core.validation
 
-import io.javalin.http.BadRequestResponse
-
-open class NullableValidator<T>(val value: T?, val fieldName: String) {
-
-    val rules = mutableSetOf<NullableRule<T>>()
-
-    fun check(predicate: (T?) -> Boolean, errorMessage: String): NullableValidator<T> {
-        rules.add(NullableRule(fieldName, predicate, errorMessage))
-        return this
-    }
-
-    fun get(): T? = when {
-        rules.allValid(value) -> value
-        else -> throw BadRequestResponse(rules.firstErrorMsg(value) ?: ValidationError.CUSTOM_CHECK_FAILED.name)
-    }
-
-    fun errors() = rules.getErrors(value)
-
+open class NullableValidator<T>(value: T?, val fieldName: String) : BaseValidator<T>(value) {
+    fun check(predicate: (T?) -> Boolean, errorMessage: String) =
+        addRule(fieldName, predicate, errorMessage) as NullableValidator<T>
 }
