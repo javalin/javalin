@@ -11,7 +11,7 @@ import io.javalin.http.BadRequestResponse
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: String)
-enum class RuleViolation { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, CUSTOM_CHECK_FAILED, DESERIALIZATION_FAILED }
+enum class RuleViolation { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, DESERIALIZATION_FAILED }
 
 open class BaseValidator<T>(val value: T?) {
 
@@ -24,7 +24,7 @@ open class BaseValidator<T>(val value: T?) {
 
     open fun get(): T? = when {
         rules.all { it.check(value) } -> value // all rules valid
-        else -> throw BadRequestResponse(rules.firstErrorMsg(value) ?: RuleViolation.CUSTOM_CHECK_FAILED.name)
+        else -> throw BadRequestResponse(rules.firstError(value))
     }
 
     fun errors(): MutableMap<String, MutableList<String>> {
@@ -40,4 +40,4 @@ open class BaseValidator<T>(val value: T?) {
 
 }
 
-private fun <T> Set<Rule<T>>.firstErrorMsg(value: T?) = this.find { !it.check(value) }?.error
+private fun <T> Set<Rule<T>>.firstError(value: T?) = this.find { !it.check(value) }?.error!! // we only call this if there is an error
