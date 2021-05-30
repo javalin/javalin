@@ -6,7 +6,7 @@ package io.javalin.plugin.openapi.dsl
 
 import io.javalin.core.*
 import io.javalin.core.PathParserSpec
-import io.javalin.core.PathSegment2
+import io.javalin.core.PathSegment
 import io.javalin.core.createPathParser
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.http.HandlerType
@@ -59,16 +59,16 @@ internal fun PathParserSpec.getOpenApiUrl(): String {
     return "/$segmentsString"
 }
 
-private fun PathSegment2.asOpenApiUrlPart(): String {
+private fun PathSegment.asOpenApiUrlPart(): String {
     return when (this) {
-        is PathSegment2.Normal -> this.content
+        is PathSegment.Normal -> this.content
         /*
          * At the moment, OpenApi does not support wildcards. So we just leave it as it is.
          * Once it is implemented we can change this.
          */
-        is PathSegment2.Wildcard -> "*"
-        is PathSegment2.Parameter -> "{${this.name}}"
-        is PathSegment2.MultipleSegments -> this.innerSegments.joinToString("") { it.asOpenApiUrlPart() }
+        is PathSegment.Wildcard -> "*"
+        is PathSegment.Parameter -> "{${this.name}}"
+        is PathSegment.MultipleSegments -> this.innerSegments.joinToString("") { it.asOpenApiUrlPart() }
     }
 }
 
@@ -200,9 +200,9 @@ private fun PathParserSpec.asReadableWords(): List<String> {
     val words = mutableListOf<String>()
     segments.flattenMultipleSegments().forEach { segment ->
         when (segment) {
-            is PathSegment2.Normal -> words.add(segment.content.dashCaseToCamelCase())
-            is PathSegment2.Wildcard -> words.addAll(arrayOf("with", "wildcard"))
-            is PathSegment2.Parameter -> {
+            is PathSegment.Normal -> words.add(segment.content.dashCaseToCamelCase())
+            is PathSegment.Wildcard -> words.addAll(arrayOf("with", "wildcard"))
+            is PathSegment.Parameter -> {
                 words.add("with")
                 words.add(segment.name.dashCaseToCamelCase())
             }
