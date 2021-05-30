@@ -424,7 +424,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Removes cookie specified by name and path (optional). */
     @JvmOverloads
-    fun removeCookie(name: String, path: String? = null): Context {
+    fun removeCookie(name: String, path: String? = "/"): Context {
         res.addCookie(Cookie(name, "").apply {
             this.path = path
             this.maxAge = 0
