@@ -10,14 +10,14 @@ import io.javalin.http.BadRequestResponse
 
 typealias Check<T> = (T) -> Boolean
 
-data class Rule<T>(val fieldName: String, val check: Check<T?>, val errorMessage: String)
+data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: String)
 
 open class BaseValidator<T>(val value: T?) {
 
     private val rules = mutableSetOf<Rule<T>>()
 
-    fun addRule(fieldName: String, check: Check<T?>, errorMessage: String): BaseValidator<T> {
-        rules.add(Rule(fieldName, check, errorMessage))
+    fun addRule(fieldName: String, check: Check<T?>, error: String): BaseValidator<T> {
+        rules.add(Rule(fieldName, check, error))
         return this
     }
 
@@ -31,7 +31,7 @@ open class BaseValidator<T>(val value: T?) {
         rules.forEach { rule ->
             if (value != null && !rule.check(value)) {
                 errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
-                errors[rule.fieldName]!!.add(rule.errorMessage)
+                errors[rule.fieldName]!!.add(rule.error)
             }
         }
         return errors
@@ -39,4 +39,4 @@ open class BaseValidator<T>(val value: T?) {
 
 }
 
-private fun <T> Set<Rule<T>>.firstErrorMsg(value: T?) = this.find { !it.check(value) }?.errorMessage
+private fun <T> Set<Rule<T>>.firstErrorMsg(value: T?) = this.find { !it.check(value) }?.error

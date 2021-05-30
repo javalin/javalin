@@ -19,17 +19,11 @@ enum class ValidationError { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, CUSTOM_CH
 open class Validator<T>(value: T?, val fieldName: String) : BaseValidator<T>(value) {
 
     init {
-        if (value == null) {
-            JavalinLogger.info("Parameter '${fieldName}' cannot be null")
-        }
         addRule(fieldName, { it != null }, ValidationError.NULLCHECK_FAILED.name)
     }
 
     fun allowNullable() = NullableValidator(value, fieldName)
-
-    fun check(check: Check<T>, errorMessage: String) =
-        addRule(fieldName, { check(it!!) }, errorMessage) as Validator<T>
-
+    fun check(check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as Validator<T>
     override fun get(): T = super.get()!!
 
     companion object {
