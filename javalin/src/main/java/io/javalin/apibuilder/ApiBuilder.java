@@ -502,14 +502,15 @@ public class ApiBuilder {
         String fullPath = prefixPath(path);
         String[] subPaths = Arrays.stream(fullPath.split("/")).filter(it -> !it.isEmpty()).toArray(String[]::new);
         if (subPaths.length < 2) {
-            throw new IllegalArgumentException("CrudHandler requires a path like '/resource/:resource-id'");
+            throw new IllegalArgumentException("CrudHandler requires a path like '/resource/{resource-id}'");
         }
         String resourceId = subPaths[subPaths.length - 1];
-        if (!resourceId.startsWith(":")) {
-            throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'");
+        if (!(resourceId.startsWith("{") && resourceId.endsWith("}"))) {
+            throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'");
         }
-        if (subPaths[subPaths.length - 2].startsWith(":")) {
-            throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/:user-id'");
+        String resourceBase = subPaths[subPaths.length - 2];
+        if (resourceBase.startsWith("{") || resourceBase.startsWith("<") || resourceBase.endsWith("}") || resourceBase.endsWith(">")) {
+            throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/{user-id}'");
         }
         Map<CrudFunction, Handler> crudFunctions = CrudHandlerKt.getCrudFunctions(crudHandler, resourceId);
         staticInstance().get(fullPath, crudFunctions.get(CrudFunction.GET_ONE), roles);
