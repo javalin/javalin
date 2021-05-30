@@ -12,8 +12,8 @@ class TestCookie {
     fun `cookie set on unspecified path is set to root URL`() = TestUtil.test { app, http ->
         app.get("/cookie-path") { it.cookie(Cookie("key", "value").apply { path = "/" }) }
 
-        val requestSetCookie = http.get("/cookie-path")
-        val cookiePath = requestSetCookie.headers.getFirst(Header.SET_COOKIE).split(";")[1].replaceFirst(" ", "")
+        val setCookieResponse = http.get("/cookie-path")
+        val cookiePath = setCookieResponse.headers.getFirst(Header.SET_COOKIE).split(";")[1].replaceFirst(" ", "")
 
         assertThat(cookiePath).isEqualTo("Path=/")
     }
@@ -25,12 +25,12 @@ class TestCookie {
         }
         app.get("/cookie-path") { it.cookie(cookie) }
         app.get("/cookie-path-remove") { it.removeCookie(cookie.name) }
+        val setCookieResponse = http.get("/cookie-path")
+        assertThat(setCookieResponse.headers.getFirst(Header.SET_COOKIE)).isEqualTo("key=value; Path=/")
 
-        val requestSetCookie = http.get("/cookie-path")
-        assertThat(requestSetCookie.headers.getFirst(Header.SET_COOKIE)).isEqualTo("key=value; Path=/")
-        val requestRemoveCookie = http.get("/cookie-path-remove")
+        val removeCookieResponse = http.get("/cookie-path-remove")
 
-        assertThat(cookieIsEffectivelyRemoved(requestRemoveCookie.headers.getFirst(Header.SET_COOKIE))).isTrue
+        assertThat(cookieIsEffectivelyRemoved(removeCookieResponse.headers.getFirst(Header.SET_COOKIE), "/")).isTrue
     }
 
     @Test
@@ -40,17 +40,18 @@ class TestCookie {
         }
         app.get("/cookie-path") { it.cookie(cookie) }
         app.get("/cookie-path-remove") { it.removeCookie(cookie.name) }
+        val setCookieResponse = http.get("/cookie-path")
+        assertThat(setCookieResponse.headers.getFirst(Header.SET_COOKIE)).isEqualTo("key=value; Path=/some-path")
 
-        val requestSetCookie = http.get("/cookie-path")
-        assertThat(requestSetCookie.headers.getFirst(Header.SET_COOKIE)).isEqualTo("key=value; Path=/some-path")
-        val requestRemoveCookie = http.get("/cookie-path-remove")
+        val removeCookieResponse = http.get("/cookie-path-remove")
 
-        assertThat(cookieIsEffectivelyRemoved(requestRemoveCookie.headers.getFirst(Header.SET_COOKIE))).isTrue
+        assertThat(cookieIsEffectivelyRemoved(removeCookieResponse.headers.getFirst(Header.SET_COOKIE), "/some-path")).isFalse
     }
 
-    private fun cookieIsEffectivelyRemoved(cookie: String): Boolean {
+    private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {
+        val pathMatches = cookie.split(";")[1].split("=")[1] == path
         val expiresEpoch = cookie.split(";")[2] == " Expires=Thu, 01-Jan-1970 00:00:00 GMT"
         val maxAgeZero = cookie.split(";")[3] == " Max-Age=0"
-        return expiresEpoch && maxAgeZero
+        return pathMatches && expiresEpoch && maxAgeZero
     }
 }
