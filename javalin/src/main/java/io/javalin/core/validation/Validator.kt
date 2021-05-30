@@ -10,8 +10,6 @@ import io.javalin.core.util.JavalinLogger
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.InternalServerErrorResponse
 
-enum class ValidationError { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, CUSTOM_CHECK_FAILED, DESERIALIZATION_FAILED }
-
 /**
  * The non-nullable [Validator] uses [Rule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
@@ -19,7 +17,7 @@ enum class ValidationError { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, CUSTOM_CH
 open class Validator<T>(value: T?, val fieldName: String) : BaseValidator<T>(value) {
 
     init {
-        addRule(fieldName, { it != null }, ValidationError.NULLCHECK_FAILED.name)
+        addRule(fieldName, { it != null }, RuleViolation.NULLCHECK_FAILED.name)
     }
 
     fun allowNullable() = NullableValidator(value, fieldName)
@@ -36,7 +34,7 @@ open class Validator<T>(value: T?, val fieldName: String) : BaseValidator<T>(val
                 throw InternalServerErrorResponse()
             }
             JavalinLogger.info("Parameter '${fieldName}' with value '${value}' is not a valid ${clazz.simpleName}")
-            throw BadRequestResponse(ValidationError.TYPE_CONVERSION_FAILED.name)
+            throw BadRequestResponse(RuleViolation.TYPE_CONVERSION_FAILED.name)
         }
     }
 
