@@ -9,16 +9,15 @@ package io.javalin.core.validation
 import io.javalin.http.BadRequestResponse
 
 typealias Check<T> = (T) -> Boolean
-typealias ErrorProvider = () -> String
 
-data class Rule<T>(val fieldName: String, val check: Check<T?>, val errorProvider: ErrorProvider)
+data class Rule<T>(val fieldName: String, val check: Check<T?>, val errorMessage: String)
 
 open class BaseValidator<T>(val value: T?) {
 
     private val rules = mutableSetOf<Rule<T>>()
 
-    fun addRule(fieldName: String, check: Check<T?>, errorProvider: ErrorProvider): BaseValidator<T> {
-        rules.add(Rule(fieldName, check, errorProvider))
+    fun addRule(fieldName: String, check: Check<T?>, errorMessage: String): BaseValidator<T> {
+        rules.add(Rule(fieldName, check, errorMessage))
         return this
     }
 
@@ -32,7 +31,7 @@ open class BaseValidator<T>(val value: T?) {
         rules.forEach { rule ->
             if (value != null && !rule.check(value)) {
                 errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
-                errors[rule.fieldName]!!.add(rule.errorProvider())
+                errors[rule.fieldName]!!.add(rule.errorMessage)
             }
         }
         return errors
@@ -40,4 +39,4 @@ open class BaseValidator<T>(val value: T?) {
 
 }
 
-private fun <T> Set<Rule<T>>.firstErrorMsg(value: T?) = this.find { !it.check(value) }?.errorProvider?.invoke()
+private fun <T> Set<Rule<T>>.firstErrorMsg(value: T?) = this.find { !it.check(value) }?.errorMessage

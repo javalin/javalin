@@ -8,10 +8,10 @@ package io.javalin.core.validation
 
 open class BodyValidator<T>(value: T?) : BaseValidator<T>(value) {
 
-    fun check(check: Check<T>, errorProvider: ErrorProvider) = check("FIELD", check, errorProvider)
+    fun check(check: Check<T>, errorMessage: String) = check("FIELD", check, errorMessage)
 
-    fun check(fieldName: String, check: Check<T>, errorProvider: ErrorProvider) =
-        addRule(fieldName, { check(it!!) }, errorProvider) as BodyValidator<T>
+    fun check(fieldName: String, check: Check<T>, errorMessage: String) =
+        addRule(fieldName, { check(it!!) }, errorMessage) as BodyValidator<T>
 
     override fun get(): T = super.get()!!
 }
