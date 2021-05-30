@@ -110,35 +110,6 @@ class TestRequest {
     }
 
     /*
-     * Cookies
-     */
-    @Test
-    fun `single cookie returns null when missing`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-1") { ctx -> ctx.result("" + ctx.cookie("my-cookie")) }
-        assertThat(http.getBody("/read-cookie-1")).isEqualTo("null")
-    }
-
-    @Test
-    fun `single cookie works`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-2") { ctx -> ctx.result(ctx.cookie("my-cookie")!!) }
-        val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
-        assertThat(response.body).isEqualTo("my-cookie-value")
-    }
-
-    @Test
-    fun `cookie-map returns empty when no cookies are set`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-3") { ctx -> ctx.result(ctx.cookieMap().toString()) }
-        assertThat(http.getBody("/read-cookie-3")).isEqualTo("{}")
-    }
-
-    @Test
-    fun `cookie-map returns all cookies if cookies are set`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-4") { ctx -> ctx.result(ctx.cookieMap().toString()) }
-        val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
-        assertThat(response.body).isEqualTo("{k1=v1, k2=v2, k3=v3}")
-    }
-
-    /*
      * Path params
      */
     @Test
