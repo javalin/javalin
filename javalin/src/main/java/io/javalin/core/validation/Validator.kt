@@ -27,8 +27,8 @@ open class Validator<T>(value: T?, val fieldName: String) : BaseValidator<T>(val
 
     fun allowNullable() = NullableValidator(value, fieldName)
 
-    fun check(predicate: (T) -> Boolean, errorProvider: () -> String) =
-        addRule(fieldName, { predicate(it!!) }, errorProvider) as Validator<T>
+    fun check(check: Check<T>, errorProvider: ErrorProvider) =
+        addRule(fieldName, { check(it!!) }, errorProvider) as Validator<T>
 
     override fun get(): T = super.get()!!
 
