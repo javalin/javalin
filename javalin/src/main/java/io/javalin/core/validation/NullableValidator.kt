@@ -8,19 +8,18 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
-open class NullableValidator<T>(val value: T?, val messagePrefix: String = "Value", val key: String = "Parameter") {
+open class NullableValidator<T>(val value: T?, val fieldName: String, val fieldDescription: String) {
 
     val rules = mutableSetOf<NullableRule<T>>()
 
-    @JvmOverloads
-    fun check(predicate: (T?) -> Boolean, errorMessage: String = "Failed check"): NullableValidator<T> {
-        rules.add(NullableRule(key, predicate, errorMessage))
+    fun check(predicate: (T?) -> Boolean, errorMessage: String): NullableValidator<T> {
+        rules.add(NullableRule(fieldName, predicate, errorMessage))
         return this
     }
 
     fun get(): T? = when {
         rules.allValid(value) -> value
-        else -> throw BadRequestResponse("$messagePrefix invalid - ${rules.firstErrorMsg(value)}")
+        else -> throw BadRequestResponse("$fieldDescription invalid - ${rules.firstErrorMsg(value)}")
     }
 
     fun errors() = rules.getErrors(value)

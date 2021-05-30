@@ -12,34 +12,32 @@ import io.javalin.http.BadRequestResponse
  * The non-nullable [Validator] uses [NullableRule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
  */
-open class Validator<T>(val value: T?, val messagePrefix: String = "Value", val key: String = "Parameter") {
+open class Validator<T>(val value: T?, val fieldName: String, val fieldDescription: String) {
 
     val rules = mutableSetOf<NullableRule<T>>()
 
-    fun allowNullable() = NullableValidator(value, messagePrefix, key)
+    fun allowNullable() = NullableValidator(value, fieldName, fieldDescription)
 
-    @JvmOverloads
-    fun check(predicate: (T) -> Boolean, errorMessage: String = "Failed check"): Validator<T> {
-        rules.add(NullableRule(key, { predicate(it!!) }, errorMessage))
+    fun check(predicate: (T) -> Boolean, errorMessage: String): Validator<T> {
+        rules.add(NullableRule(fieldName, { predicate(it!!) }, errorMessage))
         return this
     }
 
     fun get(): T = when {
-        value == null -> throw BadRequestResponse("$messagePrefix cannot be null or empty")
+        value == null -> throw BadRequestResponse("$fieldDescription cannot be null or empty")
         rules.allValid(value) -> value
-        else -> throw BadRequestResponse("$messagePrefix invalid - ${rules.firstErrorMsg(value)}")
+        else -> throw BadRequestResponse("$fieldDescription invalid - ${rules.firstErrorMsg(value)}")
     }
 
     fun errors() = rules.getErrors(value)
 
     companion object {
         @JvmStatic
-        @JvmOverloads
-        fun <T> create(clazz: Class<T>, value: String?, messagePrefix: String = "Value", key: String = "Parameter") = try {
-            Validator(JavalinValidation.convertValue(clazz, value), messagePrefix, key)
+        fun <T> create(clazz: Class<T>, value: String?, fieldName: String, fieldDescription: String) = try {
+            Validator(JavalinValidation.convertValue(clazz, value), fieldName, fieldDescription)
         } catch (e: Exception) {
             if (e is MissingConverterException) throw e
-            throw BadRequestResponse("$messagePrefix is not a valid ${clazz.simpleName}")
+            throw BadRequestResponse("$fieldDescription is not a valid ${clazz.simpleName}")
         }
     }
 

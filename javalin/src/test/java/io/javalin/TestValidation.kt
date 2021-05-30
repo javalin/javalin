@@ -125,11 +125,11 @@ class TestValidation {
 
     @Test
     fun `default converters work`() {
-        assertThat(Validator.create(Boolean::class.java, "true").get() is Boolean).isTrue()
-        assertThat(Validator.create(Double::class.java, "1.2").get() is Double).isTrue()
-        assertThat(Validator.create(Float::class.java, "1.2").get() is Float).isTrue()
-        assertThat(Validator.create(Int::class.java, "123").get() is Int).isTrue()
-        assertThat(Validator.create(Long::class.java, "123").get() is Long).isTrue()
+        assertThat(Validator.create(Boolean::class.java, "true", "?", "?").get() is Boolean).isTrue()
+        assertThat(Validator.create(Double::class.java, "1.2", "?", "?").get() is Double).isTrue()
+        assertThat(Validator.create(Float::class.java, "1.2", "?", "?").get() is Float).isTrue()
+        assertThat(Validator.create(Int::class.java, "123", "?", "?").get() is Int).isTrue()
+        assertThat(Validator.create(Long::class.java, "123", "?", "?").get() is Long).isTrue()
     }
 
     @Test

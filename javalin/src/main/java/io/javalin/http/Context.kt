@@ -161,15 +161,15 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Throws [BadRequestResponse] if validation fails.
      */
     @JvmOverloads
-    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'", key)
+    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), key, "Form parameter '$key' with value '${formParam(key, default)}'")
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
 
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> =
-            if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
-            else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
+        if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
+        else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
 
     /**
      * Gets a path param by name (ex: pathParam("param").
@@ -184,7 +184,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
-    fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'", key)
+    fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key, "Path parameter '$key' with value '${pathParam(key)}'")
 
     /** Gets a map of all the [pathParam] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
@@ -230,7 +230,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun header(header: String): String? = req.getHeader(header)
 
     /** Creates a [Validator] for the header() value, with the prefix "Request header '$header' with the value '$value'" */
-    fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), "Request header '$header' with value '${header(header)}'", header)
+    fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header, "Request header '$header' with value '${header(header)}'")
 
     /** Gets a map with all the header keys and values on the request. */
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
@@ -272,7 +272,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Throws [BadRequestResponse] if validation fails.
      */
     @JvmOverloads
-    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'", key)
+    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(
+        clazz, queryParam(key, default), key, "Query parameter '$key' with value '${queryParam(key, default)}'"
+    )
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
@@ -292,7 +294,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets specified attribute from the user session, or null. */
     @JvmOverloads
     fun <T> sessionAttribute(key: String, consume: Boolean = false): T? =
-            (req.session.getAttribute(key) as? T).also { if (consume) this.sessionAttribute(key, null) }
+        (req.session.getAttribute(key) as? T).also { if (consume) this.sessionAttribute(key, null) }
 
     /** Sets an attribute for the user session, and caches it on the request */
     fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, req)

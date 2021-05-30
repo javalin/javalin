@@ -6,9 +6,8 @@
 
 package io.javalin.core.validation
 
-open class BodyValidator<T>(value: T?, messagePrefix: String = "Value") : Validator<T>(value, messagePrefix) {
-    @JvmOverloads
-    open fun check(fieldName: String, predicate: (T) -> Boolean, errorMessage: String = "Failed check"): BodyValidator<T> {
+open class BodyValidator<T>(value: T?, fieldDescription: String) : Validator<T>(value, "UNUSED", fieldDescription) {
+    open fun check(fieldName: String, predicate: (T) -> Boolean, errorMessage: String): BodyValidator<T> {
         rules.add(NullableRule(fieldName, { predicate(it!!) }, errorMessage))
         return this
     }
