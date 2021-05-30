@@ -8,7 +8,7 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
-open class NullableValidator<T>(val value: T?, val fieldName: String, val fieldDescription: String) {
+open class NullableValidator<T>(val value: T?, val fieldName: String) {
 
     val rules = mutableSetOf<NullableRule<T>>()
 
@@ -19,7 +19,7 @@ open class NullableValidator<T>(val value: T?, val fieldName: String, val fieldD
 
     fun get(): T? = when {
         rules.allValid(value) -> value
-        else -> throw BadRequestResponse("$fieldDescription invalid - ${rules.firstErrorMsg(value)}")
+        else -> throw BadRequestResponse(rules.firstErrorMsg(value) ?: ValidationError.CUSTOM_CHECK_FAILED.name)
     }
 
     fun errors() = rules.getErrors(value)

@@ -6,7 +6,7 @@
 
 package io.javalin.core.validation
 
-open class BodyValidator<T>(value: T?, fieldDescription: String) : Validator<T>(value, "UNUSED", fieldDescription) {
+open class BodyValidator<T>(value: T?) : Validator<T>(value, "UNUSED") {
     open fun check(fieldName: String, predicate: (T) -> Boolean, errorMessage: String): BodyValidator<T> {
         rules.add(NullableRule(fieldName, { predicate(it!!) }, errorMessage))
         return this

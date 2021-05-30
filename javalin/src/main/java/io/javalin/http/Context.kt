@@ -10,6 +10,7 @@ import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.BodyValidator
+import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
@@ -125,10 +126,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Throws [BadRequestResponse] if validation fails.
      */
     fun <T> bodyValidator(clazz: Class<T>) = try {
-        BodyValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
+        BodyValidator(JavalinJson.fromJson(body(), clazz))
     } catch (e: Exception) {
         JavalinLogger.info("Couldn't deserialize body to ${clazz.simpleName}", e)
-        throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
+        throw BadRequestResponse(ValidationError.DESERIALIZATION_FAILED.name)
     }
 
     /** Reified version of [bodyValidator] */
@@ -161,7 +162,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Throws [BadRequestResponse] if validation fails.
      */
     @JvmOverloads
-    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), key, "Form parameter '$key' with value '${formParam(key, default)}'")
+    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), key)
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -184,7 +185,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
-    fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key, "Path parameter '$key' with value '${pathParam(key)}'")
+    fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key)
 
     /** Gets a map of all the [pathParam] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
@@ -230,7 +231,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun header(header: String): String? = req.getHeader(header)
 
     /** Creates a [Validator] for the header() value, with the prefix "Request header '$header' with the value '$value'" */
-    fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header, "Request header '$header' with value '${header(header)}'")
+    fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header)
 
     /** Gets a map with all the header keys and values on the request. */
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
@@ -272,9 +273,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Throws [BadRequestResponse] if validation fails.
      */
     @JvmOverloads
-    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(
-        clazz, queryParam(key, default), key, "Query parameter '$key' with value '${queryParam(key, default)}'"
-    )
+    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, queryParam(key, default), key)
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()

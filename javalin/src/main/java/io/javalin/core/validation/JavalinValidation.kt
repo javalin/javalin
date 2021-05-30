@@ -6,7 +6,9 @@
 
 package io.javalin.core.validation
 
-class MissingConverterException(className: String) : IllegalArgumentException("Can't convert to $className. Register a converter using JavalinValidation#register.")
+import java.lang.RuntimeException
+
+class MissingConverterException(val className: String) : RuntimeException()
 
 object JavalinValidation {
 
