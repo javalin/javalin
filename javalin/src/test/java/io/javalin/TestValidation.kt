@@ -50,10 +50,17 @@ class TestValidation {
     }
 
     @Test
-    fun `notNullOrEmpty works`() = TestUtil.test { app, http ->
+    fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("NULLCHECK_FAILED")
         assertThat(http.get("/").status).isEqualTo(400)
+    }
+
+    @Test
+    fun `notNullOrEmpty works for NullableValidator`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.queryParam<String>("my-qp").allowNullable().get() }
+        assertThat(http.get("/").body).isEqualTo("")
+        assertThat(http.get("/").status).isEqualTo(200)
     }
 
     @Test
@@ -70,7 +77,7 @@ class TestValidation {
     @Test
     fun `check works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            ctx.queryParam<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
+            ctx.queryParam<String>("my-qp").check({ it.length > 5 }, {"Length must be more than five"}).get()
         }
         assertThat(http.get("/?my-qp=1").body).isEqualTo("Length must be more than five")
     }
@@ -98,7 +105,7 @@ class TestValidation {
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParam<Instant>("from").get()
             val toDate = ctx.queryParam<Instant>("to")
-                .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
+                .check({ it.isAfter(fromDate) }, {"'to' has to be after 'from'"})
                 .get()
             ctx.json(toDate.isAfter(fromDate))
         }
@@ -113,7 +120,7 @@ class TestValidation {
             val fromDate = ctx.queryParam<Instant>("from").get()
             val toDate = ctx.queryParam<Instant>("to")
                 .allowNullable()
-                .check({ it == null || it.isAfter(fromDate) }, "'to' has to null or after 'from'")
+                .check({ it == null || it.isAfter(fromDate) }, {"'to' has to null or after 'from'"})
                 .get()
             ctx.json(toDate == null || toDate.isAfter(fromDate))
         }
@@ -141,7 +148,7 @@ class TestValidation {
     fun `validatedBody works`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializeableObject>()
-                .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
+                .check({ it.value1 == "Bananas" }, {"value1 must be 'Bananas'"})
                 .get()
             ctx.result(obj.value1)
         }
@@ -181,7 +188,7 @@ class TestValidation {
         app.get("/") { ctx ->
             val id: Int? = ctx.queryParam<Int>("id")
                 .allowNullable()
-                .check({ if (it != null) it > 10 else true }, "id was not greater than 10")
+                .check({ if (it != null) it > 10 else true }, {"id was not greater than 10"})
                 .get()
 
             if (id != null) {
@@ -213,12 +220,12 @@ class TestValidation {
 
         app.get("/") { ctx ->
             val numberValidator = ctx.queryParam<Int>("number")
-                .check({ it > 12 }, "must be greater than 12.")
-                .check({ it.rem(2) == 0 }, "must be even.")
+                .check({ it > 12 }, {"must be greater than 12."})
+                .check({ it.rem(2) == 0 }, {"must be even."})
 
             val stringValidator = ctx.queryParam<String>("first_name")
-                .check({ !it.contains("-") }, "cannot contain hyphens.")
-                .check({ it.length < 10 }, "cannot be longer than 10 characters.")
+                .check({ !it.contains("-") }, {"cannot contain hyphens."})
+                .check({ it.length < 10 }, {"cannot be longer than 10 characters."})
 
             ctx.json(listOf(numberValidator, stringValidator).collectErrors())
         }
@@ -243,8 +250,8 @@ class TestValidation {
     fun `body validator with check and retrieve errors`() = TestUtil.test { app, http ->
         app.post("/") { ctx ->
             val errors = ctx.bodyValidator<Map<String, String>>()
-                .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
-                .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
+                .check("first_name", { it.containsKey("first_name") }, {"This field is mandatory"})
+                .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, {"Too long"})
                 .errors()
 
             ctx.json(errors)

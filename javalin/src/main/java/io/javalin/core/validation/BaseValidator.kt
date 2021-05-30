@@ -8,20 +8,33 @@ package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
 
+data class Rule<T>(val fieldName: String, val check: (T?) -> Boolean, val errorProvider: () -> String)
+
 open class BaseValidator<T>(val value: T?) {
 
-    val rules = mutableSetOf<NullableRule<T>>()
+    private val rules = mutableSetOf<Rule<T>>()
 
-    fun addRule(fieldName: String, predicate: (T?) -> Boolean, errorMessage: String): BaseValidator<T> {
-        rules.add(NullableRule(fieldName, predicate, errorMessage))
+    fun addRule(fieldName: String, predicate: (T?) -> Boolean, errorProvider: () -> String): BaseValidator<T> {
+        rules.add(Rule(fieldName, predicate, errorProvider))
         return this
     }
 
     open fun get(): T? = when {
-        rules.allValid(value) -> value
-        else -> throw BadRequestResponse(rules.firstErrorMsg(value) ?: ValidationError.CUSTOM_CHECK_FAILED.name)
+        rules.all { it.check(value) } -> value // all rules valid
+        else -> throw BadRequestResponse(rules.firstErrorMsg(value)?.invoke() ?: ValidationError.CUSTOM_CHECK_FAILED.name)
     }
 
-    fun errors() = rules.getErrors(value)
+    fun errors(): MutableMap<String, MutableList<String>> {
+        val errors = mutableMapOf<String, MutableList<String>>()
+        rules.forEach { rule ->
+            if (value != null && !rule.check(value)) {
+                errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
+                errors[rule.fieldName]!!.add(rule.errorProvider())
+            }
+        }
+        return errors
+    }
 
 }
+
+private fun <T> Set<Rule<T>>.firstErrorMsg(value: T?) = this.find { !it.check(value) }?.errorProvider

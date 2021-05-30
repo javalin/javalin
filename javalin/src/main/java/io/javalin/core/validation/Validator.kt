@@ -13,22 +13,24 @@ import io.javalin.http.InternalServerErrorResponse
 enum class ValidationError { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, CUSTOM_CHECK_FAILED, DESERIALIZATION_FAILED }
 
 /**
- * The non-nullable [Validator] uses [NullableRule] rules, but checks if value is null before calling them.
+ * The non-nullable [Validator] uses [Rule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
  */
 open class Validator<T>(value: T?, val fieldName: String) : BaseValidator<T>(value) {
 
+    init {
+        addRule(fieldName, { it != null }, {
+            JavalinLogger.info("Parameter '${fieldName}' cannot be null")
+            ValidationError.NULLCHECK_FAILED.name
+        })
+    }
+
     fun allowNullable() = NullableValidator(value, fieldName)
 
-    fun check(predicate: (T) -> Boolean, errorMessage: String) =
-        addRule(fieldName, { predicate(it!!) }, errorMessage) as Validator<T>
+    fun check(predicate: (T) -> Boolean, errorProvider: () -> String) =
+        addRule(fieldName, { predicate(it!!) }, errorProvider) as Validator<T>
 
-    override fun get(): T = if (value == null) {
-        JavalinLogger.info("Parameter '${fieldName}' cannot be null")
-        throw BadRequestResponse(ValidationError.NULLCHECK_FAILED.name)
-    } else {
-        super.get()!!
-    }
+    override fun get(): T = super.get()!!
 
     companion object {
         @JvmStatic

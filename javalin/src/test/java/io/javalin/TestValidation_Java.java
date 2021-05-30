@@ -23,7 +23,7 @@ public class TestValidation_Java {
 
         Instant fromDate = Validator.create(Instant.class, "1262347200000", "?").get();
         Instant toDate = Validator.create(Instant.class, "1262347300000", "?")
-            .check(it -> it.isAfter(fromDate), "'to' has to be after 'from'")
+            .check(it -> it.isAfter(fromDate), () -> "'to' has to be after 'from'")
             .get();
 
         assertThat(toDate.getEpochSecond()).isEqualTo(1262347300L);
