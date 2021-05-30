@@ -9,7 +9,6 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
-import io.javalin.core.JavalinPathParser
 import io.javalin.core.WildcardBracketAdjacentException
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
@@ -23,11 +22,6 @@ class TestRoutingBracketsBasedParser {
 
     private val okHttp = OkHttpClient().newBuilder().build()
     fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
-
-    @Before
-    fun setup() {
-        JavalinPathParser.useBracketsBasedParser()
-    }
 
     @Test
     fun `wildcard first works`() = TestUtil.test { app, http ->
@@ -156,7 +150,6 @@ class TestRoutingBracketsBasedParser {
 
     @Test
     fun `non sub-path wildcard works for paths`() = TestUtil.test { app, http ->
-        JavalinPathParser.useBracketsBasedParser()
         app.get("/p") { it.result("GET") }
         app.get("/p/test") { it.result("GET") }
         assertThat(http.getBody("/p")).isEqualTo("GET")
@@ -168,7 +161,6 @@ class TestRoutingBracketsBasedParser {
 
     @Test
     fun `non sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
-        JavalinPathParser.useBracketsBasedParser()
         app.get("/{pp}") { it.result(it.resultString() + it.pathParam("pp")) }
         app.get("/{pp}/test") { it.result(it.resultString() + it.pathParam("pp")) }
         assertThat(http.getBody("/123")).isEqualTo("null123")
