@@ -47,7 +47,7 @@ interface PathParserSpec {
 }
 
 private class PathParserSpecImpl(path: String, options: PathParserOptions, ignoreTrailingSlashes: Boolean) : PathParserSpec {
-    val impl = PathParser2(path, options, ignoreTrailingSlashes)
+    val impl = PathParser(path, options, ignoreTrailingSlashes)
 
     override val segments: List<PathSegment>
         get() = impl.segments

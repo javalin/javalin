@@ -24,7 +24,7 @@ data class PathParserOptions(
         val closingDelimiterType2: Char = '>'
 )
 
-class PathParser2(private val rawPath: String, private val options: PathParserOptions, ignoreTrailingSlashes: Boolean) {
+class PathParser(private val rawPath: String, private val options: PathParserOptions, ignoreTrailingSlashes: Boolean) {
 
     private val adjacentViolations: List<String> = listOf(
             "*${options.openingDelimiterType1}",
