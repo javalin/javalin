@@ -12,8 +12,8 @@ class TestCookie {
     fun `cookie set on unspecified path is set to root URL`() = TestUtil.test { app, http ->
         app.get("/cookie-path") { it.cookie(Cookie("key", "value").apply { path = "/" }) }
 
-        val requestToCookiePath = http.get("/cookie-path")
-        val cookiePath = requestToCookiePath.headers.getFirst(Header.SET_COOKIE).split(";")[1].replaceFirst(" ", "")
+        val requestSetCookie = http.get("/cookie-path")
+        val cookiePath = requestSetCookie.headers.getFirst(Header.SET_COOKIE).split(";")[1].replaceFirst(" ", "")
 
         assertThat(cookiePath).isEqualTo("Path=/")
     }
