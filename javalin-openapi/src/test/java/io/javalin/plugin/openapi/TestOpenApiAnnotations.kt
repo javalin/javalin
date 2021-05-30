@@ -317,8 +317,8 @@ class TestOpenApiAnnotations {
         }
 
         app.get("/user", ::getUserHandler)
-        app.get("/user/:userid", ::getSpecificUserHandler)
-        app.get("/users/:my-path-param", ::getUsersHandler)
+        app.get("/user/{userid}", ::getSpecificUserHandler)
+        app.get("/users/{my-path-param}", ::getUsersHandler)
         app.get("/users2", ::getUsers2Handler)
         app.put("/form-data", ::putFormDataHandler)
         app.put("/form-data-schema", ::putFormDataSchemaHandler)
@@ -331,7 +331,7 @@ class TestOpenApiAnnotations {
         app.get("/upload-with-form-data", ::getUploadWithFormDataHandler)
         app.get("/resources/*", ::getResources)
         app.get("/ignore", ::getIgnore)
-        app.get("/enums/:my-enum-path-param", ::getEnumParamsHandler)
+        app.get("/enums/{my-enum-path-param}", ::getEnumParamsHandler)
 
         val actual = JavalinOpenApi.createSchema(app)
 
@@ -368,7 +368,7 @@ class TestOpenApiAnnotations {
         }
 
         val actual = extractSchemaForTest { app ->
-            app.routes { crud("users/:user-id", UserCrudHandlerWithAnnotations()) }
+            app.routes { crud("users/{user-id}", UserCrudHandlerWithAnnotations()) }
         }
 
         actual.assertEqualTo(crudExampleJson)

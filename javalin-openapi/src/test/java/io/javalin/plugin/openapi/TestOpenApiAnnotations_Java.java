@@ -294,9 +294,9 @@ public class TestOpenApiAnnotations_Java {
         );
         Javalin app = Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions)));
 
-        app.get("/users/:user-id", new GetOneHandler());
-        app.delete("/users/:user-id", new DeleteHandler());
-        app.patch("/users/:user-id", new UpdateHandler());
+        app.get("/users/{user-id}", new GetOneHandler());
+        app.delete("/users/{user-id}", new DeleteHandler());
+        app.patch("/users/{user-id}", new UpdateHandler());
         app.get("/users", new GetAllHandler());
         app.post("/users", new CreateHandler());
 
@@ -312,7 +312,7 @@ public class TestOpenApiAnnotations_Java {
         );
         Javalin app = Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions)));
 
-        app.routes(() -> ApiBuilder.crud("users/:user-id", new JavaCrudHandler()));
+        app.routes(() -> ApiBuilder.crud("users/{user-id}", new JavaCrudHandler()));
 
         OpenAPI actual = JavalinOpenApi.createSchema(app);
         assertThat(JsonKt.asJsonString(actual)).isEqualTo(JsonKt.getCrudExampleJson());
@@ -502,7 +502,7 @@ public class TestOpenApiAnnotations_Java {
             OpenApiTestUtils.extractSchemaForTest(app -> {
                 ClassHandlerWithInvalidPath handler = new ClassHandlerWithInvalidPath();
                 app.get("/account", handler::getAll);
-                app.get("/account/:id", handler::getOne);
+                app.get("/account/{id}", handler::getOne);
                 return Unit.INSTANCE;
             })
         );

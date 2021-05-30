@@ -135,7 +135,7 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
         }
         .result("200", documentedContent<User>("application/xml"))
 
-    app.get("/user/:userid", documented(getUserDocumentationSpecific) {
+    app.get("/user/{userid}", documented(getUserDocumentationSpecific) {
         it.json(User(name = it.pathParam("userid")))
     })
 
@@ -160,7 +160,7 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
         }
         .queryParam<Int>("age")
         .jsonArray<User>("200")
-    app.get("/users/:my-path-param", documented(getUsersDocumentation) {
+    app.get("/users/{my-path-param}", documented(getUsersDocumentation) {
         val myCookie = it.cookie("my-cookie")
         val myHeader = it.cookie("x-my-header")
         val nameFilter = it.queryParam("name")
@@ -265,7 +265,7 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
 
     app.get("/ignored", documented(document().ignore()) {})
 
-    app.get("/enums/:my-enum-path-param", documented(document()
+    app.get("/enums/{my-enum-path-param}", documented(document()
         .pathParam<UserType>("my-enum-path-param")
         .queryParam<UserType>("my-enum-query-param")) {})
 
@@ -311,7 +311,7 @@ class TestOpenApi {
         }
 
         app.routes {
-            crud("users/:user-id", documented(userCrudHandlerDocumentation, UserCrudHandler()))
+            crud("users/{user-id}", documented(userCrudHandlerDocumentation, UserCrudHandler()))
         }
 
         val actual = JavalinOpenApi.createSchema(app)
@@ -346,8 +346,8 @@ class TestOpenApi {
 
         app.routes {
             // Should not throw exception
-            crud("users/:user-id", ExtendedCrudHandler())
-            crud("accounts/:account-id", DoubleExtendedCrudHandler())
+            crud("users/{user-id}", ExtendedCrudHandler())
+            crud("accounts/{account-id}", DoubleExtendedCrudHandler())
         }
     }
 

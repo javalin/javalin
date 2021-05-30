@@ -48,27 +48,27 @@ class TestRouting {
 
     @Test
     fun `utf-8 encoded path-params work`() = TestUtil.test { app, http ->
-        app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
+        app.get("/{path-param}") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST", "UTF-8"))).isEqualTo("TE/ST")
     }
 
     @Test
     fun `path-params work case-sensitive`() = TestUtil.test { app, http ->
-        app.get("/:userId") { ctx -> ctx.result(ctx.pathParam("userId")) }
+        app.get("/{userId}") { ctx -> ctx.result(ctx.pathParam("userId")) }
         assertThat(http.getBody("/path-param")).isEqualTo("path-param")
-        app.get("/:a/:A") { ctx -> ctx.result("${ctx.pathParam("a")}-${ctx.pathParam("A")}") }
+        app.get("/{a}/{A}") { ctx -> ctx.result("${ctx.pathParam("a")}-${ctx.pathParam("A")}") }
         assertThat(http.getBody("/a/B")).isEqualTo("a-B")
     }
 
     @Test
     fun `path-param values retain their casing`() = TestUtil.test { app, http ->
-        app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
+        app.get("/{path-param}") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/SomeCamelCasedValue")).isEqualTo("SomeCamelCasedValue")
     }
 
     @Test
     fun `path regex works`() = TestUtil.test { app, http ->
-        app.get("/:path-param/[0-9]+/") { ctx -> ctx.result(ctx.pathParam("path-param")) }
+        app.get("/{path-param}/[0-9]+/") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/test/pathParam")).isEqualTo("Not found")
         assertThat(http.getBody("/test/21")).isEqualTo("test")
     }
@@ -77,7 +77,7 @@ class TestRouting {
     fun `automatic slash prefixing works`() = TestUtil.test { app, http ->
         app.routes {
             path("test") {
-                path(":id") { get { ctx -> ctx.result(ctx.pathParam("id")) } }
+                path("{id}") { get { ctx -> ctx.result(ctx.pathParam("id")) } }
                 get { ctx -> ctx.result("test") }
             }
         }
@@ -109,13 +109,13 @@ class TestRouting {
 
     @Test
     fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
-        app.get("/path/:path-param/*") { ctx -> ctx.result("/" + ctx.pathParam("path-param") + "/" + ctx.splat(0)) }
+        app.get("/path/{path-param}/*") { ctx -> ctx.result("/" + ctx.pathParam("path-param") + "/" + ctx.splat(0)) }
         assertThat(http.getBody("/path/P/S")).isEqualTo("/P/S")
     }
 
     @Test
     fun `utf-8 encoded splat works`() = TestUtil.test { app, http ->
-        app.get("/:path-param/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
+        app.get("/{path-param}/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
         val responseBody = okHttp.getBody(http.origin + "/"
                 + URLEncoder.encode("java/kotlin", "UTF-8")
                 + "/path/"

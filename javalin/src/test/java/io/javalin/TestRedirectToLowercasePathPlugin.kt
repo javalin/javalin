@@ -29,7 +29,7 @@ class TestRedirectToLowercasePathPlugin {
 
     @Test
     fun `exception is NOT thrown when using uppercase path params with TestRedirectToLowercasePathPlugin`() = TestUtil.test(testApp) { app, http ->
-        app.get("/:TEST") { }
+        app.get("/{TEST}") { }
     }
 
     @Test
@@ -44,7 +44,7 @@ class TestRedirectToLowercasePathPlugin {
 
     @Test
     fun `non-lowercase path-params are not redirected`() = TestUtil.test(testApp) { app, http ->
-        app.get("/path/:param") { it.status(418) }
+        app.get("/path/{param}") { it.status(418) }
         http.disableUnirestRedirects()
         assertThat(http.get("/path/OnE").status).isEqualTo(418)
         http.enableUnirestRedirects()
@@ -58,13 +58,13 @@ class TestRedirectToLowercasePathPlugin {
 
     @Test
     fun `path params and query params work as expected`() = TestUtil.test(testApp) { app, http ->
-        app.get("/user/:userId") { it.result(it.pathParam("userId") + " " + it.queryParam("qp")!!) }
+        app.get("/user/{userId}") { it.result(it.pathParam("userId") + " " + it.queryParam("qp")!!) }
         assertThat(http.getBody("/UsEr/pkkummermo?qp=GladGutt")).isEqualTo("pkkummermo GladGutt")
     }
 
     @Test
     fun `path params follow by splat works`() = TestUtil.test(testApp) { app, http ->
-        app.get("/:param/*") { it.result(it.path()) }
+        app.get("/{param}/*") { it.result(it.path()) }
         assertThat(http.getBody("/PaRaM/sPlAt")).isEqualTo("/PaRaM/sPlAt")
     }
 

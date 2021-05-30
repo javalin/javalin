@@ -37,12 +37,12 @@ public class SimplePerformanceTest {
     ).routes(() -> {
         before(ctx -> ctx.header("X-BEFORE", "Before"));
         before(ctx -> ctx.status(200));
-        get("/my-path/:param/*", ctx -> ctx.result(ctx.pathParam("param")));
-        get("/1234/:1/:2/:3/:4", ctx -> ctx.result(ctx.pathParamMap().toString()));
+        get("/my-path/{param}/*", ctx -> ctx.result(ctx.pathParam("param")));
+        get("/1234/{1}/{2}/{3}/{4}", ctx -> ctx.result(ctx.pathParamMap().toString()));
         get("/health", ctx -> ctx.result("OK"));
-        crud("/users/:user-id", new GenericController());
+        crud("/users/{user-id}", new GenericController());
         path("/nested/path", () -> {
-            crud("/messages/:message-id", new GenericController());
+            crud("/messages/{message-id}", new GenericController());
         });
         after(ctx -> ctx.header("X-AFTER", "After"));
     });

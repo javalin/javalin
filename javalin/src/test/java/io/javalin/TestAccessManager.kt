@@ -59,7 +59,7 @@ class TestAccessManager {
     @Test
     fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp) { app, http ->
         app.routes {
-            crud("/users/:userId", TestApiBuilder.UserController(), ROLE_ONE, ROLE_TWO)
+            crud("/users/{userId}", TestApiBuilder.UserController(), ROLE_ONE, ROLE_TWO)
         }
         assertThat(callWithRole(http.origin, "/users/1", "ROLE_ONE")).isEqualTo("My single user: 1")
         assertThat(callWithRole(http.origin, "/users/2", "ROLE_TWO")).isEqualTo("My single user: 2")

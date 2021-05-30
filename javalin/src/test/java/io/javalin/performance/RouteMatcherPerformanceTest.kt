@@ -69,11 +69,11 @@ class RouteMatcherPerformanceTest {
 
     companion object {
         val routes = listOf(
-                "/test/:user/some/path/here",
+                "/test/{user}/some/path/here",
                 "/test/*/some/more/path/here",
                 "/test/path/route/without/wildcards",
                 "/test/has/wildcard/at/the/end/*",
-                "/test/:id/simple/route/:user/create/",
+                "/test/{id}/simple/route/{user}/create/",
                 "/matches/all/*/user",
                 "/test/*"
         )
