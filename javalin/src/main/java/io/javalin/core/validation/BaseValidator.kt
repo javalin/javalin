@@ -7,15 +7,30 @@
 package io.javalin.core.validation
 
 import io.javalin.http.BadRequestResponse
+import io.javalin.plugin.json.JavalinJson
 
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: String)
 enum class RuleViolation { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, DESERIALIZATION_FAILED }
 
-open class BaseValidator<T>(val value: T?) {
+open class BaseValidator<T>(val value: T?, val fieldName: String) {
 
-    private val rules = mutableSetOf<Rule<T>>()
+    internal val rules = mutableSetOf<Rule<T>>()
+    private val errors by lazy {
+        val errors = mutableMapOf<String, MutableList<String>>()
+        if (value == null && this !is NullableValidator) {
+            errors[fieldName] = mutableListOf(RuleViolation.NULLCHECK_FAILED.name)
+        }
+        rules.forEach { rule ->
+            if (value != null && !rule.check(value)) {
+                // the same validator can have multiple field names if it's a BodyValidator
+                errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
+                errors[rule.fieldName]!!.add(rule.error)
+            }
+        }
+        errors.mapValues { it.value.toList() }.toMap() // make immutable
+    }
 
     fun addRule(fieldName: String, check: Check<T?>, error: String): BaseValidator<T> {
         rules.add(Rule(fieldName, check, error))
@@ -23,21 +38,10 @@ open class BaseValidator<T>(val value: T?) {
     }
 
     open fun get(): T? = when {
-        rules.all { it.check(value) } -> value // all rules valid
-        else -> throw BadRequestResponse(rules.firstError(value))
+        errors.isEmpty() -> value
+        else -> throw BadRequestResponse(JavalinJson.toJson(errors))
     }
 
-    fun errors(): MutableMap<String, MutableList<String>> {
-        val errors = mutableMapOf<String, MutableList<String>>()
-        rules.forEach { rule ->
-            if (value != null && !rule.check(value)) {
-                errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
-                errors[rule.fieldName]!!.add(rule.error)
-            }
-        }
-        return errors
-    }
+    fun errors() = errors
 
 }
-
-private fun <T> Set<Rule<T>>.firstError(value: T?) = this.find { !it.check(value) }?.error!! // we only call this if there is an error

@@ -129,7 +129,8 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         BodyValidator(JavalinJson.fromJson(body(), clazz))
     } catch (e: Exception) {
         JavalinLogger.info("Couldn't deserialize body to ${clazz.simpleName}", e)
-        throw BadRequestResponse(RuleViolation.DESERIALIZATION_FAILED.name)
+        val response = JavalinJson.toJson(mapOf(clazz.simpleName to listOf(RuleViolation.DESERIALIZATION_FAILED.name)))
+        throw BadRequestResponse(response)
     }
 
     /** Reified version of [bodyValidator] */

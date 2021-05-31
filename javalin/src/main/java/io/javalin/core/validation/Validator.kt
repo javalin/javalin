@@ -9,18 +9,19 @@ package io.javalin.core.validation
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.InternalServerErrorResponse
+import io.javalin.plugin.json.JavalinJson
 
 /**
  * The non-nullable [Validator] uses [Rule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
  */
-open class Validator<T>(value: T?, val fieldName: String) : BaseValidator<T>(value) {
+open class Validator<T>(value: T?, fieldName: String) : BaseValidator<T>(value, fieldName) {
 
-    init {
-        addRule(fieldName, { it != null }, RuleViolation.NULLCHECK_FAILED.name)
+    fun allowNullable(): NullableValidator<T> {
+        if (this.rules.isEmpty()) return NullableValidator(value, fieldName)
+        throw IllegalStateException("Validator#allowNullable must be called before adding rules")
     }
 
-    fun allowNullable() = NullableValidator(value, fieldName)
     fun check(check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as Validator<T>
     override fun get(): T = super.get()!!
 
@@ -34,8 +35,9 @@ open class Validator<T>(value: T?, val fieldName: String) : BaseValidator<T>(val
                 throw InternalServerErrorResponse()
             }
             JavalinLogger.info("Parameter '${fieldName}' with value '${value}' is not a valid ${clazz.simpleName}")
-            throw BadRequestResponse(RuleViolation.TYPE_CONVERSION_FAILED.name)
+            val response = JavalinJson.toJson(mapOf(fieldName to listOf(RuleViolation.TYPE_CONVERSION_FAILED.name)))
+            throw BadRequestResponse(response)
         }
     }
-
 }
+

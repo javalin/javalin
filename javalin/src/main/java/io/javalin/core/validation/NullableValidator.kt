@@ -6,6 +6,6 @@
 
 package io.javalin.core.validation
 
-open class NullableValidator<T>(value: T?, val fieldName: String) : BaseValidator<T>(value) {
+open class NullableValidator<T>(value: T?, fieldName: String) : BaseValidator<T>(value, fieldName) {
     fun check(check: Check<T?>, error: String) = addRule(fieldName, check, error) as NullableValidator<T>
 }

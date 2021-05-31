@@ -74,7 +74,8 @@ class TestJson {
     fun `invalid json is mapped to BadRequestResponse`() = TestUtil.test { app, http ->
         app.get("/hello") { it.body<NonSerializableObject>() }
         assertThat(http.get("/hello").status).isEqualTo(400)
-        assertThat(http.getBody("/hello")).isEqualTo("DESERIALIZATION_FAILED")
+        val response = http.getBody("/hello").replace("\\s".toRegex(), "")
+        assertThat(response).contains("""{"NonSerializableObject":["DESERIALIZATION_FAILED"]}""")
     }
 
     @Test

@@ -30,19 +30,19 @@ class TestValidation {
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/:param") { ctx -> ctx.pathParam<Int>("param").get() }
-        assertThat(http.get("/abc").body).isEqualTo("TYPE_CONVERSION_FAILED")
+        assertThat(http.get("/abc").body).isEqualTo("""{"param":["TYPE_CONVERSION_FAILED"]}""")
     }
 
     @Test
     fun `queryParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<Int>("param").get() }
-        assertThat(http.get("/?param=abc").body).isEqualTo("TYPE_CONVERSION_FAILED")
+        assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":["TYPE_CONVERSION_FAILED"]}""")
     }
 
     @Test
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.formParam<Int>("param").get() }
-        assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("TYPE_CONVERSION_FAILED")
+        assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":["TYPE_CONVERSION_FAILED"]}""")
         JavalinLogger.enabled = true
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
         assertThat(log).contains("Parameter 'param' with value 'abc' is not a valid Integer")
@@ -52,7 +52,7 @@ class TestValidation {
     @Test
     fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<String>("my-qp").get() }
-        assertThat(http.get("/").body).isEqualTo("NULLCHECK_FAILED")
+        assertThat(http.get("/").body).isEqualTo("""{"my-qp":["NULLCHECK_FAILED"]}""")
         assertThat(http.get("/").status).isEqualTo(400)
     }
 
@@ -69,8 +69,8 @@ class TestValidation {
             val myInt = ctx.queryParam<Int>("my-qp").get()
             ctx.result((myInt * 2).toString())
         }
-        assertThat(http.get("/int").body).isEqualTo("NULLCHECK_FAILED")
-        assertThat(http.get("/int?my-qp=abc").body).isEqualTo("TYPE_CONVERSION_FAILED")
+        assertThat(http.get("/int").body).isEqualTo("""{"my-qp":["NULLCHECK_FAILED"]}""")
+        assertThat(http.get("/int?my-qp=abc").body).isEqualTo("""{"my-qp":["TYPE_CONVERSION_FAILED"]}""")
         assertThat(http.get("/int?my-qp=123").body).isEqualTo("246")
     }
 
@@ -79,7 +79,7 @@ class TestValidation {
         app.get("/") { ctx ->
             ctx.queryParam<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
         }
-        assertThat(http.get("/?my-qp=1").body).isEqualTo("Length must be more than five")
+        assertThat(http.get("/?my-qp=1").body).isEqualTo("""{"my-qp":["Length must be more than five"]}""")
     }
 
     @Test
@@ -88,7 +88,7 @@ class TestValidation {
             val myInt = ctx.queryParam<Int>("my-qp", "788").get()
             ctx.result(myInt.toString())
         }
-        assertThat(http.get("/?my-qp=a").body).isEqualTo("TYPE_CONVERSION_FAILED")
+        assertThat(http.get("/?my-qp=a").body).isEqualTo("""{"my-qp":["TYPE_CONVERSION_FAILED"]}""")
         assertThat(http.get("/?my-qp=1").body).isEqualTo("1")
         assertThat(http.get("/").body).isEqualTo("788")
     }
@@ -110,7 +110,7 @@ class TestValidation {
             ctx.json(toDate.isAfter(fromDate))
         }
         assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
-        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("'to' has to be after 'from'")
+        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":["'to' has to be after 'from'"]}""")
     }
 
     @Test
@@ -156,8 +156,8 @@ class TestValidation {
         val validJson = JavalinJson.toJson(SerializeableObject().apply {
             value1 = "Bananas"
         })
-        assertThat(http.post("/json").body("not-json").asString().body).isEqualTo("DESERIALIZATION_FAILED")
-        assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo("value1 must be 'Bananas'")
+        assertThat(http.post("/json").body("not-json").asString().body).contains("""{"SerializeableObject":["DESERIALIZATION_FAILED"]}""".trimMargin())
+        assertThat(http.post("/json").body(invalidJson).asString().body).contains("""{"SerializeableObject":["value1 must be 'Bananas'"]}""")
         assertThat(http.post("/json").body(validJson).asString().body).isEqualTo("Bananas")
     }
 
@@ -204,7 +204,7 @@ class TestValidation {
 
         // Test invalid param
         http.get("/?id=4").apply {
-            assertThat(body).isEqualTo("id was not greater than 10")
+            assertThat(body).isEqualTo("""{"id":["id was not greater than 10"]}""")
             assertThat(status).isEqualTo(400)
         }
 
