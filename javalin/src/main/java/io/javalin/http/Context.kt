@@ -32,31 +32,15 @@ import javax.servlet.http.HttpServletResponse
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
 // don't suppress warnings, since annotated classes are ignored by dokka (yeah...)
-open class Context(
-    @JvmField val req: HttpServletRequest,
-    @JvmField val res: HttpServletResponse,
-    private val appAttributes: Map<Class<*>, Any> = mapOf()
-) {
+open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<Class<*>, Any> = mapOf()) {
 
     // @formatter:off
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var inExceptionHandler = false
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var matchedPath = ""
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var endpointHandlerPath = ""
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var pathParamMap = mapOf<String, String>()
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var handlerType = HandlerType.BEFORE
-    @get:JvmSynthetic
-    @set:JvmSynthetic
-    internal var splatList = listOf<String>()
+    @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
+    @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
+    @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
+    @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
+    @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
+    @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
@@ -177,8 +161,7 @@ open class Context(
      * Throws [BadRequestResponse] if validation fails.
      */
     @JvmOverloads
-    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) =
-        Validator.create(clazz, formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'", key)
+    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'", key)
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -201,8 +184,7 @@ open class Context(
      * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
-    fun <T> pathParam(key: String, clazz: Class<T>) =
-        Validator.create(clazz, pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'", key)
+    fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'", key)
 
     /** Gets a map of all the [pathParam] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
@@ -248,8 +230,7 @@ open class Context(
     fun header(header: String): String? = req.getHeader(header)
 
     /** Creates a [Validator] for the header() value, with the prefix "Request header '$header' with the value '$value'" */
-    fun <T> header(header: String, clazz: Class<T>): Validator<T> =
-        Validator.create(clazz, header(header), "Request header '$header' with value '${header(header)}'", header)
+    fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), "Request header '$header' with value '${header(header)}'", header)
 
     /** Gets a map with all the header keys and values on the request. */
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
@@ -291,8 +272,7 @@ open class Context(
      * Throws [BadRequestResponse] if validation fails.
      */
     @JvmOverloads
-    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) =
-        Validator.create(clazz, queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'", key)
+    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'", key)
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
