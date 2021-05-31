@@ -7,9 +7,7 @@
 package io.javalin.core.validation
 
 import io.javalin.core.util.JavalinLogger
-import io.javalin.http.BadRequestResponse
 import io.javalin.http.InternalServerErrorResponse
-import io.javalin.plugin.json.JavalinJson
 
 /**
  * The non-nullable [Validator] uses [Rule] rules, but checks if value is null before calling them.
@@ -35,7 +33,7 @@ open class Validator<T>(value: T?, fieldName: String) : BaseValidator<T>(value, 
                 throw InternalServerErrorResponse()
             }
             JavalinLogger.info("Parameter '${fieldName}' with value '${value}' is not a valid ${clazz.simpleName}")
-            throw ValidationException(mapOf(fieldName to listOf(ValidationError(RuleViolation.TYPE_CONVERSION_FAILED.name, value))))
+            throw ValidationException(mapOf(fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value))))
         }
     }
 }

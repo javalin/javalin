@@ -10,7 +10,6 @@ import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.BodyValidator
-import io.javalin.core.validation.RuleViolation
 import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
@@ -131,7 +130,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         BodyValidator(JavalinJson.fromJson(body(), clazz))
     } catch (e: Exception) {
         JavalinLogger.info("Couldn't deserialize body to ${clazz.simpleName}", e)
-        throw ValidationException(mapOf(clazz.simpleName to listOf(ValidationError(RuleViolation.DESERIALIZATION_FAILED.name, body()))))
+        throw ValidationException(mapOf(clazz.simpleName to listOf(ValidationError("DESERIALIZATION_FAILED", body()))))
     }
 
     /** Reified version of [bodyValidator] */
