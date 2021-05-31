@@ -41,6 +41,6 @@ open class BaseValidator<T>(val value: T?, val fieldName: String) {
         else -> throw ValidationException(errors as Map<String, List<ValidationError<Any>>>)
     }
 
-    fun errors() = errors
+    fun errors(): Map<String, List<ValidationError<T>>> = errors
 
 }
