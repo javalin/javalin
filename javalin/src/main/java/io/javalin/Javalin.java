@@ -21,6 +21,7 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
+import io.javalin.core.validation.JavalinValidation;
 import io.javalin.http.Context;
 import io.javalin.http.ErrorMapperKt;
 import io.javalin.http.ExceptionHandler;
@@ -84,6 +85,7 @@ public class Javalin {
      */
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
+        JavalinValidation.addValidationExceptionMapper(app);
         JavalinConfig.applyUserConfig(app, app._conf, config); // mutates app.config and app (adds http-handlers)
         if (app._conf.logIfServerNotStarted) {
             Util.logIfServerNotStarted(app.server);

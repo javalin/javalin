@@ -6,27 +6,26 @@
 
 package io.javalin.core.validation
 
-import io.javalin.http.BadRequestResponse
-import io.javalin.plugin.json.JavalinJson
-
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: String)
 enum class RuleViolation { NULLCHECK_FAILED, TYPE_CONVERSION_FAILED, DESERIALIZATION_FAILED }
+data class ValidationError<T>(val message: String, val value: T?)
+class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : Exception()
 
 open class BaseValidator<T>(val value: T?, val fieldName: String) {
 
     internal val rules = mutableSetOf<Rule<T>>()
     private val errors by lazy {
-        val errors = mutableMapOf<String, MutableList<String>>()
+        val errors = mutableMapOf<String, MutableList<ValidationError<T>>>()
         if (value == null && this !is NullableValidator) {
-            errors[fieldName] = mutableListOf(RuleViolation.NULLCHECK_FAILED.name)
+            errors[fieldName] = mutableListOf(ValidationError(RuleViolation.NULLCHECK_FAILED.name, value))
         }
         rules.forEach { rule ->
             if (value != null && !rule.check(value)) {
                 // the same validator can have multiple field names if it's a BodyValidator
                 errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
-                errors[rule.fieldName]!!.add(rule.error)
+                errors[rule.fieldName]!!.add(ValidationError(rule.error, value))
             }
         }
         errors.mapValues { it.value.toList() }.toMap() // make immutable
@@ -39,7 +38,7 @@ open class BaseValidator<T>(val value: T?, val fieldName: String) {
 
     open fun get(): T? = when {
         errors.isEmpty() -> value
-        else -> throw BadRequestResponse(JavalinJson.toJson(errors))
+        else -> throw ValidationException(errors as Map<String, List<ValidationError<Any>>>)
     }
 
     fun errors() = errors

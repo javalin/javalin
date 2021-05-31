@@ -75,7 +75,7 @@ class TestJson {
         app.get("/hello") { it.body<NonSerializableObject>() }
         assertThat(http.get("/hello").status).isEqualTo(400)
         val response = http.getBody("/hello").replace("\\s".toRegex(), "")
-        assertThat(response).contains("""{"NonSerializableObject":["DESERIALIZATION_FAILED"]}""")
+        assertThat(response).isEqualTo("""{"NonSerializableObject":[{"message":"DESERIALIZATION_FAILED","value":""}]}""")
     }
 
     @Test

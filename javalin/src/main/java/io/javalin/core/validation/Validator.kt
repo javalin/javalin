@@ -35,8 +35,7 @@ open class Validator<T>(value: T?, fieldName: String) : BaseValidator<T>(value, 
                 throw InternalServerErrorResponse()
             }
             JavalinLogger.info("Parameter '${fieldName}' with value '${value}' is not a valid ${clazz.simpleName}")
-            val response = JavalinJson.toJson(mapOf(fieldName to listOf(RuleViolation.TYPE_CONVERSION_FAILED.name)))
-            throw BadRequestResponse(response)
+            throw ValidationException(mapOf(fieldName to listOf(ValidationError(RuleViolation.TYPE_CONVERSION_FAILED.name, value))))
         }
     }
 }

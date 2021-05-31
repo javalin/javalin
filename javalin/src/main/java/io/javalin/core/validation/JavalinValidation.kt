@@ -6,6 +6,7 @@
 
 package io.javalin.core.validation
 
+import io.javalin.Javalin
 import java.lang.RuntimeException
 
 class MissingConverterException(val className: String) : RuntimeException()
@@ -39,9 +40,16 @@ object JavalinValidation {
     fun collectErrors(vararg validators: Validator<*>) = collectErrors(validators.toList())
 
     @JvmStatic
-    fun collectErrors(validators: Iterable<Validator<*>>): Map<String, List<String>> =
+    fun collectErrors(validators: Iterable<Validator<*>>): Map<String, List<ValidationError<out Any?>>> =
         validators.flatMap { it.errors().entries }.associate { it.key to it.value }
+
+    @JvmStatic
+    fun addValidationExceptionMapper(app: Javalin) {
+        app.exception(ValidationException::class.java) { e, ctx ->
+            ctx.json(e.errors).status(400)
+        }
+    }
 }
 
-fun Iterable<Validator<*>>.collectErrors(): Map<String, List<String>> =
+fun Iterable<Validator<*>>.collectErrors(): Map<String, List<ValidationError<out Any?>>> =
     JavalinValidation.collectErrors(this)
