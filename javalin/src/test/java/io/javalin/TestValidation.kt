@@ -188,6 +188,12 @@ class TestValidation {
     }
 
     @Test
+    fun `allowNullable throws if called after check`() = TestUtil.test { app, http ->
+        app.get("/") { it.queryParam<Int>("my-qp").check({ false }, "Irrelevant").allowNullable() }
+        assertThat(http.get("/").status).isEqualTo(500)
+    }
+
+    @Test
     fun `optional query param value works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myInt: Int? = ctx.queryParam<Int>("my-qp").allowNullable().get()
