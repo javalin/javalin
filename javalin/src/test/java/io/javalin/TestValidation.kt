@@ -162,6 +162,19 @@ class TestValidation {
     }
 
     @Test
+    fun `multiple checks and named fields work when validating class`() = TestUtil.test { app, http ->
+        app.post("/json") { ctx ->
+            val obj = ctx.bodyValidator<SerializeableObject>()
+                .check({ false }, "Unnamed field - Check 1")
+                .check({ false }, "Unnamed field - Check 2")
+                .check("named_field", { false }, "Named field - Check 3")
+                .get()
+        }
+        val response = http.post("/json").body(JavalinJson.toJson(SerializeableObject())).asString().body
+        assertThat(response).contains("""{"SerializeableObject":["Unnamed field - Check 1","Unnamed field - Check 2"],"named_field":["Named field - Check 3"]}""")
+    }
+
+    @Test
     fun `custom treatment for BadRequestResponse exception response works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myString = ctx.queryParam<String>("my-qp").get()
