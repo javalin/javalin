@@ -122,47 +122,6 @@ class TestResponse {
         assertThat(http.call(HttpMethod.GET, "/hello-abs").body).isEqualTo("Redirected")
     }
 
-    @Test
-    fun `setting a cookie works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
-        app.get("/get-cookie") { ctx -> ctx.result(ctx.cookie("Test")!!) }
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).isEqualTo("Test=Tast; Path=/")
-        assertThat(http.getBody("/get-cookie")).isEqualTo("Tast")
-    }
-
-    @Test
-    fun `setting a Cookie object works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { ctx -> ctx.cookie(Cookie("Hest", "Hast").apply { maxAge = 7 }) }
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Hest=Hast")
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Max-Age=7")
-    }
-
-    @Test
-    fun `can't set duplicate cookies when other cookies set`() = TestUtil.test { app, http ->
-        app.get("/create-cookies") {
-            it.cookie("Test-1", "1")
-            it.cookie("Test-2", "2")
-            it.cookie("Test-3", "3")
-            it.cookie("Test-3", "4")  // duplicate
-        }
-        val response = http.get("/create-cookies");
-        assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-1=1; Path=/")
-        assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-2=2; Path=/")
-        assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-3=4; Path=/")
-        assertThat(response.headers[Header.SET_COOKIE]!!.size).isEqualTo(3)
-    }
-
-    @Test
-    fun `can't set duplicate cookies when no other cookies set`() = TestUtil.test { app, http ->
-        app.get("/create-cookies") {
-            it.cookie("MyCookie", "A")
-            it.cookie("MyCookie", "B")  // duplicate
-        }
-        val response = http.get("/create-cookies");
-        assertThat(response.headers[Header.SET_COOKIE]!!).contains("MyCookie=B; Path=/")
-        assertThat(response.headers[Header.SET_COOKIE]!!.size).isEqualTo(1)
-    }
-
     // Fix for https://github.com/tipsy/javalin/issues/543
     @Test
     fun `reading the result string resets the stream`() = TestUtil.test { app, http ->
