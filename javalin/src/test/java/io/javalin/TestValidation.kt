@@ -6,15 +6,20 @@
 
 package io.javalin
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.JavalinValidation
+import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
 import io.javalin.core.validation.collectErrors
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.context.formParam
 import io.javalin.http.context.pathParam
 import io.javalin.http.context.queryParam
+import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.testing.SerializeableObject
 import io.javalin.testing.TestUtil
@@ -29,26 +34,37 @@ class TestValidation {
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/:param") { ctx -> ctx.pathParam<Int>("param").get() }
-        assertThat(http.get("/abc").body).isEqualTo("Path parameter 'param' with value 'abc' is not a valid Integer")
+        assertThat(http.get("/abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","value":"abc"}]}""")
     }
 
     @Test
     fun `queryParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<Int>("param").get() }
-        assertThat(http.get("/?param=abc").body).isEqualTo("Query parameter 'param' with value 'abc' is not a valid Integer")
+        assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","value":"abc"}]}""")
     }
 
     @Test
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.formParam<Int>("param").get() }
-        assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("Form parameter 'param' with value 'abc' is not a valid Integer")
+        assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","value":"abc"}]}""")
+        JavalinLogger.enabled = true
+        val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
+        assertThat(log).contains("Parameter 'param' with value 'abc' is not a valid Integer")
+
     }
 
     @Test
-    fun `notNullOrEmpty works`() = TestUtil.test { app, http ->
+    fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<String>("my-qp").get() }
-        assertThat(http.get("/").body).isEqualTo("Query parameter 'my-qp' with value 'null' cannot be null or empty")
+        assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","value":null}]}""")
         assertThat(http.get("/").status).isEqualTo(400)
+    }
+
+    @Test
+    fun `notNullOrEmpty works for NullableValidator`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.queryParam<String>("my-qp").allowNullable().get() }
+        assertThat(http.get("/").body).isEqualTo("")
+        assertThat(http.get("/").status).isEqualTo(200)
     }
 
     @Test
@@ -57,8 +73,8 @@ class TestValidation {
             val myInt = ctx.queryParam<Int>("my-qp").get()
             ctx.result((myInt * 2).toString())
         }
-        assertThat(http.get("/int").body).isEqualTo("Query parameter 'my-qp' with value 'null' cannot be null or empty")
-        assertThat(http.get("/int?my-qp=abc").body).isEqualTo("Query parameter 'my-qp' with value 'abc' is not a valid Integer")
+        assertThat(http.get("/int").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","value":null}]}""")
+        assertThat(http.get("/int?my-qp=abc").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","value":"abc"}]}""")
         assertThat(http.get("/int?my-qp=123").body).isEqualTo("246")
     }
 
@@ -67,7 +83,7 @@ class TestValidation {
         app.get("/") { ctx ->
             ctx.queryParam<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
         }
-        assertThat(http.get("/?my-qp=1").body).isEqualTo("Query parameter 'my-qp' with value '1' invalid - Length must be more than five")
+        assertThat(http.get("/?my-qp=1").body).isEqualTo("""{"my-qp":[{"message":"Length must be more than five","value":"1"}]}""")
     }
 
     @Test
@@ -76,7 +92,7 @@ class TestValidation {
             val myInt = ctx.queryParam<Int>("my-qp", "788").get()
             ctx.result(myInt.toString())
         }
-        assertThat(http.get("/?my-qp=a").body).isEqualTo("Query parameter 'my-qp' with value 'a' is not a valid Integer")
+        assertThat(http.get("/?my-qp=a").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","value":"a"}]}""")
         assertThat(http.get("/?my-qp=1").body).isEqualTo("1")
         assertThat(http.get("/").body).isEqualTo("788")
     }
@@ -89,16 +105,32 @@ class TestValidation {
 
     @Test
     fun `custom converter works`() = TestUtil.test { app, http ->
+        JavalinJackson.configure(ObjectMapper().apply { registerModule(JavaTimeModule()) })
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParam<Instant>("from").get()
             val toDate = ctx.queryParam<Instant>("to")
-                    .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
-                    .get()
+                .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
+                .get()
             ctx.json(toDate.isAfter(fromDate))
         }
         assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
-        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("Query parameter 'to' with value '1262347100000' invalid - 'to' has to be after 'from'")
+        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":[{"message":"'to' has to be after 'from'","value":1262347100.000000000}]}""")
+    }
+
+    @Test
+    fun `custom converter works for null when nullable`() = TestUtil.test { app, http ->
+        JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
+        app.get("/instant") { ctx ->
+            val fromDate = ctx.queryParam<Instant>("from").get()
+            val toDate = ctx.queryParam<Instant>("to")
+                .allowNullable()
+                .check({ it == null || it.isAfter(fromDate) }, "'to' has to null or after 'from'")
+                .get()
+            ctx.json(toDate == null || toDate.isAfter(fromDate))
+        }
+        assertThat(http.get("/instant?from=1262347200000").body).isEqualTo("true")
+        assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
     }
 
     @Test
@@ -110,36 +142,59 @@ class TestValidation {
 
     @Test
     fun `default converters work`() {
-        assertThat(Validator.create(Boolean::class.java, "true").get() is Boolean).isTrue()
-        assertThat(Validator.create(Double::class.java, "1.2").get() is Double).isTrue()
-        assertThat(Validator.create(Float::class.java, "1.2").get() is Float).isTrue()
-        assertThat(Validator.create(Int::class.java, "123").get() is Int).isTrue()
-        assertThat(Validator.create(Long::class.java, "123").get() is Long).isTrue()
+        assertThat(Validator.create(Boolean::class.java, "true", "?").get() is Boolean).isTrue()
+        assertThat(Validator.create(Double::class.java, "1.2", "?").get() is Double).isTrue()
+        assertThat(Validator.create(Float::class.java, "1.2", "?").get() is Float).isTrue()
+        assertThat(Validator.create(Int::class.java, "123", "?").get() is Int).isTrue()
+        assertThat(Validator.create(Long::class.java, "123", "?").get() is Long).isTrue()
     }
 
     @Test
     fun `validatedBody works`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializeableObject>()
-                    .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
-                    .get()
+                .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
+                .get()
             ctx.result(obj.value1)
         }
         val invalidJson = JavalinJson.toJson(SerializeableObject())
         val validJson = JavalinJson.toJson(SerializeableObject().apply {
             value1 = "Bananas"
         })
-        assertThat(http.post("/json").body("not-json").asString().body).isEqualTo("Couldn't deserialize body to SerializeableObject")
-        assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo("Request body as SerializeableObject invalid - value1 must be 'Bananas'")
+
+        """{"SerializeableObject":[{"message":"DESERIALIZATION_FAILED","value":"not-json"}]}""".let { expected ->
+            assertThat(http.post("/json").body("not-json").asString().body).isEqualTo(expected)
+        }
+        """{"SerializeableObject":[{"message":"value1 must be 'Bananas'","value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
+            assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo(expected)
+        }
+
         assertThat(http.post("/json").body(validJson).asString().body).isEqualTo("Bananas")
     }
 
     @Test
-    fun `custom treatment for BadRequestResponse exception response works`() = TestUtil.test { app, http ->
+    fun `multiple checks and named fields work when validating class`() = TestUtil.test { app, http ->
+        app.post("/json") { ctx ->
+            val obj = ctx.bodyValidator<SerializeableObject>()
+                .check({ false }, "UnnamedFieldCheck1")
+                .check({ false }, "UnnamedFieldCheck2")
+                .check("named_field", { false }, "NamedFieldCheck3")
+                .get()
+        }
+        val expected = """{"SerializeableObject":[
+            {"message":"UnnamedFieldCheck1","value":{"value1":"FirstValue","value2":"SecondValue"}},
+            {"message":"UnnamedFieldCheck2","value":{"value1":"First Value","value2":"SecondValue"}}],
+            "named_field":[{"message":"NamedFieldCheck3","value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
+        val response = http.post("/json").body(JavalinJson.toJson(SerializeableObject())).asString().body
+        assertThat(response).isEqualTo(expected)
+    }
+
+    @Test
+    fun `custom treatment for ValidationException exception response works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myString = ctx.queryParam<String>("my-qp").get()
         }
-        app.exception(BadRequestResponse::class.java) { e, ctx ->
+        app.exception(ValidationException::class.java) { e, ctx ->
             ctx.status(HttpStatus.EXPECTATION_FAILED_417)
             ctx.result("Error Expected!")
         }
@@ -148,9 +203,15 @@ class TestValidation {
     }
 
     @Test
+    fun `allowNullable throws if called after check`() = TestUtil.test { app, http ->
+        app.get("/") { it.queryParam<Int>("my-qp").check({ false }, "Irrelevant").allowNullable() }
+        assertThat(http.get("/").status).isEqualTo(500)
+    }
+
+    @Test
     fun `optional query param value works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myInt: Int? = ctx.queryParam<Int>("my-qp").getOrNull()
+            val myInt: Int? = ctx.queryParam<Int>("my-qp").allowNullable().get()
             assertThat(myInt).isEqualTo(null)
         }
         assertThat(http.get("/").status).isEqualTo(200)
@@ -160,8 +221,9 @@ class TestValidation {
     fun `optional query param value with check works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val id: Int? = ctx.queryParam<Int>("id")
-                    .check({ it > 10 }, "id was not greater than 10")
-                    .getOrNull()
+                .allowNullable()
+                .check({ if (it != null) it > 10 else true }, "id was not greater than 10")
+                .get()
 
             if (id != null) {
                 ctx.result(id.toString())
@@ -170,20 +232,20 @@ class TestValidation {
 
         // Test valid param
         http.get("/?id=20").apply {
-            assertThat(status).isEqualTo(200)
             assertThat(body).isEqualTo("20")
+            assertThat(status).isEqualTo(200)
         }
 
         // Test invalid param
         http.get("/?id=4").apply {
+            assertThat(body).isEqualTo("""{"id":[{"message":"id was not greater than 10","value":4}]}""")
             assertThat(status).isEqualTo(400)
-            assertThat(body).isEqualTo("Query parameter 'id' with value '4' invalid - id was not greater than 10")
         }
 
         // test valid missing param
         http.get("/").apply {
-            assertThat(status).isEqualTo(200)
             assertThat(body).isEqualTo("")
+            assertThat(status).isEqualTo(200)
         }
     }
 
@@ -192,12 +254,12 @@ class TestValidation {
 
         app.get("/") { ctx ->
             val numberValidator = ctx.queryParam<Int>("number")
-                    .check({ it > 12 }, "must be greater than 12.")
-                    .check({ it.rem(2) == 0 }, "must be even.")
+                .check({ it > 12 }, "must be greater than 12.")
+                .check({ it.rem(2) == 0 }, "must be even.")
 
             val stringValidator = ctx.queryParam<String>("first_name")
-                    .check({ !it.contains("-") }, "cannot contain hyphens.")
-                    .check({ it.length < 10 }, "cannot be longer than 10 characters.")
+                .check({ !it.contains("-") }, "cannot contain hyphens.")
+                .check({ it.length < 10 }, "cannot be longer than 10 characters.")
 
             ctx.json(listOf(numberValidator, stringValidator).collectErrors())
         }
@@ -222,9 +284,9 @@ class TestValidation {
     fun `body validator with check and retrieve errors`() = TestUtil.test { app, http ->
         app.post("/") { ctx ->
             val errors = ctx.bodyValidator<Map<String, String>>()
-                    .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
-                    .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
-                    .errors()
+                .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
+                .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
+                .errors()
 
             ctx.json(errors)
         }
@@ -238,73 +300,13 @@ class TestValidation {
         // Test invalid param
         http.post("/").body("{\"first_name\":\"Mathilde\"}").asString().apply {
             assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("{\"first_name\":[\"Too long\"]}")
+            assertThat(body).isEqualTo("""{"first_name":[{"message":"Too long","value":{"first_name":"Mathilde"}}]}""")
         }
 
         // Test invalid empty param
         http.post("/").body("{}").asString().apply {
             assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("{\"first_name\":[\"This field is mandatory\"]}")
-        }
-    }
-
-    @Test
-    fun `body validator with check and isValid`() = TestUtil.test { app, http ->
-        app.post("/") { ctx ->
-            val isValid = ctx.bodyValidator<Map<String, String>>()
-                    .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
-                    .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
-                    .isValid()
-
-            ctx.result(isValid.toString())
-        }
-
-        // Test valid param
-        http.post("/").body("{\"first_name\":\"John\"}").asString().apply {
-            assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("true")
-        }
-
-        // Test invalid param
-        http.post("/").body("{\"first_name\":\"Mathilde\"}").asString().apply {
-            assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("false")
-        }
-
-        // Test invalid empty param
-        http.post("/").body("{}").asString().apply {
-            assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("false")
-        }
-    }
-
-    @Test
-    fun `body validator with check and hasError`() = TestUtil.test { app, http ->
-        app.post("/") { ctx ->
-            val hasError = ctx.bodyValidator<Map<String, String>>()
-                    .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
-                    .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
-                    .hasError()
-
-            ctx.result(hasError.toString())
-        }
-
-        // Test valid param
-        http.post("/").body("{\"first_name\":\"John\"}").asString().apply {
-            assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("false")
-        }
-
-        // Test invalid param
-        http.post("/").body("{\"first_name\":\"Mathilde\"}").asString().apply {
-            assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("true")
-        }
-
-        // Test invalid empty param
-        http.post("/").body("{}").asString().apply {
-            assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("true")
+            assertThat(body).isEqualTo("""{"first_name":[{"message":"This field is mandatory","value":{}}]}""")
         }
     }
 }

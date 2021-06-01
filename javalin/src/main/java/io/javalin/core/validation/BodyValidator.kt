@@ -6,10 +6,10 @@
 
 package io.javalin.core.validation
 
-open class BodyValidator<T>(value: T?, messagePrefix: String = "Value") : Validator<T>(value, messagePrefix) {
-    @JvmOverloads
-    open fun check(fieldName: String, predicate: (T) -> Boolean, errorMessage: String = "Failed check"): BodyValidator<T> {
-        rules.add(Rule(fieldName, predicate, errorMessage))
-        return this
-    }
+open class BodyValidator<T>(value: T?) : BaseValidator<T>(value, value.fieldName()) {
+    fun check(check: Check<T>, error: String) = check(value.fieldName(), check, error)
+    fun check(fieldName: String, check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>
+    override fun get(): T = super.get()!!
 }
+
+fun Any?.fieldName() = this!!::class.java.simpleName

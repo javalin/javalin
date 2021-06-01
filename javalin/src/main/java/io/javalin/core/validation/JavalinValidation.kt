@@ -6,9 +6,13 @@
 
 package io.javalin.core.validation
 
-class MissingConverterException(className: String) : IllegalArgumentException("Can't convert to $className. Register a converter using JavalinValidation#register.")
+import io.javalin.Javalin
+import java.lang.RuntimeException
+
+class MissingConverterException(val className: String) : RuntimeException()
 
 object JavalinValidation {
+
     val converters = mutableMapOf<Class<*>, (String) -> Any?>(
             java.lang.Boolean::class.java to { s -> s.toBoolean() },
             java.lang.Double::class.java to { s -> s.toDouble() },
@@ -24,6 +28,28 @@ object JavalinValidation {
             String::class.java to { s -> s }
     )
 
+    fun <T> convertValue(clazz: Class<T>, value: String?): T {
+        val converter = converters[clazz] ?: throw MissingConverterException(clazz.simpleName)
+        return (if (value != null) converter.invoke(value) else null) as T
+    }
+
     @JvmStatic
     fun register(clazz: Class<*>, converter: (String) -> Any?) = converters.put(clazz, converter)
+
+    @JvmStatic
+    fun collectErrors(vararg validators: Validator<*>) = collectErrors(validators.toList())
+
+    @JvmStatic
+    fun collectErrors(validators: Iterable<Validator<*>>): Map<String, List<ValidationError<out Any?>>> =
+        validators.flatMap { it.errors().entries }.associate { it.key to it.value }
+
+    @JvmStatic
+    fun addValidationExceptionMapper(app: Javalin) {
+        app.exception(ValidationException::class.java) { e, ctx ->
+            ctx.json(e.errors).status(400)
+        }
+    }
 }
+
+fun Iterable<Validator<*>>.collectErrors(): Map<String, List<ValidationError<out Any?>>> =
+    JavalinValidation.collectErrors(this)
