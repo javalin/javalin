@@ -14,7 +14,7 @@ class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) :
 
 open class BaseValidator<T>(val value: T?, val fieldName: String) {
 
-    internal val rules = mutableSetOf<Rule<T>>()
+    internal val rules = mutableListOf<Rule<T>>()
     private val errors by lazy {
         val errors = mutableMapOf<String, MutableList<ValidationError<T>>>()
         if (value == null && this !is NullableValidator) {
