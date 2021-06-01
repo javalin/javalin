@@ -500,4 +500,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Gets a list of all the [splat] values. */
     fun splats(): List<String> = Collections.unmodifiableList(splatList)
+
+    /** Gets the handler type of the current handler */
+    fun handlerType() : HandlerType = handlerType
 }
