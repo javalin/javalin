@@ -51,5 +51,6 @@ object JavalinValidation {
     }
 }
 
+
 fun Iterable<Validator<*>>.collectErrors(): Map<String, List<ValidationError<out Any?>>> =
     JavalinValidation.collectErrors(this)
