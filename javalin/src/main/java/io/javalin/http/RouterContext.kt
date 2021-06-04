@@ -16,7 +16,8 @@ class RouterContext(private val servlet: JavalinServlet, private val eventManage
      *
      * @see [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
+    @JvmOverloads
+    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role> = setOf()) {
         if (isNonSubPathWildcard(path)) { // TODO: This should probably be made part of the actual path matching
             // split into two handlers: one exact, and one sub-path with wildcard
             val basePath = path.substring(0, path.length - 1)
@@ -25,23 +26,7 @@ class RouterContext(private val servlet: JavalinServlet, private val eventManage
         }
         servlet.addHandler(handlerType, path, handler, roles)
         eventManager.fireHandlerAddedEvent(
-            HandlerMetaInfo(
-                handlerType,
-                prefixContextPath(servlet.config.contextPath, path),
-                handler,
-                roles
-            )
+                HandlerMetaInfo(handlerType, prefixContextPath(servlet.config.contextPath, path), handler, roles)
         )
-    }
-
-    /**
-     * Adds a request handler for the specified handlerType and path to the instance.
-     * This is the method that all the verb-methods (get/post/put/etc) call.
-     *
-     * @see [Handlers in docs](https://javalin.io/documentation.handlers)
-     */
-    fun addHandler(httpMethod: HandlerType, path: String, handler: Handler) {
-        // no roles set for this route (open to everyone with default access manager)
-        addHandler(httpMethod, path, handler, HashSet())
     }
 }

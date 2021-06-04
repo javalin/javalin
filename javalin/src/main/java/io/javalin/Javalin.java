@@ -325,7 +325,7 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
-        routerContext.addHandler(httpMethod, path, handler, new HashSet<>());
+        routerContext.addHandler(httpMethod, path, handler);
         return this;
     }
 
