@@ -7,14 +7,24 @@
 package io.javalin.routeoverview;
 
 import io.javalin.Javalin;
+import io.javalin.apibuilder.CrudHandler;
+import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.RouteOverviewPlugin;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
 import io.javalin.websocket.WsConfig;
+import org.jetbrains.annotations.NotNull;
 
-import static io.javalin.TestAccessManager.MyRoles.*;
-import static io.javalin.apibuilder.ApiBuilder.*;
+import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
+import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
+import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
+import static io.javalin.apibuilder.ApiBuilder.crud;
+import static io.javalin.apibuilder.ApiBuilder.delete;
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.patch;
+import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.core.security.SecurityUtil.roles;
 
 public class VisualTest {
@@ -68,11 +78,38 @@ public class VisualTest {
         });
 
         app.path("servers", router -> {
+            router.before(ctx -> JavalinLogger.info("Servers path hit"));
             router.get(new HandlerImplementation());
             router.post(new HandlerImplementation());
             router.path(":id", router1 -> {
                 router1.patch(new HandlerImplementation());
                 router1.delete(new HandlerImplementation());
+                router1.crud("devices/:device", new CrudHandler() {
+                    @Override
+                    public void getAll(@NotNull Context ctx) {
+
+                    }
+
+                    @Override
+                    public void getOne(@NotNull Context ctx, @NotNull String resourceId) {
+
+                    }
+
+                    @Override
+                    public void create(@NotNull Context ctx) {
+
+                    }
+
+                    @Override
+                    public void update(@NotNull Context ctx, @NotNull String resourceId) {
+
+                    }
+
+                    @Override
+                    public void delete(@NotNull Context ctx, @NotNull String resourceId) {
+
+                    }
+                });
             });
         });
     }

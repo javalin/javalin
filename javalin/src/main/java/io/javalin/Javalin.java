@@ -21,19 +21,26 @@ import io.javalin.core.security.Role;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
 import io.javalin.core.validation.JavalinValidation;
-import io.javalin.http.*;
+import io.javalin.http.Context;
+import io.javalin.http.ErrorMapperKt;
+import io.javalin.http.ExceptionHandler;
+import io.javalin.http.Handler;
+import io.javalin.http.HandlerType;
+import io.javalin.http.JavalinServlet;
+import io.javalin.http.Router;
+import io.javalin.http.RouterContext;
+import io.javalin.http.SubRouter;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unchecked")
 public final class Javalin extends Router<Javalin> {
@@ -116,8 +123,8 @@ public final class Javalin extends Router<Javalin> {
      * Get the JavalinServer
      */
     // @formatter:off
-    public @Nullable
-    JavalinServer server() {
+    @Nullable
+    public JavalinServer server() {
         return this.server;
     }
     // @formatter:off
@@ -296,11 +303,27 @@ public final class Javalin extends Router<Javalin> {
         return error(statusCode, ErrorMapperKt.contentTypeWrap(contentType, handler));
     }
 
+    /**
+     * Adds a request handler for the specified handlerType and path to the instance.
+     * Requires an access manager to be set on the instance.
+     * This is the method that all the verb-methods (get/post/put/etc) call.
+     *
+     * @see AccessManager
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         routerContext.addHandler(handlerType, path, handler, roles);
         return this;
     }
 
+    /**
+     * Adds a request handler for the specified handlerType and path to the instance.
+     * Requires an access manager to be set on the instance.
+     * This is the method that all the verb-methods (get/post/put/etc) call.
+     *
+     * @see AccessManager
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
     public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
         routerContext.addHandler(httpMethod, path, handler, new HashSet<>());
         return this;

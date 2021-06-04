@@ -231,7 +231,7 @@ object RouteOverviewUtil {
             // every new version of Java or Kotlin seems to break something here
             return when {
                 isClass -> (this as Class<*>).name + ".class"
-                isCrudFunction -> "ApiBuilder#crud::${(this as CrudFunctionHandler).function.value}"
+                isCrudFunction -> "${(this as CrudFunctionHandler).crudHandler.javaClass.name}::${this.function.value}"
                 isKotlinMethodReference -> {
                     val fieldName = this.javaClass.declaredFields.find { it.name == "function" || it.name == "\$tmp0" }!!.name
                     val field = this.javaClass.getDeclaredField(fieldName).apply { isAccessible = true }.get(this)
