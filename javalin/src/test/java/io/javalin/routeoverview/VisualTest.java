@@ -12,15 +12,9 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
 import io.javalin.websocket.WsConfig;
-import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
-import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
-import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
-import static io.javalin.apibuilder.ApiBuilder.crud;
-import static io.javalin.apibuilder.ApiBuilder.delete;
-import static io.javalin.apibuilder.ApiBuilder.get;
-import static io.javalin.apibuilder.ApiBuilder.patch;
-import static io.javalin.apibuilder.ApiBuilder.path;
-import static io.javalin.apibuilder.ApiBuilder.post;
+
+import static io.javalin.TestAccessManager.MyRoles.*;
+import static io.javalin.apibuilder.ApiBuilder.*;
 import static io.javalin.core.security.SecurityUtil.roles;
 
 public class VisualTest {
@@ -71,6 +65,15 @@ public class VisualTest {
                 });
             });
             crud("/movies/:movie-id", new CrudHandlerImpl());
+        });
+
+        app.path("servers", router -> {
+            router.get(new HandlerImplementation());
+            router.post(new HandlerImplementation());
+            router.path(":id", router1 -> {
+                router1.patch(new HandlerImplementation());
+                router1.delete(new HandlerImplementation());
+            });
         });
     }
 

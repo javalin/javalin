@@ -14,7 +14,6 @@ import io.javalin.core.JavalinServer;
 import io.javalin.core.JettyUtil;
 import io.javalin.core.event.EventListener;
 import io.javalin.core.event.EventManager;
-import io.javalin.core.event.HandlerMetaInfo;
 import io.javalin.core.event.JavalinEvent;
 import io.javalin.core.event.WsHandlerMetaInfo;
 import io.javalin.core.security.AccessManager;
@@ -22,26 +21,22 @@ import io.javalin.core.security.Role;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
 import io.javalin.core.validation.JavalinValidation;
-import io.javalin.http.Context;
-import io.javalin.http.ErrorMapperKt;
-import io.javalin.http.ExceptionHandler;
-import io.javalin.http.Handler;
-import io.javalin.http.HandlerType;
-import io.javalin.http.JavalinServlet;
+import io.javalin.http.*;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
+
 @SuppressWarnings("unchecked")
-public class Javalin {
+public final class Javalin extends Router<Javalin> {
 
     /**
      * Do not use this field unless you know what you're doing.
@@ -54,6 +49,8 @@ public class Javalin {
     protected JavalinServlet servlet = new JavalinServlet(_conf);
 
     protected EventManager eventManager = new EventManager();
+
+    private final RouterContext routerContext = new RouterContext(servlet, eventManager);
 
     protected Javalin() {
         this.server = new JavalinServer(_conf);
@@ -119,7 +116,8 @@ public class Javalin {
      * Get the JavalinServer
      */
     // @formatter:off
-    public @Nullable JavalinServer server() {
+    public @Nullable
+    JavalinServer server() {
         return this.server;
     }
     // @formatter:off
@@ -298,101 +296,24 @@ public class Javalin {
         return error(statusCode, ErrorMapperKt.contentTypeWrap(contentType, handler));
     }
 
-    /**
-     * Adds a request handler for the specified handlerType and path to the instance.
-     * Requires an access manager to be set on the instance.
-     * This is the method that all the verb-methods (get/post/put/etc) call.
-     *
-     * @see AccessManager
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
-        if (Util.isNonSubPathWildcard(path)) { // TODO: This should probably be made part of the actual path matching
-            // split into two handlers: one exact, and one sub-path with wildcard
-            String basePath = path.substring(0, path.length() - 1);
-            addHandler(handlerType, basePath, handler, roles);
-            return addHandler(handlerType, basePath + "/*", handler, roles);
-        }
-        servlet.addHandler(handlerType, path, handler, roles);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), handler, roles));
+        routerContext.addHandler(handlerType, path, handler, roles);
         return this;
     }
 
-    /**
-     * Adds a request handler for the specified handlerType and path to the instance.
-     * This is the method that all the verb-methods (get/post/put/etc) call.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
     public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
-        return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone with default access manager)
+        routerContext.addHandler(httpMethod, path, handler, new HashSet<>());
+        return this;
     }
 
-    /**
-     * Adds a GET request handler for the specified path to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public Javalin get(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.GET, path, handler);
-    }
-
-    /**
-     * Adds a POST request handler for the specified path to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public Javalin post(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.POST, path, handler);
-    }
-
-    /**
-     * Adds a PUT request handler for the specified path to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public Javalin put(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.PUT, path, handler);
-    }
-
-    /**
-     * Adds a PATCH request handler for the specified path to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public Javalin patch(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.PATCH, path, handler);
-    }
-
-    /**
-     * Adds a DELETE request handler for the specified path to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public Javalin delete(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.DELETE, path, handler);
-    }
-
-    /**
-     * Adds a HEAD request handler for the specified path to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public Javalin head(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.HEAD, path, handler);
-    }
-
-    /**
-     * Adds a OPTIONS request handler for the specified path to the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
-     */
-    public Javalin options(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.OPTIONS, path, handler);
+    @Override
+    @NotNull
+    public SubRouter path(@NotNull String path) {
+        return new SubRouter(routerContext, path.startsWith("/") ? path : "/" + path);
     }
 
     // ********************************************************************************************
-    // Secured HTTP verbs
+    // HTTP verbs
     // ********************************************************************************************
 
     /**
@@ -402,8 +323,10 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.GET, path, handler, permittedRoles);
+        routerContext.addHandler(HandlerType.GET, path, handler, permittedRoles);
+        return this;
     }
 
     /**
@@ -413,8 +336,10 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.POST, path, handler, permittedRoles);
+        routerContext.addHandler(HandlerType.POST, path, handler, permittedRoles);
+        return this;
     }
 
     /**
@@ -424,8 +349,10 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.PUT, path, handler, permittedRoles);
+        routerContext.addHandler(HandlerType.PUT, path, handler, permittedRoles);
+        return this;
     }
 
     /**
@@ -435,8 +362,10 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.PATCH, path, handler, permittedRoles);
+        routerContext.addHandler(HandlerType.PATCH, path, handler, permittedRoles);
+        return this;
     }
 
     /**
@@ -446,8 +375,10 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.DELETE, path, handler, permittedRoles);
+        routerContext.addHandler(HandlerType.DELETE, path, handler, permittedRoles);
+        return this;
     }
 
     /**
@@ -457,8 +388,10 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.HEAD, path, handler, permittedRoles);
+        routerContext.addHandler(HandlerType.HEAD, path, handler, permittedRoles);
+        return this;
     }
 
     /**
@@ -468,8 +401,10 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
+        routerContext.addHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
+        return this;
     }
 
     // ********************************************************************************************
@@ -478,15 +413,9 @@ public class Javalin {
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
-     */
-    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client) {
-        return sse(path, client, new HashSet<>());
-    }
-
-    /**
-     * Adds a lambda handler for a Server Sent Event connection on the specified path.
      * Requires an access manager to be set on the instance.
      */
+    @NotNull
     public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
         return get(path, new SseHandler(client), permittedRoles);
     }
@@ -500,17 +429,10 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin before(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.BEFORE, path, handler);
-    }
-
-    /**
-     * Adds a BEFORE request handler for all routes in the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
-     */
-    public Javalin before(@NotNull Handler handler) {
-        return before("*", handler);
+        routerContext.addHandler(HandlerType.BEFORE, path, handler);
+        return this;
     }
 
     /**
@@ -518,17 +440,10 @@ public class Javalin {
      *
      * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
      */
+    @NotNull
     public Javalin after(@NotNull String path, @NotNull Handler handler) {
-        return addHandler(HandlerType.AFTER, path, handler);
-    }
-
-    /**
-     * Adds an AFTER request handler for all routes in the instance.
-     *
-     * @see <a href="https://javalin.io/documentation#before-handlers">Handlers in docs</a>
-     */
-    public Javalin after(@NotNull Handler handler) {
-        return after("*", handler);
+        routerContext.addHandler(HandlerType.AFTER, path, handler);
+        return this;
     }
 
     // ********************************************************************************************
