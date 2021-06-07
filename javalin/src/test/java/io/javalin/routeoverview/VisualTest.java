@@ -21,7 +21,6 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.patch;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.apibuilder.ApiBuilder.post;
-import static io.javalin.core.security.SecurityUtil.roles;
 
 public class VisualTest {
 
@@ -38,26 +37,26 @@ public class VisualTest {
         app.get("/", ctx -> ctx.redirect("/context-path/route-overview"))
             .get("/just-some-path", new HandlerImplementation())
             .post("/test/:hmm/", VisualTest::methodReference)
-            .put("/user/*", ctx -> ctx.result(""), roles(ROLE_ONE))
-            .get("/nonsense-paths/:test", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_THREE))
-            .delete("/just-words", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO))
+            .put("/user/*", ctx -> ctx.result(""), ROLE_ONE)
+            .get("/nonsense-paths/:test", VisualTest.lambdaField, ROLE_ONE, ROLE_THREE)
+            .delete("/just-words", VisualTest::methodReference, ROLE_ONE, ROLE_TWO)
             .before("*", VisualTest.lambdaField)
             .after("*", VisualTest.lambdaField)
             .head("/check/the/head", VisualTest::methodReference)
             .get("/:path1/:path2", VisualTest.lambdaField)
-            .post("/user/create", VisualTest::methodReference, roles(ROLE_ONE, ROLE_TWO))
+            .post("/user/create", VisualTest::methodReference, ROLE_ONE, ROLE_TWO)
             .put("/user/:user-id", VisualTest.lambdaField)
-            .patch("/patchy-mcpatchface", new ImplementingClass(), roles(ROLE_ONE, ROLE_TWO))
+            .patch("/patchy-mcpatchface", new ImplementingClass(), ROLE_ONE, ROLE_TWO)
             .delete("/users/:user-id", new HandlerImplementation())
             .options("/what/:are/*/my-options", new HandlerImplementation())
-            .options("/what/:are/*/my-options2", new HandlerImplementation(), roles(ROLE_ONE, ROLE_TWO))
+            .options("/what/:are/*/my-options2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO)
             .wsBefore(VisualTest::wsMethodRef)
             .ws("/websocket", VisualTest::wsMethodRef)
             .wsAfter("/my-path", VisualTest::wsMethodRef)
             .addHandler(HandlerType.CONNECT, "/test", VisualTest.lambdaField)
             .addHandler(HandlerType.TRACE, "/tracer", new HandlerImplementation())
-            .addHandler(HandlerType.CONNECT, "/test2", VisualTest.lambdaField, roles(ROLE_ONE, ROLE_TWO))
-            .addHandler(HandlerType.TRACE, "/tracer2", new HandlerImplementation(), roles(ROLE_ONE, ROLE_TWO))
+            .addHandler(HandlerType.CONNECT, "/test2", VisualTest.lambdaField, ROLE_ONE, ROLE_TWO)
+            .addHandler(HandlerType.TRACE, "/tracer2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO)
             .sse("/sse", sse -> {
             });
         app.routes(() -> {

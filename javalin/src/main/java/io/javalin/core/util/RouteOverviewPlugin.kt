@@ -7,7 +7,7 @@ import io.javalin.core.security.Role
 
 class RouteOverviewPlugin(val config: RouteOverviewConfig) : Plugin, PluginLifecycleInit {
     @JvmOverloads
-    constructor(path: String, roles: Set<Role> = setOf()) : this(RouteOverviewConfig(path, roles))
+    constructor(path: String, vararg roles: Role = arrayOf()) : this(RouteOverviewConfig(path, roles.toSet()))
 
     lateinit var renderer: RouteOverviewRenderer
 
@@ -16,6 +16,6 @@ class RouteOverviewPlugin(val config: RouteOverviewConfig) : Plugin, PluginLifec
     }
 
     override fun apply(app: Javalin) {
-        app.get(this.config.path, renderer, this.config.roles)
+        app.get(this.config.path, renderer, *this.config.roles.toTypedArray())
     }
 }

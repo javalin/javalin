@@ -8,7 +8,6 @@ package io.javalin
 
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
-import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.metrics.MicrometerPlugin
@@ -35,7 +34,7 @@ class TestConfiguration {
             it.defaultContentType = "text/plain"
             it.enableCorsForAllOrigins()
             it.enableDevLogging()
-            it.registerPlugin(RouteOverviewPlugin("/test", roles()))
+            it.registerPlugin(RouteOverviewPlugin("/test"))
             it.enableWebjars()
             it.enforceSsl = true
             it.logIfServerNotStarted = false
