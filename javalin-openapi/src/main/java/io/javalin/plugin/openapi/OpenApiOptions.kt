@@ -101,7 +101,7 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
 
     fun reDoc(value: ReDocOptions) = apply { reDoc = value }
 
-    fun roles(value: Set<RouteRole>) = apply { roles = value }
+    fun roles(vararg value: RouteRole) = apply { roles = value.toSet() }
 
     fun defaultDocumentation(value: DefaultDocumentation) = apply { default = value }
     fun defaultDocumentation(apply: (documentation: OpenApiDocumentation) -> Unit) = apply {

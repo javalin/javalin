@@ -50,23 +50,22 @@ class OpenApiPlugin(private vararg val options: OpenApiOptions) : Plugin, Plugin
             }
 
             options.path?.let { path ->
-                app.get(path, handlerMap[path]!!, options.roles)
+                app.get(path, handlerMap[path]!!, *options.roles.toTypedArray())
 
                 options.swagger?.let {
                     Util.assertWebjarInstalled(OptionalDependency.SWAGGERUI)
-                    app.get(it.path, SwaggerRenderer(options), options.roles)
+                    app.get(it.path, SwaggerRenderer(options), *options.roles.toTypedArray())
                 }
 
                 options.reDoc?.let {
                     Util.assertWebjarInstalled(OptionalDependency.REDOC)
-                    app.get(it.path, ReDocRenderer(options), options.roles)
+                    app.get(it.path, ReDocRenderer(options), *options.roles.toTypedArray())
                 }
 
                 if (options.swagger != null || options.reDoc != null) {
                     app._conf.enableWebjars()
                 }
             }
-
 
         }
 
