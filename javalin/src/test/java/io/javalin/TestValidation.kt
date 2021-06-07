@@ -34,19 +34,19 @@ class TestValidation {
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/:param") { ctx -> ctx.pathParam<Int>("param").get() }
-        assertThat(http.get("/abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","value":"abc"}]}""")
+        assertThat(http.get("/abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
     fun `queryParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<Int>("param").get() }
-        assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","value":"abc"}]}""")
+        assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
         app.post("/") { ctx -> ctx.formParam<Int>("param").get() }
-        assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","value":"abc"}]}""")
+        assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
         JavalinLogger.enabled = true
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
         assertThat(log).contains("Parameter 'param' with value 'abc' is not a valid Integer")
@@ -56,7 +56,7 @@ class TestValidation {
     @Test
     fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.queryParam<String>("my-qp").get() }
-        assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","value":null}]}""")
+        assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
         assertThat(http.get("/").status).isEqualTo(400)
     }
 
@@ -73,8 +73,8 @@ class TestValidation {
             val myInt = ctx.queryParam<Int>("my-qp").get()
             ctx.result((myInt * 2).toString())
         }
-        assertThat(http.get("/int").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","value":null}]}""")
-        assertThat(http.get("/int?my-qp=abc").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","value":"abc"}]}""")
+        assertThat(http.get("/int").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
+        assertThat(http.get("/int?my-qp=abc").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
         assertThat(http.get("/int?my-qp=123").body).isEqualTo("246")
     }
 
@@ -83,7 +83,7 @@ class TestValidation {
         app.get("/") { ctx ->
             ctx.queryParam<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
         }
-        assertThat(http.get("/?my-qp=1").body).isEqualTo("""{"my-qp":[{"message":"Length must be more than five","value":"1"}]}""")
+        assertThat(http.get("/?my-qp=1").body).isEqualTo("""{"my-qp":[{"message":"Length must be more than five","args":{},"value":"1"}]}""")
     }
 
     @Test
@@ -92,7 +92,7 @@ class TestValidation {
             val myInt = ctx.queryParam<Int>("my-qp", "788").get()
             ctx.result(myInt.toString())
         }
-        assertThat(http.get("/?my-qp=a").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","value":"a"}]}""")
+        assertThat(http.get("/?my-qp=a").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"a"}]}""")
         assertThat(http.get("/?my-qp=1").body).isEqualTo("1")
         assertThat(http.get("/").body).isEqualTo("788")
     }
@@ -115,7 +115,7 @@ class TestValidation {
             ctx.json(toDate.isAfter(fromDate))
         }
         assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
-        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":[{"message":"'to' has to be after 'from'","value":1262347100.000000000}]}""")
+        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":[{"message":"'to' has to be after 'from'","args":{},"value":1262347100.000000000}]}""")
     }
 
     @Test
@@ -162,10 +162,10 @@ class TestValidation {
             value1 = "Bananas"
         })
 
-        """{"SerializeableObject":[{"message":"DESERIALIZATION_FAILED","value":"not-json"}]}""".let { expected ->
+        """{"SerializeableObject":[{"message":"DESERIALIZATION_FAILED","args":{},"value":"not-json"}]}""".let { expected ->
             assertThat(http.post("/json").body("not-json").asString().body).isEqualTo(expected)
         }
-        """{"SerializeableObject":[{"message":"value1 must be 'Bananas'","value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
+        """{"SerializeableObject":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
             assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo(expected)
         }
 
@@ -182,9 +182,9 @@ class TestValidation {
                 .get()
         }
         val expected = """{"SerializeableObject":[
-            {"message":"UnnamedFieldCheck1","value":{"value1":"FirstValue","value2":"SecondValue"}},
-            {"message":"UnnamedFieldCheck2","value":{"value1":"First Value","value2":"SecondValue"}}],
-            "named_field":[{"message":"NamedFieldCheck3","value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
+            {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}},
+            {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue"}}],
+            "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
         val response = http.post("/json").body(JavalinJson.toJson(SerializeableObject())).asString().body
         assertThat(response).isEqualTo(expected)
     }
@@ -238,7 +238,7 @@ class TestValidation {
 
         // Test invalid param
         http.get("/?id=4").apply {
-            assertThat(body).isEqualTo("""{"id":[{"message":"id was not greater than 10","value":4}]}""")
+            assertThat(body).isEqualTo("""{"id":[{"message":"id was not greater than 10","args":{},"value":4}]}""")
             assertThat(status).isEqualTo(400)
         }
 
@@ -300,13 +300,13 @@ class TestValidation {
         // Test invalid param
         http.post("/").body("{\"first_name\":\"Mathilde\"}").asString().apply {
             assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("""{"first_name":[{"message":"Too long","value":{"first_name":"Mathilde"}}]}""")
+            assertThat(body).isEqualTo("""{"first_name":[{"message":"Too long","args":{},"value":{"first_name":"Mathilde"}}]}""")
         }
 
         // Test invalid empty param
         http.post("/").body("{}").asString().apply {
             assertThat(status).isEqualTo(200)
-            assertThat(body).isEqualTo("""{"first_name":[{"message":"This field is mandatory","value":{}}]}""")
+            assertThat(body).isEqualTo("""{"first_name":[{"message":"This field is mandatory","args":{},"value":{}}]}""")
         }
     }
 }

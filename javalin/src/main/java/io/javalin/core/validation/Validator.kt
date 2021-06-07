@@ -21,6 +21,8 @@ open class Validator<T>(value: T?, fieldName: String) : BaseValidator<T>(value, 
     }
 
     fun check(check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as Validator<T>
+    fun check(check: Check<T>, error: ValidationError<T>) = addRule(fieldName, { check(it!!) }, error) as Validator<T>
+
     override fun get(): T = super.get()!!
 
     companion object {
@@ -33,7 +35,7 @@ open class Validator<T>(value: T?, fieldName: String) : BaseValidator<T>(value, 
                 throw InternalServerErrorResponse()
             }
             JavalinLogger.info("Parameter '${fieldName}' with value '${value}' is not a valid ${clazz.simpleName}")
-            throw ValidationException(mapOf(fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value))))
+            throw ValidationException(mapOf(fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value = value))))
         }
     }
 }
