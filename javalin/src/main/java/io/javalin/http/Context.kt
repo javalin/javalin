@@ -159,7 +159,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /**
      * Gets a path param by name (ex: pathParam("param").
      *
-     * Ex: If the handler path is /users/:user-id,
+     * Ex: If the handler path is /users/{user-id},
      * and a browser GETs /users/123,
      * pathParam("user-id") will return "123"
      */
