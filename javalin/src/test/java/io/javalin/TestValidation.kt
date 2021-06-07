@@ -12,10 +12,11 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.JavalinValidation
+import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
 import io.javalin.core.validation.collectErrors
-import io.javalin.http.BadRequestResponse
+import io.javalin.http.Context
 import io.javalin.http.context.formParam
 import io.javalin.http.context.pathParam
 import io.javalin.http.context.queryParam
@@ -26,6 +27,7 @@ import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
 import org.junit.Test
+import java.text.MessageFormat
 import java.time.Duration
 import java.time.Instant
 
@@ -308,5 +310,38 @@ class TestValidation {
             assertThat(status).isEqualTo(200)
             assertThat(body).isEqualTo("""{"first_name":[{"message":"This field is mandatory","args":{},"value":{}}]}""")
         }
+    }
+
+    @Test
+    fun `error args work`() = TestUtil.test { app, http ->
+        app.get("/args") { ctx ->
+            ctx.queryParam<Int>("my-qp")
+                .check({ it > 5 }, ValidationError("OVER_LIMIT", args = mapOf("limit" to 5)))
+                .get()
+        }
+        assertThat(http.get("/args").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
+    }
+
+    @Test
+    fun `localization is easy`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.queryParam<Int>("number")
+                .check({ it in 6..9 }, ValidationError("NUMBER_NOT_IN_RANGE", args = mapOf("min" to 6, "max" to 9)))
+                .get()
+        }
+        app.exception(ValidationException::class.java) { e, ctx ->
+            val msgBundle = mapOf(
+                "NUMBER_NOT_IN_RANGE" to mapOf(
+                    "en" to "The value has to at least {0} and at most {1}",
+                    "fr" to "La valeur doit au moins {0} et au plus {1}",
+                )
+            )
+            val error = e.errors["number"]!!.first()
+            val locale = ctx.queryParam("locale")!!
+            val messageTemplate = msgBundle[error.message]!![locale]!!
+            ctx.result(MessageFormat.format(messageTemplate, *error.args.values.toTypedArray()))
+        }
+        assertThat(http.getBody("/?number=20&locale=en")).contains("The value has to at least 6 and at most 9")
+        assertThat(http.getBody("/?number=20&locale=fr")).contains("La valeur doit au moins 6 et au plus 9")
     }
 }
