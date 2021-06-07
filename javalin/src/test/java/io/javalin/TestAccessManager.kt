@@ -12,19 +12,19 @@ import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestAccessManager {
 
-    enum class MyRoles : Role { ROLE_ONE, ROLE_TWO, ROLE_THREE }
+    enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private val managedApp = Javalin.create { config ->
-        config.accessManager { handler, ctx, permittedRoles ->
+        config.accessManager { handler, ctx, roles ->
             val userRole = ctx.queryParam("role")
-            if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
+            if (userRole != null && roles.contains(MyRoles.valueOf(userRole))) {
                 handler.handle(ctx)
             } else {
                 ctx.status(401).result("Unauthorized")

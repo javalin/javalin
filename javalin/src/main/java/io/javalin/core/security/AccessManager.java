@@ -17,11 +17,11 @@ import org.jetbrains.annotations.NotNull;
  * It's only enabled for endpoints if a list of roles is provided.
  * Ex: get("/secured", SecuredController::get, roles(LOGGED_IN));
  *
- * @see Role
- * @see io.javalin.Javalin#addHandler(HandlerType, String, Handler, Set)
+ * @see RouteRole
+ * @see io.javalin.Javalin#addHandler(HandlerType, String, Handler, RouteRole...)
  * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
  */
 @FunctionalInterface
 public interface AccessManager {
-    void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<Role> permittedRoles) throws Exception;
+    void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<RouteRole> roles) throws Exception;
 }

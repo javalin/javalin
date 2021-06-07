@@ -7,7 +7,7 @@
 package io.javalin.http
 
 import io.javalin.core.JavalinConfig
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.core.util.CorsPlugin
 import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
@@ -125,7 +125,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
 
-    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<Role>) {
+    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<RouteRole>) {
         val protectedHandler = if (handlerType.isHttpMethod()) Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, config.ignoreTrailingSlashes, protectedHandler, handler))
     }

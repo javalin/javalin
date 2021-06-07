@@ -13,8 +13,8 @@ import io.javalin.http.util.ContextUtil.isLocalhost
 object SecurityUtil {
 
     @JvmStatic
-    fun noopAccessManager(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
-        if (permittedRoles.isNotEmpty()) {
+    fun noopAccessManager(handler: Handler, ctx: Context, roles: Set<RouteRole>) {
+        if (roles.isNotEmpty()) {
             throw IllegalStateException("No access manager configured. Add an access manager using 'Javalin.create(c -> c.accessManager(...))'.")
         }
         handler.handle(ctx)

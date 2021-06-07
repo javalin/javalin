@@ -50,7 +50,7 @@ class TestConfiguration {
             }
             it.registerPlugin(MicrometerPlugin())
             // Misc
-            it.accessManager { handler, ctx, permittedRoles -> }
+            it.accessManager { handler, ctx, roles -> }
             it.showJavalinBanner = false
             it.configureServletContextHandler { handler ->
                 handler.addEventListener(object : HttpSessionListener {

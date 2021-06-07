@@ -8,7 +8,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.core.security.Role;
+import io.javalin.core.security.RouteRole;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;
@@ -19,9 +19,9 @@ public class HelloWorldAuth {
 
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.accessManager((handler, ctx, permittedRoles) -> {
+            config.accessManager((handler, ctx, roles) -> {
                 String userRole = ctx.queryParam("role");
-                if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
+                if (userRole != null && roles.contains(MyRoles.valueOf(userRole))) {
                     handler.handle(ctx);
                 } else {
                     ctx.status(401).result("Unauthorized");
@@ -38,7 +38,7 @@ public class HelloWorldAuth {
         }).start(7070);
     }
 
-    enum MyRoles implements Role {
+    enum MyRoles implements RouteRole {
         ROLE_ONE, ROLE_TWO, ROLE_THREE
     }
 
