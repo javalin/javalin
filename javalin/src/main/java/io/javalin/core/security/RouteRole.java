@@ -7,9 +7,9 @@
 package io.javalin.core.security;
 
 /**
- * Empty interface for roles used in {@link AccessManager}.
+ * Marker interface for roles used in {@link AccessManager}.
  *
  * @see <a href="https://javalin.io/documentation#access-manager">Access manager in docs</a>
  */
-public interface Role {
+public interface RouteRole {
 }

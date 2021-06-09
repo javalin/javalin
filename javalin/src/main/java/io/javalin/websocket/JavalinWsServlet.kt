@@ -7,7 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.core.JavalinConfig
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.JavalinServlet
@@ -57,7 +57,7 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
                 pathParamMap = entry.extractPathParams(requestUri)
                 matchedPath = entry.path
             }
-            config.inner.accessManager.manage({ ctx -> ctx.req.setAttribute(upgradeAllowedKey, true) }, upgradeContext, entry.permittedRoles)
+            config.inner.accessManager.manage({ ctx -> ctx.req.setAttribute(upgradeAllowedKey, true) }, upgradeContext, entry.roles)
             if (req.getAttribute(upgradeAllowedKey) != true) throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
             req.setAttribute(upgradeContextKey, upgradeContext)
 
@@ -75,8 +75,8 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
         }
     }
 
-    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, permittedRoles: Set<Role>) {
-        wsPathMatcher.add(WsEntry(handlerType, path, config.ignoreTrailingSlashes, WsConfig().apply { ws.accept(this) }, permittedRoles))
+    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<RouteRole>) {
+        wsPathMatcher.add(WsEntry(handlerType, path, config.ignoreTrailingSlashes, WsConfig().apply { ws.accept(this) }, roles))
     }
 }
 

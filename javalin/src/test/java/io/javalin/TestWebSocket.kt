@@ -56,7 +56,7 @@ class TestWebSocket {
     }
 
     fun accessManagedJavalin() = Javalin.create().apply {
-        this._conf.accessManager { handler, ctx, permittedRoles ->
+        this._conf.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("allowed") == "true" -> {

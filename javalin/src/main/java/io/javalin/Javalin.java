@@ -18,7 +18,7 @@ import io.javalin.core.event.HandlerMetaInfo;
 import io.javalin.core.event.JavalinEvent;
 import io.javalin.core.event.WsHandlerMetaInfo;
 import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.Role;
+import io.javalin.core.security.RouteRole;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
 import io.javalin.core.validation.JavalinValidation;
@@ -34,6 +34,7 @@ import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -306,15 +307,16 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
+    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
         if (Util.isNonSubPathWildcard(path)) { // TODO: This should probably be made part of the actual path matching
             // split into two handlers: one exact, and one sub-path with wildcard
             String basePath = path.substring(0, path.length() - 1);
             addHandler(handlerType, basePath, handler, roles);
             return addHandler(handlerType, basePath + "/*", handler, roles);
         }
-        servlet.addHandler(handlerType, path, handler, roles);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), handler, roles));
+        Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
+        servlet.addHandler(handlerType, path, handler, roleSet);
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), handler, roleSet));
         return this;
     }
 
@@ -325,7 +327,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
-        return addHandler(httpMethod, path, handler, new HashSet<>()); // no roles set for this route (open to everyone with default access manager)
+        return addHandler(httpMethod, path, handler, new RouteRole[0]); // no roles set for this route (open to everyone with default access manager)
     }
 
     /**
@@ -402,8 +404,8 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.GET, path, handler, permittedRoles);
+    public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        return addHandler(HandlerType.GET, path, handler, roles);
     }
 
     /**
@@ -413,8 +415,8 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.POST, path, handler, permittedRoles);
+    public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        return addHandler(HandlerType.POST, path, handler, roles);
     }
 
     /**
@@ -424,8 +426,8 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.PUT, path, handler, permittedRoles);
+    public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        return addHandler(HandlerType.PUT, path, handler, roles);
     }
 
     /**
@@ -435,8 +437,8 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.PATCH, path, handler, permittedRoles);
+    public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        return addHandler(HandlerType.PATCH, path, handler, roles);
     }
 
     /**
@@ -446,8 +448,8 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.DELETE, path, handler, permittedRoles);
+    public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        return addHandler(HandlerType.DELETE, path, handler, roles);
     }
 
     /**
@@ -457,8 +459,8 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.HEAD, path, handler, permittedRoles);
+    public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        return addHandler(HandlerType.HEAD, path, handler, roles);
     }
 
     /**
@@ -468,8 +470,8 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        return addHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
+    public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        return addHandler(HandlerType.OPTIONS, path, handler, roles);
     }
 
     // ********************************************************************************************
@@ -480,15 +482,15 @@ public class Javalin {
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      */
     public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client) {
-        return sse(path, client, new HashSet<>());
+        return sse(path, client, new RouteRole[0]);
     }
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      * Requires an access manager to be set on the instance.
      */
-    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
-        return get(path, new SseHandler(client), permittedRoles);
+    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
+        return get(path, new SseHandler(client), roles);
     }
 
     // ********************************************************************************************
@@ -549,9 +551,10 @@ public class Javalin {
      * Adds a specific WebSocket handler for the given path to the instance.
      * Requires an access manager to be set on the instance.
      */
-    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull Set<Role> roles) {
-        wsServlet.addHandler(handlerType, path, wsConfig, roles);
-        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsConfig, roles));
+    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
+        Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
+        wsServlet.addHandler(handlerType, path, wsConfig, roleSet);
+        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsConfig, roleSet));
         return this;
     }
 
@@ -559,7 +562,7 @@ public class Javalin {
      * Adds a specific WebSocket handler for the given path to the instance.
      */
     private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
-        return addWsHandler(handlerType, path, wsConfig, new HashSet<>());
+        return addWsHandler(handlerType, path, wsConfig, new RouteRole[0]);
     }
 
     /**
@@ -568,7 +571,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws) {
-        return ws(path, ws, new HashSet<>());
+        return ws(path, ws, new RouteRole[0]);
     }
 
     /**
@@ -578,8 +581,8 @@ public class Javalin {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull Set<Role> permittedRoles) {
-        return addWsHandler(WsHandlerType.WEBSOCKET, path, ws, permittedRoles);
+    public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
+        return addWsHandler(WsHandlerType.WEBSOCKET, path, ws, roles);
     }
 
     /**
