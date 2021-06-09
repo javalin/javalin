@@ -23,5 +23,5 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface AccessManager {
-    void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<RouteRole> roles) throws Exception;
+    void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<RouteRole> routeRoles) throws Exception;
 }

@@ -36,9 +36,9 @@ fun main() {
 
 }
 
-private fun accessManager(handler: Handler, ctx: Context, roles: MutableSet<RouteRole>) {
+private fun accessManager(handler: Handler, ctx: Context, routeRoles: Set<RouteRole>) {
     val userRole = ctx.queryParam("role")
-    if (userRole != null && roles.contains(MyRoles.valueOf(userRole))) {
+    if (userRole != null && routeRoles.contains(MyRoles.valueOf(userRole))) {
         handler.handle(ctx)
     } else {
         ctx.status(401).result("Unauthorized")
