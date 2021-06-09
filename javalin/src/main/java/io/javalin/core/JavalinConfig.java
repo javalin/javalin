@@ -40,6 +40,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import static io.javalin.http.util.ContextUtil.maxRequestSizeKey;
 
 public class JavalinConfig {
     // @formatter:off
@@ -59,7 +60,7 @@ public class JavalinConfig {
     // is to provide a cleaner API with dedicated setters
     public static class Inner {
         @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new HashMap<>();
-        @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
+        @NotNull public Map<String, Object> appAttributes = new HashMap<>();
         @Nullable public RequestLogger requestLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
@@ -221,6 +222,7 @@ public class JavalinConfig {
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
+        app.attribute(maxRequestSizeKey, config.maxRequestSize);
     }
 
     private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {

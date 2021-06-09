@@ -232,8 +232,8 @@ public class Javalin {
      * Ex: app.attribute(MyExt.class, myExtInstance())
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin attribute(Class<?> clazz, Object obj) {
-        _conf.inner.appAttributes.put(clazz, obj);
+    public Javalin attribute(String key, Object value) {
+        _conf.inner.appAttributes.put(key, value);
         return this;
     }
 
@@ -243,8 +243,8 @@ public class Javalin {
      * Ex: app.attribute(MyExt.class).myMethod()
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
-    public <T> T attribute(Class<T> clazz) {
-        return (T) _conf.inner.appAttributes.get(clazz);
+    public <T> T attribute(String key) {
+        return (T) _conf.inner.appAttributes.get(key);
     }
 
     /**

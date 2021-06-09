@@ -118,10 +118,10 @@ class TestGraphQL {
     }
 
     private fun Javalin.logger(): TestLogger {
-        if (this.attribute(TestLogger::class.java) == null) {
-            this.attribute(TestLogger::class.java, TestLogger(ArrayList()))
+        if (this.attribute<TestLogger>(TestLogger::class.java.name) == null) {
+            this.attribute(TestLogger::class.java.name, TestLogger(ArrayList()))
         }
-        return this.attribute(TestLogger::class.java)
+        return this.attribute(TestLogger::class.java.name)
     }
 
 

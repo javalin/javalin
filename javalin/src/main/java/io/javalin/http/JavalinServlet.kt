@@ -14,7 +14,6 @@ import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
-import io.javalin.http.util.ContextUtil.maxRequestSizeKey
 import io.javalin.http.util.MethodNotAllowedUtil
 import java.io.InputStream
 import java.util.concurrent.CompletionException
@@ -34,7 +33,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             val rwc = ResponseWrapperContext(req, config)
             val requestUri = req.requestURI.removePrefix(req.contextPath)
             val ctx = Context(req, res, config.inner.appAttributes)
-            ctx.attribute(maxRequestSizeKey, config.maxRequestSize)
 
             fun tryWithExceptionMapper(func: () -> Unit) = exceptionMapper.catchException(ctx, func)
 

@@ -174,7 +174,7 @@ class TestCustomJetty {
     fun `default server uses loom if available`() {
         if (!LoomUtil.loomAvailable) return;
         val log = TestUtil.captureStdOut {
-            Javalin.create().start().stop()
+            Javalin.create().start(0).stop()
         }
         assertThat(log).contains("Loom is available, using Virtual ThreadPool... Neat!")
     }

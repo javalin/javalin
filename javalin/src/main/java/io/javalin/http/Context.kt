@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletResponse
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
 // don't suppress warnings, since annotated classes are ignored by dokka (yeah...)
-open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<Class<*>, Any> = mapOf()) {
+open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<String, Any> = mapOf()) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
@@ -55,7 +55,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Gets an attribute from the Javalin instance serving the request */
-    fun <T> appAttribute(clazz: Class<T>): T = appAttributes[clazz] as T
+    fun <T> appAttribute(key: String): T = appAttributes[key] as T
 
     /**
      * Gets cookie store value for specified key.

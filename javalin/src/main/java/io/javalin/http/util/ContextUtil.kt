@@ -72,7 +72,7 @@ object ContextUtil {
             matchedPath: String = "*",
             pathParamMap: Map<String, String> = mapOf(),
             handlerType: HandlerType = HandlerType.INVALID,
-            appAttributes: Map<Class<*>, Any> = mapOf(),
+            appAttributes: Map<String, Any> = mapOf(),
             splatList: List<String> = listOf()
     ) = Context(request, response, appAttributes).apply {
         this.matchedPath = matchedPath
@@ -93,7 +93,7 @@ object ContextUtil {
     }
 
     fun Context.throwPayloadTooLargeIfPayloadTooLarge() {
-        val maxRequestSize = this.attribute<Long>(maxRequestSizeKey)!!
+        val maxRequestSize = this.appAttribute<Long>(maxRequestSizeKey)
         if (this.req.contentLength > maxRequestSize) {
             JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
             throw HttpResponseException(HttpStatus.PAYLOAD_TOO_LARGE_413, "Payload too large")
