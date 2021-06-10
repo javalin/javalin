@@ -34,6 +34,7 @@ import io.javalin.plugin.openapi.dsl.documentedContent
 import io.javalin.plugin.openapi.dsl.oneOf
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.testing.TestUtil
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
@@ -43,12 +44,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
 import java.time.Instant
+import java.util.*
 
 class Address(val street: String, val number: Int)
 
 class User(val name: String, val address: Address? = null, val userType: UserType? = null)
 
 class Log(val timestamp: Instant, val message: String)
+
+class AnnotatedLog(@Schema(type = "string", example = "test example") val timestamp: Instant, val message: String)
+
 
 enum class UserType {
     ONE, TWO
@@ -105,57 +110,57 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
     }
 
     val getUserDocumentation = document()
-            .operation {
-                it.description = "Get a specific user"
-                it.summary = "Get current user"
-                it.operationId = "getCurrentUser"
-                it.deprecated = true
-                it.addTagsItem("user")
-            }
-            .json<User>("200") {
-                it.description = "Request successful"
-            }
-            .result("200", documentedContent<User>("application/xml"))
+        .operation {
+            it.description = "Get a specific user"
+            it.summary = "Get current user"
+            it.operationId = "getCurrentUser"
+            it.deprecated = true
+            it.addTagsItem("user")
+        }
+        .json<User>("200") {
+            it.description = "Request successful"
+        }
+        .result("200", documentedContent<User>("application/xml"))
     app.get("/user", documented(getUserDocumentation) {
         it.json(User(name = "Jim"))
     })
 
     val getUserDocumentationSpecific = document()
-            .operation {
-                it.description = "Get a specific user with his/her id"
-                it.summary = "Get specific user"
-                it.operationId = "getSpecificUser"
-            }
-            .json<User>("200") {
-                it.description = "Request successful"
-            }
-            .result("200", documentedContent<User>("application/xml"))
+        .operation {
+            it.description = "Get a specific user with his/her id"
+            it.summary = "Get specific user"
+            it.operationId = "getSpecificUser"
+        }
+        .json<User>("200") {
+            it.description = "Request successful"
+        }
+        .result("200", documentedContent<User>("application/xml"))
 
     app.get("/user/:userid", documented(getUserDocumentationSpecific) {
         it.json(User(name = it.pathParam("userid")))
     })
 
     val getUsersDocumentation = document()
-            .operation {
-                it.addTagsItem("user")
-            }
-            .cookie<String>("my-cookie") {
-                it.description = "My cookie"
-            }
-            .header<String>("x-my-header") {
-                it.description = "My header"
-            }
-            .pathParam<Int>("my-path-param") {
-                it.description = "My path param"
-            }
-            .queryParam<String>("name") {
-                it.description = "The name of the users you want to filter"
-                it.required = true
-                it.deprecated = true
-                it.allowEmptyValue = true
-            }
-            .queryParam<Int>("age")
-            .jsonArray<User>("200")
+        .operation {
+            it.addTagsItem("user")
+        }
+        .cookie<String>("my-cookie") {
+            it.description = "My cookie"
+        }
+        .header<String>("x-my-header") {
+            it.description = "My header"
+        }
+        .pathParam<Int>("my-path-param") {
+            it.description = "My path param"
+        }
+        .queryParam<String>("name") {
+            it.description = "The name of the users you want to filter"
+            it.required = true
+            it.deprecated = true
+            it.allowEmptyValue = true
+        }
+        .queryParam<Int>("age")
+        .jsonArray<User>("200")
     app.get("/users/:my-path-param", documented(getUsersDocumentation) {
         val myCookie = it.cookie("my-cookie")
         val myHeader = it.cookie("x-my-header")
@@ -165,46 +170,46 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
     })
 
     val getUsers2Documentation = document()
-            .operation {
-                it.addTagsItem("user")
-                it.security(listOf(
-                        SecurityRequirement().addList("http", listOf("myScope"))
-                ))
-            }
-            .json<Array<User>>("200")
+        .operation {
+            it.addTagsItem("user")
+            it.security(listOf(
+                SecurityRequirement().addList("http", listOf("myScope"))
+            ))
+        }
+        .json<Array<User>>("200")
     app.get("/users2", documented(getUsers2Documentation) { it.json(listOf(User(name = "Jim"))) })
 
     val getFormDataDocumentation = document()
-            .formParam<String>("name", required = true)
-            .formParam<Int>("age")
-            .result<Unit>("200")
+        .formParam<String>("name", required = true)
+        .formParam<Int>("age")
+        .result<Unit>("200")
     app.put("/form-data", documented(getFormDataDocumentation) {
         it.formParam("name")
         it.formParam("age")
     })
 
     val getFormDataSchemaDocumentation = document()
-            .formParamBody<Address>()
-            .result<Unit>("200")
+        .formParamBody<Address>()
+        .result<Unit>("200")
     app.put("/form-data-schema", documented(getFormDataSchemaDocumentation) {})
 
     val getFormDataSchemaMultipartDocumentation = document()
-            .formParamBody<Address>(contentType = ContentType.FORM_DATA_MULTIPART)
-            .result<Unit>("200")
+        .formParamBody<Address>(contentType = ContentType.FORM_DATA_MULTIPART)
+        .result<Unit>("200")
     app.put("/form-data-schema-multipart", documented(getFormDataSchemaMultipartDocumentation) {})
 
     val putUserDocumentation = document()
-            .operation {
-                it.addTagsItem("user")
-            }
-            .body<String> {
-                it.description = "body description"
-                it.required = true
-            }
-            .body<User>("application/json")
-            .body<User>("application/xml")
-            .bodyAsBytes()
-            .bodyAsBytes("image/png")
+        .operation {
+            it.addTagsItem("user")
+        }
+        .body<String> {
+            it.description = "body description"
+            it.required = true
+        }
+        .body<User>("application/json")
+        .body<User>("application/xml")
+        .bodyAsBytes()
+        .bodyAsBytes("image/png")
     app.put("/user", documented(putUserDocumentation) {
         val userString = it.body()
         val user = it.bodyAsClass(User::class.java)
@@ -213,57 +218,57 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
     })
 
     val getStringDocumentation = OpenApiDocumentation()
-            .result<String>("200")
+        .result<String>("200")
     app.get("/string", documented(getStringDocumentation) {
         it.result("Hello")
     })
 
     val getHomepageDocumentation = OpenApiDocumentation()
-            .html("200") {
-                it.description = "My Homepage"
-            }
+        .html("200") {
+            it.description = "My Homepage"
+        }
     app.get("/homepage", documented(getHomepageDocumentation) {
         it.html("<p>Hello World</p>")
     })
 
     val getUploadDocumentation = OpenApiDocumentation()
-            .uploadedFile("file") {
-                it.description = "MyFile"
-                it.required = true
-            }
+        .uploadedFile("file") {
+            it.description = "MyFile"
+            it.required = true
+        }
     app.get("/upload", documented(getUploadDocumentation) {
         it.uploadedFile("file")
     })
 
     val getUploadsDocumentation = OpenApiDocumentation()
-            .uploadedFiles("files") {
-                it.description = "MyFiles"
-                it.required = true
-            }
+        .uploadedFiles("files") {
+            it.description = "MyFiles"
+            it.required = true
+        }
     app.get("/uploads", documented(getUploadsDocumentation) {
         it.uploadedFiles("files")
     })
 
     val getUploadWithFormDataDocumentation = OpenApiDocumentation()
-            .uploadedFile("file") {
-                it.description = "MyFile"
-                it.required = true
-            }
-            .formParam<String>("title")
+        .uploadedFile("file") {
+            it.description = "MyFile"
+            it.required = true
+        }
+        .formParam<String>("title")
     app.get("/upload-with-form-data", documented(getUploadWithFormDataDocumentation) {
         it.uploadedFile("file")
         it.formParam("title")
     })
 
     val getResourcesDocumentation = OpenApiDocumentation()
-            .result<Unit>("200")
+        .result<Unit>("200")
     app.get("/resources/*", documented(getResourcesDocumentation) {})
 
     app.get("/ignored", documented(document().ignore()) {})
 
     app.get("/enums/:my-enum-path-param", documented(document()
-            .pathParam<UserType>("my-enum-path-param")
-            .queryParam<UserType>("my-enum-query-param")) {})
+        .pathParam<UserType>("my-enum-path-param")
+        .queryParam<UserType>("my-enum-query-param")) {})
 
     return app
 }
@@ -286,8 +291,8 @@ class TestOpenApi {
         }
 
         val userCrudHandlerDocumentation = documentCrud()
-                .getOne(document().json<User>("200"))
-                .getAll(document().jsonArray<User>("200"))
+            .getOne(document().json<User>("200"))
+            .getAll(document().jsonArray<User>("200"))
 
         class UserCrudHandler : CrudHandler {
             override fun getAll(ctx: Context) {
@@ -357,28 +362,28 @@ class TestOpenApi {
         app.put("/user") {}
 
         assertThatExceptionOfType(IllegalStateException::class.java)
-                .isThrownBy {
-                    JavalinOpenApi.createSchema(app)
-                }
-                .withMessage("You need to register the \"OpenApiPlugin\" before you can create the OpenAPI schema")
+            .isThrownBy {
+                JavalinOpenApi.createSchema(app)
+            }
+            .withMessage("You need to register the \"OpenApiPlugin\" before you can create the OpenAPI schema")
     }
 
     @Test
     fun `createSchema works with default operation`() {
         val openApiOptions = OpenApiOptions(
-                Info().title("Example").version("1.0.0")
+            Info().title("Example").version("1.0.0")
         )
-                .defaultDocumentation { documentation ->
-                    documentation.result<MyError>("500") {
-                        it.description = "Server Error"
-                    }
+            .defaultDocumentation { documentation ->
+                documentation.result<MyError>("500") {
+                    it.description = "Server Error"
                 }
+            }
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
 
         val route2Documentation = document()
-                .json<User>("200")
+            .json<User>("200")
 
         with(app) {
             get("/route1", documented(route2Documentation) {})
@@ -393,7 +398,7 @@ class TestOpenApi {
     @Test
     fun `createSchema works with repeatable query param and dsl`() {
         val openApiOptions = OpenApiOptions(
-                Info().title("Example").version("1.0.0")
+            Info().title("Example").version("1.0.0")
         )
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
@@ -410,7 +415,7 @@ class TestOpenApi {
     @Test
     fun `createSchema works with query param and reified dsl`() {
         val openApiOptions = OpenApiOptions(
-                Info().title("Example").version("1.0.0")
+            Info().title("Example").version("1.0.0")
         )
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
@@ -427,7 +432,7 @@ class TestOpenApi {
     @Test
     fun `createSchema works with query param and dsl`() {
         val openApiOptions = OpenApiOptions(
-                Info().title("Example").version("1.0.0")
+            Info().title("Example").version("1.0.0")
         )
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
@@ -444,19 +449,19 @@ class TestOpenApi {
     @Test
     fun `createSchema applies defaults before actual documentation`() {
         val openApiOptions = OpenApiOptions(
-                Info().title("Example").version("1.0.0")
+            Info().title("Example").version("1.0.0")
         )
-                .defaultDocumentation { documentation -> documentation.ignore() }
+            .defaultDocumentation { documentation -> documentation.ignore() }
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
 
         val route1Documentation = document()
-                .ignore(false)
-                .json<User>("200")
+            .ignore(false)
+            .json<User>("200")
 
         val route3Documentation = document()
-                .json<User>("200")
+            .json<User>("200")
 
         with(app) {
             get("/route1", documented(route1Documentation) {})
@@ -476,13 +481,13 @@ class TestOpenApi {
         val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
 
         val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
-                .jacksonMapper(customMapper)
+            .jacksonMapper(customMapper)
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
 
         val logsDocumentation = document()
-                .jsonArray<Log>("200")
+            .jsonArray<Log>("200")
 
         with(app) {
             get("/logs", documented(logsDocumentation) {})
@@ -496,19 +501,43 @@ class TestOpenApi {
     }
 
     @Test
+    fun `createSchema Instants respect annotations`() {
+        val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
+
+        val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
+            .jacksonMapper(customMapper)
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        val logsDocumentation = document()
+            .jsonArray<AnnotatedLog>("200")
+
+        with(app) {
+            get("/logs", documented(logsDocumentation) {})
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+        val schema = actual.components.schemas["AnnotatedLog"]!!
+        val timestampSchemaType = schema.properties["timestamp"]!!
+        assertThat(timestampSchemaType.type).isEqualTo("string")
+        assertThat(timestampSchemaType.example).isEqualTo("test example")
+    }
+
+    @Test
     fun `createSchema works with Instants as strings`() {
         val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
         val openApiOptions = OpenApiOptions(
-                Info().title("Example").version("1.0.0")
+            Info().title("Example").version("1.0.0")
         ).jacksonMapper(customMapper)
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
 
         val logsDocumentation = document()
-                .jsonArray<Log>("200")
+            .jsonArray<Log>("200")
 
         with(app) {
             get("/logs", documented(logsDocumentation) {})
@@ -525,32 +554,32 @@ class TestOpenApi {
     fun `createSchema works with composed body and response`() {
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(
-                    Info().title("Example").version("1.0.0")
+                Info().title("Example").version("1.0.0")
             )))
         }
 
         val anyOfBodyDocumentation = document()
-                .body(anyOf(documentedContent<Address>(), documentedContent<User>(isArray = true)))
-                .operation {
-                    it.summary = "Get body with any of objects"
-                    it.operationId = "composedBodyAnyOf"
-                }
+            .body(anyOf(documentedContent<Address>(), documentedContent<User>(isArray = true)))
+            .operation {
+                it.summary = "Get body with any of objects"
+                it.operationId = "composedBodyAnyOf"
+            }
         app.get("/composed-body/any-of", documented(anyOfBodyDocumentation) {})
 
         val oneOfBodyDocumentation = document()
-                .body(oneOf(documentedContent<Address>(), documentedContent<User>(isArray = true)))
-                .operation {
-                    it.summary = "Get body with one of objects"
-                    it.operationId = "composedBodyOneOf"
-                }
+            .body(oneOf(documentedContent<Address>(), documentedContent<User>(isArray = true)))
+            .operation {
+                it.summary = "Get body with one of objects"
+                it.operationId = "composedBodyOneOf"
+            }
         app.get("/composed-body/one-of", documented(oneOfBodyDocumentation) {})
 
         val oneOfResponseDocumentation = document()
-                .result("200", oneOf(documentedContent<Address>(), documentedContent<User>(), documentedContent<User>(contentType = "application/xml")))
-                .operation {
-                    it.summary = "Get with one of responses"
-                    it.operationId = "composedResponseOneOf"
-                }
+            .result("200", oneOf(documentedContent<Address>(), documentedContent<User>(), documentedContent<User>(contentType = "application/xml")))
+            .operation {
+                it.summary = "Get with one of responses"
+                it.operationId = "composedResponseOneOf"
+            }
         app.get("/composed-response/one-of", documented(oneOfResponseDocumentation) {})
 
         val actual = JavalinOpenApi.createSchema(app)
@@ -561,10 +590,10 @@ class TestOpenApi {
     fun `enableOpenApi provides get route if path is given`() {
         TestUtil.test(Javalin.create {
             it.registerPlugin(OpenApiPlugin(OpenApiOptions(
-                    Info().apply {
-                        title = "Example"
-                        version = "1.0.0"
-                    }
+                Info().apply {
+                    title = "Example"
+                    version = "1.0.0"
+                }
             ).path("/docs/swagger.json")))
         }) { app, http ->
             app.get("/test") {}
@@ -605,7 +634,7 @@ class TestOpenApi {
                     version = "1.0.0"
                 })
             }.path("/docs/swagger.json")
-                    .responseModifier(modifier)
+                .responseModifier(modifier)
             ))
         }) { app, http ->
             app.get("/test") {}
@@ -633,8 +662,8 @@ class TestOpenApi {
                     version = "1.0.0"
                 })
             }.path("/docs/swagger.json")
-                    .responseModifier(modifier)
-                    .disableCaching()
+                .responseModifier(modifier)
+                .disableCaching()
             ))
         }) { app, http ->
             app.get("/test") {}
@@ -672,14 +701,14 @@ class TestOpenApi {
     fun `setDocumentation works`() {
         val app = Javalin.create {
             it.registerPlugin(
-                    OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
-                            .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
-                                operation.description = "get description overwritten"
-                            })
-                            .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
-                                operation.description = "post description overwritten"
-                            }.result<User>("200"))
-                    )
+                OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
+                    .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
+                        operation.description = "get description overwritten"
+                    })
+                    .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
+                        operation.description = "post description overwritten"
+                    }.result<User>("200"))
+                )
             )
         }
 
@@ -702,15 +731,15 @@ class TestOpenApi {
     fun `setDocumentation with non existing path works`() {
         val app = Javalin.create {
             it.registerPlugin(
-                    OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
-                            .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
-                                operation.description = "get description overwritten"
-                            })
-                            .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
-                                operation.description = "post description overwritten"
-                            }.result<User>("200"))
-                            .setDocumentation("/unimplemented", HttpMethod.GET, document())
-                    )
+                OpenApiPlugin(OpenApiOptions(Info().version("1.0.0").title("Override Example"))
+                    .setDocumentation("/user", HttpMethod.POST, document().operation { operation ->
+                        operation.description = "get description overwritten"
+                    })
+                    .setDocumentation("/user", HttpMethod.GET, document().operation { operation ->
+                        operation.description = "post description overwritten"
+                    }.result<User>("200"))
+                    .setDocumentation("/unimplemented", HttpMethod.GET, document())
+                )
             )
         }
 
@@ -762,7 +791,7 @@ class TestOpenApi {
     @Test
     fun `ignorePath with http methods works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
-                .ignorePath("/user", HttpMethod.PUT))
+            .ignorePath("/user", HttpMethod.PUT))
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths").getJSONObject("/user").toString()
 
@@ -772,7 +801,7 @@ class TestOpenApi {
     @Test
     fun `ignorePath with prefix works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
-                .ignorePath("/user*"))
+            .ignorePath("/user*"))
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths")
         val userJson = json.getJSONObject("/user").toString()
@@ -784,7 +813,7 @@ class TestOpenApi {
     @Test
     fun `ignorePath with prefix and http methods works`() {
         val app = buildComplexExample(OpenApiOptions(::createComplexExampleBaseConfiguration)
-                .ignorePath("/user*", HttpMethod.PUT))
+            .ignorePath("/user*", HttpMethod.PUT))
         val actual = JavalinOpenApi.createSchema(app)
         val json = actual.asJson().getJSONObject("paths")
         val userJson = json.getJSONObject("/user").toString()
