@@ -34,9 +34,20 @@ object JavalinJackson {
         ObjectMapper()
     }
 
-    fun toJson(`object`: Any): String {
+    val defaultToMapper = object: ToJsonMapper {
+        override fun map(obj: Any): String = when (obj) {
+            is String -> obj // the default mapper treats strings as if they are already JSON
+            else -> toJson(obj) // convert object to JSON
+        }
+    }
+
+    fun toJson(value: Any): String {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        return (objectMapper ?: defaultObjectMapper).writeValueAsString(`object`)
+        return (objectMapper ?: defaultObjectMapper).writeValueAsString(value)
+    }
+
+    val defaultFromMapper = object : FromJsonMapper {
+        override fun <T> map(json: String, targetClass: Class<T>): T = fromJson(json, targetClass)
     }
 
     fun <T> fromJson(json: String, clazz: Class<T>): T {

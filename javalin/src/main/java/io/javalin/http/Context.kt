@@ -454,10 +454,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      *
      * JavalinJson can be configured to use any mapping library.
      */
-    fun json(future: CompletableFuture<*>): Context {
-        val mappingFuture = future.thenApply { JavalinJson.toJson(it) }
-        return contentType("application/json").result(mappingFuture)
-    }
+    fun json(future: CompletableFuture<*>) = result(future.thenApply {
+        if (it != null) JavalinJson.toJson(it).also { contentType("application/json") } else ""
+    })
 
     /**
      * Renders a file with specified values and sets it as the context result.
@@ -481,6 +480,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun splats(): List<String> = Collections.unmodifiableList(splatList)
 
     /** Gets the handler type of the current handler */
-    fun handlerType() : HandlerType = handlerType
+    fun handlerType(): HandlerType = handlerType
 }
 

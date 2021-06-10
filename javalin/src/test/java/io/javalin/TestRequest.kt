@@ -354,7 +354,7 @@ class TestRequest {
 
     @Test
     fun `validator header works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.json(ctx.header<Double>("double-header").get().javaClass.name) }
-        assertThat(http.getBody("/", mapOf("double-header" to "12.34"))).isEqualTo("\"java.lang.Double\"")
+        app.get("/") { it.result(it.header<Double>("double-header").get().javaClass.name) }
+        assertThat(http.getBody("/", mapOf("double-header" to "12.34"))).isEqualTo("java.lang.Double")
     }
 }

@@ -6,8 +6,6 @@
 
 package io.javalin
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.gson.GsonBuilder
 import com.mashape.unirest.http.Unirest
 import io.javalin.http.context.body
@@ -19,33 +17,20 @@ import io.javalin.testing.NonSerializableObject
 import io.javalin.testing.SerializeableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
 import org.junit.Test
-
-class CustomMapper : ObjectMapper() {
-    init {
-        this.enable(SerializationFeature.INDENT_OUTPUT)
-        this.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-    }
-}
 
 class TestJson {
 
-    @Before
-    fun resetObjectMapper() {
-        JavalinJackson.configure(CustomMapper()) // reset for every test
-    }
-
     @Test
-    fun `json-mapper maps object to json`() = TestUtil.test { app, http ->
+    fun `default mapper maps object to json`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.json(SerializeableObject()) }
-        assertThat(http.getBody("/hello")).isEqualTo(CustomMapper().writeValueAsString(SerializeableObject()))
+        assertThat(http.getBody("/hello")).isEqualTo("""{"value1":"FirstValue","value2":"SecondValue"}""")
     }
 
     @Test
-    fun `json-mapper maps String to json`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.json("\"ok\"") }
-        assertThat(http.getBody("/hello")).isEqualTo("\"\\\"ok\\\"\"")
+    fun `default mapper treats strings as already being json`() = TestUtil.test { app, http ->
+        app.get("/hello") { ctx -> ctx.json("ok") }
+        assertThat(http.getBody("/hello")).isEqualTo("ok")
     }
 
     @Test

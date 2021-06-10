@@ -1,6 +1,9 @@
 package io.javalin
 
 import com.mashape.unirest.http.exceptions.UnirestException
+import io.javalin.core.util.Header
+import io.javalin.http.context.queryParam
+import io.javalin.testing.SerializeableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -18,12 +21,6 @@ class TestFuture {
     fun `hello future world`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx -> ctx.result(getFuture("Result")) }
         assertThat(http.getBody("/test-future")).isEqualTo("Result")
-    }
-
-    @Test
-    fun `hello future world json`() = TestUtil.test { app, http ->
-        app.get("/test-future-json") { ctx -> ctx.json(getFuture("JSON result")) }
-        assertThat(http.getBody("/test-future-json")).isEqualTo("\"JSON result\"")
     }
 
     @Test
@@ -98,6 +95,31 @@ class TestFuture {
         } catch (e: UnirestException) { // We need to catch Unirest's exception, as TestUtil swallows it
             fail("Unirest is not supposed to throw", e)
         }
+    }
+
+    @Test
+    fun `loonyrunes is happy with the api`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val noContent = ctx.queryParam("no-content") != null
+            ctx.status(404) // should never happen
+            ctx.json(CompletableFuture.supplyAsync {
+                if (noContent) {
+                    ctx.status(204)
+                    null
+                } else {
+                    ctx.status(200)
+                    SerializeableObject()
+                }
+            })
+        }
+        val contentResponse = http.get("/")
+        assertThat(contentResponse.status).isEqualTo(200)
+        assertThat(contentResponse.body).isEqualTo("""{"value1":"FirstValue","value2":"SecondValue"}""")
+        assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
+        val noContentResponse = http.get("/?no-content")
+        assertThat(noContentResponse.status).isEqualTo(204)
+        assertThat(noContentResponse.body).isEqualTo(null)
+        assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/plain")
     }
 
     private fun getFuture(result: String?): CompletableFuture<String> {

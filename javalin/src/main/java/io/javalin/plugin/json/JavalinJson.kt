@@ -19,14 +19,10 @@ interface ToJsonMapper {
 object JavalinJson {
 
     @JvmStatic
-    var fromJsonMapper = object : FromJsonMapper {
-        override fun <T> map(json: String, targetClass: Class<T>): T = JavalinJackson.fromJson(json, targetClass)
-    }
+    var fromJsonMapper = JavalinJackson.defaultFromMapper
 
     @JvmStatic
-    var toJsonMapper = object : ToJsonMapper {
-        override fun map(obj: Any): String = JavalinJackson.toJson(obj)
-    }
+    var toJsonMapper = JavalinJackson.defaultToMapper
 
     @JvmStatic
     fun toJson(obj: Any) = toJsonMapper.map(obj)

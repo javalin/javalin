@@ -67,7 +67,7 @@ class TestEncoding {
         assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
         assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/html")
         assertThat(http.getBody("/text")).isEqualTo("суп из капусты")
-        assertThat(http.getBody("/json")).isEqualTo("\"白菜湯\"")
+        assertThat(http.getBody("/json")).isEqualTo("白菜湯")
         assertThat(http.getBody("/html")).isEqualTo("kålsuppe")
     }
 
