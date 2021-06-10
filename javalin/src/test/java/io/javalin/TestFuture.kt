@@ -2,7 +2,6 @@ package io.javalin
 
 import com.mashape.unirest.http.exceptions.UnirestException
 import io.javalin.core.util.Header
-import io.javalin.http.context.queryParam
 import io.javalin.testing.SerializeableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -19,61 +18,69 @@ class TestFuture {
 
     @Test
     fun `hello future world`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.result(getFuture("Result")) }
+        app.get("/test-future") { ctx ->
+            ctx.async { ctx.result(getFuture("Result").get()) }
+        }
         assertThat(http.getBody("/test-future")).isEqualTo("Result")
     }
 
     @Test
     fun `after-handlers run after future is resolved`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.result(getFuture("Not result")) }
+        app.get("/test-future") { ctx ->
+            ctx.async { ctx.result(getFuture("Not result").get()) }
+        }
         app.after { ctx -> ctx.result("Overwritten by after-handler") }
         assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by after-handler")
     }
 
     @Test
-    fun `setting future in after-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.result(getFuture("Not result")) }
-        app.after("/test-future") { ctx -> ctx.result(getFuture("Overwritten by after-handler")) }
+    fun `calling async in after-handler throws`() = TestUtil.test { app, http ->
+        app.get("/test-future") { ctx ->
+            ctx.async { ctx.result(getFuture("Not result").get()) }
+        }
+        app.after("/test-future") { ctx -> ctx.async { } }
         assertThat(http.getBody("/test-future")).isEqualTo("Internal server error")
     }
 
     @Test
     fun `error-handlers run after future is resolved`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.result(getFuture("Not result")).status(555) }
+        app.get("/test-future") { ctx ->
+            ctx.async { ctx.result(getFuture("Not result").get()).status(555) }
+        }
         app.error(555) { ctx -> ctx.result("Overwritten by error-handler") }
         assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by error-handler")
     }
 
     @Test
     fun `unresolved future throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.result(getFuture(null)) }
-        assertThat(http.getBody("/test-future")).isEqualTo("Internal server error")
-    }
-
-    @Test
-    fun `future throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.result(getFuture(null)) }
+        app.get("/test-future") { ctx ->
+            ctx.async { ctx.result(getFuture(null).get()) }
+        }
         assertThat(http.getBody("/test-future")).isEqualTo("Internal server error")
     }
 
     @Test
     fun `unresolved futures are handled by exception-mapper`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.result(getFuture(null)) }
+        app.get("/test-future") { ctx ->
+            ctx.async { ctx.result(getFuture(null).get()) }
+        }
         app.exception(CancellationException::class.java) { _, ctx -> ctx.result("Handled") }
         assertThat(http.getBody("/test-future")).isEqualTo("Handled")
     }
 
     @Test
     fun `futures failures are handled by exception-mapper`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.json(getFailingFuture(UnsupportedOperationException())) }
+        app.get("/test-future") { ctx ->
+            ctx.async { ctx.json(getFailingFuture(UnsupportedOperationException()).get()) }
+        }
         app.exception(UnsupportedOperationException::class.java) { _, ctx -> ctx.result("Handled") }
         assertThat(http.getBody("/test-future")).isEqualTo("Handled")
     }
 
     @Test
-    fun `setting a future in an exception-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { throw Exception() }
-        app.exception(Exception::class.java) { _, ctx -> ctx.result(getFuture("Exception result")) }
+    fun `calling async in an exception-handler throws`() = TestUtil.test { app, http ->
+        app.get("/test-future") { ctx -> throw Exception() }
+        app.exception(Exception::class.java) { _, ctx -> ctx.async{} }
         assertThat(http.getBody("/test-future")).isEqualTo("")
         assertThat(http.get("/test-future").status).isEqualTo(500)
     }
@@ -81,7 +88,7 @@ class TestFuture {
     @Test
     fun `future is overwritten if String result is set`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx ->
-            ctx.result(getFuture("Result"))
+            ctx.async { ctx.result(getFuture("Result").get()) }
             ctx.result("Overridden")
         }
         assertThat(http.getBody("/test-future")).isEqualTo("Overridden")
@@ -89,7 +96,9 @@ class TestFuture {
 
     @Test
     fun `future throws when stream throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> ctx.result(getFutureFailingStream()) }
+        app.get("/test-future") { ctx ->
+            ctx.async { ctx.result(getFutureFailingStream().get()) }
+        }
         try {
             assertThat(http.get("/test-future").status).isEqualTo(500)
         } catch (e: UnirestException) { // We need to catch Unirest's exception, as TestUtil swallows it
@@ -102,15 +111,14 @@ class TestFuture {
         app.get("/") { ctx ->
             val noContent = ctx.queryParam("no-content") != null
             ctx.status(404) // should never happen
-            ctx.json(CompletableFuture.supplyAsync {
+            ctx.async {
                 if (noContent) {
                     ctx.status(204)
-                    null
                 } else {
                     ctx.status(200)
-                    SerializeableObject()
+                    ctx.json(SerializeableObject())
                 }
-            })
+            }
         }
         val contentResponse = http.get("/")
         assertThat(contentResponse.status).isEqualTo(200)

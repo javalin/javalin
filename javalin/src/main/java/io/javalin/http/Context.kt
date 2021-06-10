@@ -13,6 +13,7 @@ import io.javalin.core.validation.BodyValidator
 import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
+import io.javalin.http.context.ThrowingRunnable
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
@@ -359,19 +360,12 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the current context result as an [InputStream] (if set). */
     fun resultStream(): InputStream? = resultStream
 
-    /**
-     * Sets context result to the specified CompletableFuture<String>
-     * or CompletableFuture<InputStream>.
-     * Will overwrite the current result if there is one.
-     * Can only be called inside endpoint handlers (ones representing HTTP verbs).
-     */
-    fun result(future: CompletableFuture<*>): Context {
-        resultStream = null
-        if (handlerType.isHttpMethod() && !inExceptionHandler) {
-            this.resultFuture = future
-            return this
+    fun async(runnable: ThrowingRunnable) {
+        if (!handlerType.isHttpMethod() || inExceptionHandler) {
+            throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
         }
-        throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
+        resultStream = null
+        resultFuture = CompletableFuture.supplyAsync { runnable.run() }
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
@@ -446,17 +440,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun json(obj: Any): Context {
         return contentType("application/json").result(JavalinJson.toJson(obj))
     }
-
-    /**
-     * Serializes the object resulting from the completion of the given future
-     * to a JSON-string using JavalinJson and sets it as the context result.
-     * Sets content type to application/json.
-     *
-     * JavalinJson can be configured to use any mapping library.
-     */
-    fun json(future: CompletableFuture<*>) = result(future.thenApply {
-        if (it != null) JavalinJson.toJson(it).also { contentType("application/json") } else ""
-    })
 
     /**
      * Renders a file with specified values and sets it as the context result.
