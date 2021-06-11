@@ -18,61 +18,47 @@ class TestFuture {
 
     @Test
     fun `hello future world`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.async { ctx.result(getFuture("Result").get()) }
-        }
+        app.get("/test-future") { it.async().result(getFuture("Result")) }
         assertThat(http.getBody("/test-future")).isEqualTo("Result")
     }
 
     @Test
     fun `after-handlers run after future is resolved`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.async { ctx.result(getFuture("Not result").get()) }
-        }
+        app.get("/test-future") { it.async().result(getFuture("Not result")) }
         app.after { ctx -> ctx.result("Overwritten by after-handler") }
         assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by after-handler")
     }
 
     @Test
     fun `calling async in after-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.async { ctx.result(getFuture("Not result").get()) }
-        }
-        app.after("/test-future") { ctx -> ctx.async { } }
+        app.get("/test-future") { it.async().result(getFuture("Not result")) }
+        app.after("/test-future") { ctx -> ctx.async() }
         assertThat(http.getBody("/test-future")).isEqualTo("Internal server error")
     }
 
     @Test
     fun `error-handlers run after future is resolved`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.async { ctx.result(getFuture("Not result").get()).status(555) }
-        }
+        app.get("/test-future") { it.status(555).async().result(getFuture("Not result")) }
         app.error(555) { ctx -> ctx.result("Overwritten by error-handler") }
         assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by error-handler")
     }
 
     @Test
     fun `unresolved future throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.async { ctx.result(getFuture(null).get()) }
-        }
+        app.get("/test-future") { it.async().result(getFuture(null)) }
         assertThat(http.getBody("/test-future")).isEqualTo("Internal server error")
     }
 
     @Test
     fun `unresolved futures are handled by exception-mapper`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.async { ctx.result(getFuture(null).get()) }
-        }
+        app.get("/test-future") { it.async().result(getFuture(null)) }
         app.exception(CancellationException::class.java) { _, ctx -> ctx.result("Handled") }
         assertThat(http.getBody("/test-future")).isEqualTo("Handled")
     }
 
     @Test
     fun `futures failures are handled by exception-mapper`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.async { ctx.json(getFailingFuture(UnsupportedOperationException()).get()) }
-        }
+        app.get("/test-future") { it.async().json(getFailingFuture(UnsupportedOperationException())) }
         app.exception(UnsupportedOperationException::class.java) { _, ctx -> ctx.result("Handled") }
         assertThat(http.getBody("/test-future")).isEqualTo("Handled")
     }
@@ -80,7 +66,7 @@ class TestFuture {
     @Test
     fun `calling async in an exception-handler throws`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx -> throw Exception() }
-        app.exception(Exception::class.java) { _, ctx -> ctx.async{} }
+        app.exception(Exception::class.java) { _, ctx -> ctx.async() }
         assertThat(http.getBody("/test-future")).isEqualTo("")
         assertThat(http.get("/test-future").status).isEqualTo(500)
     }
@@ -88,7 +74,7 @@ class TestFuture {
     @Test
     fun `future is overwritten if String result is set`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx ->
-            ctx.async { ctx.result(getFuture("Result").get()) }
+            ctx.async().result(getFuture("Result"))
             ctx.result("Overridden")
         }
         assertThat(http.getBody("/test-future")).isEqualTo("Overridden")
@@ -97,7 +83,7 @@ class TestFuture {
     @Test
     fun `future throws when stream throws`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx ->
-            ctx.async { ctx.result(getFutureFailingStream().get()) }
+            ctx.async().result(getFutureFailingStream())
         }
         try {
             assertThat(http.get("/test-future").status).isEqualTo(500)
@@ -111,18 +97,17 @@ class TestFuture {
         app.get("/") { ctx ->
             val noContent = ctx.queryParam("no-content") != null
             ctx.status(404) // should never happen
-            ctx.async {
-                if (noContent) {
-                    ctx.status(204)
-                } else {
-                    ctx.status(200)
-                    ctx.json(SerializeableObject())
-                }
+            val asyncContext = ctx.async()
+            if (noContent) {
+                ctx.status(204)
+            } else {
+                ctx.status(200)
+                asyncContext.json(getFuture("My future"))
             }
         }
         val contentResponse = http.get("/")
         assertThat(contentResponse.status).isEqualTo(200)
-        assertThat(contentResponse.body).isEqualTo("""{"value1":"FirstValue","value2":"SecondValue"}""")
+        assertThat(contentResponse.body).isEqualTo("""My future""")
         assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
         val noContentResponse = http.get("/?no-content")
         assertThat(noContentResponse.status).isEqualTo(204)

@@ -21,7 +21,7 @@ fun main() {
             val future = CompletableFuture<String>()
             Executors.newSingleThreadScheduledExecutor()
                     .schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
-            ctx.async { ctx.result(future.get()) }
+            ctx.async().result(future)
         }
         get("/json") { ctx ->
             val future = CompletableFuture<List<String>>()

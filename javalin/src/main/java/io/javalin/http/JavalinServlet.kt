@@ -78,14 +78,14 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             ctx.header(Header.SERVER, "Javalin")
             ctx.contentType(config.defaultContentType)
             tryBeforeAndEndpointHandlers()
-            if (ctx.resultFuture() == null) { // finish request synchronously
+            if (ctx.asyncContext()?.result() == null) { // finish request synchronously
                 tryErrorHandlers()
                 tryAfterHandlers()
                 JavalinResponseWrapper(res, rwc).write(ctx.resultStream())
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
             } else { // finish request asynchronously
                 val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
-                ctx.resultFuture()!!.exceptionally { throwable ->
+                ctx.asyncContext()!!.result()!!.exceptionally { throwable ->
                     if (throwable is CompletionException && throwable.cause is Exception) {
                         exceptionMapper.handle(throwable.cause as Exception, ctx)
                     } else if (throwable is Exception) {
