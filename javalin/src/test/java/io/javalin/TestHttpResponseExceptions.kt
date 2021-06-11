@@ -52,11 +52,11 @@ class TestHttpResponseExceptions {
         assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN_403)
         assertThat(response.body).isEqualTo(
             """{
-                |    "title": "Off limits!",
-                |    "status": 403,
-                |    "type": "https://javalin.io/documentation#forbiddenresponse",
-                |    "details": {}
-                |}""".trimMargin()
+            |    "title": "Off limits!",
+            |    "status": 403,
+            |    "type": "https://javalin.io/documentation#forbiddenresponse",
+            |    "details": {}
+            |}""".trimMargin()
         )
     }
 
@@ -109,9 +109,7 @@ class TestHttpResponseExceptions {
             }, 0, TimeUnit.MILLISECONDS)
             return future
         }
-        app.get("/completed-future-route") {
-            it.future(getExceptionallyCompletingFuture())
-        }
+        app.get("/completed-future-route") { it.future(getExceptionallyCompletingFuture()) }
         assertThat(http.get("/completed-future-route").body).isEqualTo("Unauthorized")
         assertThat(http.get("/completed-future-route").status).isEqualTo(401)
     }
@@ -124,9 +122,7 @@ class TestHttpResponseExceptions {
             }
             "Result"
         }
-        app.get("/throwing-future-route") {
-            it.future(getThrowingFuture())
-        }
+        app.get("/throwing-future-route") { it.future(getThrowingFuture()) }
         assertThat(http.get("/throwing-future-route").body).isEqualTo("Unauthorized")
         assertThat(http.get("/throwing-future-route").status).isEqualTo(401)
     }
@@ -140,9 +136,7 @@ class TestHttpResponseExceptions {
             }, 0, TimeUnit.MILLISECONDS)
             return future
         }
-        app.get("/completed-future-route") {
-            it.future(getUnexpectedExceptionallyCompletingFuture())
-        }
+        app.get("/completed-future-route") { it.future(getUnexpectedExceptionallyCompletingFuture()) }
         app.exception(IllegalStateException::class.java) { exception, ctx -> ctx.result(exception.message!!) }
         assertThat(http.get("/completed-future-route").body).isEqualTo("Unexpected message")
     }
@@ -155,11 +149,11 @@ class TestHttpResponseExceptions {
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
         assertThat(response.body).isEqualTo(
             """{
-                |    "title": "Forbidden",
-                |    "status": 403,
-                |    "type": "https://javalin.io/documentation#forbiddenresponse",
-                |    "details": {}
-                |}""".trimMargin()
+            |    "title": "Forbidden",
+            |    "status": 403,
+            |    "type": "https://javalin.io/documentation#forbiddenresponse",
+            |    "details": {}
+            |}""".trimMargin()
         )
     }
 
@@ -169,11 +163,11 @@ class TestHttpResponseExceptions {
         app.error(403, "html") { it.result("Only mapped for HTML") }
         assertThat(http.jsonGet("/").body).isEqualTo(
             """{
-                |    "title": "Off limits!",
-                |    "status": 403,
-                |    "type": "https://javalin.io/documentation#forbiddenresponse",
-                |    "details": {}
-                |}""".trimMargin()
+            |    "title": "Off limits!",
+            |    "status": 403,
+            |    "type": "https://javalin.io/documentation#forbiddenresponse",
+            |    "details": {}
+            |}""".trimMargin()
         )
         assertThat(http.htmlGet("/").body).isEqualTo("Only mapped for HTML")
     }
@@ -191,11 +185,11 @@ class TestHttpResponseExceptions {
         app.get("/") { throw ForbiddenResponse("Off limits!", mapOf("a" to "A", "b" to "B")) }
         assertThat(http.jsonGet("/").body).isEqualTo(
             """{
-                |    "title": "Off limits!",
-                |    "status": 403,
-                |    "type": "https://javalin.io/documentation#forbiddenresponse",
-                |    "details": {"a":"A","b":"B"}
-                |}""".trimMargin()
+            |    "title": "Off limits!",
+            |    "status": 403,
+            |    "type": "https://javalin.io/documentation#forbiddenresponse",
+            |    "details": {"a":"A","b":"B"}
+            |}""".trimMargin()
         )
     }
 
