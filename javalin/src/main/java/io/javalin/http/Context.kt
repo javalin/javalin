@@ -13,8 +13,6 @@ import io.javalin.core.validation.BodyValidator
 import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
-import io.javalin.http.context.AsyncContext
-import io.javalin.http.context.ThrowingRunnable
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
@@ -25,6 +23,8 @@ import io.javalin.plugin.rendering.JavalinRenderer
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -49,7 +49,8 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
-    private var asyncContext: AsyncContext? = null
+    private var resultFuture: CompletableFuture<*>? = null
+    internal var futureConsumer: Consumer<Any?>? = null
     private val body by lazy {
         this.throwPayloadTooLargeIfPayloadTooLarge()
         req.inputStream.readBytes()
@@ -349,7 +350,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
-        this.asyncContext = null
+        this.resultFuture = null
         this.resultStream = resultStream
         return this
     }
@@ -360,16 +361,24 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the current context result as an [InputStream] (if set). */
     fun resultStream(): InputStream? = resultStream
 
-    fun async(): AsyncContext {
+    @JvmOverloads
+    fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
         if (!handlerType.isHttpMethod() || inExceptionHandler) {
             throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
         }
         resultStream = null
-        asyncContext = AsyncContext(this)
-        return asyncContext!!
+        resultFuture = future
+        futureConsumer = callback ?: Consumer { result ->
+            when (result) {
+                is InputStream -> result(result)
+                is String -> result(result)
+                is Any -> json(result)
+            }
+        }
+        return this
     }
 
-    fun asyncContext() = asyncContext
+    fun resultFuture() = resultFuture
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {

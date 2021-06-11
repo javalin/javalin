@@ -15,7 +15,6 @@ import io.javalin.core.util.LogUtil
 import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
-import java.io.InputStream
 import java.util.concurrent.CompletionException
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
@@ -78,14 +77,14 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             ctx.header(Header.SERVER, "Javalin")
             ctx.contentType(config.defaultContentType)
             tryBeforeAndEndpointHandlers()
-            if (ctx.asyncContext()?.result() == null) { // finish request synchronously
+            if (ctx.resultFuture() == null) { // finish request synchronously
                 tryErrorHandlers()
                 tryAfterHandlers()
                 JavalinResponseWrapper(res, rwc).write(ctx.resultStream())
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
             } else { // finish request asynchronously
                 val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
-                ctx.asyncContext()!!.result()!!.exceptionally { throwable ->
+                ctx.resultFuture()!!.exceptionally { throwable ->
                     if (throwable is CompletionException && throwable.cause is Exception) {
                         exceptionMapper.handle(throwable.cause as Exception, ctx)
                     } else if (throwable is Exception) {
@@ -93,10 +92,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     }
                     null
                 }.thenAccept {
-                    when (it) {
-                        is InputStream -> ctx.result(it)
-                        is String -> ctx.result(it)
-                    }
+                    ctx.futureConsumer?.accept(it)
                     tryErrorHandlers()
                     tryAfterHandlers()
                     val asyncRes = asyncContext.response as HttpServletResponse

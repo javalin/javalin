@@ -28,7 +28,7 @@ class GraphQLHandler(val options: GraphQLOptions) {
         val result = this.genericExecute(body)
                 .execute()
                 .thenApplyAsync { JavalinJson.toJson(it) }
-        ctx.contentType("application/json").async().result(result)
+        ctx.contentType("application/json").future(result)
     }
 
     fun execute(ctx: WsMessageContext) {
