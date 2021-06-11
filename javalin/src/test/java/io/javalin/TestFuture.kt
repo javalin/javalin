@@ -29,14 +29,6 @@ class TestFuture {
     }
 
     @Test
-    fun `calling async in after-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { it.future(getFuture("Not result")) }
-        app.after("/test-future") { ctx -> ctx.future(getFuture("Not result")) }
-        assertThat(http.get("/test-future").body).isEqualTo("Internal server error")
-        assertThat(http.get("/test-future").status).isEqualTo(500)
-    }
-
-    @Test
     fun `error-handlers run after future is resolved`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.status(555).future(getFuture("Not result")) }
         app.error(555) { ctx -> ctx.result("Overwritten by error-handler") }
@@ -66,7 +58,15 @@ class TestFuture {
     }
 
     @Test
-    fun `calling async in an exception-handler throws`() = TestUtil.test { app, http ->
+    fun `calling future in after-handler throws`() = TestUtil.test { app, http ->
+        app.get("/test-future") { it.future(getFuture("Not result")) }
+        app.after("/test-future") { ctx -> ctx.future(getFuture("Not result")) }
+        assertThat(http.get("/test-future").body).isEqualTo("Internal server error")
+        assertThat(http.get("/test-future").status).isEqualTo(500)
+    }
+
+    @Test
+    fun `calling future in an exception-handler throws`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx -> throw Exception() }
         app.exception(Exception::class.java) { _, ctx -> ctx.future(getFuture("Not result")) }
         assertThat(http.getBody("/test-future")).isEqualTo("")
@@ -83,15 +83,10 @@ class TestFuture {
     }
 
     @Test
-    fun `future throws when stream throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.future(getFutureFailingStream())
-        }
-        try {
-            assertThat(http.get("/test-future").status).isEqualTo(500)
-        } catch (e: UnirestException) { // We need to catch Unirest's exception, as TestUtil swallows it
-            fail("Unirest is not supposed to throw", e)
-        }
+    fun `exceptions that occur during response writing are handled`() = TestUtil.test { app, http ->
+        app.get("/test-future") { it.future(getFutureFailingStream()) }
+        assertThat(http.get("/test-future").body).isEqualTo("")
+        assertThat(http.get("/test-future").status).isEqualTo(500)
     }
 
     @Test
