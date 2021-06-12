@@ -10,13 +10,9 @@ import io.javalin.core.JavalinConfig
 import io.javalin.core.security.RouteRole
 import io.javalin.core.util.CorsPlugin
 import io.javalin.core.util.Header
-import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.LogUtil
-import io.javalin.core.util.Util
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
-import java.io.InputStream
-import java.util.concurrent.CompletionException
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -64,61 +60,42 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
 
-            fun tryErrorHandlers() = tryWithExceptionMapper {
-                errorMapper.handle(ctx.status(), ctx)
-            }
-
-            fun tryAfterHandlers() = tryWithExceptionMapper {
-                matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-                    entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+            fun finishUpResponse(httpServletResponse: HttpServletResponse) {
+                tryWithExceptionMapper { // run error mappers (can mutate ctx)
+                    errorMapper.handle(ctx.status(), ctx)
                 }
+                tryWithExceptionMapper { // run after handlers (can mutate ctx)
+                    matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+                        entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+                    }
+                }
+                JavalinResponseWrapper(httpServletResponse, rwc).write(ctx.resultStream()) // write the response
+                config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx)) // log stuff
             }
 
             LogUtil.setup(ctx, matcher, config.inner.requestLogger != null) // start request lifecycle
             ctx.header(Header.SERVER, "Javalin")
             ctx.contentType(config.defaultContentType)
             tryBeforeAndEndpointHandlers()
-            if (ctx.resultFuture() == null) { // finish request synchronously
-                tryErrorHandlers()
-                tryAfterHandlers()
-                JavalinResponseWrapper(res, rwc).write(ctx.resultStream())
-                config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
-            } else { // finish request asynchronously
-                val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
-                ctx.resultFuture()!!.exceptionally { throwable ->
-                    if (throwable is CompletionException && throwable.cause is Exception) {
-                        exceptionMapper.handle(throwable.cause as Exception, ctx)
-                    } else if (throwable is Exception) {
-                        exceptionMapper.handle(throwable, ctx)
-                    }
-                    null
-                }.thenAccept {
-                    when (it) {
-                        is InputStream -> ctx.result(it)
-                        is String -> ctx.result(it)
-                    }
-                    tryErrorHandlers()
-                    tryAfterHandlers()
-                    val asyncRes = asyncContext.response as HttpServletResponse
-                    JavalinResponseWrapper(asyncRes, rwc).write(ctx.resultStream())
-                    config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
-                    asyncContext.complete() // async lifecycle complete
-                }.exceptionally { t ->
-                    handleUnexpectedThrowable(t, res)
-                    asyncContext.complete() // async lifecycle complete
-                    null
-                }
+            if (ctx.resultFuture() == null) {
+                return finishUpResponse(res) // request lifecycle is complete (blocking/synchronous)
             }
-            Unit // return void
-        } catch (t: Throwable) {
-            handleUnexpectedThrowable(t, res)
+            // user called Context#future, we call startAsync and setup callbacks
+            val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
+            ctx.resultFuture()!!.exceptionally { throwable ->
+                exceptionMapper.handleFutureException(ctx, throwable)
+            }.thenAccept { futureValue ->
+                ctx.futureConsumer?.accept(futureValue) // this consumer can set result, status, etc
+                finishUpResponse(asyncContext.response as HttpServletResponse)
+                asyncContext.complete()
+            }.exceptionally { throwable ->
+                exceptionMapper.handleUnexpectedThrowable(res, throwable) // exception might occur when writing response
+                asyncContext.complete()
+                null
+            }
+        } catch (throwable: Throwable) {
+            exceptionMapper.handleUnexpectedThrowable(res, throwable)
         }
-    }
-
-    private fun handleUnexpectedThrowable(t: Throwable, res: HttpServletResponse) {
-        if (Util.isClientAbortException(t)) return // aborts can be ignored
-        res.status = 500
-        JavalinLogger.error("Exception occurred while servicing http-request", t)
     }
 
     private fun hasGetHandlerMapped(requestUri: String) = matcher.findEntries(HandlerType.GET, requestUri).isNotEmpty()
