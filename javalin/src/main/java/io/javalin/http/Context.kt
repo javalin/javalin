@@ -24,6 +24,7 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
 import java.util.function.Consumer
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
@@ -377,6 +378,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         }
         return this
     }
+
+    /** Release thread back into request ThreadPool and finish processing using ForkJoinPool.
+     *  If your runnable is very fast, a call to [result] will clear your future, resulting in a timeout */
+    fun futurize(runnable: () -> Unit) = future(CompletableFuture.runAsync(runnable))
+
+    /** Release thread back into request ThreadPool and finish processing using specified executor.
+     *  If your runnable is very fast, a call to [result] will clear your future, resulting in a timeout */
+    fun futurize(executorService: ExecutorService, runnable: () -> Unit) = future(CompletableFuture.runAsync(runnable, executorService))
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
     fun resultFuture(): CompletableFuture<*>? = resultFuture

@@ -110,6 +110,23 @@ class TestFuture {
         assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/plain")
     }
 
+    @Test
+    fun `futurize method works`() = TestUtil.test { app, http ->
+        val log = mutableListOf<String>()
+        app.get("/test-futurize") { ctx ->
+            log.add(Thread.currentThread().name)
+            ctx.futurize {
+                log.add(Thread.currentThread().name)
+                Thread.sleep(10) // without this sleep, ctx.result("") will clear the future before javalin sees it...
+                ctx.status(222)
+                ctx.result("Hello from the ForkJoinPool!")
+            }
+        }
+        assertThat(http.get("/test-futurize").body).isEqualTo("Hello from the ForkJoinPool!")
+        assertThat(http.get("/test-futurize").status).isEqualTo(222)
+        assertThat(log.toString()).contains("ForkJoinPool")
+    }
+
     private fun getFuture(result: String?): CompletableFuture<String> {
         val future = CompletableFuture<String>()
         Executors.newSingleThreadScheduledExecutor().schedule({
