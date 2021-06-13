@@ -118,13 +118,11 @@ class TestFuture {
             ctx.futurize {
                 log.add(Thread.currentThread().name)
                 Thread.sleep(10) // without this sleep, ctx.result("") will clear the future before javalin sees it...
-                ctx.status(222)
                 ctx.result("Hello from the ForkJoinPool!")
             }
         }
         assertThat(http.get("/test-futurize").body).isEqualTo("Hello from the ForkJoinPool!")
-        assertThat(http.get("/test-futurize").status).isEqualTo(222)
-        assertThat(log.toString()).contains("ForkJoinPool")
+        assertThat(log.size).isEqualTo(2)
     }
 
     private fun getFuture(result: String?): CompletableFuture<String> {
