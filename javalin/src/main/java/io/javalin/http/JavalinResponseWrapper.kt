@@ -10,6 +10,7 @@ import io.javalin.core.util.Header.IF_NONE_MATCH
 import io.javalin.core.util.Util
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.TimeoutException
 import java.util.zip.GZIPOutputStream
 import javax.servlet.ServletOutputStream
 import javax.servlet.WriteListener
@@ -53,7 +54,12 @@ class JavalinResponseWrapper(val res: HttpServletResponse, private val rwc: Resp
                 return // don't write body
             }
         }
-        inputStream.copyTo(outputStreamWrapper)
+        try {
+            inputStream.copyTo(outputStreamWrapper)
+        } catch (e: TimeoutException) {
+            // Jetty may timeout connections to avoid having broken connections that remain open forever
+            // This is rare, but intended (see issues #163 and #1277)
+        }
         inputStream.close()
         outputStreamWrapper.finalize()
     }
