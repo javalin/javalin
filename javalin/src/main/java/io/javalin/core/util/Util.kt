@@ -217,4 +217,8 @@ object Util {
     // jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
     fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
 
+    // Jetty may timeout connections to avoid having broken connections that remain open forever
+    // This is rare, but intended (see issues #163 and #1277)
+    fun isJettyTimeoutException(t: Throwable) = t::class.java.name == "java.util.concurrent.TimeoutException"
+
 }

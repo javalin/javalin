@@ -48,6 +48,7 @@ class ExceptionMapper {
 
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable) {
         if (Util.isClientAbortException(throwable)) return // aborts can be ignored
+        if (Util.isJettyTimeoutException(throwable)) return // jetty timeouts can be ignored
         res.status = 500
         JavalinLogger.error("Exception occurred while servicing http-request", throwable)
     }
