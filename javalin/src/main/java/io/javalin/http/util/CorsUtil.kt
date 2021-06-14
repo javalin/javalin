@@ -16,6 +16,7 @@ class CorsBeforeHandler(private val origins: List<String>) : Handler {
             origins.map { it.removeSuffix("/") }.firstOrNull { it == "*" || header == it }?.let {
                 ctx.header(Header.ACCESS_CONTROL_ALLOW_ORIGIN, header)
                 ctx.header(Header.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
+                ctx.header(Header.VARY, "Origin")
             }
         }
 
