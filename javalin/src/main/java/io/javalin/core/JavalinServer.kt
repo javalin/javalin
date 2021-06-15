@@ -9,32 +9,28 @@ package io.javalin.core
 import io.javalin.core.util.JavalinLogger
 import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.Handler
-import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerWrapper
-import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.net.BindException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JavalinServer(val config: JavalinConfig) {
 
-    var serverPort = 7000
+    var started = false
+    var serverPort = 0
     var serverHost: String? = null
 
     fun server(): Server {
         config.inner.server = config.inner.server ?: JettyUtil.getOrDefault(config.inner.server)
         return config.inner.server!!
     }
-
-    var started = false
 
     @Throws(BindException::class)
     fun start(wsAndHttpServlet: JavalinWsServlet) {
@@ -56,10 +52,12 @@ class JavalinServer(val config: JavalinConfig) {
 
         server().apply {
             handler = if (server.handler == null) wsAndHttpHandler else server.handler.attachHandler(wsAndHttpHandler)
-            connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
-                this.port = serverPort
-                this.host = serverHost
-            })
+            if (connectors.isEmpty()) { // user has not added their own connectors, we add a single HTTP connector
+                connectors = arrayOf(ServerConnector(server).apply {
+                    this.port = serverPort
+                    this.host = serverHost
+                })
+            }
         }.start()
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {

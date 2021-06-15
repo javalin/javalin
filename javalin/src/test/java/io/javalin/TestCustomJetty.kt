@@ -12,9 +12,13 @@ import io.javalin.core.LoomUtil
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.Handler
+import org.eclipse.jetty.server.HttpConfiguration
+import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.ContextHandlerCollection
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.RequestLogHandler
@@ -30,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+
 
 class TestCustomJetty {
 
@@ -177,6 +182,26 @@ class TestCustomJetty {
             Javalin.create().start(0).stop()
         }
         assertThat(log).contains("Loom is available, using Virtual ThreadPool... Neat!")
+    }
+
+    @Test
+    fun `custom connector works`() {
+        val port = (2000..9999).random()
+        val app = Javalin.create { config ->
+            config.server {
+                Server().apply {
+                    val httpConfiguration = HttpConfiguration()
+                    httpConfiguration.addCustomizer(ForwardedRequestCustomizer())
+                    val connector = ServerConnector(this, HttpConnectionFactory(httpConfiguration))
+                    connector.port = port
+                    this.addConnector(connector)
+                }
+            }
+        }
+        TestUtil.test(app) { server,  _ ->
+            server.get("/") { it.result("PORT WORKS") }
+            assertThat(Unirest.get("http://localhost:$port/").asString().body).isEqualTo("PORT WORKS")
+        }
     }
 
 }
