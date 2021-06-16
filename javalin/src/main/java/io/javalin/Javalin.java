@@ -142,6 +142,7 @@ public class Javalin {
 
     /**
      * Synchronously starts the application instance on the specified port.
+     * Use port 0 to start the application instance on a random available port.
      *
      * @param port to run on
      * @return running application instance.
@@ -154,8 +155,9 @@ public class Javalin {
     }
 
     /**
-     * Synchronously starts the application instance on a random port, or on the
-     * provided ServerConnectors if the Jetty server has been manually configured.
+     * Synchronously starts the application instance on the configured port, or on
+     * the configured ServerConnectors if the Jetty server has been manually configured.
+     * If no port or connector is configured, the instance will start on port 8080.
      *
      * @return running application instance.
      * @see Javalin#create()

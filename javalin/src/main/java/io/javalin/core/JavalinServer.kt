@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse
 class JavalinServer(val config: JavalinConfig) {
 
     var started = false
-    var serverPort = 0
+    var serverPort = -1
     var serverHost: String? = null
 
     fun server(): Server {
@@ -34,6 +34,10 @@ class JavalinServer(val config: JavalinConfig) {
 
     @Throws(BindException::class)
     fun start(wsAndHttpServlet: JavalinWsServlet) {
+        if (serverPort == -1 && config.inner.server == null) {
+            serverPort = 8080
+            JavalinLogger.info("No port specified, starting on port $serverPort. Call start(port) to change ports.")
+        }
 
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
