@@ -55,12 +55,9 @@ class JavalinServer(val config: JavalinConfig) {
         }
 
         server().apply {
-            handler = if (server.handler == null) wsAndHttpHandler else server.handler.attachHandler(wsAndHttpHandler)
+            handler = if (handler == null) wsAndHttpHandler else handler.attachHandler(wsAndHttpHandler)
             if (connectors.isEmpty()) { // user has not added their own connectors, we add a single HTTP connector
-                connectors = arrayOf(ServerConnector(server).apply {
-                    this.port = serverPort
-                    this.host = serverHost
-                })
+                connectors = arrayOf(defaultConnector(this))
             }
         }.start()
 
@@ -74,6 +71,11 @@ class JavalinServer(val config: JavalinConfig) {
 
         JettyUtil.reEnableJettyLogger()
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
+    }
+
+    private fun defaultConnector(server: Server) = ServerConnector(server).apply {
+        this.port = serverPort
+        this.host = serverHost
     }
 
     private fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
