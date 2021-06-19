@@ -10,3 +10,9 @@ buildNumber.properties
 
 .idea
 *.iml
+
+# ignore Eclipse specifics
+.classpath
+.settings
+.project
+.factorypath
