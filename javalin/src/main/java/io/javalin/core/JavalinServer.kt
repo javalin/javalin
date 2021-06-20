@@ -9,6 +9,7 @@ package io.javalin.core
 import io.javalin.core.util.JavalinLogger
 import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.Handler
+import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -76,6 +77,11 @@ class JavalinServer(val config: JavalinConfig) {
     private fun defaultConnector(server: Server) = ServerConnector(server).apply {
         this.port = serverPort
         this.host = serverHost
+        this.getConnectionFactories().forEach {
+            if (it is HttpConnectionFactory) {
+                it.getHttpConfiguration().setSendServerVersion(false)
+            }
+        }
     }
 
     private fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
