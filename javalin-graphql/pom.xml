@@ -21,12 +21,10 @@
         <dependency>
             <groupId>com.expediagroup</groupId>
             <artifactId>graphql-kotlin-schema-generator</artifactId>
-            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
-            <version>3.2.9.RELEASE</version>
         </dependency>
         <!-- END Plugin dependencies -->
         <!-- BEGIN Test dependencies -->
