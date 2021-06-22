@@ -294,9 +294,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun sessionAttribute(key: String, value: Any?) = req.session.setAttribute(key, value)
 
     /** Gets specified attribute from the user session, or null. */
-    @JvmOverloads
-    fun <T> sessionAttribute(key: String, consume: Boolean = false): T? =
-        (req.session.getAttribute(key) as? T).also { if (consume) this.sessionAttribute(key, null) }
+    fun <T> sessionAttribute(key: String): T? = req.session.getAttribute(key) as? T
+
+    fun <T> consumeSessionAttribute(key: String) = sessionAttribute<T?>(key).also { this.sessionAttribute(key, null) }
 
     /** Sets an attribute for the user session, and caches it on the request */
     fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, req)
