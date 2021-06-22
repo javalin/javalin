@@ -10,11 +10,11 @@ package io.javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.core.WildcardBracketAdjacentException
+import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
 import org.junit.Test
 import java.net.URLEncoder
 
@@ -197,5 +197,55 @@ class TestRoutingBracketsBasedParser {
     fun `getting splat-list works with path params in the mix`() = TestUtil.test { app, http ->
         app.get("/*/*/*/{test}") { ctx -> ctx.result(ctx.splats().toString()) }
         assertThat(http.getBody("/1/2/3/4")).isEqualTo("[1, 2, 3]")
+    }
+
+    @Test
+    fun `proposal works as expected`() = TestUtil.test { app, http ->
+        app.get("/a-*") { ctx -> ctx.result("A") }
+        app.get("/b-**") { ctx -> ctx.result("B") }
+        app.get("/c-<param>") { ctx -> ctx.result("C" + ctx.pathParam("param")) }
+        app.get("/d-{param}") { ctx -> ctx.result("D" + ctx.pathParam("param")) }
+        app.get("/e-<param>-end") { ctx -> ctx.result("E" + ctx.pathParam("param")) }
+        app.get("/f-{param}-end") { ctx -> ctx.result("F" + ctx.pathParam("param")) }
+        app.get("/g-***") { ctx -> ctx.result("G") }
+
+        proposalAssertions200(http)
+        nonMatchingAssertions(http)
+    }
+
+    private fun proposalAssertions200(http: HttpUtil) {
+        listOf(
+            "/a-" to "A", // this one is unexpected?
+            "/a-wildcard" to "A",
+            "/a-/other" to "A", // this one is unexpected?
+            "/b-" to "B",
+            "/b-/other" to "B",
+            "/c-hi" to "Chi",
+            "/c-with/slashes" to "Cwith/slashes",
+            "/d-hi" to "Dhi",
+            "/e-hi-end" to "Ehi",
+            "/e-with/slashes-end" to "Ewith/slashes",
+            "/f-hi-end" to "Fhi",
+            "/g-" to "G",
+            "/g-wildcard" to "G",
+            "/g-/other" to "G",
+        ).forEach { (path, body) ->
+            val response = http.get(path)
+            assertThat(response.status).`as`("$path - status").isEqualTo(200)
+            assertThat(response.body).`as`("$path - body").isEqualTo(body)
+        }
+    }
+
+    private fun nonMatchingAssertions(http: HttpUtil) {
+        listOf(
+            "/b-aa",
+            "/c-",
+            "/d-",
+            "/e-",
+            "/f-",
+        ).forEach {
+            val response = http.get(it)
+            assertThat(response.status).`as`("$it - 404").isEqualTo(404)
+        }
     }
 }
