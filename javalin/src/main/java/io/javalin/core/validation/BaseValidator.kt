@@ -6,25 +6,45 @@
 
 package io.javalin.core.validation
 
+import io.javalin.core.util.JavalinLogger
+import io.javalin.plugin.json.JavalinJson
+
 typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: ValidationError<T>)
-data class ValidationError<T>(val message: String, val args: Map<String, Any?> = mapOf(), var value: T? = null)
+data class ValidationError<T>(val message: String, val args: Map<String, Any?> = mapOf(), var value: Any? = null)
 class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : Exception()
 
-open class BaseValidator<T>(val value: T?, val fieldName: String) {
+open class BaseValidator<T>(val value: String?, val clazz: Class<T>, val fieldName: String) {
+
+    private var typedValue: T? = null
 
     internal val rules = mutableListOf<Rule<T>>()
     private val errors by lazy {
-        val errors = mutableMapOf<String, MutableList<ValidationError<T>>>()
-        if (value == null && this !is NullableValidator) {
-            errors[fieldName] = mutableListOf(ValidationError("NULLCHECK_FAILED", value = value))
+        if (this is BodyValidator) {
+            try {
+                typedValue = JavalinJson.fromJson(value!!, clazz)
+            } catch (e: Exception) {
+                JavalinLogger.info("Couldn't deserialize body to ${clazz.simpleName}", e)
+                return@lazy mapOf(clazz.simpleName to listOf(ValidationError("DESERIALIZATION_FAILED", value = value)))
+            }
+        } else if (this is NullableValidator || this is Validator) {
+            try {
+                typedValue = JavalinValidation.convertValue(clazz, value)
+            } catch (e: Exception) {
+                JavalinLogger.info("Parameter '${fieldName}' with value '${value}' is not a valid ${clazz.simpleName}")
+                return@lazy mapOf(fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value = value)))
+            }
+            if (this !is NullableValidator && typedValue == null) {
+                return@lazy mapOf(fieldName to listOf(ValidationError("NULLCHECK_FAILED", value = value)))
+            }
         }
+        val errors = mutableMapOf<String, MutableList<ValidationError<T>>>()
         rules.forEach { rule ->
-            if (value != null && !rule.check(value)) {
+            if (value != null && !rule.check(typedValue)) {
                 // the same validator can have multiple field names if it's a BodyValidator
                 errors.computeIfAbsent(rule.fieldName) { mutableListOf() }
-                errors[rule.fieldName]!!.add(rule.error.also { it.value = value })
+                errors[rule.fieldName]!!.add(rule.error.also { it.value = typedValue })
             }
         }
         errors.mapValues { it.value.toList() }.toMap() // make immutable
@@ -41,7 +61,7 @@ open class BaseValidator<T>(val value: T?, val fieldName: String) {
     }
 
     open fun get(): T? = when {
-        errors.isEmpty() -> value
+        errors.isEmpty() -> typedValue
         else -> throw ValidationException(errors as Map<String, List<ValidationError<Any>>>)
     }
 

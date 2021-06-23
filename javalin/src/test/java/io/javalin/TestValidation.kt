@@ -91,10 +91,9 @@ class TestValidation {
     @Test
     fun `default query param values work`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myInt = ctx.queryParam<Int>("my-qp", "788").get()
+            val myInt = ctx.queryParam<Int>("my-qp").getOrDefault(788)
             ctx.result(myInt.toString())
         }
-        assertThat(http.get("/?my-qp=a").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"a"}]}""")
         assertThat(http.get("/?my-qp=1").body).isEqualTo("1")
         assertThat(http.get("/").body).isEqualTo("788")
     }

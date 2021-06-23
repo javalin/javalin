@@ -33,6 +33,8 @@ object JavalinValidation {
         return (if (value != null) converter.invoke(value) else null) as T
     }
 
+    fun <T> hasConverter(clazz: Class<T>) = converters[clazz] != null
+
     @JvmStatic
     fun register(clazz: Class<*>, converter: (String) -> Any?) = converters.put(clazz, converter)
 
