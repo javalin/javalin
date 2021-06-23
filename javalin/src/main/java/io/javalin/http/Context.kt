@@ -8,10 +8,7 @@ package io.javalin.http
 
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
-import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.BodyValidator
-import io.javalin.core.validation.ValidationError
-import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge

@@ -16,7 +16,6 @@ import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
 import io.javalin.core.validation.collectErrors
-import io.javalin.http.Context
 import io.javalin.http.context.formParam
 import io.javalin.http.context.pathParam
 import io.javalin.http.context.queryParam
