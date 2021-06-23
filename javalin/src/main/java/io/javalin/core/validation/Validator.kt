@@ -13,10 +13,10 @@ import io.javalin.http.InternalServerErrorResponse
  * The non-nullable [Validator] uses [Rule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
  */
-open class Validator<T>(value: String?, clazz: Class<T>, fieldName: String) : BaseValidator<T>(value, clazz, fieldName) {
+open class Validator<T>(stringValue: String?, clazz: Class<T>, fieldName: String) : BaseValidator<T>(stringValue, clazz, fieldName) {
 
     fun allowNullable(): NullableValidator<T> {
-        if (this.rules.isEmpty()) return NullableValidator(value, clazz, fieldName)
+        if (this.rules.isEmpty()) return NullableValidator(stringValue, clazz, fieldName)
         throw IllegalStateException("Validator#allowNullable must be called before adding rules")
     }
 
