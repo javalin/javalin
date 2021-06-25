@@ -13,6 +13,6 @@ import io.javalin.http.Context
 class HeadersPlugin(private val headers: Headers) : Plugin {
 
     override fun apply(app: Javalin) {
-        app.before { ctx: Context? -> headers.headers.forEach { (t, u) -> ctx?.header(t, u) } }
+        app.before { ctx: Context -> headers.headers.forEach { (t, u) -> ctx.header(t, u) } }
     }
 }
