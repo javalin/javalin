@@ -7,10 +7,7 @@
 package io.javalin.core.util
 
 import java.time.Duration
-import java.util.Arrays
 import java.util.Locale
-import java.util.stream.Collectors
-import kotlin.collections.HashMap
 
 /**
  * A plugin to configure arbitrary headers, with a focus on the OWASP secure headers project
@@ -18,15 +15,12 @@ import kotlin.collections.HashMap
  */
 class Headers {
 
-    val headers: MutableMap<String, String> = HashMap(10)
+    val headers = mutableMapOf<String, String>()
 
     // Strict-Transport-Security: max-age=31536000 ; includeSubDomains
     fun strictTransportSecurity(duration: Duration, includeSubdomains: Boolean) {
-        if (includeSubdomains) {
-            headers[Header.STRICT_TRANSPORT_SECURITY] = "max-age=" + duration.seconds.toString() + " ; includeSubDomains"
-        } else {
-            headers[Header.STRICT_TRANSPORT_SECURITY] = "max-age=" + duration.seconds
-        }
+        headers[Header.STRICT_TRANSPORT_SECURITY] = "max-age=" + duration.seconds +
+                if (includeSubdomains) { " ; includeSubDomains" } else { "" }
     }
 
     // X-Frame-Options: deny | sameorigin | allow-from: DOMAIN
@@ -97,10 +91,7 @@ class Headers {
     }
 
     fun clearSiteData(vararg data: ClearSiteData) {
-        val value: String = Arrays.stream(data)
-                .map { obj: ClearSiteData -> obj.headerValue() }
-                .collect(Collectors.joining(","))
-        headers[Header.CLEAR_SITE_DATA] = value
+        headers[Header.CLEAR_SITE_DATA] = data.joinToString(",", transform = ClearSiteData::headerValue)
     }
 
     // Cross-Origin-Embedder-Policy: require-corp | unsafe-none
