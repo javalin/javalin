@@ -202,7 +202,7 @@ public class JavalinConfig {
         return this;
     }
 
-    public JavalinConfig headers(Supplier<Headers> headers) {
+    public JavalinConfig globalHeaders(Supplier<Headers> headers) {
         registerPlugin(new HeadersPlugin(headers.get()));
         return this;
     }

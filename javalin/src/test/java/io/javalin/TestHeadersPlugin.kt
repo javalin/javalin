@@ -124,7 +124,7 @@ class TestHeadersPlugin {
 
     @Test
     fun `test plugin is registered when calling headers method`() {
-        val javalin = Javalin.create { config: JavalinConfig -> config.headers { Headers() } }
+        val javalin = Javalin.create { config: JavalinConfig -> config.globalHeaders { Headers() } }
         val retrievedPlugin: HeadersPlugin = javalin._conf.getPlugin(HeadersPlugin::class.java)
         assertThat(retrievedPlugin).isSameAs(retrievedPlugin)
     }
@@ -135,7 +135,7 @@ class TestHeadersPlugin {
         headers.xContentTypeOptionsNoSniff()
         headers.clearSiteData(ClearSiteData.ANY)
 
-        val testApp = Javalin.create { config: JavalinConfig -> config.headers { headers } }
+        val testApp = Javalin.create { config: JavalinConfig -> config.globalHeaders { headers } }
         TestUtil.test(testApp) { app, http ->
             app.get("/") { it.status(200) }
             val returnedHeaders = http.get("/").headers
