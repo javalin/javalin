@@ -19,6 +19,8 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.CorsPlugin;
 import io.javalin.core.util.Header;
+import io.javalin.core.util.Headers;
+import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
@@ -197,6 +199,11 @@ public class JavalinConfig {
 
     public JavalinConfig compressionStrategy(CompressionStrategy compressionStrategy) {
         inner.compressionStrategy = compressionStrategy;
+        return this;
+    }
+
+    public JavalinConfig headers(Supplier<Headers> headers) {
+        registerPlugin(new HeadersPlugin(headers.get()));
         return this;
     }
 
