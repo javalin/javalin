@@ -26,14 +26,10 @@ class Headers {
     // X-Frame-Options: deny | sameorigin | allow-from: DOMAIN
     enum class XFrameOptions {
         DENY, SAMEORIGIN;
-
-        fun headerValue(): String {
-            return name.toLowerCase(Locale.ROOT)
-        }
     }
 
     fun xFrameOptions(xFrameOptions: XFrameOptions) {
-        headers[Header.X_FRAME_OPTIONS] = xFrameOptions.headerValue()
+        headers[Header.X_FRAME_OPTIONS] = xFrameOptions.name.toHttpHeaderValue()
     }
 
     fun xFrameOptions(domain: String) {
@@ -53,27 +49,19 @@ class Headers {
     // X-Permitted-Cross-Domain-Policies: none | master-only | by-content-type | by-ftp-filename | all
     enum class CrossDomainPolicy {
         NONE, MASTER_ONLY, BY_CONTENT_TYPE, BY_FTP_FILENAME, ALL;
-
-        fun headerValue(): String {
-            return name.toLowerCase(Locale.ROOT).replace("_", "-")
-        }
     }
 
     fun xPermittedCrossDomainPolicies(policy: CrossDomainPolicy) {
-        headers[Header.X_PERMITTED_CROSS_DOMAIN_POLICIES] = policy.headerValue()
+        headers[Header.X_PERMITTED_CROSS_DOMAIN_POLICIES] = policy.name.toHttpHeaderValue()
     }
 
     // Referrer-Policy: no-referrer | no-referrer-when-downgrade | origin | origin-when-cross-origin | same-origin | strict-origin | strict-origin-when-cross-origin | unsafe-url
     enum class ReferrerPolicy {
         NO_REFERRER, NO_REFERRER_WHEN_DOWNGRADE, ORIGIN, ORIGIN_WHEN_CROSS_ORIGIN, SAME_ORIGIN, STRICT_ORIGIN, STRICT_ORIGIN_WHEN_CROSS_ORIGIN, UNSAFE_URL;
-
-        fun headerValue(): String {
-            return name.toLowerCase(Locale.ROOT).replace("_", "-")
-        }
     }
 
     fun referrerPolicy(policy: ReferrerPolicy) {
-        headers[Header.REFERRER_POLICY] = policy.headerValue()
+        headers[Header.REFERRER_POLICY] = policy.name.toHttpHeaderValue()
     }
 
     // Clear-Site-Data: "cache" | "cookies" | "storage" | "executionContexts" | "*"
@@ -97,39 +85,31 @@ class Headers {
     // Cross-Origin-Embedder-Policy: require-corp | unsafe-none
     enum class CrossOriginEmbedderPolicy {
         UNSAFE_NONE, REQUIRE_CORP;
-
-        fun headerValue(): String {
-            return name.toLowerCase(Locale.ROOT).replace("_", "-")
-        }
     }
 
     fun crossOriginEmbedderPolicy(policy: CrossOriginEmbedderPolicy) {
-        headers[Header.CROSS_ORIGIN_EMBEDDER_POLICY] = policy.headerValue()
+        headers[Header.CROSS_ORIGIN_EMBEDDER_POLICY] = policy.name.toHttpHeaderValue()
     }
 
     // Cross-Origin-Opener-Policy: unsafe-none	| same-origin-allow-popups	| same-origin
     enum class CrossOriginOpenerPolicy {
         UNSAFE_NONE, SAME_ORIGIN_ALLOW_POPUPS, SAME_ORIGIN;
-
-        fun headerValue(): String {
-            return name.toLowerCase(Locale.ROOT).replace("_", "-")
-        }
     }
 
     fun crossOriginOpenerPolicy(policy: CrossOriginOpenerPolicy) {
-        headers[Header.CROSS_ORIGIN_OPENER_POLICY] = policy.headerValue()
+        headers[Header.CROSS_ORIGIN_OPENER_POLICY] = policy.name.toHttpHeaderValue()
     }
 
     // Cross-Origin-Resource-Policy: same-site	| same-origin | cross-origin
     enum class CrossOriginResourcePolicy {
         SAME_SITE, SAME_ORIGIN, CROSS_ORIGIN;
-
-        fun headerValue(): String {
-            return name.toLowerCase(Locale.ROOT).replace("_", "-")
-        }
     }
 
     fun crossOriginResourcePolicy(policy: CrossOriginResourcePolicy) {
-        headers[Header.CROSS_ORIGIN_RESOURCE_POLICY] = policy.headerValue()
+        headers[Header.CROSS_ORIGIN_RESOURCE_POLICY] = policy.name.toHttpHeaderValue()
+    }
+
+    private fun String.toHttpHeaderValue() : String {
+        return this.toLowerCase(Locale.ROOT).replace("_", "-")
     }
 }
