@@ -1,6 +1,7 @@
 package io.javalin.testtools
 
-import io.javalin.plugin.json.JavalinJackson
+import io.javalin.Javalin
+import io.javalin.plugin.json.jsonMapper
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -9,10 +10,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.util.function.Consumer
 
-class HttpClient(port: Int) {
+class HttpClient(val app: Javalin) {
 
     var okHttp = OkHttpClient()
-    var origin: String = "http://localhost:$port"
+    var origin: String = "http://localhost:${app.port()}"
 
     fun request(request: Request) = okHttp.newCall(request).execute()
     fun request(path: String, builder: Request.Builder) = request(builder.url(origin + path).build())
@@ -42,15 +43,16 @@ class HttpClient(port: Int) {
     fun delete(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
             request(path, combine(req, { it.delete(json.toRequestBody()) }))
 
+    private fun Any?.toRequestBody(): RequestBody {
+        return if (this == null) {
+            ByteArray(0).toRequestBody(null, 0, 0)
+        } else {
+            app.jsonMapper().toJson(this).toRequestBody(JSON_TYPE)
+        }
+    }
+
     companion object {
         private val JSON_TYPE = "application/json".toMediaType()
-        private fun Any?.toRequestBody(): RequestBody {
-            return if (this == null) {
-                ByteArray(0).toRequestBody(null, 0, 0)
-            } else {
-                JavalinJackson().toJson(this).toRequestBody(JSON_TYPE)
-            }
-        }
     }
 
     private fun combine(userBuilder: Consumer<Request.Builder>?, utilBuilder: Consumer<Request.Builder>): Request.Builder {

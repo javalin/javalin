@@ -53,10 +53,13 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val entry = wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
         try {
-            val upgradeContext = Context(req, res).apply {
-                pathParamMap = entry.extractPathParams(requestUri)
+            val upgradeContext = ContextUtil.init(
+                request = req,
+                response = res,
+                appAttributes = config.inner.appAttributes,
+                pathParamMap = entry.extractPathParams(requestUri),
                 matchedPath = entry.path
-            }
+            )
             config.inner.accessManager.manage({ ctx -> ctx.req.setAttribute(upgradeAllowedKey, true) }, upgradeContext, entry.roles)
             if (req.getAttribute(upgradeAllowedKey) != true) throw UnauthorizedResponse() // if set to true, the access manager ran the handler (== valid)
             req.setAttribute(upgradeContextKey, upgradeContext)
