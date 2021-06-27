@@ -8,10 +8,7 @@ package io.javalin.http
 
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
-import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.BodyValidator
-import io.javalin.core.validation.ValidationError
-import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
@@ -128,12 +125,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Creates a [Validator] for the body() value, with the prefix "Request body as $clazz"
      * Throws [BadRequestResponse] if validation fails.
      */
-    fun <T> bodyValidator(clazz: Class<T>) = try {
-        BodyValidator(JavalinJson.fromJson(body(), clazz))
-    } catch (e: Exception) {
-        JavalinLogger.info("Couldn't deserialize body to ${clazz.simpleName}", e)
-        throw ValidationException(mapOf(clazz.simpleName to listOf(ValidationError("DESERIALIZATION_FAILED", value = body()))))
-    }
+    fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz)
 
     /** Reified version of [bodyValidator] */
     @JvmSynthetic
@@ -152,20 +144,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(req) else listOf()
     }
 
-    /**
-     * Gets a form param if it exists, else a default value (null if not specified explicitly).
-     * Including a default value is mainly useful when calling from Java,
-     * use elvis (formParam(key) ?: default) instead in Kotlin.
-     */
-    @JvmOverloads
-    fun formParam(key: String, default: String? = null): String? = formParams(key).firstOrNull() ?: default
+    /** Gets a form param if it exists, else null */
+    fun formParam(key: String): String? = formParams(key).firstOrNull()
 
     /**
      * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
-    @JvmOverloads
-    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), key)
+    fun <T> formParam(key: String, clazz: Class<T>) = Validator.create(clazz, formParam(key), key)
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -263,20 +249,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the request protocol. */
     fun protocol(): String = req.protocol
 
-    /**
-     * Gets a query param if it exists, else a default value (null if not specified explicitly).
-     * Including a default value is mainly useful when calling from Java,
-     * use elvis (queryParam(key) ?: default) instead in Kotlin.
-     */
-    @JvmOverloads
-    fun queryParam(key: String, default: String? = null): String? = queryParams(key).firstOrNull() ?: default
+    /** Gets a query param if it exists, else null */
+    fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
     /**
      * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
      * Throws [BadRequestResponse] if validation fails.
      */
-    @JvmOverloads
-    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, queryParam(key, default), key)
+    fun <T> queryParam(key: String, clazz: Class<T>) = Validator.create(clazz, queryParam(key), key)
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()

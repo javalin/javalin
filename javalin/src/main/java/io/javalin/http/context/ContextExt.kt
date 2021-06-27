@@ -13,10 +13,10 @@ inline fun <reified T : Any> Context.body(): T = bodyAsClass(T::class.java)
 inline fun <reified T : Any> Context.header(header: String) = header(header, T::class.java)
 
 /** Reified version of [formParam] (Kotlin only) */
-inline fun <reified T : Any> Context.formParam(key: String, default: String? = null) = formParam(key, T::class.java, default)
+inline fun <reified T : Any> Context.formParam(key: String) = formParam(key, T::class.java)
 
 /** Reified version of [pathParam] (Kotlin only) */
 inline fun <reified T : Any> Context.pathParam(key: String) = pathParam(key, T::class.java)
 
 /** Reified version of [queryParam] (Kotlin only) */
-inline fun <reified T : Any> Context.queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)
+inline fun <reified T : Any> Context.queryParam(key: String) = queryParam(key, T::class.java)

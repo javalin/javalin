@@ -16,7 +16,6 @@ import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
 import io.javalin.core.validation.collectErrors
-import io.javalin.http.Context
 import io.javalin.http.context.formParam
 import io.javalin.http.context.pathParam
 import io.javalin.http.context.queryParam
@@ -91,7 +90,7 @@ class TestValidation {
     @Test
     fun `default query param values work`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myInt = ctx.queryParam<Int>("my-qp", "788").get()
+            val myInt = ctx.queryParam<Int>("my-qp").getOrDefault(788)
             ctx.result(myInt.toString())
         }
         assertThat(http.get("/?my-qp=a").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"a"}]}""")

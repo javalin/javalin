@@ -9,7 +9,9 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.security.BasicAuthFilter
 import io.javalin.core.util.Header
+import io.javalin.http.context.formParam
 import io.javalin.http.context.header
+import io.javalin.http.context.queryParam
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil
 import io.javalin.testing.TestUtil
@@ -147,7 +149,7 @@ class TestRequest {
 
     @Test
     fun `queryParam defaults to default value`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp", "default")!!) }
+        app.get("/") { ctx -> ctx.result("" + ctx.queryParam<String>("qp").getOrDefault("default")) }
         assertThat(http.getBody("/")).isEqualTo("default")
     }
 
@@ -192,7 +194,7 @@ class TestRequest {
 
     @Test
     fun `formParam returns defaults to default value`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp4", "4")!!) }
+        app.post("/") { ctx -> ctx.result("" + ctx.formParam<Int>("fp4").getOrDefault(4)) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
     }
 
