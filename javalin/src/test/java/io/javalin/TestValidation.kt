@@ -103,10 +103,10 @@ class TestValidation {
         assertThat(http.get("/duration?from=abc").status).isEqualTo(500)
     }
 
-    val timeModuleMaper by lazy { JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) }) }
+    val timeModuleMapper by lazy { JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) }) }
 
     @Test
-    fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper(timeModuleMaper) }) { app, http ->
+    fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper(timeModuleMapper) }) { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParam<Instant>("from").get()
