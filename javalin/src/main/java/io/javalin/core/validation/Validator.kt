@@ -26,8 +26,8 @@ open class Validator<T>(stringValue: String?, clazz: Class<T>, fieldName: String
     override fun get(): T = super.get()!!
 
     fun getOrDefault(default: T): T = when {
-        errors().isEmpty() -> super.get()!!
-        else -> default
+        stringValue == null -> default
+        else -> super.get()!!
     }
 
     companion object {

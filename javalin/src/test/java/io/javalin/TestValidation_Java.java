@@ -27,7 +27,8 @@ public class TestValidation_Java {
     public void default_values_work_from_java() {
         TestUtil.test((app, http) -> {
             app.get("/validate", ctx -> ctx.result(ctx.queryParam("param", Integer.class).getOrDefault(250).toString()));
-            assertThat(http.getBody("/validate?param=hmm")).isEqualTo("250");
+            assertThat(http.getBody("/validate?param=hmm")).contains("TYPE_CONVERSION_FAILED");
+            assertThat(http.getBody("/validate")).isEqualTo("250");
         });
     }
 
