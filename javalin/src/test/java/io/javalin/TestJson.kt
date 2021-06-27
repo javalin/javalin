@@ -39,16 +39,13 @@ class TestJson {
 
     @Test
     fun `json-mapper maps json to object`() = TestUtil.test { app, http ->
-        app.post("/hello") { ctx ->
-            ctx.body<SerializableObject>()
-            ctx.result("success")
-        }
+        app.post("/hello") { it.result(it.body<SerializableObject>().value1) }
         val jsonString = JavalinJackson().toJson(SerializableObject())
-        assertThat(http.post("/hello").body(jsonString).asString().body).isEqualTo("success")
+        assertThat(http.post("/hello").body(jsonString).asString().body).isEqualTo("FirstValue")
     }
 
     @Test
-    fun `invalid json is mapped to BadRequestResponse`() = TestUtil.test { app, http ->
+    fun `invalid json is handled by Validator`() = TestUtil.test { app, http ->
         app.get("/hello") { it.body<NonSerializableObject>() }
         assertThat(http.get("/hello").status).isEqualTo(400)
         val response = http.getBody("/hello").replace("\\s".toRegex(), "")
