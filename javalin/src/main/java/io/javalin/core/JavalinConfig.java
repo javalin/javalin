@@ -45,6 +45,7 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import static io.javalin.http.util.ContextUtil.maxRequestSizeKey;
+import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
 public class JavalinConfig {
     // @formatter:off
@@ -192,7 +193,7 @@ public class JavalinConfig {
     }
 
     public void jsonMapper(JsonMapper jsonMapper) {
-        inner.appAttributes.put("json-mapper", jsonMapper);
+        inner.appAttributes.put(JSON_MAPPER_KEY, jsonMapper);
     }
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
@@ -217,7 +218,7 @@ public class JavalinConfig {
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
-        config.inner.appAttributes.putIfAbsent("json-mapper", new JavalinJackson());
+        config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         app.attribute(maxRequestSizeKey, config.maxRequestSize);
     }
 
