@@ -7,7 +7,7 @@
 package io.javalin
 
 import com.google.gson.GsonBuilder
-import io.javalin.testing.SerializeableObject
+import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -36,10 +36,10 @@ class TestAppAttributes {
     fun `app attributes can be accessed through the Context`() = TestUtil.test(attributedJavalin) { app, http ->
         val gson = GsonBuilder().create()
         app.get("/") { ctx ->
-            val rendered = ctx.appAttribute<MyJson>(MyJson::class.java.name).render(SerializeableObject())
+            val rendered = ctx.appAttribute<MyJson>(MyJson::class.java.name).render(SerializableObject())
             ctx.result(rendered)
         }
-        assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializeableObject()))
+        assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
     }
 
 }
