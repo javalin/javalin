@@ -6,18 +6,10 @@ import io.javalin.plugin.graphql.helpers.ContextExample
 import io.javalin.plugin.graphql.helpers.MutationExample
 import io.javalin.plugin.graphql.helpers.QueryExample
 import io.javalin.plugin.graphql.helpers.SubscriptionExample
-import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import junit.framework.Assert.assertEquals
-import org.assertj.core.api.Assertions.assertThat
-import org.java_websocket.client.WebSocketClient
-import org.java_websocket.drafts.Draft_6455
-import org.java_websocket.handshake.ServerHandshake
 import org.json.JSONObject
 import org.junit.Test
-import java.net.URI
-import java.time.Duration
-import java.util.concurrent.TimeoutException
 
 
 class TestGraphQLAdvanced {

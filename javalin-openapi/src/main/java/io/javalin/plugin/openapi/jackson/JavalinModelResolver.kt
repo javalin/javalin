@@ -8,7 +8,6 @@ import io.swagger.v3.core.converter.ModelConverter
 import io.swagger.v3.core.converter.ModelConverterContext
 import io.swagger.v3.core.jackson.ModelResolver
 import io.swagger.v3.core.util.PrimitiveType
-import io.swagger.v3.oas.models.media.DateTimeSchema
 import io.swagger.v3.oas.models.media.Schema
 import java.time.Instant
 

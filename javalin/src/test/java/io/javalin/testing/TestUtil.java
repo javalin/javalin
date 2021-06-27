@@ -10,7 +10,6 @@ import com.mashape.unirest.http.HttpMethod;
 import io.javalin.Javalin;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.http.Handler;
-import io.javalin.plugin.json.JavalinJackson;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 

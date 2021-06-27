@@ -26,7 +26,6 @@ import org.java_websocket.handshake.ServerHandshake
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeoutException

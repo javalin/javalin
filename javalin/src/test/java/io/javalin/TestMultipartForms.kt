@@ -6,17 +6,14 @@
 
 package io.javalin
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.http.context.formParam
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat

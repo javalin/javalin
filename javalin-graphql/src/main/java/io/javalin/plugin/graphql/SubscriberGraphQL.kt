@@ -1,7 +1,6 @@
 package io.javalin.plugin.graphql
 
 import graphql.ExecutionResult
-import io.javalin.plugin.json.JavalinJackson
 import io.javalin.websocket.WsMessageContext
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription

@@ -7,7 +7,7 @@
 package io.javalin.core.util
 
 import java.time.Duration
-import java.util.Locale
+import java.util.*
 
 /**
  * A plugin to configure arbitrary headers, with a focus on the OWASP secure headers project

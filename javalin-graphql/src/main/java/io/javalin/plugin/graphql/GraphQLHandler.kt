@@ -5,7 +5,6 @@ import com.expediagroup.graphql.toSchema
 import graphql.GraphQL
 import io.javalin.http.Context
 import io.javalin.plugin.graphql.graphql.GraphQLRun
-import io.javalin.plugin.json.JavalinJackson
 import io.javalin.websocket.WsMessageContext
 
 class GraphQLHandler(val options: GraphQLOptions) {
@@ -29,7 +28,6 @@ class GraphQLHandler(val options: GraphQLOptions) {
             if (result != null) {
                 ctx.json(result)
             }
-
         }
     }
 

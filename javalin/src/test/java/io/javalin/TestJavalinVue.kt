@@ -8,7 +8,6 @@ package io.javalin
 
 import io.javalin.http.Context
 import io.javalin.plugin.json.JavalinJackson
-import io.javalin.plugin.json.JsonMapper
 import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent

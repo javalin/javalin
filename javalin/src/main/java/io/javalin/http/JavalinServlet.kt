@@ -9,7 +9,6 @@ package io.javalin.http
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.RouteRole
 import io.javalin.core.util.CorsPlugin
-import io.javalin.core.util.Header
 import io.javalin.core.util.LogUtil
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
