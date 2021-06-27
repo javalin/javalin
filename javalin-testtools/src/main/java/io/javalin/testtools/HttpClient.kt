@@ -1,6 +1,6 @@
 package io.javalin.testtools
 
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.plugin.json.JavalinJackson
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -48,7 +48,7 @@ class HttpClient(port: Int) {
             return if (this == null) {
                 ByteArray(0).toRequestBody(null, 0, 0)
             } else {
-                JavalinJson.toJson(this).toRequestBody(JSON_TYPE)
+                JavalinJackson().toJson(this).toRequestBody(JSON_TYPE)
             }
         }
     }

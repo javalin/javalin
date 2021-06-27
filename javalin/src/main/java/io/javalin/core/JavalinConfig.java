@@ -29,6 +29,8 @@ import io.javalin.http.staticfiles.JettyResourceHandler;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
+import io.javalin.plugin.json.JavalinJackson;
+import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +56,7 @@ public class JavalinConfig {
     public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
-    public Long maxRequestSize = 1_000_000L; // server will not accept payloads larger than 1mb by default
+    public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests
     @NotNull public Long asyncRequestTimeout = 0L;
     @NotNull public Inner inner = new Inner();
 
@@ -189,6 +191,10 @@ public class JavalinConfig {
         registerPlugin(new HeadersPlugin(headers.get()));
     }
 
+    public void jsonMapper(JsonMapper jsonMapper) {
+        inner.appAttributes.put("json-mapper", jsonMapper);
+    }
+
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         userConfig.accept(config); // apply user config to the default config
 
@@ -211,6 +217,7 @@ public class JavalinConfig {
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
+        config.inner.appAttributes.putIfAbsent("json-mapper", new JavalinJackson());
         app.attribute(maxRequestSizeKey, config.maxRequestSize);
     }
 

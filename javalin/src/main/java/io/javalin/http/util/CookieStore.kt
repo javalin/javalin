@@ -6,12 +6,13 @@
 
 package io.javalin.http.util
 
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.http.Context
+import io.javalin.plugin.json.jsonMapper
 import java.util.*
 import javax.servlet.http.Cookie
 
 @Suppress("UNCHECKED_CAST")
-class CookieStore(cookie: String?) {
+class CookieStore(val context: Context, cookie: String?) {
 
     companion object {
         var COOKIE_NAME = "javalin-cookie-store"
@@ -28,8 +29,8 @@ class CookieStore(cookie: String?) {
     fun clear() = cookieMap.clear()
 
     private fun deserialize(cookie: String?) = if (!cookie.isNullOrEmpty()) {
-        JavalinJson.fromJson(String(Base64.getDecoder().decode(cookie)), Map::class.java) as MutableMap<String, Any>
+        context.jsonMapper().fromJson(String(Base64.getDecoder().decode(cookie)), Map::class.java) as MutableMap<String, Any>
     } else mutableMapOf()
 
-    private fun serialize(map: MutableMap<String, Any>) = Base64.getEncoder().encodeToString(JavalinJson.toJson(map).toByteArray())
+    private fun serialize(map: MutableMap<String, Any>) = Base64.getEncoder().encodeToString(context.jsonMapper().toJson(map).toByteArray())
 }

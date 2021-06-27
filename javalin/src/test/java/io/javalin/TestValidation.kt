@@ -20,8 +20,7 @@ import io.javalin.http.context.formParam
 import io.javalin.http.context.pathParam
 import io.javalin.http.context.queryParam
 import io.javalin.plugin.json.JavalinJackson
-import io.javalin.plugin.json.JavalinJson
-import io.javalin.testing.SerializeableObject
+import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
@@ -105,18 +104,20 @@ class TestValidation {
     }
 
     @Test
-    fun `custom converter works`() = TestUtil.test { app, http ->
-        JavalinJackson.configure(ObjectMapper().apply { registerModule(JavaTimeModule()) })
-        JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
-        app.get("/instant") { ctx ->
-            val fromDate = ctx.queryParam<Instant>("from").get()
-            val toDate = ctx.queryParam<Instant>("to")
-                .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
-                .get()
-            ctx.json(toDate.isAfter(fromDate))
+    fun `custom converter works`() {
+        val jsonMapper = JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) })
+        TestUtil.test(Javalin.create { it.jsonMapper(jsonMapper) }) { app, http ->
+            JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
+            app.get("/instant") { ctx ->
+                val fromDate = ctx.queryParam<Instant>("from").get()
+                val toDate = ctx.queryParam<Instant>("to")
+                    .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
+                    .get()
+                ctx.json(toDate.isAfter(fromDate))
+            }
+            assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
+            assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":[{"message":"'to' has to be after 'from'","args":{},"value":1262347100.000000000}]}""")
         }
-        assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
-        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":[{"message":"'to' has to be after 'from'","args":{},"value":1262347100.000000000}]}""")
     }
 
     @Test
@@ -153,20 +154,20 @@ class TestValidation {
     @Test
     fun `validatedBody works`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
-            val obj = ctx.bodyValidator<SerializeableObject>()
+            val obj = ctx.bodyValidator<SerializableObject>()
                 .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
                 .get()
             ctx.result(obj.value1)
         }
-        val invalidJson = JavalinJson.toJson(SerializeableObject())
-        val validJson = JavalinJson.toJson(SerializeableObject().apply {
+        val invalidJson = JavalinJackson().toJson(SerializableObject())
+        val validJson = JavalinJackson().toJson(SerializableObject().apply {
             value1 = "Bananas"
         })
 
-        """{"SerializeableObject":[{"message":"DESERIALIZATION_FAILED","args":{},"value":"not-json"}]}""".let { expected ->
+        """{"SerializableObject":[{"message":"DESERIALIZATION_FAILED","args":{},"value":"not-json"}]}""".let { expected ->
             assertThat(http.post("/json").body("not-json").asString().body).isEqualTo(expected)
         }
-        """{"SerializeableObject":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
+        """{"SerializableObject":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
             assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo(expected)
         }
 
@@ -176,17 +177,17 @@ class TestValidation {
     @Test
     fun `multiple checks and named fields work when validating class`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
-            val obj = ctx.bodyValidator<SerializeableObject>()
+            val obj = ctx.bodyValidator<SerializableObject>()
                 .check({ false }, "UnnamedFieldCheck1")
                 .check({ false }, "UnnamedFieldCheck2")
                 .check("named_field", { false }, "NamedFieldCheck3")
                 .get()
         }
-        val expected = """{"SerializeableObject":[
+        val expected = """{"SerializableObject":[
             {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}},
             {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue"}}],
             "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
-        val response = http.post("/json").body(JavalinJson.toJson(SerializeableObject())).asString().body
+        val response = http.post("/json").body(JavalinJackson().toJson(SerializableObject())).asString().body
         assertThat(response).isEqualTo(expected)
     }
 

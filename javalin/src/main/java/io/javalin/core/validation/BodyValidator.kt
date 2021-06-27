@@ -6,7 +6,10 @@
 
 package io.javalin.core.validation
 
-open class BodyValidator<T>(stringValue: String?, clazz: Class<T>) : BaseValidator<T>(stringValue, clazz, clazz.simpleName) {
+import io.javalin.plugin.json.JsonMapper
+
+
+open class BodyValidator<T>(stringValue: String?, clazz: Class<T>, jsonMapper: JsonMapper) : BaseValidator<T>(stringValue, clazz, clazz.simpleName, jsonMapper) {
     fun check(check: Check<T>, error: String) = check(clazz.simpleName, check, error)
     fun check(check: Check<T>, error: ValidationError<T>) = check(clazz.simpleName, check, error)
     fun check(fieldName: String, check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>

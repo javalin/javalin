@@ -7,7 +7,7 @@
 package io.javalin.core.validation
 
 import io.javalin.core.util.JavalinLogger
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.plugin.json.JsonMapper
 
 typealias Check<T> = (T) -> Boolean
 
@@ -15,13 +15,13 @@ data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: Valid
 data class ValidationError<T>(val message: String, val args: Map<String, Any?> = mapOf(), var value: Any? = null)
 class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : Exception()
 
-open class BaseValidator<T>(val stringValue: String?, val clazz: Class<T>, val fieldName: String) {
+open class BaseValidator<T>(val stringValue: String?, val clazz: Class<T>, val fieldName: String, jsonMapper: JsonMapper? = null) {
     private var typedValue: T? = null
     internal val rules = mutableListOf<Rule<T>>()
     private val errors by lazy {
         if (this is BodyValidator) {
             try {
-                typedValue = JavalinJson.fromJson(stringValue!!, clazz)
+                typedValue = jsonMapper!!.fromJson(stringValue!!, clazz)
             } catch (e: Exception) {
                 JavalinLogger.info("Couldn't deserialize body to ${clazz.simpleName}", e)
                 return@lazy mapOf(clazz.simpleName to listOf(ValidationError("DESERIALIZATION_FAILED", value = stringValue)))

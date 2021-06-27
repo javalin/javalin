@@ -7,6 +7,9 @@
 package io.javalin
 
 import io.javalin.http.Context
+import io.javalin.plugin.json.JavalinJackson
+import io.javalin.plugin.json.JsonMapper
+import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestUtil
@@ -46,11 +49,12 @@ class TestJavalinVue {
     private val state = State(User("tipsy", "tipsy@tipsy.tipsy"), Role("Maintainer"))
 
     private fun String.uriEncodeForJavascript() =
-            URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+", "%20")
+        URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+", "%20")
 
     @Test
     fun `vue component with state`() = TestUtil.test { app, http ->
-        val encodedState = """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
+        val encodedState =
+            """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { ctx -> state }
         app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/vue/test-path-param?qp=test-query-param")
@@ -87,7 +91,8 @@ class TestJavalinVue {
     @Test
     fun `vue3 component with state`() = TestUtil.test { app, http ->
         JavalinVue.vueVersion { it.vue3("app") }
-        val encodedState = """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
+        val encodedState =
+            """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { ctx -> state }
         app.get("/vue/:my-param", VueComponent("<test-component-3></test-component-3>"))
         val res = http.getBody("/vue/test-path-param?qp=test-query-param")
@@ -187,6 +192,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to webjar on localhost`() = TestUtil.test { app, http ->
         val ctx = mockk<Context>(relaxed = true)
+        every { ctx.jsonMapper() } returns JavalinJackson()
         JavalinVue.isDev = true // reset
         every { ctx.url() } returns "http://localhost:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
@@ -197,6 +203,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to cdn on non-localhost`() = TestUtil.test { app, http ->
         val ctx = mockk<Context>(relaxed = true)
+       every { ctx.jsonMapper() } returns JavalinJackson()
         every { ctx.url() } returns "https://example.com"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
@@ -206,6 +213,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to https even on non https hosts`() = TestUtil.test { app, http ->
         val ctx = mockk<Context>(relaxed = true)
+       every { ctx.jsonMapper() } returns JavalinJackson()
         every { ctx.url() } returns "http://123.123.123.123:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
@@ -215,6 +223,7 @@ class TestJavalinVue {
     @Test
     fun `@inlineFile functionality works as expected if not-dev`() = TestUtil.test { app, http ->
         val ctx = mockk<Context>(relaxed = true)
+       every { ctx.jsonMapper() } returns JavalinJackson()
         every { ctx.url() } returns "http://123.123.123.123:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
@@ -228,6 +237,7 @@ class TestJavalinVue {
     @Test
     fun `@inlineFile functionality works as expected if dev`() = TestUtil.test { app, http ->
         val ctx = mockk<Context>(relaxed = true)
+       every { ctx.jsonMapper() } returns JavalinJackson()
         every { ctx.url() } returns "http://localhost:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }

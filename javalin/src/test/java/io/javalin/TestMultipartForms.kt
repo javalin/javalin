@@ -6,6 +6,7 @@
 
 package io.javalin
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.http.context.formParam
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.TestUtil
@@ -56,7 +57,8 @@ class TestMultipartForms {
         val response = http.post("/test-upload")
                 .field("upload", uploadFile)
                 .asString()
-        val uploadInfo = JavalinJackson.fromJson(response.body, UploadInfo::class.java)
+
+        val uploadInfo = JavalinJackson().fromJson(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo("application/octet-stream")
@@ -73,7 +75,7 @@ class TestMultipartForms {
         val response = http.post("/test-upload")
                 .field("upload", uploadFile, "image/png")
                 .asString()
-        val uploadInfo = JavalinJackson.fromJson(response.body, UploadInfo::class.java)
+        val uploadInfo = JavalinJackson().fromJson(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo("image/png")

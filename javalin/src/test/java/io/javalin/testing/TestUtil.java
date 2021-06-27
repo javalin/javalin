@@ -6,15 +6,11 @@
 
 package io.javalin.testing;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpMethod;
 import io.javalin.Javalin;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.http.Handler;
-import io.javalin.plugin.json.FromJsonMapper;
 import io.javalin.plugin.json.JavalinJackson;
-import io.javalin.plugin.json.JavalinJson;
-import io.javalin.plugin.json.ToJsonMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
@@ -24,8 +20,6 @@ public class TestUtil {
 
     public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
         JavalinLogger.enabled = false;
-        JavalinJson.setToJsonMapper(JavalinJackson.INSTANCE.getDefaultToMapper());
-        JavalinJson.setFromJsonMapper(JavalinJackson.INSTANCE.getDefaultFromMapper());
         javalin.start(0);
         HttpUtil http = new HttpUtil(javalin.port());
         test.accept(javalin, http);
