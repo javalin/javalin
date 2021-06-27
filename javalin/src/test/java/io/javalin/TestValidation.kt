@@ -103,21 +103,20 @@ class TestValidation {
         assertThat(http.get("/duration?from=abc").status).isEqualTo(500)
     }
 
+    val timeModuleMaper by lazy { JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) }) }
+
     @Test
-    fun `custom converter works`() {
-        val jsonMapper = JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) })
-        TestUtil.test(Javalin.create { it.jsonMapper(jsonMapper) }) { app, http ->
-            JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
-            app.get("/instant") { ctx ->
-                val fromDate = ctx.queryParam<Instant>("from").get()
-                val toDate = ctx.queryParam<Instant>("to")
-                    .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
-                    .get()
-                ctx.json(toDate.isAfter(fromDate))
-            }
-            assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
-            assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":[{"message":"'to' has to be after 'from'","args":{},"value":1262347100.000000000}]}""")
+    fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper(timeModuleMaper) }) { app, http ->
+        JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
+        app.get("/instant") { ctx ->
+            val fromDate = ctx.queryParam<Instant>("from").get()
+            val toDate = ctx.queryParam<Instant>("to")
+                .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
+                .get()
+            ctx.json(toDate.isAfter(fromDate))
         }
+        assertThat(http.get("/instant?from=1262347200000&to=1262347300000").body).isEqualTo("true")
+        assertThat(http.get("/instant?from=1262347200000&to=1262347100000").body).isEqualTo("""{"to":[{"message":"'to' has to be after 'from'","args":{},"value":1262347100.000000000}]}""")
     }
 
     @Test
