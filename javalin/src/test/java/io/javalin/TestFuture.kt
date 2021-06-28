@@ -110,7 +110,22 @@ class TestFuture {
         assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/plain")
     }
 
-    private fun getFuture(result: String?): CompletableFuture<String> {
+    private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5} }
+
+    @Test
+    fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->
+        app.get("/") { it.future(getFuture("Test", delay = 50)) }
+        assertThat(http.get("/").body).isEqualTo("Request timed out")
+    }
+
+    @Test
+    fun `can override timeout with custom error message`() = TestUtil.test(impatientServer) { app, http ->
+        app.get("/") { it.future(getFuture("Test", delay = 50)) }
+        app.error(500) { ctx -> ctx.result("My own simple error message") }
+        assertThat(http.get("/").body).isEqualTo("My own simple error message")
+    }
+
+    private fun getFuture(result: String?, delay: Long = 10): CompletableFuture<String> {
         val future = CompletableFuture<String>()
         Executors.newSingleThreadScheduledExecutor().schedule({
             if (result != null) {
@@ -118,7 +133,7 @@ class TestFuture {
             } else {
                 future.cancel(false)
             }
-        }, 10, TimeUnit.MILLISECONDS)
+        }, delay, TimeUnit.MILLISECONDS)
         return future
     }
 

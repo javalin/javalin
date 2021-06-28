@@ -12,6 +12,9 @@ import io.javalin.core.util.CorsPlugin
 import io.javalin.core.util.LogUtil
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
+import javax.servlet.AsyncContext
+import javax.servlet.AsyncEvent
+import javax.servlet.AsyncListener
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -79,7 +82,14 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 return finishUpResponse(res) // request lifecycle is complete (blocking/synchronous)
             }
             // user called Context#future, we call startAsync and setup callbacks
-            val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
+            val asyncContext = req.startAsync().apply {
+                timeout = config.asyncRequestTimeout
+                addTimeoutListener {
+                    ctx.status(500).result("Request timed out")
+                    finishUpResponse(response as HttpServletResponse)
+                    complete()
+                }
+            }
             ctx.resultFuture()!!.exceptionally { throwable ->
                 exceptionMapper.handleFutureException(ctx, throwable)
             }.thenAccept { futureValue ->
@@ -104,4 +114,14 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     }
 
     private fun isCorsEnabled(config: JavalinConfig) = config.inner.plugins[CorsPlugin::class.java] != null
+}
+
+
+fun AsyncContext.addTimeoutListener(callback: () -> Unit) {
+    this.addListener(object : AsyncListener {
+        override fun onComplete(event: AsyncEvent) {}
+        override fun onError(event: AsyncEvent) {}
+        override fun onStartAsync(event: AsyncEvent) {}
+        override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
+    })
 }
