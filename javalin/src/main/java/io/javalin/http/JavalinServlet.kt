@@ -15,6 +15,7 @@ import io.javalin.http.util.MethodNotAllowedUtil
 import javax.servlet.AsyncContext
 import javax.servlet.AsyncEvent
 import javax.servlet.AsyncListener
+import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -62,7 +63,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
 
-            fun finishUpResponse(httpServletResponse: HttpServletResponse) {
+            fun finishUpResponse(response: ServletResponse) {
                 tryWithExceptionMapper { // run error mappers (can mutate ctx)
                     errorMapper.handle(ctx.status(), ctx)
                 }
@@ -71,7 +72,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                         entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
                     }
                 }
-                JavalinResponseWrapper(httpServletResponse, rwc).write(ctx.resultStream()) // write the response
+                JavalinResponseWrapper(response as HttpServletResponse, rwc).write(ctx.resultStream()) // write the response
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx)) // log stuff
             }
 
@@ -82,24 +83,18 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 return finishUpResponse(res) // request lifecycle is complete (blocking/synchronous)
             }
             // user called Context#future, we call startAsync and setup callbacks
-            val asyncContext = req.startAsync().apply {
-                timeout = config.asyncRequestTimeout
-                addTimeoutListener {
-                    ctx.status(500).result("Request timed out")
-                    finishUpResponse(response as HttpServletResponse)
-                    complete()
-                }
+            val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
+            asyncContext.addTimeoutListener {
+                ctx.status(500).result("Request timed out")
+                finishUpResponse(asyncContext.response).also { asyncContext.complete() }
             }
             ctx.resultFuture()!!.exceptionally { throwable ->
                 exceptionMapper.handleFutureException(ctx, throwable)
             }.thenAccept { futureValue ->
                 ctx.futureConsumer?.accept(futureValue) // this consumer can set result, status, etc
-                finishUpResponse(asyncContext.response as HttpServletResponse)
-                asyncContext.complete()
-            }.exceptionally { throwable ->
-                exceptionMapper.handleUnexpectedThrowable(res, throwable) // exception might occur when writing response
-                asyncContext.complete()
-                null
+                finishUpResponse(asyncContext.response).also { asyncContext.complete() }
+            }.exceptionally { throwable -> // exception might occur when writing response
+                exceptionMapper.handleUnexpectedThrowable(res, throwable).also { asyncContext.complete() }
             }
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(res, throwable)
@@ -116,12 +111,9 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     private fun isCorsEnabled(config: JavalinConfig) = config.inner.plugins[CorsPlugin::class.java] != null
 }
 
-
-fun AsyncContext.addTimeoutListener(callback: () -> Unit) {
-    this.addListener(object : AsyncListener {
-        override fun onComplete(event: AsyncEvent) {}
-        override fun onError(event: AsyncEvent) {}
-        override fun onStartAsync(event: AsyncEvent) {}
-        override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
-    })
-}
+private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.addListener(object : AsyncListener {
+    override fun onComplete(event: AsyncEvent) {}
+    override fun onError(event: AsyncEvent) {}
+    override fun onStartAsync(event: AsyncEvent) {}
+    override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
+})
