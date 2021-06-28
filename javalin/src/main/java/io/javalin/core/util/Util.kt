@@ -14,7 +14,6 @@ import java.io.File
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*
-import java.util.ServiceLoader
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 import javax.servlet.http.HttpServletResponse

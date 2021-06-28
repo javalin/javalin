@@ -87,7 +87,7 @@ object ContextUtil {
         false
     }
 
-    fun changeBaseRequest(ctx: Context, req: HttpServletRequest) = Context(req, ctx.res).apply {
+    fun changeBaseRequest(ctx: Context, req: HttpServletRequest) = Context(req, ctx.res, ctx.appAttributes).apply {
         this.pathParamMap = ctx.pathParamMap
         this.matchedPath = ctx.matchedPath
     }

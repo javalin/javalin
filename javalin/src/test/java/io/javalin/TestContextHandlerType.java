@@ -7,11 +7,10 @@ package io.javalin;
 
 import io.javalin.http.HandlerType;
 import io.javalin.testing.TestUtil;
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.assertj.core.api.Assertions;
+import org.junit.Test;
 
 public class TestContextHandlerType {
 

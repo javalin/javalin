@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.javalin.plugin.json.ToJsonMapper
 import io.javalin.plugin.openapi.utils.LazyDefaultValue
 import io.swagger.v3.core.jackson.mixin.SchemaMixin
 import io.swagger.v3.oas.models.media.Schema

@@ -11,51 +11,31 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 
-object JavalinJackson {
-
-    private var objectMapper: ObjectMapper? = null
-    private val defaultObjectMapper: ObjectMapper by lazy { defaultObjectMapper() }
-
-    @JvmStatic
-    fun configure(staticObjectMapper: ObjectMapper) {
-        objectMapper = staticObjectMapper
-    }
-
-    @JvmStatic
-    fun getObjectMapper(): ObjectMapper {
-        return (objectMapper ?: defaultObjectMapper)
-    }
-
-    @JvmStatic
-    fun defaultObjectMapper(): ObjectMapper = try {
+val defaultMapper by lazy {
+    try {
         val className = OptionalDependency.JACKSON_KT.testClass
         ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
     } catch (e: ClassNotFoundException) {
         ObjectMapper()
     }
+}
 
-    val defaultToMapper = object: ToJsonMapper {
-        override fun map(obj: Any): String = when (obj) {
+class JavalinJackson(val objectMapper: ObjectMapper = defaultMapper) : JsonMapper {
+
+    override fun toJson(obj: Any): String {
+        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
+        return when (obj) {
             is String -> obj // the default mapper treats strings as if they are already JSON
-            else -> toJson(obj) // convert object to JSON
+            else -> objectMapper.writeValueAsString(obj) // convert object to JSON
         }
     }
 
-    fun toJson(value: Any): String {
+    override fun <T> fromJson(json: String, targetClass: Class<T>): T {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        return (objectMapper ?: defaultObjectMapper).writeValueAsString(value)
-    }
-
-    val defaultFromMapper = object : FromJsonMapper {
-        override fun <T> map(json: String, targetClass: Class<T>): T = fromJson(json, targetClass)
-    }
-
-    fun <T> fromJson(json: String, clazz: Class<T>): T {
-        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        if (Util.isKotlinClass(clazz)) {
+        if (Util.isKotlinClass(targetClass)) {
             Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
         }
-        return (objectMapper ?: defaultObjectMapper).readValue(json, clazz)
+        return objectMapper.readValue(json, targetClass)
     }
 
 }

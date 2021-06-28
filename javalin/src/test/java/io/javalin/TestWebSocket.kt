@@ -10,7 +10,7 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.core.util.Header
 import io.javalin.http.UnauthorizedResponse
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
@@ -26,7 +26,6 @@ import org.java_websocket.handshake.ServerHandshake
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeoutException
@@ -149,10 +148,10 @@ class TestWebSocket {
     @Test
     fun `receive and send json messages`() = TestUtil.test { app, _ ->
         val clientMessage = SerializableObject().apply { value1 = "test1"; value2 = "test2" }
-        val clientMessageJson = JavalinJson.toJson(clientMessage)
+        val clientMessageJson = JavalinJackson().toJson(clientMessage)
 
         val serverMessage = SerializableObject().apply { value1 = "echo1"; value2 = "echo2" }
-        val serverMessageJson = JavalinJson.toJson(serverMessage)
+        val serverMessageJson = JavalinJackson().toJson(serverMessage)
 
         var receivedJson: String? = null
         var receivedMessage: SerializableObject? = null

@@ -20,7 +20,6 @@ import io.javalin.http.context.formParam
 import io.javalin.http.context.pathParam
 import io.javalin.http.context.queryParam
 import io.javalin.plugin.json.JavalinJackson
-import io.javalin.plugin.json.JavalinJson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -104,9 +103,10 @@ class TestValidation {
         assertThat(http.get("/duration?from=abc").status).isEqualTo(500)
     }
 
+    val timeModuleMapper by lazy { JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) }) }
+
     @Test
-    fun `custom converter works`() = TestUtil.test { app, http ->
-        JavalinJackson.configure(ObjectMapper().apply { registerModule(JavaTimeModule()) })
+    fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper(timeModuleMapper) }) { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParam<Instant>("from").get()
@@ -158,8 +158,8 @@ class TestValidation {
                 .get()
             ctx.result(obj.value1)
         }
-        val invalidJson = JavalinJson.toJson(SerializableObject())
-        val validJson = JavalinJson.toJson(SerializableObject().apply {
+        val invalidJson = JavalinJackson().toJson(SerializableObject())
+        val validJson = JavalinJackson().toJson(SerializableObject().apply {
             value1 = "Bananas"
         })
 
@@ -186,7 +186,7 @@ class TestValidation {
             {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}},
             {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue"}}],
             "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
-        val response = http.post("/json").body(JavalinJson.toJson(SerializableObject())).asString().body
+        val response = http.post("/json").body(JavalinJackson().toJson(SerializableObject())).asString().body
         assertThat(response).isEqualTo(expected)
     }
 

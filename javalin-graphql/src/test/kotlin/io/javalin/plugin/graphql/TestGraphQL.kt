@@ -74,7 +74,6 @@ class TestGraphQL {
     @Test
     fun subscribe() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
         val testClient1_1 = TestClient(server, graphqlPath)
-
         doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
         doAndSleep { testClient1_1.send("{\"query\": \"subscription { counter }\"}") }
         doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })

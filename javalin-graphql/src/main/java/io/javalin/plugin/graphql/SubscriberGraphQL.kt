@@ -1,14 +1,13 @@
 package io.javalin.plugin.graphql
 
 import graphql.ExecutionResult
-import io.javalin.plugin.json.JavalinJson
 import io.javalin.websocket.WsMessageContext
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicReference
 
-class SubscriberGraphQL(private val ctx: WsMessageContext) : Subscriber<ExecutionResult> {
+class SubscriberGraphQL(private val wsContext: WsMessageContext) : Subscriber<ExecutionResult> {
     private val subscriptionRef = AtomicReference<Subscription>()
 
     override fun onError(error: Throwable) {
@@ -26,7 +25,7 @@ class SubscriberGraphQL(private val ctx: WsMessageContext) : Subscriber<Executio
     override fun onNext(result: ExecutionResult) {
         try {
             val data = result.getData<Any>()
-            ctx.send(JavalinJson.toJson(data))
+            wsContext.send(data)
         } catch (e: IOException) {
             e.printStackTrace()
         }

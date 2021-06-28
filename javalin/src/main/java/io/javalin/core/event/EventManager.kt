@@ -9,7 +9,6 @@ package io.javalin.core.event
 import io.javalin.core.security.RouteRole
 import io.javalin.http.HandlerType
 import io.javalin.websocket.WsHandlerType
-import java.util.*
 import java.util.function.Consumer
 
 class EventManager {

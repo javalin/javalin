@@ -20,7 +20,7 @@ object TestUtil {
             JavalinLogger.enabled = false
         }
         app.start(0)
-        val http = HttpClient(app.port())
+        val http = HttpClient(app)
         test.accept(app, http) // this is where the user's test happens
         if (clearCookies) {
             val endpointUrl = "/clear-cookies-${UUID.randomUUID()}"

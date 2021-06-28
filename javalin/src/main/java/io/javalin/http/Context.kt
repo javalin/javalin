@@ -15,7 +15,7 @@ import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletResponse
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
 // don't suppress warnings, since annotated classes are ignored by dokka (yeah...)
-open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<String, Any> = mapOf()) {
+open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, internal val appAttributes: Map<String, Any> = mapOf()) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
@@ -43,7 +43,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     // @formatter:on
 
-    private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
+    private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
@@ -121,11 +121,8 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun bodyAsInputStream(): InputStream = req.inputStream
 
-    /**
-     * Creates a [Validator] for the body() value, with the prefix "Request body as $clazz"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz)
+    /** Creates a [BodyValidator] for the body() value */
+    fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, this.jsonMapper())
 
     /** Reified version of [bodyValidator] */
     @JvmSynthetic
@@ -428,7 +425,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * JavalinJson can be configured to use any mapping library.
      */
     fun json(obj: Any): Context {
-        return contentType("application/json").result(JavalinJson.toJson(obj))
+        return contentType("application/json").result(this.jsonMapper().toJson(obj))
     }
 
     /**

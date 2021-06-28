@@ -4,7 +4,7 @@ import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.InternalServerErrorResponse
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.vue.FileInliner.inlineFiles
 import io.javalin.plugin.rendering.vue.JavalinVue.cacheControl
 import io.javalin.plugin.rendering.vue.JavalinVue.cachedDependencyResolver
@@ -67,7 +67,7 @@ object FileInliner {
 
 internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
         "${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent(\"${
-            urlEncodeForJavascript(JavalinJson.toJson(
+            urlEncodeForJavascript(ctx.jsonMapper().toJson(
                     mapOf(
                             "pathParams" to ctx.pathParamMap(),
                             "queryParams" to ctx.queryParamMap(),
