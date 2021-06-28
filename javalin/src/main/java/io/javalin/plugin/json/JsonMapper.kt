@@ -9,10 +9,6 @@ package io.javalin.plugin.json
 import io.javalin.Javalin
 import io.javalin.http.Context
 
-interface JsonMapper {
-    fun <T> fromJson(json: String, targetClass: Class<T>): T
-    fun toJson(obj: Any): String
-}
 const val JSON_MAPPER_KEY = "global-json-mapper"
 fun Javalin.jsonMapper(): JsonMapper = this.attribute(JSON_MAPPER_KEY)
 fun Context.jsonMapper(): JsonMapper = this.appAttribute(JSON_MAPPER_KEY)

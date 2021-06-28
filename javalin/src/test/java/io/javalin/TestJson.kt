@@ -7,6 +7,7 @@
 package io.javalin
 
 import com.google.gson.GsonBuilder
+import io.javalin.core.util.JavalinLogger
 import io.javalin.http.context.body
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JsonMapper
@@ -55,13 +56,29 @@ class TestJson {
     @Test
     fun `custom silly JSON mapper works`() {
         val sillyMapper = object : JsonMapper {
-            override fun <T> fromJson(json: String, targetClass: Class<T>): T = TODO("Not yet implemented")
             override fun toJson(obj: Any): String = "Silly mapper"
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
             app.get("/") { ctx -> ctx.json("Test") }
             assertThat(http.getBody("/")).isEqualTo("Silly mapper")
         }
+    }
+
+    @Test
+    fun `empty mapper throws exception`() = TestUtil.test(Javalin.create { it.jsonMapper(object : JsonMapper {}) }) { app, http ->
+        app.get("/") { ctx -> ctx.json("Test") }
+        assertThat(http.getBody("/")).isEqualTo("")
+        assertThat(http.get("/").status).isEqualTo(500)
+    }
+
+    @Test
+    fun `empty mapper logs proper error message`() = TestUtil.test(Javalin.create { it.jsonMapper(object : JsonMapper {}) }) { app, http ->
+        val log = TestUtil.captureStdOut {
+            JavalinLogger.enabled = true
+            app.get("/") { it.json("Test") }
+            http.getBody("/")
+        }
+        assertThat(log).contains("JsonMapper#toJson not implemented")
     }
 
     @Test

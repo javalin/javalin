@@ -24,6 +24,7 @@ public class HelloWorldGson {
             public String toJson(@NotNull Object obj) {
                 return gson.toJson(obj);
             }
+            @NotNull
             @Override
             public <T> T fromJson(@NotNull String json, @NotNull Class<T> targetClass) {
                 return gson.fromJson(json, targetClass);
