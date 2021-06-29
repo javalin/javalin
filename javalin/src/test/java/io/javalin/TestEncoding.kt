@@ -87,4 +87,24 @@ class TestEncoding {
         assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
     }
 
+    @Test
+    fun `URLEncoded form-params work Windows-1252`() = TestUtil.test { app, http ->
+        app.post("/") { it.result(it.formParam("fp")!!) }
+        val response = Unirest.post(http.origin)
+            .header(Header.CONTENT_TYPE, "text/plain; charset=Windows-1252")
+            .body("fp=${URLEncoder.encode("æøå", "Windows-1252")}")
+            .asString()
+        assertThat(response.body).isEqualTo("æøå")
+    }
+
+    @Test
+    fun `URLEncoded form-params work Windows-1252 alt`() = TestUtil.test { app, http ->
+        app.post("/") { it.result(it.formParam("fp")!!) }
+        val response = Unirest.post(http.origin)
+            .header(Header.CONTENT_ENCODING, "text/plain; charset=Windows-1252")
+            .field("fp", "æøå")
+            .asString()
+        assertThat(response.body).isEqualTo("æøå")
+    }
+
 }
