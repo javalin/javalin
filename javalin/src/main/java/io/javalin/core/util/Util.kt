@@ -81,7 +81,7 @@ object Util {
             |</dependency>
             |
             |build.gradle:
-            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
+            |implementation group: '${dependency.groupId}', name: '${dependency.artifactId}', version: '${dependency.version}'
             |
             |Find the latest version here:
             |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
