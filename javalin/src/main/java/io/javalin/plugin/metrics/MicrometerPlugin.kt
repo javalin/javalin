@@ -24,11 +24,13 @@ import org.apache.commons.lang3.StringUtils
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegistry = Metrics.globalRegistry,
-                                                 private val tags: Iterable<Tag> = Tags.empty(),
-                                                 private val tagExceptionName: Boolean = false,
-                                                 private val tagRedirectPaths: Boolean = false,
-                                                 private val tagNotFoundMappedPaths: Boolean = false) : Plugin {
+class MicrometerPlugin @JvmOverloads constructor(
+    private val registry: MeterRegistry = Metrics.globalRegistry,
+    private val tags: Iterable<Tag> = Tags.empty(),
+    private val tagExceptionName: Boolean = false,
+    private val tagRedirectPaths: Boolean = false,
+    private val tagNotFoundMappedPaths: Boolean = false
+) : Plugin {
     override fun apply(app: Javalin) {
         app.server()?.server()?.let { server ->
             if (tagExceptionName) {
@@ -45,23 +47,23 @@ class MicrometerPlugin @JvmOverloads constructor(private val registry: MeterRegi
 
                     response.setHeader(EXCEPTION_HEADER, null)
                     val uri = app.servlet()
-                            .matcher
-                            .findEntries(HandlerType.valueOf(request.method), request.pathInfo)
-                            .stream()
-                            .findAny()
-                            .map(HandlerEntry::path)
-                            .map { path: String -> if (path == "/" || StringUtils.isBlank(path)) "root" else path }
-                            .map { path: String ->
-                                if (!tagRedirectPaths && response.status in 300..399) "REDIRECTION" else path
-                            }
-                            .map { path: String ->
-                                if (!tagNotFoundMappedPaths && response.status == 404) "NOT_FOUND" else path
-                            }
-                            .orElse("NOT_FOUND")
+                        .matcher
+                        .findEntries(HandlerType.valueOf(request.method), request.pathInfo)
+                        .stream()
+                        .findAny()
+                        .map(HandlerEntry::path)
+                        .map { path: String -> if (path == "/" || StringUtils.isBlank(path)) "root" else path }
+                        .map { path: String ->
+                            if (!tagRedirectPaths && response.status in 300..399) "REDIRECTION" else path
+                        }
+                        .map { path: String ->
+                            if (!tagNotFoundMappedPaths && response.status == 404) "NOT_FOUND" else path
+                        }
+                        .orElse("NOT_FOUND")
                     return Tags.concat(
-                            super.getTags(request, response),
-                            "uri", uri,
-                            "exception", exceptionName ?: "None"
+                        super.getTags(request, response),
+                        "uri", uri,
+                        "exception", exceptionName ?: "None"
                     )
                 }
             }))
