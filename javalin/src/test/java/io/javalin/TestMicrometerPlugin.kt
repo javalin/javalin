@@ -26,12 +26,12 @@ class TestMicrometerPlugin {
         app.get("/hello/:name") { ctx -> ctx.result("Hello: " + ctx.pathParam("name")) }
         http.get("/hello/jon")
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello/:name")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
+            .tag("uri", "/hello/:name")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
 
         app.stop()
     }
@@ -44,12 +44,12 @@ class TestMicrometerPlugin {
         app.get("/boom") { throw IllegalArgumentException("boom") }
         http.get("/boom")
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/boom")
-                .tag("method", "GET")
-                .tag("exception", "IllegalArgumentException")
-                .tag("status", "500")
-                .tag("outcome", "SERVER_ERROR")
-                .timer()
+            .tag("uri", "/boom")
+            .tag("method", "GET")
+            .tag("exception", "IllegalArgumentException")
+            .tag("status", "500")
+            .tag("outcome", "SERVER_ERROR")
+            .timer()
 
         app.stop()
     }
@@ -63,19 +63,19 @@ class TestMicrometerPlugin {
         app.get("/redirect") { ctx -> ctx.redirect("/hello") }
         http.get("/redirect")
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "REDIRECTION")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "302")
-                .tag("outcome", "REDIRECTION")
-                .timer()
+            .tag("uri", "REDIRECTION")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "302")
+            .tag("outcome", "REDIRECTION")
+            .timer()
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
 
         app.stop()
     }
@@ -89,19 +89,19 @@ class TestMicrometerPlugin {
         app.get("/redirect") { ctx -> ctx.redirect("/hello") }
         http.get("/redirect")
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/redirect")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "302")
-                .tag("outcome", "REDIRECTION")
-                .timer()
+            .tag("uri", "/redirect")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "302")
+            .tag("outcome", "REDIRECTION")
+            .timer()
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
 
         app.stop()
     }
@@ -120,19 +120,19 @@ class TestMicrometerPlugin {
         assertThat(response2.status).isEqualTo(304)
 
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "304")
-                .tag("outcome", "REDIRECTION")
-                .timer()
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "304")
+            .tag("outcome", "REDIRECTION")
+            .timer()
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
 
         app.stop()
     }
@@ -144,12 +144,12 @@ class TestMicrometerPlugin {
 
         http.get("/doesNotExist")
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "NOT_FOUND")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "404")
-                .tag("outcome", "CLIENT_ERROR")
-                .timer()
+            .tag("uri", "NOT_FOUND")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "404")
+            .tag("outcome", "CLIENT_ERROR")
+            .timer()
 
         app.stop()
     }
@@ -169,47 +169,51 @@ class TestMicrometerPlugin {
         http.get("/doesNotExist")
 
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello/:name")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
+            .tag("uri", "/hello/:name")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
 
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello/:name")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "404")
-                .tag("outcome", "CLIENT_ERROR")
-                .timer()
+            .tag("uri", "/hello/:name")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "404")
+            .tag("outcome", "CLIENT_ERROR")
+            .timer()
 
         meterRegistry.get("jetty.server.requests")
-                .tag("uri", "NOT_FOUND")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "404")
-                .tag("outcome", "CLIENT_ERROR")
-                .timer()
+            .tag("uri", "NOT_FOUND")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "404")
+            .tag("outcome", "CLIENT_ERROR")
+            .timer()
 
         app.stop()
     }
 
-    private fun setupApp(tagRedirectPaths: Boolean = false,
-                         tagNotFoundMappedPaths: Boolean = false,
-                         autoGenerateEtags: Boolean? = null) =
-            Javalin.create { config ->
-                config.registerPlugin(MicrometerPlugin(registry = meterRegistry,
-                        tags = Tags.empty(),
-                        tagExceptionName = true,
-                        tagRedirectPaths = tagRedirectPaths,
-                        tagNotFoundMappedPaths = tagNotFoundMappedPaths)
-                )
-                if (autoGenerateEtags != null) config.autogenerateEtags = autoGenerateEtags
+    private fun setupApp(
+        tagRedirectPaths: Boolean = false,
+        tagNotFoundMappedPaths: Boolean = false,
+        autoGenerateEtags: Boolean? = null
+    ) = Javalin.create { config ->
+        config.registerPlugin(
+            MicrometerPlugin(
+                registry = meterRegistry,
+                tags = Tags.empty(),
+                tagExceptionName = true,
+                tagRedirectPaths = tagRedirectPaths,
+                tagNotFoundMappedPaths = tagNotFoundMappedPaths
+            )
+        )
+        if (autoGenerateEtags != null) config.autogenerateEtags = autoGenerateEtags
 
-                // must manually delegate to Micrometer exception handler for exception tags to be correct
-            }.start(0).exception(IllegalArgumentException::class.java) { e, ctx ->
-                MicrometerPlugin.EXCEPTION_HANDLER.handle(e, ctx)
-                e.printStackTrace()
-            }
+        // must manually delegate to Micrometer exception handler for exception tags to be correct
+    }.start(0).exception(IllegalArgumentException::class.java) { e, ctx ->
+        MicrometerPlugin.EXCEPTION_HANDLER.handle(e, ctx)
+        e.printStackTrace()
+    }
 }
