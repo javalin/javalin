@@ -36,6 +36,22 @@ class TestMicrometerPlugin {
     }
 
     @Test
+    fun `successful request with context path`() = TestUtil.test(setupApp(contextPath = "/api")) { app, http ->
+        val requestCount = (2..9).random()
+        app.get("/hello") { it.status(200) }
+        repeat(requestCount) { http.get("/api/hello") }
+        val timerCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
+            .count()
+        assertThat(timerCount).isEqualTo(requestCount.toLong())
+    }
+
+    @Test
     fun `request throwing exception`() = TestUtil.test(setupApp()) { app, http ->
         val requestCount = (2..9).random()
         app.get("/boom") { throw IllegalArgumentException("boom") }
@@ -189,8 +205,10 @@ class TestMicrometerPlugin {
     private fun setupApp(
         tagRedirectPaths: Boolean = false,
         tagNotFoundMappedPaths: Boolean = false,
-        autoGenerateEtags: Boolean? = null
+        autoGenerateEtags: Boolean? = null,
+        contextPath: String = "/"
     ) = Javalin.create { config ->
+        config.contextPath = contextPath
         config.registerPlugin(
             MicrometerPlugin(
                 registry = meterRegistry,
