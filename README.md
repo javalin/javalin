@@ -40,7 +40,7 @@ General information:
 #### Gradle
 
 ```groovy
-compile "io.javalin:javalin:3.13.8"
+implementation "io.javalin:javalin:3.13.8"
 ```
 
 ### Start programming (Java)
