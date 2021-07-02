@@ -50,6 +50,10 @@
     <properties>
         <jdk.version>1.8</jdk.version>
 
+        <dokka.jdkVersion>8</dokka.jdkVersion>
+        <dokka.skip>true</dokka.skip>
+        <javadoc.skip>true</javadoc.skip>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <kotlin.version>1.5.0</kotlin.version>
@@ -64,9 +68,12 @@
         <surefire.plugin.version>3.0.0-M5</surefire.plugin.version>
         <antrun.plugin.version>3.0.0</antrun.plugin.version>
         <shade.plugin.version>3.2.4</shade.plugin.version>
-        <javadoc.plugin.version>2.7</javadoc.plugin.version>
+        <javadoc.plugin.version>3.3.0</javadoc.plugin.version>
         <build-helper.plugin.version>3.2.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
+        <clean.plugin.version>3.1.0</clean.plugin.version>
+        <install.plugin.version>3.0.0-M1</install.plugin.version>
+        <resources.plugin.version>3.2.0</resources.plugin.version>
 
         <!-- DEPENDENCIES -->
         <classgraph.version>4.8.102</classgraph.version>
@@ -114,12 +121,33 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
-            <version>${kotlin.version}</version>
         </dependency>
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Kotlin -->
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-stdlib-jdk8</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-reflect</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-stdlib-common</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-stdlib</artifactId>
+                <version>${kotlin.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -489,6 +517,18 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${clean.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>${install.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${resources.plugin.version}</version>
+                </plugin>
+                <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${compiler.plugin.version}</version>
                 </plugin>
@@ -496,6 +536,13 @@
                     <groupId>org.jetbrains.dokka</groupId>
                     <artifactId>dokka-maven-plugin</artifactId>
                     <version>${dokka.plugin.version}</version>
+                    <configuration>
+                        <skip>${dokka.skip}</skip>
+                        <jdkVersion>${dokka.jdkVersion}</jdkVersion>
+                        <sourceDirectories>
+                            <dir>${project.basedir}/src/main/java</dir>
+                        </sourceDirectories>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -516,6 +563,9 @@
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${javadoc.plugin.version}</version>
+                    <configuration>
+                        <skip>${javadoc.skip}</skip>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -536,6 +586,38 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>javadoc</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.dokka</groupId>
+                        <artifactId>dokka-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>attach-javadocs-dokka</id>
+                                <goals>
+                                    <goal>javadocJar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>attach-javadocs-javadoc</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>sign-artifacts</id>
             <activation>
