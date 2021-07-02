@@ -9,6 +9,10 @@
 
     <artifactId>javalin-graphql</artifactId>
 
+    <properties>
+        <dokka.skip>false</dokka.skip>
+    </properties>
+
     <dependencies>
         <!-- BEGIN Project dependencies -->
         <dependency>

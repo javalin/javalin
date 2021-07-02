@@ -9,6 +9,10 @@
 
     <artifactId>javalin-testtools</artifactId>
 
+    <properties>
+        <dokka.skip>false</dokka.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.javalin</groupId>

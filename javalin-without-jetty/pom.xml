@@ -18,6 +18,8 @@
     </dependencies>
 
     <properties>
+        <javadoc.skip>false</javadoc.skip>
+
         <original.root>../javalin/src/main/java/io/javalin</original.root>
         <hackity.hack.root>../javalin-without-jetty/target/generated-sources/src/main/java/io/javalin</hackity.hack.root>
         <javalin.original.path>${original.root}/Javalin.java</javalin.original.path>
