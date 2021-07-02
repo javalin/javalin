@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 val defaultMapper by lazy {
     try {
@@ -28,6 +30,14 @@ class JavalinJackson(val objectMapper: ObjectMapper = defaultMapper) : JsonMappe
             is String -> obj // the default mapper treats strings as if they are already JSON
             else -> objectMapper.writeValueAsString(obj) // convert object to JSON
         }
+    }
+
+    override fun toJsonStream(obj: Any): InputStream {
+        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
+        val outputStream = ByteArrayOutputStream().apply {
+            objectMapper.factory.createGenerator(this).writeObject(obj)
+        }
+        return PipedUtil.convertInputStreamToOutputStream(outputStream)
     }
 
     override fun <T> fromJson(json: String, targetClass: Class<T>): T {

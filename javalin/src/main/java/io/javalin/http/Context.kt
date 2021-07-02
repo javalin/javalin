@@ -110,8 +110,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun bodyAsBytes(): ByteArray = body
 
     /**
-     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
-     * JavalinJson can be configured to use any mapping library.
+     * Maps a JSON body to a Java/Kotlin class using the registered [JsonMapper].
      * @return The mapped object
      */
     fun <T> bodyAsClass(clazz: Class<T>): T = bodyValidator(clazz).get()
@@ -419,14 +418,18 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun html(html: String): Context = contentType("text/html").result(html)
 
     /**
-     * Serializes object to a JSON-string using JavalinJson and sets it as the context result.
-     * Sets content type to application/json.
-     *
-     * JavalinJson can be configured to use any mapping library.
+     * Serializes object to a JSON-string using the registered [JsonMapper] and sets it as the context result.
+     * Also sets content type to application/json.
      */
-    fun json(obj: Any): Context {
-        return contentType("application/json").result(this.jsonMapper().toJson(obj))
-    }
+    fun json(obj: Any): Context =
+        contentType("application/json").result(this.jsonMapper().toJson(obj))
+
+    /**
+     * Serializes object to a JSON-stream using the registered [JsonMapper] and sets it as the context result.
+     * Also sets content type to application/x-json-stream
+     */
+    fun jsonStream(obj: Any): Context =
+        contentType("application/x-json-stream").result(this.jsonMapper().toJsonStream(obj))
 
     /**
      * Renders a file with specified values and sets it as the context result.

@@ -7,6 +7,7 @@
 package io.javalin
 
 import com.google.gson.GsonBuilder
+import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.context.body
 import io.javalin.plugin.json.JavalinJackson
@@ -19,37 +20,46 @@ import org.junit.Test
 
 class TestJson {
 
+    val serializableObjectString = JavalinJackson().toJson(SerializableObject())
+
     @Test
     fun `default mapper maps object to json`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.json(SerializableObject()) }
-        assertThat(http.getBody("/hello")).isEqualTo("""{"value1":"FirstValue","value2":"SecondValue"}""")
+        app.get("/") { ctx -> ctx.json(SerializableObject()) }
+        assertThat(http.getBody("/")).isEqualTo("""{"value1":"FirstValue","value2":"SecondValue"}""")
     }
 
     @Test
     fun `default mapper treats strings as already being json`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.json("ok") }
-        assertThat(http.getBody("/hello")).isEqualTo("ok")
+        app.get("/") { ctx -> ctx.json("ok") }
+        assertThat(http.getBody("/")).isEqualTo("ok")
     }
 
     @Test
     fun `json-mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.json(NonSerializableObject()) }
-        assertThat(http.get("/hello").status).isEqualTo(500)
-        assertThat(http.getBody("/hello")).contains(""""title": "Internal server error"""")
+        app.get("/") { ctx -> ctx.json(NonSerializableObject()) }
+        assertThat(http.get("/").status).isEqualTo(500)
+        assertThat(http.getBody("/")).contains(""""title": "Internal server error"""")
     }
 
     @Test
     fun `json-mapper maps json to object`() = TestUtil.test { app, http ->
-        app.post("/hello") { it.result(it.body<SerializableObject>().value1) }
-        val jsonString = JavalinJackson().toJson(SerializableObject())
-        assertThat(http.post("/hello").body(jsonString).asString().body).isEqualTo("FirstValue")
+        app.post("/") { it.result(it.body<SerializableObject>().value1) }
+        assertThat(http.post("/").body(serializableObjectString).asString().body).isEqualTo("FirstValue")
+    }
+
+    @Test
+    fun `json-mapper maps object to json stream`() = TestUtil.test { app, http ->
+        app.get("/") { it.jsonStream(SerializableObject()) }
+        val response = http.get("/")
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/x-json-stream")
+        assertThat(response.body).isEqualTo(serializableObjectString)
     }
 
     @Test
     fun `invalid json is handled by Validator`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.body<NonSerializableObject>() }
-        assertThat(http.get("/hello").status).isEqualTo(400)
-        val response = http.getBody("/hello").replace("\\s".toRegex(), "")
+        app.get("/") { it.body<NonSerializableObject>() }
+        assertThat(http.get("/").status).isEqualTo(400)
+        val response = http.getBody("/").replace("\\s".toRegex(), "")
         assertThat(response).isEqualTo("""{"NonSerializableObject":[{"message":"DESERIALIZATION_FAILED","args":{},"value":""}]}""")
     }
 
