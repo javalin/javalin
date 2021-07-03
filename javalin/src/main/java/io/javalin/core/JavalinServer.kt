@@ -7,6 +7,7 @@
 package io.javalin.core
 
 import io.javalin.core.util.JavalinLogger
+import io.javalin.core.util.Util
 import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConnectionFactory
@@ -43,7 +44,7 @@ class JavalinServer(val config: JavalinConfig) {
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
-        val wsAndHttpHandler = object : ServletContextHandler(nullParent, config.contextPath, SESSIONS) {
+        val wsAndHttpHandler = object : ServletContextHandler(nullParent, Util.normalizeContextPath(config.contextPath), SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 request.setAttribute("jetty-target", target) // used in JettyResourceHandler
                 request.setAttribute("jetty-request", jettyRequest)
