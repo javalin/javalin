@@ -115,9 +115,8 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Maps a JSON body to a Java/Kotlin class using the registered [JsonMapper].
      * @return The mapped object
      */
-    fun <T> bodyAsClass(clazz: Class<T>): T {
-        return jsonMapper().let { if (it.canReadStream()) it.fromJsonStream(req.inputStream, clazz)!! else it.fromJsonString(body(), clazz)!! }
-    }
+    fun <T> bodyAsClass(clazz: Class<T>): T =
+        jsonMapper().let { if (it.canReadStream()) it.fromJsonStream(req.inputStream, clazz)!! else it.fromJsonString(body(), clazz)!! }
 
     /**
      * Gets the request body as a [InputStream]
