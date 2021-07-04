@@ -16,7 +16,6 @@ import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.json.canReadStream
-import io.javalin.plugin.json.canWriteStream
 import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
 import java.io.InputStream
@@ -420,8 +419,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Serializes object to a JSON-string using the registered [JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun json(obj: Any): Context = contentType("application/json").also {
-        jsonMapper().let { if (it.canWriteStream()) result(it.toJsonStream(obj)) else result(it.toJsonString(obj)) }
+    @JvmOverloads
+    fun json(obj: Any, useStreamingMapper: Boolean = false): Context = contentType("application/json").also {
+        jsonMapper().let { if (useStreamingMapper) result(it.toJsonStream(obj)) else result(it.toJsonString(obj)) }
     }
 
     /**

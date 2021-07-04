@@ -13,5 +13,4 @@ import java.io.InputStream
 const val JSON_MAPPER_KEY = "global-json-mapper"
 fun Javalin.jsonMapper(): JsonMapper = this.attribute(JSON_MAPPER_KEY)
 fun Context.jsonMapper(): JsonMapper = this.appAttribute(JSON_MAPPER_KEY)
-fun JsonMapper.canWriteStream() = !this::class.java.getMethod("toJsonStream", Object::class.java).isDefault
 fun JsonMapper.canReadStream() = !this::class.java.getMethod("fromJsonStream", InputStream::class.java, Class::class.java).isDefault

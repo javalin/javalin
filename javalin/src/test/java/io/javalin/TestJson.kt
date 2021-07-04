@@ -40,14 +40,14 @@ class TestJson {
 
     @Test
     fun `large object doesn't deadlock`() = TestUtil.test { app, http ->
-        val big = mapOf("big" to "1".repeat(10_000))
+        val big = mapOf("big" to "1".repeat(100_000))
         app.get("/") { it.json(big) }
         assertThat(http.getBody("/")).isEqualTo(JavalinJackson().toJsonString(big))
     }
 
     @Test
     fun `json-mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.json(NonSerializableObject()) }
+        app.get("/") { ctx -> ctx.json(NonSerializableObject(), useStreamingMapper = true) }
         val response = http.get("/")
         assertThat(response.status).isEqualTo(500)
         assertThat(response.body).isEqualTo("")
@@ -118,7 +118,7 @@ class TestJson {
             override fun toJsonStream(obj: Any): InputStream = "toJsonStream".byteInputStream()
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
-            app.get("/") { it.json(SerializableObject()) }
+            app.get("/") { it.json(SerializableObject(), useStreamingMapper = true) }
             assertThat(http.get("/").body).isEqualTo("toJsonStream")
         }
     }
