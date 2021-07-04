@@ -39,18 +39,24 @@ class TestJson {
     }
 
     @Test
-    fun `large object doesn't deadlock`() = TestUtil.test { app, http ->
+    fun `large streamed object doesn't deadlock`() = TestUtil.test { app, http ->
         val big = mapOf("big" to "1".repeat(100_000))
-        app.get("/") { it.json(big) }
+        app.get("/") { it.json(big, useStreamingMapper = true) }
         assertThat(http.getBody("/")).isEqualTo(JavalinJackson().toJsonString(big))
     }
 
     @Test
     fun `json-mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.json(NonSerializableObject(), useStreamingMapper = true) }
-        val response = http.get("/")
-        assertThat(response.status).isEqualTo(500)
-        assertThat(response.body).isEqualTo("")
+        app.get("/streaming") { it.json(NonSerializableObject(), useStreamingMapper = true) }
+        http.get("/streaming").let {
+            assertThat(it.status).isEqualTo(500)
+            assertThat(it.body).isEqualTo("") // error happens when writing the response, can't recover
+        }
+        app.get("/string") { it.json(NonSerializableObject(), useStreamingMapper = false) }
+        http.get("/string").let {
+            assertThat(it.status).isEqualTo(500)
+            assertThat(it.body).contains("Internal server error") // error happens when serializing, can recover
+        }
     }
 
     @Test
