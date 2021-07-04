@@ -33,8 +33,8 @@ public interface JsonMapper {
     /**
      * If {@link #fromJsonStream(InputStream, Class)} is not implemented, Javalin will use this method
      * when mapping request bodies to JSON through {@link io.javalin.http.Context#bodyAsClass(Class)}.
-     * Regardless of if {@link #fromJsonStream(InputStream, Class)} is implemented, Javalin will use this
-     * method in the {@link io.javalin.core.validation.BaseValidator)} class.
+     * Regardless of if {@link #fromJsonStream(InputStream, Class)} is implemented, Javalin will
+     * use this method for Validation and for WebSocket messaging.
      */
     @NotNull
     default <T> T fromJsonString(@NotNull String json, @NotNull Class<T> targetClass) {
