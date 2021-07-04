@@ -67,7 +67,7 @@ object FileInliner {
 
 internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
         "${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent(\"${
-            urlEncodeForJavascript(ctx.jsonMapper().toJson(
+            urlEncodeForJavascript(ctx.jsonMapper().toJsonString(
                     mapOf(
                             "pathParams" to ctx.pathParamMap(),
                             "queryParams" to ctx.queryParamMap(),

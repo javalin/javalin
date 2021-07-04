@@ -20,3 +20,6 @@ inline fun <reified T : Any> Context.pathParam(key: String) = pathParam(key, T::
 
 /** Reified version of [queryParam] (Kotlin only) */
 inline fun <reified T : Any> Context.queryParam(key: String) = queryParam(key, T::class.java)
+
+/** Reified version of [bodyValidator] (Kotlin only) */
+inline fun <reified T : Any> Context.bodyValidator() = bodyValidator(T::class.java)

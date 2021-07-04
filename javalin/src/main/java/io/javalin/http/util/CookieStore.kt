@@ -28,8 +28,8 @@ class CookieStore(val jsonMapper: JsonMapper, cookie: String?) {
     fun clear() = cookieMap.clear()
 
     private fun deserialize(cookie: String?) = if (!cookie.isNullOrEmpty()) {
-        jsonMapper.fromJson(String(Base64.getDecoder().decode(cookie)), Map::class.java) as MutableMap<String, Any>
+        jsonMapper.fromJsonString(String(Base64.getDecoder().decode(cookie)), Map::class.java) as MutableMap<String, Any>
     } else mutableMapOf()
 
-    private fun serialize(map: MutableMap<String, Any>) = Base64.getEncoder().encodeToString(jsonMapper.toJson(map).toByteArray())
+    private fun serialize(map: MutableMap<String, Any>) = Base64.getEncoder().encodeToString(jsonMapper.toJsonString(map).toByteArray())
 }

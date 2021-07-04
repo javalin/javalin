@@ -21,7 +21,7 @@ open class BaseValidator<T>(val stringValue: String?, val clazz: Class<T>, val f
     private val errors by lazy {
         if (this is BodyValidator) {
             try {
-                typedValue = jsonMapper!!.fromJson(stringValue!!, clazz)
+                typedValue = jsonMapper!!.fromJsonString(stringValue!!, clazz)
             } catch (e: Exception) {
                 JavalinLogger.info("Couldn't deserialize body to ${clazz.simpleName}", e)
                 return@lazy mapOf(clazz.simpleName to listOf(ValidationError("DESERIALIZATION_FAILED", value = stringValue)))

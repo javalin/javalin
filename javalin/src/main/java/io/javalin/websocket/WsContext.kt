@@ -26,7 +26,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     fun matchedPath() = upgradeCtx.matchedPath
 
-    fun send(message: Any) = send(upgradeCtx.jsonMapper().toJson(message))
+    fun send(message: Any) = send(upgradeCtx.jsonMapper().toJsonString(message))
     fun send(message: String) = session.remote.sendStringByFuture(message)
     fun send(message: ByteBuffer) = session.remote.sendBytesByFuture(message)
 
@@ -78,5 +78,5 @@ class WsBinaryMessageContext(sessionId: String, session: Session, private val da
 
 class WsMessageContext(sessionId: String, session: Session, private val message: String) : WsContext(sessionId, session) {
     fun message(): String = message
-    fun <T> message(clazz: Class<T>): T = upgradeCtx.jsonMapper().fromJson(message, clazz)
+    fun <T> message(clazz: Class<T>): T = upgradeCtx.jsonMapper().fromJsonString(message, clazz)
 }

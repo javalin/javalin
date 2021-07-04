@@ -16,8 +16,8 @@ fun main() {
     val gson = GsonBuilder().create()
 
     val gsonMapper = object : JsonMapper {
-        override fun <T> fromJson(json: String, targetClass: Class<T>): T = gson.fromJson(json, targetClass)
-        override fun toJson(obj: Any) = gson.toJson(obj)
+        override fun <T> fromJsonString(json: String, targetClass: Class<T>): T = gson.fromJson(json, targetClass)
+        override fun toJsonString(obj: Any) = gson.toJson(obj)
     }
 
     val app = Javalin.create { it.jsonMapper(gsonMapper) }.start(7070)
