@@ -10,25 +10,23 @@ import java.util.concurrent.TimeUnit
 
 object PipedStreamUtil {
 
-    val executorService by lazy {
-        if (LoomUtil.loomAvailable) {
-            LoomUtil.getExecutorService()
-        } else {
-            ThreadPoolExecutor(4, 32, 30L, TimeUnit.SECONDS, LinkedBlockingQueue())
-        }
+    val executorService = if (LoomUtil.loomAvailable) {
+        LoomUtil.getExecutorService()
+    } else {
+        ThreadPoolExecutor(4, 32, 30L, TimeUnit.SECONDS, LinkedBlockingQueue())
     }
 
-    fun getInputStream(function: (PipedOutputStream) -> Unit): InputStream {
+    fun getInputStream(userCallback: (PipedOutputStream) -> Unit): InputStream {
         val pipedOutputStream = PipedOutputStream()
         val pipedInputStream = object : PipedInputStream(pipedOutputStream) {
-            var exception: Exception? = null // we need to move the exception from the child thread to the parent thread
+            var exception: Exception? = null // possible exception from child thread
             override fun close() = exception?.let { throw it } ?: super.close()
         }
-        executorService.submit {
+        executorService.execute { // start child thread, necessary to prevent deadlock
             try {
-                function.invoke(pipedOutputStream)
-            } catch (exception: Exception) {
-                pipedInputStream.exception = exception // save exception for parent thead
+                userCallback(pipedOutputStream)
+            } catch (userException: Exception) {
+                pipedInputStream.exception = userException // pass exception to parent thead
             } finally {
                 pipedOutputStream.close()
             }
