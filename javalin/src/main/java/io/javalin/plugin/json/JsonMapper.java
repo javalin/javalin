@@ -7,24 +7,31 @@ import org.jetbrains.annotations.NotNull;
 public interface JsonMapper {
 
     @NotNull
-    default <T> T fromJson(@NotNull String json, @NotNull Class<T> targetClass) {
-        throw new NotImplementedError("JsonMapper#fromJson not implemented");
-    }
-
-    @NotNull
-    default String toJson(@NotNull Object obj) {
-        throw new NotImplementedError("JsonMapper#toJson not implemented");
+    default String toJsonString(@NotNull Object obj) {
+        throw new NotImplementedError("JsonMapper#toJsonString not implemented");
     }
 
     /**
-     * Javalin needs an InputStream in order to finish up the response
-     * properly, which can be a little challenging if your JSON library
-     * wants to write to an OutputStream. You can look at JavalinJackson,
-     * which uses a PipedStreamUtil to get an InputStream from an OutputStream.
+     * If implemented, Javalin will choose this method over toJsonString.
+     * Javalin requires an InputStream in order to finish up the response properly.
+     * Use (or look at) PipedStreamUtil to get an InputStream from an OutputStream.
      */
     @NotNull
     default InputStream toJsonStream(@NotNull Object obj) {
         throw new NotImplementedError("JsonMapper#toJsonStream not implemented");
+    }
+
+    @NotNull
+    default <T> T fromJsonString(@NotNull String json, @NotNull Class<T> targetClass) {
+        throw new NotImplementedError("JsonMapper#fromJsonString not implemented");
+    }
+
+    /**
+     * If implemented, Javalin will choose this method over fromJsonString.
+     */
+    @NotNull
+    default <T> T fromJsonStream(@NotNull InputStream json, @NotNull Class<T> targetClass) {
+        throw new NotImplementedError("JsonMapper#fromJsonStream not implemented");
     }
 
 }

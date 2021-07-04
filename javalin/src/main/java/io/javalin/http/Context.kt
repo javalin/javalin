@@ -15,6 +15,8 @@ import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
+import io.javalin.plugin.json.canReadStream
+import io.javalin.plugin.json.canWriteStream
 import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
 import java.io.InputStream
@@ -113,7 +115,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Maps a JSON body to a Java/Kotlin class using the registered [JsonMapper].
      * @return The mapped object
      */
-    fun <T> bodyAsClass(clazz: Class<T>): T = bodyValidator(clazz).get()
+    fun <T> bodyAsClass(clazz: Class<T>): T {
+        return jsonMapper().let { if (it.canReadStream()) it.fromJsonStream(req.inputStream, clazz)!! else it.fromJsonString(body(), clazz)!! }
+    }
 
     /**
      * Gets the request body as a [InputStream]
@@ -122,10 +126,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Creates a [BodyValidator] for the body() value */
     fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, this.jsonMapper())
-
-    /** Reified version of [bodyValidator] */
-    @JvmSynthetic
-    inline fun <reified T : Any> bodyValidator() = bodyValidator(T::class.java)
 
     /** Gets first [UploadedFile] for the specified name, or null. */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
@@ -421,15 +421,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Serializes object to a JSON-string using the registered [JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun json(obj: Any): Context =
-        contentType("application/json").result(this.jsonMapper().toJson(obj))
-
-    /**
-     * Serializes object to a JSON-stream using the registered [JsonMapper] and sets it as the context result.
-     * Also sets content type to application/x-json-stream
-     */
-    fun jsonStream(obj: Any): Context =
-        contentType("application/x-json-stream").result(this.jsonMapper().toJsonStream(obj))
+    fun json(obj: Any): Context = contentType("application/json").also {
+        jsonMapper().let { if (it.canWriteStream()) result(it.toJsonStream(obj)) else result(it.toJsonString(obj)) }
+    }
 
     /**
      * Renders a file with specified values and sets it as the context result.

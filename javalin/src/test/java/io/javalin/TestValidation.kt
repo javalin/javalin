@@ -16,6 +16,7 @@ import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
 import io.javalin.core.validation.collectErrors
+import io.javalin.http.context.bodyValidator
 import io.javalin.http.context.formParam
 import io.javalin.http.context.pathParam
 import io.javalin.http.context.queryParam
@@ -158,8 +159,8 @@ class TestValidation {
                 .get()
             ctx.result(obj.value1)
         }
-        val invalidJson = JavalinJackson().toJson(SerializableObject())
-        val validJson = JavalinJackson().toJson(SerializableObject().apply {
+        val invalidJson = JavalinJackson().toJsonString(SerializableObject())
+        val validJson = JavalinJackson().toJsonString(SerializableObject().apply {
             value1 = "Bananas"
         })
 
@@ -186,7 +187,7 @@ class TestValidation {
             {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}},
             {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue"}}],
             "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
-        val response = http.post("/json").body(JavalinJackson().toJson(SerializableObject())).asString().body
+        val response = http.post("/json").body(JavalinJackson().toJsonString(SerializableObject())).asString().body
         assertThat(response).isEqualTo(expected)
     }
 

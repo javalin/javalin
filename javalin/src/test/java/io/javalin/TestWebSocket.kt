@@ -148,10 +148,10 @@ class TestWebSocket {
     @Test
     fun `receive and send json messages`() = TestUtil.test { app, _ ->
         val clientMessage = SerializableObject().apply { value1 = "test1"; value2 = "test2" }
-        val clientMessageJson = JavalinJackson().toJson(clientMessage)
+        val clientMessageJson = JavalinJackson().toJsonString(clientMessage)
 
         val serverMessage = SerializableObject().apply { value1 = "echo1"; value2 = "echo2" }
-        val serverMessageJson = JavalinJackson().toJson(serverMessage)
+        val serverMessageJson = JavalinJackson().toJsonString(serverMessage)
 
         var receivedJson: String? = null
         var receivedMessage: SerializableObject? = null

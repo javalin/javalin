@@ -47,7 +47,7 @@ class HttpClient(val app: Javalin) {
         return if (this == null) {
             ByteArray(0).toRequestBody(null, 0, 0)
         } else {
-            app.jsonMapper().toJson(this).toRequestBody(JSON_TYPE)
+            app.jsonMapper().toJsonString(this).toRequestBody(JSON_TYPE)
         }
     }
 

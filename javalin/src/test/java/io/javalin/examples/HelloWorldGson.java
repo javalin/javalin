@@ -21,12 +21,12 @@ public class HelloWorldGson {
         JsonMapper gsonMapper = new JsonMapper() {
             @NotNull
             @Override
-            public String toJson(@NotNull Object obj) {
+            public String toJsonString(@NotNull Object obj) {
                 return gson.toJson(obj);
             }
             @NotNull
             @Override
-            public <T> T fromJson(@NotNull String json, @NotNull Class<T> targetClass) {
+            public <T> T fromJsonString(@NotNull String json, @NotNull Class<T> targetClass) {
                 return gson.fromJson(json, targetClass);
             }
         };

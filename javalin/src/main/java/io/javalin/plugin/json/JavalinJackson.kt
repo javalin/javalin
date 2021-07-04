@@ -12,7 +12,7 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import java.io.InputStream
 
-val defaultMapper by lazy {
+val defaultMapper: ObjectMapper by lazy {
     try {
         val className = OptionalDependency.JACKSON_KT.testClass
         ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
@@ -23,8 +23,8 @@ val defaultMapper by lazy {
 
 class JavalinJackson(val objectMapper: ObjectMapper = defaultMapper) : JsonMapper {
 
-    override fun toJson(obj: Any): String {
-        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
+    override fun toJsonString(obj: Any): String {
+        ensureDependenciesPresent()
         return when (obj) {
             is String -> obj // the default mapper treats strings as if they are already JSON
             else -> objectMapper.writeValueAsString(obj) // convert object to JSON
@@ -32,18 +32,30 @@ class JavalinJackson(val objectMapper: ObjectMapper = defaultMapper) : JsonMappe
     }
 
     override fun toJsonStream(obj: Any): InputStream {
-        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        return PipedStreamUtil.getInputStream { pipedOutputStream ->
-            objectMapper.factory.createGenerator(pipedOutputStream).writeObject(obj)
+        ensureDependenciesPresent()
+        return when (obj) {
+            is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
+            else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
+                objectMapper.factory.createGenerator(pipedOutputStream).writeObject(obj)
+            }
         }
     }
 
-    override fun <T> fromJson(json: String, targetClass: Class<T>): T {
+    override fun <T> fromJsonString(json: String, targetClass: Class<T>): T {
+        ensureDependenciesPresent(targetClass)
+        return objectMapper.readValue(json, targetClass)
+    }
+
+    override fun <T : Any?> fromJsonStream(json: InputStream, targetClass: Class<T>): T {
+        ensureDependenciesPresent(targetClass)
+        return objectMapper.readValue(json, targetClass)
+    }
+
+    private fun ensureDependenciesPresent(targetClass: Class<*>? = null) {
         Util.ensureDependencyPresent(OptionalDependency.JACKSON)
-        if (Util.isKotlinClass(targetClass)) {
+        if (targetClass != null && Util.isKotlinClass(targetClass)) {
             Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
         }
-        return objectMapper.readValue(json, targetClass)
     }
 
 }
