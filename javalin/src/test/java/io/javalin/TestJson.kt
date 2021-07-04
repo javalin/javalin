@@ -39,10 +39,18 @@ class TestJson {
     }
 
     @Test
+    fun `large object doesn't deadlock`() = TestUtil.test { app, http ->
+        val big = mapOf("big" to "1".repeat(10_000))
+        app.get("/") { it.json(big) }
+        assertThat(http.getBody("/")).isEqualTo(JavalinJackson().toJsonString(big))
+    }
+
+    @Test
     fun `json-mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.json(NonSerializableObject()) }
-        assertThat(http.get("/").status).isEqualTo(500)
-        assertThat(http.getBody("/")).contains(""""title": "Internal server error"""")
+        val response = http.get("/")
+        assertThat(response.status).isEqualTo(500)
+        assertThat(response.body).isEqualTo("")
     }
 
     @Test
