@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import io.javalin.http.context.formParam
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
@@ -163,7 +162,7 @@ class TestMultipartForms {
             val foosExtractedManually = ctx.formParamMap()["foo"]
             val foos = ctx.formParams("foo")
             val bar = ctx.formParam("bar")
-            val baz = ctx.formParam<String>("baz").getOrDefault("default")
+            val baz = ctx.typedFormParam<String>("baz").getOrDefault("default")
             ctx.result("foos match: " + (foos == foosExtractedManually) + "\n"
                     + "foo: " + foos.joinToString(", ") + "\n"
                     + "bar: " + bar + "\n"

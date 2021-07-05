@@ -15,7 +15,6 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.context.message
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.StatusCode
@@ -158,7 +157,7 @@ class TestWebSocket {
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->
                 receivedJson = ctx.message()
-                receivedMessage = ctx.message<SerializableObject>()
+                receivedMessage = ctx.typedMessage<SerializableObject>()
                 ctx.send(serverMessage)
             }
         }

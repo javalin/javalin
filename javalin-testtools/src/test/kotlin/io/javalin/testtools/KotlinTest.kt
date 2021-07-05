@@ -2,7 +2,6 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.core.util.Header
-import io.javalin.http.context.body
 import okhttp3.FormBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -35,7 +34,7 @@ class KotlinTest {
 
     @Test
     fun `post with json serialization works`() = TestUtil.test { server, client ->
-        server.post("/hello") { it.result(it.body<MyKotlinClass>().field1) }
+        server.post("/hello") { it.result(it.typedBody<MyKotlinClass>().field1) }
         val response = client.post("/hello", MyKotlinClass("v1", "v2"))
         assertThat(response.body?.string()).isEqualTo("v1")
     }

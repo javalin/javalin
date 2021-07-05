@@ -9,8 +9,6 @@ package io.javalin
 import com.google.gson.GsonBuilder
 import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
-import io.javalin.http.context.body
-import io.javalin.http.context.bodyValidator
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JsonMapper
 import io.javalin.testing.NonSerializableObject
@@ -61,13 +59,13 @@ class TestJson {
 
     @Test
     fun `json-mapper maps json to object`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.body<SerializableObject>().value1) }
+        app.post("/") { it.result(it.typedBody<SerializableObject>().value1) }
         assertThat(http.post("/").body(serializableObjectString).asString().body).isEqualTo("FirstValue")
     }
 
     @Test
     fun `mapping invalid json to class throws`() = TestUtil.test { app, http ->
-        app.get("/") { it.body<NonSerializableObject>() }
+        app.get("/") { it.typedBody<NonSerializableObject>() }
         assertThat(http.get("/").status).isEqualTo(500)
     }
 
@@ -135,7 +133,7 @@ class TestJson {
             override fun <T : Any?> fromJsonString(json: String, targetClass: Class<T>): T = "fromJsonString" as T
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
-            app.get("/") { it.result(it.body<String>()) }
+            app.get("/") { it.result(it.typedBody<String>()) }
             assertThat(http.get("/").body).isEqualTo("fromJsonString")
         }
     }
@@ -147,7 +145,7 @@ class TestJson {
             override fun <T : Any?> fromJsonStream(json: InputStream, targetClass: Class<T>): T = "fromJsonStream" as T
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
-            app.get("/") { it.result(it.body<String>()) }
+            app.get("/") { it.result(it.typedBody<String>()) }
             assertThat(http.get("/").body).isEqualTo("fromJsonStream")
         }
     }

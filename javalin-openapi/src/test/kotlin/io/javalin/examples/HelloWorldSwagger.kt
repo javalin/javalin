@@ -8,8 +8,6 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
-import io.javalin.http.context.body
-import io.javalin.http.context.pathParam
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.dsl.document
@@ -47,7 +45,7 @@ val getUserDocs = document()
         .result<Unit>("404")
 
 fun getUserHandler(ctx: Context) {
-    val userId = ctx.pathParam<Int>("id").get()
+    val userId = ctx.typedPathParam<Int>("id").get()
     val user = UserRepository.getUser(userId)
     if (user == null) {
         ctx.status(404)
@@ -62,7 +60,7 @@ val addUserDocs = document()
         .result<Unit>("204")
 
 fun addUserHandler(ctx: Context) {
-    val user = ctx.body<User>()
+    val user = ctx.typedBody<User>()
     UserRepository.addUser(user)
     ctx.status(204)
 }
