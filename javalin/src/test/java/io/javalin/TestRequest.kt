@@ -9,9 +9,6 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.security.BasicAuthFilter
 import io.javalin.core.util.Header
-import io.javalin.http.context.formParam
-import io.javalin.http.context.header
-import io.javalin.http.context.queryParam
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil
 import io.javalin.testing.TestUtil
@@ -149,7 +146,7 @@ class TestRequest {
 
     @Test
     fun `queryParam defaults to default value`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result("" + ctx.queryParam<String>("qp").getOrDefault("default")) }
+        app.get("/") { ctx -> ctx.result("" + ctx.queryParamAsClass<String>("qp").getOrDefault("default")) }
         assertThat(http.getBody("/")).isEqualTo("default")
     }
 
@@ -194,7 +191,7 @@ class TestRequest {
 
     @Test
     fun `formParam returns defaults to default value`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.result("" + ctx.formParam<Int>("fp4").getOrDefault(4)) }
+        app.post("/") { ctx -> ctx.result("" + ctx.formParamAsClass<Int>("fp4").getOrDefault(4)) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
     }
 
@@ -356,7 +353,7 @@ class TestRequest {
 
     @Test
     fun `validator header works`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(it.header<Double>("double-header").get().javaClass.name) }
+        app.get("/") { it.result(it.headerAsClass<Double>("double-header").get().javaClass.name) }
         assertThat(http.getBody("/", mapOf("double-header" to "12.34"))).isEqualTo("java.lang.Double")
     }
 }

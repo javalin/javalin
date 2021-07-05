@@ -32,7 +32,7 @@ class GraphQLHandler(val options: GraphQLOptions) {
     }
 
     fun execute(ctx: WsMessageContext) {
-        val body = ctx.message(Map::class.java)
+        val body = ctx.messageAsClass(Map::class.java)
         this.options.wsMiddleHandler(ctx)
         this.genericExecute(body)
             .subscribe(SubscriberGraphQL(ctx))

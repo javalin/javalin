@@ -110,20 +110,21 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun bodyAsBytes(): ByteArray = body
 
-    /**
-     * Maps a JSON body to a Java/Kotlin class using the registered [JsonMapper].
-     * @return The mapped object
-     */
+    /** Maps a JSON body to a Java/Kotlin class using the registered [JsonMapper] */
     fun <T> bodyAsClass(clazz: Class<T>): T =
         jsonMapper().let { if (it.canReadStream()) it.fromJsonStream(req.inputStream, clazz)!! else it.fromJsonString(body(), clazz)!! }
 
-    /**
-     * Gets the request body as a [InputStream]
-     */
+    /** Reified version of [bodyAsClass] (Kotlin only) */
+    inline fun <reified T : Any> bodyAsClass(): T = bodyAsClass(T::class.java)
+
+    /** Gets the request body as a [InputStream] */
     fun bodyAsInputStream(): InputStream = req.inputStream
 
-    /** Creates a [BodyValidator] for the body() value */
+    /** Creates a typed [BodyValidator] for the body() value */
     fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, this.jsonMapper())
+
+    /** Reified version of [bodyValidator] (Kotlin only) */
+    inline fun <reified T : Any> bodyValidator() = bodyValidator(T::class.java)
 
     /** Gets first [UploadedFile] for the specified name, or null. */
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
@@ -141,11 +142,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a form param if it exists, else null */
     fun formParam(key: String): String? = formParams(key).firstOrNull()
 
-    /**
-     * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    fun <T> formParam(key: String, clazz: Class<T>) = Validator.create(clazz, formParam(key), key)
+    /** Creates a typed [Validator] for the formParam() value */
+    fun <T> formParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, formParam(key), key)
+
+    /** Reified version of [formParamAsClass] (Kotlin only) */
+    inline fun <reified T : Any> formParamAsClass(key: String) = formParamAsClass(key, T::class.java)
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
@@ -164,13 +165,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
 
-    /**
-     * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key)
+    /** Creates a typed [Validator] for the pathParam() value */
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key)
 
-    /** Gets a map of all the [pathParam] keys and values. */
+    /** Reified version of [pathParamAsClass] (Kotlin only) */
+    inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
+
+    /** Gets a map of all the [pathParamAsClass] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
 
     /**
@@ -213,8 +214,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a request header by name, or null. */
     fun header(header: String): String? = req.getHeader(header)
 
-    /** Creates a [Validator] for the header() value, with the prefix "Request header '$header' with the value '$value'" */
-    fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header)
+    /** Creates a typed [Validator] for the header() value */
+    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header)
+
+    /** Reified version of [headerAsClass] (Kotlin only) */
+    inline fun <reified T : Any> headerAsClass(header: String) = headerAsClass(header, T::class.java)
 
     /** Gets a map with all the header keys and values on the request. */
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
@@ -246,11 +250,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a query param if it exists, else null */
     fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
-    /**
-     * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    fun <T> queryParam(key: String, clazz: Class<T>) = Validator.create(clazz, queryParam(key), key)
+    /** Creates a typed [Validator] for the queryParam() value */
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, queryParam(key), key)
+
+    /** Reified version of [queryParamAsClass] (Kotlin only) */
+    inline fun <reified T : Any> queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()

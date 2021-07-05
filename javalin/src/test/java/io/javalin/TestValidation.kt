@@ -16,10 +16,6 @@ import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
 import io.javalin.core.validation.collectErrors
-import io.javalin.http.context.bodyValidator
-import io.javalin.http.context.formParam
-import io.javalin.http.context.pathParam
-import io.javalin.http.context.queryParam
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
@@ -34,19 +30,19 @@ class TestValidation {
 
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
-        app.get("/:param") { ctx -> ctx.pathParam<Int>("param").get() }
+        app.get("/:param") { ctx -> ctx.pathParamAsClass<Int>("param").get() }
         assertThat(http.get("/abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
     fun `queryParam gives correct error message`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.queryParam<Int>("param").get() }
+        app.get("/") { ctx -> ctx.queryParamAsClass<Int>("param").get() }
         assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.formParam<Int>("param").get() }
+        app.post("/") { ctx -> ctx.formParamAsClass<Int>("param").get() }
         assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
         JavalinLogger.enabled = true
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
@@ -56,14 +52,14 @@ class TestValidation {
 
     @Test
     fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.queryParam<String>("my-qp").get() }
+        app.get("/") { ctx -> ctx.queryParamAsClass<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
         assertThat(http.get("/").status).isEqualTo(400)
     }
 
     @Test
     fun `notNullOrEmpty works for NullableValidator`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.queryParam<String>("my-qp").allowNullable().get() }
+        app.get("/") { ctx -> ctx.queryParamAsClass<String>("my-qp").allowNullable().get() }
         assertThat(http.get("/").body).isEqualTo("")
         assertThat(http.get("/").status).isEqualTo(200)
     }
@@ -71,7 +67,7 @@ class TestValidation {
     @Test
     fun `getAs clazz works`() = TestUtil.test { app, http ->
         app.get("/int") { ctx ->
-            val myInt = ctx.queryParam<Int>("my-qp").get()
+            val myInt = ctx.queryParamAsClass<Int>("my-qp").get()
             ctx.result((myInt * 2).toString())
         }
         assertThat(http.get("/int").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
@@ -82,7 +78,7 @@ class TestValidation {
     @Test
     fun `check works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            ctx.queryParam<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
+            ctx.queryParamAsClass<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
         }
         assertThat(http.get("/?my-qp=1").body).isEqualTo("""{"my-qp":[{"message":"Length must be more than five","args":{},"value":"1"}]}""")
     }
@@ -90,7 +86,7 @@ class TestValidation {
     @Test
     fun `default query param values work`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myInt = ctx.queryParam<Int>("my-qp").getOrDefault(788)
+            val myInt = ctx.queryParamAsClass<Int>("my-qp").getOrDefault(788)
             ctx.result(myInt.toString())
         }
         assertThat(http.get("/?my-qp=a").body).isEqualTo("""{"my-qp":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"a"}]}""")
@@ -100,7 +96,7 @@ class TestValidation {
 
     @Test
     fun `unregistered converter fails`() = TestUtil.test { app, http ->
-        app.get("/duration") { it.queryParam<Duration>("from").get() }
+        app.get("/duration") { it.queryParamAsClass<Duration>("from").get() }
         assertThat(http.get("/duration?from=abc").status).isEqualTo(500)
     }
 
@@ -110,8 +106,8 @@ class TestValidation {
     fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper(timeModuleMapper) }) { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
-            val fromDate = ctx.queryParam<Instant>("from").get()
-            val toDate = ctx.queryParam<Instant>("to")
+            val fromDate = ctx.queryParamAsClass<Instant>("from").get()
+            val toDate = ctx.queryParamAsClass<Instant>("to")
                 .check({ it.isAfter(fromDate) }, "'to' has to be after 'from'")
                 .get()
             ctx.json(toDate.isAfter(fromDate))
@@ -124,8 +120,8 @@ class TestValidation {
     fun `custom converter works for null when nullable`() = TestUtil.test { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
-            val fromDate = ctx.queryParam<Instant>("from").get()
-            val toDate = ctx.queryParam<Instant>("to")
+            val fromDate = ctx.queryParamAsClass<Instant>("from").get()
+            val toDate = ctx.queryParamAsClass<Instant>("to")
                 .allowNullable()
                 .check({ it == null || it.isAfter(fromDate) }, "'to' has to null or after 'from'")
                 .get()
@@ -138,7 +134,7 @@ class TestValidation {
     @Test
     fun `custom converter returns null`() = TestUtil.test { app, http ->
         JavalinValidation.register(Instant::class.java) { null }
-        app.get("/instant") { it.queryParam<Instant>("from").get() }
+        app.get("/instant") { it.queryParamAsClass<Instant>("from").get() }
         assertThat(http.get("/instant?from=1262347200000").status).isEqualTo(400)
     }
 
@@ -194,7 +190,7 @@ class TestValidation {
     @Test
     fun `custom treatment for ValidationException exception response works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myString = ctx.queryParam<String>("my-qp").get()
+            val myString = ctx.queryParamAsClass<String>("my-qp").get()
         }
         app.exception(ValidationException::class.java) { e, ctx ->
             ctx.status(HttpStatus.EXPECTATION_FAILED_417)
@@ -206,14 +202,14 @@ class TestValidation {
 
     @Test
     fun `allowNullable throws if called after check`() = TestUtil.test { app, http ->
-        app.get("/") { it.queryParam<Int>("my-qp").check({ false }, "Irrelevant").allowNullable() }
+        app.get("/") { it.queryParamAsClass<Int>("my-qp").check({ false }, "Irrelevant").allowNullable() }
         assertThat(http.get("/").status).isEqualTo(500)
     }
 
     @Test
     fun `optional query param value works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val myInt: Int? = ctx.queryParam<Int>("my-qp").allowNullable().get()
+            val myInt: Int? = ctx.queryParamAsClass<Int>("my-qp").allowNullable().get()
             assertThat(myInt).isEqualTo(null)
         }
         assertThat(http.get("/").status).isEqualTo(200)
@@ -222,7 +218,7 @@ class TestValidation {
     @Test
     fun `optional query param value with check works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            val id: Int? = ctx.queryParam<Int>("id")
+            val id: Int? = ctx.queryParamAsClass<Int>("id")
                 .allowNullable()
                 .check({ if (it != null) it > 10 else true }, "id was not greater than 10")
                 .get()
@@ -255,11 +251,11 @@ class TestValidation {
     fun `All errors can be collected from multiple validators`() = TestUtil.test { app, http ->
 
         app.get("/") { ctx ->
-            val numberValidator = ctx.queryParam<Int>("number")
+            val numberValidator = ctx.queryParamAsClass<Int>("number")
                 .check({ it > 12 }, "must be greater than 12.")
                 .check({ it.rem(2) == 0 }, "must be even.")
 
-            val stringValidator = ctx.queryParam<String>("first_name")
+            val stringValidator = ctx.queryParamAsClass<String>("first_name")
                 .check({ !it.contains("-") }, "cannot contain hyphens.")
                 .check({ it.length < 10 }, "cannot be longer than 10 characters.")
 
@@ -315,7 +311,7 @@ class TestValidation {
     @Test
     fun `error args work`() = TestUtil.test { app, http ->
         app.get("/args") { ctx ->
-            ctx.queryParam<Int>("my-qp")
+            ctx.queryParamAsClass<Int>("my-qp")
                 .check({ it > 5 }, ValidationError("OVER_LIMIT", args = mapOf("limit" to 5)))
                 .get()
         }
@@ -325,7 +321,7 @@ class TestValidation {
     @Test
     fun `localization is easy`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
-            ctx.queryParam<Int>("number")
+            ctx.queryParamAsClass<Int>("number")
                 .check({ it in 6..9 }, ValidationError("NUMBER_NOT_IN_RANGE", args = mapOf("min" to 6, "max" to 9)))
                 .get()
         }
