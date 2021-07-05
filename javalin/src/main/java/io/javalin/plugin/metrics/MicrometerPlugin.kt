@@ -8,6 +8,8 @@ package io.javalin.plugin.metrics
 
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
+import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.Util
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HandlerType
@@ -32,6 +34,7 @@ class MicrometerPlugin @JvmOverloads constructor(
     private val tagNotFoundMappedPaths: Boolean = false
 ) : Plugin {
     override fun apply(app: Javalin) {
+        Util.ensureDependencyPresent(OptionalDependency.MICROMETER)
         app.server()?.server()?.let { server ->
             if (tagExceptionName) {
                 app.exception(Exception::class.java, EXCEPTION_HANDLER)
