@@ -59,13 +59,13 @@ class TestJson {
 
     @Test
     fun `json-mapper maps json to object`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.typedBody<SerializableObject>().value1) }
+        app.post("/") { it.result(it.bodyAsClass<SerializableObject>().value1) }
         assertThat(http.post("/").body(serializableObjectString).asString().body).isEqualTo("FirstValue")
     }
 
     @Test
     fun `mapping invalid json to class throws`() = TestUtil.test { app, http ->
-        app.get("/") { it.typedBody<NonSerializableObject>() }
+        app.get("/") { it.bodyAsClass<NonSerializableObject>() }
         assertThat(http.get("/").status).isEqualTo(500)
     }
 
@@ -133,7 +133,7 @@ class TestJson {
             override fun <T : Any?> fromJsonString(json: String, targetClass: Class<T>): T = "fromJsonString" as T
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
-            app.get("/") { it.result(it.typedBody<String>()) }
+            app.get("/") { it.result(it.bodyAsClass<String>()) }
             assertThat(http.get("/").body).isEqualTo("fromJsonString")
         }
     }
@@ -145,7 +145,7 @@ class TestJson {
             override fun <T : Any?> fromJsonStream(json: InputStream, targetClass: Class<T>): T = "fromJsonStream" as T
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
-            app.get("/") { it.result(it.typedBody<String>()) }
+            app.get("/") { it.result(it.bodyAsClass<String>()) }
             assertThat(http.get("/").body).isEqualTo("fromJsonStream")
         }
     }

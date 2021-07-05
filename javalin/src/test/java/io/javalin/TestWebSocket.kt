@@ -157,7 +157,7 @@ class TestWebSocket {
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->
                 receivedJson = ctx.message()
-                receivedMessage = ctx.typedMessage<SerializableObject>()
+                receivedMessage = ctx.messageAsClass<SerializableObject>()
                 ctx.send(serverMessage)
             }
         }

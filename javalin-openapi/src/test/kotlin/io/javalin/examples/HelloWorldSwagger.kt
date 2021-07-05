@@ -45,7 +45,7 @@ val getUserDocs = document()
         .result<Unit>("404")
 
 fun getUserHandler(ctx: Context) {
-    val userId = ctx.typedPathParam<Int>("id").get()
+    val userId = ctx.pathParamAsClass<Int>("id").get()
     val user = UserRepository.getUser(userId)
     if (user == null) {
         ctx.status(404)
@@ -60,7 +60,7 @@ val addUserDocs = document()
         .result<Unit>("204")
 
 fun addUserHandler(ctx: Context) {
-    val user = ctx.typedBody<User>()
+    val user = ctx.bodyAsClass<User>()
     UserRepository.addUser(user)
     ctx.status(204)
 }

@@ -41,7 +41,7 @@ val getItemDocs = document()
         .result<Unit>("404")
 
 fun getItemHandler(ctx: Context) {
-    val itemId = ctx.typedPathParam<Int>("id").get()
+    val itemId = ctx.pathParamAsClass<Int>("id").get()
     val item = ItemRepository.getItem(itemId)
     if (item == null) {
         ctx.status(404)
@@ -56,7 +56,7 @@ val addItemDocs = document()
         .result<Unit>("204")
 
 fun addItemHandler(ctx: Context) {
-    val item = ctx.typedBody<Item>()
+    val item = ctx.bodyAsClass<Item>()
     ItemRepository.addItem(item)
     ctx.status(204)
 }
