@@ -9,6 +9,7 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.LoomUtil
+import io.javalin.http.HttpCode
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -26,11 +27,19 @@ import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.servlet.FilterHolder
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.junit.Test
 import java.io.File
+import java.util.*
 import java.util.concurrent.atomic.AtomicLong
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
+import javax.servlet.FilterChain
+import javax.servlet.FilterConfig
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -198,9 +207,28 @@ class TestCustomJetty {
                 }
             }
         }
-        TestUtil.test(app) { server,  _ ->
+        TestUtil.test(app) { server, _ ->
             server.get("/") { it.result("PORT WORKS") }
             assertThat(Unirest.get("http://localhost:$port/").asString().body).isEqualTo("PORT WORKS")
+        }
+    }
+
+    @Test
+    fun `can add filter to stop request before javalin`() {
+        val filterJavalin = Javalin.create {
+            it.configureServletContextHandler { handler ->
+                handler.addFilter(FilterHolder(object : Filter {
+                    override fun init(config: FilterConfig?) {}
+                    override fun destroy() {}
+                    override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+                        (response as HttpServletResponse).status = HttpCode.IM_A_TEAPOT.status
+                    }
+                }), "/*", EnumSet.allOf(DispatcherType::class.java))
+            }
+        }
+        TestUtil.test(filterJavalin) { app, http ->
+            assertThat(http.get("/test").status).isEqualTo(HttpCode.IM_A_TEAPOT.status)
+            assertThat(http.get("/test").body).isNotEqualTo("Test")
         }
     }
 
