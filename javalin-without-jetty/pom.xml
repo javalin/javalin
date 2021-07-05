@@ -66,9 +66,8 @@
                             <target name="hacky-mchackface">
                                 <!-- Javalin.java -->
                                 <copy file="${javalin.original.path}" tofile="${javalin.hack.path}" />
-                                <replace file="${javalin.hack.path}" token="protected JavalinWsServlet wsServlet" value="private JavalinWsServlet wsServlet" />
+                                <replace file="${javalin.hack.path}" token="protected JavalinJettyServlet javalinJettyServlet" value="private JavalinJettyServlet javalinJettyServlet" />
                                 <replace file="${javalin.hack.path}" token="protected JettyServer jettyServer" value="private JettyServer jettyServer" />
-                                <replace file="${javalin.hack.path}" token="protected JavalinJettyServlet jettyServlet" value="private JavalinJettyServlet jettyServlet" />
                                 <replace file="${javalin.hack.path}" token="public JettyServer jettyServer() {" value="private JettyServer jettyServer() {" />
                                 <replace file="${javalin.hack.path}" token="public Javalin ws(" value="private Javalin ws(" />
                                 <replace file="${javalin.hack.path}" token="public Javalin wsBefore(" value="private Javalin wsBefore(" />

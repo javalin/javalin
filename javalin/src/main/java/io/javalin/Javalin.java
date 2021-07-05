@@ -51,19 +51,19 @@ public class Javalin {
     public JavalinConfig _conf = new JavalinConfig();
 
     protected JettyServer jettyServer; // null in standalone-mode
-    protected JavalinJettyServlet jettyServlet; // null in standalone-mode
-    protected JavalinServlet servlet = new JavalinServlet(_conf);
+    protected JavalinJettyServlet javalinJettyServlet; // null in standalone-mode
+    protected JavalinServlet javalinServlet = new JavalinServlet(_conf);
 
     protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
         this.jettyServer = new JettyServer(_conf);
-        this.jettyServlet = new JavalinJettyServlet(_conf, servlet);
+        this.javalinJettyServlet = new JavalinJettyServlet(_conf, javalinServlet);
     }
 
     public Javalin(JettyServer jettyServer, JavalinJettyServlet jettyServlet) {
         this.jettyServer = jettyServer;
-        this.jettyServlet = jettyServlet;
+        this.javalinJettyServlet = jettyServlet;
     }
 
     /**
@@ -107,7 +107,7 @@ public class Javalin {
 
     // Get JavalinServlet (for use in standalone mode)
     public JavalinServlet javalinServlet() {
-        return this.servlet;
+        return this.javalinServlet;
     }
 
     // Get the JavalinServer
@@ -167,7 +167,7 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             JavalinLogger.info("Starting Javalin ...");
-            jettyServer.start(jettyServlet);
+            jettyServer.start(javalinJettyServlet);
             Util.logJavalinVersion();
             JavalinLogger.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
@@ -267,7 +267,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
-        servlet.getExceptionMapper().getHandlers().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        javalinServlet.getExceptionMapper().getHandlers().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
@@ -278,7 +278,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
     public Javalin error(int statusCode, @NotNull Handler handler) {
-        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, handler);
+        javalinServlet.getErrorMapper().getErrorHandlerMap().put(statusCode, handler);
         return this;
     }
 
@@ -308,8 +308,8 @@ public class Javalin {
             return addHandler(handlerType, basePath + "/*", handler, roles);
         }
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
-        servlet.addHandler(handlerType, path, handler, roleSet);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), handler, roleSet));
+        javalinServlet.addHandler(handlerType, path, handler, roleSet);
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), handler, roleSet));
         return this;
     }
 
@@ -536,7 +536,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
-        jettyServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
+        javalinJettyServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
@@ -546,8 +546,8 @@ public class Javalin {
      */
     private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
-        jettyServlet.addHandler(handlerType, path, wsConfig, roleSet);
-        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsConfig, roleSet));
+        javalinJettyServlet.addHandler(handlerType, path, wsConfig, roleSet);
+        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), wsConfig, roleSet));
         return this;
     }
 
