@@ -4,11 +4,12 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http.staticfiles
+package io.javalin.jetty
 
 import io.javalin.core.util.JavalinLogger
-import io.javalin.core.util.Util
 import io.javalin.http.JavalinResponseWrapper
+import io.javalin.http.staticfiles.Location
+import io.javalin.http.staticfiles.StaticFileConfig
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.util.URIUtil
@@ -21,6 +22,10 @@ import javax.servlet.http.HttpServletResponse
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler : JavalinResourceHandler {
+
+    init {
+        JettyUtil.disableJettyLogger()
+    }
 
     val handlers = mutableListOf<ConfigurableHandler>()
 
@@ -36,7 +41,7 @@ class JettyResourceHandler : JavalinResourceHandler {
                 val resource = handler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     handler.config.headers.forEach { httpResponse.setHeader(it.key, it.value) }
-                    if (handler.config.precompress && PrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
+                    if (handler.config.precompress && JettyPrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
                         return true
                     }
                     httpResponse.contentType = null // Jetty will only set the content-type if it's null
@@ -46,7 +51,7 @@ class JettyResourceHandler : JavalinResourceHandler {
                     return true
                 }
             } catch (e: Exception) { // it's fine, we'll just 404
-                if (!Util.isClientAbortException(e)) {
+                if (!JettyUtil.isClientAbortException(e)) {
                     JavalinLogger.info("Exception occurred while handling static resource", e)
                 }
             }
@@ -57,7 +62,7 @@ class JettyResourceHandler : JavalinResourceHandler {
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
 
     private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
-            this != null && this.isDirectory && handler.getResource("${target.removeSuffix("/")}/index.html")?.exists() == true
+        this != null && this.isDirectory && handler.getResource("${target.removeSuffix("/")}/index.html")?.exists() == true
 }
 
 open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler() {
@@ -66,10 +71,12 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
         resourceBase = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
-        JavalinLogger.info("""Static file handler added:
+        JavalinLogger.info(
+            """Static file handler added:
         |    {hostedPath: "${config.hostedPath}", directory: "${config.directory}", location: Location.${config.location}}
         |    Resolved path: '${getResourceBase(config)}'
-        """.trimMargin())
+        """.trimMargin()
+        )
     }
 
     override fun getResource(path: String): Resource {

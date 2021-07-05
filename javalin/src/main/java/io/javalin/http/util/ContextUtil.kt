@@ -12,8 +12,8 @@ import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
 import io.javalin.http.HandlerEntry
 import io.javalin.http.HandlerType
+import io.javalin.http.HttpCode
 import io.javalin.http.HttpResponseException
-import org.eclipse.jetty.http.HttpStatus
 import java.net.URL
 import java.net.URLDecoder
 import java.util.*
@@ -96,7 +96,7 @@ object ContextUtil {
         val maxRequestSize = this.appAttribute<Long>(maxRequestSizeKey)
         if (this.req.contentLength > maxRequestSize) {
             JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
-            throw HttpResponseException(HttpStatus.PAYLOAD_TOO_LARGE_413, "Payload too large")
+            throw HttpResponseException(HttpCode.PAYLOAD_TOO_LARGE.status, HttpCode.PAYLOAD_TOO_LARGE.message)
         }
     }
 

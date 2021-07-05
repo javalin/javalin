@@ -35,7 +35,7 @@ class MicrometerPlugin @JvmOverloads constructor(
 ) : Plugin {
     override fun apply(app: Javalin) {
         Util.ensureDependencyPresent(OptionalDependency.MICROMETER)
-        app.server()?.server()?.let { server ->
+        app.jettyServer()?.server()?.let { server ->
             if (tagExceptionName) {
                 app.exception(Exception::class.java, EXCEPTION_HANDLER)
             }
@@ -50,7 +50,7 @@ class MicrometerPlugin @JvmOverloads constructor(
                     val pathInfo = request.pathInfo.removePrefix(app._conf.contextPath).prefixIfNot("/")
                     response.setHeader(EXCEPTION_HEADER, null)
                     val handlerType = HandlerType.valueOf(request.method)
-                    val uri = app.servlet().matcher.findEntries(handlerType, pathInfo).asSequence()
+                    val uri = app.javalinServlet().matcher.findEntries(handlerType, pathInfo).asSequence()
                         .map { it.path }
                         .map { if (it == "/" || it.isBlank()) "root" else it }
                         .map { if (!tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }

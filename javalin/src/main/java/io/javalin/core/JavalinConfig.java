@@ -25,10 +25,11 @@ import io.javalin.core.util.LogUtil;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
-import io.javalin.http.staticfiles.JettyResourceHandler;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
+import io.javalin.jetty.JettyResourceHandler;
+import io.javalin.jetty.JettyUtil;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
@@ -53,7 +54,6 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
-    public boolean logIfServerNotStarted = true;
     public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
@@ -120,7 +120,6 @@ public class JavalinConfig {
     }
 
     public void addStaticFiles(@NotNull Consumer<StaticFileConfig> userConfig) {
-        JettyUtil.disableJettyLogger();
         if (inner.resourceHandler == null) {
             inner.resourceHandler = new JettyResourceHandler();
         }
