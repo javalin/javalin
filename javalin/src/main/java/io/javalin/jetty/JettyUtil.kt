@@ -46,9 +46,9 @@ object JettyUtil {
     var logIfNotStarted = true
 
     @JvmStatic
-    fun logIfServerNotStarted(jettyServer: JettyServer) = Thread {
+    fun maybeLogIfServerNotStarted(jettyServer: JettyServer) = Thread {
         Thread.sleep(5000)
-        if (!jettyServer.started && logIfNotStarted) {
+        if (logIfNotStarted && !jettyServer.started) {
             JavalinLogger.info("It looks like you created a Javalin instance, but you never started it.")
             JavalinLogger.info("Try: Javalin app = Javalin.create().start();")
             JavalinLogger.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")

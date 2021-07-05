@@ -88,9 +88,7 @@ public class Javalin {
         Javalin app = new Javalin();
         JavalinValidation.addValidationExceptionMapper(app);
         JavalinConfig.applyUserConfig(app, app._conf, config); // mutates app.config and app (adds http-handlers)
-        if (app._conf.logIfServerNotStarted) {
-            JettyUtil.logIfServerNotStarted(app.jettyServer);
-        }
+        JettyUtil.maybeLogIfServerNotStarted(app.jettyServer);
         return app;
     }
 
@@ -108,22 +106,15 @@ public class Javalin {
     }
 
     // Get JavalinServlet (for use in standalone mode)
-    public JavalinServlet servlet() {
+    public JavalinServlet javalinServlet() {
         return this.servlet;
     }
 
-    public JavalinJettyServlet wsServlet() {
-        return jettyServlet;
-    }
-
-    /**
-     * Get the JavalinServer
-     */
-    // @formatter:off
-    public @Nullable JettyServer server() {
+    // Get the JavalinServer
+    @Nullable
+    public JettyServer jettyServer() {
         return this.jettyServer;
     }
-    // @formatter:off
 
     /**
      * Synchronously starts the application instance on the specified port
@@ -166,12 +157,12 @@ public class Javalin {
         Util.logJavalinBanner(this._conf.showJavalinBanner);
         JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
-        if (jettyServer.getStarted()) {
+        if (jettyServer.started) {
             String message = "Server already started. If you are trying to call start() on an instance " +
                 "of Javalin that was stopped using stop(), please create a new instance instead.";
             throw new IllegalStateException(message);
         }
-        jettyServer.setStarted(true);
+        jettyServer.started = true;
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {

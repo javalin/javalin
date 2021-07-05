@@ -54,7 +54,6 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
-    public boolean logIfServerNotStarted = true;
     public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";

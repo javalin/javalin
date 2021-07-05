@@ -36,7 +36,7 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
         app.before { ctx ->
             val type = HandlerType.fromServletRequest(ctx.req)
             val requestUri = ctx.req.requestURI.removePrefix(ctx.req.contextPath)
-            val matcher = app.servlet().matcher
+            val matcher = app.javalinServlet().matcher
             matcher.findEntries(type, requestUri).firstOrNull()?.let {
                 return@before // we found a route for this case, no need to redirect
             }

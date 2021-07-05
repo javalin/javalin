@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse
 
 class JettyServer(val config: JavalinConfig) {
 
+    @JvmField
     var started = false
     var serverPort = -1
     var serverHost: String? = null

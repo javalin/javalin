@@ -39,7 +39,6 @@ class TestConfiguration {
             it.registerPlugin(RouteOverviewPlugin("/test"))
             it.enableWebjars()
             it.enforceSsl = true
-            it.logIfServerNotStarted = false
             it.prefer405over404 = false
             it.requestLogger { ctx, executionTimeMs -> }
             it.sessionHandler { SessionHandler() }
