@@ -24,7 +24,7 @@ object JavalinPebble : FileRenderer {
         pebbleEngine = staticPebbleEngine
     }
 
-    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
+    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context?): String {
         Util.ensureDependencyPresent(OptionalDependency.PEBBLE)
         val compiledTemplate = (pebbleEngine ?: defaultPebbleEngine).getTemplate(filePath)
         val stringWriter = StringWriter()
