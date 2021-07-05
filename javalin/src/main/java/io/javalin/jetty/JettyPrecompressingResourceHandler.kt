@@ -1,4 +1,4 @@
-package io.javalin.http.staticfiles
+package io.javalin.jetty
 
 import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-object PrecompressingResourceHandler {
+object JettyPrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte

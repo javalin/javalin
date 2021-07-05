@@ -4,7 +4,6 @@ enum class HttpCode(
         val status: Int,
         val message: String
 ) {
-
     CONTINUE(100, "Continue"),
     SWITCHING_PROTOCOLS(101, "Switching Protocols"),
     PROCESSING(102, "Processing"),

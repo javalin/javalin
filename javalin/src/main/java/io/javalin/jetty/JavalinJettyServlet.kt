@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.websocket
+package io.javalin.jetty
 
 import io.javalin.core.JavalinConfig
 import io.javalin.core.security.RouteRole
@@ -13,6 +13,12 @@ import io.javalin.http.Context
 import io.javalin.http.JavalinServlet
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.util.ContextUtil
+import io.javalin.websocket.WsConfig
+import io.javalin.websocket.WsConnection
+import io.javalin.websocket.WsEntry
+import io.javalin.websocket.WsExceptionMapper
+import io.javalin.websocket.WsHandlerType
+import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.websocket.api.WebSocketConstants
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
@@ -26,25 +32,15 @@ internal const val upgradeContextKey = "javalin-ws-upgrade-context"
 internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
 
 /**
- * The JavalinWsServlet is responsible for both WebSocket and HTTP requests.
- * It extends Jetty's WebSocketServlet, and has a HTTP Servlet as a constructor arg.
+ * The [JavalinJettyServlet] is responsible for both WebSocket and HTTP requests.
+ * It extends Jetty's [WebSocketServlet], and has a [JavalinServlet] as a constructor arg.
  * It switches between WebSocket and HTTP in the [service] method.
  */
-class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: JavalinServlet) : WebSocketServlet() {
+class JavalinJettyServlet(val config: JavalinConfig, private val httpServlet: JavalinServlet) : WebSocketServlet() {
 
     val wsExceptionMapper = WsExceptionMapper()
 
     private val wsPathMatcher = WsPathMatcher()
-
-    override fun configure(factory: WebSocketServletFactory) {
-        config.inner.wsFactoryConfig?.accept(factory)
-        factory.creator = WebSocketCreator { req, res ->
-            val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context
-            req.httpServletRequest.setAttribute(upgradeContextKey, ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
-            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, req.session?.attributeNames?.asSequence()?.associateWith { req.session.getAttribute(it) })
-            return@WebSocketCreator WsConnection(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
-        }
-    }
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) { // this handles both http and websocket
         if (!req.isWebSocket()) {
@@ -70,6 +66,17 @@ class JavalinWsServlet(val config: JavalinConfig, private val httpServlet: Javal
             super.service(req, res) // everything is okay, perform websocket upgrade
         } catch (e: Exception) {
             res.sendError(401, "Unauthorized")
+        }
+    }
+
+    // called after service
+    override fun configure(factory: WebSocketServletFactory) {
+        config.inner.wsFactoryConfig?.accept(factory)
+        factory.creator = WebSocketCreator { req, res ->
+            val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context
+            req.httpServletRequest.setAttribute(upgradeContextKey, ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
+            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, req.session?.attributeNames?.asSequence()?.associateWith { req.session.getAttribute(it) })
+            return@WebSocketCreator WsConnection(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         }
     }
 

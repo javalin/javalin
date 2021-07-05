@@ -6,7 +6,6 @@
 
 package io.javalin.core.util
 
-import io.javalin.core.JavalinServer
 import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
 import java.io.ByteArrayInputStream
@@ -16,7 +15,6 @@ import java.net.URLEncoder
 import java.util.*
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
-import javax.servlet.http.HttpServletResponse
 
 object Util {
 
@@ -181,24 +179,6 @@ object Util {
         return false
     }
 
-    fun writeResponse(response: HttpServletResponse, responseBody: String, status: Int) {
-        response.status = status
-        ByteArrayInputStream(responseBody.toByteArray()).copyTo(response.outputStream)
-        response.outputStream.close()
-    }
-
-    var logIfNotStarted = true
-
-    @JvmStatic
-    fun logIfServerNotStarted(server: JavalinServer) = Thread {
-        Thread.sleep(5000)
-        if (!server.started && logIfNotStarted) {
-            JavalinLogger.info("It looks like you created a Javalin instance, but you never started it.")
-            JavalinLogger.info("Try: Javalin app = Javalin.create().start();")
-            JavalinLogger.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
-        }
-    }.start()
-
     @JvmStatic
     fun getPort(e: Exception) = e.message!!.takeLastWhile { it != ':' }
 
@@ -212,12 +192,5 @@ object Util {
         }
         return null
     }
-
-    // jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
-    fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
-
-    // Jetty may timeout connections to avoid having broken connections that remain open forever
-    // This is rare, but intended (see issues #163 and #1277)
-    fun isJettyTimeoutException(t: Throwable) = t::class.java.name == "java.util.concurrent.TimeoutException"
 
 }

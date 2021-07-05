@@ -10,8 +10,6 @@ package io.javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.core.JavalinConfig;
-import io.javalin.core.JavalinServer;
-import io.javalin.core.JettyUtil;
 import io.javalin.core.event.EventListener;
 import io.javalin.core.event.EventManager;
 import io.javalin.core.event.HandlerMetaInfo;
@@ -30,7 +28,9 @@ import io.javalin.http.HandlerType;
 import io.javalin.http.JavalinServlet;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
-import io.javalin.websocket.JavalinWsServlet;
+import io.javalin.jetty.JavalinJettyServlet;
+import io.javalin.jetty.JettyServer;
+import io.javalin.jetty.JettyUtil;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
@@ -50,20 +50,20 @@ public class Javalin {
      */
     public JavalinConfig _conf = new JavalinConfig();
 
-    protected JavalinServer server; // null in standalone-mode
-    protected JavalinWsServlet wsServlet; // null in standalone-mode
+    protected JettyServer jettyServer; // null in standalone-mode
+    protected JavalinJettyServlet jettyServlet; // null in standalone-mode
     protected JavalinServlet servlet = new JavalinServlet(_conf);
 
     protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
-        this.server = new JavalinServer(_conf);
-        this.wsServlet = new JavalinWsServlet(_conf, servlet);
+        this.jettyServer = new JettyServer(_conf);
+        this.jettyServlet = new JavalinJettyServlet(_conf, servlet);
     }
 
-    public Javalin(JavalinServer server, JavalinWsServlet wsServlet) {
-        this.server = server;
-        this.wsServlet = wsServlet;
+    public Javalin(JettyServer jettyServer, JavalinJettyServlet jettyServlet) {
+        this.jettyServer = jettyServer;
+        this.jettyServlet = jettyServlet;
     }
 
     /**
@@ -89,7 +89,7 @@ public class Javalin {
         JavalinValidation.addValidationExceptionMapper(app);
         JavalinConfig.applyUserConfig(app, app._conf, config); // mutates app.config and app (adds http-handlers)
         if (app._conf.logIfServerNotStarted) {
-            Util.logIfServerNotStarted(app.server);
+            JettyUtil.logIfServerNotStarted(app.jettyServer);
         }
         return app;
     }
@@ -112,16 +112,16 @@ public class Javalin {
         return this.servlet;
     }
 
-    public JavalinWsServlet wsServlet() {
-        return wsServlet;
+    public JavalinJettyServlet wsServlet() {
+        return jettyServlet;
     }
 
     /**
      * Get the JavalinServer
      */
     // @formatter:off
-    public @Nullable JavalinServer server() {
-        return this.server;
+    public @Nullable JettyServer server() {
+        return this.jettyServer;
     }
     // @formatter:off
 
@@ -136,7 +136,7 @@ public class Javalin {
      * @see Javalin#start()
      */
     public Javalin start(String host, int port) {
-        server.setServerHost(host);
+        jettyServer.setServerHost(host);
         return start(port);
     }
 
@@ -150,7 +150,7 @@ public class Javalin {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        server.setServerPort(port);
+        jettyServer.setServerPort(port);
         return start();
     }
 
@@ -166,24 +166,24 @@ public class Javalin {
         Util.logJavalinBanner(this._conf.showJavalinBanner);
         JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
-        if (server.getStarted()) {
+        if (jettyServer.getStarted()) {
             String message = "Server already started. If you are trying to call start() on an instance " +
                 "of Javalin that was stopped using stop(), please create a new instance instead.";
             throw new IllegalStateException(message);
         }
-        server.setStarted(true);
+        jettyServer.setStarted(true);
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             JavalinLogger.info("Starting Javalin ...");
-            server.start(wsServlet);
+            jettyServer.start(jettyServlet);
             Util.logJavalinVersion();
             JavalinLogger.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
             JavalinLogger.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
-            if (Boolean.TRUE.equals(server.server().getAttribute("is-default-server"))) {
+            if (Boolean.TRUE.equals(jettyServer.server().getAttribute("is-default-server"))) {
                 stop();// stop if server is default server; otherwise, the caller is responsible to stop
             }
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
@@ -205,7 +205,7 @@ public class Javalin {
         JavalinLogger.info("Stopping Javalin ...");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         try {
-            server.server().stop();
+            jettyServer.server().stop();
         } catch (Exception e) {
             JavalinLogger.error("Javalin failed to stop gracefully", e);
         }
@@ -225,7 +225,7 @@ public class Javalin {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return server.getServerPort();
+        return jettyServer.getServerPort();
     }
 
     /**
@@ -545,7 +545,7 @@ public class Javalin {
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
-        wsServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
+        jettyServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
@@ -555,7 +555,7 @@ public class Javalin {
      */
     private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
-        wsServlet.addHandler(handlerType, path, wsConfig, roleSet);
+        jettyServlet.addHandler(handlerType, path, wsConfig, roleSet);
         eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsConfig, roleSet));
         return this;
     }

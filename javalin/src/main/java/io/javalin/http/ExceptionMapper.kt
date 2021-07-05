@@ -8,6 +8,7 @@ package io.javalin.http
 
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
+import io.javalin.jetty.JettyUtil
 import java.util.concurrent.CompletionException
 import javax.servlet.http.HttpServletResponse
 
@@ -47,8 +48,8 @@ class ExceptionMapper {
     }
 
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
-        if (Util.isClientAbortException(throwable)) return null // aborts can be ignored
-        if (Util.isJettyTimeoutException(throwable)) return null // jetty timeouts can be ignored
+        if (JettyUtil.isClientAbortException(throwable)) return null // jetty aborts aren't actually unexpected
+        if (JettyUtil.isJettyTimeoutException(throwable)) return null // jetty timeouts aren't actually unexpected
         res.status = 500
         JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         return null

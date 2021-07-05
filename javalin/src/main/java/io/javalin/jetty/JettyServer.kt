@@ -4,11 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core
+package io.javalin.jetty
 
+import io.javalin.core.JavalinConfig
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
-import io.javalin.websocket.JavalinWsServlet
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.Request
@@ -23,7 +23,7 @@ import java.net.BindException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServer(val config: JavalinConfig) {
+class JettyServer(val config: JavalinConfig) {
 
     var started = false
     var serverPort = -1
@@ -35,7 +35,7 @@ class JavalinServer(val config: JavalinConfig) {
     }
 
     @Throws(BindException::class)
-    fun start(wsAndHttpServlet: JavalinWsServlet) {
+    fun start(wsAndHttpServlet: JavalinJettyServlet) {
         if (serverPort == -1 && config.inner.server == null) {
             serverPort = 8080
             JavalinLogger.info("No port specified, starting on port $serverPort. Call start(port) to change ports.")

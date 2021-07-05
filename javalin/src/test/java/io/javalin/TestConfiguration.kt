@@ -64,7 +64,7 @@ class TestConfiguration {
                 })
             }
         }.start(0)
-        assertThat(app.server.started).isTrue()
+        assertThat(app.jettyServer.started).isTrue()
         app.stop()
     }
 
