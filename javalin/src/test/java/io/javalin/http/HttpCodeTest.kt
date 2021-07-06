@@ -8,15 +8,15 @@ class HttpCodeTest {
     @Test
     fun `fetching http codes by code should get the right code`() {
         HttpCode.values().forEach {
-            assertThat(HttpCode.codeFor(it.status)).isEqualTo(it)
+            assertThat(HttpCode.forStatus(it.status)).isEqualTo(it)
         }
     }
 
     @Test
     fun `fetching http codes by code outside of range should not throw errors`() {
-        assertThat(HttpCode.codeFor(512)).isNull()
-        assertThat(HttpCode.codeFor(-1)).isNull()
-        assertThat(HttpCode.codeFor(542345)).isNull()
+        assertThat(HttpCode.forStatus(512)).isNull()
+        assertThat(HttpCode.forStatus(-1)).isNull()
+        assertThat(HttpCode.forStatus(542345)).isNull()
     }
 
 }
