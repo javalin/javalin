@@ -23,42 +23,39 @@ import java.net.URL
  */
 class SinglePageHandler {
 
-    private val pathUrlMap = mutableMapOf<String, URL>()
-    private val pathPageMap = mutableMapOf<String, String>()
-    private val pathCustomHandlerMap = mutableMapOf<String, Handler>()
+    data class Page(val url: URL, val cachedHtml: String) {
+        fun getHtml(reRead: Boolean) = if (reRead) url.readText() else cachedHtml
+    }
+
+    private val pathPageMap = mutableMapOf<String, Page>()
+    private val pathHandlerMap = mutableMapOf<String, Handler>()
 
     fun add(hostedPath: String, filePath: String, location: Location) {
-        pathUrlMap[hostedPath] = when (location) {
+        val url = when (location) {
             Location.CLASSPATH -> Util.getResourceUrl(filePath.removePrefix("/")) ?: throw IllegalArgumentException("File at '$filePath' not found. Path should be relative to resource folder.")
             Location.EXTERNAL -> Util.getFileUrl(filePath) ?: throw IllegalArgumentException("External file at '$filePath' not found.")
         }
-        pathPageMap[hostedPath] = pathUrlMap[hostedPath]!!.readText()
+        pathPageMap[hostedPath] = Page(url, url.readText())
     }
 
-    fun add(hostedPath: String, customHandler: Handler) {
-        pathCustomHandlerMap[hostedPath] = customHandler
+    fun add(hostedPath: String, handler: Handler) {
+        pathHandlerMap[hostedPath] = handler
     }
 
     fun handle(ctx: Context): Boolean {
-        val accepts = ctx.header(Header.ACCEPT) ?: ""
-        if (accepts.contains("text/html") || accepts.contains("*/*") || accepts == "") {
-            for (path in pathPageMap.keys) {
-                if (ctx.path().startsWith(path)) {
-                    ctx.html(when (ctx.isLocalhost()) {
-                        true -> pathUrlMap[path]!!.readText() // is localhost, read file again
-                        false -> pathPageMap[path]!! // not localhost, use cached content
-                    })
-                    return true
-                }
-            }
-            for ((hostedPath, customHandler) in pathCustomHandlerMap) {
-                if (ctx.path().startsWith(hostedPath)) {
-                    customHandler.handle(ctx)
-                    return true
-                }
-            }
+        val accept = ctx.header(Header.ACCEPT) ?: ""
+        if ("text/html" !in accept && "*/*" !in accept && accept != "") return false
+        pathPageMap.findByPath(ctx.path())?.let { page ->
+            ctx.html(page.getHtml(reRead = ctx.isLocalhost()))
+            return true
+        }
+        pathHandlerMap.findByPath(ctx.path())?.let { handler ->
+            handler.handle(ctx)
+            return true
         }
         return false
     }
 
 }
+
+private fun <T> Map<String, T>.findByPath(requestPath: String) = this.keys.find { requestPath.startsWith(it) }?.let { this[it]!! }
