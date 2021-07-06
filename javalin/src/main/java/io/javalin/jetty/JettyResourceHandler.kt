@@ -71,12 +71,7 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
         resourceBase = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
-        JavalinLogger.info(
-            """Static file handler added:
-        |    {hostedPath: "${config.hostedPath}", directory: "${config.directory}", location: Location.${config.location}}
-        |    Resolved path: '${getResourceBase(config)}'
-        """.trimMargin()
-        )
+        JavalinLogger.info("Static file handler added: $config. File system location: '${getResourceBase(config)}'")
     }
 
     override fun getResource(path: String): Resource {
@@ -85,7 +80,7 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
             config.directory == "META-INF/resources/webjars" ->
                 Resource.newClassPathResource("META-INF/resources$path")
             config.aliasCheck != null && aliasResource.isAlias ->
-                if (config.aliasCheck.check(path, aliasResource)) aliasResource else throw AccessDeniedException("Failed alias check")
+                if (config.aliasCheck?.check(path, aliasResource) == true) aliasResource else throw AccessDeniedException("Failed alias check")
             config.hostedPath == "/" -> super.getResource(path) // same as regular ResourceHandler
             path.startsWith(config.hostedPath) -> super.getResource(path.removePrefix(config.hostedPath))
             else -> EmptyResource.INSTANCE // files that don't start with hostedPath should not be accessible
