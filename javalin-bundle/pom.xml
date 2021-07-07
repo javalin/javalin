@@ -9,6 +9,10 @@
 
     <artifactId>javalin-bundle</artifactId>
 
+    <properties>
+        <copy.license.skip>false</copy.license.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.javalin</groupId>
