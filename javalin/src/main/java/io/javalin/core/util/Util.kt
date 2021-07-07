@@ -127,7 +127,7 @@ object Util {
             val propertiesPath = "META-INF/maven/io.javalin/javalin/pom.properties"
             it.load(this.javaClass.classLoader.getResourceAsStream(propertiesPath))
         }
-        JavalinLogger.info("You are running Javalin ${properties.getProperty("version")!!}.") // throw if null
+        JavalinLogger.info("You are running Javalin ${properties.getProperty("version")!!} (${properties.getProperty("buildTime")!!}).") // throw if null
     } catch (e: Exception) {
         // it's not that important
     }

@@ -19,7 +19,7 @@
 
     <properties>
         <javadoc.skip>false</javadoc.skip>
-        <copy.license.skip>false</copy.license.skip>
+        <copy-build-resources.skip>false</copy-build-resources.skip>
 
         <original.root>../javalin/src/main/java/io/javalin</original.root>
         <hackity.hack.root>../javalin-without-jetty/target/generated-sources/src/main/java/io/javalin</hackity.hack.root>
