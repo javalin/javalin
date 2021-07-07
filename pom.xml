@@ -53,7 +53,7 @@
         <dokka.jdkVersion>8</dokka.jdkVersion>
         <dokka.skip>true</dokka.skip>
         <javadoc.skip>true</javadoc.skip>
-        <copy.license.skip>true</copy.license.skip>
+        <copy-build-resources.skip>true</copy-build-resources.skip>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -518,13 +518,13 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
+                        <id>copy-license</id>
                         <phase>validate</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/target/classes/META-INF</outputDirectory>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.basedir}/../</directory>
@@ -533,7 +533,27 @@
                                     </includes>
                                 </resource>
                             </resources>
-                            <skip>${copy.license.skip}</skip>
+                            <skip>${copy-build-resources.skip}</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-pom-properties</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../</directory>
+                                    <includes>
+                                        <include>pom.properties</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                            <skip>${copy-build-resources.skip}</skip>
                         </configuration>
                     </execution>
                 </executions>
@@ -585,6 +605,7 @@
                             <manifestEntries>
                                 <Build-Time>${maven.build.timestamp}</Build-Time>
                             </manifestEntries>
+                            <pomPropertiesFile>${project.build.directory}/pom.properties</pomPropertiesFile>
                         </archive>
                     </configuration>
                 </plugin>
