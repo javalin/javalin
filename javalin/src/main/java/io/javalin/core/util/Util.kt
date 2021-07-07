@@ -12,6 +12,10 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.net.URL
 import java.net.URLEncoder
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
@@ -127,9 +131,20 @@ object Util {
             val propertiesPath = "META-INF/maven/io.javalin/javalin/pom.properties"
             it.load(this.javaClass.classLoader.getResourceAsStream(propertiesPath))
         }
-        JavalinLogger.info("You are running Javalin ${properties.getProperty("version")!!} (${properties.getProperty("buildTime")!!}).") // throw if null
+        val (version, buildTime) = listOf(properties.getProperty("version")!!, properties.getProperty("buildTime")!!)
+        JavalinLogger.info("You are running Javalin $version (released ${formatBuildTime(buildTime)}).")
     } catch (e: Exception) {
         // it's not that important
+    }
+
+    private fun formatBuildTime(buildTime: String): String? = try {
+        val (release, now) = listOf(Instant.parse(buildTime), Instant.now())
+        val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US).withZone(ZoneId.of("Z"))
+        formatter.format(release) + if (now.isAfter(release.plus(60, ChronoUnit.DAYS))) {
+            ". Your Javalin version is ${ChronoUnit.DAYS.between(release, now)} days old. Consider upgrading!"
+        } else ""
+    } catch (e: Exception) {
+        null // it's not that important
     }
 
     fun getChecksumAndReset(inputStream: ByteArrayInputStream): String {

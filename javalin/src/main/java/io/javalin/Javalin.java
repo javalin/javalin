@@ -167,8 +167,8 @@ public class Javalin {
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             JavalinLogger.info("Starting Javalin ...");
-            jettyServer.start(javalinJettyServlet);
             Util.logJavalinVersion();
+            jettyServer.start(javalinJettyServlet);
             JavalinLogger.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
