@@ -140,7 +140,14 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
                 }
     }
 
-    internal val pathParamNames: List<String> = segments.map { it.pathParamNames() }.flatten()
+    internal val pathParamNames: List<String> = segments.map { it.pathParamNames() }.flatten().also {
+        list -> run {
+            val set = list.toSet()
+            if (set.size != list.size) {
+                throw IllegalArgumentException("duplicate path param names detected!")
+            }
+        }
+    }
 
     //compute matchRegex suffix : if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
     private val regexSuffix = when {

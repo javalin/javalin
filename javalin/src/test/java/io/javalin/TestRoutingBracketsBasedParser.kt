@@ -14,7 +14,7 @@ import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.*
 import org.junit.Test
 import java.net.URLEncoder
 
@@ -197,6 +197,13 @@ class TestRoutingBracketsBasedParser {
     fun `getting splat-list works with path params in the mix`() = TestUtil.test { app, http ->
         app.get("/*/*/*/{test}") { ctx -> ctx.result(ctx.splats().toString()) }
         assertThat(http.getBody("/1/2/3/4")).isEqualTo("[1, 2, 3]")
+    }
+
+    @Test
+    fun `path param names are required to be unique across path param types`() = TestUtil.test { app, _ ->
+        assertThatIllegalArgumentException().isThrownBy {
+            app.get("/{param}/demo/<param>") { ctx -> ctx.result(ctx.pathParam("param")) }
+        }
     }
 
     @Test
