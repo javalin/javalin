@@ -1,19 +1,13 @@
 package io.javalin.core
 
+import io.javalin.core.routing.*
+import io.javalin.core.routing.constructRegexList
 import io.javalin.http.util.ContextUtil
-
-class MissingBracketsException(val segment: String, val path: String) : RuntimeException(
-    "This segment '$segment' is missing some brackets! Found in path '$path'"
-)
-
-class WildcardBracketAdjacentException(val segment: String, val path: String) : RuntimeException(
-    "Wildcard and a path parameter bracket are adjacent in segment '$segment' of path '$path'. This is forbidden"
-)
 
 private enum class ParserState {
     NORMAL,
-    INSIDE_BRACKET_TYPE_1,
-    INSIDE_BRACKET_TYPE_2
+    INSIDE_CURLY_BRACKETS,
+    INSIDE_ANGLE_BRACKETS
 }
 
 class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
@@ -34,7 +28,7 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
     private val matchEverySubPath: Boolean = rawPath.endsWith("**")
     private val path: String = rawPath.removeSuffix("**")
 
-    internal val segments: List<PathSegment> = path.split("/")
+    val segments: List<PathSegment> = path.split("/")
         .filter { it.isNotEmpty() }
         .map(::convertSegment)
 
@@ -77,11 +71,11 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
                     return when (char) {
                         '*' -> PathSegment.Wildcard
                         '{' -> {
-                            state = ParserState.INSIDE_BRACKET_TYPE_1
+                            state = ParserState.INSIDE_CURLY_BRACKETS
                             null
                         }
                         '<' -> {
-                            state = ParserState.INSIDE_BRACKET_TYPE_2
+                            state = ParserState.INSIDE_ANGLE_BRACKETS
                             null
                         }
                         '}', '>' -> throw MissingBracketsException(
@@ -91,7 +85,7 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
                         else -> PathSegment.Normal(char.toString()) // the single characters will be merged later
                     }
                 }
-                ParserState.INSIDE_BRACKET_TYPE_1 -> {
+                ParserState.INSIDE_CURLY_BRACKETS -> {
                     return when (char) {
                         '}' -> {
                             state = ParserState.NORMAL
@@ -110,7 +104,7 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
                         }
                     }
                 }
-                ParserState.INSIDE_BRACKET_TYPE_2 -> {
+                ParserState.INSIDE_ANGLE_BRACKETS -> {
                     return when (char) {
                         '>' -> {
                             state = ParserState.NORMAL
@@ -147,10 +141,10 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
             }
     }
 
-    internal val pathParamNames: List<String> = segments.map { it.pathParamNames() }.flatten().also { list ->
+    val pathParamNames: List<String> = segments.map { it.pathParamNames() }.flatten().also { list ->
         val set = list.toSet()
         if (set.size != list.size) {
-            throw IllegalArgumentException("duplicate path param names detected! This is forbidden. Path passed in: $rawPath")
+            throw ParameterNamesNotUniqueException(rawPath)
         }
     }
 
@@ -164,12 +158,6 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
     private val matchRegex = constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asRegexString() }
     private val pathParamRegex =
         constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
-    private val splatRegex = constructRegexList(
-        matchEverySubPath,
-        segments,
-        regexSuffix,
-        setOf(RegexOption.IGNORE_CASE)
-    ) { it.asSplatRegexString() }
 
     fun matches(url: String): Boolean = matchRegex.any { url matches it }
 
@@ -180,116 +168,8 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         }.toMap()
     }
 
-    fun extractSplats(url: String): List<String> {
-        val index = matchRegex.indexOfFirst { url matches it }
-        return values(splatRegex[index], url).map { ContextUtil.urlDecode(it) }
-    }
-
     // Match and group values, then drop first element (the input string)
     private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
 }
 
-private fun constructRegexList(
-    matchEverySubPath: Boolean,
-    segments: List<PathSegment>,
-    regexSuffix: String,
-    regexOptions: Set<RegexOption> = emptySet(),
-    mapper: (PathSegment) -> String
-): List<Regex> {
-    fun addRegexForExtraWildcard(): List<Regex> {
-        return if (matchEverySubPath) {
-            listOf(constructRegex(segments + PathSegment.Wildcard, regexSuffix, regexOptions, mapper))
-        } else {
-            emptyList()
-        }
-    }
-
-    return listOf(constructRegex(segments, regexSuffix, regexOptions, mapper)) + addRegexForExtraWildcard()
-}
-
-private fun constructRegex(
-    segments: List<PathSegment>,
-    regexSuffix: String,
-    regexOptions: Set<RegexOption> = emptySet(),
-    mapper: (PathSegment) -> String
-): Regex {
-    return buildString {
-        append("^/")
-        append(segments.joinToString(separator = "/", transform = mapper))
-        append(regexSuffix)
-        append("$")
-    }.toRegex(regexOptions)
-}
-
-private fun String.grouped() = "($this)"
-
-sealed class PathSegment {
-
-    internal abstract fun asRegexString(): String
-
-    internal abstract fun asGroupedRegexString(): String
-
-    internal abstract fun asSplatRegexString(): String
-
-    class Normal(val content: String) : PathSegment() {
-        // do not group static content
-        override fun asRegexString(): String = content
-        override fun asGroupedRegexString(): String = content
-        override fun asSplatRegexString(): String = content
-    }
-
-    sealed class Parameter(val name: String) : PathSegment() {
-        class SlashIgnoringParameter(name: String) : Parameter(name) {
-            override fun asRegexString(): String = "[^/]+?" // Accept everything except slash
-            override fun asGroupedRegexString(): String = asRegexString().grouped()
-            override fun asSplatRegexString(): String = asRegexString()
-        }
-
-        class SlashAcceptingParameter(name: String) : Parameter(name) {
-            override fun asRegexString(): String = ".+?" // Accept everything
-            override fun asGroupedRegexString(): String = asRegexString().grouped()
-            override fun asSplatRegexString(): String = asRegexString()
-        }
-    }
-
-    object Wildcard : PathSegment() {
-        override fun asRegexString(): String = ".*?" // Accept everything
-        override fun asGroupedRegexString(): String = asRegexString()
-        override fun asSplatRegexString(): String = asRegexString().grouped()
-    }
-
-    class MultipleSegments(segments: List<PathSegment>) : PathSegment() {
-        init {
-            if (segments.filterIsInstance<MultipleSegments>().isNotEmpty()) {
-                throw IllegalStateException("Found MultipleSegment inside MultipleSegments! This is forbidden")
-            }
-        }
-
-        val innerSegments = segments.filterNot { it is MultipleSegments }
-
-        private val regex: String = innerSegments.joinToString(separator = "") { it.asRegexString() }
-        private val groupedRegex: String = innerSegments.joinToString(separator = "") { it.asGroupedRegexString() }
-        private val splatRegex: String = innerSegments.joinToString(separator = "") { it.asSplatRegexString() }
-        override fun asRegexString(): String = regex
-        override fun asGroupedRegexString(): String = groupedRegex
-        override fun asSplatRegexString(): String = splatRegex
-    }
-}
-
-fun List<PathSegment>.flattenMultipleSegments(): List<PathSegment> {
-    return this.map {
-        if (it is PathSegment.MultipleSegments) {
-            it.innerSegments
-        } else {
-            listOf(it)
-        }
-    }.flatten()
-}
-
-private fun PathSegment.pathParamNames(): List<String> {
-    return when (this) {
-        is PathSegment.Normal, is PathSegment.Wildcard -> emptyList()
-        is PathSegment.Parameter -> listOf(this.name)
-        is PathSegment.MultipleSegments -> this.innerSegments.filterIsInstance<PathSegment.Parameter>().map { it.name }
-    }
-}
+fun createPathParser(path: String, ignoreTrailingSlashes: Boolean): PathParser = PathParser(path, ignoreTrailingSlashes)

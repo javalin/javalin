@@ -29,7 +29,6 @@ object ContextUtil {
         if (handlerType != HandlerType.AFTER) {
             endpointHandlerPath = handlerEntry.path
         }
-        splatList = handlerEntry.extractSplats(requestUri)
     }
 
     // this header is semi-colon separated, like: "text/html; charset=UTF-8"
@@ -72,13 +71,11 @@ object ContextUtil {
             matchedPath: String = "*",
             pathParamMap: Map<String, String> = mapOf(),
             handlerType: HandlerType = HandlerType.INVALID,
-            appAttributes: Map<String, Any> = mapOf(),
-            splatList: List<String> = listOf()
+            appAttributes: Map<String, Any> = mapOf()
     ) = Context(request, response, appAttributes).apply {
         this.matchedPath = matchedPath
         this.pathParamMap = pathParamMap
         this.handlerType = handlerType
-        this.splatList = splatList
     }
 
     fun Context.isLocalhost() = try {

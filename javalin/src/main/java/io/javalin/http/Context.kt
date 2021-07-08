@@ -438,17 +438,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
     }
 
-    //
-    // Gets a splat by its index.
-    // Ex: If the handler path is /users/*
-    // and a browser GETs /users/123,
-    // splat(0) will return "123"
-    //
-    fun splat(splatNr: Int): String? = splatList[splatNr]
-
-    /** Gets a list of all the [splat] values. */
-    fun splats(): List<String> = Collections.unmodifiableList(splatList)
-
     /** Gets the handler type of the current handler */
     fun handlerType(): HandlerType = handlerType
 }

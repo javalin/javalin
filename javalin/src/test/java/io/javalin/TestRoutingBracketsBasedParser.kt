@@ -9,7 +9,9 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
-import io.javalin.core.WildcardBracketAdjacentException
+import io.javalin.core.routing.MissingBracketsException
+import io.javalin.core.routing.ParameterNamesNotUniqueException
+import io.javalin.core.routing.WildcardBracketAdjacentException
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
@@ -171,38 +173,24 @@ class TestRoutingBracketsBasedParser {
     }
 
     @Test
-    fun `extracting path-param and splat works`() = TestUtil.test { app, http ->
-        app.get("/path/{path-param}/*") { ctx -> ctx.result("/" + ctx.pathParam("path-param") + "/" + ctx.splat(0)) }
-        assertThat(http.getBody("/path/P/S")).isEqualTo("/P/S")
-    }
-
-    @Test
-    fun `utf-8 encoded splat works`() = TestUtil.test { app, http ->
-        app.get("/{path-param}/path/*") { ctx -> ctx.result(ctx.pathParam("path-param") + ctx.splat(0)!!) }
-        val responseBody = okHttp.getBody(http.origin + "/"
-                + URLEncoder.encode("java/kotlin", "UTF-8")
-                + "/path/"
-                + URLEncoder.encode("/java/kotlin", "UTF-8")
-        )
-        assertThat(responseBody).isEqualTo("java/kotlin/java/kotlin")
-    }
-
-    @Test
-    fun `getting splat-list works`() = TestUtil.test { app, http ->
-        app.get("/*/*/*") { ctx -> ctx.result(ctx.splats().toString()) }
-        assertThat(http.getBody("/1/2/3")).isEqualTo("[1, 2, 3]")
-    }
-
-    @Test
-    fun `getting splat-list works with path params in the mix`() = TestUtil.test { app, http ->
-        app.get("/*/*/*/{test}") { ctx -> ctx.result(ctx.splats().toString()) }
-        assertThat(http.getBody("/1/2/3/4")).isEqualTo("[1, 2, 3]")
-    }
-
-    @Test
     fun `path param names are required to be unique across path param types`() = TestUtil.test { app, _ ->
-        assertThatIllegalArgumentException().isThrownBy {
+        assertThatExceptionOfType(ParameterNamesNotUniqueException::class.java).isThrownBy {
             app.get("/{param}/demo/<param>") { ctx -> ctx.result(ctx.pathParam("param")) }
+        }
+    }
+
+    @Test
+    fun `missing brackets lead to an exception`() = TestUtil.test { app, _ ->
+        listOf(
+            "/{",
+            "/}",
+            "/>",
+            "/<",
+            "/</>"
+        ).forEach {
+            assertThatExceptionOfType(MissingBracketsException::class.java).describedAs(it).isThrownBy {
+                app.get(it) { ctx -> ctx.result("") }
+            }
         }
     }
 

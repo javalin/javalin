@@ -5,10 +5,10 @@
 package io.javalin.plugin.openapi.dsl
 
 import io.javalin.core.*
-import io.javalin.core.PathParserSpec
-import io.javalin.core.PathSegment
+import io.javalin.core.routing.PathSegment
 import io.javalin.core.createPathParser
 import io.javalin.core.event.HandlerMetaInfo
+import io.javalin.core.routing.flattenMultipleSegments
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.CreateSchemaOptions
 import io.javalin.plugin.openapi.JavalinOpenApi
@@ -54,7 +54,7 @@ fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options:
             }
 }
 
-internal fun PathParserSpec.getOpenApiUrl(): String {
+internal fun PathParser.getOpenApiUrl(): String {
     val segmentsString = segments.joinToString("/") { it.asOpenApiUrlPart() }
     return "/$segmentsString"
 }
@@ -74,7 +74,7 @@ private fun PathSegment.asOpenApiUrlPart(): String {
 
 fun PathItem.applyMetaInfoList(
         options: CreateSchemaOptions,
-        path: PathParserSpec,
+        path: PathParser,
         handlerMetaInfoList: List<HandlerMetaInfo>
 ) {
     handlerMetaInfoList
@@ -86,7 +86,7 @@ fun PathItem.applyMetaInfoList(
             }
 }
 
-fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParserSpec, metaInfo: HandlerMetaInfo) {
+fun Operation.applyMetaInfo(options: CreateSchemaOptions, path: PathParser, metaInfo: HandlerMetaInfo) {
     val documentation = metaInfo.extractDocumentation(options)
 
     operationId = metaInfo.createDefaultOperationId(path)
@@ -183,20 +183,20 @@ fun HandlerType.asPathItemHttpMethod(): PathItem.HttpMethod? = when (this) {
     else -> null
 }
 
-private fun HandlerMetaInfo.createDefaultOperationId(path: PathParserSpec): String {
+private fun HandlerMetaInfo.createDefaultOperationId(path: PathParser): String {
     val metaInfo = this
     val lowerCaseMethod = metaInfo.httpMethod.toString().toLowerCase()
     val capitalizedPath = path.asReadableWords().joinToString("") { it.capitalize() }
     return lowerCaseMethod + capitalizedPath
 }
 
-private fun HandlerMetaInfo.createDefaultSummary(path: PathParserSpec): String {
+private fun HandlerMetaInfo.createDefaultSummary(path: PathParser): String {
     val metaInfo = this
     val capitalizedMethod = metaInfo.httpMethod.toString().toLowerCase().capitalize()
     return (listOf(capitalizedMethod) + path.asReadableWords()).joinToString(" ") { it.trim() }
 }
 
-private fun PathParserSpec.asReadableWords(): List<String> {
+private fun PathParser.asReadableWords(): List<String> {
     val words = mutableListOf<String>()
     segments.flattenMultipleSegments().forEach { segment ->
         when (segment) {
