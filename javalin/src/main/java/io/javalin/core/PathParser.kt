@@ -39,5 +39,3 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         }.toMap()
     }
 }
-
-fun createPathParser(path: String, ignoreTrailingSlashes: Boolean): PathParser = PathParser(path, ignoreTrailingSlashes)

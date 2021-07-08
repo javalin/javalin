@@ -6,7 +6,6 @@ package io.javalin.plugin.openapi.dsl
 
 import io.javalin.core.*
 import io.javalin.core.routing.PathSegment
-import io.javalin.core.createPathParser
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.routing.flattenMultipleSegments
 import io.javalin.http.HandlerType
@@ -29,7 +28,10 @@ fun overridePaths(
 ): List<HandlerMetaInfo> {
     return overridenPaths.plus(handlerMetaInfoList.filter { handler ->
         overridenPaths.none { overridenHandler ->
-            createPathParser(overridenHandler.path, true).matches(handler.path) && overridenHandler.httpMethod == handler.httpMethod
+            PathParser(
+                overridenHandler.path,
+                true
+            ).matches(handler.path) && overridenHandler.httpMethod == handler.httpMethod
         }
     })
 }
@@ -47,7 +49,7 @@ fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options:
             .filter { it.extractDocumentation(options).isIgnored != true }
             .groupBy { it.path }
             .forEach { (url, metaInfos) ->
-                val pathParser = createPathParser(url, true)
+                val pathParser = PathParser(url, true)
                 updatePath(pathParser.getOpenApiUrl()) {
                     applyMetaInfoList(options, pathParser, metaInfos)
                 }

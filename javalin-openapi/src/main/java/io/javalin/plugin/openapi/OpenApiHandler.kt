@@ -1,7 +1,7 @@
 package io.javalin.plugin.openapi
 
 import io.javalin.Javalin
-import io.javalin.core.createPathParser
+import io.javalin.core.PathParser
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
@@ -80,7 +80,7 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
         //method have been explicitly specified
         if(options.includedPaths.isNotEmpty()){
             included = options.includedPaths.any { (path, methods) ->
-                createPathParser(path, true).matches(handler.path) && methods.any { method ->
+                PathParser(path, true).matches(handler.path) && methods.any { method ->
                     // HttpMethod is implemented two times :(
                     method.name == handler.httpMethod.name
                 }
@@ -89,7 +89,7 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
 
         //a path is excluded if the path and methods are included in the list of excluded paths
         val excluded = !options.ignoredPaths.none { (path, methods) ->
-            createPathParser(path, true).matches(handler.path) && methods.any { method ->
+            PathParser(path, true).matches(handler.path) && methods.any { method ->
                 // HttpMethod is implemented two times :(
                 method.name == handler.httpMethod.name
             }
