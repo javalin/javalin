@@ -3,11 +3,11 @@ package io.javalin.core
 import io.javalin.http.util.ContextUtil
 
 class MissingBracketsException(val segment: String, val path: String) : RuntimeException(
-        "This segment '$segment' is missing some brackets! Found in path '$path'"
+    "This segment '$segment' is missing some brackets! Found in path '$path'"
 )
 
 class WildcardBracketAdjacentException(val segment: String, val path: String) : RuntimeException(
-        "Wildcard and a path parameter bracket are adjacent in segment '$segment' of path '$path'. This is forbidden"
+    "Wildcard and a path parameter bracket are adjacent in segment '$segment' of path '$path'. This is forbidden"
 )
 
 private enum class ParserState {
@@ -16,35 +16,27 @@ private enum class ParserState {
     INSIDE_BRACKET_TYPE_2
 }
 
-data class PathParserOptions(
-        val openingDelimiterType1: Char = '{',
-        val closingDelimiterType1: Char = '}',
-        val allowOptionalClosingDelimiter: Boolean = false,
-        val openingDelimiterType2: Char = '<',
-        val closingDelimiterType2: Char = '>'
-)
-
 class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
 
     private val adjacentViolations: List<String> = listOf(
-            "*{",
-            "*<",
-            ">*"
+        "*{",
+        "*<",
+        ">*"
     )
 
     private val allDelimiters: Set<Char> = setOf(
-            '{',
-            '}',
-            '<',
-            '>'
+        '{',
+        '}',
+        '<',
+        '>'
     )
 
     private val matchEverySubPath: Boolean = rawPath.endsWith("**")
     private val path: String = rawPath.removeSuffix("**")
 
     internal val segments: List<PathSegment> = path.split("/")
-            .filter { it.isNotEmpty() }
-            .map(::convertSegment)
+        .filter { it.isNotEmpty() }
+        .map(::convertSegment)
 
     private fun convertSegment(segment: String): PathSegment {
         val brackets = segment.count { it in allDelimiters }
@@ -61,8 +53,12 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         when {
             // just a Parameter in this segment
             // checking the number of brackets enforces a path parameter name without those brackets
-            brackets == 2 && segment.startsWith('{') && segment.endsWith('}') -> return PathSegment.Parameter.SlashIgnoringParameter(segment.removePrefix("{").removeSuffix("}"))
-            brackets == 2 && segment.startsWith('<') && segment.endsWith('>') -> return PathSegment.Parameter.SlashAcceptingParameter(segment.removePrefix("<").removeSuffix(">"))
+            brackets == 2 && segment.startsWith('{') && segment.endsWith('}') -> return PathSegment.Parameter.SlashIgnoringParameter(
+                segment.removePrefix("{").removeSuffix("}")
+            )
+            brackets == 2 && segment.startsWith('<') && segment.endsWith('>') -> return PathSegment.Parameter.SlashAcceptingParameter(
+                segment.removePrefix("<").removeSuffix(">")
+            )
             // just a wildcard
             segment == "*" -> return PathSegment.Wildcard
             // no special characters
@@ -88,7 +84,10 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
                             state = ParserState.INSIDE_BRACKET_TYPE_2
                             null
                         }
-                        '}', '>' -> throw MissingBracketsException(segment, rawPath) // cannot start with a closing delimiter
+                        '}', '>' -> throw MissingBracketsException(
+                            segment,
+                            rawPath
+                        ) // cannot start with a closing delimiter
                         else -> PathSegment.Normal(char.toString()) // the single characters will be merged later
                     }
                 }
@@ -100,7 +99,10 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
                             pathNameAccumulator.clear()
                             PathSegment.Parameter.SlashIgnoringParameter(name)
                         }
-                        '{', '<', '>' -> throw MissingBracketsException(segment, rawPath) // cannot start another variable inside a variable
+                        '{', '<', '>' -> throw MissingBracketsException(
+                            segment,
+                            rawPath
+                        ) // cannot start another variable inside a variable
                         // wildcard is also okay inside a variable name
                         else -> {
                             pathNameAccumulator += char
@@ -116,7 +118,10 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
                             pathNameAccumulator.clear()
                             PathSegment.Parameter.SlashAcceptingParameter(name)
                         }
-                        '{', '}', '<' -> throw MissingBracketsException(segment, rawPath) // cannot start another variable inside a variable
+                        '{', '}', '<' -> throw MissingBracketsException(
+                            segment,
+                            rawPath
+                        ) // cannot start another variable inside a variable
                         // wildcard is also okay inside a variable name
                         else -> {
                             pathNameAccumulator += char
@@ -128,24 +133,24 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         }
 
         return segment.map(::mapSingleChar)
-                .filterNotNull()
-                .fold(PathSegment.MultipleSegments(emptyList())) { acc, pathSegment ->
-                    val lastAddition = acc.innerSegments.lastOrNull()
-                    when {
-                        lastAddition == null -> PathSegment.MultipleSegments(listOf(pathSegment))
-                        lastAddition is PathSegment.Wildcard && pathSegment is PathSegment.Wildcard -> acc
-                        lastAddition is PathSegment.Normal && pathSegment is PathSegment.Normal -> PathSegment.MultipleSegments(acc.innerSegments.dropLast(1) + PathSegment.Normal(lastAddition.content + pathSegment.content))
-                        else -> PathSegment.MultipleSegments(acc.innerSegments + pathSegment)
-                    }
+            .filterNotNull()
+            .fold(PathSegment.MultipleSegments(emptyList())) { acc, pathSegment ->
+                val lastAddition = acc.innerSegments.lastOrNull()
+                when {
+                    lastAddition == null -> PathSegment.MultipleSegments(listOf(pathSegment))
+                    lastAddition is PathSegment.Wildcard && pathSegment is PathSegment.Wildcard -> acc
+                    lastAddition is PathSegment.Normal && pathSegment is PathSegment.Normal -> PathSegment.MultipleSegments(
+                        acc.innerSegments.dropLast(1) + PathSegment.Normal(lastAddition.content + pathSegment.content)
+                    )
+                    else -> PathSegment.MultipleSegments(acc.innerSegments + pathSegment)
                 }
+            }
     }
 
-    internal val pathParamNames: List<String> = segments.map { it.pathParamNames() }.flatten().also {
-        list -> run {
-            val set = list.toSet()
-            if (set.size != list.size) {
-                throw IllegalArgumentException("duplicate path param names detected!")
-            }
+    internal val pathParamNames: List<String> = segments.map { it.pathParamNames() }.flatten().also { list ->
+        val set = list.toSet()
+        if (set.size != list.size) {
+            throw IllegalArgumentException("duplicate path param names detected! This is forbidden. Path passed in: $rawPath")
         }
     }
 
@@ -157,8 +162,14 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
     }
 
     private val matchRegex = constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asRegexString() }
-    private val pathParamRegex = constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
-    private val splatRegex = constructRegexList(matchEverySubPath, segments, regexSuffix, setOf(RegexOption.IGNORE_CASE)) {it.asSplatRegexString()}
+    private val pathParamRegex =
+        constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
+    private val splatRegex = constructRegexList(
+        matchEverySubPath,
+        segments,
+        regexSuffix,
+        setOf(RegexOption.IGNORE_CASE)
+    ) { it.asSplatRegexString() }
 
     fun matches(url: String): Boolean = matchRegex.any { url matches it }
 
