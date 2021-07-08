@@ -31,3 +31,6 @@ internal fun constructRegex(
         append("$")
     }.toRegex(regexOptions)
 }
+
+// Match and group values, then drop first element (the input string)
+internal fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()

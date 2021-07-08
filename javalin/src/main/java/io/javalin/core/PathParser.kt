@@ -15,6 +15,7 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
     private val adjacentViolations: List<String> = listOf(
         "*{",
         "*<",
+        "}*",
         ">*"
     )
 
@@ -167,9 +168,6 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
             name to ContextUtil.urlDecode(value)
         }.toMap()
     }
-
-    // Match and group values, then drop first element (the input string)
-    private fun values(regex: Regex, url: String) = regex.matchEntire(url)?.groupValues?.drop(1) ?: emptyList()
 }
 
 fun createPathParser(path: String, ignoreTrailingSlashes: Boolean): PathParser = PathParser(path, ignoreTrailingSlashes)
