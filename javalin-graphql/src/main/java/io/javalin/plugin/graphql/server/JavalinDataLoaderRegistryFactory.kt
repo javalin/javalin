@@ -1,4 +1,4 @@
-package io.javalin.plugin.graphql
+package io.javalin.plugin.graphql.server
 
 import com.expediagroup.graphql.server.execution.DataLoaderRegistryFactory
 import com.expediagroup.graphql.server.execution.KotlinDataLoader

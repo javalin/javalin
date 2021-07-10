@@ -1,4 +1,4 @@
-package io.javalin.plugin.graphql
+package io.javalin.plugin.graphql.server
 
 import com.expediagroup.graphql.server.execution.GraphQLRequestParser
 import com.expediagroup.graphql.server.types.GraphQLServerRequest

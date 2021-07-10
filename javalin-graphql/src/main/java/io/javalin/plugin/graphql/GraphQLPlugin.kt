@@ -3,12 +3,9 @@ package io.javalin.plugin.graphql
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
-import io.javalin.http.BadRequestResponse
-import io.javalin.plugin.json.jsonMapper
-import kotlinx.coroutines.future.future
+import io.javalin.plugin.graphql.server.JavalinGraphQLServer
 import kotlinx.coroutines.runBlocking
 import org.eclipse.jetty.http.HttpStatus
-import reactor.core.publisher.toMono
 
 class GraphQLPlugin(private val builder: GraphQLPluginBuilder<*>) : Plugin, PluginLifecycleInit {
 

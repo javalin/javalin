@@ -4,7 +4,6 @@ import com.expediagroup.graphql.generator.SchemaGeneratorConfig
 import com.expediagroup.graphql.generator.TopLevelObject
 import com.expediagroup.graphql.generator.execution.GraphQLContext
 import com.expediagroup.graphql.generator.toSchema
-import com.expediagroup.graphql.server.execution.DataLoaderRegistryFactory
 import com.expediagroup.graphql.server.execution.GraphQLContextFactory
 import com.expediagroup.graphql.server.execution.KotlinDataLoader
 import graphql.GraphQL
@@ -13,6 +12,7 @@ import io.javalin.plugin.graphql.context.EmptyGraphQLContextFactory
 import io.javalin.plugin.graphql.graphql.MutationGraphql
 import io.javalin.plugin.graphql.graphql.QueryGraphql
 import io.javalin.plugin.graphql.graphql.SubscriptionGraphql
+import io.javalin.plugin.graphql.server.JavalinDataLoaderRegistryFactory
 
 class GraphQLPluginBuilder<out T : GraphQLContext>(val path: String, val contextFactory: GraphQLContextFactory<T, Context>) {
     private var queries: MutableList<TopLevelObject> = mutableListOf()
