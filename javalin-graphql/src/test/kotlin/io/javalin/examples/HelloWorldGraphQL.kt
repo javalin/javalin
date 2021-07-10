@@ -5,7 +5,7 @@
  */
 package io.javalin.examples
 
-import com.expediagroup.graphql.annotations.GraphQLDescription
+import com.expediagroup.graphql.generator.annotations.GraphQLDescription
 import io.javalin.Javalin
 import io.javalin.plugin.graphql.GraphQLOptions
 import io.javalin.plugin.graphql.GraphQLPlugin

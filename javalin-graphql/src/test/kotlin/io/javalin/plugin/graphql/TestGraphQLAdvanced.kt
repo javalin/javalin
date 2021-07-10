@@ -36,7 +36,6 @@ class TestGraphQLAdvanced {
                 .register(QueryExample(message))
                 .register(MutationExample(message))
                 .register(SubscriptionExample())
-                .setMiddleHandler { ctx ->  context.updateHi(ctx.header("test")!!)}
             it.registerPlugin(GraphQLPlugin(graphQLOption))
         }
             .after { ctx -> ctx.req.asyncContext.timeout = 10 }
