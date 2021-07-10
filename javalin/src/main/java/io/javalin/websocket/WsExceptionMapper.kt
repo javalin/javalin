@@ -6,7 +6,7 @@
 
 package io.javalin.websocket
 
-import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
 import org.eclipse.jetty.websocket.api.StatusCode
 
@@ -26,7 +26,7 @@ class WsExceptionMapper {
         if (handler != null) {
             handler.handle(exception, ctx)
         } else {
-            Javalin.log?.warn("Uncaught exception in WebSocket handler", exception)
+            JavalinLogger.warn("Uncaught exception in WebSocket handler", exception)
             ctx.session.close(StatusCode.SERVER_ERROR, exception.message)
         }
     }

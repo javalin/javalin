@@ -7,11 +7,12 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
-fun main(args: Array<String>) {
+fun main() {
     val app = Javalin.create().start(7070)
 
     app.get("/image/:color/width/:width/height/:height") { ctx ->
@@ -34,6 +35,6 @@ fun main(args: Array<String>) {
         ctx.contentType("image/png").result(bytes)
     }
 
-    Javalin.log.info("Red square: http://localhost:7070/image/ff0000/width/400/height/400")
-    Javalin.log.info("Brown rectangle: http://localhost:7070/image/804020/width/400/height/100")
+    JavalinLogger.info("Red square: http://localhost:7070/image/ff0000/width/400/height/400")
+    JavalinLogger.info("Brown rectangle: http://localhost:7070/image/804020/width/400/height/100")
 }

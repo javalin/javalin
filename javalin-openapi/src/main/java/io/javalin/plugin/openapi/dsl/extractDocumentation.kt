@@ -9,7 +9,13 @@ import io.javalin.core.util.methodReferenceReflectionMethodName
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.CreateSchemaOptions
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.plugin.openapi.annotations.HttpMethod
+import io.javalin.plugin.openapi.annotations.NULL_STRING
+import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.asOpenApiDocumentation
+import io.javalin.plugin.openapi.annotations.pathInfo
+import io.javalin.plugin.openapi.annotations.scanForAnnotations
+import io.javalin.plugin.openapi.annotations.warnUserAboutPotentialBugs
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -103,8 +109,9 @@ private val HandlerMetaInfo.methodReferenceOfHandler: Method?
             when {
                 handlerReflection.isClass -> (handler as Class<*>).methods[0]
                 handlerReflection.isKotlinMethodReference -> {
-                    val functionValue = handlerReflection.getFieldValue("function") as KFunction<*>
-                    functionValue.javaMethod
+                    val field = handlerReflection.obj.javaClass.declaredFields.single()
+                    field.isAccessible = true
+                    (field.get(handlerReflection.obj) as KFunction<*>).javaMethod
                 }
                 handlerReflection.isKotlinAnonymousLambda -> null // Cannot be parsed
                 handlerReflection.isJavaNonStaticMethodReference -> methodReferenceOfNonStaticJavaHandler

@@ -22,7 +22,7 @@ enum class HandlerType {
         private val methodMap = values().map { it.toString() to it }.toMap()
         fun fromServletRequest(httpRequest: HttpServletRequest): HandlerType {
             val key = httpRequest.getHeader(Header.X_HTTP_METHOD_OVERRIDE) ?: httpRequest.method
-            return methodMap[key.toUpperCase()] ?: INVALID
+            return methodMap[key.uppercase()] ?: INVALID
         }
     }
 

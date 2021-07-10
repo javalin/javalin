@@ -17,7 +17,7 @@ fun configureJacksonToJsonMapper() {
 
 fun String.formatJson(): String {
     configureJacksonToJsonMapper()
-    val node = JavalinJackson.fromJson(this, JsonNode::class.java)
+    val node = JavalinJackson().fromJsonString(this, JsonNode::class.java)
     return JacksonToJsonMapper().map(node)
 }
 
@@ -39,6 +39,10 @@ val userOpenApiSchema = """
       },
       "address":{
           "$ref": "#/components/schemas/Address"
+      },
+      "userType" : {
+        "type" : "string",
+        "enum" : [ "ONE", "TWO" ]
       }
    }
 }
@@ -61,6 +65,14 @@ val addressOpenApiSchema = """
          "format": "int32"
       }
    }
+}
+""".formatJson()
+
+@Language("JSON")
+val userTypeOpenApiSchema = """
+{
+    "type" : "string",
+    "enum" : [ "ONE", "TWO" ]
 }
 """.formatJson()
 
@@ -120,31 +132,8 @@ val queryBeanExample = """
       },
       "components" : {
         "schemas" : {
-          "Address" : {
-            "required" : [ "number", "street" ],
-            "type" : "object",
-            "properties" : {
-              "street" : {
-                "type" : "string"
-              },
-              "number" : {
-                "type" : "integer",
-                "format" : "int32"
-              }
-            }
-          },
-          "User" : {
-            "required" : [ "name" ],
-            "type" : "object",
-            "properties" : {
-              "name" : {
-                "type" : "string"
-              },
-              "address" : {
-                "$ref" : "#/components/schemas/Address"
-              }
-            }
-          }
+          "Address" : $addressOpenApiSchema,
+          "User" : $userOpenApiSchema
         }
       }
     }
@@ -452,6 +441,36 @@ val provideRouteExampleJson = """
       "title": "Example",
       "version": "1.0.0"
     },
+    "paths": {
+      "/test": {
+        "get": {
+          "summary": "Get test",
+          "operationId": "getTest",
+          "responses" : {
+            "200" : {
+              "description" : "Default response"
+            }
+          }
+        }
+      }
+    },
+    "components": {}
+  }
+""".formatJson()
+
+@Language("JSON")
+val serverListingAddedExample = """
+  {
+    "openapi": "3.0.1",
+    "info": {
+      "title": "Example",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "http://example.example.com"
+      }
+    ],
     "paths": {
       "/test": {
         "get": {
@@ -882,12 +901,38 @@ val complexExampleJson = """
           }
         }
       }
+    },
+    "/enums/{my-enum-path-param}" : {
+      "get" : {
+        "summary" : "Get enums with myEnumPathParam",
+        "operationId" : "getEnumsWithMyEnumPathParam",
+        "parameters" : [ {
+          "name" : "my-enum-path-param",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/UserType"
+          }
+        }, {
+          "name" : "my-enum-query-param",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/UserType"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Default response"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
       "Address": $addressOpenApiSchema,
-      "User": $userOpenApiSchema
+      "User": $userOpenApiSchema,
+      "UserType": $userTypeOpenApiSchema
     },
     "securitySchemes" : {
       "http" : {
@@ -1144,31 +1189,8 @@ val overrideJson = """
   },
   "components" : {
     "schemas" : {
-      "Address" : {
-        "required" : [ "number", "street" ],
-        "type" : "object",
-        "properties" : {
-          "street" : {
-            "type" : "string"
-          },
-          "number" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "User" : {
-        "required" : [ "name" ],
-        "type" : "object",
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "address" : {
-            "$ref" : "#/components/schemas/Address"
-          }
-        }
-      }
+      "Address" : $addressOpenApiSchema,
+      "User" : $userOpenApiSchema
     }
   }
 }
@@ -1339,32 +1361,9 @@ val composedExample = """
   },
   "components" : {
     "schemas" : {
-      "Address" : {
-        "required" : [ "number", "street" ],
-        "type" : "object",
-        "properties" : {
-          "street" : {
-            "type" : "string"
-          },
-          "number" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "User" : {
-        "required" : [ "name" ],
-        "type" : "object",
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "address" : {
-            "$ref" : "#/components/schemas/Address"
-          }
-        }
-      }
+      "Address" : $addressOpenApiSchema,
+      "User" : $userOpenApiSchema
     }
   }
 }
-""".trimIndent()
+""".formatJson()

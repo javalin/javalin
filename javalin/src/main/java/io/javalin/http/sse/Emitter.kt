@@ -7,14 +7,14 @@ import javax.servlet.ServletOutputStream
 class Emitter(private var asyncContext: AsyncContext) {
 
     private lateinit var output: ServletOutputStream
-    private var close = false
+    private var closed = false
     private val newline = "\n"
 
     init {
         try {
             this.output = asyncContext.response.outputStream
         } catch (e: IOException) {
-            close = true
+            closed = true
         }
     }
 
@@ -33,10 +33,10 @@ class Emitter(private var asyncContext: AsyncContext) {
             output.print(sb.toString())
             asyncContext.response.flushBuffer()
         } catch (e: IOException) {
-            close = true
+            closed = true
         }
     }
 
-    fun isClose() = close
+    fun isClosed() = closed
 
 }

@@ -2,16 +2,16 @@ package io.javalin.plugin.openapi
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.core.event.HandlerMetaInfo
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
-import io.javalin.plugin.json.ToJsonMapper
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
+import io.javalin.plugin.openapi.jackson.ToJsonMapper
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.javalin.plugin.openapi.utils.LazyDefaultValue
@@ -22,7 +22,7 @@ import io.swagger.v3.oas.models.info.Info
 class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigurationCreator) {
     /** If not null, creates a GET route to get the schema as a json */
     var path: String? = null
-    var roles: Set<Role> = setOf()
+    var roles: Set<RouteRole> = setOf()
     /**
      * If not null, creates a GET route to the swagger ui
      * @see <a href="https://swagger.io/tools/swagger-ui/">https://swagger.io/tools/swagger-ui/</a>
@@ -53,6 +53,13 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
      */
     var toJsonMapper: ToJsonMapper by LazyDefaultValue { JacksonToJsonMapper(jacksonMapper) }
     /**
+     * Function that allows modification of the OpenAPI model before it is sent to the client.
+     * Since the OpenAPI model is mutable, care should be taken to make sure any modifications
+     * are idempotent.  If this is not possible, caching of the model may be disabled, but this
+     * incurs a performance penalty.
+     */
+    var responseModifier: OpenApiModelModifier by LazyDefaultValue { NoOpOpenApiModelModifier() }
+    /**
      * A list of package prefixes to scan for annotations.
      */
     var packagePrefixesToScan = mutableSetOf<String>()
@@ -67,20 +74,34 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
     var ignoredPaths: MutableList<Pair<String, List<HttpMethod>>> = mutableListOf()
 
     /**
+     * A list of the only paths which will be considered as part of the OpenAPI documentation.  If this list is empty
+     * it will be considered as meaning that all paths should be included with the exception of the ignored paths
+     */
+    val includedPaths: MutableList<Pair<String, List<HttpMethod>>> = mutableListOf()
+
+    /**
      * Validate the generated schema with the swagger parser
      * (prints warnings if schema is invalid)
      */
     var validateSchema: Boolean = false
+    /**
+     * Flag indicating whether or not the generated schema should be cached.  Caching is enabled by default.
+     */
+    var cacheSchema:  Boolean = true;
 
     constructor(info: Info) : this(InitialConfigurationCreator { OpenAPI().info(info) })
 
     fun path(value: String) = apply { path = value }
 
+    fun disableCaching() = apply { cacheSchema = false }
+
+    fun responseModifier(value: OpenApiModelModifier) = apply { responseModifier = value }
+
     fun swagger(value: SwaggerOptions) = apply { swagger = value }
 
     fun reDoc(value: ReDocOptions) = apply { reDoc = value }
 
-    fun roles(value: Set<Role>) = apply { roles = value }
+    fun roles(vararg value: RouteRole) = apply { roles = value.toSet() }
 
     fun defaultDocumentation(value: DefaultDocumentation) = apply { default = value }
     fun defaultDocumentation(apply: (documentation: OpenApiDocumentation) -> Unit) = apply {
@@ -127,6 +148,16 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
 
     fun ignorePath(path: String, vararg httpMethod: HttpMethod) = apply {
         ignoredPaths.add(Pair(path, httpMethod.asList().ifEmpty { HttpMethod.values().asList() }))
+    }
+
+    /**
+     * adds the given path and methods to the list of paths which should be scanned by OpenAPI
+     *
+     * @param path : the path to include in the paths to scan
+     * @param httpMethod : the list of http methods to include in the scan (as a vararg)
+     */
+    fun includePath(path: String, vararg httpMethod: HttpMethod) = apply {
+        includedPaths.add(Pair(path, httpMethod.asList().ifEmpty { HttpMethod.values().asList() }))
     }
 }
 

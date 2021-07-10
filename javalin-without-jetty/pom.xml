@@ -3,7 +3,7 @@
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>3.9.1-SNAPSHOT</version>
+        <version>4.0.0.ALPHA4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,6 +18,9 @@
     </dependencies>
 
     <properties>
+        <javadoc.skip>false</javadoc.skip>
+        <copy-build-resources.skip>false</copy-build-resources.skip>
+
         <original.root>../javalin/src/main/java/io/javalin</original.root>
         <hackity.hack.root>../javalin-without-jetty/target/generated-sources/src/main/java/io/javalin</hackity.hack.root>
         <javalin.original.path>${original.root}/Javalin.java</javalin.original.path>
@@ -31,9 +34,7 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -57,9 +58,7 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>generate-sources</id>
@@ -68,15 +67,13 @@
                             <target name="hacky-mchackface">
                                 <!-- Javalin.java -->
                                 <copy file="${javalin.original.path}" tofile="${javalin.hack.path}" />
+                                <replace file="${javalin.hack.path}" token="protected JavalinJettyServlet javalinJettyServlet" value="private JavalinJettyServlet javalinJettyServlet" />
+                                <replace file="${javalin.hack.path}" token="protected JettyServer jettyServer" value="private JettyServer jettyServer" />
+                                <replace file="${javalin.hack.path}" token="public JettyServer jettyServer() {" value="private JettyServer jettyServer() {" />
                                 <replace file="${javalin.hack.path}" token="public Javalin ws(" value="private Javalin ws(" />
                                 <replace file="${javalin.hack.path}" token="public Javalin wsBefore(" value="private Javalin wsBefore(" />
                                 <replace file="${javalin.hack.path}" token="public Javalin wsAfter(" value="private Javalin wsAfter(" />
                                 <replace file="${javalin.hack.path}" token="public &lt;T extends Exception&gt; Javalin wsException(" value="private &lt;T extends Exception&gt; Javalin wsException(" />
-                                <replace file="${javalin.hack.path}" token="public JavalinWsServlet wsServlet()" value="private JavalinWsServlet wsServlet()" />
-                                <replace file="${javalin.hack.path}" token="protected JavalinWsServlet wsServlet" value="private JavalinWsServlet wsServlet" />
-                                <replace file="${javalin.hack.path}" token="public @Nullable JavalinServer server() {" value="private @Nullable JavalinServer server() {" />
-                                <replace file="${javalin.hack.path}" token="protected JavalinServer server" value="private JavalinServer server" />
-                                <replace file="${javalin.hack.path}" token="protected JavalinServer server" value="private JavalinServer server" />
                                 <replace file="${javalin.hack.path}" token="public Javalin(" value="private Javalin(" />
                                 <replace file="${javalin.hack.path}" token="public static Javalin create(" value="private static Javalin create(" />
                                 <replace file="${javalin.hack.path}" token="public Javalin start(" value="private Javalin start(" />
@@ -84,19 +81,19 @@
                                 <replace file="${javalin.hack.path}" token="public int port(" value="private int port(" />
                                 <!-- JavalinConfig.java -->
                                 <copy file="${javalinconfig.original.path}" tofile="${javalinconfig.hack.path}" />
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig addStaticFiles(" value="private JavalinConfig addStaticFiles(" />
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig sessionHandler(" value="private JavalinConfig sessionHandler(" />
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig wsFactoryConfig(" value="private JavalinConfig wsFactoryConfig(" />
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig wsLogger(" value="private JavalinConfig wsLogger(" />
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig enableWebjars()" value="private JavalinConfig enableWebjars()" />
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig enableDevLogging()" value="private JavalinConfig enableDevLogging()" />
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig server(" value="private JavalinConfig server(" />
-                                <replace file="${javalinconfig.hack.path}" token="public JavalinConfig configureServletContextHandler(" value="private JavalinConfig configureServletContextHandler(" />
-                                <replace file="${javalinconfig.hack.path}" token="public boolean logIfServerNotStarted = true;" value="public boolean logIfServerNotStarted = false;" />
+                                <replace file="${javalinconfig.hack.path}" token="public void addStaticFiles(" value="private void addStaticFiles(" />
+                                <replace file="${javalinconfig.hack.path}" token="public void sessionHandler(" value="private void sessionHandler(" />
+                                <replace file="${javalinconfig.hack.path}" token="public void wsFactoryConfig(" value="private void wsFactoryConfig(" />
+                                <replace file="${javalinconfig.hack.path}" token="public void wsLogger(" value="private void wsLogger(" />
+                                <replace file="${javalinconfig.hack.path}" token="public void enableWebjars()" value="private void enableWebjars()" />
+                                <replace file="${javalinconfig.hack.path}" token="public void enableDevLogging()" value="private void enableDevLogging()" />
+                                <replace file="${javalinconfig.hack.path}" token="public void server(" value="private void server(" />
+                                <replace file="${javalinconfig.hack.path}" token="public void configureServletContextHandler(" value="private void configureServletContextHandler(" />
                                 <!-- Context.kt -->
-                                <copy file="${context.original.path}" tofile="${context.hack.path}" />
-                                <replace file="${context.hack.path}" token="fun uploadedFile(" value="private fun uploadedFile(" />
-                                <replace file="${context.hack.path}" token="fun uploadedFiles(" value="private fun uploadedFiles(" />
+                                <!-- This stopped working for some reason -->
+<!--                                <copy file="${context.original.path}" tofile="${context.hack.path}" />-->
+<!--                                <replace file="${context.hack.path}" token="fun uploadedFile(" value="private fun uploadedFile(" />-->
+<!--                                <replace file="${context.hack.path}" token="fun uploadedFiles(" value="private fun uploadedFiles(" />-->
                             </target>
                         </configuration><!-- @formatter:on -->
                         <goals>
@@ -125,7 +122,6 @@
             <plugin>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <groupId>org.jetbrains.kotlin</groupId>
-                <version>${kotlin.version}</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -157,9 +153,7 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.7</version>
                 <configuration>
                     <sourcepath>${original.root}</sourcepath>
                 </configuration>

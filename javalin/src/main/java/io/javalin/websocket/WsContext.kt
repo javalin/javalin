@@ -7,7 +7,9 @@
 package io.javalin.websocket
 
 import io.javalin.http.Context
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.jetty.upgradeContextKey
+import io.javalin.jetty.upgradeSessionAttrsKey
+import io.javalin.plugin.json.jsonMapper
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
@@ -20,13 +22,13 @@ import java.nio.ByteBuffer
  */
 abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
 
-    private val upgradeReq by lazy { session.upgradeRequest as ServletUpgradeRequest }
-    private val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
-    private val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
+    internal val upgradeReq by lazy { session.upgradeRequest as ServletUpgradeRequest }
+    internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
+    internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
     fun matchedPath() = upgradeCtx.matchedPath
 
-    fun send(message: Any) = send(JavalinJson.toJson(message))
+    fun send(message: Any) = send(upgradeCtx.jsonMapper().toJsonString(message))
     fun send(message: String) = session.remote.sendStringByFuture(message)
     fun send(message: ByteBuffer) = session.remote.sendBytesByFuture(message)
 
@@ -34,18 +36,13 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
     fun queryParams(key: String): List<String> = upgradeCtx.queryParams(key)
     fun queryParam(key: String): String? = upgradeCtx.queryParam(key)
-    fun queryParam(key: String, default: String? = null): String? = upgradeCtx.queryParam(key, default)
-    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = upgradeCtx.queryParam(key, clazz, default)
-
-    @JvmSynthetic
-    inline fun <reified T : Any> queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.queryParamAsClass(key, clazz)
+    inline fun <reified T : Any> queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
 
     fun pathParamMap(): Map<String, String> = upgradeCtx.pathParamMap()
     fun pathParam(key: String): String = upgradeCtx.pathParam(key)
-    fun <T> pathParam(key: String, clazz: Class<T>) = upgradeCtx.pathParam(key, clazz)
-
-    @JvmSynthetic
-    inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.pathParamAsClass(key, clazz)
+    inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
     fun host() = upgradeReq.host // why can't we get this from upgradeCtx?
 
@@ -57,7 +54,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
     fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
-    fun <T> attributeMap(): Map<String, T?> = upgradeCtx.attributeMap()
+    fun attributeMap(): Map<String, Any?> = upgradeCtx.attributeMap()
 
     fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
     fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
@@ -85,8 +82,6 @@ class WsBinaryMessageContext(sessionId: String, session: Session, private val da
 
 class WsMessageContext(sessionId: String, session: Session, private val message: String) : WsContext(sessionId, session) {
     fun message(): String = message
-    fun <T> message(clazz: Class<T>): T = JavalinJson.fromJson(message, clazz)
-
-    @JvmSynthetic
-    inline fun <reified T : Any> message(): T = message(T::class.java)
+    fun <T> messageAsClass(clazz: Class<T>): T = upgradeCtx.jsonMapper().fromJsonString(message, clazz)
+    inline fun <reified T : Any> messageAsClass(): T = messageAsClass(T::class.java)
 }

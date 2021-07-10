@@ -6,21 +6,23 @@
 
 package io.javalin.http
 
-import io.javalin.Javalin
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.validation.BodyValidator
 import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
+import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
-import io.javalin.plugin.json.JavalinJson
+import io.javalin.plugin.json.canReadStream
+import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -30,8 +32,8 @@ import javax.servlet.http.HttpServletResponse
  *
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
-@Suppress("UNCHECKED_CAST")
-open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, private val appAttributes: Map<Class<*>, Any> = mapOf()) {
+// don't suppress warnings, since annotated classes are ignored by dokka (yeah...)
+open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, internal val appAttributes: Map<String, Any> = mapOf()) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
@@ -39,31 +41,21 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
+    @get:JvmSynthetic @set:JvmSynthetic internal var splatList = listOf<String>()
     // @formatter:on
 
-    private val cookieStore by lazy { CookieStore(cookie(CookieStore.COOKIE_NAME)) }
+    private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
     private var resultFuture: CompletableFuture<*>? = null
-
-    /**
-     * Registers an extension to the Context, which can be used later in the request-lifecycle.
-     * This method is mainly useful when calling from Java, as Kotlin has native extension methods.
-     *
-     * Ex: ctx.register(MyExt.class, myExtInstance())
-     */
-    fun register(clazz: Class<*>, value: Any) = req.setAttribute("ctx-ext-${clazz.canonicalName}", value)
-
-    /**
-     * Use an extension stored in the Context.
-     * This method is mainly useful when calling from Java as Kotlin has native extension methods.
-     *
-     * Ex: ctx.use(MyExt.class).myMethod()
-     */
-    fun <T> use(clazz: Class<T>): T = req.getAttribute("ctx-ext-${clazz.canonicalName}") as T
+    internal var futureConsumer: Consumer<Any?>? = null
+    private val body by lazy {
+        this.throwPayloadTooLargeIfPayloadTooLarge()
+        req.inputStream.readBytes()
+    }
 
     /** Gets an attribute from the Javalin instance serving the request */
-    fun <T> appAttribute(clazz: Class<T>): T = appAttributes[clazz] as T
+    fun <T> appAttribute(key: String): T = appAttributes[key] as T
 
     /**
      * Gets cookie store value for specified key.
@@ -111,43 +103,27 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the request body as a [String]. */
     fun body(): String = bodyAsBytes().toString(Charset.forName(characterEncoding))
 
-    /**
-     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
-     * JavalinJson can be configured to use any mapping library.
-     * @return The mapped object
-     */
-    @JvmSynthetic
-    inline fun <reified T : Any> body(): T = bodyAsClass(T::class.java)
-
     /** Gets the request body as a [ByteArray].
-     *
-     * Calling this method consumes the underlying InputStream. It will return the body
-     * as a [ByteArray] on the first call, and an empty array for subsequent calls,
-     * unless the InputStream is cached. By default, bodies up to 4kb are cached.
-     * Use [io.javalin.core.JavalinConfig.requestCacheSize] to configure cache size.
+     * Calling this method returns the body as a [ByteArray]. If [io.javalin.core.JavalinConfig.maxRequestSize]
+     * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
+     * with status 413 PAYLOAD_TOO_LARGE.
      */
-    fun bodyAsBytes(): ByteArray = req.inputStream.readBytes()
+    fun bodyAsBytes(): ByteArray = body
 
-    /**
-     * Maps a JSON body to a Java/Kotlin class using JavalinJson.
-     * JavalinJson can be configured to use any mapping library.
-     * @return The mapped object
-     */
-    fun <T> bodyAsClass(clazz: Class<T>): T = bodyValidator(clazz).get()
+    /** Maps a JSON body to a Java/Kotlin class using the registered [JsonMapper] */
+    fun <T> bodyAsClass(clazz: Class<T>): T =
+        jsonMapper().let { if (it.canReadStream()) it.fromJsonStream(req.inputStream, clazz)!! else it.fromJsonString(body(), clazz)!! }
 
-    /**
-     * Creates a [Validator] for the body() value, with the prefix "Request body as $clazz"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    fun <T> bodyValidator(clazz: Class<T>) = try {
-        BodyValidator(JavalinJson.fromJson(body(), clazz), "Request body as ${clazz.simpleName}")
-    } catch (e: Exception) {
-        Javalin.log?.info("Couldn't deserialize body to ${clazz.simpleName}", e)
-        throw BadRequestResponse("Couldn't deserialize body to ${clazz.simpleName}")
-    }
+    /** Reified version of [bodyAsClass] (Kotlin only) */
+    inline fun <reified T : Any> bodyAsClass(): T = bodyAsClass(T::class.java)
 
-    /** Reified version of [bodyValidator] */
-    @JvmSynthetic
+    /** Gets the request body as a [InputStream] */
+    fun bodyAsInputStream(): InputStream = req.inputStream
+
+    /** Creates a typed [BodyValidator] for the body() value */
+    fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, this.jsonMapper())
+
+    /** Reified version of [bodyValidator] (Kotlin only) */
     inline fun <reified T : Any> bodyValidator() = bodyValidator(T::class.java)
 
     /** Gets first [UploadedFile] for the specified name, or null. */
@@ -158,32 +134,27 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(req, fileName) else listOf()
     }
 
-    /**
-     * Gets a form param if it exists, else a default value (null if not specified explicitly).
-     * Including a default value is mainly useful when calling from Java,
-     * use elvis (formParam(key) ?: default) instead in Kotlin.
-     */
-    @JvmOverloads
-    fun formParam(key: String, default: String? = null): String? = formParams(key).firstOrNull() ?: default
+    /** Gets a list of [UploadedFile]s, or empty list. */
+    fun uploadedFiles(): List<UploadedFile> {
+        return if (isMultipartFormData()) MultipartUtil.getUploadedFiles(req) else listOf()
+    }
 
-    /**
-     * Creates a [Validator] for the formParam() value, with the prefix "Form parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    @JvmOverloads
-    fun <T> formParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, formParam(key, default), "Form parameter '$key' with value '${formParam(key, default)}'", key)
+    /** Gets a form param if it exists, else null */
+    fun formParam(key: String): String? = formParams(key).firstOrNull()
 
-    /** Reified version of [formParam] (Kotlin only) */
-    @JvmSynthetic
-    inline fun <reified T : Any> formParam(key: String, default: String? = null) = formParam(key, T::class.java, default)
+    /** Creates a typed [Validator] for the formParam() value */
+    fun <T> formParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, formParam(key), key)
+
+    /** Reified version of [formParamAsClass] (Kotlin only) */
+    inline fun <reified T : Any> formParamAsClass(key: String) = formParamAsClass(key, T::class.java)
 
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
 
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> =
-            if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
-            else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
+        if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
+        else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
 
     /**
      * Gets a path param by name (ex: pathParam("param").
@@ -194,17 +165,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
 
-    /**
-     * Creates a [Validator] for the pathParam() value, with the prefix "Path parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    fun <T> pathParam(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), "Path parameter '$key' with value '${pathParam(key)}'", key)
+    /** Creates a typed [Validator] for the pathParam() value */
+    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key)
 
-    /** Reified version of [pathParam] (Kotlin only) */
-    @JvmSynthetic
-    inline fun <reified T : Any> pathParam(key: String) = pathParam(key, T::class.java)
+    /** Reified version of [pathParamAsClass] (Kotlin only) */
+    inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
-    /** Gets a map of all the [pathParam] keys and values. */
+    /** Gets a map of all the [pathParamAsClass] keys and values. */
     fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
 
     /**
@@ -230,7 +197,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun <T> attribute(key: String): T? = req.getAttribute(key) as? T
 
     /** Gets a map with all the attribute keys and values on the request. */
-    fun <T> attributeMap(): Map<String, T?> = req.attributeNames.asSequence().associate { it to attribute<T>(it) }
+    fun attributeMap(): Map<String, Any?> = req.attributeNames.asSequence().associateWith { attribute(it) as Any? }
 
     /** Gets the request content length. */
     fun contentLength(): Int = req.contentLength
@@ -247,12 +214,11 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a request header by name, or null. */
     fun header(header: String): String? = req.getHeader(header)
 
-    /** Creates a [Validator] for the header() value, with the prefix "Request header '$header' with the value '$value'" */
-    fun <T> header(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), "Request header '$header' with value '${header(header)}'", header)
+    /** Creates a typed [Validator] for the header() value */
+    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header)
 
-    /** Reified version of [header] (Kotlin only) */
-    @JvmSynthetic
-    inline fun <reified T : Any> header(header: String) = header(header, T::class.java)
+    /** Reified version of [headerAsClass] (Kotlin only) */
+    inline fun <reified T : Any> headerAsClass(header: String) = headerAsClass(header, T::class.java)
 
     /** Gets a map with all the header keys and values on the request. */
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
@@ -281,24 +247,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the request protocol. */
     fun protocol(): String = req.protocol
 
-    /**
-     * Gets a query param if it exists, else a default value (null if not specified explicitly).
-     * Including a default value is mainly useful when calling from Java,
-     * use elvis (queryParam(key) ?: default) instead in Kotlin.
-     */
-    @JvmOverloads
-    fun queryParam(key: String, default: String? = null): String? = queryParams(key).firstOrNull() ?: default
+    /** Gets a query param if it exists, else null */
+    fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
-    /**
-     * Creates a [Validator] for the queryParam() value, with the prefix "Query parameter '$key' with value '$value'"
-     * Throws [BadRequestResponse] if validation fails.
-     */
-    @JvmOverloads
-    fun <T> queryParam(key: String, clazz: Class<T>, default: String? = null) = Validator.create(clazz, queryParam(key, default), "Query parameter '$key' with value '${queryParam(key, default)}'", key)
+    /** Creates a typed [Validator] for the queryParam() value */
+    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, queryParam(key), key)
 
-    /** Reified version of [queryParam] (Kotlin only) */
-    @JvmSynthetic
-    inline fun <reified T : Any> queryParam(key: String, default: String? = null) = queryParam(key, T::class.java, default)
+    /** Reified version of [queryParamAsClass] (Kotlin only) */
+    inline fun <reified T : Any> queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
 
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
@@ -318,8 +274,16 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets specified attribute from the user session, or null. */
     fun <T> sessionAttribute(key: String): T? = req.session.getAttribute(key) as? T
 
+    fun <T> consumeSessionAttribute(key: String) = sessionAttribute<T?>(key).also { this.sessionAttribute(key, null) }
+
+    /** Sets an attribute for the user session, and caches it on the request */
+    fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, req)
+
+    /** Gets specified attribute from the from request attribute cache, or the user session, or null. */
+    fun <T> cachedSessionAttribute(key: String): T? = ContextUtil.getCachedRequestAttributeOrSessionAttribute(key, req)
+
     /** Gets a map of all the attributes in the user session. */
-    fun <T> sessionAttributeMap(): Map<String, T?> = req.session.attributeNames.asSequence().associate { it to sessionAttribute<T>(it) }
+    fun sessionAttributeMap(): Map<String, Any?> = req.session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
 
     /** Gets the request url. */
     fun url(): String = req.requestURL.toString()
@@ -375,19 +339,21 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the current context result as an [InputStream] (if set). */
     fun resultStream(): InputStream? = resultStream
 
-    /**
-     * Sets context result to the specified CompletableFuture<String>
-     * or CompletableFuture<InputStream>.
-     * Will overwrite the current result if there is one.
-     * Can only be called inside endpoint handlers (ones representing HTTP verbs).
-     */
-    fun result(future: CompletableFuture<*>): Context {
-        resultStream = null
-        if (handlerType.isHttpMethod() && !inExceptionHandler) {
-            this.resultFuture = future
-            return this
+    @JvmOverloads
+    fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
+        if (!handlerType.isHttpMethod() || inExceptionHandler) {
+            throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
         }
-        throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
+        resultStream = null
+        resultFuture = future
+        futureConsumer = callback ?: Consumer { result ->
+            when (result) {
+                is InputStream -> result(result)
+                is String -> result(result)
+                is Any -> json(result)
+            }
+        }
+        return this
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
@@ -431,13 +397,18 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context {
         cookie.path = cookie.path ?: "/"
-        res.addCookie(cookie)
+        res.addCookie(cookie) // we rely on this method for formatting the header
+        (res.getHeaders(Header.SET_COOKIE) ?: listOf()).toMutableList().let { cookies -> // mutable list of all cookies
+            cookies.removeIf { it.startsWith("${cookie.name}=") && !it.contains(cookie.value) } // remove old cookie if duplicate name
+            cookies.removeFirst()?.let { res.setHeader(Header.SET_COOKIE, it) } // remove first cookie and use it to clear the header
+            cookies.forEach { res.addHeader(Header.SET_COOKIE, it) } // add all remaining cookies
+        }
         return this
     }
 
     /** Removes cookie specified by name and path (optional). */
     @JvmOverloads
-    fun removeCookie(name: String, path: String? = null): Context {
+    fun removeCookie(name: String, path: String? = "/"): Context {
         res.addCookie(Cookie(name, "").apply {
             this.path = path
             this.maxAge = 0
@@ -449,25 +420,12 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun html(html: String): Context = contentType("text/html").result(html)
 
     /**
-     * Serializes object to a JSON-string using JavalinJson and sets it as the context result.
-     * Sets content type to application/json.
-     *
-     * JavalinJson can be configured to use any mapping library.
+     * Serializes object to a JSON-string using the registered [JsonMapper] and sets it as the context result.
+     * Also sets content type to application/json.
      */
-    fun json(obj: Any): Context {
-        return contentType("application/json").result(JavalinJson.toJson(obj))
-    }
-
-    /**
-     * Serializes the object resulting from the completion of the given future
-     * to a JSON-string using JavalinJson and sets it as the context result.
-     * Sets content type to application/json.
-     *
-     * JavalinJson can be configured to use any mapping library.
-     */
-    fun json(future: CompletableFuture<*>): Context {
-        val mappingFuture = future.thenApply { JavalinJson.toJson(it) }
-        return contentType("application/json").result(mappingFuture)
+    @JvmOverloads
+    fun json(obj: Any, useStreamingMapper: Boolean = false): Context = contentType("application/json").also {
+        jsonMapper().let { if (useStreamingMapper) result(it.toJsonStream(obj)) else result(it.toJsonString(obj)) }
     }
 
     /**
@@ -480,4 +438,18 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
     }
 
+    //
+    // Gets a splat by its index.
+    // Ex: If the handler path is /users/*
+    // and a browser GETs /users/123,
+    // splat(0) will return "123"
+    //
+    fun splat(splatNr: Int): String? = splatList[splatNr]
+
+    /** Gets a list of all the [splat] values. */
+    fun splats(): List<String> = Collections.unmodifiableList(splatList)
+
+    /** Gets the handler type of the current handler */
+    fun handlerType(): HandlerType = handlerType
 }
+

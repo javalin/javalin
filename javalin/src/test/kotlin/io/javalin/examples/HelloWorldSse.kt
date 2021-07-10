@@ -11,7 +11,7 @@ import io.javalin.http.sse.SseClient
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
-fun main(args: Array<String>) {
+fun main() {
 
     val clients = ConcurrentLinkedQueue<SseClient>()
 

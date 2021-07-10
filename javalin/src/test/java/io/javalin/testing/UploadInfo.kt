@@ -6,4 +6,4 @@
 
 package io.javalin.testing
 
-class UploadInfo(val filename: String = "", val size: Long = 0L, val contentType: String = "", val extension: String = "")
+class UploadInfo(val filename: String = "", val size: Long = 0L, val contentType: String? = "", val extension: String = "")

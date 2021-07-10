@@ -8,19 +8,20 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 import io.javalin.http.sse.SseClient
+import io.javalin.http.staticfiles.Location
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 
-fun main(args: Array<String>) {
+fun main() {
 
     val tp = QueuedThreadPool(8, 2, 60_000)
     val counterClients = ConcurrentLinkedQueue<SseClient>()
     val statsClients = ConcurrentLinkedQueue<SseClient>()
 
     Javalin.create {
-        it.addStaticFiles("/public")
+        it.addStaticFiles("/public", Location.CLASSPATH)
         it.server { Server(tp) }
     }.apply {
         get("/") { it.redirect("/sse/sse-example.html") }

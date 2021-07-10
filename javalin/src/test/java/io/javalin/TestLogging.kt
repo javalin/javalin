@@ -47,7 +47,7 @@ class TestLogging {
         app.get("/async") { ctx ->
             val future = CompletableFuture<String>()
             Executors.newSingleThreadScheduledExecutor().schedule<Boolean>({ future.complete("Hello Async World!") }, 10, TimeUnit.MILLISECONDS)
-            ctx.result(future)
+            ctx.future(future)
         }
         app.start(0)
         assertThat(HttpUtil(app.port()).getBody("/async")).isEqualTo("Hello Async World!")

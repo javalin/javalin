@@ -6,21 +6,19 @@
 
 package io.javalin.core.util
 
-import io.javalin.Javalin
-import io.javalin.core.JavalinServer
 import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.InputStream
 import java.net.URL
 import java.net.URLEncoder
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
-import java.util.ServiceLoader
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
-import javax.servlet.http.HttpServletResponse
 
 object Util {
 
@@ -29,6 +27,9 @@ object Util {
 
     @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
+
+    @JvmStatic
+    fun isNonSubPathWildcard(path: String) = path.length > 1 && path.endsWith("*") && !path.endsWith("/*") // e.g. /my/:path*
 
     private fun classExists(className: String) = try {
         Class.forName(className)
@@ -63,7 +64,7 @@ object Util {
             if (startupCheck) {
                 throw IllegalStateException(message)
             } else {
-                Javalin.log?.warn(message)
+                JavalinLogger.warn(message)
                 throw InternalServerErrorResponse(message)
             }
         }
@@ -82,7 +83,7 @@ object Util {
             |</dependency>
             |
             |build.gradle:
-            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
+            |implementation group: '${dependency.groupId}', name: '${dependency.artifactId}', version: '${dependency.version}'
             |
             |Find the latest version here:
             |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
@@ -113,21 +114,46 @@ object Util {
 
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
-        if (showBanner) Javalin.log?.info("\n" + """
-          |           __                      __ _
-          |          / /____ _ _   __ ____ _ / /(_)____
-          |     __  / // __ `/| | / // __ `// // // __ \
-          |    / /_/ // /_/ / | |/ // /_/ // // // / / /
-          |    \____/ \__,_/  |___/ \__,_//_//_//_/ /_/
+        if (showBanner) JavalinLogger.info("\n" + """
+          |       __                      __ _            __ __
+          |      / /____ _ _   __ ____ _ / /(_)____      / // /
+          | __  / // __ `/| | / // __ `// // // __ \    / // /_
+          |/ /_/ // /_/ / | |/ // /_/ // // // / / /   /__  __/
+          |\____/ \__,_/  |___/ \__,_//_//_//_/ /_/      /_/
           |
-          |        https://javalin.io/documentation
+          |          https://javalin.io/documentation
           |""".trimMargin())
     }
 
-    fun getChecksumAndReset(inputStream: InputStream): String {
+    @JvmStatic
+    fun logJavalinVersion() = try {
+        val properties = Properties().also {
+            val propertiesPath = "META-INF/maven/io.javalin/javalin/pom.properties"
+            it.load(this.javaClass.classLoader.getResourceAsStream(propertiesPath))
+        }
+        val (version, buildTime) = listOf(properties.getProperty("version")!!, properties.getProperty("buildTime")!!)
+        JavalinLogger.info("You are running Javalin $version (released ${formatBuildTime(buildTime)}).")
+    } catch (e: Exception) {
+        // it's not that important
+    }
+
+    private fun formatBuildTime(buildTime: String): String? = try {
+        val (release, now) = listOf(Instant.parse(buildTime), Instant.now())
+        val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US).withZone(ZoneId.of("Z"))
+        formatter.format(release) + if (now.isAfter(release.plus(60, ChronoUnit.DAYS))) {
+            ". Your Javalin version is ${ChronoUnit.DAYS.between(release, now)} days old. Consider upgrading!"
+        } else ""
+    } catch (e: Exception) {
+        null // it's not that important
+    }
+
+    fun getChecksumAndReset(inputStream: ByteArrayInputStream): String {
+        inputStream.mark(Int.MAX_VALUE) //it's all in memory so there is no readAheadLimit
         val cis = CheckedInputStream(inputStream, Adler32())
-        val out = ByteArrayOutputStream()
-        cis.copyTo(out)
+        var byte = cis.read()
+        while (byte > -1) {
+            byte = cis.read()
+        }
         inputStream.reset()
         return cis.checksum.value.toString()
     }
@@ -144,7 +170,7 @@ object Util {
     fun assertWebjarInstalled(dependency: OptionalDependency) = try {
         getWebjarResourceUrl(dependency)
     } catch (e: Exception) {
-        Javalin.log?.warn(missingDependencyMessage(dependency))
+        JavalinLogger.warn(missingDependencyMessage(dependency))
     }
 
     @JvmStatic
@@ -168,23 +194,8 @@ object Util {
         return false
     }
 
-    fun writeResponse(response: HttpServletResponse, responseBody: String, status: Int) {
-        response.status = status
-        ByteArrayInputStream(responseBody.toByteArray()).copyTo(response.outputStream)
-        response.outputStream.close()
-    }
-
-    var logIfNotStarted = true
-
     @JvmStatic
-    fun logIfServerNotStarted(server: JavalinServer) = Thread {
-        Thread.sleep(5000)
-        if (!server.started && logIfNotStarted) {
-            Javalin.log?.info("It looks like you created a Javalin instance, but you never started it.")
-            Javalin.log?.info("Try: Javalin app = Javalin.create().start();")
-            Javalin.log?.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
-        }
-    }.start()
+    fun getPort(e: Exception) = e.message!!.takeLastWhile { it != ':' }
 
     fun <T : Any?> findByClass(map: Map<Class<out Exception>, T>, exceptionClass: Class<out Exception>): T? = map.getOrElse(exceptionClass) {
         var superclass = exceptionClass.superclass
@@ -196,8 +207,5 @@ object Util {
         }
         return null
     }
-
-    // jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
-    fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
 
 }

@@ -3,11 +3,16 @@
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>3.9.1-SNAPSHOT</version>
+        <version>4.0.0.ALPHA4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>javalin-graphql</artifactId>
+
+    <properties>
+        <dokka.skip>false</dokka.skip>
+        <copy-build-resources.skip>false</copy-build-resources.skip>
+    </properties>
 
     <dependencies>
         <!-- BEGIN Project dependencies -->
@@ -21,12 +26,10 @@
         <dependency>
             <groupId>com.expediagroup</groupId>
             <artifactId>graphql-kotlin-schema-generator</artifactId>
-            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
-            <version>3.2.9.RELEASE</version>
         </dependency>
         <!-- END Plugin dependencies -->
         <!-- BEGIN Test dependencies -->

@@ -14,7 +14,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 
 // This is a very basic example, a better one can be found at:
 // https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/examples/embedded/src/main/java/org/eclipse/jetty/embedded/LikeJettyXml.java#L139-L163
-fun main(args: Array<String>) {
+fun main() {
     val app = Javalin.create {
         it.server {
             val server = Server()

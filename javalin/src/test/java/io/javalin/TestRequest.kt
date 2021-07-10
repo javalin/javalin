@@ -9,6 +9,8 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.security.BasicAuthFilter
 import io.javalin.core.util.Header
+import io.javalin.http.staticfiles.Location
+import io.javalin.http.util.ContextUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -41,14 +43,45 @@ class TestRequest {
     }
 
     @Test
+    fun `session-attribute can be consumed easily`() = TestUtil.test { app, http ->
+        app.get("/store-attr") { it.sessionAttribute("attr", "Rowin") }
+        app.get("/read-attr") { it.result(it.consumeSessionAttribute("attr") ?: "Consumed") }
+        http.getBody("/store-attr") // store the attribute
+        assertThat(http.getBody("/read-attr")).isEqualTo("Rowin") // read (and consume) the attribute
+        assertThat(http.getBody("/read-attr")).isEqualTo("Consumed") // fallback
+    }
+
+    @Test
     fun `session-attribute-map works`() = TestUtil.test { app, http ->
         app.get("/store-session") { ctx ->
             ctx.sessionAttribute("test", "tast")
             ctx.sessionAttribute("hest", "hast")
         }
-        app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttributeMap<Any>().toString()) }
+        app.get("/read-session") { ctx -> ctx.result(ctx.sessionAttributeMap().toString()) }
         http.getBody("/store-session")
         assertThat(http.getBody("/read-session")).isEqualTo("{test=tast, hest=hast}")
+    }
+
+    @Test
+    fun `cached session attributes are cached when set`() = TestUtil.test { app, http ->
+        app.get("/cached-session-attr") { ctx ->
+            ctx.cachedSessionAttribute("test", "tast")
+            ctx.result(ctx.attribute<String>("${ContextUtil.sessionCacheKeyPrefix}test")!!) // should be cached as a normal attribute
+        }
+        assertThat(http.getBody("/cached-session-attr")).contains("tast")
+    }
+
+    @Test
+    fun `cached session attributes are cached when read`() = TestUtil.test { app, http ->
+        app.get("/set-cached-session-attr") { it.cachedSessionAttribute("test", "tast") }
+        app.get("/get-cached-session-attr") {
+            it.cachedSessionAttribute<String>("test")
+            it.result(it.attributeMap().toString())
+        }
+        app.get("/attr-map") { it.result(it.attributeMap().toString()) }
+        http.getBody("/set-cached-session-attr") // first we set the cached session variable
+        assertThat(http.getBody("/attr-map")).doesNotContain("test=tast") // we inspect the "cache", our key/value pair should not be here
+        assertThat(http.getBody("/get-cached-session-attr")).contains("${ContextUtil.sessionCacheKeyPrefix}test=tast") // since we've accessed the variable, cache should now contain key/value pair
     }
 
     @Test
@@ -69,39 +102,10 @@ class TestRequest {
         app.get("/attr-map") { ctx ->
             ctx.attribute("test", "tast")
             ctx.attribute("hest", "hast")
-            ctx.result(ctx.attributeMap<Any>().toString())
+            ctx.result(ctx.attributeMap().toString())
         }
         assertThat(http.getBody("/attr-map")).contains("test=tast")
         assertThat(http.getBody("/attr-map")).contains("hest=hast")
-    }
-
-    /*
-     * Cookies
-     */
-    @Test
-    fun `single cookie returns null when missing`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-1") { ctx -> ctx.result("" + ctx.cookie("my-cookie")) }
-        assertThat(http.getBody("/read-cookie-1")).isEqualTo("null")
-    }
-
-    @Test
-    fun `single cookie works`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-2") { ctx -> ctx.result(ctx.cookie("my-cookie")!!) }
-        val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
-        assertThat(response.body).isEqualTo("my-cookie-value")
-    }
-
-    @Test
-    fun `cookie-map returns empty when no cookies are set`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-3") { ctx -> ctx.result(ctx.cookieMap().toString()) }
-        assertThat(http.getBody("/read-cookie-3")).isEqualTo("{}")
-    }
-
-    @Test
-    fun `cookie-map returns all cookies if cookies are set`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-4") { ctx -> ctx.result(ctx.cookieMap().toString()) }
-        val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
-        assertThat(response.body).isEqualTo("{k1=v1, k2=v2, k3=v3}")
     }
 
     /*
@@ -142,7 +146,7 @@ class TestRequest {
 
     @Test
     fun `queryParam defaults to default value`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp", "default")!!) }
+        app.get("/") { ctx -> ctx.result("" + ctx.queryParamAsClass<String>("qp").getOrDefault("default")) }
         assertThat(http.getBody("/")).isEqualTo("default")
     }
 
@@ -187,7 +191,7 @@ class TestRequest {
 
     @Test
     fun `formParam returns defaults to default value`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp4", "4")!!) }
+        app.post("/") { ctx -> ctx.result("" + ctx.formParamAsClass<Int>("fp4").getOrDefault(4)) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
     }
 
@@ -248,7 +252,7 @@ class TestRequest {
     fun `basic auth filter plugin works`() {
         val basicauthApp = Javalin.create {
             it.registerPlugin(BasicAuthFilter("u", "p"))
-            it.addStaticFiles("/public")
+            it.addStaticFiles("/public", Location.CLASSPATH)
         }.get("/hellopath") { it.result("Hello") }
         TestUtil.test(basicauthApp) { app, http ->
             assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")
@@ -349,7 +353,7 @@ class TestRequest {
 
     @Test
     fun `validator header works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.json(ctx.header<Double>("double").get().javaClass.name) }
-        assertThat(http.getBody("/", mapOf("double" to "12.34"))).isEqualTo("\"double\"")
+        app.get("/") { it.result(it.headerAsClass<Double>("double-header").get().javaClass.name) }
+        assertThat(http.getBody("/", mapOf("double-header" to "12.34"))).isEqualTo("java.lang.Double")
     }
 }

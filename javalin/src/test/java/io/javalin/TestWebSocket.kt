@@ -10,8 +10,8 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.core.util.Header
 import io.javalin.http.UnauthorizedResponse
-import io.javalin.plugin.json.JavalinJson
-import io.javalin.testing.SerializeableObject
+import io.javalin.plugin.json.JavalinJackson
+import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.websocket.WsContext
@@ -25,7 +25,8 @@ import org.java_websocket.handshake.ServerHandshake
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
-import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -34,26 +35,26 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class TestWebSocket {
 
-    data class TestLogger(val log: ArrayList<String>)
+    data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
 
     private fun Javalin.logger(): TestLogger {
-        if (this.attribute(TestLogger::class.java) == null) {
-            this.attribute(TestLogger::class.java, TestLogger(ArrayList()))
+        if (this.attribute<TestLogger>(TestLogger::class.java.name) == null) {
+            this.attribute(TestLogger::class.java.name, TestLogger())
         }
-        return this.attribute(TestLogger::class.java)
+        return this.attribute(TestLogger::class.java.name)
     }
 
     fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
 
     fun javalinWithWsLogger() = Javalin.create().apply {
-        this.config.wsLogger { ws ->
+        this._conf.wsLogger { ws ->
             ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
             ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
         }
     }
 
     fun accessManagedJavalin() = Javalin.create().apply {
-        this.config.accessManager { handler, ctx, permittedRoles ->
+        this._conf.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("allowed") == "true" -> {
@@ -73,31 +74,18 @@ class TestWebSocket {
     fun `each connection receives a unique id`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         app.ws("/test-websocket-1") { ws ->
             ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId) }
-            ws.onMessage { ctx -> app.logger().log.add(ctx.sessionId) }
             ws.onClose { ctx -> app.logger().log.add(ctx.sessionId) }
         }
         app.routes {
             ws("/test-websocket-2") { ws ->
                 ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId) }
-                ws.onMessage { ctx -> app.logger().log.add(ctx.sessionId) }
                 ws.onClose { ctx -> app.logger().log.add(ctx.sessionId) }
             }
         }
-
-        val testClient1_1 = TestClient(app, "/websocket/test-websocket-1")
-        val testClient1_2 = TestClient(app, "/websocket/test-websocket-1")
-        val testClient2_1 = TestClient(app, "/websocket/test-websocket-2")
-
-        doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
-        doAndSleepWhile({ testClient1_2.connect() }, { !testClient1_2.isOpen })
-        doAndSleep { testClient1_1.send("A") }
-        doAndSleep { testClient1_2.send("B") }
-        doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
-        doAndSleepWhile({ testClient1_2.close() }, { testClient1_2.isClosing })
-        doAndSleepWhile({ testClient2_1.connect() }, { !testClient2_1.isOpen })
-        doAndSleepWhile({ testClient2_1.close() }, { testClient2_1.isClosing })
-
-        // 3 clients and a lot of operations should only yield three unique identifiers for the clients
+        TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
+        TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
+        TestClient(app, "/websocket/test-websocket-2").connectAndDisconnect()
+        // 3 clients and 6 operations should yield 3 unique identifiers total
         val uniqueLog = HashSet(app.logger().log)
         assertThat(uniqueLog).hasSize(3)
         uniqueLog.forEach { id -> assertThat(uniqueLog.count { it == id }).isEqualTo(1) }
@@ -105,7 +93,7 @@ class TestWebSocket {
 
     @Test
     fun `general integration test`() = TestUtil.test(contextPathJavalin()) { app, _ ->
-        val userUsernameMap = LinkedHashMap<WsContext, Int>()
+        val userUsernameMap = ConcurrentHashMap<WsContext, Int>()
         val atomicInteger = AtomicInteger()
         app.ws("/test-websocket-1") { ws ->
             ws.onConnect { ctx ->
@@ -115,37 +103,38 @@ class TestWebSocket {
             ws.onMessage { ctx ->
                 val message = ctx.message()
                 app.logger().log.add(userUsernameMap[ctx].toString() + " sent '" + message + "' to server")
-                userUsernameMap.forEach { client, _ -> doAndSleep { client.send("Server sent '" + message + "' to " + userUsernameMap[client]) } }
+                userUsernameMap.forEach { (client, _) -> client.send("Server sent '" + message + "' to " + userUsernameMap[client]) }
             }
             ws.onClose { ctx -> app.logger().log.add(userUsernameMap[ctx].toString() + " disconnected") }
         }
-        app.routes {
+        app.routes { // use .routes to test apibuilder
             ws("/test-websocket-2") { ws ->
                 ws.onConnect { app.logger().log.add("Connected to other endpoint") }
-                ws.onClose { _ -> app.logger().log.add("Disconnected from other endpoint") }
+                ws.onClose { app.logger().log.add("Disconnected from other endpoint") }
             }
         }
 
-        val testClient1_1 = TestClient(app, "/websocket/test-websocket-1")
-        val testClient1_2 = TestClient(app, "/websocket/test-websocket-1")
-        val testClient2_1 = TestClient(app, "/websocket/test-websocket-2")
+        val testClient0 = TestClient(app, "/websocket/test-websocket-1")
+        val testClient1 = TestClient(app, "/websocket/test-websocket-1")
+        val otherClient = TestClient(app, "/websocket/test-websocket-2")
 
-        doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
-        doAndSleepWhile({ testClient1_2.connect() }, { !testClient1_2.isOpen })
-        doAndSleep { testClient1_1.send("A") }
-        doAndSleep { testClient1_2.send("B") }
-        doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
-        doAndSleepWhile({ testClient1_2.close() }, { testClient1_2.isClosing })
-        doAndSleepWhile({ testClient2_1.connect() }, { !testClient2_1.isOpen })
-        doAndSleepWhile({ testClient2_1.close() }, { testClient2_1.isClosing })
-        Thread.sleep(50)
+        doAndSleepWhile({ testClient0.connect() }, { "0 connected" !in app.logger().log })
+        doAndSleepWhile({ testClient1.connect() }, { "1 connected" !in app.logger().log })
+        doAndSleepWhile({
+            testClient0.send("A")
+            testClient1.send("B")
+        }, { app.logger().log.size != 8 })
+        doAndSleepWhile({ testClient0.close() }, { testClient0.isClosing })
+        doAndSleepWhile({ testClient1.close() }, { testClient1.isClosing })
+        doAndSleepWhile({ otherClient.connect() }, { !otherClient.isOpen })
+        doAndSleepWhile({ otherClient.close() }, { otherClient.isClosing })
         assertThat(app.logger().log).containsExactlyInAnyOrder(
                 "0 connected",
                 "1 connected",
                 "0 sent 'A' to server",
+                "1 sent 'B' to server",
                 "Server sent 'A' to 0",
                 "Server sent 'A' to 1",
-                "1 sent 'B' to server",
                 "Server sent 'B' to 0",
                 "Server sent 'B' to 1",
                 "0 disconnected",
@@ -156,31 +145,30 @@ class TestWebSocket {
     }
 
     @Test
-    fun `receive and send json messages`() = TestUtil.test(contextPathJavalin()) { app, _ ->
-        val clientMessage = SerializeableObject().apply { value1 = "test1"; value2 = "test2" }
-        val clientMessageJson = JavalinJson.toJson(clientMessage)
+    fun `receive and send json messages`() = TestUtil.test { app, _ ->
+        val clientMessage = SerializableObject().apply { value1 = "test1"; value2 = "test2" }
+        val clientMessageJson = JavalinJackson().toJsonString(clientMessage)
 
-        val serverMessage = SerializeableObject().apply { value1 = "echo1"; value2 = "echo2" }
-        val serverMessageJson = JavalinJson.toJson(serverMessage)
+        val serverMessage = SerializableObject().apply { value1 = "echo1"; value2 = "echo2" }
+        val serverMessageJson = JavalinJackson().toJsonString(serverMessage)
 
         var receivedJson: String? = null
-        var receivedMessage: SerializeableObject? = null
+        var receivedMessage: SerializableObject? = null
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->
                 receivedJson = ctx.message()
-                receivedMessage = ctx.message<SerializeableObject>()
+                receivedMessage = ctx.messageAsClass<SerializableObject>()
                 ctx.send(serverMessage)
             }
         }
 
-        val testClient = TestClient(app, "/websocket/message")
+        val testClient = TestClient(app, "/message")
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
-        doAndSleep { testClient.send(clientMessageJson) }
-
-        assertThat(receivedJson).isEqualTo(clientMessageJson)
-        assertThat(receivedMessage).isNotNull
+        doAndSleepWhile({ testClient.send(clientMessageJson) }, { receivedJson == null || receivedMessage == null })
         assertThat(receivedMessage!!.value1).isEqualTo(clientMessage.value1)
         assertThat(receivedMessage!!.value2).isEqualTo(clientMessage.value2)
+        // the websocket client logs to the javalin instance
+        repeat(100) { if (app.logger().log.size < 1) Thread.sleep(2) }
         assertThat(app.logger().log.last()).isEqualTo(serverMessageJson)
     }
 
@@ -199,8 +187,8 @@ class TestWebSocket {
         val testClient = TestClient(app, "/websocket/binary")
 
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
-        doAndSleep { testClient.send(byteDataToSend1) }
-        doAndSleep { testClient.send(byteDataToSend2) }
+        testClient.send(byteDataToSend1)
+        testClient.send(byteDataToSend2)
         doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
 
         assertThat(receivedBinaryData).containsExactlyInAnyOrder(byteDataToSend1, byteDataToSend2)
@@ -270,7 +258,7 @@ class TestWebSocket {
         }
         val client = TestClient(app, "/context-life?qp=great")
         doAndSleepWhile({ client.connect() }, { !client.isOpen })
-        doAndSleep { client.send("not-important") }
+        client.send("not-important")
         doAndSleepWhile({ client.close() }, { client.isClosing })
         assertThat(app.logger().log).containsExactly("great1", "great2", "great3")
     }
@@ -364,7 +352,7 @@ class TestWebSocket {
 
         val testClient = TestClient(app, "/ws")
         doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
-        doAndSleep { testClient.send(textToSend) }
+        testClient.send(textToSend)
         doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
         app.stop()
 
@@ -427,7 +415,7 @@ class TestWebSocket {
         val client = TestClient(app, "/ws")
 
         doAndSleepWhile({ client.connect() }, { !client.isOpen })
-        doAndSleep { client.send("test") }
+        client.send("test")
         doAndSleepWhile({ client.close() }, { client.isClosing })
 
         assertThat(app.logger().log).containsExactly(
@@ -483,7 +471,7 @@ class TestWebSocket {
         val client = TestClient(app, "/ws")
 
         doAndSleepWhile({ client.connect() }, { !client.isOpen })
-        doAndSleep { client.send("test") }
+        client.send("test")
         doAndSleepWhile({ client.close() }, { client.isClosing })
 
         assertThat(app.logger().log).containsExactly(
@@ -560,7 +548,7 @@ class TestWebSocket {
         }
     }
 
-    private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(5)) {
+    private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(1)) {
         val startTime = System.currentTimeMillis()
         val limitTime = startTime + timeout.toMillis();
 
@@ -570,11 +558,7 @@ class TestWebSocket {
             if (System.currentTimeMillis() > limitTime) {
                 throw TimeoutException("Wait for condition has timed out")
             }
-
             Thread.sleep(2)
         }
     }
-
-    private fun doAndSleep(func: () -> Unit) = func.invoke().also { Thread.sleep(50) }
-
 }

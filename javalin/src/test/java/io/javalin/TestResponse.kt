@@ -20,7 +20,6 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
-import javax.servlet.http.Cookie
 
 class TestResponse {
 
@@ -120,21 +119,6 @@ class TestResponse {
         assertThat(http.call(HttpMethod.GET, "/hello-abs").status).isEqualTo(303)
         http.enableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello-abs").body).isEqualTo("Redirected")
-    }
-
-    @Test
-    fun `setting a cookie works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
-        app.get("/get-cookie") { ctx -> ctx.result(ctx.cookie("Test")!!) }
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).isEqualTo("Test=Tast; Path=/")
-        assertThat(http.getBody("/get-cookie")).isEqualTo("Tast")
-    }
-
-    @Test
-    fun `setting a Cookie object works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { ctx -> ctx.cookie(Cookie("Hest", "Hast").apply { maxAge = 7 }) }
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Hest=Hast")
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Max-Age=7")
     }
 
     // Fix for https://github.com/tipsy/javalin/issues/543

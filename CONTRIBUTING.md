@@ -51,7 +51,7 @@ io.javalin
 ├── websocket/                  // Everything related to WebSockets
 │   ├── WsContext.kt            // Wrapper class for WebSockets
 │   ├── JavalinWsServlet.kt     // Responsible for WebSocket upgrade, as well as switching between WebSocket and HTTP
-│   └── WsHandlerController.kt  // Responsible for Websocket request lifecycle (before, endpoint, after, logging)
+│   └── WsConnection.kt         // Keeps state of a WebSocket connection and handles incoming events
 └── Javalin.java                // Main public API, responsible for setting up and configuring the server
 ```
 

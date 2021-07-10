@@ -10,7 +10,7 @@ import io.javalin.Javalin
 
 // WebSockets also work with ssl,
 // see HelloWorldSecure for how to set that up
-fun main(args: Array<String>) {
+fun main() {
     Javalin.create { it.enableDevLogging() }.apply {
         ws("/websocket") { ws ->
             ws.onConnect { ctx ->

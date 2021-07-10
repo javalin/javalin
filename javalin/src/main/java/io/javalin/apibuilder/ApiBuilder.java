@@ -8,15 +8,14 @@ package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
 import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.Role;
+import io.javalin.core.security.RouteRole;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
-import io.javalin.websocket.WsHandler;
+import io.javalin.websocket.WsConfig;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,15 +26,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    private static Javalin staticJavalin;
-    private static Deque<String> pathDeque = new ArrayDeque<>();
+    private static final ThreadLocal<Javalin> staticJavalin = new ThreadLocal<>();
+    private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
     public static void setStaticJavalin(@NotNull Javalin javalin) {
-        staticJavalin = javalin;
+        staticJavalin.set(javalin);
     }
 
     public static void clearStaticJavalin() {
-        staticJavalin = null;
+        staticJavalin.remove();
     }
 
     /**
@@ -46,20 +45,21 @@ public class ApiBuilder {
      */
     public static void path(@NotNull String path, @NotNull EndpointGroup endpointGroup) {
         path = path.startsWith("/") ? path : "/" + path;
-        pathDeque.addLast(path);
+        pathDeque.get().addLast(path);
         endpointGroup.addEndpoints();
-        pathDeque.removeLast();
+        pathDeque.get().removeLast();
     }
 
     public static String prefixPath(@NotNull String path) {
-        return String.join("", pathDeque) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
+        return String.join("", pathDeque.get()) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
     }
 
     public static Javalin staticInstance() {
-        if (staticJavalin == null) {
+        Javalin javalin = staticJavalin.get();
+        if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
-        return staticJavalin;
+        return javalin;
     }
 
     // ********************************************************************************************
@@ -83,8 +83,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void get(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().get(prefixPath(path), handler, permittedRoles);
+    public static void get(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().get(prefixPath(path), handler, roles);
     }
 
     /**
@@ -104,8 +104,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void get(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().get(prefixPath(""), handler, permittedRoles);
+    public static void get(@NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().get(prefixPath(""), handler, roles);
     }
 
     /**
@@ -125,8 +125,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().post(prefixPath(path), handler, permittedRoles);
+    public static void post(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().post(prefixPath(path), handler, roles);
     }
 
     /**
@@ -146,8 +146,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void post(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().post(prefixPath(""), handler, permittedRoles);
+    public static void post(@NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().post(prefixPath(""), handler, roles);
     }
 
     /**
@@ -167,8 +167,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().put(prefixPath(path), handler, permittedRoles);
+    public static void put(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().put(prefixPath(path), handler, roles);
     }
 
     /**
@@ -188,8 +188,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void put(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().put(prefixPath(""), handler, permittedRoles);
+    public static void put(@NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().put(prefixPath(""), handler, roles);
     }
 
     /**
@@ -209,8 +209,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().patch(prefixPath(path), handler, permittedRoles);
+    public static void patch(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().patch(prefixPath(path), handler, roles);
     }
 
     /**
@@ -230,8 +230,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void patch(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().patch(prefixPath(""), handler, permittedRoles);
+    public static void patch(@NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().patch(prefixPath(""), handler, roles);
     }
 
     /**
@@ -251,8 +251,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().delete(prefixPath(path), handler, permittedRoles);
+    public static void delete(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().delete(prefixPath(path), handler, roles);
     }
 
     /**
@@ -272,8 +272,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void delete(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().delete(prefixPath(""), handler, permittedRoles);
+    public static void delete(@NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().delete(prefixPath(""), handler, roles);
     }
 
     /**
@@ -293,8 +293,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void head(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().head(prefixPath(path), handler, permittedRoles);
+    public static void head(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().head(prefixPath(path), handler, roles);
     }
 
     /**
@@ -314,8 +314,8 @@ public class ApiBuilder {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public static void head(@NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        staticInstance().head(prefixPath(""), handler, permittedRoles);
+    public static void head(@NotNull Handler handler, @NotNull RouteRole... roles) {
+        staticInstance().head(prefixPath(""), handler, roles);
     }
 
     // ********************************************************************************************
@@ -372,7 +372,7 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull String path, @NotNull Consumer<WsHandler> ws) {
+    public static void ws(@NotNull String path, @NotNull Consumer<WsConfig> ws) {
         staticInstance().ws(prefixPath(path), ws);
     }
 
@@ -382,8 +382,8 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull String path, @NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
-        staticInstance().ws(prefixPath(path), ws, permittedRoles);
+    public static void ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
+        staticInstance().ws(prefixPath(path), ws, roles);
     }
 
     /**
@@ -392,7 +392,7 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull Consumer<WsHandler> ws) {
+    public static void ws(@NotNull Consumer<WsConfig> ws) {
         staticInstance().ws(prefixPath(""), ws);
     }
 
@@ -402,40 +402,40 @@ public class ApiBuilder {
      *
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public static void ws(@NotNull Consumer<WsHandler> ws, @NotNull Set<Role> permittedRoles) {
-        staticInstance().ws(prefixPath(""), ws, permittedRoles);
+    public static void ws(@NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
+        staticInstance().ws(prefixPath(""), ws, roles);
     }
 
     /**
      * Adds a WebSocket before handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
-        return staticInstance().wsBefore(prefixPath(path), wsHandler);
+    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+        return staticInstance().wsBefore(prefixPath(path), wsConfig);
     }
 
     /**
      * Adds a WebSocket before handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsBefore(@NotNull Consumer<WsHandler> wsHandler) {
-        return staticInstance().wsBefore(prefixPath("/*"), wsHandler);
+    public Javalin wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
+        return staticInstance().wsBefore(prefixPath("/*"), wsConfig);
     }
 
     /**
      * Adds a WebSocket after handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsHandler> wsHandler) {
-        return staticInstance().wsAfter(prefixPath(path), wsHandler);
+    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+        return staticInstance().wsAfter(prefixPath(path), wsConfig);
     }
 
     /**
      * Adds a WebSocket after handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsAfter(@NotNull Consumer<WsHandler> wsHandler) {
-        return staticInstance().wsAfter(prefixPath("/*"), wsHandler);
+    public Javalin wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
+        return staticInstance().wsAfter(prefixPath("/*"), wsConfig);
     }
 
     // ********************************************************************************************
@@ -446,16 +446,16 @@ public class ApiBuilder {
         staticInstance().sse(prefixPath(path), client);
     }
 
-    public static void sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
-        staticInstance().sse(prefixPath(path), client, permittedRoles);
+    public static void sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
+        staticInstance().sse(prefixPath(path), client, roles);
     }
 
     public static void sse(@NotNull Consumer<SseClient> client) {
         staticInstance().sse(prefixPath(""), client);
     }
 
-    public static void sse(@NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
-        staticInstance().sse(prefixPath(""), client, permittedRoles);
+    public static void sse(@NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
+        staticInstance().sse(prefixPath(""), client, roles);
     }
 
     // ********************************************************************************************
@@ -463,40 +463,59 @@ public class ApiBuilder {
     // ********************************************************************************************
 
     /**
-     * Adds a CrudHandler handler to the specified path to the instance.
+     * Adds a CrudHandler handler to the current path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void crud(@NotNull CrudHandler crudHandler) {
+        crud("", crudHandler, new RouteRole[0]);
+    }
+
+    /**
+     * Adds a CrudHandler handler to the current path with the given roles to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static void crud(@NotNull CrudHandler crudHandler, @NotNull RouteRole... roles) {
+        crud("", crudHandler, roles);
+    }
+
+    /**
+     * Adds a CrudHandler handler to the specified path to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see CrudHandler
      */
     public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler) {
-        ApiBuilder.crud(path, crudHandler, new HashSet<>());
+        crud(path, crudHandler, new RouteRole[0]);
     }
 
     /**
-     * Adds a CrudHandler handler to the specified path with the given roles to the instance.
+     * Adds a CrudHandler handler to the specified path with the given roles to the {@link Javalin} instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      *
      * @see CrudHandler
      */
-    public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull Set<Role> permittedRoles) {
-        path = path.startsWith("/") ? path : "/" + path;
-        if (path.startsWith("/:")) {
-            throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path e.g. '/users/:user-id'");
+    public static void crud(@NotNull String path, @NotNull CrudHandler crudHandler, @NotNull RouteRole... roles) {
+        String fullPath = prefixPath(path);
+        String[] subPaths = Arrays.stream(fullPath.split("/")).filter(it -> !it.isEmpty()).toArray(String[]::new);
+        if (subPaths.length < 2) {
+            throw new IllegalArgumentException("CrudHandler requires a path like '/resource/:resource-id'");
         }
-        if (!path.contains("/:") || path.lastIndexOf("/") > path.lastIndexOf("/:")) {
-            throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path e.g. '/users/:user-id'");
+        String resourceId = subPaths[subPaths.length - 1];
+        if (!resourceId.startsWith(":")) {
+            throw new IllegalArgumentException("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'");
         }
-        final String SEPARATOR = "/:";
-        String resourceBase = path.substring(0, path.lastIndexOf(SEPARATOR));
-        String resourceId = path.substring(path.lastIndexOf(SEPARATOR) + SEPARATOR.length());
-
+        if (subPaths[subPaths.length - 2].startsWith(":")) {
+            throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/:user-id'");
+        }
         Map<CrudFunction, Handler> crudFunctions = CrudHandlerKt.getCrudFunctions(crudHandler, resourceId);
-
-        String resourceIdPath = prefixPath(path);
-        String resourceBasePath = prefixPath(resourceBase);
-
-        staticInstance().get(resourceIdPath, crudFunctions.get(CrudFunction.GET_ONE), permittedRoles);
-        staticInstance().get(resourceBasePath, crudFunctions.get(CrudFunction.GET_ALL), permittedRoles);
-        staticInstance().post(resourceBasePath, crudFunctions.get(CrudFunction.CREATE), permittedRoles);
-        staticInstance().patch(resourceIdPath, crudFunctions.get(CrudFunction.UPDATE), permittedRoles);
-        staticInstance().delete(resourceIdPath, crudFunctions.get(CrudFunction.DELETE), permittedRoles);
+        staticInstance().get(fullPath, crudFunctions.get(CrudFunction.GET_ONE), roles);
+        staticInstance().get(fullPath.replace(resourceId, ""), crudFunctions.get(CrudFunction.GET_ALL), roles);
+        staticInstance().post(fullPath.replace(resourceId, ""), crudFunctions.get(CrudFunction.CREATE), roles);
+        staticInstance().patch(fullPath, crudFunctions.get(CrudFunction.UPDATE), roles);
+        staticInstance().delete(fullPath, crudFunctions.get(CrudFunction.DELETE), roles);
     }
 }

@@ -7,7 +7,6 @@
 package io.javalin.http
 
 import io.javalin.core.util.Header
-import java.util.*
 
 class ErrorMapper {
     val errorHandlerMap = HashMap<Int, Handler>()

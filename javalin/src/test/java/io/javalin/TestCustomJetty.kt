@@ -8,12 +8,18 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
+import io.javalin.core.LoomUtil
+import io.javalin.http.HttpCode
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.Handler
+import org.eclipse.jetty.server.HttpConfiguration
+import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.RequestLog
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.ContextHandlerCollection
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.RequestLogHandler
@@ -21,17 +27,23 @@ import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.servlet.FilterHolder
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import org.junit.Assert.assertFalse
 import org.junit.Test
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.PrintStream
+import java.util.*
 import java.util.concurrent.atomic.AtomicLong
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
+import javax.servlet.FilterChain
+import javax.servlet.FilterConfig
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+
 
 class TestCustomJetty {
 
@@ -161,8 +173,10 @@ class TestCustomJetty {
                 })
             }
         }
-        val javalin = Javalin.create { it.server { newServer } }
-        javalin.config.contextPath = "/api"
+        val javalin = Javalin.create {
+            it.server { newServer }
+            it.contextPath = "/api"
+        }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { ctx -> ctx.result("Hello Javalin World!") }
             assertThat(http.getBody("/api")).contains("Hello Javalin World!")
@@ -171,22 +185,50 @@ class TestCustomJetty {
     }
 
     @Test
-    fun `no warnings in log file when adding static files to a custom server`() {
-        val baos = ByteArrayOutputStream()
-        val origErr = System.err
-        try {
-            System.setErr(PrintStream(baos))
+    fun `default server uses loom if available`() {
+        if (!LoomUtil.loomAvailable) return;
+        val log = TestUtil.captureStdOut {
+            Javalin.create().start(0).stop()
+        }
+        assertThat(log).contains("Loom is available, using Virtual ThreadPool... Neat!")
+    }
 
-            Javalin.create {
-                it.server { Server() }
-                it.enableWebjars()
+    @Test
+    fun `custom connector works`() {
+        val port = (2000..9999).random()
+        val app = Javalin.create { config ->
+            config.server {
+                Server().apply {
+                    val httpConfiguration = HttpConfiguration()
+                    httpConfiguration.addCustomizer(ForwardedRequestCustomizer())
+                    val connector = ServerConnector(this, HttpConnectionFactory(httpConfiguration))
+                    connector.port = port
+                    this.addConnector(connector)
+                }
             }
+        }
+        TestUtil.test(app) { server, _ ->
+            server.get("/") { it.result("PORT WORKS") }
+            assertThat(Unirest.get("http://localhost:$port/").asString().body).isEqualTo("PORT WORKS")
+        }
+    }
 
-            System.err.flush()
-
-            assertFalse(baos.toString().contains("WARN"))
-        } finally {
-            System.setErr(origErr)
+    @Test
+    fun `can add filter to stop request before javalin`() {
+        val filterJavalin = Javalin.create {
+            it.configureServletContextHandler { handler ->
+                handler.addFilter(FilterHolder(object : Filter {
+                    override fun init(config: FilterConfig?) {}
+                    override fun destroy() {}
+                    override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+                        (response as HttpServletResponse).status = HttpCode.IM_A_TEAPOT.status
+                    }
+                }), "/*", EnumSet.allOf(DispatcherType::class.java))
+            }
+        }
+        TestUtil.test(filterJavalin) { app, http ->
+            assertThat(http.get("/test").status).isEqualTo(HttpCode.IM_A_TEAPOT.status)
+            assertThat(http.get("/test").body).isNotEqualTo("Test")
         }
     }
 

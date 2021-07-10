@@ -21,18 +21,20 @@ object HttpResponseExceptionMapper {
                 |    "title": "${e.message?.jsonEscape()}",
                 |    "status": ${e.status},
                 |    "type": "${getTypeUrl(e).toLowerCase()}",
-                |    "details": ${e.details.map { """{"${it.key}": "${it.value.jsonEscape()}"}""" }}
+                |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
                 |}""".trimMargin()
             ).contentType("application/json")
         } else {
             val result = if (e.details.isEmpty()) "${e.message}" else """
                 |${e.message}
-                |${e.details.map {
-                """
+                |${
+                e.details.map {
+                    """
                 |${it.key}:
                 |${it.value}
                 |"""
-            }.joinToString("")}""".trimMargin()
+                }.joinToString("")
+            }""".trimMargin()
             ctx.status(e.status).result(result)
         }
     }

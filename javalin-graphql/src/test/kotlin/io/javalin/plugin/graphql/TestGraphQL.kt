@@ -9,6 +9,7 @@ import io.javalin.plugin.graphql.helpers.SubscriptionExample
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertFalse
 import org.assertj.core.api.Assertions.assertThat
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
@@ -42,6 +43,19 @@ class TestGraphQL {
     }
 
     @Test
+    fun multiQuery() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
+        val queries = "query X { hello } query Y { echo(message: \\\"$newMessage\\\") }"
+
+        val jsonX = sendPetition(httpUtil, "{\"query\": \"$queries\", \"operationName\": \"X\"}")
+        assertEquals(jsonX.getJSONObject("data").getString("hello"), message)
+        assertFalse(jsonX.getJSONObject("data").has("echo"))
+
+        val jsonY = sendPetition(httpUtil, "{\"query\": \"$queries\", \"operationName\": \"Y\"}")
+        assertFalse(jsonY.getJSONObject("data").has("hello"))
+        assertEquals(jsonY.getJSONObject("data").getString("echo"), newMessage)
+    }
+
+    @Test
     fun mutation_with_variables() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
         val mutation = "mutation changeMessage(\$message: String!){changeMessage(newMessage: \$message)}"
         val variables = "{\"message\": \"$newMessage\"}"
@@ -60,7 +74,6 @@ class TestGraphQL {
     @Test
     fun subscribe() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
         val testClient1_1 = TestClient(server, graphqlPath)
-
         doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
         doAndSleep { testClient1_1.send("{\"query\": \"subscription { counter }\"}") }
         doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
@@ -104,10 +117,10 @@ class TestGraphQL {
     }
 
     private fun Javalin.logger(): TestLogger {
-        if (this.attribute(TestLogger::class.java) == null) {
-            this.attribute(TestLogger::class.java, TestLogger(ArrayList()))
+        if (this.attribute<TestLogger>(TestLogger::class.java.name) == null) {
+            this.attribute(TestLogger::class.java.name, TestLogger(ArrayList()))
         }
-        return this.attribute(TestLogger::class.java)
+        return this.attribute(TestLogger::class.java.name)
     }
 
 

@@ -9,7 +9,7 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.http.staticfiles.Location
 
-fun main(args: Array<String>) {
+fun main() {
     Javalin.create {
         it.addStaticFiles("src/test/external/", Location.EXTERNAL)
     }.start(7070)

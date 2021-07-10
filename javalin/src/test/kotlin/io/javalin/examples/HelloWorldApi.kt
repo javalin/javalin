@@ -10,7 +10,7 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 
-fun main(args: Array<String>) {
+fun main() {
 
     val app = Javalin.create().start(7070)
 

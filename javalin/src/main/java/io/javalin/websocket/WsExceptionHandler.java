@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A handler for use with {@link io.javalin.Javalin#wsException(Class, WsExceptionHandler)}.
- * Is triggered when an exception is thrown by a {@link WsHandler}.
+ * Is triggered when an exception is thrown by a handler in a {@link WsConfig}.
  *
  * @see WsContext
  */

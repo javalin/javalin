@@ -6,8 +6,11 @@
 
 package io.javalin.http
 
-import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
+import io.javalin.jetty.JettyUtil
+import java.util.concurrent.CompletionException
+import javax.servlet.http.HttpServletResponse
 
 class ExceptionMapper {
 
@@ -22,7 +25,7 @@ class ExceptionMapper {
             if (exceptionHandler != null) {
                 exceptionHandler.handle(exception, ctx)
             } else {
-                Javalin.log?.warn("Uncaught exception", exception)
+                JavalinLogger.warn("Uncaught exception", exception)
                 HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
             }
         }
@@ -33,6 +36,23 @@ class ExceptionMapper {
         func.invoke()
     } catch (e: Exception) {
         handle(e, ctx)
+    }
+
+    internal fun handleFutureException(ctx: Context, throwable: Throwable): Nothing? {
+        if (throwable is CompletionException && throwable.cause is Exception) {
+            handle(throwable.cause as Exception, ctx)
+        } else if (throwable is Exception) {
+            handle(throwable, ctx)
+        }
+        return null
+    }
+
+    internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
+        if (JettyUtil.isClientAbortException(throwable)) return null // jetty aborts aren't actually unexpected
+        if (JettyUtil.isJettyTimeoutException(throwable)) return null // jetty timeouts aren't actually unexpected
+        res.status = 500
+        JavalinLogger.error("Exception occurred while servicing http-request", throwable)
+        return null
     }
 
     private fun noUserHandler(e: Exception) =

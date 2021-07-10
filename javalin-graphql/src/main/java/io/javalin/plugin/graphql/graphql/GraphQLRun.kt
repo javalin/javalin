@@ -12,11 +12,14 @@ import java.util.concurrent.CompletableFuture
 class GraphQLRun(private val graphql: GraphQL) {
     private var context: Any? = null
     private var query: String = ""
+    private var operationName: String? = null
     private var variables: Map<String, Any> = emptyMap()
 
     fun withQuery(query: String): GraphQLRun = apply { this.query = query }
 
     fun withVariables(variables: Map<String, Any>): GraphQLRun = apply { this.variables = variables }
+
+    fun withOperationName(operationName: String?) = apply { this.operationName = operationName }
 
     fun withContext(context: Any?): GraphQLRun = apply { this.context = context }
 
@@ -31,6 +34,7 @@ class GraphQLRun(private val graphql: GraphQL) {
         return ExecutionInput.newExecutionInput()
                 .variables(variables)
                 .query(query)
+                .operationName(operationName)
                 .context(context)
                 .build()
     }

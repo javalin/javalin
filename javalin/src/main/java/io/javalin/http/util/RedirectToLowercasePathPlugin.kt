@@ -25,7 +25,7 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
     override fun init(app: Javalin) {
         app.events { e ->
             e.handlerAdded { h ->
-                PathParser(h.path).segments.filterIsInstance<PathSegment.Normal>().map { it.asRegexString() }.forEach {
+                PathParser(h.path, app._conf.ignoreTrailingSlashes).segments.filterIsInstance<PathSegment.Normal>().map { it.asRegexString() }.forEach {
                     if (it != it.toLowerCase()) throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin")
                 }
             }
@@ -36,13 +36,13 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
         app.before { ctx ->
             val type = HandlerType.fromServletRequest(ctx.req)
             val requestUri = ctx.req.requestURI.removePrefix(ctx.req.contextPath)
-            val matcher = app.servlet().matcher
+            val matcher = app.javalinServlet().matcher
             matcher.findEntries(type, requestUri).firstOrNull()?.let {
                 return@before // we found a route for this case, no need to redirect
             }
             matcher.findEntries(type, requestUri.toLowerCase()).firstOrNull()?.let { entry ->
                 val clientSegments = requestUri.split("/").filter { it.isNotEmpty() }.toTypedArray()
-                val serverSegments = PathParser(entry.path).segments
+                val serverSegments = PathParser(entry.path, app._conf.ignoreTrailingSlashes).segments
                 serverSegments.forEachIndexed { i, _ ->
                     if (serverSegments[i] is PathSegment.Normal) {
                         clientSegments[i] = clientSegments[i].toLowerCase() // this is also a "Normal" segment

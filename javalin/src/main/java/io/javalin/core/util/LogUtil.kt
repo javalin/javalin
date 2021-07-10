@@ -6,12 +6,11 @@
 
 package io.javalin.core.util
 
-import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.PathMatcher
+import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.WsHandler
 import java.util.*
 
 object LogUtil {
@@ -24,7 +23,7 @@ object LogUtil {
             val matcher = ctx.attribute<PathMatcher>("javalin-request-log-matcher")!!
             val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) + matcher.findEntries(type, requestUri) + matcher.findEntries(HandlerType.AFTER, requestUri)).map { it.type.name + "=" + it.path }
             val resHeaders = res.headerNames.asSequence().map { it to res.getHeader(it) }.toMap()
-            Javalin.log?.info("""JAVALIN REQUEST DEBUG LOG:
+            JavalinLogger.info("""JAVALIN REQUEST DEBUG LOG:
                         |Request: ${method()} [${path()}]
                         |    Matching endpoint-handlers: $allMatching
                         |    Headers: ${headerMap()}
@@ -32,15 +31,17 @@ object LogUtil {
                         |    Body: ${if (isMultipart()) "Multipart data ..." else body()}
                         |    QueryString: ${queryString()}
                         |    QueryParams: ${queryParamMap().mapValues { (_, v) -> v.toString() }}
-                        |    FormParams: ${formParamMap().mapValues { (_, v) -> v.toString() }}
+                        |    FormParams: ${(if (body().probablyFormData()) formParamMap() else mapOf()).mapValues { (_, v) -> v.toString() }}
                         |Response: [${status()}], execution took ${Formatter(Locale.US).format("%.2f", time)} ms
                         |    Headers: $resHeaders
                         |    ${resBody(ctx)}
                         |----------------------------------------------------------------------------------""".trimMargin())
         }
     } catch (e: Exception) {
-        Javalin.log?.info("An exception occurred while logging debug-info", e)
+        JavalinLogger.info("An exception occurred while logging debug-info", e)
     }
+
+    private fun String.probablyFormData() = this.trim().firstOrNull()?.isLetter() == true && this.split("=").size >= 2
 
     private fun resBody(ctx: Context): String {
         val staticFile = ctx.req.getAttribute("handled-as-static-file") == true
@@ -63,7 +64,8 @@ object LogUtil {
         }
     }
 
-    fun setup(ctx: Context, matcher: PathMatcher) {
+    fun setup(ctx: Context, matcher: PathMatcher, hasRequestLogger: Boolean) {
+        if (!hasRequestLogger) return
         ctx.attribute("javalin-request-log-matcher", matcher)
         ctx.attribute("javalin-request-log-start-time", System.nanoTime())
     }
@@ -71,7 +73,7 @@ object LogUtil {
     fun executionTimeMs(ctx: Context) = (System.nanoTime() - ctx.attribute<Long>("javalin-request-log-start-time")!!) / 1000000f
 
     @JvmStatic
-    fun wsDevLogger(ws: WsHandler) {
+    fun wsDevLogger(ws: WsConfig) {
         ws.onConnect { ctx -> ctx.logEvent("onConnect") }
         ws.onMessage { ctx -> ctx.logEvent("onMessage", "Message (next line):\n${ctx.message()}") }
         ws.onBinaryMessage { ctx -> ctx.logEvent("onBinaryMessage", "Offset: ${ctx.offset()}, Length: ${ctx.length()}\nMessage (next line):\n${ctx.data()}") }
@@ -80,7 +82,7 @@ object LogUtil {
     }
 
     private fun WsContext.logEvent(event: String, additionalInfo: String = "") {
-        Javalin.log?.info("""JAVALIN WEBSOCKET DEBUG LOG
+        JavalinLogger.info("""JAVALIN WEBSOCKET DEBUG LOG
                 |WebSocket Event: $event
                 |Session Id: ${this.sessionId}
                 |Host: ${this.host()}

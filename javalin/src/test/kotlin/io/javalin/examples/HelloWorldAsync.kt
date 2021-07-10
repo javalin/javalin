@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-fun main(args: Array<String>) {
+fun main() {
     val app = Javalin.create { it.enableDevLogging() }.start(7070)
 
     app.routes {
@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
             val future = CompletableFuture<String>()
             Executors.newSingleThreadScheduledExecutor()
                     .schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
-            ctx.result(future)
+            ctx.future(future)
         }
         get("/json") { ctx ->
             val future = CompletableFuture<List<String>>()

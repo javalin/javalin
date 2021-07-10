@@ -17,6 +17,7 @@ public class HelloWorldServlet {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> {
+            config.contextPath = "/api";
             config.server(() -> {
                 Server server = new Server();
                 ServletContextHandler context = new ServletContextHandler();
@@ -29,8 +30,6 @@ public class HelloWorldServlet {
                 return server;
             });
         });
-        app.config.contextPath = "/api";
-        //This route will now respond on /api
         app.get("/", ctx -> ctx.result("Hello Javalin World!"));
         app.start(8000);
     }

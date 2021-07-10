@@ -18,4 +18,4 @@ import java.io.InputStream
  * @see Context.uploadedFile
  * @see <a href="https://javalin.io/documentation#faq">Uploads in FAQ</a>
  */
-data class UploadedFile(val content: InputStream, val contentType: String, @Deprecated("Use UploadedFile.size", replaceWith = ReplaceWith("size")) val contentLength: Int, val filename: String, val extension: String, val size: Long)
+data class UploadedFile(val content: InputStream, val contentType: String?, val filename: String, val extension: String, val size: Long)
