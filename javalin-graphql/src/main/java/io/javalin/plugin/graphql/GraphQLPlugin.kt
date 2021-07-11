@@ -13,7 +13,7 @@ class GraphQLPlugin(private val builder: GraphQLPluginBuilder<*>) : Plugin, Plug
         GraphQLPluginBuilder
     }
 
-    private val graphQLHandler: GraphQLHandler = GraphQLHandler(builder.createSchema())
+    private val graphQLHandler: GraphQLHandler = GraphQLHandler(builder)
 
 
     override fun apply(app: Javalin) {

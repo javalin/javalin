@@ -8,13 +8,22 @@ import com.expediagroup.graphql.server.execution.GraphQLContextFactory
 import com.expediagroup.graphql.server.execution.KotlinDataLoader
 import graphql.GraphQL
 import io.javalin.http.Context
+import io.javalin.plugin.graphql.context.EmptyGraphQLContext
 import io.javalin.plugin.graphql.context.EmptyGraphQLContextFactory
+import io.javalin.plugin.graphql.context.EmptyWsGraphQLContextFactory
 import io.javalin.plugin.graphql.graphql.MutationGraphql
 import io.javalin.plugin.graphql.graphql.QueryGraphql
 import io.javalin.plugin.graphql.graphql.SubscriptionGraphql
 import io.javalin.plugin.graphql.server.JavalinDataLoaderRegistryFactory
+import io.javalin.websocket.WsMessageContext
 
-class GraphQLPluginBuilder<out T : GraphQLContext>(val path: String, val contextFactory: GraphQLContextFactory<T, Context>) {
+class GraphQLPluginBuilder<out T : GraphQLContext>(
+    val path: String,
+    val contextFactory: GraphQLContextFactory<T, Context>,
+    val contextWsFactory: GraphQLContextFactory<T, WsMessageContext>
+) {
+
+    private var graphql: GraphQL? = null
     private var queries: MutableList<TopLevelObject> = mutableListOf()
     private var mutations: MutableList<TopLevelObject> = mutableListOf()
     private var subscriptions: MutableList<TopLevelObject> = mutableListOf()
@@ -23,7 +32,7 @@ class GraphQLPluginBuilder<out T : GraphQLContext>(val path: String, val context
 
     companion object {
         fun create(options: GraphQLOptions): GraphQLPluginBuilder<*> {
-            val graphQLPluginBuilder = GraphQLPluginBuilder(options.path, EmptyGraphQLContextFactory())
+            val graphQLPluginBuilder = GraphQLPluginBuilder(options.path, EmptyGraphQLContextFactory(), EmptyWsGraphQLContextFactory())
             graphQLPluginBuilder.queries = options.queries
             graphQLPluginBuilder.mutations = options.mutations
             graphQLPluginBuilder.subscriptions = options.subscriptions
@@ -50,12 +59,20 @@ class GraphQLPluginBuilder<out T : GraphQLContext>(val path: String, val context
 
     fun build() = GraphQLPlugin(this)
 
-    internal fun createSchema() = GraphQL.newGraphQL(toSchema(
-        config = SchemaGeneratorConfig(supportedPackages = packages),
-        queries = queries,
-        mutations = mutations,
-        subscriptions = subscriptions
-    )).build()!!
+    internal fun getSchema(): GraphQL {
+        if (graphql == null) {
+            graphql = GraphQL.newGraphQL(
+                toSchema(
+                    config = SchemaGeneratorConfig(supportedPackages = packages),
+                    queries = queries,
+                    mutations = mutations,
+                    subscriptions = subscriptions
+                )
+            ).build()!!
+        }
+
+        return graphql!!
+    }
 
     fun toJavalinDataLoaderRegistryFactory() = JavalinDataLoaderRegistryFactory(dataLoaders)
 }

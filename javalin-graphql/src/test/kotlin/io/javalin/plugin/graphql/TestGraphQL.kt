@@ -81,6 +81,26 @@ class TestGraphQL {
         assertThat(server.logger().log).containsAnyOf("{\"counter\":1}")
     }
 
+    @Test
+    fun subscribeWithoutContext() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
+        val testClient1_1 = TestClient(server, graphqlPath)
+        doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
+        doAndSleep { testClient1_1.send("{\"query\": \"subscription { counterUser }\"}") }
+        doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
+        assertThat(server.logger().log).containsAnyOf("{\"counterUser\":\"${SubscriptionExample.anonymous_message} ~> 1\"}")
+    }
+
+    @Test
+    fun subscribeWithContext() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
+        val testClient1_1 = TestClient(server, graphqlPath)
+        val tokenUser = "token"
+        testClient1_1.addHeader("Authorization", "Beare $tokenUser")
+        doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
+        doAndSleep { testClient1_1.send("{\"query\": \"subscription { counterUser }\"}") }
+        doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
+        assertThat(server.logger().log).containsAnyOf("{\"counterUser\":\"$tokenUser ~> 1\"}")
+    }
+
     private fun sendPetition(httpUtil: HttpUtil, authorization: String, body: String): JSONObject {
         val response = httpUtil.post(graphqlPath).header("Authorization", authorization).body(JsonNode(body)).asString()
         return JSONObject(response.body)
@@ -132,7 +152,7 @@ class TestGraphQL {
 
     private fun shortTimeoutServer(): Javalin {
         return Javalin.create {
-            val graphQLPluginBuilder = GraphQLPluginBuilder(graphqlPath, ContextFactoryExample())
+            val graphQLPluginBuilder = GraphQLPluginBuilder(graphqlPath, ContextFactoryExample(), ContextWsFactoryExample())
                 .add("io.javalin.plugin.graphql")
                 .add("io.javalin.plugin.graphql.helpers")
                 .register(QueryExample(message))

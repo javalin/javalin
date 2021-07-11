@@ -1,29 +1,28 @@
 package io.javalin.plugin.graphql
 
-import graphql.GraphQL
 import io.javalin.plugin.graphql.graphql.GraphQLRun
 import io.javalin.websocket.WsMessageContext
+import kotlinx.coroutines.runBlocking
 
-class GraphQLHandler(private val graphQL: GraphQL) {
+class GraphQLHandler(private val graphQLBuilder: GraphQLPluginBuilder<*>) {
 
 
     fun execute(ctx: WsMessageContext) {
         val body = ctx.messageAsClass(Map::class.java)
-        this.genericExecute(body)
-            .subscribe(SubscriberGraphQL(ctx))
-    }
-
-
-    private fun genericExecute(body: Map<*, *>): GraphQLRun {
         val query = body.get("query").toString()
-        val variables: Map<String, Any> = if (body["variables"] == null) emptyMap() else body["variables"] as Map<String, Any>
+        val variables: Map<String, Any> = getVariables(body)
         val operationName = body.get("operationName")?.toString()
+        val context = runBlocking { graphQLBuilder.contextWsFactory.generateContext(ctx) }
 
-        return GraphQLRun(graphQL)
+        GraphQLRun(graphQLBuilder.getSchema())
             .withQuery(query)
             .withVariables(variables)
             .withOperationName(operationName)
+            .withContext(context)
+            .subscribe(SubscriberGraphQL(ctx))
     }
 
+    private fun getVariables(body: Map<*, *>) =
+        if (body["variables"] == null) emptyMap() else body["variables"] as Map<String, Any>
 
 }

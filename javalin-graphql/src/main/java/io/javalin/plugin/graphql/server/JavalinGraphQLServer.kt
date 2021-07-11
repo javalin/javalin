@@ -9,7 +9,7 @@ class JavalinGraphQLServer(contextFactory: GraphQLContextFactory<*, Context>, re
     companion object {
         fun create(builder: GraphQLPluginBuilder<*>): JavalinGraphQLServer {
             val dataLoaderRegistryFactory = builder.toJavalinDataLoaderRegistryFactory()
-            val requestHandler = GraphQLRequestHandler(builder.createSchema(), dataLoaderRegistryFactory)
+            val requestHandler = GraphQLRequestHandler(builder.getSchema(), dataLoaderRegistryFactory)
 
             return JavalinGraphQLServer(builder.contextFactory, requestHandler)
         }
