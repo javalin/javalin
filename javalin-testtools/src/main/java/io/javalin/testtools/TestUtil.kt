@@ -15,7 +15,7 @@ object TestUtil {
     var clearCookies = true
 
     @JvmStatic
-    fun test(app: Javalin, test: ThrowingBiConsumer<Javalin, HttpClient>) {
+    fun test(app: Javalin, test: TestCase) {
         if (disableJavalinLogging) {
             JavalinLogger.enabled = false
         }
@@ -34,7 +34,7 @@ object TestUtil {
     }
 
     @JvmStatic
-    fun test(test: ThrowingBiConsumer<Javalin, HttpClient>) {
+    fun test(test: TestCase) {
         test(Javalin.create(), test)
     }
 
