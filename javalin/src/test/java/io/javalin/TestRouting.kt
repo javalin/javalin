@@ -16,14 +16,22 @@ import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Test
 import java.net.URLEncoder
 
-class TestRoutingBracketsBasedParser {
+class TestRouting {
 
     private val okHttp = OkHttpClient().newBuilder().build()
     fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
+
+    @Test
+    fun `colon in path throws exception`() {
+        assertThatExceptionOfType(IllegalArgumentException::class.java)
+            .isThrownBy { Javalin.create().get("/:test") {} }
+            .withMessageStartingWith("Invalid syntax - Javalin 4 switched from ':param' to {param}.")
+    }
 
     @Test
     fun `wildcard first works`() = TestUtil.test { app, http ->

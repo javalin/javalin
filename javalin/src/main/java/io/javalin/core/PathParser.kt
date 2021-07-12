@@ -2,8 +2,15 @@ package io.javalin.core
 
 import io.javalin.core.routing.*
 import io.javalin.http.util.ContextUtil
+import java.lang.IllegalArgumentException
 
 class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
+
+    init {
+        if (rawPath.contains(":")) {
+            throw IllegalArgumentException("Invalid syntax - Javalin 4 switched from ':param' to {param}.")
+        }
+    }
 
     private val matchEverySubPath: Boolean = rawPath.endsWith("**")
     private val path: String = rawPath.removeSuffix("**")
