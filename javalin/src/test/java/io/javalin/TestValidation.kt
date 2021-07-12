@@ -30,7 +30,7 @@ class TestValidation {
 
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
-        app.get("/:param") { ctx -> ctx.pathParamAsClass<Int>("param").get() }
+        app.get("/{param}") { ctx -> ctx.pathParamAsClass<Int>("param").get() }
         assertThat(http.get("/abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 

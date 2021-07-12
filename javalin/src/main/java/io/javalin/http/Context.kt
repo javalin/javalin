@@ -159,7 +159,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /**
      * Gets a path param by name (ex: pathParam("param").
      *
-     * Ex: If the handler path is /users/:user-id,
+     * Ex: If the handler path is /users/{user-id},
      * and a browser GETs /users/123,
      * pathParam("user-id") will return "123"
      */
@@ -437,17 +437,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun render(filePath: String, model: Map<String, Any?> = mutableMapOf()): Context {
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
     }
-
-    //
-    // Gets a splat by its index.
-    // Ex: If the handler path is /users/*
-    // and a browser GETs /users/123,
-    // splat(0) will return "123"
-    //
-    fun splat(splatNr: Int): String? = splatList[splatNr]
-
-    /** Gets a list of all the [splat] values. */
-    fun splats(): List<String> = Collections.unmodifiableList(splatList)
 
     /** Gets the handler type of the current handler */
     fun handlerType(): HandlerType = handlerType

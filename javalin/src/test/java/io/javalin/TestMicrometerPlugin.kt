@@ -22,10 +22,10 @@ class TestMicrometerPlugin {
     @Test
     fun `successful request`() = TestUtil.test(setupApp()) { app, http ->
         val requestCount = (2..9).random()
-        app.get("/hello/:name") { ctx -> ctx.result("Hello: " + ctx.pathParam("name")) }
+        app.get("/hello/{name}") { ctx -> ctx.result("Hello: " + ctx.pathParam("name")) }
         repeat(requestCount) { http.get("/hello/jon") }
         val timerCount = meterRegistry.get("jetty.server.requests")
-            .tag("uri", "/hello/:name")
+            .tag("uri", "/hello/{name}")
             .tag("method", "GET")
             .tag("exception", "None")
             .tag("status", "200")
@@ -164,7 +164,7 @@ class TestMicrometerPlugin {
     @Test
     fun `not found tagged`() = TestUtil.test(setupApp(tagNotFoundMappedPaths = true)) { app, http ->
         val requestCount = (2..9).random()
-        app.get("/hello/:name") { ctx ->
+        app.get("/hello/{name}") { ctx ->
             if (ctx.pathParam("name") == "jon") ctx.status(200)
             else throw NotFoundResponse()
         }
@@ -174,7 +174,7 @@ class TestMicrometerPlugin {
             http.get("/some-unmapped-path")
         }
         val okCount = meterRegistry.get("jetty.server.requests")
-            .tag("uri", "/hello/:name")
+            .tag("uri", "/hello/{name}")
             .tag("method", "GET")
             .tag("exception", "None")
             .tag("status", "200")
@@ -182,7 +182,7 @@ class TestMicrometerPlugin {
             .timer()
             .count()
         val notFoundCountSpecific = meterRegistry.get("jetty.server.requests")
-            .tag("uri", "/hello/:name")
+            .tag("uri", "/hello/{name}")
             .tag("method", "GET")
             .tag("exception", "None")
             .tag("status", "404")

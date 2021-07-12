@@ -29,7 +29,6 @@ object ContextUtil {
         if (handlerType != HandlerType.AFTER) {
             endpointHandlerPath = handlerEntry.path
         }
-        splatList = handlerEntry.extractSplats(requestUri)
     }
 
     // this header is semi-colon separated, like: "text/html; charset=UTF-8"
@@ -45,7 +44,7 @@ object ContextUtil {
     }
 
     fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String) =
-            pathParams[key.replaceFirst(":", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
+            pathParams[key.replaceFirst("{", "").replaceFirst("}", "")] ?: throw IllegalArgumentException("'$key' is not a valid path-param for '$url'.")
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
@@ -72,13 +71,11 @@ object ContextUtil {
             matchedPath: String = "*",
             pathParamMap: Map<String, String> = mapOf(),
             handlerType: HandlerType = HandlerType.INVALID,
-            appAttributes: Map<String, Any> = mapOf(),
-            splatList: List<String> = listOf()
+            appAttributes: Map<String, Any> = mapOf()
     ) = Context(request, response, appAttributes).apply {
         this.matchedPath = matchedPath
         this.pathParamMap = pathParamMap
         this.handlerType = handlerType
-        this.splatList = splatList
     }
 
     fun Context.isLocalhost() = try {

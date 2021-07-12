@@ -101,7 +101,7 @@ class TestWebBrowser {
     @Test
     fun `path params are not html-encoded on the Vue prototype`() = TestUtil.test { app, http ->
         TestJavalinVue.before()
-        app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
+        app.get("/vue/{my-param}", VueComponent("<test-component></test-component>"))
         driver.get(http.origin + "/vue/odd&co")
 
         val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
@@ -130,7 +130,7 @@ class TestWebBrowser {
         JavalinVue.stateFunction = {
             mapOf("some_key" to testValue)
         }
-        app.get("/script_in_state/:param", VueComponent("<test-component></test-component>"))
+        app.get("/script_in_state/{param}", VueComponent("<test-component></test-component>"))
         driver.get(http.origin + "/script_in_state/my_path_param_with_\uD83D\uDE80?☕=\uD83D\uDC95")
         val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
         val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
@@ -149,7 +149,7 @@ class TestWebBrowser {
         JavalinVue.stateFunction = {
             mapOf("some_key" to testValue)
         }
-        app.get("/script_in_state/:param", VueComponent("<test-component></test-component>"))
+        app.get("/script_in_state/{param}", VueComponent("<test-component></test-component>"))
         driver.get(http.origin + "/script_in_state/$testValue?my_key=$testValue")
         val stateValue = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
         val pathParam = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String

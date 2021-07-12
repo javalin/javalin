@@ -140,9 +140,9 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler works`() = TestUtil.test { app, http ->
         app.routes {
-            crud("users/:user-id", UserController())
+            crud("users/{user-id}", UserController())
             path("/s") {
-                crud("/users/:user-id", UserController())
+                crud("/users/{user-id}", UserController())
             }
         }
         assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
@@ -161,9 +161,9 @@ class TestApiBuilder {
     @Test
     fun `CrudHandler works with long nested resources`() = TestUtil.test { app, http ->
         app.routes {
-            crud("/foo/bar/users/:user-id", UserController())
+            crud("/foo/bar/users/{user-id}", UserController())
             path("/foo/baz") {
-                crud("/users/:user-id", UserController())
+                crud("/users/{user-id}", UserController())
             }
         }
         assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
@@ -182,7 +182,7 @@ class TestApiBuilder {
     @Test
     fun `pathless CrudHandler works`() = TestUtil.test { app, http ->
         app.routes {
-            path("/foo/bar/users/:user-id") {
+            path("/foo/bar/users/{user-id}") {
                 crud(UserController())
             }
         }
@@ -197,9 +197,9 @@ class TestApiBuilder {
     fun `CrudHandler rejects resource in the middle`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
             app.routes {
-                crud("/foo/bar/:user-id/users", UserController())
+                crud("/foo/bar/{user-id}/users", UserController())
             }
-        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'")
+        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
@@ -208,25 +208,25 @@ class TestApiBuilder {
             app.routes {
                 crud("/foo/bar/users", UserController())
             }
-        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'")
+        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
             app.routes {
-                crud("/:user-id", UserController())
+                crud("/{user-id}", UserController())
             }
-        }.withMessageStartingWith("CrudHandler requires a path like '/resource/:resource-id'")
+        }.withMessageStartingWith("CrudHandler requires a path like '/resource/{resource-id}'")
     }
 
     @Test
     fun `CrudHandler works with wildcards`() = TestUtil.test { app, http ->
         app.routes {
             path("/s") {
-                crud("/*/:user-id", UserController())
+                crud("/*/{user-id}", UserController())
             }
-            crud("*/:user-id", UserController())
+            crud("*/{user-id}", UserController())
         }
         assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/users").asString().status).isEqualTo(201)

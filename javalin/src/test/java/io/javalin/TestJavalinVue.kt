@@ -55,7 +55,7 @@ class TestJavalinVue {
         val encodedState =
             """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { ctx -> state }
-        app.get("/vue/:my-param", VueComponent("<test-component></test-component>"))
+        app.get("/vue/{my-param}", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/vue/test-path-param?qp=test-query-param")
         assertThat(res).contains(encodedState)
         assertThat(res).contains("""Vue.component("test-component", {template: "#test-component"});""")
@@ -93,7 +93,7 @@ class TestJavalinVue {
         val encodedState =
             """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { ctx -> state }
-        app.get("/vue/:my-param", VueComponent("<test-component-3></test-component-3>"))
+        app.get("/vue/{my-param}", VueComponent("<test-component-3></test-component-3>"))
         val res = http.getBody("/vue/test-path-param?qp=test-query-param")
         assertThat(res).contains(encodedState)
         assertThat(res).contains("""app.component("test-component-3", {template: "#test-component-3"});""")

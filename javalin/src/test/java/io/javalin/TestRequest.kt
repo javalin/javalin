@@ -113,13 +113,13 @@ class TestRequest {
      */
     @Test
     fun `pathParam throws for invalid param`() = TestUtil.test { app, http ->
-        app.get("/:my/:path") { ctx -> ctx.result(ctx.pathParam("path-param")) }
+        app.get("/{my}/{path}") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/my/path")).isEqualTo("Internal server error")
     }
 
     @Test
     fun `pathParam works for multiple params`() = TestUtil.test { app, http ->
-        app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")) }
+        app.get("/{1}/{2}/{3}") { ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("mypathparams")
     }
 
@@ -131,7 +131,7 @@ class TestRequest {
 
     @Test
     fun `pathParamMap returns all present path-params`() = TestUtil.test { app, http ->
-        app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+        app.get("/{1}/{2}/{3}") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("{1=my, 2=path, 3=params}")
     }
 
@@ -265,20 +265,20 @@ class TestRequest {
     @Test
     fun `matchedPath returns the path used to match the request`() = TestUtil.test { app, http ->
         app.get("/matched") { ctx -> ctx.result(ctx.matchedPath()) }
-        app.get("/matched/:path-param") { ctx -> ctx.result(ctx.matchedPath()) }
-        app.after("/matched/:path-param/:param2") { ctx -> ctx.result(ctx.matchedPath()) }
+        app.get("/matched/{path-param}") { ctx -> ctx.result(ctx.matchedPath()) }
+        app.after("/matched/{path-param}/{param2}") { ctx -> ctx.result(ctx.matchedPath()) }
         assertThat(http.getBody("/matched")).isEqualTo("/matched")
-        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/:path-param")
-        assertThat(http.getBody("/matched/p1/p2")).isEqualTo("/matched/:path-param/:param2")
+        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
+        assertThat(http.getBody("/matched/p1/p2")).isEqualTo("/matched/{path-param}/{param2}")
     }
 
     @Test
     fun `endpointHandlerPath returns the path used to match the request, excluding any AFTER handlers`() = TestUtil.test { app, http ->
         app.before { }
-        app.get("/matched/:path-param") { }
-        app.get("/matched/:another-path-param") { }
+        app.get("/matched/{path-param}") { }
+        app.get("/matched/{another-path-param}") { }
         app.after { ctx -> ctx.result(ctx.endpointHandlerPath()) }
-        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/:path-param")
+        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
     }
 
     @Test

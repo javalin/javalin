@@ -36,20 +36,20 @@ public class VisualTest {
 
         app.get("/", ctx -> ctx.redirect("/context-path/route-overview"))
             .get("/just-some-path", new HandlerImplementation())
-            .post("/test/:hmm/", VisualTest::methodReference)
+            .post("/test/{hmm}/", VisualTest::methodReference)
             .put("/user/*", ctx -> ctx.result(""), ROLE_ONE)
-            .get("/nonsense-paths/:test", VisualTest.lambdaField, ROLE_ONE, ROLE_THREE)
+            .get("/nonsense-paths/{test}", VisualTest.lambdaField, ROLE_ONE, ROLE_THREE)
             .delete("/just-words", VisualTest::methodReference, ROLE_ONE, ROLE_TWO)
             .before("*", VisualTest.lambdaField)
             .after("*", VisualTest.lambdaField)
             .head("/check/the/head", VisualTest::methodReference)
-            .get("/:path1/:path2", VisualTest.lambdaField)
+            .get("/{path1}/{path2}", VisualTest.lambdaField)
             .post("/user/create", VisualTest::methodReference, ROLE_ONE, ROLE_TWO)
-            .put("/user/:user-id", VisualTest.lambdaField)
+            .put("/user/{user-id}", VisualTest.lambdaField)
             .patch("/patchy-mcpatchface", new ImplementingClass(), ROLE_ONE, ROLE_TWO)
-            .delete("/users/:user-id", new HandlerImplementation())
-            .options("/what/:are/*/my-options", new HandlerImplementation())
-            .options("/what/:are/*/my-options2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO)
+            .delete("/users/{user-id}", new HandlerImplementation())
+            .options("/what/{are}/*/my-options", new HandlerImplementation())
+            .options("/what/{are}/*/my-options2", new HandlerImplementation(), ROLE_ONE, ROLE_TWO)
             .wsBefore(VisualTest::wsMethodRef)
             .ws("/websocket", VisualTest::wsMethodRef)
             .wsAfter("/my-path", VisualTest::wsMethodRef)
@@ -63,13 +63,13 @@ public class VisualTest {
             path("users", () -> {
                 get(new HandlerImplementation());
                 post(new HandlerImplementation());
-                path(":id", () -> {
+                path("{id}", () -> {
                     get(new HandlerImplementation());
                     patch(new HandlerImplementation());
                     delete(new HandlerImplementation());
                 });
             });
-            crud("/movies/:movie-id", new CrudHandlerImpl());
+            crud("/movies/{movie-id}", new CrudHandlerImpl());
         });
     }
 

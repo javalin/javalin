@@ -18,7 +18,7 @@ class TestEncoding {
 
     @Test
     fun `unicode path-params work`() = TestUtil.test { app, http ->
-        app.get("/:path-param") { ctx -> ctx.result(ctx.pathParam("path-param")) }
+        app.get("/{path-param}") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/æøå")).isEqualTo("æøå")
         assertThat(http.getBody("/♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
         assertThat(http.getBody("/こんにちは")).isEqualTo("こんにちは")
