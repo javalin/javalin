@@ -30,7 +30,7 @@ class TestRouting {
     fun `colon in path throws exception`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
             .isThrownBy { Javalin.create().get("/:test") {} }
-            .withMessageStartingWith("Invalid syntax - Javalin 4 switched from ':param' to {param}.")
+            .withMessageStartingWith("Path '/:test' invalid - Javalin 4 switched from ':param' to '{param}'.")
     }
 
     @Test

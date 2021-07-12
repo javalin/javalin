@@ -8,7 +8,7 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
 
     init {
         if (rawPath.contains(":")) {
-            throw IllegalArgumentException("Invalid syntax - Javalin 4 switched from ':param' to {param}.")
+            throw IllegalArgumentException("Path '$rawPath' invalid - Javalin 4 switched from ':param' to '{param}'.")
         }
     }
 
