@@ -45,7 +45,11 @@ sealed class PathSegment {
         override fun asRegexString(): String = regex
         override fun asGroupedRegexString(): String = groupedRegex
     }
+
 }
+
+fun createSlashIgnoringParam(string: String) = PathSegment.Parameter.SlashIgnoringParameter(string)
+fun createSlashAcceptingParam(string: String) = PathSegment.Parameter.SlashAcceptingParameter(string)
 
 fun List<PathSegment>.flattenMultipleSegments(): List<PathSegment> {
     return this.map {
