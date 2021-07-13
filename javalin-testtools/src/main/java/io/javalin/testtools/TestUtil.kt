@@ -15,13 +15,13 @@ object TestUtil {
     var clearCookies = true
 
     @JvmStatic
-    fun test(app: Javalin, test: TestCase) {
+    fun test(app: Javalin, testCase: TestCase) {
         if (disableJavalinLogging) {
             JavalinLogger.enabled = false
         }
         app.start(0)
         val http = HttpClient(app)
-        test.accept(app, http) // this is where the user's test happens
+        testCase.accept(app, http) // this is where the user's test happens
         if (clearCookies) {
             val endpointUrl = "/clear-cookies-${UUID.randomUUID()}"
             app.delete(endpointUrl) { it.cookieMap().forEach { (k, _) -> it.removeCookie(k) } }
@@ -34,8 +34,8 @@ object TestUtil {
     }
 
     @JvmStatic
-    fun test(test: TestCase) {
-        test(Javalin.create(), test)
+    fun test(testCase: TestCase) {
+        test(Javalin.create(), testCase)
     }
 
     @JvmStatic
