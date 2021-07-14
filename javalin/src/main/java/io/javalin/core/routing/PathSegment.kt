@@ -48,8 +48,8 @@ sealed class PathSegment {
 
 }
 
-fun createSlashIgnoringParam(string: String) = PathSegment.Parameter.SlashIgnoringParameter(string)
-fun createSlashAcceptingParam(string: String) = PathSegment.Parameter.SlashAcceptingParameter(string)
+internal fun createSlashIgnoringParam(string: String) = PathSegment.Parameter.SlashIgnoringParameter(string)
+internal fun createSlashAcceptingParam(string: String) = PathSegment.Parameter.SlashAcceptingParameter(string)
 
 fun List<PathSegment>.flattenMultipleSegments(): List<PathSegment> {
     return this.map {

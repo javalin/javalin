@@ -48,7 +48,7 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 state = ParserState.NORMAL
                 val name = pathNameAccumulator.joinToString(separator = "")
                 pathNameAccumulator.clear()
-                PathSegment.Parameter.SlashIgnoringParameter(name)
+                createSlashIgnoringParam(name)
             }
             '{', '<', '>' -> throw MissingBracketsException(
                 segment,
@@ -65,7 +65,7 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 state = ParserState.NORMAL
                 val name = pathNameAccumulator.joinToString(separator = "")
                 pathNameAccumulator.clear()
-                PathSegment.Parameter.SlashAcceptingParameter(name)
+                createSlashAcceptingParam(name)
             }
             '{', '}', '<' -> throw MissingBracketsException(
                 segment,
@@ -94,5 +94,5 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
         }
 }
 
-fun String.isEnclosedBy(prefix: Char, suffix: Char) = this.startsWith(prefix) && this.endsWith(suffix)
-fun String.stripEnclosing(prefix: Char, suffix: Char) = this.removePrefix(prefix.toString()).removeSuffix(suffix.toString())
+private fun String.isEnclosedBy(prefix: Char, suffix: Char) = this.startsWith(prefix) && this.endsWith(suffix)
+private fun String.stripEnclosing(prefix: Char, suffix: Char) = this.removePrefix(prefix.toString()).removeSuffix(suffix.toString())
