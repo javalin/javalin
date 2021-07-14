@@ -1,11 +1,11 @@
 package io.javalin.core.routing
 
 
-class MissingBracketsException(val segment: String, val path: String) : IllegalArgumentException(
+class MissingBracketsException(segment: String, val path: String) : IllegalArgumentException(
     "This segment '$segment' is missing some brackets! Found in path '$path'"
 )
 
-class WildcardBracketAdjacentException(val segment: String, val path: String) : IllegalArgumentException(
+class WildcardBracketAdjacentException(segment: String, val path: String) : IllegalArgumentException(
     "Wildcard and a path parameter bracket are adjacent in segment '$segment' of path '$path'. This is forbidden"
 )
 
