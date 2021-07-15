@@ -40,6 +40,12 @@ class TestRouting {
     }
 
     @Test
+    fun `can add multiple path params in same path segment`() = TestUtil.test { app, http ->
+        app.get("/{p1}AND{p2}") { it.result(it.pathParamMap.toString()) }
+        assertThat(http.getBody("/param1ANDparam2")).isEqualTo("{p1=param1, p2=param2}")
+    }
+
+    @Test
     fun `wildcard middle works`() = TestUtil.test { app, http ->
         app.get("/test/*/test") { it.result("!") }
         assertThat(http.getBody("/test/en/test")).isEqualTo("!")
