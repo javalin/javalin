@@ -50,9 +50,6 @@
     <properties>
         <jdk.version>1.8</jdk.version>
 
-        <dokka.jdkVersion>8</dokka.jdkVersion>
-        <dokka.skip>true</dokka.skip>
-        <javadoc.skip>true</javadoc.skip>
         <copy-build-resources.skip>true</copy-build-resources.skip>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -70,7 +67,7 @@
         <surefire.plugin.version>3.0.0-M5</surefire.plugin.version>
         <antrun.plugin.version>3.0.0</antrun.plugin.version>
         <shade.plugin.version>3.2.4</shade.plugin.version>
-        <javadoc.plugin.version>3.3.0</javadoc.plugin.version>
+        <javadoc.plugin.version>2.7</javadoc.plugin.version>
         <build-helper.plugin.version>3.2.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
         <clean.plugin.version>3.1.0</clean.plugin.version>
@@ -582,13 +579,6 @@
                     <groupId>org.jetbrains.dokka</groupId>
                     <artifactId>dokka-maven-plugin</artifactId>
                     <version>${dokka.plugin.version}</version>
-                    <configuration>
-                        <skip>${dokka.skip}</skip>
-                        <jdkVersion>${dokka.jdkVersion}</jdkVersion>
-                        <sourceDirectories>
-                            <dir>${project.basedir}/src/main/java</dir>
-                        </sourceDirectories>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -620,9 +610,6 @@
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${javadoc.plugin.version}</version>
-                    <configuration>
-                        <skip>${javadoc.skip}</skip>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -643,38 +630,6 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>javadoc</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jetbrains.dokka</groupId>
-                        <artifactId>dokka-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <id>attach-javadocs-dokka</id>
-                                <goals>
-                                    <goal>javadocJar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <id>attach-javadocs-javadoc</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>sign-artifacts</id>
             <activation>

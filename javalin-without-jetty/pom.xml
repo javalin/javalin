@@ -18,7 +18,6 @@
     </dependencies>
 
     <properties>
-        <javadoc.skip>false</javadoc.skip>
         <copy-build-resources.skip>false</copy-build-resources.skip>
 
         <original.root>../javalin/src/main/java/io/javalin</original.root>

@@ -10,7 +10,6 @@
     <artifactId>javalin-testtools</artifactId>
 
     <properties>
-        <dokka.skip>false</dokka.skip>
         <copy-build-resources.skip>false</copy-build-resources.skip>
     </properties>
 
