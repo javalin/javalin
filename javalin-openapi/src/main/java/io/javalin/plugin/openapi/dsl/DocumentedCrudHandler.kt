@@ -1,6 +1,6 @@
 package io.javalin.plugin.openapi.dsl
 
-import io.javalin.apibuilder.CrudHandler
+import io.javalin.http.CrudHandler
 
 class DocumentedCrudHandler(
         val crudHandlerDocumentation: OpenApiCrudHandlerDocumentation,

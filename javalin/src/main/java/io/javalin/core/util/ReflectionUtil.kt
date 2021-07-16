@@ -1,6 +1,6 @@
 package io.javalin.core.util
 
-import io.javalin.apibuilder.CrudFunctionHandler
+import io.javalin.http.CrudFunctionHandler
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 

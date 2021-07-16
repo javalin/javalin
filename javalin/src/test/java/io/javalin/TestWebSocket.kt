@@ -7,7 +7,6 @@
 package io.javalin
 
 import com.mashape.unirest.http.Unirest
-import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.core.util.Header
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.plugin.json.JavalinJson
@@ -26,7 +25,6 @@ import org.java_websocket.handshake.ServerHandshake
 import org.junit.Test
 import java.net.URI
 import java.time.Duration
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeoutException
@@ -78,11 +76,9 @@ class TestWebSocket {
             ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId) }
             ws.onClose { ctx -> app.logger().log.add(ctx.sessionId) }
         }
-        app.routes {
-            ws("/test-websocket-2") { ws ->
-                ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId) }
-                ws.onClose { ctx -> app.logger().log.add(ctx.sessionId) }
-            }
+        app.ws("/test-websocket-2") { ws ->
+            ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId) }
+            ws.onClose { ctx -> app.logger().log.add(ctx.sessionId) }
         }
         TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
         TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
@@ -109,11 +105,9 @@ class TestWebSocket {
             }
             ws.onClose { ctx -> app.logger().log.add(userUsernameMap[ctx].toString() + " disconnected") }
         }
-        app.routes { // use .routes to test apibuilder
-            ws("/test-websocket-2") { ws ->
-                ws.onConnect { app.logger().log.add("Connected to other endpoint") }
-                ws.onClose { app.logger().log.add("Disconnected from other endpoint") }
-            }
+        app.ws("/test-websocket-2") { ws ->
+            ws.onConnect { app.logger().log.add("Connected to other endpoint") }
+            ws.onClose { app.logger().log.add("Disconnected from other endpoint") }
         }
 
         val testClient0 = TestClient(app, "/websocket/test-websocket-1")

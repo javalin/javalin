@@ -1,8 +1,7 @@
 package io.javalin.plugin.openapi;
 
 import io.javalin.Javalin;
-import io.javalin.apibuilder.ApiBuilder;
-import io.javalin.apibuilder.CrudHandler;
+import io.javalin.http.CrudHandler;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.plugin.openapi.annotations.HttpMethod;
@@ -16,6 +15,7 @@ import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
 import static io.javalin.testing.TestLoggingUtil.captureStdOut;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -312,7 +312,7 @@ public class TestOpenApiAnnotations_Java {
         );
         Javalin app = Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions)));
 
-        app.routes(() -> ApiBuilder.crud("users/:user-id", new JavaCrudHandler()));
+        app.crud("users/:user-id", new JavaCrudHandler());
 
         OpenAPI actual = JavalinOpenApi.createSchema(app);
         assertThat(JsonKt.asJsonString(actual)).isEqualTo(JsonKt.getCrudExampleJson());

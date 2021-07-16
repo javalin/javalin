@@ -6,20 +6,10 @@
 package io.javalin.plugin.openapi
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.crud
-import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
+import io.javalin.http.CrudHandler
 import io.javalin.http.Handler
-import io.javalin.plugin.openapi.annotations.ContentType
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiComposedRequestBody
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
-import io.javalin.plugin.openapi.annotations.OpenApiFormParam
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import io.javalin.plugin.openapi.annotations.OpenApiSecurity
+import io.javalin.plugin.openapi.annotations.*
 import io.javalin.plugin.openapi.utils.VersionIssuesUtil
 import org.junit.Test
 
@@ -368,7 +358,7 @@ class TestOpenApiAnnotations {
         }
 
         val actual = extractSchemaForTest { app ->
-            app.routes { crud("users/:user-id", UserCrudHandlerWithAnnotations()) }
+            app.crud("users/:user-id", UserCrudHandlerWithAnnotations())
         }
 
         actual.assertEqualTo(crudExampleJson)

@@ -7,19 +7,14 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.apibuilder.ApiBuilder.patch
-import io.javalin.apibuilder.ApiBuilder.post
 
 fun main() {
 
     val corsApp = Javalin.create { it.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002") }.start(7070)
 
-    corsApp.routes {
-        get { ctx -> ctx.json("Hello Get") }
-        post { ctx -> ctx.json("Hello Post") }
-        patch { ctx -> ctx.json("Hello Patch") }
-    }
+    corsApp.get { ctx -> ctx.json("Hello Get") }
+    corsApp.post { ctx -> ctx.json("Hello Post") }
+    corsApp.patch { ctx -> ctx.json("Hello Patch") }
 
     Javalin.create().start(7001).get("/") { ctx -> ctx.html("Try some CORS") }
     Javalin.create().start(7002).get("/") { ctx -> ctx.html("Try some CORS") }

@@ -2,18 +2,21 @@ package io.javalin.http
 
 import io.javalin.core.event.EventManager
 import io.javalin.core.event.HandlerMetaInfo
+import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.security.Role
 import io.javalin.core.util.Util.isNonSubPathWildcard
 import io.javalin.core.util.Util.prefixContextPath
+import io.javalin.websocket.JavalinWsServlet
+import io.javalin.websocket.WsConfig
+import io.javalin.websocket.WsHandlerType
+import java.util.function.Consumer
 
-class RouterContext(private val servlet: JavalinServlet, private val eventManager: EventManager) {
+class RouterContext(private val servlet: JavalinServlet, private val wsServlet: JavalinWsServlet?, private val eventManager: EventManager) {
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
-     * Requires an access manager to be set on the instance.
      * This is the method that all the verb-methods (get/post/put/etc) call.
      *
      * @see AccessManager
-     *
      * @see [Handlers in docs](https://javalin.io/documentation.handlers)
      */
     @JvmOverloads
@@ -28,5 +31,17 @@ class RouterContext(private val servlet: JavalinServlet, private val eventManage
         eventManager.fireHandlerAddedEvent(
                 HandlerMetaInfo(handlerType, prefixContextPath(servlet.config.contextPath, path), handler, roles)
         )
+    }
+
+    /**
+     * Adds a specific WebSocket handler for the given path to the instance.
+     *
+     * @see AccessManager
+     * @see [Handlers in docs](https://javalin.io/documentation.handlers)
+     */
+    @JvmOverloads
+    fun addWsHandler(handlerType: WsHandlerType, path: String, wsConfig: Consumer<WsConfig>, roles: Set<Role> = setOf()) {
+        wsServlet!!.addHandler(handlerType, path, wsConfig, roles)
+        eventManager.fireWsHandlerAddedEvent(WsHandlerMetaInfo(handlerType, prefixContextPath(servlet.config.contextPath, path), wsConfig, roles))
     }
 }

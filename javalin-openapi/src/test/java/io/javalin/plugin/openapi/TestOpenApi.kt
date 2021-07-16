@@ -5,33 +5,15 @@
  */
 package io.javalin.plugin.openapi
 
-import cc.vileda.openapi.dsl.asJson
-import cc.vileda.openapi.dsl.components
-import cc.vileda.openapi.dsl.externalDocs
-import cc.vileda.openapi.dsl.get
-import cc.vileda.openapi.dsl.info
-import cc.vileda.openapi.dsl.openapiDsl
-import cc.vileda.openapi.dsl.path
-import cc.vileda.openapi.dsl.paths
-import cc.vileda.openapi.dsl.security
-import cc.vileda.openapi.dsl.securityScheme
-import cc.vileda.openapi.dsl.server
-import cc.vileda.openapi.dsl.tag
+import cc.vileda.openapi.dsl.*
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.mashape.unirest.http.Unirest
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.crud
-import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
+import io.javalin.http.CrudHandler
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.HttpMethod
-import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
-import io.javalin.plugin.openapi.dsl.anyOf
-import io.javalin.plugin.openapi.dsl.document
-import io.javalin.plugin.openapi.dsl.documentCrud
-import io.javalin.plugin.openapi.dsl.documented
-import io.javalin.plugin.openapi.dsl.documentedContent
-import io.javalin.plugin.openapi.dsl.oneOf
+import io.javalin.plugin.openapi.dsl.*
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.testing.TestUtil
 import io.swagger.v3.oas.models.OpenAPI
@@ -306,9 +288,7 @@ class TestOpenApi {
             }
         }
 
-        app.routes {
-            crud("users/:user-id", documented(userCrudHandlerDocumentation, UserCrudHandler()))
-        }
+        app.crud("users/:user-id", documented(userCrudHandlerDocumentation, UserCrudHandler()))
 
         val actual = JavalinOpenApi.createSchema(app)
 
@@ -340,11 +320,9 @@ class TestOpenApi {
 
         class DoubleExtendedCrudHandler : ExtendedCrudHandler()
 
-        app.routes {
-            // Should not throw exception
-            crud("users/:user-id", ExtendedCrudHandler())
-            crud("accounts/:account-id", DoubleExtendedCrudHandler())
-        }
+        app.crud("users/:user-id", ExtendedCrudHandler())
+        app.crud("accounts/:account-id", DoubleExtendedCrudHandler())
+
     }
 
     @Test

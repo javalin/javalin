@@ -7,21 +7,17 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.apibuilder.ApiBuilder.path
 
 fun main() {
 
     val app = Javalin.create().start(7070)
 
-    app.routes {
-        get("/hello") { ctx -> ctx.result("Hello World") }
-        path("/api") {
-            get("/test") { ctx -> ctx.result("Hello World") }
-            get("/tast") { ctx -> ctx.status(200).result("Hello world") }
-            get("/hest") { ctx -> ctx.status(200).result("Hello World") }
-            get("/hast") { ctx -> ctx.status(200).result("Hello World").header("test", "tast") }
-        }
+    app.get("/hello") { ctx -> ctx.result("Hello World") }
+    app.path("/api") {
+        it.get("/test") { ctx -> ctx.result("Hello World") }
+        it.get("/tast") { ctx -> ctx.status(200).result("Hello world") }
+        it.get("/hest") { ctx -> ctx.status(200).result("Hello World") }
+        it.get("/hast") { ctx -> ctx.status(200).result("Hello World").header("test", "tast") }
     }
 
 }

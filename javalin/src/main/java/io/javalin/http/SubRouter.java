@@ -4,6 +4,8 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
+import io.javalin.websocket.WsConfig;
+import io.javalin.websocket.WsHandlerType;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -147,6 +149,37 @@ public final class SubRouter extends Router<SubRouter> {
     @NotNull
     public SubRouter after(@NotNull String path, @NotNull Handler handler) {
         routerContext.addHandler(HandlerType.AFTER, this.path + prefixPath(path), handler);
+        return this;
+    }
+
+    /**
+     * Adds a WebSocket handler on the specified path with the specified roles.
+     * Requires an access manager to be set on the instance.
+     *
+     * @see AccessManager
+     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
+     */
+    @NotNull
+    public SubRouter ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull Set<Role> permittedRoles) {
+        routerContext.addWsHandler(WsHandlerType.WEBSOCKET, this.path + prefixPath(path), ws, permittedRoles);
+        return this;
+    }
+
+    /**
+     * Adds a WebSocket before handler for the specified path to the instance.
+     */
+    @NotNull
+    public SubRouter wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+        routerContext.addWsHandler(WsHandlerType.WS_BEFORE, this.path + prefixPath(path), wsConfig);
+        return this;
+    }
+
+    /**
+     * Adds a WebSocket after handler for the specified path to the instance.
+     */
+    @NotNull
+    public SubRouter wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+        routerContext.addWsHandler(WsHandlerType.WS_AFTER, this.path + prefixPath(path), wsConfig);
         return this;
     }
 

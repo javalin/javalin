@@ -4,16 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.apibuilder
-
-import io.javalin.http.Context
-import io.javalin.http.Handler
+package io.javalin.http
 
 /**
  * The CrudHandler is an interface for handling the five most
- * common CRUD operations. It's only available through the ApiBuilder.
- *
- * @see ApiBuilder
+ * common CRUD operations.
  */
 interface CrudHandler {
     fun getAll(ctx: Context)
@@ -40,7 +35,3 @@ class CrudFunctionHandler(
         resourceId: String,
         handler: Handler = function.createHandler(crudHandler, resourceId)
 ) : Handler by handler
-
-internal fun CrudHandler.getCrudFunctions(resourceId: String): Map<CrudFunction, Handler> = CrudFunction.values()
-        .map { it to CrudFunctionHandler(it, this, resourceId) }
-        .toMap()

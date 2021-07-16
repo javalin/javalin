@@ -7,11 +7,11 @@
 package io.javalin.core.util
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.CrudFunctionHandler
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.security.Role
 import io.javalin.http.Context
+import io.javalin.http.CrudFunctionHandler
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.OpenApi

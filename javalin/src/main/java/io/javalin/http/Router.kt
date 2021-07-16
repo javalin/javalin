@@ -1,10 +1,9 @@
 package io.javalin.http
 
-import io.javalin.apibuilder.CrudFunction
-import io.javalin.apibuilder.CrudHandler
-import io.javalin.apibuilder.getCrudFunctions
+import io.javalin.Javalin
 import io.javalin.core.security.Role
 import io.javalin.http.sse.SseClient
+import io.javalin.websocket.WsConfig
 import java.util.*
 import java.util.function.Consumer
 
@@ -304,4 +303,45 @@ abstract class Router<T : Router<T>> {
         delete(path, crudFunctions[CrudFunction.DELETE]!!, permittedRoles)
         return this as T
     }
+
+    private fun CrudHandler.getCrudFunctions(resourceId: String): Map<CrudFunction, Handler> = CrudFunction.values()
+            .associate { it to CrudFunctionHandler(it, this, resourceId) }
+
+    // WS
+    /**
+     * Adds a WebSocket handler on the specified path.
+     *
+     * @see [WebSockets in docs](https://javalin.io/documentation.websockets)
+     */
+    fun ws(path: String, ws: Consumer<WsConfig>): T = ws(path, ws, setOf())
+
+    /**
+     * Adds a WebSocket handler on the specified path with the specified roles.
+     * Requires an access manager to be set on the instance.
+     *
+     * @see AccessManager
+     *
+     * @see [WebSockets in docs](https://javalin.io/documentation.websockets)
+     */
+    abstract fun ws(path: String, ws: Consumer<WsConfig>, permittedRoles: Set<Role?>): T
+
+    /**
+     * Adds a WebSocket before handler for the specified path to the instance.
+     */
+    abstract fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): T
+
+    /**
+     * Adds a WebSocket before handler for all routes in the instance.
+     */
+    fun wsBefore(wsConfig: Consumer<WsConfig>): T = wsBefore("*", wsConfig)
+
+    /**
+     * Adds a WebSocket after handler for the specified path to the instance.
+     */
+    abstract fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): T
+
+    /**
+     * Adds a WebSocket after handler for all routes in the instance.
+     */
+    fun wsAfter(wsConfig: Consumer<WsConfig>): T = wsAfter("*", wsConfig)
 }

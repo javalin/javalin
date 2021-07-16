@@ -1,11 +1,11 @@
 package io.javalin.plugin.openapi.dsl
 
-import io.javalin.apibuilder.CrudFunctionHandler
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Reflection.Companion.rfl
 import io.javalin.core.util.Util
 import io.javalin.core.util.methodReferenceReflectionMethodName
+import io.javalin.http.CrudFunctionHandler
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.CreateSchemaOptions
@@ -21,6 +21,7 @@ class ExtractDocumentation {
     // needed for logging purposes only, since most of the Kotlin functions below are defined globally and
     // we want to have source code/file localised messages to ease debugging
 }
+
 private val localLogger = LoggerFactory.getLogger(ExtractDocumentation::class.java)
 
 fun HandlerMetaInfo.extractDocumentation(options: CreateSchemaOptions): OpenApiDocumentation {
@@ -53,7 +54,8 @@ private fun extractDocumentationFromCrudHandler(handler: CrudFunctionHandler): O
         crudHandler.crudHandlerDocumentation.asMap()[handler.function]
                 ?: throw IllegalStateException("No documentation for this function")
     } else {
-        val method = rfl(handler.crudHandler).getMethodByName(handler.function.value) ?: throw NoSuchMethodException(handler.function.value)
+        val method = rfl(handler.crudHandler).getMethodByName(handler.function.value)
+                ?: throw NoSuchMethodException(handler.function.value)
         val openApi: OpenApi? = method.getDeclaredAnnotation(OpenApi::class.java)
         openApi?.asOpenApiDocumentation()
                 ?: document()
@@ -100,22 +102,22 @@ private fun HandlerMetaInfo.getOpenApiAnnotationFromHandler(): OpenApi? {
 
 private val HandlerMetaInfo.methodReferenceOfHandler: Method?
     get() = rfl(handler).let { handlerReflection ->
-            when {
-                handlerReflection.isClass -> (handler as Class<*>).methods[0]
-                handlerReflection.isKotlinMethodReference -> {
-                    val field = handlerReflection.obj.javaClass.declaredFields.single()
-                    field.isAccessible = true
-                    (field.get(handlerReflection.obj) as KFunction<*>).javaMethod
-                }
-                handlerReflection.isKotlinAnonymousLambda -> null // Cannot be parsed
-                handlerReflection.isJavaNonStaticMethodReference -> methodReferenceOfNonStaticJavaHandler
-                handlerReflection.isJavaAnonymousLambda -> null // taken care of by field-type handler
-                else -> {
-                    localLogger.debug("methodReferenceOfHandler else branch called for handler: "
-                            +"$httpMethod path '$path' and parent class = " + handlerReflection.parentClass.name)
-                    null
-                }
+        when {
+            handlerReflection.isClass -> (handler as Class<*>).methods[0]
+            handlerReflection.isKotlinMethodReference -> {
+                val field = handlerReflection.obj.javaClass.declaredFields.single()
+                field.isAccessible = true
+                (field.get(handlerReflection.obj) as KFunction<*>).javaMethod
             }
+            handlerReflection.isKotlinAnonymousLambda -> null // Cannot be parsed
+            handlerReflection.isJavaNonStaticMethodReference -> methodReferenceOfNonStaticJavaHandler
+            handlerReflection.isJavaAnonymousLambda -> null // taken care of by field-type handler
+            else -> {
+                localLogger.debug("methodReferenceOfHandler else branch called for handler: "
+                        + "$httpMethod path '$path' and parent class = " + handlerReflection.parentClass.name)
+                null
+            }
+        }
     }
 
 private val HandlerMetaInfo.fieldReferenceOfHandler: Field?
@@ -138,7 +140,7 @@ private val HandlerMetaInfo.fieldReferenceOfHandler: Field?
                 handlerReflection.isJavaMemberClass -> findFieldByOpenApiAnnotation(handlerReflection.parentClass.declaredFields)
                 else -> {
                     localLogger.debug("fieldReferenceOfHandler else branch called for handler: "
-                            +"$httpMethod path '$path' and parent class = " + handlerReflection.parentClass.name)
+                            + "$httpMethod path '$path' and parent class = " + handlerReflection.parentClass.name)
                     null
                 }
             }
@@ -212,7 +214,8 @@ private fun HandlerMetaInfo.findFieldByOpenApiAnnotation(allFields: Array<Field>
         path.contentEquals(annotation.path) && httpMethod.compatible(annotation.method)
     }
     when (fieldsExactMatch.size) {
-        0 -> { /* empty */ } // no exact or partial-only match, continue with code below
+        0 -> { /* empty */
+        } // no exact or partial-only match, continue with code below
         1 -> return fieldsExactMatch[0] // exact path and HttpMethod match
         else -> { // more than one exact match
             localLogger.error("cannot match handler: $httpMethod path: $path -- multiple equal OpenAPI fields declarations")
@@ -237,7 +240,7 @@ private fun HandlerMetaInfo.findFieldByOpenApiAnnotation(allFields: Array<Field>
         } else if (annotation.path == NULL_STRING || path.contentEquals(annotation.path)) {
             val annotationMethod = annotation.method
             localLogger.warn("partial match for path $path and single Handler-type field -- handler type $httpMethod defined"
-                    +" but only available OpenAPI annotation declared for '$annotationMethod' for field: "
+                    + " but only available OpenAPI annotation declared for '$annotationMethod' for field: "
                     + handlerFields[0].declaringLocation())
         } else {
             localLogger.warn("next best match for path $path and handler type $httpMethod defined -" +
@@ -253,13 +256,14 @@ private fun HandlerMetaInfo.findFieldByOpenApiAnnotation(allFields: Array<Field>
         annotation.path == this.path
     }
     when (fieldsThatMatchPath.size) {
-        0 -> { /* empty */ } // no exact or partial-only match, continue with code below
+        0 -> { /* empty */
+        } // no exact or partial-only match, continue with code below
         1 -> {
             val annotation = fieldsThatMatchPath[0].getOpenApiAnnotation() ?: return null
             if (!httpMethod.compatible(annotation.method)) {
                 val annotationMethod = annotation.method
                 localLogger.warn("partial match for path '$path' -- handler method '$httpMethod' mismatch "
-                        +"with OpenAPI method '$annotationMethod' for field: "
+                        + "with OpenAPI method '$annotationMethod' for field: "
                         + fieldsThatMatchPath[0].declaringLocation())
             }
             return fieldsThatMatchPath[0]
@@ -267,11 +271,11 @@ private fun HandlerMetaInfo.findFieldByOpenApiAnnotation(allFields: Array<Field>
         else -> {
             // fieldsThatMatchesPath.size > 1 ->
             return fieldsThatMatchPath
-            .find {
-                it.getOpenApiAnnotation()
-                        ?.let { annotation -> annotation.pathInfo == pathInfo }
-                        ?: false
-            }
+                    .find {
+                        it.getOpenApiAnnotation()
+                                ?.let { annotation -> annotation.pathInfo == pathInfo }
+                                ?: false
+                    }
         }
     }
 
@@ -281,13 +285,14 @@ private fun HandlerMetaInfo.findFieldByOpenApiAnnotation(allFields: Array<Field>
         httpMethod.compatible(annotation.method)
     }
     when (fieldsMatchingHttpMethod.size) {
-        0 -> { /* empty */ } // no exact or partial-only match, continue with code below
+        0 -> { /* empty */
+        } // no exact or partial-only match, continue with code below
         1 -> {
             val annotation = fieldsMatchingHttpMethod[0].getOpenApiAnnotation() ?: return null
             if (annotation.path != NULL_STRING && !path.contentEquals(annotation.path)) {
                 val annotationPath = annotation.path
                 localLogger.warn("partial match for method $httpMethod -- handler path '$path' mismatch "
-                        +"with OpenAPI path '$annotationPath' for field: "
+                        + "with OpenAPI path '$annotationPath' for field: "
                         + fieldsMatchingHttpMethod[0].declaringLocation())
             }
             return fieldsMatchingHttpMethod[0] // exact HttpMethod match
@@ -320,7 +325,7 @@ fun Field.getOpenApiAnnotation(): OpenApi? {
     return result
 }
 
-fun HandlerType.compatible(other: Any?) : Boolean {
+fun HandlerType.compatible(other: Any?): Boolean {
     if (other == null) {
         return false
     }
@@ -330,7 +335,7 @@ fun HandlerType.compatible(other: Any?) : Boolean {
     if (other !is HttpMethod) {
         return false
     }
-    val httpMethod : HttpMethod = other
+    val httpMethod: HttpMethod = other
     return when (this) { // N.B. this strange comparison is needed because HttpMethod and HandlerType enums differ
         HandlerType.GET -> httpMethod == HttpMethod.GET
         HandlerType.POST -> httpMethod == HttpMethod.POST
@@ -348,6 +353,6 @@ fun HandlerType.compatible(other: Any?) : Boolean {
     }
 }
 
-private fun Method.declaringLocation() : String = returnType.toGenericString() + " " + declaringClass.name+"::"+ name
+private fun Method.declaringLocation(): String = returnType.toGenericString() + " " + declaringClass.name + "::" + name
 
-private fun Field.declaringLocation() : String = declaringClass.canonicalName+"::"+ type +" "+ name
+private fun Field.declaringLocation(): String = declaringClass.canonicalName + "::" + type + " " + name

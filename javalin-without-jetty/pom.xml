@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
@@ -26,6 +27,10 @@
         <javalinconfig.hack.path>${hackity.hack.root}/core/JavalinConfig.java</javalinconfig.hack.path>
         <context.original.path>${original.root}/http/Context.kt</context.original.path>
         <context.hack.path>${hackity.hack.root}/http/Context.kt</context.hack.path>
+        <router.original.path>${original.root}/http/Router.kt</router.original.path>
+        <router.hack.path>${hackity.hack.root}/http/Router.kt</router.hack.path>
+        <subrouter.original.path>${original.root}/http/SubRouter.java</subrouter.original.path>
+        <subrouter.hack.path>${hackity.hack.root}/http/SubRouter.java</subrouter.hack.path>
     </properties>
 
     <build>
@@ -68,9 +73,9 @@
                             <target name="hacky-mchackface">
                                 <!-- Javalin.java -->
                                 <copy file="${javalin.original.path}" tofile="${javalin.hack.path}" />
-                                <replace file="${javalin.hack.path}" token="public Javalin ws(" value="private Javalin ws(" />
-                                <replace file="${javalin.hack.path}" token="public Javalin wsBefore(" value="private Javalin wsBefore(" />
-                                <replace file="${javalin.hack.path}" token="public Javalin wsAfter(" value="private Javalin wsAfter(" />
+                                <replace file="${javalin.hack.path}" token="public Javalin ws(" value="protected Javalin ws(" />
+                                <replace file="${javalin.hack.path}" token="public Javalin wsBefore(" value="protected Javalin wsBefore(" />
+                                <replace file="${javalin.hack.path}" token="public Javalin wsAfter(" value="protected Javalin wsAfter(" />
                                 <replace file="${javalin.hack.path}" token="public &lt;T extends Exception&gt; Javalin wsException(" value="private &lt;T extends Exception&gt; Javalin wsException(" />
                                 <replace file="${javalin.hack.path}" token="public JavalinWsServlet wsServlet()" value="private JavalinWsServlet wsServlet()" />
                                 <replace file="${javalin.hack.path}" token="protected JavalinWsServlet wsServlet" value="private JavalinWsServlet wsServlet" />
@@ -93,6 +98,16 @@
                                 <replace file="${javalinconfig.hack.path}" token="public JavalinConfig server(" value="private JavalinConfig server(" />
                                 <replace file="${javalinconfig.hack.path}" token="public JavalinConfig configureServletContextHandler(" value="private JavalinConfig configureServletContextHandler(" />
                                 <replace file="${javalinconfig.hack.path}" token="public boolean logIfServerNotStarted = true;" value="public boolean logIfServerNotStarted = false;" />
+                                <!-- Router.kt -->
+                                <copy file="${router.original.path}" tofile="${router.hack.path}" />
+                                <replace file="${router.hack.path}" token="fun ws(" value="protected fun ws(" />
+                                <replace file="${router.hack.path}" token="fun wsBefore(" value="protected fun wsBefore(" />
+                                <replace file="${router.hack.path}" token="fun wsAfter(" value="protected fun wsAfter(" />
+                                <!-- SubRouter.java -->
+                                <copy file="${subrouter.original.path}" tofile="${subrouter.hack.path}" />
+                                <replace file="${subrouter.hack.path}" token="public SubRouter ws(" value="protected SubRouter ws(" />
+                                <replace file="${subrouter.hack.path}" token="public SubRouter wsBefore(" value="protected SubRouter wsBefore(" />
+                                <replace file="${subrouter.hack.path}" token="public SubRouter wsAfter(" value="protected SubRouter wsAfter(" />
                                 <!-- Context.kt -->
                                 <!-- This stopped working for some reason -->
 <!--                                <copy file="${context.original.path}" tofile="${context.hack.path}" />-->

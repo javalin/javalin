@@ -7,7 +7,7 @@
 package io.javalin.routeoverview;
 
 import io.javalin.Javalin;
-import io.javalin.apibuilder.CrudHandler;
+import io.javalin.http.CrudHandler;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.RouteOverviewPlugin;
 import io.javalin.http.Context;
@@ -19,12 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_ONE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_THREE;
 import static io.javalin.TestAccessManager.MyRoles.ROLE_TWO;
-import static io.javalin.apibuilder.ApiBuilder.crud;
-import static io.javalin.apibuilder.ApiBuilder.delete;
-import static io.javalin.apibuilder.ApiBuilder.get;
-import static io.javalin.apibuilder.ApiBuilder.patch;
-import static io.javalin.apibuilder.ApiBuilder.path;
-import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.core.security.SecurityUtil.roles;
 
 public class VisualTest {
@@ -64,18 +58,6 @@ public class VisualTest {
             .addHandler(HandlerType.TRACE, "/tracer2", new HandlerImplementation(), roles(ROLE_ONE, ROLE_TWO))
             .sse("/sse", sse -> {
             });
-        app.routes(() -> {
-            path("users", () -> {
-                get(new HandlerImplementation());
-                post(new HandlerImplementation());
-                path(":id", () -> {
-                    get(new HandlerImplementation());
-                    patch(new HandlerImplementation());
-                    delete(new HandlerImplementation());
-                });
-            });
-            crud("/movies/:movie-id", new CrudHandlerImpl());
-        });
 
         app.path("servers", router -> {
             router.before(ctx -> JavalinLogger.info("Servers path hit"));

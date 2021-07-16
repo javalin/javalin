@@ -1,6 +1,6 @@
 package io.javalin.routeoverview
 
-import io.javalin.apibuilder.CrudHandler
+import io.javalin.http.CrudHandler
 import io.javalin.http.Context
 
 class CrudHandlerImpl : CrudHandler {

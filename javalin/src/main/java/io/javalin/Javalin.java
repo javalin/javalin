@@ -7,15 +7,12 @@
 
 package io.javalin;
 
-import io.javalin.apibuilder.ApiBuilder;
-import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.core.JavalinConfig;
 import io.javalin.core.JavalinServer;
 import io.javalin.core.JettyUtil;
 import io.javalin.core.event.EventListener;
 import io.javalin.core.event.EventManager;
 import io.javalin.core.event.JavalinEvent;
-import io.javalin.core.event.WsHandlerMetaInfo;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.Role;
 import io.javalin.core.util.JavalinLogger;
@@ -36,7 +33,6 @@ import io.javalin.websocket.JavalinWsServlet;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -57,16 +53,18 @@ public final class Javalin extends Router<Javalin> {
 
     protected EventManager eventManager = new EventManager();
 
-    private final RouterContext routerContext = new RouterContext(servlet, eventManager);
+    private final RouterContext routerContext;
 
     protected Javalin() {
         this.server = new JavalinServer(_conf);
         this.wsServlet = new JavalinWsServlet(_conf, servlet);
+        this.routerContext = new RouterContext(servlet, wsServlet, eventManager);
     }
 
     public Javalin(JavalinServer server, JavalinWsServlet wsServlet) {
         this.server = server;
         this.wsServlet = wsServlet;
+        this.routerContext = new RouterContext(servlet, wsServlet, eventManager);
     }
 
     /**
@@ -249,23 +247,6 @@ public final class Javalin extends Router<Javalin> {
      */
     public <T> T attribute(Class<T> clazz) {
         return (T) _conf.inner.appAttributes.get(clazz);
-    }
-
-    /**
-     * Creates a temporary static instance in the scope of the endpointGroup.
-     * Allows you to call get(handler), post(handler), etc. without without using the instance prefix.
-     *
-     * @see <a href="https://javalin.io/documentation#handler-groups">Handler groups in documentation</a>
-     * @see ApiBuilder
-     */
-    public Javalin routes(@NotNull EndpointGroup endpointGroup) {
-        ApiBuilder.setStaticJavalin(this);
-        try {
-            endpointGroup.addEndpoints();
-        } finally {
-            ApiBuilder.clearStaticJavalin();
-        }
-        return this;
     }
 
     // ********************************************************************************************
@@ -484,32 +465,6 @@ public final class Javalin extends Router<Javalin> {
     }
 
     /**
-     * Adds a specific WebSocket handler for the given path to the instance.
-     * Requires an access manager to be set on the instance.
-     */
-    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull Set<Role> roles) {
-        wsServlet.addHandler(handlerType, path, wsConfig, roles);
-        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(servlet.getConfig().contextPath, path), wsConfig, roles));
-        return this;
-    }
-
-    /**
-     * Adds a specific WebSocket handler for the given path to the instance.
-     */
-    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
-        return addWsHandler(handlerType, path, wsConfig, new HashSet<>());
-    }
-
-    /**
-     * Adds a WebSocket handler on the specified path.
-     *
-     * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
-     */
-    public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws) {
-        return ws(path, ws, new HashSet<>());
-    }
-
-    /**
      * Adds a WebSocket handler on the specified path with the specified roles.
      * Requires an access manager to be set on the instance.
      *
@@ -517,35 +472,24 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull Set<Role> permittedRoles) {
-        return addWsHandler(WsHandlerType.WEBSOCKET, path, ws, permittedRoles);
+        routerContext.addWsHandler(WsHandlerType.WEBSOCKET, path, ws, permittedRoles);
+        return this;
     }
 
     /**
      * Adds a WebSocket before handler for the specified path to the instance.
      */
     public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
-        return addWsHandler(WsHandlerType.WS_BEFORE, path, wsConfig);
-    }
-
-    /**
-     * Adds a WebSocket before handler for all routes in the instance.
-     */
-    public Javalin wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
-        return wsBefore("*", wsConfig);
+        routerContext.addWsHandler(WsHandlerType.WS_BEFORE, path, wsConfig);
+        return this;
     }
 
     /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
     public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
-        return addWsHandler(WsHandlerType.WS_AFTER, path, wsConfig);
-    }
-
-    /**
-     * Adds a WebSocket after handler for all routes in the instance.
-     */
-    public Javalin wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
-        return wsAfter("*", wsConfig);
+        routerContext.addWsHandler(WsHandlerType.WS_AFTER, path, wsConfig);
+        return this;
     }
 
 }

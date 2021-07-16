@@ -9,9 +9,8 @@ package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
-import io.javalin.apibuilder.CrudHandler
-import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.testing.TestUserController
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.okHandler
 import org.assertj.core.api.Assertions.assertThat
@@ -96,9 +95,9 @@ class TestSubRouter {
 
     @Test
     fun `CrudHandler works`() = TestUtil.test { app, http ->
-        app.crud("users/:user-id", UserController())
+        app.crud("users/:user-id", TestUserController())
                 .path("/s") {
-                    it.crud("/users/:user-id", UserController())
+                    it.crud("/users/:user-id", TestUserController())
                 }
 
         assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
@@ -116,9 +115,9 @@ class TestSubRouter {
 
     @Test
     fun `CrudHandler works with long nested resources`() = TestUtil.test { app, http ->
-        app.crud("/foo/bar/users/:user-id", UserController())
+        app.crud("/foo/bar/users/:user-id", TestUserController())
                 .path("/foo/baz") {
-                    it.crud("/users/:user-id", UserController())
+                    it.crud("/users/:user-id", TestUserController())
                 }
         assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/foo/bar/users").asString().status).isEqualTo(201)
@@ -136,30 +135,30 @@ class TestSubRouter {
     @Test
     fun `CrudHandler rejects resource in the middle`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            app.crud("/foo/bar/:user-id/users", UserController())
+            app.crud("/foo/bar/:user-id/users", TestUserController())
         }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            app.crud("/foo/bar/users", UserController())
+            app.crud("/foo/bar/users", TestUserController())
         }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            app.crud("/:user-id", UserController())
+            app.crud("/:user-id", TestUserController())
         }.withMessageStartingWith("CrudHandler requires a path like '/resource/:resource-id'")
     }
 
     @Test
     fun `CrudHandler works with wildcards`() = TestUtil.test { app, http ->
         app.path("/s") {
-            it.crud("/*/:user-id", UserController())
+            it.crud("/*/:user-id", TestUserController())
         }
-                .crud("*/:user-id", UserController())
+                .crud("*/:user-id", TestUserController())
         assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/users").asString().status).isEqualTo(201)
         assertThat(Unirest.get(http.origin + "/users/myUser").asString().body).isEqualTo("My single user: myUser")
@@ -171,29 +170,6 @@ class TestSubRouter {
         assertThat(Unirest.get(http.origin + "/s/users/myUser").asString().body).isEqualTo("My single user: myUser")
         assertThat(Unirest.patch(http.origin + "/s/users/myUser").asString().status).isEqualTo(204)
         assertThat(Unirest.delete(http.origin + "/s/users/myUser").asString().status).isEqualTo(204)
-    }
-
-    class UserController : CrudHandler {
-
-        override fun getAll(ctx: Context) {
-            ctx.result("All my users")
-        }
-
-        override fun getOne(ctx: Context, resourceId: String) {
-            ctx.result("My single user: $resourceId")
-        }
-
-        override fun create(ctx: Context) {
-            ctx.status(201)
-        }
-
-        override fun update(ctx: Context, resourceId: String) {
-            ctx.status(204)
-        }
-
-        override fun delete(ctx: Context, resourceId: String) {
-            ctx.status(204)
-        }
     }
 
 }

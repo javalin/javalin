@@ -7,8 +7,6 @@
 
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -30,11 +28,9 @@ class TestTrailingSlashes {
 
     @Test
     fun `trailing slashes are ignored by default - ApiBuilder`() = TestUtil.test { app, http ->
-        app.routes {
-            path("a") {
-                get { ctx -> ctx.result("a") }
-                get("/") { ctx -> ctx.result("a-slash") }
-            }
+        app.path("a") {
+            it.get { ctx -> ctx.result("a") }
+            it.get("/") { ctx -> ctx.result("a-slash") }
         }
         assertThat(http.getBody("/a")).isEqualTo("a")
         assertThat(http.getBody("/a/")).isEqualTo("a")
@@ -135,12 +131,10 @@ class TestTrailingSlashes {
 
     @Test
     fun `automatic slash prefixing works`() = TestUtil.test(javalin) { app, http ->
-        app.routes {
-            path("test") {
-                path(":id") { get { ctx -> ctx.result(ctx.pathParam("id")) } }
-                path(":id/") { get { ctx -> ctx.result(ctx.pathParam("id") + "/") } }
-                get { ctx -> ctx.result("test") }
-            }
+        app.path("test") {
+            it.path(":id") { it.get { ctx -> ctx.result(ctx.pathParam("id")) } }
+            it.path(":id/") { it.get { ctx -> ctx.result(ctx.pathParam("id") + "/") } }
+            it.get { ctx -> ctx.result("test") }
         }
         assertThat(http.getBody("/test/path-param")).isEqualTo("path-param")
         assertThat(http.getBody("/test/path-param/")).isEqualTo("path-param/")

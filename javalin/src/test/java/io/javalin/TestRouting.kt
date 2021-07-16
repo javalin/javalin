@@ -7,8 +7,6 @@
 
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -75,11 +73,9 @@ class TestRouting {
 
     @Test
     fun `automatic slash prefixing works`() = TestUtil.test { app, http ->
-        app.routes {
-            path("test") {
-                path(":id") { get { ctx -> ctx.result(ctx.pathParam("id")) } }
-                get { ctx -> ctx.result("test") }
-            }
+        app.path("test") {
+            it.path(":id") { it.get { ctx -> ctx.result(ctx.pathParam("id")) } }
+            it.get { ctx -> ctx.result("test") }
         }
         assertThat(http.getBody("/test/path-param/")).isEqualTo("path-param")
         assertThat(http.getBody("/test/")).isEqualTo("test")
