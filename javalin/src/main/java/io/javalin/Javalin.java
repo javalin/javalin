@@ -8,13 +8,11 @@
 package io.javalin;
 
 import io.javalin.core.JavalinConfig;
-import io.javalin.core.JavalinServer;
-import io.javalin.core.JettyUtil;
 import io.javalin.core.event.EventListener;
 import io.javalin.core.event.EventManager;
 import io.javalin.core.event.JavalinEvent;
 import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.Role;
+import io.javalin.core.security.RouteRole;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
 import io.javalin.core.validation.JavalinValidation;
@@ -29,10 +27,14 @@ import io.javalin.http.RouterContext;
 import io.javalin.http.SubRouter;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
-import io.javalin.websocket.JavalinWsServlet;
+import io.javalin.jetty.JavalinJettyServlet;
+import io.javalin.jetty.JettyServer;
+import io.javalin.jetty.JettyUtil;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -47,23 +49,23 @@ public final class Javalin extends Router<Javalin> {
      */
     public JavalinConfig _conf = new JavalinConfig();
 
-    protected JavalinServer server; // null in standalone-mode
-    protected JavalinWsServlet wsServlet; // null in standalone-mode
-    protected JavalinServlet servlet = new JavalinServlet(_conf);
+    protected JettyServer jettyServer; // null in standalone-mode
+    protected JavalinJettyServlet javalinJettyServlet; // null in standalone-mode
+    protected JavalinServlet javalinServlet = new JavalinServlet(_conf);
 
     protected EventManager eventManager = new EventManager();
 
     private final RouterContext routerContext;
 
     protected Javalin() {
-        this.server = new JavalinServer(_conf);
-        this.wsServlet = new JavalinWsServlet(_conf, servlet);
+        this.jettyServer = new JettyServer(_conf);
+        this.javalinJettyServlet = new JavalinJettyServlet(_conf, javalinServlet);
         this.routerContext = new RouterContext(servlet, wsServlet, eventManager);
     }
 
-    public Javalin(JavalinServer server, JavalinWsServlet wsServlet) {
-        this.server = server;
-        this.wsServlet = wsServlet;
+    public Javalin(JettyServer jettyServer, JavalinJettyServlet jettyServlet) {
+        this.jettyServer = jettyServer;
+        this.javalinJettyServlet = jettyServlet;
         this.routerContext = new RouterContext(servlet, wsServlet, eventManager);
     }
 
@@ -89,9 +91,7 @@ public final class Javalin extends Router<Javalin> {
         Javalin app = new Javalin();
         JavalinValidation.addValidationExceptionMapper(app);
         JavalinConfig.applyUserConfig(app, app._conf, config); // mutates app.config and app (adds http-handlers)
-        if (app._conf.logIfServerNotStarted) {
-            Util.logIfServerNotStarted(app.server);
-        }
+        JettyUtil.maybeLogIfServerNotStarted(app.jettyServer);
         return app;
     }
 
@@ -109,23 +109,15 @@ public final class Javalin extends Router<Javalin> {
     }
 
     // Get JavalinServlet (for use in standalone mode)
-    public JavalinServlet servlet() {
-        return this.servlet;
+    public JavalinServlet javalinServlet() {
+        return this.javalinServlet;
     }
 
-    public JavalinWsServlet wsServlet() {
-        return wsServlet;
-    }
-
-    /**
-     * Get the JavalinServer
-     */
-    // @formatter:off
+    // Get the JavalinServer
     @Nullable
-    public JavalinServer server() {
-        return this.server;
+    public JettyServer jettyServer() {
+        return this.jettyServer;
     }
-    // @formatter:off
 
     /**
      * Synchronously starts the application instance on the specified port
@@ -138,12 +130,13 @@ public final class Javalin extends Router<Javalin> {
      * @see Javalin#start()
      */
     public Javalin start(String host, int port) {
-        server.setServerHost(host);
+        jettyServer.setServerHost(host);
         return start(port);
     }
 
     /**
      * Synchronously starts the application instance on the specified port.
+     * Use port 0 to start the application instance on a random available port.
      *
      * @param port to run on
      * @return running application instance.
@@ -151,13 +144,14 @@ public final class Javalin extends Router<Javalin> {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        server.setServerPort(port);
+        jettyServer.setServerPort(port);
         return start();
     }
 
     /**
-     * Synchronously starts the application instance on the default port (7000).
-     * To start on a random port use {@link Javalin#start(int)} with port 0.
+     * Synchronously starts the application instance on the configured port, or on
+     * the configured ServerConnectors if the Jetty server has been manually configured.
+     * If no port or connector is configured, the instance will start on port 8080.
      *
      * @return running application instance.
      * @see Javalin#create()
@@ -166,28 +160,28 @@ public final class Javalin extends Router<Javalin> {
         Util.logJavalinBanner(this._conf.showJavalinBanner);
         JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
-        if (server.getStarted()) {
+        if (jettyServer.started) {
             String message = "Server already started. If you are trying to call start() on an instance " +
                 "of Javalin that was stopped using stop(), please create a new instance instead.";
             throw new IllegalStateException(message);
         }
-        server.setStarted(true);
+        jettyServer.started = true;
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             JavalinLogger.info("Starting Javalin ...");
-            server.start(wsServlet);
             Util.logJavalinVersion();
+            jettyServer.start(javalinJettyServlet);
             JavalinLogger.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
             JavalinLogger.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
-            if (Boolean.TRUE.equals(server.server().getAttribute("is-default-server"))) {
+            if (Boolean.TRUE.equals(jettyServer.server().getAttribute("is-default-server"))) {
                 stop();// stop if server is default server; otherwise, the caller is responsible to stop
             }
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getServerPort() + " and try again.", e);
+                throw new RuntimeException("Port already in use. Make sure no other process is using port " + Util.getPort(e) + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
                 throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
             }
@@ -205,7 +199,7 @@ public final class Javalin extends Router<Javalin> {
         JavalinLogger.info("Stopping Javalin ...");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         try {
-            server.server().stop();
+            jettyServer.server().stop();
         } catch (Exception e) {
             JavalinLogger.error("Javalin failed to stop gracefully", e);
         }
@@ -225,7 +219,7 @@ public final class Javalin extends Router<Javalin> {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return server.getServerPort();
+        return jettyServer.getServerPort();
     }
 
     /**
@@ -234,8 +228,8 @@ public final class Javalin extends Router<Javalin> {
      * Ex: app.attribute(MyExt.class, myExtInstance())
      * The method must be called before {@link Javalin#start()}.
      */
-    public Javalin attribute(Class<?> clazz, Object obj) {
-        _conf.inner.appAttributes.put(clazz, obj);
+    public Javalin attribute(String key, Object value) {
+        _conf.inner.appAttributes.put(key, value);
         return this;
     }
 
@@ -245,8 +239,8 @@ public final class Javalin extends Router<Javalin> {
      * Ex: app.attribute(MyExt.class).myMethod()
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
-    public <T> T attribute(Class<T> clazz) {
-        return (T) _conf.inner.appAttributes.get(clazz);
+    public <T> T attribute(String key) {
+        return (T) _conf.inner.appAttributes.get(key);
     }
 
     // ********************************************************************************************
@@ -259,7 +253,7 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
-        servlet.getExceptionMapper().getHandlers().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
+        javalinServlet.getExceptionMapper().getHandlers().put(exceptionClass, (ExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
@@ -270,7 +264,7 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
     public Javalin error(int statusCode, @NotNull Handler handler) {
-        servlet.getErrorMapper().getErrorHandlerMap().put(statusCode, handler);
+        javalinServlet.getErrorMapper().getErrorHandlerMap().put(statusCode, handler);
         return this;
     }
 
@@ -294,15 +288,17 @@ public final class Javalin extends Router<Javalin> {
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
         routerContext.addHandler(handlerType, path, handler, roles);
+//    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+//        Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
+//        javalinServlet.addHandler(handlerType, path, handler, roleSet);
+//        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), handler, roleSet));
         return this;
     }
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
-     * Requires an access manager to be set on the instance.
      * This is the method that all the verb-methods (get/post/put/etc) call.
      *
-     * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public Javalin addHandler(@NotNull HandlerType httpMethod, @NotNull String path, @NotNull Handler handler) {
@@ -328,8 +324,8 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.GET, path, handler, permittedRoles);
+    public Javalin get(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.GET, path, handler, roles);
         return this;
     }
 
@@ -341,8 +337,8 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.POST, path, handler, permittedRoles);
+    public Javalin post(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.POST, path, handler, roles);
         return this;
     }
 
@@ -354,8 +350,8 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.PUT, path, handler, permittedRoles);
+    public Javalin put(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.PUT, path, handler, roles);
         return this;
     }
 
@@ -367,8 +363,8 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.PATCH, path, handler, permittedRoles);
+    public Javalin patch(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.PATCH, path, handler, roles);
         return this;
     }
 
@@ -380,8 +376,8 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.DELETE, path, handler, permittedRoles);
+    public Javalin delete(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.DELETE, path, handler, roles);
         return this;
     }
 
@@ -393,8 +389,8 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.HEAD, path, handler, permittedRoles);
+    public Javalin head(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.HEAD, path, handler, roles);
         return this;
     }
 
@@ -406,8 +402,8 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.OPTIONS, path, handler, permittedRoles);
+    public Javalin options(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.OPTIONS, path, handler, roles);
         return this;
     }
 
@@ -420,8 +416,8 @@ public final class Javalin extends Router<Javalin> {
      * Requires an access manager to be set on the instance.
      */
     @NotNull
-    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
-        return get(path, new SseHandler(client), permittedRoles);
+    public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
+        return get(path, new SseHandler(client), roles);
     }
 
     // ********************************************************************************************
@@ -460,9 +456,20 @@ public final class Javalin extends Router<Javalin> {
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
-        wsServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
+        javalinJettyServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
+
+//    /**
+//     * Adds a specific WebSocket handler for the given path to the instance.
+//     * Requires an access manager to be set on the instance.
+//     */
+//    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
+//        Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
+//        javalinJettyServlet.addHandler(handlerType, path, wsConfig, roleSet);
+//        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), wsConfig, roleSet));
+//        return this;
+//    }
 
     /**
      * Adds a WebSocket handler on the specified path with the specified roles.
@@ -471,8 +478,8 @@ public final class Javalin extends Router<Javalin> {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
-    public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull Set<Role> permittedRoles) {
-        routerContext.addWsHandler(WsHandlerType.WEBSOCKET, path, ws, permittedRoles);
+    public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
+        routerContext.addWsHandler(WsHandlerType.WEBSOCKET, path, ws, roles);
         return this;
     }
 

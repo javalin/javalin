@@ -11,7 +11,7 @@ import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
-import io.javalin.http.staticfiles.PrecompressingResourceHandler
+import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
@@ -65,11 +65,11 @@ class TestStaticFilesPrecompressor {
 
     @Test
     fun `only creates one compressed version even if query params are present`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
-        val oldSize = PrecompressingResourceHandler.compressedFiles.size
+        val oldSize = JettyPrecompressingResourceHandler.compressedFiles.size
         assertThat(http.getFile("/secret.html", "gzip").contentEncoding()).isEqualTo("gzip")
         assertThat(http.getFile("/secret.html?qp=1", "gzip").contentEncoding()).isEqualTo("gzip")
         assertThat(http.getFile("/secret.html?qp=2", "gzip").contentEncoding()).isEqualTo("gzip")
-        assertThat(PrecompressingResourceHandler.compressedFiles.size <= oldSize + 1)
+        assertThat(JettyPrecompressingResourceHandler.compressedFiles.size <= oldSize + 1)
     }
 
     private fun Response.contentLength() = this.headers.get(Header.CONTENT_LENGTH)

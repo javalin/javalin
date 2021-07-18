@@ -7,7 +7,7 @@
 package io.javalin
 
 import com.google.gson.GsonBuilder
-import io.javalin.testing.SerializeableObject
+import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -23,23 +23,23 @@ class TestAppAttributes {
     }
 
     private val attributedJavalin = Javalin.create().apply {
-        attribute(MyJson::class.java, MyJson())
-        attribute(MyOtherThing::class.java, MyOtherThing())
+        attribute(MyJson::class.java.name, MyJson())
+        attribute(MyOtherThing::class.java.name, MyOtherThing())
     }
 
     @Test
     fun `app attributes can be accessed through the app`() = TestUtil.test(attributedJavalin) { app, _ ->
-        assertThat(app.attribute(MyOtherThing::class.java).test).isEqualTo("Test")
+        assertThat(app.attribute<MyOtherThing>(MyOtherThing::class.java.name).test).isEqualTo("Test")
     }
 
     @Test
     fun `app attributes can be accessed through the Context`() = TestUtil.test(attributedJavalin) { app, http ->
         val gson = GsonBuilder().create()
         app.get("/") { ctx ->
-            val rendered = ctx.appAttribute(MyJson::class.java).render(SerializeableObject())
+            val rendered = ctx.appAttribute<MyJson>(MyJson::class.java.name).render(SerializableObject())
             ctx.result(rendered)
         }
-        assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializeableObject()))
+        assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
     }
 
 }

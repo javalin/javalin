@@ -3,11 +3,15 @@
     <parent>
         <artifactId>javalin-parent</artifactId>
         <groupId>io.javalin</groupId>
-        <version>4.0.0.ALPHA3-SNAPSHOT</version>
+        <version>4.0.0.RC0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>javalin-bundle</artifactId>
+
+    <properties>
+        <copy-build-resources.skip>false</copy-build-resources.skip>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -34,12 +38,10 @@
         <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
             <artifactId>http2-server</artifactId>
-            <version>${jetty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-alpn-conscrypt-server</artifactId>
-            <version>${jetty.version}</version>
         </dependency>
 
         <dependency>
@@ -47,4 +49,5 @@
             <artifactId>logback-classic</artifactId>
         </dependency>
     </dependencies>
+
 </project>

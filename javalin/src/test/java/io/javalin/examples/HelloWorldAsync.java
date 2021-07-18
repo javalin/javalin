@@ -17,7 +17,7 @@ public class HelloWorldAsync {
         app.get("/", ctx -> {
             CompletableFuture<String> future = new CompletableFuture<>();
             Executors.newSingleThreadScheduledExecutor().schedule(() -> future.complete("Hello World!"), 10, TimeUnit.MILLISECONDS);
-            ctx.result(future);
+            ctx.future(future);
         });
     }
 }

@@ -31,7 +31,7 @@ object JavalinCommonmark : FileRenderer {
         parser = staticMarkdownParser
     }
 
-    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
+    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context?): String {
         Util.ensureDependencyPresent(OptionalDependency.COMMONMARK)
         val fileContent = JavalinCommonmark::class.java.getResource(filePath).readText()
         return (renderer ?: defaultRenderer).render((parser ?: defaultParser).parse(fileContent))

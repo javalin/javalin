@@ -6,10 +6,9 @@
 
 package io.javalin.core.event
 
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.HandlerType
 import io.javalin.websocket.WsHandlerType
-import java.util.*
 import java.util.function.Consumer
 
 class EventManager {
@@ -22,5 +21,5 @@ class EventManager {
 }
 
 enum class JavalinEvent { SERVER_STARTING, SERVER_STARTED, SERVER_START_FAILED, SERVER_STOPPING, SERVER_STOPPED }
-data class HandlerMetaInfo(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: Set<Role>)
-data class WsHandlerMetaInfo(val handlerType: WsHandlerType, val path: String, val handler: Any, val roles: Set<Role>)
+data class HandlerMetaInfo(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: Set<RouteRole>)
+data class WsHandlerMetaInfo(val handlerType: WsHandlerType, val path: String, val handler: Any, val roles: Set<RouteRole>)

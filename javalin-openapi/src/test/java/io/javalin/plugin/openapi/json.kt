@@ -17,7 +17,7 @@ fun configureJacksonToJsonMapper() {
 
 fun String.formatJson(): String {
     configureJacksonToJsonMapper()
-    val node = JavalinJackson.fromJson(this, JsonNode::class.java)
+    val node = JavalinJackson().fromJsonString(this, JsonNode::class.java)
     return JacksonToJsonMapper().map(node)
 }
 

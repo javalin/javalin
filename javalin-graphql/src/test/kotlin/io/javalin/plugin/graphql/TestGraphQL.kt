@@ -74,7 +74,6 @@ class TestGraphQL {
     @Test
     fun subscribe() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
         val testClient1_1 = TestClient(server, graphqlPath)
-
         doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
         doAndSleep { testClient1_1.send("{\"query\": \"subscription { counter }\"}") }
         doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
@@ -118,10 +117,10 @@ class TestGraphQL {
     }
 
     private fun Javalin.logger(): TestLogger {
-        if (this.attribute(TestLogger::class.java) == null) {
-            this.attribute(TestLogger::class.java, TestLogger(ArrayList()))
+        if (this.attribute<TestLogger>(TestLogger::class.java.name) == null) {
+            this.attribute(TestLogger::class.java.name, TestLogger(ArrayList()))
         }
-        return this.attribute(TestLogger::class.java)
+        return this.attribute(TestLogger::class.java.name)
     }
 
 

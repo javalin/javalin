@@ -8,7 +8,7 @@ package io.javalin
 
 import io.javalin.http.NotFoundResponse
 import io.javalin.plugin.metrics.MicrometerPlugin
-import io.javalin.testing.HttpUtil
+import io.javalin.testing.TestUtil
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -16,200 +16,213 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestMicrometerPlugin {
+
     private val meterRegistry: MeterRegistry = SimpleMeterRegistry()
 
     @Test
-    fun `successful request`() {
-        val app: Javalin = setupApp()
-        val http = HttpUtil(app.port())
-
-        app.get("/hello/:name") { ctx -> ctx.result("Hello: " + ctx.pathParam("name")) }
-        http.get("/hello/jon")
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello/:name")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
-
-        app.stop()
+    fun `successful request`() = TestUtil.test(setupApp()) { app, http ->
+        val requestCount = (2..9).random()
+        app.get("/hello/{name}") { ctx -> ctx.result("Hello: " + ctx.pathParam("name")) }
+        repeat(requestCount) { http.get("/hello/jon") }
+        val timerCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello/{name}")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
+            .count()
+        assertThat(timerCount).isEqualTo(requestCount.toLong())
     }
 
     @Test
-    fun `request throwing exception`() {
-        val app: Javalin = setupApp()
-        val http = HttpUtil(app.port())
+    fun `successful request with context path`() = TestUtil.test(setupApp(contextPath = "/api")) { app, http ->
+        val requestCount = (2..9).random()
+        app.get("/hello") { it.status(200) }
+        repeat(requestCount) { http.get("/api/hello") }
+        val timerCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
+            .count()
+        assertThat(timerCount).isEqualTo(requestCount.toLong())
+    }
 
+    @Test
+    fun `request throwing exception`() = TestUtil.test(setupApp()) { app, http ->
+        val requestCount = (2..9).random()
         app.get("/boom") { throw IllegalArgumentException("boom") }
-        http.get("/boom")
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/boom")
-                .tag("method", "GET")
-                .tag("exception", "IllegalArgumentException")
-                .tag("status", "500")
-                .tag("outcome", "SERVER_ERROR")
-                .timer()
-
-        app.stop()
+        repeat(requestCount) { http.get("/boom") }
+        val timerCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/boom")
+            .tag("method", "GET")
+            .tag("exception", "IllegalArgumentException")
+            .tag("status", "500")
+            .tag("outcome", "SERVER_ERROR")
+            .timer()
+            .count()
+        assertThat(timerCount).isEqualTo(requestCount.toLong())
     }
 
     @Test
-    fun redirect() {
-        val app: Javalin = setupApp()
-        val http = HttpUtil(app.port())
-
+    fun redirect() = TestUtil.test(setupApp()) { app, http ->
+        val requestCount = (2..9).random()
         app.get("/hello") { ctx -> ctx.result("Hello") }
         app.get("/redirect") { ctx -> ctx.redirect("/hello") }
-        http.get("/redirect")
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "REDIRECTION")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "302")
-                .tag("outcome", "REDIRECTION")
-                .timer()
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
-
-        app.stop()
+        repeat(requestCount) { http.get("/redirect") }
+        val redirCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "REDIRECTION")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "302")
+            .tag("outcome", "REDIRECTION")
+            .timer()
+            .count()
+        val okCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
+            .count()
+        assertThat(redirCount + okCount).isEqualTo((requestCount * 2).toLong())
     }
 
     @Test
-    fun `redirect tagged`() {
-        val app: Javalin = setupApp(tagRedirectPaths = true)
-        val http = HttpUtil(app.port())
-
+    fun `redirect tagged`() = TestUtil.test(setupApp(tagRedirectPaths = true)) { app, http ->
+        val requestCount = (2..9).random()
         app.get("/hello") { ctx -> ctx.result("Hello") }
         app.get("/redirect") { ctx -> ctx.redirect("/hello") }
-        http.get("/redirect")
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/redirect")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "302")
-                .tag("outcome", "REDIRECTION")
-                .timer()
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
-
-        app.stop()
+        repeat(requestCount) { http.get("/redirect") }
+        val redirCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/redirect")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "302")
+            .tag("outcome", "REDIRECTION")
+            .timer()
+            .count()
+        val okCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
+            .count()
+        assertThat(redirCount + okCount).isEqualTo((requestCount * 2).toLong())
     }
 
     @Test
-    fun `etags tagged`() {
-        val app: Javalin = setupApp(tagRedirectPaths = true, autoGenerateEtags = true)
-        val http = HttpUtil(app.port())
-
+    fun `etags tagged`() = TestUtil.test(setupApp(tagRedirectPaths = true, autoGenerateEtags = true)) { app, http ->
+        val requestCount = (2..9).random()
         app.get("/hello") { ctx -> ctx.result("Hello") }
-
-        val response = http.get("/hello")
-        val etag = response.headers["ETag"]?.first() ?: ""
-
-        val response2 = http.get("/hello", mapOf("If-None-Match" to etag))
-        assertThat(response2.status).isEqualTo(304)
-
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "304")
-                .tag("outcome", "REDIRECTION")
-                .timer()
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
-
-        app.stop()
+        repeat(requestCount) {
+            val response = http.get("/hello")
+            val etag = response.headers["ETag"]?.first() ?: ""
+            val response2 = http.get("/hello", mapOf("If-None-Match" to etag))
+            assertThat(response2.status).isEqualTo(304)
+        }
+        val redirCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "304")
+            .tag("outcome", "REDIRECTION")
+            .timer()
+            .count()
+        val okCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
+            .count()
+        assertThat(redirCount + okCount).isEqualTo((requestCount * 2).toLong())
     }
 
     @Test
-    fun `not found`() {
-        val app: Javalin = setupApp()
-        val http = HttpUtil(app.port())
-
-        http.get("/doesNotExist")
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "NOT_FOUND")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "404")
-                .tag("outcome", "CLIENT_ERROR")
-                .timer()
-
-        app.stop()
+    fun `not found`() = TestUtil.test(setupApp()) { app, http ->
+        val requestCount = (2..9).random()
+        repeat(requestCount) { http.get("/some-unmapped-path") }
+        val notFoundCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "NOT_FOUND")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "404")
+            .tag("outcome", "CLIENT_ERROR")
+            .timer()
+            .count()
+        assertThat(notFoundCount).isEqualTo(requestCount.toLong())
     }
 
     @Test
-    fun `not found tagged`() {
-        val app: Javalin = setupApp(tagNotFoundMappedPaths = true)
-        val http = HttpUtil(app.port())
-
-        app.get("/hello/:name") { ctx ->
-            if (ctx.pathParam("name") == "jon") ctx.result("Hello: " + ctx.pathParam("name"))
+    fun `not found tagged`() = TestUtil.test(setupApp(tagNotFoundMappedPaths = true)) { app, http ->
+        val requestCount = (2..9).random()
+        app.get("/hello/{name}") { ctx ->
+            if (ctx.pathParam("name") == "jon") ctx.status(200)
             else throw NotFoundResponse()
         }
-
-        http.get("/hello/jon")
-        http.get("/hello/wil")
-        http.get("/doesNotExist")
-
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello/:name")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "200")
-                .tag("outcome", "SUCCESS")
-                .timer()
-
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "/hello/:name")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "404")
-                .tag("outcome", "CLIENT_ERROR")
-                .timer()
-
-        meterRegistry.get("jetty.server.requests")
-                .tag("uri", "NOT_FOUND")
-                .tag("method", "GET")
-                .tag("exception", "None")
-                .tag("status", "404")
-                .tag("outcome", "CLIENT_ERROR")
-                .timer()
-
-        app.stop()
+        repeat(requestCount) {
+            http.get("/hello/jon")
+            http.get("/hello/wil")
+            http.get("/some-unmapped-path")
+        }
+        val okCount = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello/{name}")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "200")
+            .tag("outcome", "SUCCESS")
+            .timer()
+            .count()
+        val notFoundCountSpecific = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "/hello/{name}")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "404")
+            .tag("outcome", "CLIENT_ERROR")
+            .timer()
+            .count()
+        val notFoundCountGeneric = meterRegistry.get("jetty.server.requests")
+            .tag("uri", "NOT_FOUND")
+            .tag("method", "GET")
+            .tag("exception", "None")
+            .tag("status", "404")
+            .tag("outcome", "CLIENT_ERROR")
+            .timer()
+            .count()
+        assertThat(okCount).isEqualTo(requestCount.toLong())
+        assertThat(notFoundCountSpecific).isEqualTo(requestCount.toLong())
+        assertThat(notFoundCountGeneric).isEqualTo(requestCount.toLong())
     }
 
-    private fun setupApp(tagRedirectPaths: Boolean = false,
-                         tagNotFoundMappedPaths: Boolean = false,
-                         autoGenerateEtags: Boolean? = null) =
-            Javalin.create { config ->
-                config.registerPlugin(MicrometerPlugin(registry = meterRegistry,
-                        tags = Tags.empty(),
-                        tagExceptionName = true,
-                        tagRedirectPaths = tagRedirectPaths,
-                        tagNotFoundMappedPaths = tagNotFoundMappedPaths)
-                )
-                if (autoGenerateEtags != null) config.autogenerateEtags = autoGenerateEtags
+    private fun setupApp(
+        tagRedirectPaths: Boolean = false,
+        tagNotFoundMappedPaths: Boolean = false,
+        autoGenerateEtags: Boolean? = null,
+        contextPath: String = "/"
+    ) = Javalin.create { config ->
+        config.contextPath = contextPath
+        config.registerPlugin(
+            MicrometerPlugin(
+                registry = meterRegistry,
+                tags = Tags.empty(),
+                tagExceptionName = true,
+                tagRedirectPaths = tagRedirectPaths,
+                tagNotFoundMappedPaths = tagNotFoundMappedPaths
+            )
+        )
+        if (autoGenerateEtags != null) config.autogenerateEtags = autoGenerateEtags
 
-                // must manually delegate to Micrometer exception handler for exception tags to be correct
-            }.start(0).exception(IllegalArgumentException::class.java) { e, ctx ->
-                MicrometerPlugin.EXCEPTION_HANDLER.handle(e, ctx)
-                e.printStackTrace()
-            }
+        // must manually delegate to Micrometer exception handler for exception tags to be correct
+    }.exception(IllegalArgumentException::class.java) { e, ctx ->
+        MicrometerPlugin.EXCEPTION_HANDLER.handle(e, ctx)
+    }
+
 }

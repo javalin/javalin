@@ -13,7 +13,7 @@ class DocumentedResponse(
         val content: List<DocumentedContent>
 )
 
-fun DocumentedResponse.getStatusMessage() = status.toIntOrNull()?.let { HttpCode.messageFor(it) } ?: ""
+fun DocumentedResponse.getStatusMessage() = status.toIntOrNull()?.let { HttpCode.forStatus(it)?.message } ?: ""
 
 fun ApiResponse.applyDocumentedResponse(documentedResponse: DocumentedResponse) {
     description = description ?: documentedResponse.getStatusMessage()

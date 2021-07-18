@@ -11,8 +11,5 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface Plugin {
-    /**
-     * Configure the Javalin instance and register handler
-     */
     void apply(@NotNull Javalin app);
 }

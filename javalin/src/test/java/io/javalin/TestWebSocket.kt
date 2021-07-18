@@ -9,12 +9,11 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.http.UnauthorizedResponse
-import io.javalin.plugin.json.JavalinJson
-import io.javalin.testing.SerializeableObject
+import io.javalin.plugin.json.JavalinJackson
+import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.context.message
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.StatusCode
@@ -38,10 +37,10 @@ class TestWebSocket {
     data class TestLogger(val log: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue<String>())
 
     private fun Javalin.logger(): TestLogger {
-        if (this.attribute(TestLogger::class.java) == null) {
-            this.attribute(TestLogger::class.java, TestLogger())
+        if (this.attribute<TestLogger>(TestLogger::class.java.name) == null) {
+            this.attribute(TestLogger::class.java.name, TestLogger())
         }
-        return this.attribute(TestLogger::class.java)
+        return this.attribute(TestLogger::class.java.name)
     }
 
     fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
@@ -54,7 +53,7 @@ class TestWebSocket {
     }
 
     fun accessManagedJavalin() = Javalin.create().apply {
-        this._conf.accessManager { handler, ctx, permittedRoles ->
+        this._conf.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("allowed") == "true" -> {
@@ -142,18 +141,18 @@ class TestWebSocket {
 
     @Test
     fun `receive and send json messages`() = TestUtil.test { app, _ ->
-        val clientMessage = SerializeableObject().apply { value1 = "test1"; value2 = "test2" }
-        val clientMessageJson = JavalinJson.toJson(clientMessage)
+        val clientMessage = SerializableObject().apply { value1 = "test1"; value2 = "test2" }
+        val clientMessageJson = JavalinJackson().toJsonString(clientMessage)
 
-        val serverMessage = SerializeableObject().apply { value1 = "echo1"; value2 = "echo2" }
-        val serverMessageJson = JavalinJson.toJson(serverMessage)
+        val serverMessage = SerializableObject().apply { value1 = "echo1"; value2 = "echo2" }
+        val serverMessageJson = JavalinJackson().toJsonString(serverMessage)
 
         var receivedJson: String? = null
-        var receivedMessage: SerializeableObject? = null
+        var receivedMessage: SerializableObject? = null
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->
                 receivedJson = ctx.message()
-                receivedMessage = ctx.message<SerializeableObject>()
+                receivedMessage = ctx.messageAsClass<SerializableObject>()
                 ctx.send(serverMessage)
             }
         }
@@ -192,8 +191,8 @@ class TestWebSocket {
 
     @Test
     fun `routing and pathParams work`() = TestUtil.test(contextPathJavalin()) { app, _ ->
-        app.ws("/params/:1") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1")) } }
-        app.ws("/params/:1/test/:2/:3") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
+        app.ws("/params/{1}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1")) } }
+        app.ws("/params/{1}/test/{2}/{3}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
         app.ws("/*") { ws -> ws.onConnect { _ -> app.logger().log.add("catchall") } } // this should not be triggered since all calls match more specific handlers
         TestClient(app, "/websocket/params/one").connectAndDisconnect()
         TestClient(app, "/websocket/params/%E2%99%94").connectAndDisconnect()
@@ -230,7 +229,7 @@ class TestWebSocket {
         var pathParam = ""
         var queryParam = ""
         var queryParams = listOf<String>()
-        app.ws("/websocket/:channel") { ws ->
+        app.ws("/websocket/{channel}") { ws ->
             ws.onConnect { ctx ->
                 matchedPath = ctx.matchedPath()
                 pathParam = ctx.pathParam("channel")
@@ -239,7 +238,7 @@ class TestWebSocket {
             }
         }
         TestClient(app, "/websocket/channel-one?qp=just-a-qp&qps=1&qps=2").connectAndDisconnect()
-        assertThat(matchedPath).isEqualTo("/websocket/:channel")
+        assertThat(matchedPath).isEqualTo("/websocket/{channel}")
         assertThat(pathParam).isEqualTo("channel-one")
         assertThat(queryParam).isEqualTo("just-a-qp")
         assertThat(queryParams).contains("1", "2")
@@ -285,8 +284,8 @@ class TestWebSocket {
 
     @Test
     fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
-        app.ws("/pAtH/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
-        app.ws("/other-path/:param") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
+        app.ws("/pAtH/{param}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
+        app.ws("/other-path/{param}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
 
         val client = TestClient(app, "/PaTh/my-param")
 
@@ -300,7 +299,7 @@ class TestWebSocket {
 
     @Test
     fun `web socket logging works`() = TestUtil.test(javalinWithWsLogger()) { app, _ ->
-        app.ws("/path/:param") {}
+        app.ws("/path/{param}") {}
         TestClient(app, "/path/0").connectAndDisconnect()
         TestClient(app, "/path/1").connectAndDisconnect()
         assertThat(app.logger().log).containsExactlyInAnyOrder(
@@ -313,7 +312,7 @@ class TestWebSocket {
 
     @Test
     fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.enableDevLogging() }) { app, _ ->
-        app.ws("/path/:param") {}
+        app.ws("/path/{param}") {}
         TestClient(app, "/path/0").connectAndDisconnect()
         TestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()
         assertThat(app.logger().log.size).isEqualTo(0)

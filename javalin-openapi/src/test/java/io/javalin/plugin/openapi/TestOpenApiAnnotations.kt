@@ -9,7 +9,16 @@ import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.CrudHandler
 import io.javalin.http.Handler
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiComposedRequestBody
+import io.javalin.plugin.openapi.annotations.OpenApiContent
+import io.javalin.plugin.openapi.annotations.OpenApiFileUpload
+import io.javalin.plugin.openapi.annotations.OpenApiFormParam
+import io.javalin.plugin.openapi.annotations.OpenApiParam
+import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
+import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.plugin.openapi.annotations.OpenApiSecurity
 import io.javalin.plugin.openapi.utils.VersionIssuesUtil
 import org.junit.Test
 
@@ -307,8 +316,8 @@ class TestOpenApiAnnotations {
         }
 
         app.get("/user", ::getUserHandler)
-        app.get("/user/:userid", ::getSpecificUserHandler)
-        app.get("/users/:my-path-param", ::getUsersHandler)
+        app.get("/user/{userid}", ::getSpecificUserHandler)
+        app.get("/users/{my-path-param}", ::getUsersHandler)
         app.get("/users2", ::getUsers2Handler)
         app.put("/form-data", ::putFormDataHandler)
         app.put("/form-data-schema", ::putFormDataSchemaHandler)
@@ -321,7 +330,7 @@ class TestOpenApiAnnotations {
         app.get("/upload-with-form-data", ::getUploadWithFormDataHandler)
         app.get("/resources/*", ::getResources)
         app.get("/ignore", ::getIgnore)
-        app.get("/enums/:my-enum-path-param", ::getEnumParamsHandler)
+        app.get("/enums/{my-enum-path-param}", ::getEnumParamsHandler)
 
         val actual = JavalinOpenApi.createSchema(app)
 
@@ -358,7 +367,7 @@ class TestOpenApiAnnotations {
         }
 
         val actual = extractSchemaForTest { app ->
-            app.crud("users/:user-id", UserCrudHandlerWithAnnotations())
+            app.crud("users/{user-id}", UserCrudHandlerWithAnnotations())
         }
 
         actual.assertEqualTo(crudExampleJson)

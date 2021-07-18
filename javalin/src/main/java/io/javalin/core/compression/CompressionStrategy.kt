@@ -40,21 +40,20 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      */
     private fun tryLoadBrotli(brotli: Brotli): Brotli? {
         Util.ensureDependencyPresent(OptionalDependency.JVMBROTLI, startupCheck = true)
-        val brotliAvailable = BrotliLoader.isBrotliAvailable()
-        if (brotliAvailable) {
-            return brotli
+        return if (BrotliLoader.isBrotliAvailable()) {
+            brotli
         } else {
             JavalinLogger.warn("""${"\n"}
-                Failed to enable Brotli compression, because the jvm-brotli native library couldn't be loaded.
-                jvm-brotli is currently only supported on Windows, Linux and Mac OSX.
-                If you are running Javalin on a supported system, but are still getting this error,
-                try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
-                please create an issue at https://github.com/tipsy/javalin/
-                ---------------------------------------------------------------
-                If you still want compression, please ensure GZIP is enabled!
-                ---------------------------------------------------------------
-            """.trimIndent())
-            return null
+                    Failed to enable Brotli compression, because the jvm-brotli native library couldn't be loaded.
+                    jvm-brotli is currently only supported on Windows, Linux and Mac OSX.
+                    If you are running Javalin on a supported system, but are still getting this error,
+                    try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
+                    please create an issue at https://github.com/tipsy/javalin/
+                    ---------------------------------------------------------------
+                    If you still want compression, please ensure GZIP is enabled!
+                    ---------------------------------------------------------------
+                """.trimIndent())
+            null
         }
     }
 }

@@ -4,29 +4,30 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core
+package io.javalin.jetty
 
+import io.javalin.core.JavalinConfig
 import io.javalin.core.util.JavalinLogger
-import io.javalin.websocket.JavalinWsServlet
+import io.javalin.core.util.Util
 import org.eclipse.jetty.server.Handler
-import org.eclipse.jetty.server.LowResourceMonitor
+import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerWrapper
-import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import org.eclipse.jetty.util.thread.QueuedThreadPool
 import java.net.BindException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JavalinServer(val config: JavalinConfig) {
+class JettyServer(val config: JavalinConfig) {
 
-    var serverPort = 7000
+    @JvmField
+    var started = false
+    var serverPort = -1
     var serverHost: String? = null
 
     fun server(): Server {
@@ -34,15 +35,17 @@ class JavalinServer(val config: JavalinConfig) {
         return config.inner.server!!
     }
 
-    var started = false
-
     @Throws(BindException::class)
-    fun start(wsAndHttpServlet: JavalinWsServlet) {
+    fun start(wsAndHttpServlet: JavalinJettyServlet) {
+        if (serverPort == -1 && config.inner.server == null) {
+            serverPort = 8080
+            JavalinLogger.info("No port specified, starting on port $serverPort. Call start(port) to change ports.")
+        }
 
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
-        val wsAndHttpHandler = object : ServletContextHandler(nullParent, config.contextPath, SESSIONS) {
+        val wsAndHttpHandler = object : ServletContextHandler(nullParent, Util.normalizeContextPath(config.contextPath), SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 request.setAttribute("jetty-target", target) // used in JettyResourceHandler
                 request.setAttribute("jetty-request", jettyRequest)
@@ -55,11 +58,10 @@ class JavalinServer(val config: JavalinConfig) {
         }
 
         server().apply {
-            handler = if (server.handler == null) wsAndHttpHandler else server.handler.attachHandler(wsAndHttpHandler)
-            connectors = connectors.takeIf { it.isNotEmpty() } ?: arrayOf(ServerConnector(server).apply {
-                this.port = serverPort
-                this.host = serverHost
-            })
+            handler = if (handler == null) wsAndHttpHandler else handler.attachHandler(wsAndHttpHandler)
+            if (connectors.isEmpty()) { // user has not added their own connectors, we add a single HTTP connector
+                connectors = arrayOf(defaultConnector(this))
+            }
         }.start()
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
@@ -72,6 +74,16 @@ class JavalinServer(val config: JavalinConfig) {
 
         JettyUtil.reEnableJettyLogger()
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
+    }
+
+    private fun defaultConnector(server: Server) = ServerConnector(server).apply {
+        this.port = serverPort
+        this.host = serverHost
+        this.getConnectionFactories().forEach {
+            if (it is HttpConnectionFactory) {
+                it.getHttpConfiguration().setSendServerVersion(false)
+            }
+        }
     }
 
     private fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }

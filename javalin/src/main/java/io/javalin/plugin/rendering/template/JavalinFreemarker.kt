@@ -24,7 +24,7 @@ object JavalinFreemarker : FileRenderer {
         configuration = staticConfiguration
     }
 
-    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
+    override fun render(filePath: String, model: Map<String, Any?>, ctx: Context?): String {
         Util.ensureDependencyPresent(OptionalDependency.FREEMARKER)
         val stringWriter = StringWriter()
         (configuration ?: defaultConfiguration).getTemplate(filePath).process(model, stringWriter)

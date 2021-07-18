@@ -10,21 +10,20 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
-import io.javalin.core.security.Role
-import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.testing.TestUserController
+import io.javalin.core.security.RouteRole
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class TestAccessManager {
 
-    enum class MyRoles : Role { ROLE_ONE, ROLE_TWO, ROLE_THREE }
+    enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private val managedApp = Javalin.create { config ->
-        config.accessManager { handler, ctx, permittedRoles ->
+        config.accessManager { handler, ctx, roles ->
             val userRole = ctx.queryParam("role")
-            if (userRole != null && permittedRoles.contains(MyRoles.valueOf(userRole))) {
+            if (userRole != null && roles.contains(MyRoles.valueOf(userRole))) {
                 handler.handle(ctx)
             } else {
                 ctx.status(401).result("Unauthorized")
@@ -34,13 +33,13 @@ class TestAccessManager {
 
     @Test
     fun `default AccessManager throws if roles are present`() = TestUtil.test { app, http ->
-        app.get("/secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE))
+        app.get("/secured", { ctx -> ctx.result("Hello") }, ROLE_ONE)
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Internal server error")
     }
 
     @Test
     fun `AccessManager can restrict access for instance`() = TestUtil.test(managedApp) { app, http ->
-        app.get("/secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO))
+        app.get("/secured", { ctx -> ctx.result("Hello") }, ROLE_ONE, ROLE_TWO)
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/secured", "ROLE_TWO")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/secured", "ROLE_THREE")).isEqualTo("Unauthorized")
@@ -48,7 +47,7 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test(managedApp) { app, http ->
-        app.get("/static-secured", { ctx -> ctx.result("Hello") }, roles(ROLE_ONE, ROLE_TWO))
+        app.get("/static-secured", { ctx -> ctx.result("Hello") }, ROLE_ONE, ROLE_TWO)
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_ONE")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_TWO")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_THREE")).isEqualTo("Unauthorized")
@@ -56,7 +55,7 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp) { app, http ->
-        app.crud("/users/:userId", TestUserController(), roles(ROLE_ONE, ROLE_TWO))
+        app.crud("/users/:userId", TestUserController(), ROLE_ONE, ROLE_TWO)
         assertThat(callWithRole(http.origin, "/users/1", "ROLE_ONE")).isEqualTo("My single user: 1")
         assertThat(callWithRole(http.origin, "/users/2", "ROLE_TWO")).isEqualTo("My single user: 2")
         assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo("Unauthorized")

@@ -19,7 +19,7 @@ fun main() {
         val future = CompletableFuture<String>()
         Executors.newSingleThreadScheduledExecutor()
                 .schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
-        ctx.result(future)
+        ctx.future(future)
     }
     app.get("/json") { ctx ->
         val future = CompletableFuture<List<String>>()

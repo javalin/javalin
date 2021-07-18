@@ -19,14 +19,19 @@ import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.CorsPlugin;
 import io.javalin.core.util.Header;
+import io.javalin.core.util.Headers;
+import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
-import io.javalin.http.staticfiles.JettyResourceHandler;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
+import io.javalin.jetty.JettyResourceHandler;
+import io.javalin.jetty.JettyUtil;
+import io.javalin.plugin.json.JavalinJackson;
+import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +45,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import static io.javalin.http.util.ContextUtil.maxRequestSizeKey;
+import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
 public class JavalinConfig {
     // @formatter:off
@@ -47,11 +54,10 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
-    public boolean logIfServerNotStarted = true;
     public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = "text/plain";
     @NotNull public String contextPath = "/";
-    public Long maxRequestSize = 1_000_000L; // server will not accept payloads larger than 1mb by default
+    public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests
     @NotNull public Long asyncRequestTimeout = 0L;
     @NotNull public Inner inner = new Inner();
 
@@ -59,7 +65,7 @@ public class JavalinConfig {
     // is to provide a cleaner API with dedicated setters
     public static class Inner {
         @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new HashMap<>();
-        @NotNull public Map<Class<?>, Object> appAttributes = new HashMap<>();
+        @NotNull public Map<String, Object> appAttributes = new HashMap<>();
         @Nullable public RequestLogger requestLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
@@ -76,12 +82,11 @@ public class JavalinConfig {
     /**
      * Register a new plugin.
      */
-    public JavalinConfig registerPlugin(@NotNull Plugin plugin) {
+    public void registerPlugin(@NotNull Plugin plugin) {
         if (inner.plugins.containsKey(plugin.getClass())) {
             throw new PluginAlreadyRegisteredException(plugin.getClass());
         }
         inner.plugins.put(plugin.getClass(), plugin);
-        return this;
     }
 
     /**
@@ -95,108 +100,99 @@ public class JavalinConfig {
         return result;
     }
 
-    public JavalinConfig enableDevLogging() {
+    public void enableDevLogging() {
         requestLogger(LogUtil::requestDevLogger);
         wsLogger(LogUtil::wsDevLogger);
-        return this;
     }
 
-    public JavalinConfig enableWebjars() {
-        return addStaticFiles(staticFiles -> {
+    public void enableWebjars() {
+        addStaticFiles(staticFiles -> {
             staticFiles.directory = "META-INF/resources/webjars";
             staticFiles.headers.put(Header.CACHE_CONTROL, "max-age=31622400");
         });
     }
 
-    public JavalinConfig addStaticFiles(@NotNull String directory, @NotNull Location location) {
-        return addStaticFiles(staticFiles -> {
+    public void addStaticFiles(@NotNull String directory, @NotNull Location location) {
+        addStaticFiles(staticFiles -> {
             staticFiles.directory = directory;
             staticFiles.location = location;
         });
     }
 
-    public JavalinConfig addStaticFiles(@NotNull Consumer<StaticFileConfig> userConfig) {
-        JettyUtil.disableJettyLogger();
+    public void addStaticFiles(@NotNull Consumer<StaticFileConfig> userConfig) {
         if (inner.resourceHandler == null) {
             inner.resourceHandler = new JettyResourceHandler();
         }
         StaticFileConfig finalConfig = new StaticFileConfig();
         userConfig.accept(finalConfig);
         inner.resourceHandler.addStaticFileConfig(finalConfig);
-        return this;
     }
 
-    public JavalinConfig addSinglePageRoot(@NotNull String hostedPath, @NotNull String filePath) {
+    public void addSinglePageRoot(@NotNull String hostedPath, @NotNull String filePath) {
         addSinglePageRoot(hostedPath, filePath, Location.CLASSPATH);
-        return this;
     }
 
-    public JavalinConfig addSinglePageRoot(@NotNull String hostedPath, @NotNull String filePath, @NotNull Location location) {
+    public void addSinglePageRoot(@NotNull String hostedPath, @NotNull String filePath, @NotNull Location location) {
         inner.singlePageHandler.add(hostedPath, filePath, location);
-        return this;
     }
 
-    public JavalinConfig addSinglePageHandler(@NotNull String hostedPath, @NotNull Handler customHandler) {
+    public void addSinglePageHandler(@NotNull String hostedPath, @NotNull Handler customHandler) {
         inner.singlePageHandler.add(hostedPath, customHandler);
-        return this;
     }
 
-    public JavalinConfig enableCorsForAllOrigins() {
+    public void enableCorsForAllOrigins() {
         registerPlugin(CorsPlugin.forAllOrigins());
-        return this;
     }
 
-    public JavalinConfig enableCorsForOrigin(@NotNull String... origins) {
+    public void enableCorsForOrigin(@NotNull String... origins) {
         registerPlugin(CorsPlugin.forOrigins(origins));
-        return this;
     }
 
-    public JavalinConfig accessManager(@NotNull AccessManager accessManager) {
+    public void accessManager(@NotNull AccessManager accessManager) {
         inner.accessManager = accessManager;
-        return this;
     }
 
-    public JavalinConfig requestLogger(@NotNull RequestLogger requestLogger) {
+    public void requestLogger(@NotNull RequestLogger requestLogger) {
         inner.requestLogger = requestLogger;
-        return this;
     }
 
-    public JavalinConfig sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
+    public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
         JettyUtil.disableJettyLogger();
         inner.sessionHandler = sessionHandlerSupplier.get();
-        return this;
     }
 
-    public JavalinConfig wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
+    public void wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
         inner.wsFactoryConfig = wsFactoryConfig;
-        return this;
     }
 
-    public JavalinConfig wsLogger(@NotNull Consumer<WsConfig> ws) {
+    public void wsLogger(@NotNull Consumer<WsConfig> ws) {
         WsConfig logger = new WsConfig();
         ws.accept(logger);
         inner.wsLogger = logger;
-        return this;
     }
 
-    public JavalinConfig server(Supplier<Server> server) {
+    public void server(Supplier<Server> server) {
         inner.server = server.get();
-        return this;
     }
 
-    public JavalinConfig configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
+    public void configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
         inner.servletContextHandlerConsumer = consumer;
-        return this;
     }
 
-    public JavalinConfig compressionStrategy(Brotli brotli, Gzip gzip) {
+    public void compressionStrategy(Brotli brotli, Gzip gzip) {
         inner.compressionStrategy = new CompressionStrategy(brotli, gzip);
-        return this;
     }
 
-    public JavalinConfig compressionStrategy(CompressionStrategy compressionStrategy) {
+    public void compressionStrategy(CompressionStrategy compressionStrategy) {
         inner.compressionStrategy = compressionStrategy;
-        return this;
+    }
+
+    public void globalHeaders(Supplier<Headers> headers) {
+        registerPlugin(new HeadersPlugin(headers.get()));
+    }
+
+    public void jsonMapper(JsonMapper jsonMapper) {
+        inner.appAttributes.put(JSON_MAPPER_KEY, jsonMapper);
     }
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
@@ -221,6 +217,8 @@ public class JavalinConfig {
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
+        config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
+        app.attribute(maxRequestSizeKey, config.maxRequestSize);
     }
 
     private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {

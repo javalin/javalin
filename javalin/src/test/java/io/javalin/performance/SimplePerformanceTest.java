@@ -29,15 +29,17 @@ public class SimplePerformanceTest {
     private static String origin;
     private static Javalin app = Javalin.create(
         config -> config.showJavalinBanner = false
-    ).path("", router -> {
-        router.before(ctx -> ctx.header("X-BEFORE", "Before"));
-        router.before(ctx -> ctx.status(200));
-        router.get("/my-path/:param/*", ctx -> ctx.result(ctx.pathParam("param")));
-        router.get("/1234/:1/:2/:3/:4", ctx -> ctx.result(ctx.pathParamMap().toString()));
-        router.get("/health", ctx -> ctx.result("OK"));
-        router.crud("/users/:user-id", new GenericController());
-        router.path("/nested/path", subrouter -> subrouter.crud("/messages/:message-id", new GenericController()));
-        router.after(ctx -> ctx.header("X-AFTER", "After"));
+    ).path("", it -> {
+        it.before(ctx -> ctx.header("X-BEFORE", "Before"));
+        it.before(ctx -> ctx.status(200));
+        it.get("/my-path/{param}/*", ctx -> ctx.result(ctx.pathParam("param")));
+        it.get("/1234/{1}/{2}/{3}/{4}", ctx -> ctx.result(ctx.pathParamMap().toString()));
+        it.get("/health", ctx -> ctx.result("OK"));
+        it.crud("/users/{user-id}", new GenericController());
+        it.path("/nested/path", sub -> {
+           sub.crud("/messages/{message-id}", new GenericController());
+        });
+        it. after(ctx -> ctx.header("X-AFTER", "After"));
     });
 
     @BeforeClass

@@ -2,16 +2,16 @@ package io.javalin.plugin.openapi
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.core.event.HandlerMetaInfo
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
-import io.javalin.plugin.json.ToJsonMapper
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
+import io.javalin.plugin.openapi.jackson.ToJsonMapper
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.javalin.plugin.openapi.utils.LazyDefaultValue
@@ -22,7 +22,7 @@ import io.swagger.v3.oas.models.info.Info
 class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigurationCreator) {
     /** If not null, creates a GET route to get the schema as a json */
     var path: String? = null
-    var roles: Set<Role> = setOf()
+    var roles: Set<RouteRole> = setOf()
     /**
      * If not null, creates a GET route to the swagger ui
      * @see <a href="https://swagger.io/tools/swagger-ui/">https://swagger.io/tools/swagger-ui/</a>
@@ -101,7 +101,7 @@ class OpenApiOptions constructor(val initialConfigurationCreator: InitialConfigu
 
     fun reDoc(value: ReDocOptions) = apply { reDoc = value }
 
-    fun roles(value: Set<Role>) = apply { roles = value }
+    fun roles(vararg value: RouteRole) = apply { roles = value.toSet() }
 
     fun defaultDocumentation(value: DefaultDocumentation) = apply { default = value }
     fun defaultDocumentation(apply: (documentation: OpenApiDocumentation) -> Unit) = apply {

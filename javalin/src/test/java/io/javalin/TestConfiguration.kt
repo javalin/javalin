@@ -8,10 +8,11 @@ package io.javalin
 
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
-import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.metrics.MicrometerPlugin
+import io.javalin.testing.TestUtil
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
@@ -35,10 +36,9 @@ class TestConfiguration {
             it.defaultContentType = "text/plain"
             it.enableCorsForAllOrigins()
             it.enableDevLogging()
-            it.registerPlugin(RouteOverviewPlugin("/test", roles()))
+            it.registerPlugin(RouteOverviewPlugin("/test"))
             it.enableWebjars()
             it.enforceSsl = true
-            it.logIfServerNotStarted = false
             it.prefer405over404 = false
             it.requestLogger { ctx, executionTimeMs -> }
             it.sessionHandler { SessionHandler() }
@@ -51,7 +51,7 @@ class TestConfiguration {
             }
             it.registerPlugin(MicrometerPlugin())
             // Misc
-            it.accessManager { handler, ctx, permittedRoles -> }
+            it.accessManager { handler, ctx, roles -> }
             it.showJavalinBanner = false
             it.configureServletContextHandler { handler ->
                 handler.addEventListener(object : HttpSessionListener {
@@ -63,7 +63,7 @@ class TestConfiguration {
                 })
             }
         }.start(0)
-        assertThat(app.server.started).isTrue()
+        assertThat(app.jettyServer.started).isTrue()
         app.stop()
     }
 
@@ -80,5 +80,12 @@ class TestConfiguration {
         }
         assertThat(app._conf.inner.compressionStrategy.gzip?.level).isEqualTo(2)
         assertThat(app._conf.inner.compressionStrategy.brotli).isNull()
+    }
+
+    @Test
+    fun `app throws exception saying port is busy if it is`() = TestUtil.test { app, http ->
+        Assertions.assertThatExceptionOfType(RuntimeException::class.java)
+            .isThrownBy { Javalin.create().start(app.port()) }
+            .withMessageContaining("Port already in use. Make sure no other process is using port ${app.port()} and try again")
     }
 }

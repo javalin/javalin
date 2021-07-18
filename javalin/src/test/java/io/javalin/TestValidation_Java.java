@@ -8,11 +8,29 @@ package io.javalin;
 
 import io.javalin.core.validation.JavalinValidation;
 import io.javalin.core.validation.Validator;
+import io.javalin.testing.TestUtil;
 import java.time.Instant;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestValidation_Java {
+
+    @Test
+    public void validation_on_context_works_from_java() {
+        TestUtil.test((app, http) -> {
+            app.get("/validate", ctx -> ctx.queryParamAsClass("param", Integer.class).get());
+            assertThat(http.getBody("/validate?param=hmm")).contains("TYPE_CONVERSION_FAILED");
+        });
+    }
+
+    @Test
+    public void default_values_work_from_java() {
+        TestUtil.test((app, http) -> {
+            app.get("/validate", ctx -> ctx.result(ctx.queryParamAsClass("param", Integer.class).getOrDefault(250).toString()));
+            assertThat(http.getBody("/validate?param=hmm")).contains("TYPE_CONVERSION_FAILED");
+            assertThat(http.getBody("/validate")).isEqualTo("250");
+        });
+    }
 
     @Test
     public void validator_works_from_java_too() {

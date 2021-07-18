@@ -24,38 +24,20 @@ import org.junit.Test
 
 class TestTemplates {
 
-    private val defaultVelocityEngine = VelocityEngine().apply {
-        setProperty("resource.loader", "class")
-        setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
-    }
-
     private val defaultBaseModel = model("foo", "bar")
 
     @Test
     fun `velocity templates work`() = TestUtil.test { app, http ->
-        JavalinVelocity.configure(defaultVelocityEngine)
+        JavalinVelocity.configure(JavalinVelocity.defaultVelocityEngine())
         app.get("/hello") { ctx -> ctx.render("/templates/velocity/test.vm", model("message", "Hello Velocity!")) }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Hello Velocity!</h1>")
     }
 
     @Test
     fun `velocity template variables work`() = TestUtil.test { app, http ->
-        JavalinVelocity.configure(defaultVelocityEngine)
+        JavalinVelocity.configure(JavalinVelocity.defaultVelocityEngine())
         app.get("/hello") { ctx -> ctx.render("/templates/velocity/test-set.vm") }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>Set works</h1>")
-    }
-
-    @Test
-    fun `velocity custom engines work`() = TestUtil.test { app, http ->
-        JavalinVelocity.configure(defaultVelocityEngine)
-        app.get("/hello") { ctx -> ctx.render("/templates/velocity/test.vm") }
-        assertThat(http.getBody("/hello")).isEqualTo("<h1>\$message</h1>")
-        JavalinVelocity.configure(VelocityEngine().apply {
-            setProperty("runtime.references.strict", true)
-            setProperty("resource.loader", "class")
-            setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
-        })
-        assertThat(http.getBody("/hello")).isEqualTo("Internal server error")
     }
 
     @Test
@@ -164,14 +146,14 @@ class TestTemplates {
     @Test
     fun `base Model works`() = TestUtil.test { app, http ->
         JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap()) }
-        app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-base.ftl", model("message", "Hello Freemarker!")) }
+        app.get("/hello/{pp}") { ctx -> ctx.render("/templates/freemarker/test-with-base.ftl", model("message", "Hello Freemarker!")) }
         assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>bar</h3>")
     }
 
     @Test
     fun `base model overwrite works`() = TestUtil.test { app, http ->
         JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap()) }
-        app.get("/hello/:pp") { ctx -> ctx.render("/templates/freemarker/test-with-base.ftl", model("foo", "baz")) }
+        app.get("/hello/{pp}") { ctx -> ctx.render("/templates/freemarker/test-with-base.ftl", model("foo", "baz")) }
         assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>baz</h3>")
     }
 

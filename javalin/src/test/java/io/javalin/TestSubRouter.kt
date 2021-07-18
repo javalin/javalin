@@ -20,7 +20,7 @@ import org.junit.Test
 class TestSubRouter {
 
     @Test
-    fun `SubRouters prefixe paths with slash`() = TestUtil.test { app, http ->
+    fun `SubRouters prefix paths with slash`() = TestUtil.test { app, http ->
         app.path("level-1") {
             it.get("hello", simpleAnswer("Hello from level 1"))
         }
@@ -29,13 +29,13 @@ class TestSubRouter {
 
     @Test
     fun `pathless routes are handled properly`() = TestUtil.test { app, http ->
-        app.path("api") { router ->
-            router.get(okHandler)
-            router.post(okHandler)
-            router.put(okHandler)
-            router.delete(okHandler)
-            router.patch(okHandler)
-            router.path("user") {
+        app.path("api") {
+            it.get(okHandler)
+            it.post(okHandler)
+            it.put(okHandler)
+            it.delete(okHandler)
+            it.patch(okHandler)
+            it.path("user") {
                 it.get(okHandler)
                 it.post(okHandler)
                 it.put(okHandler)
@@ -53,13 +53,13 @@ class TestSubRouter {
     @Test
     fun `multiple nested path-method calls works`() = TestUtil.test { app, http ->
         app.get("/hello", simpleAnswer("Hello from level 0"))
-                .path("/level-1") { router ->
-                    router.get("/hello", simpleAnswer("Hello from level 1"))
-                    router.get("/hello-2", simpleAnswer("Hello again from level 1"))
-                    router.post("/create-1", simpleAnswer("Created something at level 1"))
-                    router.path("/level-2") {
+                .path("/level-1") {
+                    it.get("/hello", simpleAnswer("Hello from level 1"))
+                    it.get("/hello-2", simpleAnswer("Hello again from level 1"))
+                    it.post("/create-1", simpleAnswer("Created something at level 1"))
+                    it.path("/level-2") {
                         it.get("/hello", simpleAnswer("Hello from level 2"))
-                        it.path("/level-3") { lowerRouter -> lowerRouter.get("/hello", simpleAnswer("Hello from level 3")) }
+                        it.path("/level-3") { it.get("/hello", simpleAnswer("Hello from level 3")) }
                     }
                 }
         assertThat(http.getBody("/hello")).isEqualTo("Hello from level 0")
@@ -70,10 +70,10 @@ class TestSubRouter {
 
     @Test
     fun `filters work as expected`() = TestUtil.test { app, http ->
-        app.path("level-1") { router ->
-            router.before { ctx -> ctx.result("1") }
-            router.path("level-2") {
-                it.path("level-3") { lowestRouter -> lowestRouter.get("/hello", updateAnswer("Hello")) }
+        app.path("level-1") {
+            it.before { ctx -> ctx.result("1") }
+            it.path("level-2") {
+                it.path("level-3") { it.get("/hello", updateAnswer("Hello")) }
                 it.after(updateAnswer("2"))
             }
         }
@@ -95,9 +95,9 @@ class TestSubRouter {
 
     @Test
     fun `CrudHandler works`() = TestUtil.test { app, http ->
-        app.crud("users/:user-id", TestUserController())
+        app.crud("users/{user-id}", TestUserController())
                 .path("/s") {
-                    it.crud("/users/:user-id", TestUserController())
+                    it.crud("/users/{user-id}", TestUserController())
                 }
 
         assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
@@ -115,9 +115,9 @@ class TestSubRouter {
 
     @Test
     fun `CrudHandler works with long nested resources`() = TestUtil.test { app, http ->
-        app.crud("/foo/bar/users/:user-id", TestUserController())
+        app.crud("/foo/bar/users/{user-id}", TestUserController())
                 .path("/foo/baz") {
-                    it.crud("/users/:user-id", TestUserController())
+                    it.crud("/users/{user-id}", TestUserController())
                 }
         assertThat(Unirest.get(http.origin + "/foo/bar/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/foo/bar/users").asString().status).isEqualTo(201)
@@ -135,30 +135,30 @@ class TestSubRouter {
     @Test
     fun `CrudHandler rejects resource in the middle`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            app.crud("/foo/bar/:user-id/users", TestUserController())
-        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'")
+            app.crud("/foo/bar/{user-id}/users", TestUserController())
+        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'")
     }
 
     @Test
     fun `CrudHandler rejects missing resource`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
             app.crud("/foo/bar/users", TestUserController())
-        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'")
+        }.withMessageStartingWith("CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}")
     }
 
     @Test
     fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, http ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            app.crud("/:user-id", TestUserController())
-        }.withMessageStartingWith("CrudHandler requires a path like '/resource/:resource-id'")
+            app.crud("/{user-id}", TestUserController())
+        }.withMessageStartingWith("CrudHandler requires a path like '/resource/{resource-id}'")
     }
 
     @Test
     fun `CrudHandler works with wildcards`() = TestUtil.test { app, http ->
         app.path("/s") {
-            it.crud("/*/:user-id", TestUserController())
+            it.crud("/*/{user-id}", TestUserController())
         }
-                .crud("*/:user-id", TestUserController())
+                .crud("*/{user-id}", TestUserController())
         assertThat(Unirest.get(http.origin + "/users").asString().body).isEqualTo("All my users")
         assertThat(Unirest.post(http.origin + "/users").asString().status).isEqualTo(201)
         assertThat(Unirest.get(http.origin + "/users/myUser").asString().body).isEqualTo("My single user: myUser")

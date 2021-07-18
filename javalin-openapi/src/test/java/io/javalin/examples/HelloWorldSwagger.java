@@ -7,6 +7,7 @@
 package io.javalin.examples;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.plugin.json.JavalinJackson;
@@ -27,7 +28,7 @@ public class HelloWorldSwagger {
 
     public static void main(String[] args) {
 
-        JavalinJackson.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
         OpenApiOptions openApiOptions = new OpenApiOptions(new Info().version("1.0").description("My Application"))
             .activateAnnotationScanningFor("io.javalin.examples")
@@ -43,7 +44,10 @@ public class HelloWorldSwagger {
                 ).build()
             ).title("My ReDoc Documentation"));
 
-        Javalin app = Javalin.create(config -> config.registerPlugin(new OpenApiPlugin(openApiOptions))).start(7070);
+        Javalin app = Javalin.create(config -> {
+            config.registerPlugin(new OpenApiPlugin(openApiOptions));
+            config.jsonMapper(new JavalinJackson(objectMapper));
+        }).start(7070);
 
         app.post("/users", ExampleController::create);
 

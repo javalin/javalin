@@ -8,7 +8,6 @@ import io.swagger.v3.core.converter.ModelConverter
 import io.swagger.v3.core.converter.ModelConverterContext
 import io.swagger.v3.core.jackson.ModelResolver
 import io.swagger.v3.core.util.PrimitiveType
-import io.swagger.v3.oas.models.media.DateTimeSchema
 import io.swagger.v3.oas.models.media.Schema
 import java.time.Instant
 
@@ -19,8 +18,10 @@ class JavalinModelResolver(mapper: ObjectMapper) : ModelResolver(mapper) {
         }
         val type = extractJavaType(annotatedType)
 
-        if (type.isTypeOrSubTypeOf(Instant::class.java) && _mapper.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)) {
-            return PrimitiveType.LONG.createProperty();
+        if (type.isTypeOrSubTypeOf(Instant::class.java) && _mapper.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            && annotatedType.ctxAnnotations.isEmpty()
+        ) {
+            return PrimitiveType.LONG.createProperty()
         }
 
         return super.resolve(annotatedType, context, next)

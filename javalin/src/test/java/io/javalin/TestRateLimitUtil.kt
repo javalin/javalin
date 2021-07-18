@@ -17,7 +17,7 @@ class TestRateLimitUtil {
     private val testApp by lazy {
         Javalin.create()
                 .get("/") { NaiveRateLimit.requestPerTimeUnit(it, 5, TimeUnit.HOURS) }
-                .get("/dynamic/:path") { NaiveRateLimit.requestPerTimeUnit(it, 5, TimeUnit.MINUTES) }
+                .get("/dynamic/{path}") { NaiveRateLimit.requestPerTimeUnit(it, 5, TimeUnit.MINUTES) }
                 .get("/ms") { NaiveRateLimit.requestPerTimeUnit(it, 1, TimeUnit.MILLISECONDS) }
                 .post("/") { }
     }

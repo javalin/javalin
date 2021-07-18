@@ -4,9 +4,10 @@
  */
 package io.javalin.plugin.openapi.dsl
 
-import io.javalin.core.PathParser
-import io.javalin.core.PathSegment
+import io.javalin.core.*
+import io.javalin.core.routing.PathSegment
 import io.javalin.core.event.HandlerMetaInfo
+import io.javalin.core.routing.flattenMultipleSegments
 import io.javalin.http.HandlerType
 import io.javalin.plugin.openapi.CreateSchemaOptions
 import io.javalin.plugin.openapi.JavalinOpenApi
@@ -27,7 +28,10 @@ fun overridePaths(
 ): List<HandlerMetaInfo> {
     return overridenPaths.plus(handlerMetaInfoList.filter { handler ->
         overridenPaths.none { overridenHandler ->
-            PathParser(overridenHandler.path, true).matches(handler.path) && overridenHandler.httpMethod == handler.httpMethod
+            PathParser(
+                overridenHandler.path,
+                true
+            ).matches(handler.path) && overridenHandler.httpMethod == handler.httpMethod
         }
     })
 }
@@ -52,20 +56,22 @@ fun Paths.applyMetaInfoList(handlerMetaInfoList: List<HandlerMetaInfo>, options:
             }
 }
 
-fun PathParser.getOpenApiUrl(): String {
-    val segmentsString = segments
-            .joinToString("/") {
-                when (it) {
-                    is PathSegment.Normal -> it.content
-                    /*
-                     * At the moment, OpenApi does not support wildcards. So we just leave it as it is.
-                     * Once it is implemented we can change this.
-                     */
-                    is PathSegment.Wildcard -> "*"
-                    is PathSegment.Parameter -> "{${it.name}}"
-                }
-            }
+internal fun PathParser.getOpenApiUrl(): String {
+    val segmentsString = segments.joinToString("/") { it.asOpenApiUrlPart() }
     return "/$segmentsString"
+}
+
+private fun PathSegment.asOpenApiUrlPart(): String {
+    return when (this) {
+        is PathSegment.Normal -> this.content
+        /*
+         * At the moment, OpenApi does not support wildcards. So we just leave it as it is.
+         * Once it is implemented we can change this.
+         */
+        is PathSegment.Wildcard -> "*"
+        is PathSegment.Parameter -> "{${this.name}}"
+        is PathSegment.MultipleSegments -> this.innerSegments.joinToString("") { it.asOpenApiUrlPart() }
+    }
 }
 
 fun PathItem.applyMetaInfoList(
@@ -194,7 +200,7 @@ private fun HandlerMetaInfo.createDefaultSummary(path: PathParser): String {
 
 private fun PathParser.asReadableWords(): List<String> {
     val words = mutableListOf<String>()
-    segments.forEach { segment ->
+    segments.flattenMultipleSegments().forEach { segment ->
         when (segment) {
             is PathSegment.Normal -> words.add(segment.content.dashCaseToCamelCase())
             is PathSegment.Wildcard -> words.addAll(arrayOf("with", "wildcard"))

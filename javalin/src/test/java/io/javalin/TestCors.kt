@@ -72,7 +72,7 @@ class TestCors {
             }
         }
         TestUtil.test(accessManagedCorsApp) { app, http ->
-            app.get("/", { ctx -> ctx.result("Hello") }, setOf(TestAccessManager.MyRoles.ROLE_ONE))
+            app.get("/", { ctx -> ctx.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
             assertThat(http.get("/").body).isEqualTo("Unauthorized")
             val response = Unirest.options(http.origin)
                     .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")

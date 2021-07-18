@@ -6,18 +6,19 @@
 
 package io.javalin.core.util
 
-import io.javalin.core.JavalinServer
 import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.net.URL
 import java.net.URLEncoder
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
-import java.util.ServiceLoader
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
-import javax.servlet.http.HttpServletResponse
 
 object Util {
 
@@ -26,9 +27,6 @@ object Util {
 
     @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
-
-    @JvmStatic
-    fun isNonSubPathWildcard(path: String) = path.length > 1 && path.endsWith("*") && !path.endsWith("/*") // e.g. /my/:path*
 
     private fun classExists(className: String) = try {
         Class.forName(className)
@@ -82,7 +80,7 @@ object Util {
             |</dependency>
             |
             |build.gradle:
-            |compile "${dependency.groupId}:${dependency.artifactId}:${dependency.version}"
+            |implementation group: '${dependency.groupId}', name: '${dependency.artifactId}', version: '${dependency.version}'
             |
             |Find the latest version here:
             |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
@@ -130,9 +128,20 @@ object Util {
             val propertiesPath = "META-INF/maven/io.javalin/javalin/pom.properties"
             it.load(this.javaClass.classLoader.getResourceAsStream(propertiesPath))
         }
-        JavalinLogger.info("You are running Javalin ${properties.getProperty("version")!!}.") // throw if null
+        val (version, buildTime) = listOf(properties.getProperty("version")!!, properties.getProperty("buildTime")!!)
+        JavalinLogger.info("You are running Javalin $version (released ${formatBuildTime(buildTime)}).")
     } catch (e: Exception) {
         // it's not that important
+    }
+
+    private fun formatBuildTime(buildTime: String): String? = try {
+        val (release, now) = listOf(Instant.parse(buildTime), Instant.now())
+        val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy").withLocale(Locale.US).withZone(ZoneId.of("Z"))
+        formatter.format(release) + if (now.isAfter(release.plus(60, ChronoUnit.DAYS))) {
+            ". Your Javalin version is ${ChronoUnit.DAYS.between(release, now)} days old. Consider upgrading!"
+        } else ""
+    } catch (e: Exception) {
+        null // it's not that important
     }
 
     fun getChecksumAndReset(inputStream: ByteArrayInputStream): String {
@@ -182,23 +191,8 @@ object Util {
         return false
     }
 
-    fun writeResponse(response: HttpServletResponse, responseBody: String, status: Int) {
-        response.status = status
-        ByteArrayInputStream(responseBody.toByteArray()).copyTo(response.outputStream)
-        response.outputStream.close()
-    }
-
-    var logIfNotStarted = true
-
     @JvmStatic
-    fun logIfServerNotStarted(server: JavalinServer) = Thread {
-        Thread.sleep(5000)
-        if (!server.started && logIfNotStarted) {
-            JavalinLogger.info("It looks like you created a Javalin instance, but you never started it.")
-            JavalinLogger.info("Try: Javalin app = Javalin.create().start();")
-            JavalinLogger.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
-        }
-    }.start()
+    fun getPort(e: Exception) = e.message!!.takeLastWhile { it != ':' }
 
     fun <T : Any?> findByClass(map: Map<Class<out Exception>, T>, exceptionClass: Class<out Exception>): T? = map.getOrElse(exceptionClass) {
         var superclass = exceptionClass.superclass
@@ -210,8 +204,5 @@ object Util {
         }
         return null
     }
-
-    // jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
-    fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
 
 }

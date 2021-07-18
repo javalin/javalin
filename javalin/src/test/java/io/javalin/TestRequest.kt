@@ -9,7 +9,6 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.security.BasicAuthFilter
 import io.javalin.core.util.Header
-import io.javalin.http.context.header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil
 import io.javalin.testing.TestUtil
@@ -46,7 +45,7 @@ class TestRequest {
     @Test
     fun `session-attribute can be consumed easily`() = TestUtil.test { app, http ->
         app.get("/store-attr") { it.sessionAttribute("attr", "Rowin") }
-        app.get("/read-attr") { it.result(it.sessionAttribute("attr", consume = true) ?: "Consumed") }
+        app.get("/read-attr") { it.result(it.consumeSessionAttribute("attr") ?: "Consumed") }
         http.getBody("/store-attr") // store the attribute
         assertThat(http.getBody("/read-attr")).isEqualTo("Rowin") // read (and consume) the attribute
         assertThat(http.getBody("/read-attr")).isEqualTo("Consumed") // fallback
@@ -114,13 +113,13 @@ class TestRequest {
      */
     @Test
     fun `pathParam throws for invalid param`() = TestUtil.test { app, http ->
-        app.get("/:my/:path") { ctx -> ctx.result(ctx.pathParam("path-param")) }
+        app.get("/{my}/{path}") { ctx -> ctx.result(ctx.pathParam("path-param")) }
         assertThat(http.getBody("/my/path")).isEqualTo("Internal server error")
     }
 
     @Test
     fun `pathParam works for multiple params`() = TestUtil.test { app, http ->
-        app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")) }
+        app.get("/{1}/{2}/{3}") { ctx -> ctx.result(ctx.pathParam("1") + ctx.pathParam("2") + ctx.pathParam("3")) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("mypathparams")
     }
 
@@ -132,7 +131,7 @@ class TestRequest {
 
     @Test
     fun `pathParamMap returns all present path-params`() = TestUtil.test { app, http ->
-        app.get("/:1/:2/:3") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
+        app.get("/{1}/{2}/{3}") { ctx -> ctx.result(ctx.pathParamMap().toString()) }
         assertThat(http.getBody("/my/path/params")).isEqualTo("{1=my, 2=path, 3=params}")
     }
 
@@ -147,7 +146,7 @@ class TestRequest {
 
     @Test
     fun `queryParam defaults to default value`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result("" + ctx.queryParam("qp", "default")!!) }
+        app.get("/") { ctx -> ctx.result("" + ctx.queryParamAsClass<String>("qp").getOrDefault("default")) }
         assertThat(http.getBody("/")).isEqualTo("default")
     }
 
@@ -192,7 +191,7 @@ class TestRequest {
 
     @Test
     fun `formParam returns defaults to default value`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.result("" + ctx.formParam("fp4", "4")!!) }
+        app.post("/") { ctx -> ctx.result("" + ctx.formParamAsClass<Int>("fp4").getOrDefault(4)) }
         assertThat(http.post("/").body("fp1=1&fp2=2").asString().body).isEqualTo("4")
     }
 
@@ -266,20 +265,20 @@ class TestRequest {
     @Test
     fun `matchedPath returns the path used to match the request`() = TestUtil.test { app, http ->
         app.get("/matched") { ctx -> ctx.result(ctx.matchedPath()) }
-        app.get("/matched/:path-param") { ctx -> ctx.result(ctx.matchedPath()) }
-        app.after("/matched/:path-param/:param2") { ctx -> ctx.result(ctx.matchedPath()) }
+        app.get("/matched/{path-param}") { ctx -> ctx.result(ctx.matchedPath()) }
+        app.after("/matched/{path-param}/{param2}") { ctx -> ctx.result(ctx.matchedPath()) }
         assertThat(http.getBody("/matched")).isEqualTo("/matched")
-        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/:path-param")
-        assertThat(http.getBody("/matched/p1/p2")).isEqualTo("/matched/:path-param/:param2")
+        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
+        assertThat(http.getBody("/matched/p1/p2")).isEqualTo("/matched/{path-param}/{param2}")
     }
 
     @Test
     fun `endpointHandlerPath returns the path used to match the request, excluding any AFTER handlers`() = TestUtil.test { app, http ->
         app.before { }
-        app.get("/matched/:path-param") { }
-        app.get("/matched/:another-path-param") { }
+        app.get("/matched/{path-param}") { }
+        app.get("/matched/{another-path-param}") { }
         app.after { ctx -> ctx.result(ctx.endpointHandlerPath()) }
-        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/:path-param")
+        assertThat(http.getBody("/matched/p1")).isEqualTo("/matched/{path-param}")
     }
 
     @Test
@@ -354,7 +353,7 @@ class TestRequest {
 
     @Test
     fun `validator header works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.json(ctx.header<Double>("double-header").get().javaClass.name) }
-        assertThat(http.getBody("/", mapOf("double-header" to "12.34"))).isEqualTo("\"java.lang.Double\"")
+        app.get("/") { it.result(it.headerAsClass<Double>("double-header").get().javaClass.name) }
+        assertThat(http.getBody("/", mapOf("double-header" to "12.34"))).isEqualTo("java.lang.Double")
     }
 }
