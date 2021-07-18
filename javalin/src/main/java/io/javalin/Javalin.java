@@ -33,9 +33,6 @@ import io.javalin.jetty.JettyUtil;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,13 +57,13 @@ public final class Javalin extends Router<Javalin> {
     protected Javalin() {
         this.jettyServer = new JettyServer(_conf);
         this.javalinJettyServlet = new JavalinJettyServlet(_conf, javalinServlet);
-        this.routerContext = new RouterContext(servlet, wsServlet, eventManager);
+        this.routerContext = new RouterContext(javalinServlet, javalinJettyServlet, eventManager);
     }
 
     public Javalin(JettyServer jettyServer, JavalinJettyServlet jettyServlet) {
         this.jettyServer = jettyServer;
         this.javalinJettyServlet = jettyServlet;
-        this.routerContext = new RouterContext(servlet, wsServlet, eventManager);
+        this.routerContext = new RouterContext(javalinServlet, javalinJettyServlet, eventManager);
     }
 
     /**
@@ -286,12 +283,8 @@ public final class Javalin extends Router<Javalin> {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
-    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull Set<Role> roles) {
+    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
         routerContext.addHandler(handlerType, path, handler, roles);
-//    public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
-//        Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
-//        javalinServlet.addHandler(handlerType, path, handler, roleSet);
-//        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), handler, roleSet));
         return this;
     }
 
@@ -460,17 +453,6 @@ public final class Javalin extends Router<Javalin> {
         return this;
     }
 
-//    /**
-//     * Adds a specific WebSocket handler for the given path to the instance.
-//     * Requires an access manager to be set on the instance.
-//     */
-//    private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
-//        Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
-//        javalinJettyServlet.addHandler(handlerType, path, wsConfig, roleSet);
-//        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), wsConfig, roleSet));
-//        return this;
-//    }
-
     /**
      * Adds a WebSocket handler on the specified path with the specified roles.
      * Requires an access manager to be set on the instance.
@@ -478,6 +460,7 @@ public final class Javalin extends Router<Javalin> {
      * @see AccessManager
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
+    @NotNull
     public Javalin ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
         routerContext.addWsHandler(WsHandlerType.WEBSOCKET, path, ws, roles);
         return this;
@@ -486,6 +469,7 @@ public final class Javalin extends Router<Javalin> {
     /**
      * Adds a WebSocket before handler for the specified path to the instance.
      */
+    @NotNull
     public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         routerContext.addWsHandler(WsHandlerType.WS_BEFORE, path, wsConfig);
         return this;
@@ -494,6 +478,7 @@ public final class Javalin extends Router<Javalin> {
     /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
+    @NotNull
     public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         routerContext.addWsHandler(WsHandlerType.WS_AFTER, path, wsConfig);
         return this;

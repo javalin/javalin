@@ -1,12 +1,11 @@
 package io.javalin.http;
 
 import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.Role;
+import io.javalin.core.security.RouteRole;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsHandlerType;
-import java.util.Set;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,8 +37,8 @@ public final class SubRouter extends Router<SubRouter> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public SubRouter get(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.GET, this.path + prefixPath(path), handler, permittedRoles);
+    public SubRouter get(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.GET, this.path + prefixPath(path), handler, roles);
         return this;
     }
 
@@ -51,8 +50,8 @@ public final class SubRouter extends Router<SubRouter> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public SubRouter post(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.POST, this.path + prefixPath(path), handler, permittedRoles);
+    public SubRouter post(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.POST, this.path + prefixPath(path), handler, roles);
         return this;
     }
 
@@ -64,8 +63,8 @@ public final class SubRouter extends Router<SubRouter> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public SubRouter put(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.PUT, this.path + prefixPath(path), handler, permittedRoles);
+    public SubRouter put(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.PUT, this.path + prefixPath(path), handler, roles);
         return this;
     }
 
@@ -77,8 +76,8 @@ public final class SubRouter extends Router<SubRouter> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public SubRouter patch(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.PATCH, this.path + prefixPath(path), handler, permittedRoles);
+    public SubRouter patch(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.PATCH, this.path + prefixPath(path), handler, roles);
         return this;
     }
 
@@ -90,8 +89,8 @@ public final class SubRouter extends Router<SubRouter> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public SubRouter delete(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.DELETE, this.path + prefixPath(path), handler, permittedRoles);
+    public SubRouter delete(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.DELETE, this.path + prefixPath(path), handler, roles);
         return this;
     }
 
@@ -103,8 +102,8 @@ public final class SubRouter extends Router<SubRouter> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public SubRouter head(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.HEAD, this.path + prefixPath(path), handler, permittedRoles);
+    public SubRouter head(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.HEAD, this.path + prefixPath(path), handler, roles);
         return this;
     }
 
@@ -116,8 +115,8 @@ public final class SubRouter extends Router<SubRouter> {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     @NotNull
-    public SubRouter options(@NotNull String path, @NotNull Handler handler, @NotNull Set<Role> permittedRoles) {
-        routerContext.addHandler(HandlerType.OPTIONS, this.path + prefixPath(path), handler, permittedRoles);
+    public SubRouter options(@NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
+        routerContext.addHandler(HandlerType.OPTIONS, this.path + prefixPath(path), handler, roles);
         return this;
     }
 
@@ -126,8 +125,8 @@ public final class SubRouter extends Router<SubRouter> {
      * Requires an access manager to be set on the instance.
      */
     @NotNull
-    public SubRouter sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull Set<Role> permittedRoles) {
-        return get(this.path + prefixPath(path), new SseHandler(client), permittedRoles);
+    public SubRouter sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
+        return get(this.path + prefixPath(path), new SseHandler(client), roles);
     }
 
     /**
@@ -160,8 +159,8 @@ public final class SubRouter extends Router<SubRouter> {
      * @see <a href="https://javalin.io/documentation#websockets">WebSockets in docs</a>
      */
     @NotNull
-    public SubRouter ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull Set<Role> permittedRoles) {
-        routerContext.addWsHandler(WsHandlerType.WEBSOCKET, this.path + prefixPath(path), ws, permittedRoles);
+    public SubRouter ws(@NotNull String path, @NotNull Consumer<WsConfig> ws, @NotNull RouteRole... roles) {
+        routerContext.addWsHandler(WsHandlerType.WEBSOCKET, this.path + prefixPath(path), ws, roles);
         return this;
     }
 

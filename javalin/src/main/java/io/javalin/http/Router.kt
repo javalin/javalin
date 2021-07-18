@@ -1,10 +1,10 @@
 package io.javalin.http
 
 import io.javalin.Javalin
-import io.javalin.core.security.Role
+import io.javalin.core.security.AccessManager
+import io.javalin.core.security.RouteRole
 import io.javalin.http.sse.SseClient
 import io.javalin.websocket.WsConfig
-import java.util.*
 import java.util.function.Consumer
 
 @JvmSuppressWildcards
@@ -23,214 +23,223 @@ abstract class Router<T : Router<T>> {
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    abstract fun get(path: String = "", handler: Handler, permittedRoles: Set<Role> = setOf()): T
+    abstract fun get(path: String = "", handler: Handler, vararg roles: RouteRole): T
 
     /**
      * Adds a GET request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun get(handler: Handler): T = get("", handler, setOf())
+    //Helper for kotlin
+    fun get(path: String = "", vararg roles: RouteRole, handler: Handler): T = get(path, handler, roles = roles)
 
     /**
      * Adds a GET request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun get(handler: Handler, permittedRoles: Set<Role>): T = get("", handler, permittedRoles)
+    fun get(handler: Handler): T = get("", handler)
 
     /**
      * Adds a GET request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun get(path: String, handler: Handler): T = get(path, handler, setOf())
+    fun get(handler: Handler, vararg roles: RouteRole): T = get("", handler, roles = roles)
 
     /**
      * Adds a POST request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    abstract fun post(path: String = "", handler: Handler, permittedRoles: Set<Role> = HashSet()): T
+    abstract fun post(path: String = "", handler: Handler, vararg roles: RouteRole): T
 
     /**
      * Adds a POST request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun post(handler: Handler): T = post("", handler, setOf())
+    //Helper for kotlin
+    fun post(path: String = "", vararg roles: RouteRole, handler: Handler): T = post(path, handler, roles = roles)
 
     /**
      * Adds a POST request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun post(handler: Handler, permittedRoles: Set<Role>): T = post("", handler, permittedRoles)
+    fun post(handler: Handler): T = post("", handler)
 
     /**
      * Adds a POST request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun post(path: String, handler: Handler): T = post(path, handler, setOf())
+    fun post(handler: Handler, vararg roles: RouteRole): T = post("", handler, roles = roles)
 
     /**
      * Adds a PUT request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    abstract fun put(path: String = "", handler: Handler, permittedRoles: Set<Role> = HashSet()): T
+    abstract fun put(path: String = "", handler: Handler, vararg roles: RouteRole): T
 
     /**
      * Adds a PUT request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun put(handler: Handler): T = put("", handler, setOf())
+    //Helper for kotlin
+    fun put(path: String = "", vararg roles: RouteRole, handler: Handler): T = put(path, handler, roles = roles)
 
     /**
      * Adds a PUT request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun put(handler: Handler, permittedRoles: Set<Role>): T = put("", handler, permittedRoles)
+    fun put(handler: Handler): T = put("", handler)
 
     /**
      * Adds a PUT request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun put(path: String, handler: Handler): T = put(path, handler, setOf())
+    fun put(handler: Handler, vararg roles: RouteRole): T = put("", handler, roles = roles)
 
     /**
      * Adds a PATCH request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    abstract fun patch(path: String = "", handler: Handler, permittedRoles: Set<Role> = HashSet()): T
+    abstract fun patch(path: String = "", handler: Handler, vararg roles: RouteRole): T
 
     /**
      * Adds a PATCH request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun patch(handler: Handler): T = patch("", handler, setOf())
+    //Helper for kotlin
+    fun patch(path: String = "", vararg roles: RouteRole, handler: Handler): T = patch(path, handler, roles = roles)
 
     /**
      * Adds a PATCH request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun patch(handler: Handler, permittedRoles: Set<Role>): T = patch("", handler, permittedRoles)
+    fun patch(handler: Handler): T = patch("", handler)
 
     /**
      * Adds a PATCH request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun patch(path: String, handler: Handler): T = patch(path, handler, setOf())
+    fun patch(handler: Handler, vararg roles: RouteRole): T = patch("", handler, roles = roles)
 
     /**
      * Adds a DELETE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    abstract fun delete(path: String = "", handler: Handler, permittedRoles: Set<Role> = HashSet()): T
+    abstract fun delete(path: String = "", handler: Handler, vararg roles: RouteRole): T
 
     /**
      * Adds a DELETE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun delete(handler: Handler): T = delete("", handler, setOf())
+    //Helper for kotlin
+    fun delete(path: String = "", vararg roles: RouteRole, handler: Handler): T = delete(path, handler, roles = roles)
 
     /**
      * Adds a DELETE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun delete(handler: Handler, permittedRoles: Set<Role>): T = delete("", handler, permittedRoles)
+    fun delete(handler: Handler): T = delete("", handler)
 
     /**
      * Adds a DELETE request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun delete(path: String, handler: Handler): T = delete(path, handler, setOf())
+    fun delete(handler: Handler, vararg roles: RouteRole): T = delete("", handler, roles = roles)
 
     /**
      * Adds a HEAD request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    abstract fun head(path: String = "", handler: Handler, permittedRoles: Set<Role> = HashSet()): T
+    abstract fun head(path: String = "", handler: Handler, vararg roles: RouteRole): T
 
     /**
      * Adds a HEAD request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun head(handler: Handler): T = head("", handler, setOf())
+    //Helper for kotlin
+    fun head(path: String = "", vararg roles: RouteRole, handler: Handler): T = head(path, handler, roles = roles)
 
     /**
      * Adds a HEAD request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun head(handler: Handler, permittedRoles: Set<Role>): T = head("", handler, permittedRoles)
+    fun head(handler: Handler): T = head("", handler)
 
     /**
      * Adds a HEAD request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun head(path: String, handler: Handler): T = head(path, handler, setOf())
+    fun head(handler: Handler, vararg roles: RouteRole): T = head("", handler, roles = roles)
 
     /**
      * Adds a OPTIONS request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    abstract fun options(path: String = "", handler: Handler, permittedRoles: Set<Role> = HashSet()): T
+    abstract fun options(path: String = "", handler: Handler, vararg roles: RouteRole): T
 
     /**
      * Adds a OPTIONS request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun options(handler: Handler): T = options("", handler, setOf())
+    //Helper for kotlin
+    fun options(path: String = "", vararg roles: RouteRole, handler: Handler): T = options(path, handler, roles = roles)
+
 
     /**
      * Adds a OPTIONS request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun options(handler: Handler, permittedRoles: Set<Role>): T = options("", handler, permittedRoles)
+    fun options(handler: Handler): T = options("", handler)
 
     /**
      * Adds a OPTIONS request handler for the specified path to the instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun options(path: String, handler: Handler): T = options(path, handler, setOf())
+    fun options(handler: Handler, vararg roles: RouteRole): T = options("", handler, roles = roles)
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      * Requires an access manager to be set on the instance.
      */
-    abstract fun sse(path: String, client: Consumer<SseClient>, permittedRoles: Set<Role> = HashSet()): T
+    abstract fun sse(path: String, client: Consumer<SseClient>, vararg roles: RouteRole): T
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      * Requires an access manager to be set on the instance.
      */
-    fun sse(client: Consumer<SseClient>): T = sse("", client, setOf())
+    //Helper for kotlin
+    fun sse(path: String = "", vararg roles: RouteRole, client: Consumer<SseClient>): T = sse(path, client, roles = roles)
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      * Requires an access manager to be set on the instance.
      */
-    fun sse(path: String, client: Consumer<SseClient>): T = sse(path, client, setOf())
+    fun sse(client: Consumer<SseClient>): T = sse("", client)
 
     /**
      * Adds a BEFORE request handler for the specified path to the instance.
@@ -266,22 +275,14 @@ abstract class Router<T : Router<T>> {
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun crud(crudHandler: CrudHandler): T = crud("", crudHandler, setOf())
+    fun crud(crudHandler: CrudHandler): T = crud("", crudHandler)
 
     /**
      * Adds a CrudHandler handler to the current path to the [Javalin] instance.
      *
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
-    fun crud(crudHandler: CrudHandler, permittedRoles: Set<Role>): T = crud("", crudHandler, permittedRoles)
-
-    /**
-     * Adds a CrudHandler handler to the current path to the [Javalin] instance.
-     *
-     * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
-     */
-    fun crud(path: String, crudHandler: CrudHandler): T = crud(path, crudHandler, setOf())
-
+    fun crud(crudHandler: CrudHandler, vararg roles: RouteRole): T = crud("", crudHandler, roles = roles)
 
     /**
      * Adds a CrudHandler handler to the current path to the [Javalin] instance.
@@ -289,18 +290,24 @@ abstract class Router<T : Router<T>> {
      * @see <a href="https://javalin.io/documentation.handlers">Handlers in docs</a>
      */
     @Suppress("UNCHECKED_CAST")
-    fun crud(path: String, crudHandler: CrudHandler, permittedRoles: Set<Role>): T {
+    fun crud(path: String, crudHandler: CrudHandler, vararg roles: RouteRole): T {
         val subPaths = path.split("/").filter { it.isNotEmpty() }.toList()
-        require(subPaths.size >= 2) { "CrudHandler requires a path like '/resource/:resource-id'" }
+        require(subPaths.size >= 2) { "CrudHandler requires a path like '/resource/{resource-id}'" }
         val resourceId = subPaths[subPaths.size - 1]
-        require(resourceId.startsWith(":")) { "CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/:user-id'" }
-        require(!subPaths[subPaths.size - 2].startsWith(":")) { "CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/:user-id'" }
-        val crudFunctions = crudHandler.getCrudFunctions(resourceId)
-        get(path, crudFunctions[CrudFunction.GET_ONE]!!, permittedRoles)
-        get(path.replace(resourceId, ""), crudFunctions[CrudFunction.GET_ALL]!!, permittedRoles)
-        post(path.replace(resourceId, ""), crudFunctions[CrudFunction.CREATE]!!, permittedRoles)
-        patch(path, crudFunctions[CrudFunction.UPDATE]!!, permittedRoles)
-        delete(path, crudFunctions[CrudFunction.DELETE]!!, permittedRoles)
+        require(resourceId.startsWith("{") && resourceId.endsWith("}")) {
+            "CrudHandler requires a path-parameter at the end of the provided path, e.g. '/users/{user-id}'"
+        }
+        val resourceBase = subPaths[subPaths.size - 2]
+        require(!(resourceBase.startsWith("{") || resourceBase.startsWith("<")
+                || resourceBase.endsWith("}") || resourceBase.endsWith(">"))) {
+            "CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/{user-id}'"
+        }
+        val crudFunctions: Map<CrudFunction, Handler> = crudHandler.getCrudFunctions(resourceId)
+        get(path, crudFunctions[CrudFunction.GET_ONE]!!, roles = roles)
+        get(path.replace(resourceId, ""), crudFunctions[CrudFunction.GET_ALL]!!, roles = roles)
+        post(path.replace(resourceId, ""), crudFunctions[CrudFunction.CREATE]!!, roles = roles)
+        patch(path, crudFunctions[CrudFunction.UPDATE]!!, roles = roles)
+        delete(path, crudFunctions[CrudFunction.DELETE]!!, roles = roles)
         return this as T
     }
 
@@ -309,11 +316,11 @@ abstract class Router<T : Router<T>> {
 
     // WS
     /**
-     * Adds a WebSocket handler on the specified path.
+     * Adds a WebSocket handler
      *
      * @see [WebSockets in docs](https://javalin.io/documentation.websockets)
      */
-    fun ws(path: String, ws: Consumer<WsConfig>): T = ws(path, ws, setOf())
+    fun ws(ws: Consumer<WsConfig>): T = ws("", ws)
 
     /**
      * Adds a WebSocket handler on the specified path with the specified roles.
@@ -323,7 +330,18 @@ abstract class Router<T : Router<T>> {
      *
      * @see [WebSockets in docs](https://javalin.io/documentation.websockets)
      */
-    abstract fun ws(path: String, ws: Consumer<WsConfig>, permittedRoles: Set<Role?>): T
+    abstract fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): T
+
+    /**
+     * Adds a WebSocket handler on the specified path with the specified roles.
+     * Requires an access manager to be set on the instance.
+     *
+     * @see AccessManager
+     *
+     * @see [WebSockets in docs](https://javalin.io/documentation.websockets)
+     */
+    //Helper for kotlin
+    fun ws(path: String = "", vararg roles: RouteRole, ws: Consumer<WsConfig>): T = ws(path, ws, roles = roles)
 
     /**
      * Adds a WebSocket before handler for the specified path to the instance.

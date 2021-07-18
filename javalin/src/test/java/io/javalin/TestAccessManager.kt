@@ -10,8 +10,8 @@ package io.javalin
 import com.mashape.unirest.http.Unirest
 import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
-import io.javalin.testing.TestUserController
 import io.javalin.core.security.RouteRole
+import io.javalin.testing.TestUserController
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -55,7 +55,7 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp) { app, http ->
-        app.crud("/users/:userId", TestUserController(), ROLE_ONE, ROLE_TWO)
+        app.crud("/users/{userId}", TestUserController(), ROLE_ONE, ROLE_TWO)
         assertThat(callWithRole(http.origin, "/users/1", "ROLE_ONE")).isEqualTo("My single user: 1")
         assertThat(callWithRole(http.origin, "/users/2", "ROLE_TWO")).isEqualTo("My single user: 2")
         assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo("Unauthorized")
