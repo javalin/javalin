@@ -33,14 +33,14 @@ General information:
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>3.13.9</version>
+    <version>3.13.10</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-implementation "io.javalin:javalin:3.13.9"
+implementation "io.javalin:javalin:3.13.10"
 ```
 
 ### Start programming (Java)

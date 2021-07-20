@@ -31,7 +31,7 @@ internal val Any.methodName: String? // broken in jdk9+ since ConstantPool has b
 //        }
         return null
     }
-internal val Any.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' })
+internal val Any.parentClass: Class<*> get() = Class.forName(this.javaClass.name.takeWhile { it != '$' }, false, this.javaClass.classLoader)
 
 internal val Any.implementingClassName: String? get() = this.javaClass.name
 
