@@ -36,7 +36,7 @@ class JettyResourceHandler : JavalinResourceHandler {
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val target = httpRequest.getAttribute("jetty-target") as String
         val baseRequest = httpRequest.getAttribute("jetty-request") as Request
-        for (handler in handlers) {
+        for (handler in handlers.filter { h -> h.canHandleRequest(httpRequest) }) {
             try {
                 val resource = handler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
@@ -97,6 +97,10 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
             throw RuntimeException(noSuchDirMessage)
         }
         return config.directory
+    }
+
+    open fun canHandleRequest(httpRequest: HttpServletRequest): Boolean {
+        return config.filter.test(httpRequest)
     }
 
 }
