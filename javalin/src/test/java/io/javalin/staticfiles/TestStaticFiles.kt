@@ -270,8 +270,8 @@ class TestStaticFiles {
                 it.filter = Predicate { path -> path.endsWith(".css") }
             }
         }) { _, http ->
-            assertThat(http.get("/styles.css").status).isEqualTo(200) // access to other locations in /public is not allowed
-            assertThat(http.get("/script.js").status).isEqualTo(404) // direct access to a file in the subfolder is not allowed
+            assertThat(http.get("/styles.css").status).isEqualTo(200)
+            assertThat(http.get("/script.js").status).isEqualTo(404)
         }
     }
 
