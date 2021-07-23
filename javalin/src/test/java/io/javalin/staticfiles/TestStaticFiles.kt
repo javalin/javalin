@@ -267,7 +267,7 @@ class TestStaticFiles {
                 it.hostedPath = "/"
                 it.directory = "/public"
                 it.location = Location.CLASSPATH
-                it.filter = Predicate { path -> path.endsWith(".css") }
+                it.filter = Predicate { req -> req.requestURI.endsWith(".css") }
             }
         }) { _, http ->
             assertThat(http.get("/styles.css").status).isEqualTo(200)
