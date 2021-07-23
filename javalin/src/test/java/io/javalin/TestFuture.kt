@@ -65,7 +65,7 @@ class TestFuture {
 
     @Test
     fun `calling future in an exception-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx -> throw Exception() }
+        app.get("/test-future") { throw Exception() }
         app.exception(Exception::class.java) { _, ctx -> ctx.future(getFuture("Not result")) }
         assertThat(http.getBody("/test-future")).isEqualTo("")
         assertThat(http.get("/test-future").status).isEqualTo(500)

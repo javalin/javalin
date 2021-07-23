@@ -23,14 +23,14 @@ class TestRateLimitUtil {
     }
 
     @Test
-    fun `rate limiting kicks in if number of requests exceeds rate limit`() = TestUtil.test(testApp) { app, http ->
+    fun `rate limiting kicks in if number of requests exceeds rate limit`() = TestUtil.test(testApp) { _, http ->
         repeat(50) { http.get("/") }
         assertThat(http.get("/").status).isEqualTo(429)
         assertThat(http.get("/").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per hour.")
     }
 
     @Test
-    fun `both path and HTTP method must match for rate limiting to kick in`() = TestUtil.test(testApp) { app, http ->
+    fun `both path and HTTP method must match for rate limiting to kick in`() = TestUtil.test(testApp) { _, http ->
         repeat(50) { http.get("/") }
         assertThat(http.get("/").status).isEqualTo(429)
         assertThat(http.get("/test").status).isNotEqualTo(429)

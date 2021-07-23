@@ -194,7 +194,7 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `CrudHandler rejects resource in the middle`() = TestUtil.test { app, http ->
+    fun `CrudHandler rejects resource in the middle`() = TestUtil.test { app, _ ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
             app.routes {
                 crud("/foo/bar/{user-id}/users", UserController())
@@ -203,7 +203,7 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `CrudHandler rejects missing resource`() = TestUtil.test { app, http ->
+    fun `CrudHandler rejects missing resource`() = TestUtil.test { app, _ ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
             app.routes {
                 crud("/foo/bar/users", UserController())
@@ -212,7 +212,7 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, http ->
+    fun `CrudHandler rejects missing resource base`() = TestUtil.test { app, _ ->
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
             app.routes {
                 crud("/{user-id}", UserController())

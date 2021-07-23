@@ -19,6 +19,7 @@ import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.Paths
 import org.slf4j.LoggerFactory
+import java.util.*
 
 private val logger = LoggerFactory.getLogger(JavalinOpenApi::class.java)
 
@@ -187,14 +188,14 @@ fun HandlerType.asPathItemHttpMethod(): PathItem.HttpMethod? = when (this) {
 
 private fun HandlerMetaInfo.createDefaultOperationId(path: PathParser): String {
     val metaInfo = this
-    val lowerCaseMethod = metaInfo.httpMethod.toString().toLowerCase()
+    val lowerCaseMethod = metaInfo.httpMethod.toString().lowercase(Locale.ROOT)
     val capitalizedPath = path.asReadableWords().joinToString("") { it.capitalize() }
     return lowerCaseMethod + capitalizedPath
 }
 
 private fun HandlerMetaInfo.createDefaultSummary(path: PathParser): String {
     val metaInfo = this
-    val capitalizedMethod = metaInfo.httpMethod.toString().toLowerCase().capitalize()
+    val capitalizedMethod = metaInfo.httpMethod.toString().lowercase(Locale.ROOT).capitalize()
     return (listOf(capitalizedMethod) + path.asReadableWords()).joinToString(" ") { it.trim() }
 }
 
@@ -214,6 +215,6 @@ private fun PathParser.asReadableWords(): List<String> {
 }
 
 private fun String.dashCaseToCamelCase() = split("-")
-        .map { it.toLowerCase() }
+        .map { it.lowercase(Locale.ROOT) }
         .mapIndexed { index, s -> if (index > 0) s.capitalize() else s }
         .joinToString("")

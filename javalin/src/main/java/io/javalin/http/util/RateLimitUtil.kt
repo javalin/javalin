@@ -8,6 +8,7 @@ package io.javalin.http.util
 
 import io.javalin.http.Context
 import io.javalin.http.HttpResponseException
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -22,7 +23,7 @@ object RateLimitUtil {
 
 class RateLimiter(val timeUnit: TimeUnit) {
 
-    private val timeUnitString = timeUnit.toString().toLowerCase().removeSuffix("s")
+    private val timeUnitString = timeUnit.toString().lowercase(Locale.ROOT).removeSuffix("s")
     private val keyToRequestCount = ConcurrentHashMap<String, Int>().also {
         RateLimitUtil.executor.scheduleAtFixedRate({ it.clear() }, /*delay=*/0,  /*period=*/1, timeUnit)
     }

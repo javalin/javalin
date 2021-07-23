@@ -147,7 +147,7 @@ class TestMicrometerPlugin {
     }
 
     @Test
-    fun `not found`() = TestUtil.test(setupApp()) { app, http ->
+    fun `not found`() = TestUtil.test(setupApp()) { _, http ->
         val requestCount = (2..9).random()
         repeat(requestCount) { http.get("/some-unmapped-path") }
         val notFoundCount = meterRegistry.get("jetty.server.requests")

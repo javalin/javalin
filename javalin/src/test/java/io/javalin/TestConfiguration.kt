@@ -40,7 +40,7 @@ class TestConfiguration {
             it.enableWebjars()
             it.enforceSsl = true
             it.prefer405over404 = false
-            it.requestLogger { ctx, executionTimeMs -> }
+            it.requestLogger { _, _ -> }
             it.sessionHandler { SessionHandler() }
             // WsServlet
             it.wsFactoryConfig { }
@@ -51,7 +51,7 @@ class TestConfiguration {
             }
             it.registerPlugin(MicrometerPlugin())
             // Misc
-            it.accessManager { handler, ctx, roles -> }
+            it.accessManager { _, _, _ -> }
             it.showJavalinBanner = false
             it.configureServletContextHandler { handler ->
                 handler.addEventListener(object : HttpSessionListener {
@@ -83,7 +83,7 @@ class TestConfiguration {
     }
 
     @Test
-    fun `app throws exception saying port is busy if it is`() = TestUtil.test { app, http ->
+    fun `app throws exception saying port is busy if it is`() = TestUtil.test { app, _ ->
         Assertions.assertThatExceptionOfType(RuntimeException::class.java)
             .isThrownBy { Javalin.create().start(app.port()) }
             .withMessageContaining("Port already in use. Make sure no other process is using port ${app.port()} and try again")

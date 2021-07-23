@@ -254,7 +254,7 @@ class TestRequest {
             it.registerPlugin(BasicAuthFilter("u", "p"))
             it.addStaticFiles("/public", Location.CLASSPATH)
         }.get("/hellopath") { it.result("Hello") }
-        TestUtil.test(basicauthApp) { app, http ->
+        TestUtil.test(basicauthApp) { _, http ->
             assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")
             assertThat(http.getBody("/html.html")).contains("Unauthorized")
             Unirest.get("${http.origin}/hellopath").basicAuth("u", "p").asString().let { assertThat(it.body).isEqualTo("Hello") }

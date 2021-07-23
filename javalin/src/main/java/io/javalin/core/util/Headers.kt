@@ -74,7 +74,7 @@ class Headers {
             } else if (this == EXECUTION_CONTEXTS) {
                 return "\"executionContexts\""
             }
-            return "\"" + name.toLowerCase(Locale.ROOT) + "\""
+            return "\"" + name.lowercase(Locale.ROOT) + "\""
         }
     }
 
@@ -110,6 +110,6 @@ class Headers {
     }
 
     private fun String.toHttpHeaderValue() : String {
-        return this.toLowerCase(Locale.ROOT).replace("_", "-")
+        return this.lowercase(Locale.ROOT).replace("_", "-")
     }
 }

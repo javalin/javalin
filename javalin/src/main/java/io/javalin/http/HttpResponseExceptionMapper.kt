@@ -8,6 +8,7 @@ package io.javalin.http
 
 import io.javalin.core.util.Header
 import io.javalin.http.util.JsonEscapeUtil
+import java.util.*
 import java.util.concurrent.CompletionException
 
 object HttpResponseExceptionMapper {
@@ -20,7 +21,7 @@ object HttpResponseExceptionMapper {
             ctx.status(e.status).result("""{
                 |    "title": "${e.message?.jsonEscape()}",
                 |    "status": ${e.status},
-                |    "type": "${getTypeUrl(e).toLowerCase()}",
+                |    "type": "${getTypeUrl(e).lowercase(Locale.ROOT)}",
                 |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
                 |}""".trimMargin()
             ).contentType("application/json")

@@ -17,7 +17,7 @@ import java.nio.ByteBuffer
 
 /**
  * The [WsContext] class holds Jetty's [Session] and provides (convenient) delegate methods.
- * It adds functionality similar to the API found in [io.javalin.Context].
+ * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
 abstract class WsContext(val sessionId: String, @JvmField val session: Session) {

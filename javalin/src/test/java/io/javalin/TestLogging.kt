@@ -59,7 +59,7 @@ class TestLogging {
     fun `resultString is available in request logger and can be read multiple times`() {
         val loggerLog = mutableListOf<String?>()
         val bodyLoggingJavalin = Javalin.create {
-            it.requestLogger { ctx, ms ->
+            it.requestLogger { ctx, _ ->
                 loggerLog.add(ctx.resultString())
                 loggerLog.add(ctx.resultString())
             }

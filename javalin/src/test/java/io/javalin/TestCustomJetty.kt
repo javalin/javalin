@@ -226,7 +226,7 @@ class TestCustomJetty {
                 }), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
         }
-        TestUtil.test(filterJavalin) { app, http ->
+        TestUtil.test(filterJavalin) { _, http ->
             assertThat(http.get("/test").status).isEqualTo(HttpCode.IM_A_TEAPOT.status)
             assertThat(http.get("/test").body).isNotEqualTo("Test")
         }

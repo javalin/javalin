@@ -28,7 +28,7 @@ class TestLifecycleEvents {
     }
 
     @Test
-    fun `handlerAdded event works`() = TestUtil.test { app, http ->
+    fun `handlerAdded event works`() = TestUtil.test { app, _ ->
         var log = ""
         app.events { it.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
         app.events { it.handlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
@@ -37,7 +37,7 @@ class TestLifecycleEvents {
     }
 
     @Test
-    fun `wsHandlerAdded event works`() = TestUtil.test { app, http ->
+    fun `wsHandlerAdded event works`() = TestUtil.test { app, _ ->
         var log = ""
         app.events { it.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }
         app.events { it.wsHandlerAdded { handlerMetaInfo -> log += handlerMetaInfo.path } }

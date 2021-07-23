@@ -34,7 +34,7 @@ class TestJavalinVue {
             with(JavalinVue) {
                 vueVersion { it.vue2() }
                 isDev = null // reset
-                stateFunction = { ctx -> mapOf<String, String>() } // reset
+                stateFunction = { mapOf<String, String>() } // reset
                 rootDirectory { it.externalPath("src/test/resources/vue") } // src/main ->
                 optimizeDependencies = false
             }
@@ -54,7 +54,7 @@ class TestJavalinVue {
     fun `vue component with state`() = TestUtil.test { app, http ->
         val encodedState =
             """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
-        JavalinVue.stateFunction = { ctx -> state }
+        JavalinVue.stateFunction = { state }
         app.get("/vue/{my-param}", VueComponent("<test-component></test-component>"))
         val res = http.getBody("/vue/test-path-param?qp=test-query-param")
         assertThat(res).contains(encodedState)
@@ -92,7 +92,7 @@ class TestJavalinVue {
         JavalinVue.vueVersion { it.vue3("app") }
         val encodedState =
             """{"pathParams":{"my-param":"test-path-param"},"queryParams":{"qp":["test-query-param"]},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
-        JavalinVue.stateFunction = { ctx -> state }
+        JavalinVue.stateFunction = { state }
         app.get("/vue/{my-param}", VueComponent("<test-component-3></test-component-3>"))
         val res = http.getBody("/vue/test-path-param?qp=test-query-param")
         assertThat(res).contains(encodedState)
@@ -189,7 +189,7 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `@cdnWebjar resolves to webjar on localhost`() = TestUtil.test { app, http ->
+    fun `@cdnWebjar resolves to webjar on localhost`() {
         val ctx = mockk<Context>(relaxed = true)
         every { ctx.jsonMapper() } returns JavalinJackson()
         JavalinVue.isDev = true // reset
@@ -200,9 +200,9 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `@cdnWebjar resolves to cdn on non-localhost`() = TestUtil.test { app, http ->
+    fun `@cdnWebjar resolves to cdn on non-localhost`() {
         val ctx = mockk<Context>(relaxed = true)
-       every { ctx.jsonMapper() } returns JavalinJackson()
+        every { ctx.jsonMapper() } returns JavalinJackson()
         every { ctx.url() } returns "https://example.com"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
@@ -210,9 +210,9 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `@cdnWebjar resolves to https even on non https hosts`() = TestUtil.test { app, http ->
+    fun `@cdnWebjar resolves to https even on non https hosts`() {
         val ctx = mockk<Context>(relaxed = true)
-       every { ctx.jsonMapper() } returns JavalinJackson()
+        every { ctx.jsonMapper() } returns JavalinJackson()
         every { ctx.url() } returns "http://123.123.123.123:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
@@ -220,9 +220,9 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `@inlineFile functionality works as expected if not-dev`() = TestUtil.test { app, http ->
+    fun `@inlineFile functionality works as expected if not-dev`() {
         val ctx = mockk<Context>(relaxed = true)
-       every { ctx.jsonMapper() } returns JavalinJackson()
+        every { ctx.jsonMapper() } returns JavalinJackson()
         every { ctx.url() } returns "http://123.123.123.123:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
@@ -234,9 +234,9 @@ class TestJavalinVue {
     }
 
     @Test
-    fun `@inlineFile functionality works as expected if dev`() = TestUtil.test { app, http ->
+    fun `@inlineFile functionality works as expected if dev`() {
         val ctx = mockk<Context>(relaxed = true)
-       every { ctx.jsonMapper() } returns JavalinJackson()
+        every { ctx.jsonMapper() } returns JavalinJackson()
         every { ctx.url() } returns "http://localhost:1234/"
         VueComponent("<test-component></test-component>").handle(ctx)
         val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }

@@ -17,6 +17,7 @@ import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import java.util.*
 
 data class RouteOverviewConfig(val path: String, val roles: Set<RouteRole>)
 
@@ -37,7 +38,7 @@ class RouteOverviewRenderer(val app: Javalin) : Handler {
             ]
     )
     override fun handle(ctx: Context) {
-        if (ctx.header(Header.ACCEPT)?.toLowerCase()?.contains("application/json") == true) {
+        if (ctx.header(Header.ACCEPT)?.lowercase(Locale.ROOT)?.contains("application/json") == true) {
             ctx.header("Content-Type", "application/json")
             ctx.result(RouteOverviewUtil.createJsonOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
         } else {

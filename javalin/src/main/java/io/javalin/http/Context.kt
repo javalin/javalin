@@ -109,7 +109,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun bodyAsBytes(): ByteArray = body
 
-    /** Maps a JSON body to a Java/Kotlin class using the registered [JsonMapper] */
+    /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
     fun <T> bodyAsClass(clazz: Class<T>): T =
         jsonMapper().let { if (it.canReadStream()) it.fromJsonStream(req.inputStream, clazz)!! else it.fromJsonString(body(), clazz)!! }
 
@@ -233,10 +233,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun ip(): String = req.remoteAddr
 
     /** Returns true if request is multipart. */
-    fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/") == true
+    fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/") == true
 
     /** Returns true if request is multipart/form-data. */
-    fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.toLowerCase()?.contains("multipart/form-data") == true
+    fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/form-data") == true
 
     /** Gets the request method. */
     fun method(): String = req.method
@@ -428,7 +428,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun html(html: String): Context = contentType("text/html").result(html)
 
     /**
-     * Serializes object to a JSON-string using the registered [JsonMapper] and sets it as the context result.
+     * Serializes object to a JSON-string using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
     @JvmOverloads
