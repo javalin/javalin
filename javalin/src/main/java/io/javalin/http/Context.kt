@@ -150,10 +150,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
 
-    /** Gets a map with all the form param keys and values. */
-    fun formParamMap(): Map<String, List<String>> =
+    /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
+    private val formParams by lazy {
         if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
         else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
+    }
+
+    /** Gets a map with all the form param keys and values. */
+    fun formParamMap(): Map<String, List<String>> = formParams
 
     /**
      * Gets a path param by name (ex: pathParam("param").
@@ -258,8 +262,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
 
+    /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
+    private val queryParams by lazy {
+        ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding)
+    }
+
     /** Gets a map with all the query param keys and values. */
-    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding)
+    fun queryParamMap(): Map<String, List<String>> = queryParams
 
     /** Gets the request query string, or null. */
     fun queryString(): String? = req.queryString
