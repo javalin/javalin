@@ -11,5 +11,5 @@ data class StaticFileConfig(
     @JvmField var precompress: Boolean = false,
     @JvmField var aliasCheck: AliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
-    @JvmField var allowRequestFunction: (HttpServletRequest) -> Boolean = { true },
+    @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
 )

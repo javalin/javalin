@@ -266,7 +266,7 @@ class TestStaticFiles {
                 it.hostedPath = "/"
                 it.directory = "/public"
                 it.location = Location.CLASSPATH
-                it.allowRequestFunction = { it.requestURI.endsWith(".css") }
+                it.skipFileFunction = { !it.requestURI.endsWith(".css") }
             }
         }) { _, http ->
             assertThat(http.get("/styles.css").status).isEqualTo(200)
