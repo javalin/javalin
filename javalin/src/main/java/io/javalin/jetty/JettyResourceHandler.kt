@@ -77,6 +77,7 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
     override fun getResource(path: String): Resource {
         val aliasResource by lazy { baseResource!!.addPath(URIUtil.canonicalPath(path)) }
         return when {
+            !config.filter.test(path) -> EmptyResource.INSTANCE
             config.directory == "META-INF/resources/webjars" ->
                 Resource.newClassPathResource("META-INF/resources$path")
             config.aliasCheck != null && aliasResource.isAlias ->

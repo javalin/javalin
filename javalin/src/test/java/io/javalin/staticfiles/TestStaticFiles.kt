@@ -24,6 +24,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
+import java.util.function.Predicate
 import javax.servlet.DispatcherType
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -255,6 +256,22 @@ class TestStaticFiles {
             assertThat(http.get("/assets/filtered-styles.css").status).isEqualTo(200) // access to urls matching /assets/* is allowed
             assertThat(http.get("/filtered-styles.css").status).isEqualTo(404) // direct access to a file in the subfolder is not allowed
             assertThat(http.get("/styles.css").status).isEqualTo(404) // access to other locations in /public is not allowed
+        }
+    }
+
+    @Test
+    fun `only handle resources matching the filter`() {
+        TestUtil.test(Javalin.create { servlet ->
+            // use custom filter - only urls ending with ".css" are handled
+            servlet.addStaticFiles {
+                it.hostedPath = "/"
+                it.directory = "/public"
+                it.location = Location.CLASSPATH
+                it.filter = Predicate { path -> path.endsWith(".css") }
+            }
+        }) { _, http ->
+            assertThat(http.get("/styles.css").status).isEqualTo(200) // access to other locations in /public is not allowed
+            assertThat(http.get("/script.js").status).isEqualTo(404) // direct access to a file in the subfolder is not allowed
         }
     }
 
