@@ -24,7 +24,6 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
-import java.util.function.Predicate
 import javax.servlet.DispatcherType
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -267,7 +266,7 @@ class TestStaticFiles {
                 it.hostedPath = "/"
                 it.directory = "/public"
                 it.location = Location.CLASSPATH
-                it.filter = Predicate { req -> req.requestURI.endsWith(".css") }
+                it.allowRequestFunction = { it.requestURI.endsWith(".css") }
             }
         }) { _, http ->
             assertThat(http.get("/styles.css").status).isEqualTo(200)
