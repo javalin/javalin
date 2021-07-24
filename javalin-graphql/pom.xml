@@ -25,12 +25,10 @@
         <dependency>
             <groupId>com.expediagroup</groupId>
             <artifactId>graphql-kotlin-schema-generator</artifactId>
-            <version>4.1.1</version>
         </dependency>
         <dependency>
             <groupId>com.expediagroup</groupId>
             <artifactId>graphql-kotlin-server</artifactId>
-            <version>4.1.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-jdk8 -->
         <dependency>

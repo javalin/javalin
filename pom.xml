@@ -95,7 +95,7 @@
         <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <velocity.version>2.3</velocity.version>
         <jte.version>1.11.0</jte.version>
-        <graphql-kotlin.version>1.1.0</graphql-kotlin.version>
+        <graphql-kotlin.version>4.1.1</graphql-kotlin.version>
         <reactor-core.version>3.2.9.RELEASE</reactor-core.version>
 
         <!-- TEST DEPENDENCIES -->
@@ -312,6 +312,11 @@
             <dependency>
                 <groupId>com.expediagroup</groupId>
                 <artifactId>graphql-kotlin-schema-generator</artifactId>
+                <version>${graphql-kotlin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.expediagroup</groupId>
+                <artifactId>graphql-kotlin-server</artifactId>
                 <version>${graphql-kotlin.version}</version>
             </dependency>
             <dependency>
