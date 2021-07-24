@@ -2,14 +2,10 @@ package io.javalin.plugin.graphql
 
 import com.mashape.unirest.http.JsonNode
 import io.javalin.Javalin
-import io.javalin.plugin.graphql.helpers.ContextExample
-import io.javalin.plugin.graphql.helpers.MutationExample
-import io.javalin.plugin.graphql.helpers.QueryExample
-import io.javalin.plugin.graphql.helpers.SubscriptionExample
+import io.javalin.plugin.graphql.helpers.*
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertFalse
+import junit.framework.Assert.*
 import org.assertj.core.api.Assertions.assertThat
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
@@ -65,10 +61,15 @@ class TestGraphQL {
     }
 
     @Test
-    fun context() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
-        val json = sendPetition(httpUtil, "{\"query\": \"{ context { hello, hi} }\"}")
-        assertEquals(json.getJSONObject("data").getJSONObject("context").getString("hello"), ContextExample().hello)
-        assertEquals(json.getJSONObject("data").getJSONObject("context").getString("hi"), ContextExample().hi)
+    fun contextWithoutAuthorized() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
+        val json = sendPetition(httpUtil, "{\"query\": \"{ isAuthorized }\"}")
+        assertFalse(json.getJSONObject("data").getBoolean("isAuthorized"))
+    }
+
+    @Test
+    fun contextWithAuthorized() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
+        val json = sendPetition(httpUtil, "Beare token","{\"query\": \"{ isAuthorized }\"}")
+        assertTrue(json.getJSONObject("data").getBoolean("isAuthorized"))
     }
 
     @Test
@@ -78,6 +79,31 @@ class TestGraphQL {
         doAndSleep { testClient1_1.send("{\"query\": \"subscription { counter }\"}") }
         doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
         assertThat(server.logger().log).containsAnyOf("{\"counter\":1}")
+    }
+
+    @Test
+    fun subscribeWithoutContext() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
+        val testClient1_1 = TestClient(server, graphqlPath)
+        doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
+        doAndSleep { testClient1_1.send("{\"query\": \"subscription { counterUser }\"}") }
+        doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
+        assertThat(server.logger().log).containsAnyOf("{\"counterUser\":\"${SubscriptionExample.anonymous_message} ~> 1\"}")
+    }
+
+    @Test
+    fun subscribeWithContext() = TestUtil.test(shortTimeoutServer()) { server, httpUtil ->
+        val testClient1_1 = TestClient(server, graphqlPath)
+        val tokenUser = "token"
+        testClient1_1.addHeader("Authorization", "Beare $tokenUser")
+        doAndSleepWhile({ testClient1_1.connect() }, { !testClient1_1.isOpen })
+        doAndSleep { testClient1_1.send("{\"query\": \"subscription { counterUser }\"}") }
+        doAndSleepWhile({ testClient1_1.close() }, { testClient1_1.isClosing })
+        assertThat(server.logger().log).containsAnyOf("{\"counterUser\":\"$tokenUser ~> 1\"}")
+    }
+
+    private fun sendPetition(httpUtil: HttpUtil, authorization: String, body: String): JSONObject {
+        val response = httpUtil.post(graphqlPath).header("Authorization", authorization).body(JsonNode(body)).asString()
+        return JSONObject(response.body)
     }
 
     private fun sendPetition(httpUtil: HttpUtil, body: String): JSONObject {
@@ -126,15 +152,16 @@ class TestGraphQL {
 
     private fun shortTimeoutServer(): Javalin {
         return Javalin.create {
-            val graphQLOption = GraphQLOptions(graphqlPath, ContextExample())
-                    .addPackage("io.javalin.plugin.graphql")
-                    .addPackage("io.javalin.plugin.graphql.helpers")
-                    .register(QueryExample(message))
-                    .register(MutationExample(message))
-                    .register(SubscriptionExample())
-            it.registerPlugin(GraphQLPlugin(graphQLOption))
+            val graphQLPluginBuilder = GraphQLPluginBuilder(graphqlPath, ContextFactoryExample(), ContextWsFactoryExample())
+                .add("io.javalin.plugin.graphql")
+                .add("io.javalin.plugin.graphql.helpers")
+                .register(QueryExample(message))
+                .register(MutationExample(message))
+                .register(SubscriptionExample())
+
+            it.registerPlugin(graphQLPluginBuilder.build())
         }
-                .after { ctx -> ctx.req.asyncContext.timeout = 10 }
+
     }
 
     private fun doAndSleep(func: () -> Unit) = func.invoke().also { Thread.sleep(1000) }

@@ -1,6 +1,6 @@
 package io.javalin.plugin.graphql
 
-import com.expediagroup.graphql.TopLevelObject
+import com.expediagroup.graphql.generator.TopLevelObject
 import io.javalin.http.Context
 import io.javalin.plugin.graphql.graphql.MutationGraphql
 import io.javalin.plugin.graphql.graphql.QueryGraphql

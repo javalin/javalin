@@ -3,27 +3,42 @@ package io.javalin.plugin.graphql
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
+import io.javalin.plugin.graphql.server.JavalinGraphQLServer
+import kotlinx.coroutines.runBlocking
+import org.eclipse.jetty.http.HttpStatus
 
-class GraphQLPlugin(private val options: GraphQLOptions) : Plugin, PluginLifecycleInit {
+class GraphQLPlugin(private val builder: GraphQLPluginBuilder<*>) : Plugin, PluginLifecycleInit {
 
-    lateinit var graphQLHandler: GraphQLHandler
-
-    override fun init(app: Javalin) {
-        graphQLHandler = GraphQLHandler(options)
+    constructor(options: GraphQLOptions) : this(GraphQLPluginBuilder.create(options)) {
+        GraphQLPluginBuilder
     }
 
+    private val graphQLHandler: GraphQLHandler = GraphQLHandler(builder)
+
+
     override fun apply(app: Javalin) {
-        app.get(options.path) {
+        val server = JavalinGraphQLServer.create(builder)
+        app.get(builder.path) {
             it.contentType("text/html; charset=UTF-8")
-                    .result(
-                            GraphQLPlugin::class.java.getResourceAsStream("graphqli/index.html")
-                    )
+                .result(
+                    GraphQLPlugin::class.java.getResourceAsStream("graphqli/index.html")
+                )
         }
-        app.post(options.path) { ctx ->
-            graphQLHandler.execute(ctx)
+        app.post(builder.path) { ctx ->
+            val response = runBlocking { server.execute(ctx) }
+            if (response != null) {
+                ctx.json(response)
+            } else {
+                ctx.status(HttpStatus.BAD_REQUEST_400).json(mapOf("error" to "Invalid request"))
+            }
         }
-        app.ws(options.path) { ws ->
+        app.ws(builder.path) { ws ->
             ws.onMessage { ctx -> graphQLHandler.execute(ctx) }
         }
     }
+
+    override fun init(app: Javalin) {
+
+    }
+
 }

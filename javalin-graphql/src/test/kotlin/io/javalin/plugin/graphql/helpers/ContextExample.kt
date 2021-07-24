@@ -1,10 +1,7 @@
 package io.javalin.plugin.graphql.helpers
 
-class ContextExample {
-    var hi = "Hi"
-    val hello = "Hello World"
+import com.expediagroup.graphql.generator.execution.GraphQLContext
 
-    fun updateHi(text: String) {
-        this.hi = text
-    }
+data class ContextExample(val authorization: String? = null) : GraphQLContext {
+    val isValid = authorization != null
 }
