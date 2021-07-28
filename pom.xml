@@ -52,6 +52,10 @@
 
         <copy-build-resources.skip>true</copy-build-resources.skip>
 
+        <dokka.jdkVersion>8</dokka.jdkVersion>
+        <dokka.skip>true</dokka.skip>
+        <javadoc.skip>true</javadoc.skip>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <kotlin.version>1.5.20</kotlin.version>
@@ -67,12 +71,13 @@
         <surefire.plugin.version>3.0.0-M5</surefire.plugin.version>
         <antrun.plugin.version>3.0.0</antrun.plugin.version>
         <shade.plugin.version>3.2.4</shade.plugin.version>
-        <javadoc.plugin.version>2.7</javadoc.plugin.version>
+        <javadoc.plugin.version>3.3.0</javadoc.plugin.version>
         <build-helper.plugin.version>3.2.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.0.0-M3</enforcer.plugin.version>
         <clean.plugin.version>3.1.0</clean.plugin.version>
         <install.plugin.version>3.0.0-M1</install.plugin.version>
         <resources.plugin.version>3.2.0</resources.plugin.version>
+        <source.plugin.version>3.2.1</source.plugin.version>
 
         <!-- DEPENDENCIES -->
         <classgraph.version>4.8.102</classgraph.version>
@@ -545,6 +550,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
+                            <propertiesEncoding>${project.build.sourceEncoding}</propertiesEncoding>
                             <outputDirectory>${project.build.directory}</outputDirectory>
                             <resources>
                                 <resource>
@@ -584,6 +590,13 @@
                     <groupId>org.jetbrains.dokka</groupId>
                     <artifactId>dokka-maven-plugin</artifactId>
                     <version>${dokka.plugin.version}</version>
+                    <configuration>
+                        <skip>${dokka.skip}</skip>
+                        <jdkVersion>${dokka.jdkVersion}</jdkVersion>
+                        <sourceDirectories>
+                            <dir>${project.basedir}/src/main/java</dir>
+                        </sourceDirectories>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -592,6 +605,21 @@
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>${jar.plugin.version}</version>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            </manifest>
+                            <manifestEntries>
+                                <Build-Time>${maven.build.timestamp}</Build-Time>
+                            </manifestEntries>
+                            <pomPropertiesFile>${project.build.directory}/pom.properties</pomPropertiesFile>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${source.plugin.version}</version>
                     <configuration>
                         <archive>
                             <manifest>
@@ -615,6 +643,9 @@
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${javadoc.plugin.version}</version>
+                    <configuration>
+                        <skip>${javadoc.skip}</skip>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -636,23 +667,43 @@
 
     <profiles>
         <profile>
-            <id>sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>sign</name>
-                    <value>true</value>
-                </property>
-            </activation>
+            <id>sonatype-oss-release</id>
             <build>
                 <plugins>
                     <plugin>
-                        <artifactId>maven-gpg-plugin</artifactId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${source.plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
+                                <id>attach-sources</id>
                                 <goals>
-                                    <goal>sign</goal>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jetbrains.dokka</groupId>
+                        <artifactId>dokka-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>attach-javadocs-dokka</id>
+                                <goals>
+                                    <goal>javadocJar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${javadoc.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>attach-javadocs-javadoc</id>
+                                <goals>
+                                    <goal>jar</goal>
                                 </goals>
                             </execution>
                         </executions>

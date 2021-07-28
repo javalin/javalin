@@ -18,6 +18,7 @@
     </dependencies>
 
     <properties>
+        <javadoc.skip>false</javadoc.skip>
         <copy-build-resources.skip>false</copy-build-resources.skip>
 
         <original.root>../javalin/src/main/java/io/javalin</original.root>
@@ -151,12 +152,23 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <sourcepath>${original.root}</sourcepath>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>sonatype-oss-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <sourcepath>${original.root}</sourcepath>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
