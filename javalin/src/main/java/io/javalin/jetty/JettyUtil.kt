@@ -60,7 +60,7 @@ object JettyUtil {
 
     // Jetty may timeout connections to avoid having broken connections that remain open forever
     // This is rare, but intended (see issues #163 and #1277)
-    fun isJettyTimeoutException(t: Throwable) = t::class.java.name == "java.util.concurrent.TimeoutException"
+    fun isJettyTimeoutException(t: Throwable) = t::class.java.name == "java.io.IOException" && t.cause?.javaClass?.name == "java.util.concurrent.TimeoutException"
 
     class NoopLogger : org.eclipse.jetty.util.log.Logger {
         override fun getName() = "noop"
