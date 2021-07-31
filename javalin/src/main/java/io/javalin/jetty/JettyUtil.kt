@@ -9,6 +9,8 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
+import java.io.IOException
+import java.util.concurrent.TimeoutException
 
 private var defaultLogger: org.eclipse.jetty.util.log.Logger? = null
 
@@ -60,7 +62,7 @@ object JettyUtil {
 
     // Jetty may timeout connections to avoid having broken connections that remain open forever
     // This is rare, but intended (see issues #163 and #1277)
-    fun isJettyTimeoutException(t: Throwable) = t::class.java.name == "java.util.concurrent.TimeoutException"
+    fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
 
     class NoopLogger : org.eclipse.jetty.util.log.Logger {
         override fun getName() = "noop"
