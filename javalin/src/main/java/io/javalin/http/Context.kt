@@ -15,7 +15,6 @@ import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
-import io.javalin.plugin.json.canReadStream
 import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
 import java.io.InputStream
@@ -110,11 +109,16 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun bodyAsBytes(): ByteArray = body
 
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
-    fun <T> bodyAsClass(clazz: Class<T>): T =
-        jsonMapper().let { if (it.canReadStream()) it.fromJsonStream(req.inputStream, clazz)!! else it.fromJsonString(body(), clazz)!! }
+    fun <T> bodyAsClass(clazz: Class<T>): T = jsonMapper().fromJsonString(body(), clazz)
 
     /** Reified version of [bodyAsClass] (Kotlin only) */
     inline fun <reified T : Any> bodyAsClass(): T = bodyAsClass(T::class.java)
+
+    /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
+    fun <T> bodyStreamAsClass(clazz: Class<T>): T = jsonMapper().fromJsonStream(req.inputStream, clazz)
+
+    /** Reified version of [bodyStreamAsClass] (Kotlin only) */
+    inline fun <reified T : Any> bodyStreamAsClass(): T = bodyStreamAsClass(T::class.java)
 
     /** Gets the request body as a [InputStream] */
     fun bodyAsInputStream(): InputStream = req.inputStream
@@ -431,10 +435,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Serializes object to a JSON-string using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    @JvmOverloads
-    fun json(obj: Any, useStreamingMapper: Boolean = false): Context = contentType("application/json").also {
-        jsonMapper().let { if (useStreamingMapper) result(it.toJsonStream(obj)) else result(it.toJsonString(obj)) }
-    }
+    fun json(obj: Any): Context = result(jsonMapper().toJsonString(obj)).contentType("application/json")
+
+    /**
+     * Serializes object to a JSON-stream using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
+     * Also sets content type to application/json.
+     */
+    fun jsonStream(obj: Any): Context = result(jsonMapper().toJsonStream(obj)).contentType("application/json")
 
     /**
      * Renders a file with specified values and sets it as the context result.
