@@ -8,10 +8,17 @@ sealed class PathSegment {
 
     internal abstract fun asGroupedRegexString(): String
 
-    class Normal(val content: String) : PathSegment() {
+    sealed class Normal(val content: String) : PathSegment() {
         // do not group static content
-        override fun asRegexString(): String = content
-        override fun asGroupedRegexString(): String = content
+        class RegexEscaped(content: String): Normal(content) {
+            override fun asRegexString(): String = Regex.escape(content)
+            override fun asGroupedRegexString(): String = Regex.escape(content)
+        }
+
+        class RegexAllowed(content: String): Normal(content) {
+            override fun asRegexString(): String = content
+            override fun asGroupedRegexString(): String = content
+        }
     }
 
     sealed class Parameter(val name: String) : PathSegment() {
@@ -48,6 +55,11 @@ sealed class PathSegment {
 
 }
 
+internal fun createNormal(string: String, enableRegex: Boolean = false) = if (enableRegex) {
+    PathSegment.Normal.RegexAllowed(string)
+} else {
+    PathSegment.Normal.RegexEscaped(string)
+}
 internal fun createSlashIgnoringParam(string: String) = PathSegment.Parameter.SlashIgnoringParameter(string)
 internal fun createSlashAcceptingParam(string: String) = PathSegment.Parameter.SlashAcceptingParameter(string)
 

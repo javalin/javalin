@@ -27,14 +27,14 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
         app.events { e ->
             e.handlerAdded { h ->
                 val parser = PathParser(h.path, app._conf.ignoreTrailingSlashes)
-                parser.segments.filterIsInstance<PathSegment.Normal>().map { it.asRegexString() }.forEach {
+                parser.segments.filterIsInstance<PathSegment.Normal>().map { it.content }.forEach {
                     if (it != it.lowercase(Locale.ROOT)) throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin")
                 }
                 parser.segments
                     .filterIsInstance<PathSegment.MultipleSegments>()
                     .flatMap { it.innerSegments }
                     .filterIsInstance<PathSegment.Normal>()
-                    .map { it.asRegexString() }
+                    .map { it.content }
                     .forEach {
                         if (it != it.lowercase(Locale.ROOT)) {
                             throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin")
