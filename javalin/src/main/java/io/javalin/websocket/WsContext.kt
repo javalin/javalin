@@ -6,6 +6,7 @@
 
 package io.javalin.websocket
 
+import io.javalin.BaseContext
 import io.javalin.http.Context
 import io.javalin.jetty.upgradeContextKey
 import io.javalin.jetty.upgradeSessionAttrsKey
@@ -20,7 +21,7 @@ import java.nio.ByteBuffer
  * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
+abstract class WsContext(val sessionId: String, @JvmField val session: Session) : BaseContext{
 
     internal val upgradeReq by lazy { session.upgradeRequest as ServletUpgradeRequest }
     internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
@@ -44,10 +45,12 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun <T> pathParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.pathParamAsClass(key, clazz)
     inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
-    fun host() = upgradeReq.host // why can't we get this from upgradeCtx?
+    fun host(): String = upgradeReq.host // why can't we get this from upgradeCtx?
+    override fun uri(): String = upgradeReq.requestPath
+    override fun ip(): String = session.remoteAddress.toString()
 
     fun header(header: String): String? = upgradeCtx.header(header)
-    fun headerMap(): Map<String, String> = upgradeCtx.headerMap()
+    override fun headerMap(): Map<String, String> = upgradeCtx.headerMap()
 
     fun cookie(name: String) = upgradeCtx.cookie(name)
     fun cookieMap(): Map<String, String> = upgradeCtx.cookieMap()

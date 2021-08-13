@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.BaseContext
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.validation.BodyValidator
@@ -32,7 +33,11 @@ import javax.servlet.http.HttpServletResponse
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
 // don't suppress warnings, since annotated classes are ignored by dokka (yeah...)
-open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, internal val appAttributes: Map<String, Any> = mapOf()) {
+open class Context(
+    @JvmField val req: HttpServletRequest,
+    @JvmField val res: HttpServletResponse,
+    internal val appAttributes: Map<String, Any> = mapOf()
+) : BaseContext {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
@@ -228,13 +233,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     inline fun <reified T : Any> headerAsClass(header: String) = headerAsClass(header, T::class.java)
 
     /** Gets a map with all the header keys and values on the request. */
-    fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
+    override fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
 
     /** Gets the request host, or null. */
     fun host(): String? = req.getHeader(Header.HOST)
 
     /** Gets the request ip. */
-    fun ip(): String = req.remoteAddr
+    override fun ip(): String = req.remoteAddr
 
     /** Returns true if request is multipart. */
     fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/") == true
@@ -296,6 +301,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Gets a map of all the attributes in the user session. */
     fun sessionAttributeMap(): Map<String, Any?> = req.session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
+
+    /** Gets the request uri */
+    override fun uri(): String = req.requestURI
 
     /** Gets the request url. */
     fun url(): String = req.requestURL.toString()
