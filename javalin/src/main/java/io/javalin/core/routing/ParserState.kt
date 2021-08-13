@@ -16,7 +16,7 @@ internal fun convertSegment(segment: String, rawPath: String): PathSegment {
         bracketsCount % 2 != 0 -> throw MissingBracketsException(segment, rawPath)
         adjacentViolations.any { it in segment } -> throw WildcardBracketAdjacentException(segment, rawPath)
         segment == "*" -> PathSegment.Wildcard // a wildcard segment
-        bracketsCount == 0 && wildcardCount == 0 -> PathSegment.Normal(segment) // a normal segment, no params or wildcards
+        bracketsCount == 0 && wildcardCount == 0 -> createNormal(segment) // a normal segment, no params or wildcards
         bracketsCount == 2 && segment.isEnclosedBy('{', '}') -> createSlashIgnoringParam(segment.stripEnclosing('{', '}')) // simple path param (no slashes)
         bracketsCount == 2 && segment.isEnclosedBy('<', '>') -> createSlashAcceptingParam(segment.stripEnclosing('<', '>')) // simple path param (slashes)
         else -> parseAsPathSegment(segment, rawPath) // complicated path segment, need to parse
@@ -41,7 +41,7 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 segment,
                 rawPath
             ) // cannot start with a closing delimiter
-            else -> PathSegment.Normal(char.toString()) // the single characters will be merged later
+            else -> createNormal(char.toString()) // the single characters will be merged later
         }
         ParserState.INSIDE_SLASH_IGNORING_BRACKETS -> when (char) {
             '}' -> {
@@ -87,7 +87,7 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 lastAddition == null -> PathSegment.MultipleSegments(listOf(pathSegment))
                 lastAddition is PathSegment.Wildcard && pathSegment is PathSegment.Wildcard -> acc
                 lastAddition is PathSegment.Normal && pathSegment is PathSegment.Normal -> PathSegment.MultipleSegments(
-                    acc.innerSegments.dropLast(1) + PathSegment.Normal(lastAddition.content + pathSegment.content)
+                    acc.innerSegments.dropLast(1) + createNormal(lastAddition.content + pathSegment.content)
                 )
                 else -> PathSegment.MultipleSegments(acc.innerSegments + pathSegment)
             }
