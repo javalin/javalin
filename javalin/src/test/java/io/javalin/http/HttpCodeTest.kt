@@ -19,4 +19,11 @@ class HttpCodeTest {
         assertThat(HttpCode.forStatus(542345)).isNull()
     }
 
+    @Test
+    fun `http code provides formatted implementation of toString() method`() {
+        HttpCode.values().forEach {
+            assertThat("${it.status} ${it.message}").isEqualTo(it.toString())
+        }
+    }
+
 }
