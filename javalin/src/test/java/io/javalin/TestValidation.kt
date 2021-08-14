@@ -312,10 +312,10 @@ class TestValidation {
     fun `error args work`() = TestUtil.test { app, http ->
         app.get("/args") { ctx ->
             ctx.queryParamAsClass<Int>("my-qp")
-                .check({ it > 5 }, ValidationError("OVER_LIMIT", args = mapOf("limit" to 5)))
+                .check({ it <= 5 }, ValidationError("OVER_LIMIT", args = mapOf("limit" to 5)))
                 .get()
         }
-        assertThat(http.get("/args").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
+        assertThat(http.get("/args?my-qp=10").body).isEqualTo("""{"my-qp":[{"message":"OVER_LIMIT","args":{"limit":5},"value":10}]}""")
     }
 
     @Test
