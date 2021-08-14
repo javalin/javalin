@@ -160,10 +160,10 @@ class TestValidation {
             value1 = "Bananas"
         })
 
-        """{"SerializableObject":[{"message":"DESERIALIZATION_FAILED","args":{},"value":"not-json"}]}""".let { expected ->
+        """{"REQUEST_BODY":[{"message":"DESERIALIZATION_FAILED","args":{},"value":"not-json"}]}""".let { expected ->
             assertThat(http.post("/json").body("not-json").asString().body).isEqualTo(expected)
         }
-        """{"SerializableObject":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
+        """{"REQUEST_BODY":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
             assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo(expected)
         }
 
@@ -179,7 +179,7 @@ class TestValidation {
                 .check("named_field", { false }, "NamedFieldCheck3")
                 .get()
         }
-        val expected = """{"SerializableObject":[
+        val expected = """{"REQUEST_BODY":[
             {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}},
             {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue"}}],
             "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")

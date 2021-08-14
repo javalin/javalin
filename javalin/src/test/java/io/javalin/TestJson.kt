@@ -73,7 +73,7 @@ class TestJson {
     fun `mapping invalid json to class can be handle by validator`() = TestUtil.test { app, http ->
         app.get("/") { it.bodyValidator<NonSerializableObject>().get() }
         assertThat(http.get("/").status).isEqualTo(400)
-        assertThat(http.getBody("/")).isEqualTo("""{"NonSerializableObject":[{"message":"DESERIALIZATION_FAILED","args":{},"value":""}]}""")
+        assertThat(http.getBody("/")).isEqualTo("""{"REQUEST_BODY":[{"message":"DESERIALIZATION_FAILED","args":{},"value":""}]}""")
     }
 
     @Test
