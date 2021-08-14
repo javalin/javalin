@@ -52,6 +52,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         req.inputStream.readBytes()
     }
 
+    /** Gets the handler type of the current handler */
+    fun handlerType(): HandlerType = handlerType
+
     /** Gets an attribute from the Javalin instance serving the request */
     fun <T> appAttribute(key: String): T = appAttributes[key] as T
 
@@ -453,7 +456,4 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
     }
 
-    /** Gets the handler type of the current handler */
-    fun handlerType(): HandlerType = handlerType
 }
-
