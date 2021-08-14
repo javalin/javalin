@@ -60,6 +60,9 @@ enum class HttpCode(val status: Int, val message: String) {
     NOT_EXTENDED(510, "Not Extended"),
     NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required");
 
+    override fun toString(): String =
+        "$status $message"
+
     companion object {
         fun forStatus(status: Int) = values().find { it.status == status }
     }
