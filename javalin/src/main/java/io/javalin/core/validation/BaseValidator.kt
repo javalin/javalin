@@ -47,12 +47,12 @@ open class BaseValidator<T>(val stringValue: String?, val clazz: Class<T>, val f
         errors.mapValues { it.value.toList() }.toMap() // make immutable
     }
 
-    fun addRule(fieldName: String, check: Check<T?>, error: String): BaseValidator<T> {
+    protected fun addRule(fieldName: String, check: Check<T?>, error: String): BaseValidator<T> {
         rules.add(Rule(fieldName, check, ValidationError(error)))
         return this
     }
 
-    fun addRule(fieldName: String, check: Check<T?>, error: ValidationError<T>): BaseValidator<T> {
+    protected fun addRule(fieldName: String, check: Check<T?>, error: ValidationError<T>): BaseValidator<T> {
         rules.add(Rule(fieldName, check, error))
         return this
     }
