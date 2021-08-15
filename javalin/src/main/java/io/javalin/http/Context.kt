@@ -88,7 +88,7 @@ open class Context(
     /**
      * Gets the path that was used to match request (also includes before/after paths)
      */
-    fun matchedPath() = matchedPath
+    override fun matchedPath() = matchedPath
 
     /**
      * Gets the endpoint path that was used to match request (null in before, available in endpoint/after)
@@ -175,16 +175,16 @@ open class Context(
      * and a browser GETs /users/123,
      * pathParam("user-id") will return "123"
      */
-    fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
+    override fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
 
     /** Creates a typed [Validator] for the pathParam() value */
-    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key)
+    override fun <T> pathParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key)
 
     /** Reified version of [pathParamAsClass] (Kotlin only) */
     inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
     /** Gets a map of all the [pathParamAsClass] keys and values. */
-    fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
+    override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
 
     /**
      * Checks whether or not basic-auth credentials from the request exists.
@@ -203,13 +203,13 @@ open class Context(
     fun basicAuthCredentials(): BasicAuthCredentials = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle */
-    fun attribute(key: String, value: Any?) = req.setAttribute(key, value)
+    override fun attribute(key: String, value: Any?) = req.setAttribute(key, value)
 
     /** Gets the specified attribute from the request. */
-    fun <T> attribute(key: String): T? = req.getAttribute(key) as? T
+    override fun <T> attribute(key: String): T? = req.getAttribute(key) as? T
 
     /** Gets a map with all the attribute keys and values on the request. */
-    fun attributeMap(): Map<String, Any?> = req.attributeNames.asSequence().associateWith { attribute(it) as Any? }
+    override fun attributeMap(): Map<String, Any?> = req.attributeNames.asSequence().associateWith { attribute(it) as Any? }
 
     /** Gets the request content length. */
     fun contentLength(): Int = req.contentLength
@@ -218,13 +218,13 @@ open class Context(
     fun contentType(): String? = req.contentType
 
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String): String? = req.cookies?.find { name == it.name }?.value
+    override fun cookie(name: String): String? = req.cookies?.find { name == it.name }?.value
 
     /** Gets a map with all the cookie keys and values on the request. */
-    fun cookieMap(): Map<String, String> = req.cookies?.associate { it.name to it.value } ?: emptyMap()
+    override fun cookieMap(): Map<String, String> = req.cookies?.associate { it.name to it.value } ?: emptyMap()
 
     /** Gets a request header by name, or null. */
-    fun header(header: String): String? = req.getHeader(header)
+    override fun header(header: String): String? = req.getHeader(header)
 
     /** Creates a typed [Validator] for the header() value */
     fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header)
@@ -260,16 +260,16 @@ open class Context(
     fun protocol(): String = req.protocol
 
     /** Gets a query param if it exists, else null */
-    fun queryParam(key: String): String? = queryParams(key).firstOrNull()
+    override fun queryParam(key: String): String? = queryParams(key).firstOrNull()
 
     /** Creates a typed [Validator] for the queryParam() value */
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, queryParam(key), key)
+    override fun <T> queryParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, queryParam(key), key)
 
     /** Reified version of [queryParamAsClass] (Kotlin only) */
     inline fun <reified T : Any> queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
 
     /** Gets a list of query params for the specified key, or empty list. */
-    fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
+    override fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
     private val queryParams by lazy {
@@ -277,10 +277,10 @@ open class Context(
     }
 
     /** Gets a map with all the query param keys and values. */
-    fun queryParamMap(): Map<String, List<String>> = queryParams
+    override fun queryParamMap(): Map<String, List<String>> = queryParams
 
     /** Gets the request query string, or null. */
-    fun queryString(): String? = req.queryString
+    override fun queryString(): String? = req.queryString
 
     /** Gets the request scheme. */
     fun scheme(): String = req.scheme
@@ -289,7 +289,7 @@ open class Context(
     fun sessionAttribute(key: String, value: Any?) = req.session.setAttribute(key, value)
 
     /** Gets specified attribute from the user session, or null. */
-    fun <T> sessionAttribute(key: String): T? = req.session.getAttribute(key) as? T
+    override fun <T> sessionAttribute(key: String): T? = req.session.getAttribute(key) as? T
 
     fun <T> consumeSessionAttribute(key: String) = sessionAttribute<T?>(key).also { this.sessionAttribute(key, null) }
 
@@ -300,7 +300,7 @@ open class Context(
     fun <T> cachedSessionAttribute(key: String): T? = ContextUtil.getCachedRequestAttributeOrSessionAttribute(key, req)
 
     /** Gets a map of all the attributes in the user session. */
-    fun sessionAttributeMap(): Map<String, Any?> = req.session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
+    override fun sessionAttributeMap(): Map<String, Any?> = req.session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
 
     /** Gets the request uri */
     override fun uri(): String = req.requestURI

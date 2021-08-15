@@ -27,40 +27,40 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
     internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
-    fun matchedPath() = upgradeCtx.matchedPath
+    override fun matchedPath() = upgradeCtx.matchedPath
 
     fun send(message: Any) = send(upgradeCtx.jsonMapper().toJsonString(message))
     fun send(message: String) = session.remote.sendStringByFuture(message)
     fun send(message: ByteBuffer) = session.remote.sendBytesByFuture(message)
 
-    fun queryString(): String? = upgradeCtx.queryString()
-    fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
-    fun queryParams(key: String): List<String> = upgradeCtx.queryParams(key)
-    fun queryParam(key: String): String? = upgradeCtx.queryParam(key)
-    fun <T> queryParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.queryParamAsClass(key, clazz)
+    override fun queryString(): String? = upgradeCtx.queryString()
+    override fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
+    override fun queryParams(key: String): List<String> = upgradeCtx.queryParams(key)
+    override fun queryParam(key: String): String? = upgradeCtx.queryParam(key)
+    override fun <T> queryParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.queryParamAsClass(key, clazz)
     inline fun <reified T : Any> queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
 
-    fun pathParamMap(): Map<String, String> = upgradeCtx.pathParamMap()
-    fun pathParam(key: String): String = upgradeCtx.pathParam(key)
-    fun <T> pathParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.pathParamAsClass(key, clazz)
+    override fun pathParamMap(): Map<String, String> = upgradeCtx.pathParamMap()
+    override fun pathParam(key: String): String = upgradeCtx.pathParam(key)
+    override fun <T> pathParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.pathParamAsClass(key, clazz)
     inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
     fun host(): String = upgradeReq.host // why can't we get this from upgradeCtx?
     override fun uri(): String = upgradeReq.requestPath
     override fun ip(): String = session.remoteAddress.toString()
 
-    fun header(header: String): String? = upgradeCtx.header(header)
+    override fun header(header: String): String? = upgradeCtx.header(header)
     override fun headerMap(): Map<String, String> = upgradeCtx.headerMap()
 
-    fun cookie(name: String) = upgradeCtx.cookie(name)
-    fun cookieMap(): Map<String, String> = upgradeCtx.cookieMap()
+    override fun cookie(name: String): String? = upgradeCtx.cookie(name)
+    override fun cookieMap(): Map<String, String> = upgradeCtx.cookieMap()
 
-    fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
-    fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
-    fun attributeMap(): Map<String, Any?> = upgradeCtx.attributeMap()
+    override fun attribute(key: String, value: Any?) = upgradeCtx.attribute(key, value)
+    override fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
+    override fun attributeMap(): Map<String, Any?> = upgradeCtx.attributeMap()
 
-    fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
-    fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
+    override fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
+    override fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
 
     override fun equals(other: Any?) = session == (other as WsContext).session
     override fun hashCode() = session.hashCode()
