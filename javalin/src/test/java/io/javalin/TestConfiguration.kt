@@ -41,11 +41,11 @@ class TestConfiguration {
             it.enableWebjars()
             it.enforceSsl = true
             it.prefer405over404 = false
-            it.requestLogger { _, _ -> }
+            it.requestLogger { ctx, timeInMs -> }
             it.sessionHandler { SessionHandler() }
             // WsServlet
-            it.wsFactoryConfig { }
-            it.wsLogger { }
+            it.wsFactoryConfig { factory -> }
+            it.wsLogger { ws ->  }
             // Server
             it.server {
                 Server()
