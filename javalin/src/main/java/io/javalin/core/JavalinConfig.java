@@ -34,6 +34,7 @@ import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -64,7 +65,7 @@ public class JavalinConfig {
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
     public static class Inner {
-        @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new HashMap<>();
+        @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new LinkedHashMap<>();
         @NotNull public Map<String, Object> appAttributes = new HashMap<>();
         @Nullable public RequestLogger requestLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
