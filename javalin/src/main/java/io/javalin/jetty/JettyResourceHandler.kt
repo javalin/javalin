@@ -78,7 +78,7 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
         val aliasResource by lazy { baseResource!!.addPath(URIUtil.canonicalPath(path)) }
         return when {
             config.directory == "META-INF/resources/webjars" ->
-                Resource.newClassPathResource("META-INF/resources$path")
+                Resource.newClassPathResource("META-INF/resources$path") ?: EmptyResource.INSTANCE
             config.aliasCheck != null && aliasResource.isAlias ->
                 if (config.aliasCheck?.check(path, aliasResource) == true) aliasResource else throw AccessDeniedException("Failed alias check")
             config.hostedPath == "/" -> super.getResource(path) // same as regular ResourceHandler
