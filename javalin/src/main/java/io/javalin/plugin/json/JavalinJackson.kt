@@ -12,13 +12,6 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import java.io.InputStream
 
-private fun defaultMapper(): ObjectMapper = try {
-    val className = OptionalDependency.JACKSON_KT.testClass
-    ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
-} catch (e: ClassNotFoundException) {
-    ObjectMapper()
-}
-
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
     override fun toJsonString(obj: Any): String {
@@ -55,6 +48,15 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
             Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
         }
         objectMapper = objectMapper ?: defaultMapper()
+    }
+
+    companion object {
+        fun defaultMapper(): ObjectMapper = try {
+            val className = OptionalDependency.JACKSON_KT.testClass
+            ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
+        } catch (e: ClassNotFoundException) {
+            ObjectMapper()
+        }
     }
 
 }
