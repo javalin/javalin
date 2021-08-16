@@ -35,6 +35,13 @@ class TestRouting {
     }
 
     @Test
+    fun `percentage anywhere but end of path throws`() {
+        assertThatExceptionOfType(IllegalArgumentException::class.java)
+            .isThrownBy { Javalin.create().get("/te%st") {} }
+            .withMessageStartingWith("Path '/te%st' invalid - Path can only contain one '%', and it must be the last character")
+    }
+
+    @Test
     fun `wildcard first works`() = TestUtil.test { app, http ->
         app.get("/*/test") { it.result("!") }
         assertThat(http.getBody("/en/test")).isEqualTo("!")
@@ -109,8 +116,8 @@ class TestRouting {
     }
 
     @Test
-    fun `double star does not consume text`() = TestUtil.test { app, http ->
-        app.get("/{name}**") { ctx -> ctx.result(ctx.pathParam("name")) }
+    fun `percentage operator does not consume text`() = TestUtil.test { app, http ->
+        app.get("/{name}%") { ctx -> ctx.result(ctx.pathParam("name")) }
         assertThat(http.getBody("/text")).isEqualTo("text")
     }
 
@@ -173,7 +180,7 @@ class TestRouting {
         app.get("/p/test") { it.result("GET") }
         assertThat(http.getBody("/p")).isEqualTo("GET")
         assertThat(http.getBody("/p/test")).isEqualTo("GET")
-        app.after("/p**") { it.result((it.resultString() ?: "") + "AFTER") }
+        app.after("/p%") { it.result((it.resultString() ?: "") + "AFTER") }
         assertThat(http.getBody("/p")).isEqualTo("GETAFTER")
         assertThat(http.getBody("/p/test")).isEqualTo("GETAFTER")
     }
@@ -184,7 +191,7 @@ class TestRouting {
         app.get("/{pp}/test") { it.result(it.resultString() + it.pathParam("pp")) }
         assertThat(http.getBody("/123")).isEqualTo("null123")
         assertThat(http.getBody("/123/test")).isEqualTo("null123")
-        app.before("/{pp}**") { it.result("BEFORE") }
+        app.before("/{pp}%") { it.result("BEFORE") }
         assertThat(http.getBody("/123")).isEqualTo("BEFORE123")
         assertThat(http.getBody("/123/test")).isEqualTo("BEFORE123")
     }
@@ -214,12 +221,12 @@ class TestRouting {
     @Test
     fun `proposal works as expected`() = TestUtil.test { app, http ->
         app.get("/a-*") { ctx -> ctx.result("A") }
-        app.get("/b-**") { ctx -> ctx.result("B") }
+        app.get("/b-%") { ctx -> ctx.result("B") }
         app.get("/c-<param>") { ctx -> ctx.result("C" + ctx.pathParam("param")) }
         app.get("/d-{param}") { ctx -> ctx.result("D" + ctx.pathParam("param")) }
         app.get("/e-<param>-end") { ctx -> ctx.result("E" + ctx.pathParam("param")) }
         app.get("/f-{param}-end") { ctx -> ctx.result("F" + ctx.pathParam("param")) }
-        app.get("/g-***") { ctx -> ctx.result("G") }
+        app.get("/g-*") { ctx -> ctx.result("G") }
 
         proposalAssertions200(http)
         nonMatchingAssertions(http)

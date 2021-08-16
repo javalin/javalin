@@ -10,10 +10,14 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         if (rawPath.contains(":")) {
             throw IllegalArgumentException("Path '$rawPath' invalid - Javalin 4 switched from ':param' to '{param}'.")
         }
+        val numPercentage = rawPath.count { it == '%' }
+        if (numPercentage > 1 || (numPercentage == 1 && !rawPath.endsWith("%"))) {
+            throw IllegalArgumentException("Path '$rawPath' invalid - Path can only contain one '%', and it must be the last character")
+        }
     }
 
-    private val matchEverySubPath: Boolean = rawPath.endsWith("**")
-    private val path: String = rawPath.removeSuffix("**")
+    private val matchPathAndEverySubPath: Boolean = rawPath.endsWith("%")
+    private val path: String = rawPath.removeSuffix("%")
 
     val segments: List<PathSegment> = path.split("/")
         .filter { it.isNotEmpty() }
@@ -33,9 +37,9 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         else -> ""
     }
 
-    private val matchRegex = constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asRegexString() }
+    private val matchRegex = constructRegexList(matchPathAndEverySubPath, segments, regexSuffix) { it.asRegexString() }
     private val pathParamRegex =
-        constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
+        constructRegexList(matchPathAndEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
 
     fun matches(url: String): Boolean = matchRegex.any { url matches it }
 
