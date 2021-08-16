@@ -6,7 +6,7 @@
 
 package io.javalin.http
 
-import io.javalin.BaseContext
+import io.javalin.core.RequestContext
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.validation.BodyValidator
@@ -37,7 +37,7 @@ open class Context(
     @JvmField val req: HttpServletRequest,
     @JvmField val res: HttpServletResponse,
     internal val appAttributes: Map<String, Any> = mapOf()
-) : BaseContext {
+) : RequestContext {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false

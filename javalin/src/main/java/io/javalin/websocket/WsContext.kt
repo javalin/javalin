@@ -6,7 +6,7 @@
 
 package io.javalin.websocket
 
-import io.javalin.BaseContext
+import io.javalin.core.RequestContext
 import io.javalin.http.Context
 import io.javalin.jetty.upgradeContextKey
 import io.javalin.jetty.upgradeSessionAttrsKey
@@ -21,7 +21,7 @@ import java.nio.ByteBuffer
  * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-abstract class WsContext(val sessionId: String, @JvmField val session: Session) : BaseContext{
+abstract class WsContext(val sessionId: String, @JvmField val session: Session) : RequestContext {
 
     internal val upgradeReq by lazy { session.upgradeRequest as ServletUpgradeRequest }
     internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }

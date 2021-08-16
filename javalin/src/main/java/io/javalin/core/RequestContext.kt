@@ -1,9 +1,9 @@
-package io.javalin
+package io.javalin.core
 
 import io.javalin.core.validation.Validator
 
 /** Base representation of context and shared between them properties */
-interface BaseContext {
+interface RequestContext {
 
     /** Sets an attribute on the request. Attributes are available to other handlers in the request lifecycle */
     fun attribute(key: String, value: Any?)
