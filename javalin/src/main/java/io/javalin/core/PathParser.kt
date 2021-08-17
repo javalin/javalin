@@ -10,13 +10,9 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         if (rawPath.contains(":")) {
             throw IllegalArgumentException("Path '$rawPath' invalid - Javalin 4 switched from ':param' to '{param}'.")
         }
-        val numPercentage = rawPath.count { it == '%' }
-        if (numPercentage > 1 || (numPercentage == 1 && !rawPath.endsWith("%"))) {
-            throw IllegalArgumentException("Path '$rawPath' invalid - Path can only contain one '%', and it must be the last character")
-        }
     }
 
-    private val matchPathAndEverySubPath: Boolean = rawPath.endsWith("%")
+    private val matchPathAndEverySubPath: Boolean = rawPath.endsWith(">%") || rawPath.endsWith("}%")
     private val path: String = rawPath.removeSuffix("%")
 
     val segments: List<PathSegment> = path.split("/")
