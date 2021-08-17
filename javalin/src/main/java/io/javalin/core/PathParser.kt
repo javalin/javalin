@@ -1,8 +1,12 @@
 package io.javalin.core
 
-import io.javalin.core.routing.*
+import io.javalin.core.routing.ParameterNamesNotUniqueException
+import io.javalin.core.routing.PathSegment
+import io.javalin.core.routing.constructRegexList
+import io.javalin.core.routing.convertSegment
+import io.javalin.core.routing.pathParamNames
+import io.javalin.core.routing.values
 import io.javalin.http.util.ContextUtil
-import java.lang.IllegalArgumentException
 
 class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
 
@@ -12,8 +16,8 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         }
     }
 
-    private val matchEverySubPath: Boolean = rawPath.endsWith("**")
-    private val path: String = rawPath.removeSuffix("**")
+    private val matchPathAndEverySubPath: Boolean = rawPath.endsWith(">*") || rawPath.endsWith("}*")
+    private val path: String = if (matchPathAndEverySubPath) rawPath.removeSuffix("*") else rawPath
 
     val segments: List<PathSegment> = path.split("/")
         .filter { it.isNotEmpty() }
@@ -33,9 +37,9 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         else -> ""
     }
 
-    private val matchRegex = constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asRegexString() }
+    private val matchRegex = constructRegexList(matchPathAndEverySubPath, segments, regexSuffix) { it.asRegexString() }
     private val pathParamRegex =
-        constructRegexList(matchEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
+        constructRegexList(matchPathAndEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
 
     fun matches(url: String): Boolean = matchRegex.any { url matches it }
 
