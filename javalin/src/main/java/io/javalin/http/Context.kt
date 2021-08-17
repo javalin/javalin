@@ -380,6 +380,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return this
     }
 
+    /** Sets response content type to specified [ContentType] value. */
+    fun contentType(contentType: ContentType): Context =
+        contentType(contentType.mimeType)
+
     /** Sets response header by name and value. */
     fun header(name: String, value: String): Context {
         res.setHeader(name, value)
