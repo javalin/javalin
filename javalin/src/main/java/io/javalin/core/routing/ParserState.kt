@@ -7,7 +7,7 @@ private enum class ParserState {
 }
 
 private val allDelimiters = setOf('{', '}', '<','>')
-private val adjacentViolations = listOf("*{", "*<", "}*", ">*")
+private val adjacentViolations = listOf("*{", "*<")
 
 internal fun convertSegment(segment: String, rawPath: String): PathSegment {
     val bracketsCount by lazy { segment.count { it in allDelimiters } }

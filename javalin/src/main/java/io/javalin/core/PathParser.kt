@@ -1,8 +1,12 @@
 package io.javalin.core
 
-import io.javalin.core.routing.*
+import io.javalin.core.routing.ParameterNamesNotUniqueException
+import io.javalin.core.routing.PathSegment
+import io.javalin.core.routing.constructRegexList
+import io.javalin.core.routing.convertSegment
+import io.javalin.core.routing.pathParamNames
+import io.javalin.core.routing.values
 import io.javalin.http.util.ContextUtil
-import java.lang.IllegalArgumentException
 
 class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
 
@@ -12,8 +16,8 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
         }
     }
 
-    private val matchPathAndEverySubPath: Boolean = rawPath.endsWith(">%") || rawPath.endsWith("}%")
-    private val path: String = rawPath.removeSuffix("%")
+    private val matchPathAndEverySubPath: Boolean = rawPath.endsWith(">*") || rawPath.endsWith("}*")
+    private val path: String = if (matchPathAndEverySubPath) rawPath.removeSuffix("*") else rawPath
 
     val segments: List<PathSegment> = path.split("/")
         .filter { it.isNotEmpty() }

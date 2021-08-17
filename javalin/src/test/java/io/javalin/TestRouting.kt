@@ -160,7 +160,7 @@ class TestRouting {
 
     @Test
     fun `percentage operator does not consume text`() = TestUtil.test { app, http ->
-        app.get("/{name}%") { ctx -> ctx.result(ctx.pathParam("name")) }
+        app.get("/{name}*") { ctx -> ctx.result(ctx.pathParam("name")) }
         assertThat(http.getBody("/text")).isEqualTo("text")
         assertThat(http.getBody("/text/two")).isEqualTo("text")
     }
@@ -225,19 +225,19 @@ class TestRouting {
     }
 
     @Test
-    fun `non sub-path pct wildcard works for path-params`() = TestUtil.test { app, http ->
+    fun `non sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
         app.get("/{pp}-test") { it.result("2") }.also { assertThat(http.getBody("/p-test")).isEqualTo("2") }
         app.get("/{pp}") { it.result("1") }.also { assertThat(http.getBody("/p")).isEqualTo("1") }
-        app.after("/{pp}%") { it.result("${it.resultString()}AFTER") }.also {
+        app.after("/{pp}*") { it.result("${it.resultString()}AFTER") }.also {
             assertThat(http.getBody("/p")).isEqualTo("1AFTER")
             assertThat(http.getBody("/p-test")).isEqualTo("2AFTER")
         }
     }
 
     @Test
-    fun `sub-path pct wildcard works for path-params`() = TestUtil.test { app, http ->
+    fun `sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
         app.routes {
-            after("/partners/{pp}%") { it.result("${it.resultString()} - after") }
+            after("/partners/{pp}*") { it.result("${it.resultString()} - after") }
             path("/partners/{pp}") {
                 get { it.result("root") }
                 get("/api") { it.result("api") }
