@@ -667,6 +667,15 @@
 
     <profiles>
         <profile>
+            <id>disable-java8-doclint</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+                <doclint>none</doclint>
+            </properties>
+        </profile>
+        <profile>
             <id>sonatype-oss-release</id>
             <build>
                 <plugins>
