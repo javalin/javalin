@@ -22,6 +22,8 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
+import io.javalin.http.ContentType.Companion.JSON
+import io.javalin.http.ContentType.IMAGE_PNG
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.HttpMethod
@@ -205,10 +207,10 @@ fun buildComplexExample(options: OpenApiOptions): Javalin {
             it.description = "body description"
             it.required = true
         }
-        .body<User>("application/json")
+        .body<User>(JSON)
         .body<User>("application/xml")
         .bodyAsBytes()
-        .bodyAsBytes("image/png")
+        .bodyAsBytes(IMAGE_PNG.mimeType)
     app.put("/user", documented(putUserDocumentation) {
         val userString = it.body()
         val user = it.bodyAsClass(User::class.java)

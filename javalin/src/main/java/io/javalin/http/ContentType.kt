@@ -67,6 +67,7 @@ enum class ContentType(
         /* Compile time common constants - useful for annotations & as raw string values */
 
         const val PLAIN = "text/plain"
+        const val CSS = "text/css"
         const val HTML = "text/html"
         const val XML = "text/xml"
         const val OCTET_STREAM = "application/octet-stream"

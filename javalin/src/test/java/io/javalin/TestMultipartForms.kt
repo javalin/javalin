@@ -6,6 +6,8 @@
 
 package io.javalin
 
+import io.javalin.http.ContentType
+import io.javalin.http.ContentType.Companion.OCTET_STREAM
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
@@ -57,7 +59,7 @@ class TestMultipartForms {
         val uploadInfo = JavalinJackson().fromJsonString(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
-        assertThat(uploadInfo.contentType).isEqualTo("application/octet-stream")
+        assertThat(uploadInfo.contentType).isEqualTo(OCTET_STREAM)
         assertThat(uploadInfo.extension).isEqualTo(".mp3")
     }
 
@@ -69,12 +71,12 @@ class TestMultipartForms {
         }
         val uploadFile = File("src/test/resources/upload-test/image.png")
         val response = http.post("/test-upload")
-                .field("upload", uploadFile, "image/png")
+                .field("upload", uploadFile, ContentType.IMAGE_PNG.mimeType)
                 .asString()
         val uploadInfo = JavalinJackson().fromJsonString(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
-        assertThat(uploadInfo.contentType).isEqualTo("image/png")
+        assertThat(uploadInfo.contentType).isEqualTo(ContentType.IMAGE_PNG.mimeType)
         assertThat(uploadInfo.extension).isEqualTo(".png")
         assertThat(uploadInfo.size).isEqualTo(6690L)
     }
@@ -118,7 +120,7 @@ class TestMultipartForms {
         app.post("/test-upload") { ctx -> ctx.result(ctx.uploadedFiles().joinToString("\n")) }
 
         val response = http.post("/test-upload")
-                .header("content-type", "plain/text")
+                .header("content-type", ContentType.PLAIN)
                 .body("")
                 .asString()
 
@@ -199,7 +201,7 @@ class TestMultipartForms {
                         MultipartBody.Builder()
                                 .setType(MultipartBody.FORM)
                                 .addFormDataPart("prefix", prefix)
-                                .addFormDataPart("upload", tempFile.name, tempFile.asRequestBody("text/plain".toMediaTypeOrNull()))
+                                .addFormDataPart("upload", tempFile.name, tempFile.asRequestBody(ContentType.PLAIN.toMediaTypeOrNull()))
                                 .build()
                 ).build()
         ).execute().body!!.string()

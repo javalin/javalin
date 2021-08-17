@@ -10,6 +10,7 @@ import com.mashape.unirest.http.Unirest
 import io.javalin.Javalin
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
+import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
@@ -73,7 +74,7 @@ class TestSinglePageMode {
     @Test
     fun `SinglePageHandler doesn't affect static files - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
         assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains("application/javascript")
-        assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE)).contains("text/css")
+        assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
         assertThat(http.htmlGet("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status).isEqualTo(200)
     }
 
@@ -136,7 +137,7 @@ class TestSinglePageMode {
         val filePath = "src/test/external/my-special-file.html"
         val file = File(filePath).apply { createNewFile() }.apply { writeText("OLD FILE") }
         val app = Javalin.create { it.addSinglePageRoot("/", filePath, Location.EXTERNAL) }.start(0)
-        fun getSpaPage() = Unirest.get("http://localhost:${app.port()}/").header(Header.ACCEPT, "text/html").asString().body
+        fun getSpaPage() = Unirest.get("http://localhost:${app.port()}/").header(Header.ACCEPT, ContentType.HTML).asString().body
         assertThat(getSpaPage()).contains("OLD FILE")
         file.writeText("NEW FILE")
         assertThat(getSpaPage()).contains("NEW FILE")

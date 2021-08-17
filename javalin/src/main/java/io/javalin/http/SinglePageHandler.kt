@@ -44,7 +44,7 @@ class SinglePageHandler {
 
     fun handle(ctx: Context): Boolean {
         val accept = ctx.header(Header.ACCEPT) ?: ""
-        if ("text/html" !in accept && "*/*" !in accept && accept != "") return false
+        if (ContentType.HTML !in accept && "*/*" !in accept && accept != "") return false
         pathPageMap.findByPath(ctx.path())?.let { page ->
             ctx.html(page.getHtml(reRead = ctx.isLocalhost()))
             return true

@@ -22,6 +22,7 @@ import io.javalin.core.util.Header;
 import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.LogUtil;
+import io.javalin.http.ContentType;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
@@ -56,7 +57,7 @@ public class JavalinConfig {
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
     public boolean ignoreTrailingSlashes = true;
-    @NotNull public String defaultContentType = "text/plain";
+    @NotNull public String defaultContentType = ContentType.PLAIN;
     @NotNull public String contextPath = "/";
     public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests
     @NotNull public Long asyncRequestTimeout = 0L;

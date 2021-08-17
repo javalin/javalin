@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.http.ContentType.Companion.HTML
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.swagger.v3.oas.models.Components
@@ -227,7 +228,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun jsonArray(status: String, returnType: Class<*>, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val content = listOf(DocumentedContent(returnType, true, "application/json"))
+        val content = listOf(DocumentedContent(returnType, true, ContentType.JSON))
         val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }
@@ -240,7 +241,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun json(status: String, returnType: Class<*>, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val content = listOf(DocumentedContent(returnType, false, "application/json"))
+        val content = listOf(DocumentedContent(returnType, false, ContentType.JSON))
         val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }
@@ -252,7 +253,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun html(status: String, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val content = listOf(DocumentedContent(String::class.java, false, "text/html"))
+        val content = listOf(DocumentedContent(String::class.java, false, HTML))
         val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }

@@ -10,6 +10,8 @@ import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.validation.BodyValidator
 import io.javalin.core.validation.Validator
+import io.javalin.http.ContentType.APPLICATION_JSON
+import io.javalin.http.ContentType.TEXT_HTML
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
@@ -436,19 +438,19 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Sets context result to specified html string and sets content-type to text/html. */
-    fun html(html: String): Context = contentType("text/html").result(html)
+    fun html(html: String): Context = contentType(TEXT_HTML).result(html)
 
     /**
      * Serializes object to a JSON-string using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun json(obj: Any): Context = result(jsonMapper().toJsonString(obj)).contentType("application/json")
+    fun json(obj: Any): Context = result(jsonMapper().toJsonString(obj)).contentType(APPLICATION_JSON)
 
     /**
      * Serializes object to a JSON-stream using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun jsonStream(obj: Any): Context = result(jsonMapper().toJsonStream(obj)).contentType("application/json")
+    fun jsonStream(obj: Any): Context = result(jsonMapper().toJsonStream(obj)).contentType(APPLICATION_JSON)
 
     /**
      * Renders a file with specified values and sets it as the context result.

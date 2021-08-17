@@ -9,6 +9,11 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
+import io.javalin.http.ContentType
+import io.javalin.http.ContentType.Companion
+import io.javalin.http.ContentType.Companion.HTML
+import io.javalin.http.ContentType.Companion.JSON
+import io.javalin.http.ContentType.Companion.PLAIN
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -44,7 +49,7 @@ class TestEncoding {
     fun `URLEncoded query-params work ISO-8859-1`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
         val encoded = URLEncoder.encode("æøå", "ISO-8859-1")
-        val response = Unirest.get(http.origin + "/?qp=$encoded").header("Content-Type", "text/plain; charset=ISO-8859-1").asString()
+        val response = Unirest.get(http.origin + "/?qp=$encoded").header("Content-Type", "$PLAIN; charset=ISO-8859-1").asString()
         assertThat(response.body).isEqualTo("æøå")
     }
 
@@ -63,35 +68,35 @@ class TestEncoding {
         app.get("/text") { ctx -> ctx.result("суп из капусты") }
         app.get("/json") { ctx -> ctx.json("白菜湯") }
         app.get("/html") { ctx -> ctx.html("kålsuppe") }
-        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/plain")
-        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
-        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/html")
+        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(PLAIN)
+        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(JSON)
+        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(HTML)
         assertThat(http.getBody("/text")).isEqualTo("суп из капусты")
         assertThat(http.getBody("/json")).isEqualTo("白菜湯")
         assertThat(http.getBody("/html")).isEqualTo("kålsuppe")
     }
 
     @Test
-    fun `setting a default content-type works`() = TestUtil.test(Javalin.create { it.defaultContentType = "application/json" }) { app, http ->
+    fun `setting a default content-type works`() = TestUtil.test(Javalin.create { it.defaultContentType = JSON }) { app, http ->
         app.get("/default") { ctx -> ctx.result("not json") }
-        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains("application/json")
+        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains(JSON)
     }
 
     @Test
-    fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create { it.defaultContentType = "application/json" }) { app, http ->
+    fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create { it.defaultContentType = JSON }) { app, http ->
         app.get("/override") { ctx ->
             ctx.res.characterEncoding = "utf-8"
-            ctx.res.contentType = "text/html"
+            ctx.res.contentType = HTML
         }
         assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("utf-8")
-        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
+        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains(HTML)
     }
 
     @Test
     fun `URLEncoded form-params work Windows-1252`() = TestUtil.test { app, http ->
         app.post("/") { it.result(it.formParam("fp")!!) }
         val response = Unirest.post(http.origin)
-            .header(Header.CONTENT_TYPE, "text/plain; charset=Windows-1252")
+            .header(Header.CONTENT_TYPE, "$PLAIN; charset=Windows-1252")
             .body("fp=${URLEncoder.encode("æøå", "Windows-1252")}")
             .asString()
         assertThat(response.body).isEqualTo("æøå")
@@ -101,7 +106,7 @@ class TestEncoding {
     fun `URLEncoded form-params work Windows-1252 alt`() = TestUtil.test { app, http ->
         app.post("/") { it.result(it.formParam("fp")!!) }
         val response = Unirest.post(http.origin)
-            .header(Header.CONTENT_ENCODING, "text/plain; charset=Windows-1252")
+            .header(Header.CONTENT_ENCODING, "$PLAIN; charset=Windows-1252")
             .field("fp", "æøå")
             .asString()
         assertThat(response.body).isEqualTo("æøå")

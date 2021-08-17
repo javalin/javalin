@@ -1,6 +1,8 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
+import io.javalin.http.ContentType
+import io.javalin.http.ContentType.Companion
 import io.javalin.plugin.json.jsonMapper
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -52,7 +54,7 @@ class HttpClient(val app: Javalin) {
     }
 
     companion object {
-        private val JSON_TYPE = "application/json".toMediaType()
+        private val JSON_TYPE = ContentType.JSON.toMediaType()
     }
 
     private fun combine(userBuilder: Consumer<Request.Builder>?, utilBuilder: Consumer<Request.Builder>): Request.Builder {

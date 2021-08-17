@@ -8,6 +8,7 @@ package io.javalin.plugin.openapi
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
+import io.javalin.http.ContentType.Companion.XML
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.ContentType
@@ -35,7 +36,7 @@ import org.junit.Test
                     status = "200",
                     content = [
                         OpenApiContent(User::class),
-                        OpenApiContent(User::class, type = "application/xml")
+                        OpenApiContent(User::class, type = XML)
                     ],
                     description = "Request successful")
         ]
@@ -52,7 +53,7 @@ fun getUserHandler(ctx: Context) {
                     status = "200",
                     content = [
                         OpenApiContent(User::class),
-                        OpenApiContent(User::class, type = "application/xml")
+                        OpenApiContent(User::class, type = XML)
                     ],
                     description = "Request successful")
         ]
@@ -139,7 +140,7 @@ fun putFormDataSchemaMultipartHandler(ctx: Context) {
                 content = [
                     OpenApiContent(String::class),
                     OpenApiContent(User::class),
-                    OpenApiContent(User::class, type = "application/xml"),
+                    OpenApiContent(User::class, type = XML),
                     OpenApiContent(ByteArray::class),
                     OpenApiContent(ByteArray::class, type = "image/png")
                 ]
@@ -262,7 +263,7 @@ fun getBodyOneOfHandler(ctx: Context) {
         responses = [
             OpenApiResponse("200", content = [
                 OpenApiContent(from = Address::class),
-                OpenApiContent(from = User::class, type = "application/xml")
+                OpenApiContent(from = User::class, type = XML)
             ]),
             OpenApiResponse("200", content = [
                 OpenApiContent(from = User::class)

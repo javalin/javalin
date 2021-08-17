@@ -10,6 +10,7 @@ package io.javalin
 import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
+import io.javalin.http.ContentType.Companion.PLAIN
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
 import org.apache.commons.io.FileUtils
@@ -140,7 +141,7 @@ class TestResponse {
 
     @Test
     fun `seekable - range works`() = TestUtil.test { app, http ->
-        app.get("/seekable") { ctx -> ctx.seekableStream(getSeekableInput(), "text/plain") }
+        app.get("/seekable") { ctx -> ctx.seekableStream(getSeekableInput(), PLAIN) }
         val response = Unirest.get(http.origin + "/seekable")
                 .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
                 .asString().body
@@ -149,14 +150,14 @@ class TestResponse {
 
     @Test
     fun `seekable - no-range works`() = TestUtil.test { app, http ->
-        app.get("/seekable-2") { ctx -> ctx.seekableStream(getSeekableInput(), "text/plain") }
+        app.get("/seekable-2") { ctx -> ctx.seekableStream(getSeekableInput(), PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-2").asString().body
         assertThat(response.length).isEqualTo(getSeekableInput().available())
     }
 
     @Test
     fun `seekable - overreaching range works`() = TestUtil.test { app, http ->
-        app.get("/seekable-3") { ctx -> ctx.seekableStream(getSeekableInput(), "text/plain") }
+        app.get("/seekable-3") { ctx -> ctx.seekableStream(getSeekableInput(), PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-3")
                 .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
                 .asString().body
@@ -165,7 +166,7 @@ class TestResponse {
 
     @Test
     fun `seekable - file smaller than chunksize works`() = TestUtil.test { app, http ->
-        app.get("/seekable-4") { ctx -> ctx.seekableStream(getSeekableInput(repeats = 50), "text/plain") }
+        app.get("/seekable-4") { ctx -> ctx.seekableStream(getSeekableInput(repeats = 50), PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-4")
                 .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
                 .asString().body
