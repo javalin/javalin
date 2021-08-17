@@ -24,14 +24,14 @@ enum class ContentType(
     /* Image */
 
     IMAGE_ICO("image/vnd.microsoft.icon", true, "ico"),
-    IMAGE_JPEG( "image/jpeg", true, "jpeg"),
+    IMAGE_JPEG("image/jpeg", true, "jpeg"),
     IMAGE_JPG("image/jpg", true, "jpg"),
     IMAGE_PNG("image/png", true, "png"),
-    IMAGE_TIFF( "image/tiff", true, "tiff", "tif"),
+    IMAGE_TIFF("image/tiff", true, "tiff", "tif"),
 
     /* Font */
 
-    FONT_OTF("font/otf", false, "otf",),
+    FONT_OTF("font/otf", false, "otf"),
     FONT_TTF("font/ttf", false, "ttf"),
 
     /* Application */
@@ -51,7 +51,7 @@ enum class ContentType(
     APPLICATION_SH("application/x-sh", true, "sh"),
     APPLICATION_TAR("application/x-tar", false, "tar"),
     APPLICATION_XHTML("application/xhtml+xml", true, "xhtml"),
-    APPLICATION_YAML( "application/yaml", true, "yaml", "yml"),
+    APPLICATION_YAML("application/yaml", true, "yaml", "yml"),
     APPLICATION_ZIP("application/zip", false, "zip"),
     APPLICATION_7Z("application/x-7z-compressed", false, "7z"),
 
