@@ -2,16 +2,17 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
+import io.javalin.http.Cookie
+import io.javalin.http.SameSite
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import javax.servlet.http.Cookie
 
 class TestCookie {
 
     @Test
     fun `cookie set on unspecified path is set to root URL`() = TestUtil.test { app, http ->
-        app.get("/cookie") { it.cookie(Cookie("key", "value").apply { path = "/" }) }
+        app.get("/cookie") { it.cookie(Cookie("key", "value")) }
 
         val setCookieResponse = http.get("/cookie")
         val cookiePath = setCookieResponse.headers.getFirst(Header.SET_COOKIE).split(";")[1].replaceFirst(" ", "")
@@ -21,9 +22,7 @@ class TestCookie {
 
     @Test
     fun `removing cookie without specifying path will remove cookie set to root URL`() = TestUtil.test { app, http ->
-        val cookie = Cookie("key", "value").apply {
-            path = "/"
-        }
+        val cookie = Cookie("key", "value")
         app.get("/cookie") { it.cookie(cookie) }
         app.get("/cookie-remove") { it.removeCookie(cookie.name) }
         val setCookieResponse = http.get("/cookie")
@@ -36,9 +35,7 @@ class TestCookie {
 
     @Test
     fun `removing cookie without specifying path will not remove cookie set to non-root URL`() = TestUtil.test { app, http ->
-        val cookie = Cookie("key", "value").apply {
-            path = "/some-path"
-        }
+        val cookie = Cookie("key", "value", path = "/some-path")
         app.get("/cookie") { it.cookie(cookie) }
         app.get("/cookie-remove") { it.removeCookie(cookie.name) }
         val setCookieResponse = http.get("/cookie")
@@ -91,7 +88,7 @@ class TestCookie {
 
     @Test
     fun `setting a Cookie object works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { ctx -> ctx.cookie(Cookie("Hest", "Hast").apply { maxAge = 7 }) }
+        app.get("/create-cookie") { ctx -> ctx.cookie(Cookie("Hest", "Hast", maxAge = 7)) }
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Hest=Hast")
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Max-Age=7")
     }
@@ -120,6 +117,20 @@ class TestCookie {
         val response = http.get("/create-cookies");
         assertThat(response.headers[Header.SET_COOKIE]!!).contains("MyCookie=B; Path=/")
         assertThat(response.headers[Header.SET_COOKIE]!!.size).isEqualTo(1)
+    }
+
+    @Test
+    fun `can set same-site easily`() = TestUtil.test { app, http ->
+        app.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.STRICT)) }
+        val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
+        assertThat(cookie).isEqualTo("Test=Tast; Path=/; Same-Site=Strict")
+    }
+
+    @Test
+    fun `can set same-site and other properties`() = TestUtil.test { app, http ->
+        app.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.NONE, isHttpOnly = true, domain = "localhost")) }
+        val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
+        assertThat(cookie).isEqualTo("Test=Tast; Path=/; Domain=localhost; HttpOnly; Same-Site=None")
     }
 
     private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {
