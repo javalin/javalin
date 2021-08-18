@@ -120,17 +120,17 @@ class TestCookie {
     }
 
     @Test
-    fun `can set same-site easily`() = TestUtil.test { app, http ->
+    fun `can set samesite easily`() = TestUtil.test { app, http ->
         app.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.STRICT)) }
         val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
-        assertThat(cookie).isEqualTo("Test=Tast; Path=/; Same-Site=Strict")
+        assertThat(cookie).isEqualTo("Test=Tast; Path=/; SameSite=Strict")
     }
 
     @Test
-    fun `can set same-site and other properties`() = TestUtil.test { app, http ->
+    fun `can set samesite and other properties`() = TestUtil.test { app, http ->
         app.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.NONE, isHttpOnly = true, domain = "localhost")) }
         val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
-        assertThat(cookie).isEqualTo("Test=Tast; Path=/; Domain=localhost; HttpOnly; Same-Site=None")
+        assertThat(cookie).isEqualTo("Test=Tast; Path=/; Domain=localhost; HttpOnly; SameSite=None")
     }
 
     private fun cookieIsEffectivelyRemoved(cookie: String, path: String): Boolean {

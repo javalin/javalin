@@ -4,7 +4,7 @@ import io.javalin.core.util.Header
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.Cookie as ServletCookie
 
-const val SAME_SITE = "Same-Site"
+const val SAME_SITE = "SameSite"
 
 enum class SameSite(val value: String) {
     NONE("$SAME_SITE=None"),

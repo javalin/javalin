@@ -100,7 +100,7 @@ class Headers {
         headers[Header.CROSS_ORIGIN_OPENER_POLICY] = policy.name.toHttpHeaderValue()
     }
 
-    // Cross-Origin-Resource-Policy: same-site	| same-origin | cross-origin
+    // Cross-Origin-Resource-Policy: same-site | same-origin | cross-origin
     enum class CrossOriginResourcePolicy {
         SAME_SITE, SAME_ORIGIN, CROSS_ORIGIN;
     }
