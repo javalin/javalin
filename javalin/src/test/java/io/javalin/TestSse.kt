@@ -1,10 +1,10 @@
 package io.javalin
 
 import io.javalin.http.sse.SseClient
+import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import java.util.*
 
 class TestSse {
 
@@ -18,6 +18,18 @@ class TestSse {
         val body = http.sse("/sse").get().body
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: $data")
+    }
+
+    @Test
+    fun `sending input stream works`() = TestUtil.test(shortTimeoutServer()) { app, http ->
+        app.sse("/sse") { it.sendEvent(event, "MY DATA".byteInputStream()) }
+        assertThat(http.sse("/sse").get().body).contains("data: MY DATA")
+    }
+
+    @Test
+    fun `sending json works`() = TestUtil.test(shortTimeoutServer()) { app, http ->
+        app.sse("/sse") { it.sendEvent(event, SerializableObject()) }
+        assertThat(http.sse("/sse").get().body).contains("""data: {"value1":"FirstValue","value2":"SecondValue"}""")
     }
 
     @Test
@@ -68,5 +80,5 @@ class TestSse {
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: " + "my-qp")
     }
-    
+
 }
