@@ -9,6 +9,7 @@ package io.javalin.http.util
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
+import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerEntry
 import io.javalin.http.HandlerType
@@ -63,7 +64,8 @@ object ContextUtil {
         return BasicAuthCredentials(username, password)
     }
 
-    fun acceptsHtml(ctx: Context) = ctx.header(Header.ACCEPT)?.contains("text/html") == true
+    fun acceptsHtml(ctx: Context) =
+        ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true
 
     @JvmStatic
     @JvmOverloads

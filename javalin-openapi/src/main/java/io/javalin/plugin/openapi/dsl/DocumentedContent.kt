@@ -1,5 +1,8 @@
 package io.javalin.plugin.openapi.dsl
 
+import io.javalin.http.ContentType.APPLICATION_JSON
+import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
+import io.javalin.http.ContentType.TEXT_PLAIN
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.external.mediaType
@@ -104,11 +107,11 @@ fun anyOf(vararg content: DocumentedContent) = Composition.AnyOf(content.toList(
  * Try to determine the content type based on the class
  */
 fun Class<*>.guessContentType(): String =
-        when (this) {
-            String::class.java -> "text/plain"
-            ByteArray::class.java -> "application/octet-stream"
-            else -> "application/json"
-        }
+    when (this) {
+        String::class.java -> TEXT_PLAIN
+        ByteArray::class.java -> APPLICATION_OCTET_STREAM
+        else -> APPLICATION_JSON
+    }.mimeType
 
 fun Class<*>.isNonRefType(): Boolean = this in nonRefTypes
 

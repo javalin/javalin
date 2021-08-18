@@ -1,6 +1,7 @@
 package io.javalin
 
 import io.javalin.core.util.Header
+import io.javalin.http.ContentType
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -103,11 +104,11 @@ class TestFuture {
         val contentResponse = http.get("/?has-content")
         assertThat(contentResponse.status).isEqualTo(200)
         assertThat(contentResponse.body).isEqualTo("""some-future-result""")
-        assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
+        assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
         val noContentResponse = http.get("/?no-content")
         assertThat(noContentResponse.status).isEqualTo(204)
         assertThat(noContentResponse.body).isEqualTo(null)
-        assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/plain")
+        assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
     }
 
     private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5} }

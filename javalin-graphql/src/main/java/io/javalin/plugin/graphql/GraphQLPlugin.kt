@@ -18,6 +18,7 @@ class GraphQLPlugin(private val builder: GraphQLPluginBuilder<*>) : Plugin, Plug
 
     override fun apply(app: Javalin) {
         val server = JavalinGraphQLServer.create(builder)
+
         app.get(builder.path) {
             it.contentType("text/html; charset=UTF-8")
                 .result(

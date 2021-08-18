@@ -9,6 +9,7 @@ package io.javalin
 
 import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
+import io.javalin.http.ContentType
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -63,28 +64,28 @@ class TestEncoding {
         app.get("/text") { ctx -> ctx.result("суп из капусты") }
         app.get("/json") { ctx -> ctx.json("白菜湯") }
         app.get("/html") { ctx -> ctx.html("kålsuppe") }
-        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/plain")
-        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
-        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("text/html")
+        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
+        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
+        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.HTML)
         assertThat(http.getBody("/text")).isEqualTo("суп из капусты")
         assertThat(http.getBody("/json")).isEqualTo("白菜湯")
         assertThat(http.getBody("/html")).isEqualTo("kålsuppe")
     }
 
     @Test
-    fun `setting a default content-type works`() = TestUtil.test(Javalin.create { it.defaultContentType = "application/json" }) { app, http ->
+    fun `setting a default content-type works`() = TestUtil.test(Javalin.create { it.defaultContentType = ContentType.JSON }) { app, http ->
         app.get("/default") { ctx -> ctx.result("not json") }
-        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains("application/json")
+        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JSON)
     }
 
     @Test
-    fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create { it.defaultContentType = "application/json" }) { app, http ->
+    fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create { it.defaultContentType = ContentType.JSON }) { app, http ->
         app.get("/override") { ctx ->
             ctx.res.characterEncoding = "utf-8"
-            ctx.res.contentType = "text/html"
+            ctx.res.contentType = ContentType.HTML
         }
         assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("utf-8")
-        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
+        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
     }
 
     @Test

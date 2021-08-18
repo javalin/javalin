@@ -17,14 +17,14 @@ object HttpResponseExceptionMapper {
 
     fun handle(exception: Exception, ctx: Context) {
         val e = unwrap(exception)
-        if (ctx.header(Header.ACCEPT)?.contains("application/json") == true || ctx.res.contentType == "application/json") {
+        if (ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res.contentType == ContentType.JSON) {
             ctx.status(e.status).result("""{
                 |    "title": "${e.message?.jsonEscape()}",
                 |    "status": ${e.status},
                 |    "type": "${getTypeUrl(e).lowercase(Locale.ROOT)}",
                 |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
                 |}""".trimMargin()
-            ).contentType("application/json")
+            ).contentType(ContentType.APPLICATION_JSON)
         } else {
             val result = if (e.details.isEmpty()) "${e.message}" else """
                 |${e.message}

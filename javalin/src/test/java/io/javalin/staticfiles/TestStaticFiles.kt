@@ -10,6 +10,7 @@ package io.javalin.staticfiles
 import io.javalin.Javalin
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
+import io.javalin.http.ContentType
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestLoggingUtil
@@ -133,21 +134,21 @@ class TestStaticFiles {
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
+        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
         assertThat(http.getBody("/html.html")).contains("HTML works")
     }
 
     @Test
     fun `serving JS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/script.js").status).isEqualTo(200)
-        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains("application/javascript")
+        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
         assertThat(http.getBody("/script.js")).contains("JavaScript works")
     }
 
     @Test
     fun `serving CSS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/styles.css").status).isEqualTo(200)
-        assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE)).contains("text/css")
+        assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
         assertThat(http.getBody("/styles.css")).contains("CSS works")
     }
 
@@ -202,16 +203,16 @@ class TestStaticFiles {
     @Test
     fun `content type works in debugmmode`() = TestUtil.test(devLoggingApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
+        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
         assertThat(http.getBody("/html.html")).contains("HTML works")
-        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains("application/javascript")
-        assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE)).contains("text/css")
+        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
+        assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
     }
 
     @Test
     fun `WebJars available if enabled`() = TestUtil.test(Javalin.create { it.enableWebjars() }) { _, http ->
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").status).isEqualTo(200)
-        assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE)).contains("text/css")
+        assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
         assertThat(http.get("/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.css").headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=31622400")
     }
 
@@ -223,7 +224,7 @@ class TestStaticFiles {
     @Test
     fun `Correct content type is returned when a custom filter with a response wrapper is added`() = TestUtil.test(customFilterStaticResourceApp) { _, http ->
         assertThat(http.get("/html.html").status).isEqualTo(200)
-        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains("text/html")
+        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
     }
 
     @Test

@@ -227,7 +227,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun jsonArray(status: String, returnType: Class<*>, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val content = listOf(DocumentedContent(returnType, true, "application/json"))
+        val content = listOf(DocumentedContent(returnType, true, ContentType.JSON))
         val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }
@@ -240,7 +240,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun json(status: String, returnType: Class<*>, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val content = listOf(DocumentedContent(returnType, false, "application/json"))
+        val content = listOf(DocumentedContent(returnType, false, ContentType.JSON))
         val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }

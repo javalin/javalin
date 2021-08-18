@@ -38,8 +38,8 @@ class RouteOverviewRenderer(val app: Javalin) : Handler {
             ]
     )
     override fun handle(ctx: Context) {
-        if (ctx.header(Header.ACCEPT)?.lowercase(Locale.ROOT)?.contains("application/json") == true) {
-            ctx.header("Content-Type", "application/json")
+        if (ctx.header(Header.ACCEPT)?.lowercase(Locale.ROOT)?.contains(ContentType.JSON) == true) {
+            ctx.header("Content-Type", ContentType.JSON)
             ctx.result(RouteOverviewUtil.createJsonOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
         } else {
             ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
