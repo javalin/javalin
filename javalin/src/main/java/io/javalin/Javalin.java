@@ -59,6 +59,7 @@ public class Javalin {
     protected Javalin() {
         this.jettyServer = new JettyServer(_conf);
         this.javalinJettyServlet = new JavalinJettyServlet(_conf, javalinServlet);
+        System.out.println();
     }
 
     public Javalin(JettyServer jettyServer, JavalinJettyServlet jettyServlet) {

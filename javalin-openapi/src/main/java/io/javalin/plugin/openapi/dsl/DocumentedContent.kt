@@ -2,7 +2,6 @@ package io.javalin.plugin.openapi.dsl
 
 import io.javalin.http.ContentType.APPLICATION_JSON
 import io.javalin.http.ContentType.APPLICATION_OCTET_STREAM
-import io.javalin.http.ContentType.Companion.OCTET_STREAM
 import io.javalin.http.ContentType.TEXT_PLAIN
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
@@ -65,7 +64,7 @@ class DocumentedContent @JvmOverloads constructor(
     private val isNotByteArray = if (schema == null) {
         from != ByteArray::class.java
     } else {
-        schema.type == "string" && schema.format == OCTET_STREAM
+        schema.type == "string" && schema.format == "application/octet-stream"
     }
 
     val fromType = when {

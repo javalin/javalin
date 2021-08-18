@@ -10,7 +10,6 @@ import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.ContentType
-import io.javalin.http.ContentType.Companion
 import io.javalin.http.Context
 import io.javalin.http.HandlerEntry
 import io.javalin.http.HandlerType

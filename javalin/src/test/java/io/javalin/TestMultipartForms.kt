@@ -7,7 +7,6 @@
 package io.javalin
 
 import io.javalin.http.ContentType
-import io.javalin.http.ContentType.Companion.OCTET_STREAM
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
@@ -59,7 +58,7 @@ class TestMultipartForms {
         val uploadInfo = JavalinJackson().fromJsonString(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
-        assertThat(uploadInfo.contentType).isEqualTo(OCTET_STREAM)
+        assertThat(uploadInfo.contentType).isEqualTo(ContentType.OCTET_STREAM)
         assertThat(uploadInfo.extension).isEqualTo(".mp3")
     }
 

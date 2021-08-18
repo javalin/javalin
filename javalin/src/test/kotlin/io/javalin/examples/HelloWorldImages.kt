@@ -8,7 +8,7 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 import io.javalin.core.util.JavalinLogger
-import io.javalin.http.ContentType.IMAGE_PNG
+import io.javalin.http.ContentType
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
@@ -33,7 +33,7 @@ fun main() {
         val success = ImageIO.write(image, "png", os)
         val bytes = os.toByteArray()
 
-        ctx.contentType(IMAGE_PNG).result(bytes)
+        ctx.contentType(ContentType.IMAGE_PNG).result(bytes)
     }
 
     JavalinLogger.info("Red square: http://localhost:7070/image/ff0000/width/400/height/400")

@@ -2,7 +2,6 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.http.ContentType
-import io.javalin.http.ContentType.Companion
 import io.javalin.plugin.json.jsonMapper
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient

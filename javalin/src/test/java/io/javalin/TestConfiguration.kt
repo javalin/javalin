@@ -10,7 +10,6 @@ import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.ContentType
-import io.javalin.http.ContentType.Companion
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.metrics.MicrometerPlugin
 import io.javalin.testing.TestUtil

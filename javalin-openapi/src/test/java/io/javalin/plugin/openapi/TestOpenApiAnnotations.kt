@@ -8,7 +8,6 @@ package io.javalin.plugin.openapi
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
-import io.javalin.http.ContentType.Companion.XML
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.ContentType
@@ -23,6 +22,8 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import io.javalin.plugin.openapi.annotations.OpenApiSecurity
 import io.javalin.plugin.openapi.utils.VersionIssuesUtil
 import org.junit.Test
+
+private const val XML = "application/xml"
 
 // region complexExampleWithAnnotationsHandler
 @OpenApi(

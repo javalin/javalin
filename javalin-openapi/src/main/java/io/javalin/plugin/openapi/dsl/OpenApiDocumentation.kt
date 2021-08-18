@@ -1,6 +1,5 @@
 package io.javalin.plugin.openapi.dsl
 
-import io.javalin.http.ContentType.Companion.HTML
 import io.javalin.plugin.openapi.annotations.ComposedType
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.swagger.v3.oas.models.Components
@@ -253,7 +252,7 @@ class OpenApiDocumentation {
 
     @JvmOverloads
     fun html(status: String, openApiUpdater: OpenApiUpdater<ApiResponse>? = null) = apply {
-        val content = listOf(DocumentedContent(String::class.java, false, HTML))
+        val content = listOf(DocumentedContent(String::class.java, false, "text/html"))
         val documentedResponse = DocumentedResponse(status, content)
         result(documentedResponse, openApiUpdater)
     }
