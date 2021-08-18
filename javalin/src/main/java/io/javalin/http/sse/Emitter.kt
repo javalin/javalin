@@ -26,7 +26,7 @@ class Emitter(private var asyncContext: AsyncContext) {
             }
             output.print("event: $event$newline")
             output.print("data: " )
-            data.transferTo(output)
+            data.copyTo(output)
             output.print(newline)
             asyncContext.response.flushBuffer()
         } catch (e: IOException) {
