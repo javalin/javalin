@@ -401,6 +401,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Sets the response status. */
+    fun status(httpCode: HttpCode): Context =
+        status(httpCode.status)
+
+    /** Sets the response status. */
     fun status(statusCode: Int): Context {
         res.status = statusCode
         return this
