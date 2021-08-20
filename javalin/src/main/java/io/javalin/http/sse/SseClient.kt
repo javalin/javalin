@@ -13,7 +13,7 @@ class SseClient(@JvmField val ctx: Context) {
         this.closeCallback = closeCallback
     }
 
-    fun sendEvent(data: String) = sendEvent("message", data)
+    fun sendEvent(data: Any) = sendEvent("message", data)
 
     @JvmOverloads
     fun sendEvent(event: String, data: Any, id: String? = null) {
