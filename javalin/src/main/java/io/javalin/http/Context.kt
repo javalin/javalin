@@ -22,7 +22,6 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
-import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -415,24 +414,18 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Sets a cookie with name, value, and (overloaded) max-age. */
     @JvmOverloads
-    fun cookie(name: String, value: String, maxAge: Int = -1): Context = cookie(Cookie(name, value).apply { setMaxAge(maxAge) })
+    fun cookie(name: String, value: String, maxAge: Int = -1) = cookie(Cookie(name = name, value = value, maxAge= maxAge))
 
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context {
-        cookie.path = cookie.path ?: "/"
-        res.addCookie(cookie) // we rely on this method for formatting the header
-        (res.getHeaders(Header.SET_COOKIE) ?: listOf()).toMutableList().let { cookies -> // mutable list of all cookies
-            cookies.removeIf { it.startsWith("${cookie.name}=") && !it.contains(cookie.value) } // remove old cookie if duplicate name
-            cookies.removeFirst()?.let { res.setHeader(Header.SET_COOKIE, it) } // remove first cookie and use it to clear the header
-            cookies.forEach { res.addHeader(Header.SET_COOKIE, it) } // add all remaining cookies
-        }
+        res.setJavalinCookie(cookie)
         return this
     }
 
     /** Removes cookie specified by name and path (optional). */
     @JvmOverloads
     fun removeCookie(name: String, path: String? = "/"): Context {
-        res.addCookie(Cookie(name, "").apply {
+        res.addCookie(javax.servlet.http.Cookie(name, "").apply {
             this.path = path
             this.maxAge = 0
         })

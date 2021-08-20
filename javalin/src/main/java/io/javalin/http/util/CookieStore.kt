@@ -6,9 +6,9 @@
 
 package io.javalin.http.util
 
+import io.javalin.http.Cookie
 import io.javalin.plugin.json.JsonMapper
 import java.util.*
-import javax.servlet.http.Cookie
 
 @Suppress("UNCHECKED_CAST")
 class CookieStore(val jsonMapper: JsonMapper, cookie: String?) {
@@ -19,7 +19,7 @@ class CookieStore(val jsonMapper: JsonMapper, cookie: String?) {
 
     private val cookieMap = deserialize(cookie)
 
-    fun serializeToCookie() = Cookie(COOKIE_NAME, serialize(cookieMap)).apply { path = "/" }
+    fun serializeToCookie() = Cookie(COOKIE_NAME, serialize(cookieMap))
 
     operator fun <T> get(key: String) = cookieMap[key] as T
 
