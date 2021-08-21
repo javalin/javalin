@@ -192,6 +192,9 @@ object Util {
         }
     }.start()
 
+    @JvmStatic
+    fun getPort(e: Exception) = e.message!!.takeLastWhile { it != ':' }
+
     fun <T : Any?> findByClass(map: Map<Class<out Exception>, T>, exceptionClass: Class<out Exception>): T? = map.getOrElse(exceptionClass) {
         var superclass = exceptionClass.superclass
         while (superclass != null) {
