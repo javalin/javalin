@@ -182,7 +182,7 @@ public class Javalin {
                 stop();// stop if server is default server; otherwise, the caller is responsible to stop
             }
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new RuntimeException("Port already in use. Make sure no other process is using port " + server.getServerPort() + " and try again.", e);
+                throw new RuntimeException("Port already in use. Make sure no other process is using port " + Util.getPort(e) + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
                 throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
             }
