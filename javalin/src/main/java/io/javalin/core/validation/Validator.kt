@@ -8,6 +8,7 @@ package io.javalin.core.validation
 
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.InternalServerErrorResponse
+import org.jetbrains.annotations.NotNull
 
 /**
  * The non-nullable [Validator] uses [Rule] rules, but checks if value is null before calling them.
@@ -23,6 +24,7 @@ open class Validator<T>(stringValue: String?, clazz: Class<T>, fieldName: String
     fun check(check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as Validator<T>
     fun check(check: Check<T>, error: ValidationError<T>) = addRule(fieldName, { check(it!!) }, error) as Validator<T>
 
+    @NotNull // there is a null-check in BaseValidator
     override fun get(): T = super.get()!!
 
     fun getOrDefault(default: T): T = when {
