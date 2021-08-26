@@ -70,7 +70,6 @@ internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
             urlEncodeForJavascript(ctx.jsonMapper().toJsonString(
                     mapOf(
                             "pathParams" to ctx.pathParamMap(),
-                            "queryParams" to ctx.queryParamMap(),
                             "state" to (state ?: stateFunction(ctx))
                     )
             ))
