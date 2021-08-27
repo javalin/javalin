@@ -4,8 +4,9 @@ import io.javalin.http.Handler;
 import io.javalin.plugin.openapi.dsl.DocumentedHandler;
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestDocumentedHandler {
 
@@ -13,11 +14,11 @@ public class TestDocumentedHandler {
     public void testInheritance() {
         final DocumentedHandler defaultHandler = new DocumentedHandler(new OpenApiDocumentation(), ctx -> {
         });
-        assertTrue("actual: " + defaultHandler.toString(), defaultHandler.toString().startsWith("io.javalin.plugin.openapi.dsl.DocumentedHandler"));
+        assertTrue(defaultHandler.toString().startsWith("io.javalin.plugin.openapi.dsl.DocumentedHandler"), "actual: " + defaultHandler.toString());
 
         final DocumentedHandler customHandler = new CustomDocumentedHandler(new OpenApiDocumentation(), ctx -> {
         });
-        assertTrue("actual: " + customHandler.toString(), customHandler.toString().startsWith("io.javalin.plugin.openapi.TestDocumentedHandler$CustomDocumentedHandler"));
+        assertTrue(customHandler.toString().startsWith("io.javalin.plugin.openapi.TestDocumentedHandler$CustomDocumentedHandler"), "actual: " + customHandler.toString());
     }
 
     public static class CustomDocumentedHandler extends DocumentedHandler {

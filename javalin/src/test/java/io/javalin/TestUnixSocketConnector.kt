@@ -7,7 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.unixsocket.UnixSocketConnector
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File

@@ -30,7 +30,7 @@ import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.FilterHolder
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong

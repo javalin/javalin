@@ -4,7 +4,7 @@ import io.javalin.Javalin;
 import io.javalin.core.util.Header;
 import okhttp3.FormBody;
 import okhttp3.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;

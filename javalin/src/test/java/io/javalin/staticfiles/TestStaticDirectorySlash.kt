@@ -12,7 +12,7 @@ import io.javalin.Javalin
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class TestStaticDirectorySlash {
 

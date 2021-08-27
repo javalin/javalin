@@ -17,7 +17,7 @@ import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import javax.servlet.http.HttpSessionEvent
 import javax.servlet.http.HttpSessionListener
 

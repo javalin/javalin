@@ -19,7 +19,7 @@ import io.javalin.core.util.Headers.XFrameOptions
 import io.javalin.core.util.HeadersPlugin
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.time.Duration
 
 class TestHeadersPlugin {

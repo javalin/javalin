@@ -1,26 +1,25 @@
 package io.javalin.performance
 
-import com.carrotsearch.junitbenchmarks.BenchmarkOptions
-import com.carrotsearch.junitbenchmarks.BenchmarkRule
-import com.carrotsearch.junitbenchmarks.Clock
 import io.javalin.core.util.Util
 import io.javalin.http.Handler
 import io.javalin.http.HandlerEntry
 import io.javalin.http.HandlerType
 import io.javalin.http.util.ContextUtil.urlDecode
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import java.util.*
-import kotlin.collections.HashMap
+import org.openjdk.jmh.annotations.Benchmark
+import org.openjdk.jmh.annotations.Fork
+import org.openjdk.jmh.annotations.Measurement
+import org.openjdk.jmh.annotations.OutputTimeUnit
+import org.openjdk.jmh.annotations.Warmup
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 typealias NewHandlerEntry = HandlerEntry
 
-@BenchmarkOptions(callgc = false, benchmarkRounds = 100000, warmupRounds = 500, concurrency = 4, clock = Clock.NANO_TIME)
+@Warmup(iterations = 500)
+@Measurement(iterations = 100000)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Fork(4)
 class RouteMatcherPerformanceTest {
-
-    @get:Rule
-    val benchmarkRun = BenchmarkRule()
 
     data class OldHandlerEntry(val type: HandlerType, val path: String, val handler: Handler)
 
@@ -100,8 +99,7 @@ class RouteMatcherPerformanceTest {
         )
     }
 
-    @Ignore("Manual execution")
-    @Test
+    @Benchmark
     fun testOldMatchingPerformance() {
         testEntries.forEach { requestUri ->
             oldEntries.forEach { entry ->
@@ -110,8 +108,7 @@ class RouteMatcherPerformanceTest {
         }
     }
 
-    @Ignore("Manual execution")
-    @Test
+    @Benchmark
     fun testNewMatchingPerformance() {
         testEntries.forEach { requestUri ->
             newEntries.forEach { entry ->
@@ -120,8 +117,7 @@ class RouteMatcherPerformanceTest {
         }
     }
 
-    @Ignore("Manual execution")
-    @Test
+    @Benchmark
     fun testOldParamAndSplatPerformance() {
         testEntries.forEach { requestUri ->
             oldEntries.forEach { entry ->
@@ -132,8 +128,7 @@ class RouteMatcherPerformanceTest {
         }
     }
 
-    @Ignore("Manual execution")
-    @Test
+    @Benchmark
     fun testNewParamAndSplatPerformance() {
         testEntries.forEach { requestUri ->
             newEntries.forEach { entry ->

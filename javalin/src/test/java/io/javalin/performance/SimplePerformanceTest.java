@@ -6,30 +6,31 @@
 
 package io.javalin.performance;
 
-import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
-import com.carrotsearch.junitbenchmarks.Clock;
 import com.mashape.unirest.http.Unirest;
 import io.javalin.Javalin;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Warmup;
+
+import java.util.concurrent.TimeUnit;
+
 import static io.javalin.apibuilder.ApiBuilder.after;
 import static io.javalin.apibuilder.ApiBuilder.before;
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 
-@BenchmarkOptions(benchmarkRounds = 35000, warmupRounds = 5000, concurrency = 4, clock = Clock.NANO_TIME)
+@Warmup(iterations = 5000)
+@Measurement(iterations = 35000)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Fork(4)
 public class SimplePerformanceTest {
-
-    @Rule
-    public TestRule benchmarkRun = new BenchmarkRule();
 
     private static String origin;
     private static Javalin app = Javalin.create(
@@ -47,15 +48,14 @@ public class SimplePerformanceTest {
         after(ctx -> ctx.header("X-AFTER", "After"));
     });
 
-    @BeforeClass
+    @Setup
     public static void setup() {
         // Thread.sleep(7500) // uncomment if running with VisualVM
         app.start(0);
         origin = "http://localhost:" + app.port();
     }
 
-    @Test
-    @Ignore("Just for running manually")
+    @Benchmark
     public void testPerformanceMaybe() throws Exception {
 
         Unirest.get(origin + "/health").asString();
@@ -79,7 +79,7 @@ public class SimplePerformanceTest {
 
     }
 
-    @AfterClass
+    @TearDown
     public static void tearDown() {
         app.stop();
     }

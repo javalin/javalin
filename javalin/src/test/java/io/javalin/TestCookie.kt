@@ -6,7 +6,7 @@ import io.javalin.http.Cookie
 import io.javalin.http.SameSite
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class TestCookie {
 

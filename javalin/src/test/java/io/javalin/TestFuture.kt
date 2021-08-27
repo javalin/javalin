@@ -4,7 +4,7 @@ import io.javalin.core.util.Header
 import io.javalin.http.ContentType
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.CancellationException

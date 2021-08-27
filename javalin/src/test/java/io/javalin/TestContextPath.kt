@@ -10,7 +10,7 @@ import io.javalin.core.util.Util
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.util.function.BiFunction
 import java.util.function.Function
 

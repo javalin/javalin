@@ -15,10 +15,10 @@ import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestLoggingUtil.captureStdOut
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
-import org.junit.AfterClass
-import org.junit.Assume
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import java.io.File
@@ -31,11 +31,11 @@ class TestWebBrowser {
 
         lateinit var driver: ChromeDriver
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setupClass() {
             val os: String = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
-            Assume.assumeTrue("mac" !in os && "darwin" !in os)
+            assumeTrue("mac" !in os && "darwin" !in os)
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--headless")
@@ -43,7 +43,7 @@ class TestWebBrowser {
             })
         }
 
-        @AfterClass
+        @AfterAll
         @JvmStatic
         fun teardownClass() {
             if (Companion::driver.isInitialized) {

@@ -13,7 +13,7 @@ import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import kotlin.reflect.full.allSuperclasses
 
 class TestExceptionMapper {

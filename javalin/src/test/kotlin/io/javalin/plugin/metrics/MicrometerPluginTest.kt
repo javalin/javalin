@@ -5,7 +5,7 @@ import io.javalin.testing.TestUtil
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class MicrometerPluginTest {
 

@@ -26,7 +26,7 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.okHandler
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class TestApiBuilder {
 

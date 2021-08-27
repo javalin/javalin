@@ -15,7 +15,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static io.javalin.testing.TestLoggingUtil.captureStdOut;
 import static org.assertj.core.api.Assertions.assertThat;
 

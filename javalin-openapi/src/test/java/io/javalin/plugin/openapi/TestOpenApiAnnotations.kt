@@ -21,7 +21,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import io.javalin.plugin.openapi.annotations.OpenApiSecurity
 import io.javalin.plugin.openapi.utils.VersionIssuesUtil
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 private const val XML = "application/xml"
 

@@ -19,7 +19,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.servlet.FilterHolder
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files

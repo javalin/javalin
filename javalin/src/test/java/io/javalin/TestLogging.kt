@@ -13,7 +13,7 @@ import io.javalin.testing.NonSerializableObject
 import io.javalin.testing.TestLoggingUtil.captureStdOut
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors

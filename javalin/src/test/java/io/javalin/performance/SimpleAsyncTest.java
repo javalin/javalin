@@ -15,8 +15,8 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static java.util.stream.IntStream.range;
@@ -27,7 +27,7 @@ public class SimpleAsyncTest {
     private static Logger log = LoggerFactory.getLogger(SimpleAsyncTest.class);
 
     @Test
-    @Ignore("For running manually")
+    @Disabled("For running manually")
     public void test_async() throws Exception {
 
         QueuedThreadPool threadPool = new QueuedThreadPool(10, 2, 60_000);

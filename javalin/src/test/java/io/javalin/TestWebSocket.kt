@@ -22,7 +22,7 @@ import org.eclipse.jetty.websocket.api.WebSocketConstants
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.net.URI
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
