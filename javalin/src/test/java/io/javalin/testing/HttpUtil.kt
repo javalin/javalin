@@ -9,7 +9,7 @@ package io.javalin.testing
 import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
 import com.mashape.unirest.request.HttpRequestWithBody
-import io.javalin.plugin.openapi.annotations.ContentType
+import io.javalin.http.ContentType
 import org.apache.http.impl.client.HttpClients
 
 class HttpUtil(port: Int) {
