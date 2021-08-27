@@ -15,10 +15,6 @@ import java.util.concurrent.TimeUnit
 
 typealias NewHandlerEntry = HandlerEntry
 
-@Warmup(iterations = 500)
-@Measurement(iterations = 100000)
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Fork(4)
 class RouteMatcherPerformanceTest {
 
     data class OldHandlerEntry(val type: HandlerType, val path: String, val handler: Handler)
@@ -99,6 +95,10 @@ class RouteMatcherPerformanceTest {
         )
     }
 
+    @Warmup(iterations = 5)
+    @Measurement(iterations = 10)
+    @OutputTimeUnit(TimeUnit.MILLISECONDS)
+    @Fork(4)
     @Benchmark
     fun testOldMatchingPerformance() {
         testEntries.forEach { requestUri ->

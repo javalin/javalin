@@ -8,6 +8,7 @@
         <module>javalin-bundle</module>
         <module>javalin-without-jetty</module>
         <module>javalin-testtools</module>
+        <module>javalin-benchmarks</module>
     </modules>
 
     <parent>
@@ -346,6 +347,11 @@
             <dependency>
                 <groupId>org.openjdk.jmh</groupId>
                 <artifactId>jmh-core</artifactId>
+                <version>${jmh.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-generator-annprocess</artifactId>
                 <version>${jmh.version}</version>
             </dependency>
             <dependency>
