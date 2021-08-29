@@ -7,6 +7,7 @@ import io.javalin.core.util.Util
 import io.javalin.http.LeveledBrotliStream
 import io.javalin.http.LeveledGzipStream
 import org.eclipse.jetty.http.MimeTypes
+import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
@@ -18,6 +19,8 @@ import javax.servlet.http.HttpServletResponse
 object JettyPrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
+
+    lateinit var servletContextHandler : ServletContextHandler
 
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
@@ -39,7 +42,12 @@ object JettyPrecompressingResourceHandler {
         if (resource.exists() && !resource.isDirectory) {
             val target = req.getAttribute("jetty-target") as String
             var acceptCompressType = CompressType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
-            val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
+            var contentType : String
+            if (servletContextHandler == null)
+                contentType = MimeTypes.getDefaultMimeByExtension(target)
+            else
+                contentType = servletContextHandler.mimeTypes.getMimeByExtension(target)
+            JavalinLogger.info("contentType: " + contentType)
             if (excludedMimeType(contentType))
                 acceptCompressType = CompressType.NONE
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
