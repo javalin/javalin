@@ -40,8 +40,9 @@ object JettyPrecompressingResourceHandler {
             val target = req.getAttribute("jetty-target") as String
             var acceptCompressType = CompressType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
             val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
-            if (excludedMimeType(contentType))
+            if (contentType == null || excludedMimeType(contentType)) {
                 acceptCompressType = CompressType.NONE
+            }
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
             res.setContentLength(resultByteArray.size)
             res.setHeader(Header.CONTENT_TYPE, contentType)
