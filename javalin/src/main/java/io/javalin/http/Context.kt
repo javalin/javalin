@@ -236,7 +236,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun host(): String? = req.getHeader(Header.HOST)
 
     /** Gets the request ip. */
-    fun ip(): String = req.remoteAddr
+    fun ip(): String = contextResolver().ip.invoke(this)
 
     /** Returns true if request is multipart. */
     fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/") == true

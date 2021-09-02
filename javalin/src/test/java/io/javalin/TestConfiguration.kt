@@ -10,6 +10,7 @@ import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.ContentType
+import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.metrics.MicrometerPlugin
 import io.javalin.testing.TestUtil
@@ -89,5 +90,26 @@ class TestConfiguration {
         Assertions.assertThatExceptionOfType(RuntimeException::class.java)
             .isThrownBy { Javalin.create().start(app.port()) }
             .withMessageContaining("Port already in use. Make sure no other process is using port ${app.port()} and try again")
+    }
+
+    @Test
+    fun `test contextResolvers config with custom ip`() {
+        TestUtil.test(
+            Javalin.create {
+                it.contextResolvers { resolvers -> resolvers.ip = { ctx -> "CUSTOM IP" } }
+            }
+                .get("/") { ctx -> ctx.result(ctx.ip()) }
+        ) { _, http ->
+            assertThat(http.get("/").body).isEqualTo("CUSTOM IP")
+        }
+    }
+
+    @Test
+    fun `test contextResolvers config with default ip`() {
+        TestUtil.test(
+            Javalin.create {}
+                .get("/ip") { it.result(it.ip()) }
+                .get("/remote") { it.result(it.req.remoteAddr) }
+        ) { _, http -> assertThat(http.get("/ip").body).isEqualTo(http.get("/remote").body) }
     }
 }
