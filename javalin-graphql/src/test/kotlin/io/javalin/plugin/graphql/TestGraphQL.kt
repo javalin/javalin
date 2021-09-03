@@ -5,13 +5,15 @@ import io.javalin.Javalin
 import io.javalin.plugin.graphql.helpers.*
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
-import junit.framework.Assert.*
 import org.assertj.core.api.Assertions.assertThat
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
 import org.json.JSONObject
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import java.net.URI
 import java.time.Duration
 import java.util.concurrent.TimeoutException

@@ -18,7 +18,7 @@ import io.javalin.core.util.Header.REFERER
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class TestCors {
 

@@ -13,8 +13,8 @@ import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Ignore
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 import java.net.URLEncoder
 
 class TestTrailingSlashes {
@@ -125,7 +125,7 @@ class TestTrailingSlashes {
     }
 
     // looking for a solution to enable this on a per-path basis
-    @Ignore
+    @Disabled
     @Test
     fun `path regex works`() = TestUtil.test(javalin) { app, http ->
         app.get("/{path-param}/[0-9]+") { ctx -> ctx.result(ctx.pathParam("path-param")) }

@@ -10,7 +10,7 @@ import io.javalin.http.util.RedirectToLowercasePathPlugin
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class TestRedirectToLowercasePathPlugin {
 

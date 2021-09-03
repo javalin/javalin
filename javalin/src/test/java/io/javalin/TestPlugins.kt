@@ -10,8 +10,8 @@ import io.mockk.spyk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 lateinit var calls: MutableList<Calls>
 
@@ -33,7 +33,7 @@ open class TestPlugin : Plugin, PluginLifecycleInit {
 private interface PluginWithAllLifecycles : Plugin, PluginLifecycleInit
 
 class TestPlugins {
-    @Before
+    @BeforeEach
     fun resetCalls() {
         calls = mutableListOf()
     }

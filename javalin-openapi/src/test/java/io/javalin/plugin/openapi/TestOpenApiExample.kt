@@ -6,7 +6,7 @@ import io.javalin.plugin.openapi.dsl.documented
 import io.swagger.v3.oas.models.examples.Example
 import io.swagger.v3.oas.models.info.Info
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 private data class ExampleUser(val name: String, val address: ExampleAddress)
 private data class ExampleAddress(val street: String, val number: Int)

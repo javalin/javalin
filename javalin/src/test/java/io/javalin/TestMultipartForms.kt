@@ -17,7 +17,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.charset.StandardCharsets
 

@@ -9,7 +9,7 @@ package io.javalin.routeoverview
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 // class/object/companion object
 // fields/properties, both standalone and within a class/object

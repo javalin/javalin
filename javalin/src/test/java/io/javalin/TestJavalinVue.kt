@@ -17,14 +17,14 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.net.URLEncoder
 import java.nio.file.Paths
 
 class TestJavalinVue {
 
-    @Before
+    @BeforeEach
     fun setup() {
         before()
     }

@@ -11,7 +11,7 @@ import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.servlet.FilterHolder
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.util.*
 import javax.servlet.DispatcherType
 import javax.servlet.Filter

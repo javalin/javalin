@@ -18,8 +18,8 @@ package io.javalin;
 import io.javalin.plugin.rendering.vue.JavalinVue;
 import io.javalin.plugin.rendering.vue.VueComponent;
 import io.javalin.testing.TestUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class TestJavalinVueResolution {
 
-    @Before
+    @BeforeEach
     public void resetJavalinVue() {
         TestJavalinVue.Companion.before();
         JavalinVue.optimizeDependencies = true;

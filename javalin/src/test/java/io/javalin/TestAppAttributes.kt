@@ -10,7 +10,7 @@ import com.google.gson.GsonBuilder
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class TestAppAttributes {
 

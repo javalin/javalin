@@ -9,8 +9,8 @@ package io.javalin.routeoverview;
 import io.javalin.core.util.RouteOverviewUtil;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -34,7 +34,7 @@ public class TestRouteOverview_Java {
     }
 
     @Test
-    @Ignore("Currently disabled because it's broken in jdk9+")
+    @Disabled("Currently disabled because it's broken in jdk9+")
     public void method_reference_works() {
         assertThat(RouteOverviewUtil.getMetaInfo((Handler) new TestRouteOverview_Java()::methodReference), is("io.javalin.routeoverview.TestRouteOverview_Java::methodReference"));
     }

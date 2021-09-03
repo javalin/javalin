@@ -21,7 +21,7 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.text.MessageFormat
 import java.time.Duration
 import java.time.Instant

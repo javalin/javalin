@@ -4,7 +4,7 @@ import io.javalin.Javalin
 import io.javalin.core.util.Header
 import okhttp3.FormBody
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 
 class KotlinTest {
