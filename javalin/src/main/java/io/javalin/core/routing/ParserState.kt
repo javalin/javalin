@@ -6,7 +6,7 @@ private enum class ParserState {
     INSIDE_SLASH_ACCEPTING_BRACKETS
 }
 
-private val allDelimiters = setOf('{', '}', '<','>')
+private val allDelimiters = setOf('{', '}', '<', '>')
 private val adjacentViolations = listOf("*{", "*<", "}*", ">*")
 
 internal fun convertSegment(segment: String, rawPath: String): PathSegment {

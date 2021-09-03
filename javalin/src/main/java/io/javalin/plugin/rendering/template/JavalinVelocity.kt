@@ -29,7 +29,7 @@ object JavalinVelocity : FileRenderer {
         Util.ensureDependencyPresent(OptionalDependency.VELOCITY)
         val stringWriter = StringWriter()
         (velocityEngine ?: defaultVelocityEngine).getTemplate(filePath, StandardCharsets.UTF_8.name()).merge(
-                VelocityContext(model.toMutableMap()), stringWriter
+            VelocityContext(model.toMutableMap()), stringWriter
         )
         return stringWriter.toString()
     }

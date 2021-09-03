@@ -41,11 +41,11 @@ object MultipartUtil {
 
     private fun toUploadedFile(filePart: Part): UploadedFile {
         return UploadedFile(
-                content = filePart.inputStream,
-                contentType = filePart.contentType,
-                filename = filePart.submittedFileName,
-                extension = filePart.submittedFileName.replaceBeforeLast(".", ""),
-                size = filePart.size
+            content = filePart.inputStream,
+            contentType = filePart.contentType,
+            filename = filePart.submittedFileName,
+            extension = filePart.submittedFileName.replaceBeforeLast(".", ""),
+            size = filePart.size
         )
     }
 

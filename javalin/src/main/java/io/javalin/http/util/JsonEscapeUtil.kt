@@ -10,15 +10,17 @@ object JsonEscapeUtil {
     fun escape(str: String): String {
         val builder = StringBuilder(str.length)
         for (ch in str) {
-            builder.append(when (ch) {
-                '\"' -> "\\\""
-                '\n' -> "\\n"
-                '\r' -> "\\r"
-                '\\' -> "\\\\"
-                '\t' -> "\\t"
-                '\b' -> "\\b"
-                else -> ch
-            })
+            builder.append(
+                when (ch) {
+                    '\"' -> "\\\""
+                    '\n' -> "\\n"
+                    '\r' -> "\\r"
+                    '\\' -> "\\\\"
+                    '\t' -> "\\t"
+                    '\b' -> "\\b"
+                    else -> ch
+                }
+            )
         }
         return builder.toString()
     }

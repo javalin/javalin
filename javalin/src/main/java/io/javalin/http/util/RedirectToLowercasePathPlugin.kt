@@ -8,9 +8,9 @@ package io.javalin.http.util
 
 import io.javalin.Javalin
 import io.javalin.core.PathParser
-import io.javalin.core.routing.PathSegment
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
+import io.javalin.core.routing.PathSegment
 import io.javalin.http.HandlerType
 import java.util.*
 

@@ -33,8 +33,8 @@ object JavalinPebble : FileRenderer {
     }
 
     private fun defaultPebbleEngine() = PebbleEngine.Builder()
-            .loader(ClasspathLoader())
-            .strictVariables(false)
-            .build()
+        .loader(ClasspathLoader())
+        .strictVariables(false)
+        .build()
 
 }

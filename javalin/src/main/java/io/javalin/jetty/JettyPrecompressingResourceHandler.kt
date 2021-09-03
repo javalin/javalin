@@ -23,16 +23,16 @@ object JettyPrecompressingResourceHandler {
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
     val excludedMimeTypes = setOf(
-            "image/",
-            "audio/",
-            "video/",
-            "application/compress",
-            "application/zip",
-            "application/gzip",
-            "application/bzip2",
-            "application/brotli",
-            "application/x-xz",
-            "application/x-rar-compressed"
+        "image/",
+        "audio/",
+        "video/",
+        "application/compress",
+        "application/zip",
+        "application/gzip",
+        "application/bzip2",
+        "application/brotli",
+        "application/x-xz",
+        "application/x-rar-compressed"
     )
 
     fun handle(resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
@@ -67,8 +67,10 @@ object JettyPrecompressingResourceHandler {
 
     private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray? {
         if (resource.length() > resourceMaxSize) {
-            JavalinLogger.warn("Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
-                    "You can configure the max size with `JettyPrecompressingResourceHandler.resourceMaxSize = newMaxSize`.")
+            JavalinLogger.warn(
+                "Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
+                        "You can configure the max size with `JettyPrecompressingResourceHandler.resourceMaxSize = newMaxSize`."
+            )
             return null
         }
         return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
@@ -93,7 +95,7 @@ object JettyPrecompressingResourceHandler {
     }
 
     private fun excludedMimeType(mimeType: String) =
-            if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
+        if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
     enum class CompressType(val typeName: String, val extension: String) {
         GZIP("gzip", ".gz"),

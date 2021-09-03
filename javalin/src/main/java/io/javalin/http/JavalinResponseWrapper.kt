@@ -71,16 +71,17 @@ class OutputStreamWrapper(val res: HttpServletResponse, private val rwc: Respons
     companion object {
         var minSizeForCompression = 1500 // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
         val excludedMimeTypes = setOf(
-                "image/",
-                "audio/",
-                "video/",
-                "application/compress",
-                "application/zip",
-                "application/gzip",
-                "application/bzip2",
-                "application/brotli",
-                "application/x-xz",
-                "application/x-rar-compressed")
+            "image/",
+            "audio/",
+            "video/",
+            "application/compress",
+            "application/zip",
+            "application/gzip",
+            "application/bzip2",
+            "application/brotli",
+            "application/x-xz",
+            "application/x-rar-compressed"
+        )
     }
 
     override fun write(b: ByteArray, off: Int, len: Int) {
@@ -112,7 +113,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, private val rwc: Respons
     }
 
     private fun excludedMimeType(mimeType: String) =
-            if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
+        if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
     override fun isReady(): Boolean = res.outputStream.isReady
     override fun setWriteListener(writeListener: WriteListener?) = res.outputStream.setWriteListener(writeListener)

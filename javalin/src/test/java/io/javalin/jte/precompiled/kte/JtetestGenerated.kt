@@ -6,8 +6,10 @@ class JtetestGenerated {
     companion object {
         @JvmField
         val JTE_NAME = "kte/test.kte"
+
         @JvmField
         val JTE_LINE_INFO = intArrayOf(0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3)
+
         @JvmStatic
         fun render(jteOutput: gg.jte.html.HtmlTemplateOutput, jteHtmlInterceptor: gg.jte.html.HtmlInterceptor?, page: JteTestPage) {
             jteOutput.writeContent("<h1>")

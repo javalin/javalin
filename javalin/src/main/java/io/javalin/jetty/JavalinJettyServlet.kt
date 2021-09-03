@@ -19,7 +19,6 @@ import io.javalin.websocket.WsExceptionMapper
 import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsPathMatcher
 import org.eclipse.jetty.websocket.api.WebSocketConstants
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory

@@ -46,7 +46,7 @@ class TestConfiguration {
             it.sessionHandler { SessionHandler() }
             // WsServlet
             it.wsFactoryConfig { factory -> }
-            it.wsLogger { ws ->  }
+            it.wsLogger { ws -> }
             // Server
             it.server {
                 Server()

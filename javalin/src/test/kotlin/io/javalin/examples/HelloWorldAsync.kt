@@ -20,13 +20,13 @@ fun main() {
         get("/result") { ctx ->
             val future = CompletableFuture<String>()
             Executors.newSingleThreadScheduledExecutor()
-                    .schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
+                .schedule({ future.complete("Hello World!") }, 10, TimeUnit.MILLISECONDS)
             ctx.future(future)
         }
         get("/json") { ctx ->
             val future = CompletableFuture<List<String>>()
             Executors.newSingleThreadScheduledExecutor()
-                    .schedule({ future.complete(Arrays.asList("a", "b", "c")) }, 10, TimeUnit.MILLISECONDS)
+                .schedule({ future.complete(Arrays.asList("a", "b", "c")) }, 10, TimeUnit.MILLISECONDS)
             ctx.json(future)
         }
     }

@@ -190,9 +190,11 @@ class TestCompression {
     fun `dynamic handler responds with 304 when ETag is set`() = TestUtil.test(etagApp) { _, http ->
         val firstRes = getResponse(http.origin, "/huge", "br, gzip")
         val etag = firstRes.headers.get(Header.ETAG) ?: ""
-        val secondRes = getResponseWithMultipleHeaders(http.origin, "/huge",
-                Pair(Header.ACCEPT_ENCODING, "br, gzip"),
-                Pair(Header.IF_NONE_MATCH, etag))
+        val secondRes = getResponseWithMultipleHeaders(
+            http.origin, "/huge",
+            Pair(Header.ACCEPT_ENCODING, "br, gzip"),
+            Pair(Header.IF_NONE_MATCH, etag)
+        )
         assertThat(secondRes.code).isEqualTo(304)
     }
 
@@ -200,9 +202,11 @@ class TestCompression {
     fun `static handler responds with 304 when ETag is set`() = TestUtil.test(etagApp) { _, http ->
         val firstRes = getResponse(http.origin, "/html.html", "br, gzip")
         val etag = firstRes.headers.get(Header.ETAG) ?: ""
-        val secondRes = getResponseWithMultipleHeaders(http.origin, "/html.html",
-                Pair(Header.ACCEPT_ENCODING, "br, gzip"),
-                Pair(Header.IF_NONE_MATCH, etag))
+        val secondRes = getResponseWithMultipleHeaders(
+            http.origin, "/html.html",
+            Pair(Header.ACCEPT_ENCODING, "br, gzip"),
+            Pair(Header.IF_NONE_MATCH, etag)
+        )
         assertThat(secondRes.code).isEqualTo(304)
     }
 
@@ -308,11 +312,13 @@ class TestCompression {
 
     // we need to use okhttp, because unirest omits the content-encoding header
     private fun getResponse(origin: String, url: String, encoding: String) = OkHttpClient()
-            .newCall(Request.Builder()
-                    .url(origin + url)
-                    .header(Header.ACCEPT_ENCODING, encoding)
-                    .build())
-            .execute()
+        .newCall(
+            Request.Builder()
+                .url(origin + url)
+                .header(Header.ACCEPT_ENCODING, encoding)
+                .build()
+        )
+        .execute()
 
     // allows passing of multiple headers via string pairs
     private fun getResponseWithMultipleHeaders(origin: String, url: String, vararg headers: Pair<String, String>): Response {
@@ -321,11 +327,13 @@ class TestCompression {
             headBuilder.add(headerPair.first, headerPair.second)
         }
         val finalHeaders = headBuilder.build()
-        return OkHttpClient().newCall(Request.Builder()
+        return OkHttpClient().newCall(
+            Request.Builder()
                 .url(origin + url)
                 .headers(finalHeaders)
-                .build())
-                .execute()
+                .build()
+        )
+            .execute()
     }
 
 }

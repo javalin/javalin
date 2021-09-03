@@ -8,7 +8,6 @@ package io.javalin.plugin.json
 
 import io.javalin.Javalin
 import io.javalin.http.Context
-import java.io.InputStream
 
 const val JSON_MAPPER_KEY = "global-json-mapper"
 fun Javalin.jsonMapper(): JsonMapper = this.attribute(JSON_MAPPER_KEY)

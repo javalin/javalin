@@ -4,8 +4,10 @@ class JtemultipleparamsGenerated {
     companion object {
         @JvmField
         val JTE_NAME = "kte/multiple-params.kte"
+
         @JvmField
         val JTE_LINE_INFO = intArrayOf(0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 3)
+
         @JvmStatic
         fun render(jteOutput: gg.jte.html.HtmlTemplateOutput, jteHtmlInterceptor: gg.jte.html.HtmlInterceptor?, one: String, two: String) {
             jteOutput.writeContent("<h1>")

@@ -6,10 +6,8 @@
 
 package io.javalin
 
-import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.JavalinLogger
 import io.javalin.testing.HttpUtil
-import io.javalin.testing.NonSerializableObject
 import io.javalin.testing.TestLoggingUtil.captureStdOut
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat

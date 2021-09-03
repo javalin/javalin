@@ -89,10 +89,12 @@ class TestTemplates {
     fun `pebble custom engines work`() = TestUtil.test { app, http ->
         app.get("/hello") { ctx -> ctx.render("templates/pebble/test.peb") }
         assertThat(http.getBody("/hello")).isEqualTo("<h1></h1>")
-        JavalinPebble.configure(PebbleEngine.Builder()
+        JavalinPebble.configure(
+            PebbleEngine.Builder()
                 .loader(ClasspathLoader())
                 .strictVariables(true)
-                .build())
+                .build()
+        )
         assertThat(http.getBody("/hello")).isEqualTo("Internal server error")
     }
 

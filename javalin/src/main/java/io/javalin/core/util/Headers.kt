@@ -20,7 +20,7 @@ class Headers {
     // Strict-Transport-Security: max-age=31536000 ; includeSubDomains
     fun strictTransportSecurity(duration: Duration, includeSubdomains: Boolean) {
         headers[Header.STRICT_TRANSPORT_SECURITY] = "max-age=" + duration.seconds +
-                if (includeSubdomains) { " ; includeSubDomains" } else { "" }
+                if (includeSubdomains) " ; includeSubDomains" else ""
     }
 
     // X-Frame-Options: deny | sameorigin | allow-from: DOMAIN
@@ -109,7 +109,7 @@ class Headers {
         headers[Header.CROSS_ORIGIN_RESOURCE_POLICY] = policy.name.toHttpHeaderValue()
     }
 
-    private fun String.toHttpHeaderValue() : String {
+    private fun String.toHttpHeaderValue(): String {
         return this.lowercase(Locale.ROOT).replace("_", "-")
     }
 }

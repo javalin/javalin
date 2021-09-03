@@ -64,10 +64,10 @@ class TestPlugins {
         }
 
         assertThat(calls).containsExactly(
-                Calls.INIT,
-                Calls.INIT,
-                Calls.APPLY,
-                Calls.APPLY
+            Calls.INIT,
+            Calls.INIT,
+            Calls.APPLY,
+            Calls.APPLY
         )
     }
 

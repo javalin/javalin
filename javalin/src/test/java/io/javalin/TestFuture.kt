@@ -111,7 +111,7 @@ class TestFuture {
         assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
     }
 
-    private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5} }
+    private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5 } }
 
     @Test
     fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->

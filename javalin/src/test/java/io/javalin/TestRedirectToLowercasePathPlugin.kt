@@ -23,8 +23,8 @@ class TestRedirectToLowercasePathPlugin {
     @Test
     fun `exception is thrown when using non-lowercase paths with TestRedirectToLowercasePathPlugin`() = TestUtil.test(testApp) { app, _ ->
         assertThatIllegalArgumentException()
-                .isThrownBy { app.get("/TEST") { } }
-                .withMessage("Paths must be lowercase when using RedirectToLowercasePathPlugin")
+            .isThrownBy { app.get("/TEST") { } }
+            .withMessage("Paths must be lowercase when using RedirectToLowercasePathPlugin")
     }
 
     @Test

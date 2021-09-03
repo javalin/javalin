@@ -24,8 +24,8 @@ interface CrudHandler {
 }
 
 enum class CrudFunction(
-        val value: String,
-        val createHandler: (CrudHandler, String) -> Handler
+    val value: String,
+    val createHandler: (CrudHandler, String) -> Handler
 ) {
     GET_ALL("getAll", { crud, _ -> Handler { crud.getAll(it) } }),
     GET_ONE("getOne", { crud, id -> Handler { crud.getOne(it, it.pathParam(id)) } }),
@@ -35,12 +35,12 @@ enum class CrudFunction(
 }
 
 class CrudFunctionHandler(
-        val function: CrudFunction,
-        val crudHandler: CrudHandler,
-        resourceId: String,
-        handler: Handler = function.createHandler(crudHandler, resourceId)
+    val function: CrudFunction,
+    val crudHandler: CrudHandler,
+    resourceId: String,
+    handler: Handler = function.createHandler(crudHandler, resourceId)
 ) : Handler by handler
 
 internal fun CrudHandler.getCrudFunctions(resourceId: String): Map<CrudFunction, Handler> = CrudFunction.values()
-        .map { it to CrudFunctionHandler(it, this, resourceId) }
-        .toMap()
+    .map { it to CrudFunctionHandler(it, this, resourceId) }
+    .toMap()

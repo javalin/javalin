@@ -414,7 +414,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Sets a cookie with name, value, and (overloaded) max-age. */
     @JvmOverloads
-    fun cookie(name: String, value: String, maxAge: Int = -1) = cookie(Cookie(name = name, value = value, maxAge= maxAge))
+    fun cookie(name: String, value: String, maxAge: Int = -1) = cookie(Cookie(name = name, value = value, maxAge = maxAge))
 
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context {

@@ -26,9 +26,9 @@ class TestBodyReading {
     fun `reading query-params then body works`() = TestUtil.test { app, http ->
         app.post("/body-reader") { ctx -> ctx.result(ctx.body() + "|" + ctx.queryParam("qp")!!) }
         val response = http.post("/body-reader")
-                .queryString("qp", "queryparam")
-                .body("body")
-                .asString()
+            .queryString("qp", "queryparam")
+            .body("body")
+            .asString()
         assertThat(response.body).isEqualTo("body|queryparam")
     }
 
@@ -36,9 +36,9 @@ class TestBodyReading {
     fun `reading body then query-params works`() = TestUtil.test { app, http ->
         app.post("/body-reader") { ctx -> ctx.result(ctx.queryParam("qp")!! + "|" + ctx.body()) }
         val response = http.post("/body-reader")
-                .queryString("qp", "queryparam")
-                .body("body")
-                .asString()
+            .queryString("qp", "queryparam")
+            .body("body")
+            .asString()
         assertThat(response.body).isEqualTo("queryparam|body")
     }
 
@@ -60,8 +60,8 @@ class TestBodyReading {
     fun `reading unicode form-params works`() = TestUtil.test { app, http ->
         app.post("/unicode") { ctx -> ctx.result(ctx.formParam("unicode")!!) }
         val responseBody = http.post("/unicode")
-                .body("unicode=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
-                .asString().body
+            .body("unicode=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
+            .asString().body
         assertThat(responseBody).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
     }
 

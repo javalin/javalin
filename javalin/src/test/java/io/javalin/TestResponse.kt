@@ -136,15 +136,15 @@ class TestResponse {
     }
 
     private fun getSeekableInput(repeats: Int = SeekableWriter.chunkSize) = ByteArrayInputStream(
-            setOf("a", "b", "c").joinToString("") { it.repeat(repeats) }.toByteArray(Charsets.UTF_8)
+        setOf("a", "b", "c").joinToString("") { it.repeat(repeats) }.toByteArray(Charsets.UTF_8)
     )
 
     @Test
     fun `seekable - range works`() = TestUtil.test { app, http ->
         app.get("/seekable") { ctx -> ctx.seekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable")
-                .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
-                .asString().body
+            .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
+            .asString().body
         assertThat(response).doesNotContain("a").contains("b").doesNotContain("c")
     }
 
@@ -159,8 +159,8 @@ class TestResponse {
     fun `seekable - overreaching range works`() = TestUtil.test { app, http ->
         app.get("/seekable-3") { ctx -> ctx.seekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-3")
-                .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
-                .asString().body
+            .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
+            .asString().body
         assertThat(response.length).isEqualTo(SeekableWriter.chunkSize * 3)
     }
 
@@ -168,8 +168,8 @@ class TestResponse {
     fun `seekable - file smaller than chunksize works`() = TestUtil.test { app, http ->
         app.get("/seekable-4") { ctx -> ctx.seekableStream(getSeekableInput(repeats = 50), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-4")
-                .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
-                .asString().body
+            .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
+            .asString().body
         assertThat(response.length).isEqualTo(150)
     }
 

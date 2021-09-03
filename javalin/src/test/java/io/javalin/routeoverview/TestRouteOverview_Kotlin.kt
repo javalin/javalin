@@ -22,14 +22,18 @@ class TestRouteOverview_Kotlin {
 
     @Test
     fun `field works`() {
-        assertThat(Util.getMetaInfo(ObjectHandlers.lambdaField)).isIn(setOf(
+        assertThat(Util.getMetaInfo(ObjectHandlers.lambdaField)).isIn(
+            setOf(
                 "io.javalin.routeoverview.ClassHandlers::??? (anonymous lambda)", // JDK >= 15
                 "io.javalin.routeoverview.ObjectHandlers.lambdaField", // JDK < 15
-        ))
-        assertThat(Util.getMetaInfo(ClassHandlers().lambdaField)).isIn(setOf(
+            )
+        )
+        assertThat(Util.getMetaInfo(ClassHandlers().lambdaField)).isIn(
+            setOf(
                 "io.javalin.routeoverview.ClassHandlers.lambdaField",
                 "io.javalin.routeoverview.ClassHandlers::??? (anonymous lambda)"
-        ))
+            )
+        )
         assertThat(Util.getMetaInfo(standAloneField)).isEqualTo("io.javalin.routeoverview.TestRouteOverview_KotlinKt.standAloneField")
     }
 
@@ -41,20 +45,26 @@ class TestRouteOverview_Kotlin {
 
     @Test
     fun `method reference works`() { // this is ridiculous...
-        assertThat(Util.getMetaInfo(ObjectHandlers::methodReference)).isIn(setOf(
+        assertThat(Util.getMetaInfo(ObjectHandlers::methodReference)).isIn(
+            setOf(
                 "io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)", // JDK >= 15
                 "io.javalin.routeoverview.ObjectHandlers::??? (anonymous lambda)", // Kotlin >= 1.5
                 "io.javalin.routeoverview.ObjectHandlers::methodReference" // Kotlin < 1.5
-        ))
-        assertThat(Util.getMetaInfo(ClassHandlers()::methodReference)).isIn(setOf(
+            )
+        )
+        assertThat(Util.getMetaInfo(ClassHandlers()::methodReference)).isIn(
+            setOf(
                 "io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)", // JDK >= 15
                 "io.javalin.routeoverview.ClassHandlers::??? (anonymous lambda)", // Kotlin >= 1.5
                 "io.javalin.routeoverview.ClassHandlers::methodReference" // Kotlin < 1.5
-        ))
-        assertThat(Util.getMetaInfo(::standAloneMethod)).isIn(setOf(
+            )
+        )
+        assertThat(Util.getMetaInfo(::standAloneMethod)).isIn(
+            setOf(
                 "io.javalin.routeoverview.TestRouteOverview_Kotlin::??? (anonymous lambda)", // Kotlin >= 1.5
                 "io.javalin.routeoverview.TestRouteOverview_KotlinKt::standAloneMethod" // Kotlin < 1.5
-        ))
+            )
+        )
     }
 
     @Test

@@ -76,9 +76,11 @@ class TestStaticFilesPrecompressor {
     private fun Response.contentEncoding() = this.headers.get(Header.CONTENT_ENCODING)
 
     private fun HttpUtil.getFile(url: String, encoding: String) =
-            OkHttpClient().newCall(Request.Builder()
-                    .url(this.origin + url)
-                    .header(Header.ACCEPT_ENCODING, encoding)
-                    .build())
-                    .execute()
+        OkHttpClient().newCall(
+            Request.Builder()
+                .url(this.origin + url)
+                .header(Header.ACCEPT_ENCODING, encoding)
+                .build()
+        )
+            .execute()
 }

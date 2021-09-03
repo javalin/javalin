@@ -19,26 +19,26 @@ class TestStaticFilesEdgeCases {
     @Test
     fun `server doesn't start for non-existent classpath folder`() {
         assertThatExceptionOfType(RuntimeException::class.java)
-                .isThrownBy { Javalin.create { it.addStaticFiles("classpath-fake-folder", Location.CLASSPATH) }.start() }
-                .withMessageStartingWith("Static resource directory with path: 'classpath-fake-folder' does not exist.")
+            .isThrownBy { Javalin.create { it.addStaticFiles("classpath-fake-folder", Location.CLASSPATH) }.start() }
+            .withMessageStartingWith("Static resource directory with path: 'classpath-fake-folder' does not exist.")
     }
 
     @Test
     fun `server doesn't start for non-existent external folder`() {
         assertThatExceptionOfType(RuntimeException::class.java)
-                .isThrownBy { Javalin.create { it.addStaticFiles("external-fake-folder", Location.EXTERNAL) }.start() }
-                .withMessageStartingWith("Static resource directory with path: 'external-fake-folder' does not exist.")
+            .isThrownBy { Javalin.create { it.addStaticFiles("external-fake-folder", Location.EXTERNAL) }.start() }
+            .withMessageStartingWith("Static resource directory with path: 'external-fake-folder' does not exist.")
     }
 
     @Test
     fun `server doesn't start for empty classpath folder`() {
         assertThatExceptionOfType(RuntimeException::class.java)
-                .isThrownBy {
-                    File("src/test/external/empty").mkdir()
-                    Javalin.create { it.addStaticFiles("src/test/external/empty", Location.CLASSPATH) }.start()
-                }
-                .withMessageStartingWith("Static resource directory with path: 'src/test/external/empty' does not exist.")
-                .withMessageEndingWith("Depending on your setup, empty folders might not get copied to classpath.")
+            .isThrownBy {
+                File("src/test/external/empty").mkdir()
+                Javalin.create { it.addStaticFiles("src/test/external/empty", Location.CLASSPATH) }.start()
+            }
+            .withMessageStartingWith("Static resource directory with path: 'src/test/external/empty' does not exist.")
+            .withMessageEndingWith("Depending on your setup, empty folders might not get copied to classpath.")
     }
 
     @Test

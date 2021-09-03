@@ -26,13 +26,15 @@ fun main() {
             ws.onError { ctx -> println("Errored") }
         }
         get("/") { ctx ->
-            ctx.html("""<h1>WebSocket example</h1>
+            ctx.html(
+                """<h1>WebSocket example</h1>
                 <script>
                     let ws = new WebSocket("ws://localhost:7070/websocket");
                     ws.onmessage = e => document.body.insertAdjacentHTML("beforeEnd", "<pre>" + e.data + "</pre>");
                     ws.onclose = () => alert("WebSocket connection closed");
                     setInterval(() => ws.send("Repeating request every 2 seconds"), 2000);
-                </script>""")
+                </script>"""
+            )
         }
     }.start(7070)
 }

@@ -67,6 +67,6 @@ class TestAccessManager {
     }
 
     private fun callWithRole(origin: String, path: String, role: String) =
-            Unirest.get(origin + path).queryString("role", role).asString().body
+        Unirest.get(origin + path).queryString("role", role).asString().body
 
 }

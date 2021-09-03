@@ -28,7 +28,7 @@ class TestExceptionMapper {
     @Test
     fun `mapped exceptions are handled`() = TestUtil.test { app, http ->
         app.get("/mapped-exception") { throw Exception() }
-                .exception(Exception::class.java) { _, ctx -> ctx.result("It's been handled.") }
+            .exception(Exception::class.java) { _, ctx -> ctx.result("It's been handled.") }
         assertThat(http.get("/mapped-exception").status).isEqualTo(200)
         assertThat(http.getBody("/mapped-exception")).isEqualTo("It's been handled.")
     }
@@ -36,7 +36,7 @@ class TestExceptionMapper {
     @Test
     fun `HttpResponseException subclass handler is used`() = TestUtil.test { app, http ->
         app.get("/mapped-http-response-exception") { throw NotFoundResponse() }
-                .exception(NotFoundResponse::class.java) { _, ctx -> ctx.result("It's been handled.") }
+            .exception(NotFoundResponse::class.java) { _, ctx -> ctx.result("It's been handled.") }
         assertThat(http.get("/mapped-http-response-exception").status).isEqualTo(200)
         assertThat(http.getBody("/mapped-exception")).isEqualTo("It's been handled.")
     }
@@ -44,7 +44,7 @@ class TestExceptionMapper {
     @Test
     fun `HttpResponseException handler is used for subclasses`() = TestUtil.test { app, http ->
         app.get("/mapped-http-response-exception") { throw NotFoundResponse() }
-                .exception(HttpResponseException::class.java) { _, ctx -> ctx.result("It's been handled.") }
+            .exception(HttpResponseException::class.java) { _, ctx -> ctx.result("It's been handled.") }
         assertThat(http.get("/mapped-http-response-exception").status).isEqualTo(200)
         assertThat(http.getBody("/mapped-exception")).isEqualTo("It's been handled.")
     }
@@ -52,7 +52,7 @@ class TestExceptionMapper {
     @Test
     fun `type information of exception is not lost`() = TestUtil.test { app, http ->
         app.get("/typed-exception") { throw TypedException() }
-                .exception(TypedException::class.java) { e, ctx -> ctx.result(e.proofOfType()) }
+            .exception(TypedException::class.java) { e, ctx -> ctx.result(e.proofOfType()) }
         assertThat(http.get("/typed-exception").status).isEqualTo(200)
         assertThat(http.getBody("/typed-exception")).isEqualTo("I'm so typed")
     }
@@ -60,8 +60,8 @@ class TestExceptionMapper {
     @Test
     fun `most specific exception handler handles exception`() = TestUtil.test { app, http ->
         app.get("/exception-priority") { throw TypedException() }
-                .exception(Exception::class.java) { _, ctx -> ctx.result("This shouldn't run") }
-                .exception(TypedException::class.java) { _, ctx -> ctx.result("Typed!") }
+            .exception(Exception::class.java) { _, ctx -> ctx.result("This shouldn't run") }
+            .exception(TypedException::class.java) { _, ctx -> ctx.result("Typed!") }
         assertThat(http.get("/exception-priority").status).isEqualTo(200)
         assertThat(http.getBody("/exception-priority")).isEqualTo("Typed!")
     }

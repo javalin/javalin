@@ -28,9 +28,9 @@ data class WsEntry(
 class WsPathMatcher {
 
     private val wsHandlerEntries = WsHandlerType.values()
-            .associateTo(EnumMap<WsHandlerType, MutableList<WsEntry>>(WsHandlerType::class.java)) {
-                it to mutableListOf()
-            }
+        .associateTo(EnumMap<WsHandlerType, MutableList<WsEntry>>(WsHandlerType::class.java)) {
+            it to mutableListOf()
+        }
 
     fun add(entry: WsEntry) {
         if (wsHandlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
@@ -50,5 +50,5 @@ class WsPathMatcher {
 
     /** Returns all the handlers of type [handlerType] that match the given [path]. */
     private fun findEntries(handlerType: WsHandlerType, path: String) =
-            wsHandlerEntries[handlerType]!!.filter { entry -> entry.path == "*" || entry.matches(path) }
+        wsHandlerEntries[handlerType]!!.filter { entry -> entry.path == "*" || entry.matches(path) }
 }

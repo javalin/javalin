@@ -14,7 +14,7 @@ fun main() {
     Javalin.create().apply {
         get("/") { ctx ->
             ctx.html(
-                    """
+                """
                     <form method='post' enctype='multipart/form-data'>
                         <input type='file' name='files' multiple>
                         <button>Upload</button>

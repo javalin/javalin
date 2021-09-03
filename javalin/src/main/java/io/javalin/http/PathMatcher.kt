@@ -35,7 +35,7 @@ class PathMatcher {
     }
 
     fun findEntries(handlerType: HandlerType, requestUri: String) =
-            handlerEntries[handlerType]!!.filter { he -> match(he, requestUri) }
+        handlerEntries[handlerType]!!.filter { he -> match(he, requestUri) }
 
     private fun match(entry: HandlerEntry, requestPath: String): Boolean = when {
         entry.path == "*" -> true

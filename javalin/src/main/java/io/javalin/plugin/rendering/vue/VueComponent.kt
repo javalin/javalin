@@ -30,7 +30,8 @@ class VueComponent @JvmOverloads constructor(val component: String, val state: A
         val componentId = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
         val dependencies = if (optimizeDependencies) resolver.resolve(componentId) else allFiles.joinVueFiles()
         if (componentId !in dependencies) throw InternalServerErrorResponse("Route component not found: $routeComponent")
-        ctx.html(allFiles.find { it.endsWith("vue/layout.html") }!!.readText() // we start with the layout file
+        ctx.html(
+            allFiles.find { it.endsWith("vue/layout.html") }!!.readText() // we start with the layout file
                 .inlineFiles(allFiles.filterNot { it.isVueFile() }) // we then inline css/js files
                 .replace("@componentRegistration", "@loadableData@componentRegistration@serverState") // add anchors for later
                 .replace("@loadableData", loadableDataScript) // add loadable data class
@@ -67,12 +68,14 @@ object FileInliner {
 
 internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
         "${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent(\"${
-            urlEncodeForJavascript(ctx.jsonMapper().toJsonString(
+            urlEncodeForJavascript(
+                ctx.jsonMapper().toJsonString(
                     mapOf(
-                            "pathParams" to ctx.pathParamMap(),
-                            "state" to (state ?: stateFunction(ctx))
+                        "pathParams" to ctx.pathParamMap(),
+                        "state" to (state ?: stateFunction(ctx))
                     )
-            ))
+                )
+            )
         }\"))\n</script>\n"
 
 // Unfortunately, Java's URLEncoder does not encode the space character in the same way as Javascript.

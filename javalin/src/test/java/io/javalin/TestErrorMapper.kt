@@ -22,26 +22,26 @@ class TestErrorMapper {
     @Test
     fun `error-mapper works for 500`() = TestUtil.test { app, http ->
         app.get("/exception") { throw RuntimeException() }
-                .error(500) { ctx -> ctx.result("Custom 500 page") }
+            .error(500) { ctx -> ctx.result("Custom 500 page") }
         assertThat(http.getBody("/exception")).isEqualTo("Custom 500 page")
     }
 
     @Test
     fun `error-mapper runs after exception-mapper`() = TestUtil.test { app, http ->
         app.get("/exception") { throw RuntimeException() }
-                .exception(Exception::class.java) { _, ctx -> ctx.status(500).result("Exception handled!") }
-                .error(500) { ctx -> ctx.result("Custom 500 page") }
+            .exception(Exception::class.java) { _, ctx -> ctx.status(500).result("Exception handled!") }
+            .error(500) { ctx -> ctx.result("Custom 500 page") }
         assertThat(http.getBody("/exception")).isEqualTo("Custom 500 page")
     }
 
     @Test
     fun `error-mapper can throw exceptions`() = TestUtil.test { app, http ->
         app.get("/exception") { throw RuntimeException() }
-                .exception(Exception::class.java) { _, ctx -> ctx.status(500).result("Exception handled!") }
-                .error(500) { ctx ->
-                    ctx.result("Custom 500 page")
-                    throw RuntimeException()
-                }
+            .exception(Exception::class.java) { _, ctx -> ctx.status(500).result("Exception handled!") }
+            .error(500) { ctx ->
+                ctx.result("Custom 500 page")
+                throw RuntimeException()
+            }
         assertThat(http.getBody("/exception")).isEqualTo("Exception handled!")
     }
 

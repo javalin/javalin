@@ -64,11 +64,8 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             }
 
             var responseStarted = false
-
             fun finishUpResponse(response: ServletResponse) {
-                // Avoiding the possibility of writing to the response stream on both asynchronous requests and errors
-                if (responseStarted) return
-
+                if (responseStarted) return // prevent writing twice (ex. both async requests+errors)
                 responseStarted = true
                 tryWithExceptionMapper { // run error mappers (can mutate ctx)
                     errorMapper.handle(ctx.status(), ctx)
@@ -80,7 +77,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 }
 
                 // write the response
-                JavalinResponseWrapper(response as HttpServletResponse,rwc).write(ctx.resultStream())
+                JavalinResponseWrapper(response as HttpServletResponse, rwc).write(ctx.resultStream())
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx)) // log stuff
             }
 

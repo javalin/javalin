@@ -25,8 +25,8 @@ class TestCors {
     @Test
     fun `enableCorsForOrigin throws for empty varargs`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-                .isThrownBy { Javalin.create { it.enableCorsForOrigin() } }
-                .withMessageStartingWith("Origins cannot be empty.")
+            .isThrownBy { Javalin.create { it.enableCorsForOrigin() } }
+            .withMessageStartingWith("Origins cannot be empty.")
     }
 
     @Test
@@ -75,9 +75,9 @@ class TestCors {
             app.get("/", { ctx -> ctx.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
             assertThat(http.get("/").body).isEqualTo("Unauthorized")
             val response = Unirest.options(http.origin)
-                    .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
-                    .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
-                    .asString()
+                .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
+                .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
+                .asString()
             assertThat(response.headers[ACCESS_CONTROL_ALLOW_HEADERS]!![0]).isEqualTo("123")
             assertThat(response.headers[ACCESS_CONTROL_ALLOW_METHODS]!![0]).isEqualTo("TEST")
             assertThat(response.body).isBlank()
@@ -91,9 +91,9 @@ class TestCors {
         TestUtil.test(javalin) { app, http ->
             app.options("/") { ctx -> ctx.result("Hello") }
             val response = Unirest.options(http.origin)
-                    .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
-                    .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
-                    .asString()
+                .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
+                .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
+                .asString()
             assertThat(response.headers[ACCESS_CONTROL_ALLOW_HEADERS]!![0]).isEqualTo("123")
             assertThat(response.headers[ACCESS_CONTROL_ALLOW_METHODS]!![0]).isEqualTo("TEST")
             assertThat(response.body).isEqualTo("Hello")

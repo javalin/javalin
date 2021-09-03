@@ -78,13 +78,13 @@ internal fun Class<*>.getMethodByName(methodName: String): Method? {
 }
 
 internal fun Class<*>.getDeclaredFieldByName(methodName: String): Field? = declaredFields
-        .find { it.name == methodName }
+    .find { it.name == methodName }
 
 internal val Class<*>.methodsNotDeclaredByObject
     get(): Array<Method> = (declaredMethods + methods)
-            .toSet()
-            .filter { it.declaringClass != Object::class.java }
-            .toTypedArray()
+        .toSet()
+        .filter { it.declaringClass != Object::class.java }
+        .toTypedArray()
 
 const val methodReferenceReflectionMethodName = "get\$Lambda"
 

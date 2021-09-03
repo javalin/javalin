@@ -129,18 +129,18 @@ class TestWebSocket {
         doAndSleepWhile({ otherClient.connect() }, { !otherClient.isOpen })
         doAndSleepWhile({ otherClient.close() }, { otherClient.isClosing })
         assertThat(app.logger().log).containsExactlyInAnyOrder(
-                "0 connected",
-                "1 connected",
-                "0 sent 'A' to server",
-                "1 sent 'B' to server",
-                "Server sent 'A' to 0",
-                "Server sent 'A' to 1",
-                "Server sent 'B' to 0",
-                "Server sent 'B' to 1",
-                "0 disconnected",
-                "1 disconnected",
-                "Connected to other endpoint",
-                "Disconnected from other endpoint"
+            "0 connected",
+            "1 connected",
+            "0 sent 'A' to server",
+            "1 sent 'B' to server",
+            "Server sent 'A' to 0",
+            "Server sent 'A' to 1",
+            "Server sent 'B' to 0",
+            "Server sent 'B' to 1",
+            "0 disconnected",
+            "1 disconnected",
+            "Connected to other endpoint",
+            "Disconnected from other endpoint"
         )
     }
 
@@ -209,12 +209,12 @@ class TestWebSocket {
     @Test
     fun `websocket 404 works`() = TestUtil.test { app, _ ->
         val response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
-                .header("Connection", "Upgrade")
-                .header("Upgrade", "websocket")
-                .header("Host", "localhost:" + app.port())
-                .header("Sec-WebSocket-Key", "SGVsbG8sIHdvcmxkIQ==")
-                .header("Sec-WebSocket-Version", "13")
-                .asString()
+            .header("Connection", "Upgrade")
+            .header("Upgrade", "websocket")
+            .header("Host", "localhost:" + app.port())
+            .header("Sec-WebSocket-Key", "SGVsbG8sIHdvcmxkIQ==")
+            .header("Sec-WebSocket-Version", "13")
+            .asString()
         assertThat(response.body).containsSequence("WebSocket handler not found")
     }
 
@@ -308,10 +308,10 @@ class TestWebSocket {
         TestClient(app, "/path/0").connectAndDisconnect()
         TestClient(app, "/path/1").connectAndDisconnect()
         assertThat(app.logger().log).containsExactlyInAnyOrder(
-                "0 connected",
-                "1 connected",
-                "0 disconnected",
-                "1 disconnected"
+            "0 connected",
+            "1 connected",
+            "0 disconnected",
+            "1 disconnected"
         )
     }
 
@@ -419,9 +419,9 @@ class TestWebSocket {
         doAndSleepWhile({ client.close() }, { client.isClosing })
 
         assertThat(app.logger().log).containsExactly(
-                "before handler: onConnect", "endpoint handler: onConnect",
-                "before handler: onMessage", "endpoint handler: onMessage",
-                "before handler: onClose", "endpoint handler: onClose"
+            "before handler: onConnect", "endpoint handler: onConnect",
+            "before handler: onMessage", "endpoint handler: onMessage",
+            "before handler: onClose", "endpoint handler: onClose"
         )
     }
 
@@ -475,9 +475,9 @@ class TestWebSocket {
         doAndSleepWhile({ client.close() }, { client.isClosing })
 
         assertThat(app.logger().log).containsExactly(
-                "endpoint handler: onConnect", "after handler: onConnect",
-                "endpoint handler: onMessage", "after handler: onMessage",
-                "endpoint handler: onClose", "after handler: onClose"
+            "endpoint handler: onConnect", "after handler: onConnect",
+            "endpoint handler: onMessage", "after handler: onMessage",
+            "endpoint handler: onClose", "after handler: onClose"
         )
     }
 
@@ -497,8 +497,8 @@ class TestWebSocket {
         doAndSleepWhile({ client.connect() }, { !client.isClosed })
 
         assertThat(client.app.logger().log).containsExactly(
-                "Status code: ${StatusCode.SERVER_ERROR}",
-                "Reason: ${exception.message}"
+            "Status code: ${StatusCode.SERVER_ERROR}",
+            "Reason: ${exception.message}"
         )
     }
 
@@ -523,9 +523,9 @@ class TestWebSocket {
     fun `websocket subprotocol is set if included`() = TestUtil.test { app, http ->
         app.ws("/ws") {}
         val response = Unirest.get("http://localhost:${app.port()}/ws")
-                .header(Header.SEC_WEBSOCKET_KEY, "not-null")
-                .header(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, "mqtt")
-                .asString()
+            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .header(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, "mqtt")
+            .asString()
         assertThat(response.headers.getFirst(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)).isEqualTo("mqtt")
     }
 
@@ -533,7 +533,8 @@ class TestWebSocket {
     // Helpers
     // ********************************************************************************************
 
-    internal open inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
+    internal open inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) :
+        WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
 
         override fun onOpen(serverHandshake: ServerHandshake) {}
         override fun onClose(i: Int, s: String, b: Boolean) {}
