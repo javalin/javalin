@@ -11,12 +11,9 @@ import io.javalin.apibuilder.CrudFunctionHandler
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.security.RouteRole
+import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import io.javalin.plugin.openapi.annotations.ContentType
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.util.*
 
 data class RouteOverviewConfig(val path: String, val roles: Set<RouteRole>)
@@ -31,12 +28,6 @@ class RouteOverviewRenderer(val app: Javalin) : Handler {
         app.events { it.wsHandlerAdded { handlerInfo -> wsHandlerMetaInfoList.add(handlerInfo) } }
     }
 
-    @OpenApi(
-            summary = "Get an overview of all the routes in the application",
-            responses = [
-                OpenApiResponse("200", content = [OpenApiContent(type = ContentType.HTML)])
-            ]
-    )
     override fun handle(ctx: Context) {
         if (ctx.header(Header.ACCEPT)?.lowercase(Locale.ROOT)?.contains(ContentType.JSON) == true) {
             ctx.header("Content-Type", ContentType.JSON)

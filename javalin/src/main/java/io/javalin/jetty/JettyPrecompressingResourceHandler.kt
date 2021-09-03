@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletResponse
 object JettyPrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
+
+    @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
     val excludedMimeTypes = setOf(
@@ -38,8 +40,9 @@ object JettyPrecompressingResourceHandler {
             val target = req.getAttribute("jetty-target") as String
             var acceptCompressType = CompressType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
             val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
-            if (excludedMimeType(contentType))
+            if (contentType == null || excludedMimeType(contentType)) {
                 acceptCompressType = CompressType.NONE
+            }
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
             res.setContentLength(resultByteArray.size)
             res.setHeader(Header.CONTENT_TYPE, contentType)
@@ -65,7 +68,7 @@ object JettyPrecompressingResourceHandler {
     private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray? {
         if (resource.length() > resourceMaxSize) {
             JavalinLogger.warn("Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
-                    "You can configure the max size with `PrecompressingResourceHandler.resourceMaxSize = newMaxSize`.")
+                    "You can configure the max size with `JettyPrecompressingResourceHandler.resourceMaxSize = newMaxSize`.")
             return null
         }
         return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
