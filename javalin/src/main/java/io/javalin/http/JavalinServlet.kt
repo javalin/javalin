@@ -67,21 +67,21 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
             fun finishUpResponse(response: ServletResponse) {
                 // Avoiding the possibility of writing to the response stream on both asynchronous requests and errors
-                if (!responseStarted) {
-                    responseStarted = true
-                    tryWithExceptionMapper { // run error mappers (can mutate ctx)
-                        errorMapper.handle(ctx.status(), ctx)
-                    }
-                    tryWithExceptionMapper { // run after handlers (can mutate ctx)
-                        matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-                            entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
-                        }
-                    }
+                if (responseStarted) return
 
-                    // write the response
-                    JavalinResponseWrapper(response as HttpServletResponse,rwc).write(ctx.resultStream())
-                    config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx)) // log stuff
+                responseStarted = true
+                tryWithExceptionMapper { // run error mappers (can mutate ctx)
+                    errorMapper.handle(ctx.status(), ctx)
                 }
+                tryWithExceptionMapper { // run after handlers (can mutate ctx)
+                    matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+                        entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+                    }
+                }
+
+                // write the response
+                JavalinResponseWrapper(response as HttpServletResponse,rwc).write(ctx.resultStream())
+                config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx)) // log stuff
             }
 
             LogUtil.setup(ctx, matcher, config.inner.requestLogger != null) // start request lifecycle
