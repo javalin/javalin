@@ -63,17 +63,25 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
 
+            var responseStarted = false
+
             fun finishUpResponse(response: ServletResponse) {
-                tryWithExceptionMapper { // run error mappers (can mutate ctx)
-                    errorMapper.handle(ctx.status(), ctx)
-                }
-                tryWithExceptionMapper { // run after handlers (can mutate ctx)
-                    matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-                        entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+                // Avoiding the possibility of writing to the response stream on both asynchronous requests and errors
+                if (!responseStarted) {
+                    responseStarted = true
+                    tryWithExceptionMapper { // run error mappers (can mutate ctx)
+                        errorMapper.handle(ctx.status(), ctx)
                     }
+                    tryWithExceptionMapper { // run after handlers (can mutate ctx)
+                        matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+                            entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
+                        }
+                    }
+
+                    // write the response
+                    JavalinResponseWrapper(response as HttpServletResponse,rwc).write(ctx.resultStream())
+                    config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx)) // log stuff
                 }
-                JavalinResponseWrapper(response as HttpServletResponse, rwc).write(ctx.resultStream()) // write the response
-                config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx)) // log stuff
             }
 
             LogUtil.setup(ctx, matcher, config.inner.requestLogger != null) // start request lifecycle
@@ -85,8 +93,10 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             // user called Context#future, we call startAsync and setup callbacks
             val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
             asyncContext.addTimeoutListener {
+                val future = ctx.resultFuture()!! // we need the future before it is overwritten by `result` below
                 ctx.status(500).result("Request timed out")
                 finishUpResponse(asyncContext.response).also { asyncContext.complete() }
+                future.cancel(true)
             }
             ctx.resultFuture()!!.exceptionally { throwable ->
                 exceptionMapper.handleFutureException(ctx, throwable)
