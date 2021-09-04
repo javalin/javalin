@@ -22,7 +22,6 @@ import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics
 import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
 import io.micrometer.core.instrument.binder.jetty.TimedHandler
 import org.apache.commons.lang3.StringUtils
-import org.jetbrains.kotlin.util.prefixIfNot
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -82,4 +81,6 @@ class MicrometerPlugin @JvmOverloads constructor(
             ctx.status(500)
         }
     }
+
+    private fun String.prefixIfNot(prefix: String) = if (this.startsWith(prefix)) this else "$prefix$this"
 }
