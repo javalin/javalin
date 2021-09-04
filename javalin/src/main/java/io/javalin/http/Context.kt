@@ -233,7 +233,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
 
     /** Gets the request host, or null. */
-    fun host(): String = contextResolver().host.invoke(this)
+    fun host(): String? = contextResolver().host.invoke(this)
 
     /** Gets the request ip. */
     fun ip(): String = contextResolver().ip.invoke(this)

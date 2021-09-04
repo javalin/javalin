@@ -103,7 +103,7 @@ class TestConfiguration {
                 }
             }
                 .get("/ip") { it.result(it.ip()) }
-                .get("/host") { it.result(it.host()) }
+                .get("/host") { it.result("${it.host()}") }
         ) { _, http ->
             assertThat(http.get("/ip").body).isEqualTo("CUSTOM IP")
             assertThat(http.get("/host").body).isEqualTo("CUSTOM HOST")
@@ -116,8 +116,8 @@ class TestConfiguration {
             Javalin.create {}
                 .get("/ip") { it.result(it.ip()) }
                 .get("/remote-ip") { it.result(it.req.remoteAddr) }
-                .get("/host") { it.result(it.host()) }
-                .get("/remote-host") { it.result(it.req.getHeader(Header.HOST)) }
+                .get("/host") { it.result("${it.host()}") }
+                .get("/remote-host") { it.result("${it.header(Header.HOST)}") }
         ) { _, http ->
             assertThat(http.get("/ip").body).isEqualTo(http.get("/remote-ip").body)
             assertThat(http.get("/host").body).isEqualTo(http.get("/remote-host").body)
