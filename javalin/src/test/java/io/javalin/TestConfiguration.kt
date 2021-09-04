@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
+import io.javalin.core.util.Header
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.ContentType
 import io.javalin.http.Context
@@ -97,12 +98,12 @@ class TestConfiguration {
         TestUtil.test(
             Javalin.create {
                 it.contextResolvers { resolvers ->
-                    resolvers.ip = { ctx -> "CUSTOM IP" }
-                    resolvers.host = { ctx -> "CUSTOM HOST" }
+                    resolvers.ip = { "CUSTOM IP" }
+                    resolvers.host = { "CUSTOM HOST" }
                 }
             }
-                .get("/ip") { ctx -> ctx.result(ctx.ip()) }
-                .get("/host") { ctx -> ctx.result(ctx.host()) }
+                .get("/ip") { it.result(it.ip()) }
+                .get("/host") { it.result(it.host()) }
         ) { _, http ->
             assertThat(http.get("/ip").body).isEqualTo("CUSTOM IP")
             assertThat(http.get("/host").body).isEqualTo("CUSTOM HOST")
@@ -116,7 +117,7 @@ class TestConfiguration {
                 .get("/ip") { it.result(it.ip()) }
                 .get("/remote-ip") { it.result(it.req.remoteAddr) }
                 .get("/host") { it.result(it.host()) }
-                .get("/remote-host") { it.result(it.req.remoteHost) }
+                .get("/remote-host") { it.result(it.req.getHeader(Header.HOST)) }
         ) { _, http ->
             assertThat(http.get("/ip").body).isEqualTo(http.get("/remote-ip").body)
             assertThat(http.get("/host").body).isEqualTo(http.get("/remote-host").body)
