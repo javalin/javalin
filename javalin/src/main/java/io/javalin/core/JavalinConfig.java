@@ -26,6 +26,7 @@ import io.javalin.http.ContentType;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
+import io.javalin.http.ContextResolver;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
@@ -47,6 +48,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
 import static io.javalin.http.util.ContextUtil.maxRequestSizeKey;
 import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
@@ -221,6 +224,8 @@ public class JavalinConfig {
         }
         config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         app.attribute(maxRequestSizeKey, config.maxRequestSize);
+
+        config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
     }
 
     private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {
@@ -228,5 +233,11 @@ public class JavalinConfig {
             .stream()
             .filter(clazz::isInstance)
             .map(plugin -> (T) plugin);
+    }
+
+    public void contextResolvers(@NotNull Consumer<ContextResolver> userResolver) {
+        ContextResolver finalResolver = new ContextResolver();
+        userResolver.accept(finalResolver);
+        inner.appAttributes.put(CONTEXT_RESOLVER_KEY, finalResolver);
     }
 }

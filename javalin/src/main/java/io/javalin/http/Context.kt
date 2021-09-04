@@ -233,10 +233,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
 
     /** Gets the request host, or null. */
-    fun host(): String? = req.getHeader(Header.HOST)
+    fun host(): String? = contextResolver().host.invoke(this)
 
     /** Gets the request ip. */
-    fun ip(): String = req.remoteAddr
+    fun ip(): String = contextResolver().ip.invoke(this)
 
     /** Returns true if request is multipart. */
     fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/") == true

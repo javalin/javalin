@@ -8,8 +8,10 @@ package io.javalin
 
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
+import io.javalin.core.util.Header
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.ContentType
+import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.metrics.MicrometerPlugin
 import io.javalin.testing.TestUtil
@@ -89,5 +91,36 @@ class TestConfiguration {
         Assertions.assertThatExceptionOfType(RuntimeException::class.java)
             .isThrownBy { Javalin.create().start(app.port()) }
             .withMessageContaining("Port already in use. Make sure no other process is using port ${app.port()} and try again")
+    }
+
+    @Test
+    fun `test contextResolvers config with custom settings`() {
+        TestUtil.test(
+            Javalin.create {
+                it.contextResolvers { resolvers ->
+                    resolvers.ip = { "CUSTOM IP" }
+                    resolvers.host = { "CUSTOM HOST" }
+                }
+            }
+                .get("/ip") { it.result(it.ip()) }
+                .get("/host") { it.result("${it.host()}") }
+        ) { _, http ->
+            assertThat(http.get("/ip").body).isEqualTo("CUSTOM IP")
+            assertThat(http.get("/host").body).isEqualTo("CUSTOM HOST")
+        }
+    }
+
+    @Test
+    fun `test contextResolvers config with default settings`() {
+        TestUtil.test(
+            Javalin.create {}
+                .get("/ip") { it.result(it.ip()) }
+                .get("/remote-ip") { it.result(it.req.remoteAddr) }
+                .get("/host") { it.result("${it.host()}") }
+                .get("/remote-host") { it.result("${it.header(Header.HOST)}") }
+        ) { _, http ->
+            assertThat(http.get("/ip").body).isEqualTo(http.get("/remote-ip").body)
+            assertThat(http.get("/host").body).isEqualTo(http.get("/remote-host").body)
+        }
     }
 }
