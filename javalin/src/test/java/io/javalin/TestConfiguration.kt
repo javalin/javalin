@@ -93,23 +93,33 @@ class TestConfiguration {
     }
 
     @Test
-    fun `test contextResolvers config with custom ip`() {
+    fun `test contextResolvers config with custom settings`() {
         TestUtil.test(
             Javalin.create {
-                it.contextResolvers { resolvers -> resolvers.ip = { ctx -> "CUSTOM IP" } }
+                it.contextResolvers { resolvers ->
+                    resolvers.ip = { ctx -> "CUSTOM IP" }
+                    resolvers.host = { ctx -> "CUSTOM HOST" }
+                }
             }
-                .get("/") { ctx -> ctx.result(ctx.ip()) }
+                .get("/ip") { ctx -> ctx.result(ctx.ip()) }
+                .get("/host") { ctx -> ctx.result(ctx.host()) }
         ) { _, http ->
-            assertThat(http.get("/").body).isEqualTo("CUSTOM IP")
+            assertThat(http.get("/ip").body).isEqualTo("CUSTOM IP")
+            assertThat(http.get("/host").body).isEqualTo("CUSTOM HOST")
         }
     }
 
     @Test
-    fun `test contextResolvers config with default ip`() {
+    fun `test contextResolvers config with default settings`() {
         TestUtil.test(
             Javalin.create {}
                 .get("/ip") { it.result(it.ip()) }
-                .get("/remote") { it.result(it.req.remoteAddr) }
-        ) { _, http -> assertThat(http.get("/ip").body).isEqualTo(http.get("/remote").body) }
+                .get("/remote-ip") { it.result(it.req.remoteAddr) }
+                .get("/host") { it.result(it.host()) }
+                .get("/remote-host") { it.result(it.req.remoteHost) }
+        ) { _, http ->
+            assertThat(http.get("/ip").body).isEqualTo(http.get("/remote-ip").body)
+            assertThat(http.get("/host").body).isEqualTo(http.get("/remote-host").body)
+        }
     }
 }

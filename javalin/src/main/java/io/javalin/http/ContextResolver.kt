@@ -10,5 +10,5 @@ fun Context.contextResolver() = this.appAttribute<ContextResolver>(CONTEXT_RESOL
 
 class ContextResolver {
     var ip = { ctx: Context -> ctx.req.remoteAddr }
-    var host = { req: HttpServletRequest -> req.getHeader(Header.HOST) }
+    var host = { ctx: Context -> ctx.req.remoteHost }
 }
