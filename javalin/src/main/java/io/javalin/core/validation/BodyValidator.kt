@@ -7,6 +7,7 @@
 package io.javalin.core.validation
 
 import io.javalin.plugin.json.JsonMapper
+import org.jetbrains.annotations.NotNull
 
 const val REQUEST_BODY = "REQUEST_BODY"
 
@@ -15,5 +16,7 @@ open class BodyValidator<T>(stringValue: String?, clazz: Class<T>, jsonMapper: J
     fun check(check: Check<T>, error: ValidationError<T>) = check(REQUEST_BODY, check, error)
     fun check(fieldName: String, check: Check<T>, error: String) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>
     fun check(fieldName: String, check: Check<T>, error: ValidationError<T>) = addRule(fieldName, { check(it!!) }, error) as BodyValidator<T>
+
+    @NotNull // there is a null-check in BaseValidator
     override fun get(): T = super.get()!!
 }
