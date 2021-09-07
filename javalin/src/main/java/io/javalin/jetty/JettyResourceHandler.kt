@@ -6,6 +6,7 @@
 
 package io.javalin.jetty
 
+import io.javalin.core.util.JavalinException
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.JavalinResponseWrapper
 import io.javalin.http.staticfiles.Location
@@ -91,10 +92,10 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
         val noSuchDirMessage = "Static resource directory with path: '${config.directory}' does not exist."
         val classpathHint = "Depending on your setup, empty folders might not get copied to classpath."
         if (config.location == Location.CLASSPATH) {
-            return Resource.newClassPathResource(config.directory)?.toString() ?: throw RuntimeException("$noSuchDirMessage $classpathHint")
+            return Resource.newClassPathResource(config.directory)?.toString() ?: throw JavalinException("$noSuchDirMessage $classpathHint")
         }
         if (!File(config.directory).exists()) {
-            throw RuntimeException(noSuchDirMessage)
+            throw JavalinException(noSuchDirMessage)
         }
         return config.directory
     }

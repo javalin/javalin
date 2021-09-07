@@ -17,6 +17,8 @@ import io.javalin.core.event.JavalinEvent;
 import io.javalin.core.event.WsHandlerMetaInfo;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.RouteRole;
+import io.javalin.core.util.JavalinBindException;
+import io.javalin.core.util.JavalinException;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
 import io.javalin.core.validation.JavalinValidation;
@@ -178,11 +180,11 @@ public class Javalin {
                 stop();// stop if server is default server; otherwise, the caller is responsible to stop
             }
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new RuntimeException("Port already in use. Make sure no other process is using port " + Util.getPort(e) + " and try again.", e);
+                throw new JavalinBindException("Port already in use. Make sure no other process is using port " + Util.getPort(e) + " and try again.", e);
             } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
-                throw new RuntimeException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
+                throw new JavalinBindException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
             }
-            throw new RuntimeException(e);
+            throw new JavalinException(e);
         }
         return this;
     }
