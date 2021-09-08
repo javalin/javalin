@@ -494,8 +494,8 @@ class TestOpenApi {
         val actual = JavalinOpenApi.createSchema(app)
         val schema = actual.components.schemas["Log"]!!
         val timestampSchemaType = schema.properties["timestamp"]!!
-        assertThat(timestampSchemaType.type).isEqualTo("integer")
-        assertThat(timestampSchemaType.format).isEqualTo("int64")
+        assertThat(timestampSchemaType.type).isEqualTo("string")
+        assertThat(timestampSchemaType.format).isEqualTo("date-time")
     }
 
     @Test
