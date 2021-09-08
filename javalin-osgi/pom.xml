@@ -34,7 +34,7 @@
                         <supportedProjectType>bundle</supportedProjectType>
                     </supportedProjectTypes>
                     <instructions>
-                        <Bundle-SymbolicName>${bundle-symbolic-name};singleton:=true</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>${bundle-symbolic-name}</Bundle-SymbolicName>
                         <Bundle-Name>Javalin OSGi bundle</Bundle-Name>
                         <Embed-Dependency>javalin</Embed-Dependency>
                         <Export-Package>io.javalin.*</Export-Package>
