@@ -1,14 +1,9 @@
 package io.javalin.plugin.openapi.jackson
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.kotlinModule
 import io.javalin.plugin.openapi.utils.LazyDefaultValue
-import io.swagger.v3.core.jackson.mixin.SchemaMixin
-import io.swagger.v3.oas.models.media.Schema
-import io.swagger.v3.oas.models.security.SecurityScheme
+import io.swagger.v3.core.util.Json
 
 /**
  * Default jackson mapper for creating the object api schema json.
@@ -23,18 +18,7 @@ class JacksonToJsonMapper(
 
     companion object {
         val defaultObjectMapper: ObjectMapper by LazyDefaultValue {
-            createObjectMapperWithDefaults()
-        }
-
-        fun createObjectMapperWithDefaults(): ObjectMapper {
-            return jacksonObjectMapper()
-                    .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                    .addMixIn(Schema::class.java, SchemaMixin::class.java)
-                    .registerModule(
-                            SimpleModule()
-                                    .addSerializer(SecurityScheme.Type::class.java, ToStringSerializer())
-                                    .addSerializer(SecurityScheme.In::class.java, ToStringSerializer())
-                    )
+            Json.mapper().registerModule(kotlinModule())
         }
     }
 
