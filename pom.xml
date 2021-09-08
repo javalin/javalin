@@ -480,7 +480,7 @@
 					</supportedProjectTypes>
 					<instructions>
 					  <Bundle-SymbolicName>${bundle-symbolic-name}</Bundle-SymbolicName>
-					  <Bundle-Description>Javalin module for ${project.name}</Bundle-Description>
+					  <Bundle-Description>Module: ${project.name}</Bundle-Description>
 					  <Bundle-Classpath>.</Bundle-Classpath>
 					  <Import-Package>
 						${osgi.slf4j.import.packages},

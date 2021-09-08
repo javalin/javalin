@@ -61,10 +61,8 @@
                             org.thymeleaf;resolution:=optional,\
                             org.thymeleaf.context;resolution:=optional,\
                             org.thymeleaf.templatemode;resolution:=optional,\
-                            org.thymeleaf.templateresolver;resolution:=optional,\
-                            *
+                            org.thymeleaf.templateresolver;resolution:=optional
                         </Import-Package>
-                        <Fragment-Host>system.bundle;extension:=framework</Fragment-Host>
                     </instructions>
                 </configuration>
             </plugin>
