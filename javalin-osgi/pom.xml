@@ -27,7 +27,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>5.1.1</version>
+                <version>5.1.2</version>
                 <extensions>true</extensions>
                 <executions>
                     <execution>
@@ -44,11 +44,12 @@
                     </supportedProjectTypes>
                     <instructions>
                         <Bundle-SymbolicName>${bundle-symbolic-name}</Bundle-SymbolicName>
-                        <Bundle-Description>Module: ${project.name}</Bundle-Description>
+                        <Bundle-Description>Bundle: ${project.name}</Bundle-Description>
                         <Bundle-Name>Javalin OSGi bundle</Bundle-Name>
                         <Embed-Dependency>javalin</Embed-Dependency>
                         <Export-Package>io.javalin.*</Export-Package>
                         <Import-Package>
+                            io.javalin.*,\
                             org.eclipse.jetty.util.component,\
                             com.github.mustachejava;resolution:=optional,\
                             com.mitchellbosecke.pebble;resolution:=optional,\
