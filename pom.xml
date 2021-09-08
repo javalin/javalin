@@ -7,6 +7,7 @@
         <module>javalin-graphql</module>
         <module>javalin-bundle</module>
         <module>javalin-without-jetty</module>
+        <module>javalin-osgi</module>
     </modules>
 
     <parent>
@@ -60,6 +61,7 @@
         <gpg.plugin.version>1.6</gpg.plugin.version>
         <jar.plugin.version>3.2.0</jar.plugin.version>
         <surefire.plugin.version>2.22.2</surefire.plugin.version>
+		<bundle.plugin.version>5.1.1</bundle.plugin.version>
 
         <!-- DEPENDENCIES -->
         <classgraph.version>4.8.90</classgraph.version>
@@ -445,6 +447,18 @@
                     <rerunFailingTestsCount>2</rerunFailingTestsCount>
                 </configuration>
             </plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<executions>
+					<execution>
+					<phase>process-classes</phase>
+					<goals>
+						<goal>manifest</goal>
+					</goals>
+					</execution>
+				</executions>
+			</plugin>
         </plugins>
 
         <pluginManagement>
@@ -454,6 +468,30 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>${jar.plugin.version}</version>
                 </plugin>
+				<plugin>
+				  <groupId>org.apache.felix</groupId>
+				  <artifactId>maven-bundle-plugin</artifactId>
+				  <version>${bundle.plugin.version}</version>
+				  <extensions>true</extensions>
+				  <configuration>
+					<supportedProjectTypes>
+					  <supportedProjectType>jar</supportedProjectType>
+					  <supportedProjectType>maven-plugin</supportedProjectType>
+					</supportedProjectTypes>
+					<instructions>
+					  <Bundle-SymbolicName>${bundle-symbolic-name}</Bundle-SymbolicName>
+					  <Bundle-Description>Javalin module for ${project.name}</Bundle-Description>
+					  <Bundle-Classpath>.</Bundle-Classpath>
+					  <Import-Package>
+						${osgi.slf4j.import.packages},
+						*
+					  </Import-Package>
+					  <_provider-policy><![CDATA[$<range;[===,=+)>]]></_provider-policy>
+					  <_consumer-policy><![CDATA[$<range;[===,+)>]]></_consumer-policy>
+					  <_noee>true</_noee>
+					</instructions>
+				  </configuration>
+				</plugin>
             </plugins>
         </pluginManagement>
     </build>
