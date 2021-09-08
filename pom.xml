@@ -94,8 +94,8 @@
         <pebble.version>3.1.5</pebble.version>
         <redoc.version>2.0.0-rc.45</redoc.version>
         <slf4j.version>1.7.31</slf4j.version>
-        <swagger.core.version>2.1.6</swagger.core.version>
-        <swagger.parser.version>2.0.24</swagger.parser.version>
+        <swagger.core.version>2.1.10</swagger.core.version>
+        <swagger.parser.version>2.0.27</swagger.parser.version>
         <swagger.ui.version>3.43.0</swagger.ui.version>
         <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <velocity.version>2.3</velocity.version>

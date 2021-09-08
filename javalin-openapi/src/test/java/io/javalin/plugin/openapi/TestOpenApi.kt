@@ -35,6 +35,7 @@ import io.javalin.plugin.openapi.dsl.documentedContent
 import io.javalin.plugin.openapi.dsl.oneOf
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.testing.TestUtil
+import io.swagger.v3.core.util.Json
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
@@ -478,10 +479,7 @@ class TestOpenApi {
 
     @Test
     fun `createSchema works with Instants as timestamps`() {
-        val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
-
         val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
-            .jacksonMapper(customMapper)
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
@@ -496,16 +494,13 @@ class TestOpenApi {
         val actual = JavalinOpenApi.createSchema(app)
         val schema = actual.components.schemas["Log"]!!
         val timestampSchemaType = schema.properties["timestamp"]!!
-        assertThat(timestampSchemaType.type).isEqualTo("integer")
-        assertThat(timestampSchemaType.format).isEqualTo("int64")
+        assertThat(timestampSchemaType.type).isEqualTo("string")
+        assertThat(timestampSchemaType.format).isEqualTo("date-time")
     }
 
     @Test
     fun `createSchema Instants respect annotations`() {
-        val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
-
         val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
-            .jacksonMapper(customMapper)
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
@@ -526,12 +521,8 @@ class TestOpenApi {
 
     @Test
     fun `createSchema works with Instants as strings`() {
-        val customMapper = JacksonToJsonMapper.createObjectMapperWithDefaults()
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-
         val openApiOptions = OpenApiOptions(
-            Info().title("Example").version("1.0.0")
-        ).jacksonMapper(customMapper)
+            Info().title("Example").version("1.0.0"))
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
