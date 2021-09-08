@@ -10,9 +10,14 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.OpenApi
-import io.swagger.util.Yaml
+import io.swagger.v3.core.jackson.mixin.MediaTypeMixin
+import io.swagger.v3.core.jackson.mixin.SchemaMixin
+import io.swagger.v3.core.util.Yaml
 import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.media.MediaType
+import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.parser.OpenAPIV3Parser
+import io.swagger.v3.parser.core.models.SwaggerParseResult
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger(OpenApiHandler::class.java)
@@ -45,19 +50,25 @@ class OpenApiHandler(app: Javalin, val options: OpenApiOptions) : Handler {
         )
 
         if (options.validateSchema) {
-            Util.ensureDependencyPresent(OptionalDependency.SWAGGERPARSER)
-            val parsedSchema = OpenAPIV3Parser().readContents(Yaml.mapper().writeValueAsString(schema))
-
-            if (parsedSchema.messages.isNotEmpty()) {
-                logger.warn("The generated OpenApi specification is not valid")
-
-                parsedSchema.messages.forEach {
-                    logger.warn(it)
-                }
-            }
+            validateOpenAPISchema(schema)
         }
 
         return schema
+    }
+
+    fun validateOpenAPISchema(schema: OpenAPI): SwaggerParseResult {
+        Util.ensureDependencyPresent(OptionalDependency.SWAGGERPARSER)
+        val parsedSchema = OpenAPIV3Parser().readContents(Yaml.mapper().writeValueAsString(schema))
+
+        if (parsedSchema.messages.isNotEmpty()) {
+            logger.warn("The generated OpenApi specification is not valid")
+
+            parsedSchema.messages.forEach {
+                logger.warn(it)
+            }
+        }
+
+        return parsedSchema
     }
 
     /**
