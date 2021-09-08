@@ -17,7 +17,7 @@
         </dependency>
     </dependencies>
 
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
     <properties>
         <bundle-symbolic-name>${project.groupId}.${project.artifactId}</bundle-symbolic-name>
     </properties>
@@ -27,10 +27,16 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
                 <configuration>
+                    <supportedProjectTypes>
+                        <supportedProjectType>jar</supportedProjectType>
+                        <supportedProjectType>bundle</supportedProjectType>
+                    </supportedProjectTypes>
                     <instructions>
                         <Bundle-SymbolicName>${bundle-symbolic-name};singleton:=true</Bundle-SymbolicName>
                         <Bundle-Name>Javalin OSGi bundle</Bundle-Name>
+                        <Embed-Dependency>javalin</Embed-Dependency>
                         <Import-Package>
                             org.eclipse.jetty.util.component,\
                             com.github.mustachejava;resolution:=optional,\
