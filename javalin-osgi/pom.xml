@@ -69,6 +69,8 @@
                         <Import-Package>
                             kotlin.*, io.javalin.*,\
                             org.eclipse.jetty.util.component,\
+                            org.slf4j,\
+                            javax.servlet.http,\
                             com.github.mustachejava;resolution:=optional,\
                             com.mitchellbosecke.pebble;resolution:=optional,\
                             com.mitchellbosecke.pebble.loader;resolution:=optional,\
