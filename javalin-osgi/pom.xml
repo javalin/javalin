@@ -25,19 +25,38 @@
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-everything</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>compile</includeScope>
+                            <includeGroupIds>${project.parent.groupId}</includeGroupIds>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <excludes>**/MANIFEST.MF</excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <version>5.1.2</version>
                 <extensions>true</extensions>
                 <executions>
                     <execution>
-                        <phase>process-classes</phase>
+                        <phase>package</phase>
                         <goals>
-                            <goal>manifest</goal>
+                            <goal>bundle</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
+                    <excludeDependencies>true</excludeDependencies>
                     <supportedProjectTypes>
                         <supportedProjectType>jar</supportedProjectType>
                         <supportedProjectType>bundle</supportedProjectType>
@@ -46,7 +65,6 @@
                         <Bundle-SymbolicName>${bundle-symbolic-name}</Bundle-SymbolicName>
                         <Bundle-Description>Bundle: ${project.name}</Bundle-Description>
                         <Bundle-Name>Javalin OSGi bundle</Bundle-Name>
-                        <Embed-Dependency>javalin</Embed-Dependency>
                         <Export-Package>io.javalin.*</Export-Package>
                         <Import-Package>
                             kotlin.*, io.javalin.*,\
