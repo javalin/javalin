@@ -49,7 +49,7 @@
                         <Embed-Dependency>javalin</Embed-Dependency>
                         <Export-Package>io.javalin.*</Export-Package>
                         <Import-Package>
-                            io.javalin.*,\
+                            kotlin.*, io.javalin.*,\
                             org.eclipse.jetty.util.component,\
                             com.github.mustachejava;resolution:=optional,\
                             com.mitchellbosecke.pebble;resolution:=optional,\
