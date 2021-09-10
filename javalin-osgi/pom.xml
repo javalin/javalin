@@ -65,11 +65,8 @@
                         <Bundle-SymbolicName>${bundle-symbolic-name}</Bundle-SymbolicName>
                         <Bundle-Description>Bundle: ${project.name}</Bundle-Description>
                         <Bundle-Name>Javalin OSGi bundle</Bundle-Name>
-                        <Export-Package>io.javalin.*</Export-Package>
                         <Import-Package>
-                            *,\
                             org.eclipse.jetty.util.component,\
-                            com.github.mustachejava;resolution:=optional,\
                             com.mitchellbosecke.pebble;resolution:=optional,\
                             com.mitchellbosecke.pebble.loader;resolution:=optional,\
                             com.mitchellbosecke.pebble.template;resolution:=optional,\
@@ -97,7 +94,8 @@
                             org.thymeleaf;resolution:=optional,\
                             org.thymeleaf.context;resolution:=optional,\
                             org.thymeleaf.templatemode;resolution:=optional,\
-                            org.thymeleaf.templateresolver;resolution:=optional
+                            org.thymeleaf.templateresolver;resolution:=optional,
+                            kotlin.*, *
                         </Import-Package>
                     </instructions>
                 </configuration>
