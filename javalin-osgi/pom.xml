@@ -67,6 +67,7 @@
                         <Bundle-Name>Javalin OSGi bundle</Bundle-Name>
                         <Import-Package>
                             org.eclipse.jetty.util.component,\
+                            com.github.mustachejava;resolution:=optional,\
                             com.mitchellbosecke.pebble;resolution:=optional,\
                             com.mitchellbosecke.pebble.loader;resolution:=optional,\
                             com.mitchellbosecke.pebble.template;resolution:=optional,\
