@@ -65,8 +65,13 @@
                         <Bundle-SymbolicName>${bundle-symbolic-name}</Bundle-SymbolicName>
                         <Bundle-Description>Bundle: ${project.name}</Bundle-Description>
                         <Bundle-Name>Javalin OSGi bundle</Bundle-Name>
+                        <Export-Package>
+                            org.eclipse.jetty.util.component,
+                            *
+                        </Export-Package>
                         <Import-Package>
-                            org.eclipse.jetty.util.component,\
+                            com.fasterxml.jackson.databind;resolution:=optional,\
+                            com.fasterxml.jackson.module.kotlin;resolution:=optional,\
                             com.github.mustachejava;resolution:=optional,\
                             com.mitchellbosecke.pebble;resolution:=optional,\
                             com.mitchellbosecke.pebble.loader;resolution:=optional,\
