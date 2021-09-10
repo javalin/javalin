@@ -24,6 +24,7 @@ import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.ContentType.IMAGE_PNG
 import io.javalin.http.Context
+import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.openapi.annotations.ContentType
 import io.javalin.plugin.openapi.annotations.HttpMethod
 import io.javalin.plugin.openapi.dsl.OpenApiDocumentation
@@ -33,9 +34,8 @@ import io.javalin.plugin.openapi.dsl.documentCrud
 import io.javalin.plugin.openapi.dsl.documented
 import io.javalin.plugin.openapi.dsl.documentedContent
 import io.javalin.plugin.openapi.dsl.oneOf
-import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
+import io.javalin.plugin.openapi.jackson.JacksonModelConverterFactory
 import io.javalin.testing.TestUtil
-import io.swagger.v3.core.util.Json
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
@@ -480,6 +480,12 @@ class TestOpenApi {
     @Test
     fun `createSchema works with Instants as timestamps`() {
         val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
+            .modelConverterFactory(
+                JacksonModelConverterFactory(
+                    JavalinJackson.defaultMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
+                )
+            )
+
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
@@ -494,8 +500,8 @@ class TestOpenApi {
         val actual = JavalinOpenApi.createSchema(app)
         val schema = actual.components.schemas["Log"]!!
         val timestampSchemaType = schema.properties["timestamp"]!!
-        assertThat(timestampSchemaType.type).isEqualTo("string")
-        assertThat(timestampSchemaType.format).isEqualTo("date-time")
+        assertThat(timestampSchemaType.type).isEqualTo("integer")
+        assertThat(timestampSchemaType.format).isEqualTo("int64")
     }
 
     @Test
@@ -521,8 +527,7 @@ class TestOpenApi {
 
     @Test
     fun `createSchema works with Instants as strings`() {
-        val openApiOptions = OpenApiOptions(
-            Info().title("Example").version("1.0.0"))
+        val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
         val app = Javalin.create {
             it.registerPlugin(OpenApiPlugin(openApiOptions))
         }
