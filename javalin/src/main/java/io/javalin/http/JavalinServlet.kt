@@ -84,18 +84,18 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             LogUtil.setup(ctx, matcher, config.inner.requestLogger != null) // start request lifecycle
             ctx.contentType(config.defaultContentType)
             tryBeforeAndEndpointHandlers()
-            if (ctx.resultFuture() == null) {
+            val resultFuture = ctx.resultFuture() // store the future, so it's not overwritten by `result` below
+            if (resultFuture == null) {
                 return finishUpResponse(res) // request lifecycle is complete (blocking/synchronous)
             }
-            // user called Context#future, we call startAsync and setup callbacks
+            // user has set a Future result, we call startAsync and setup callbacks
             val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
             asyncContext.addTimeoutListener {
-                val future = ctx.resultFuture()!! // we need the future before it is overwritten by `result` below
                 ctx.status(500).result("Request timed out")
                 finishUpResponse(asyncContext.response).also { asyncContext.complete() }
-                future.cancel(true)
+                resultFuture.cancel(true)
             }
-            ctx.resultFuture()!!.exceptionally { throwable ->
+            resultFuture.exceptionally { throwable ->
                 exceptionMapper.handleFutureException(ctx, throwable)
             }.thenAccept { futureValue ->
                 ctx.futureConsumer?.accept(futureValue) // this consumer can set result, status, etc
