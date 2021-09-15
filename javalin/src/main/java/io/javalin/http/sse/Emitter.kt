@@ -28,6 +28,7 @@ class Emitter(private var asyncContext: AsyncContext) {
             output.print("data: ")
             data.copyTo(output)
             output.print(newline)
+            output.print(newline)
             asyncContext.response.flushBuffer()
         } catch (e: IOException) {
             closed = true
