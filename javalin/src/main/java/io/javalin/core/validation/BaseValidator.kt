@@ -13,7 +13,7 @@ typealias Check<T> = (T) -> Boolean
 
 data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: ValidationError<T>)
 data class ValidationError<T>(val message: String, val args: Map<String, Any?> = mapOf(), var value: Any? = null)
-class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : Exception()
+class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException()
 
 open class BaseValidator<T>(val stringValue: String?, val clazz: Class<T>, val fieldName: String, jsonMapper: JsonMapper? = null) {
     private var typedValue: T? = null
