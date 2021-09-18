@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull
  * The non-nullable [TypedValueValidator] uses [Rule] rules, but checks if value is null before calling them.
  * The [check] method wraps its non-nullable predicate in a nullable predicate
  */
-class TypedValueValidator<T>(typedVal: T?, fieldName: String) : TypedValueBaseValidator<T>(fieldName, typedVal) {
+open class TypedValueValidator<T>(typedVal: T?, fieldName: String) : TypedValueBaseValidator<T>(fieldName, typedVal) {
 
     fun allowNullable(): TypedValueNullableValidator<T> {
         if (rules.isEmpty()) return TypedValueNullableValidator(typedValue, fieldName)
