@@ -4,6 +4,8 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
+// ktlint-disable filename
+
 package io.javalin
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -12,6 +14,8 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.JavalinValidation
+import io.javalin.core.validation.TypedValueNullableValidator
+import io.javalin.core.validation.TypedValueValidator
 import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
@@ -47,7 +51,6 @@ class TestValidation {
         JavalinLogger.enabled = true
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
         assertThat(log).contains("Parameter 'param' with value 'abc' is not a valid Integer")
-
     }
 
     @Test
@@ -339,5 +342,79 @@ class TestValidation {
         }
         assertThat(http.getBody("/?number=20&locale=en")).contains("The value has to at least 6 and at most 9")
         assertThat(http.getBody("/?number=20&locale=fr")).contains("La valeur doit au moins 6 et au plus 9")
+    }
+
+    data class KeyValuePair(val key: String, val value: String)
+
+    @Test
+    fun `typed value non-nullable validator works for positive case`() {
+        val validator = TypedValueValidator(KeyValuePair("key", "value"), "kvp")
+        validator.check({ it.key == "key" }, "unexpected key")
+        validator.check({ it.value == "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `typed value non-nullable validator works for negative case #1`() {
+        val validator = TypedValueValidator(KeyValuePair("key", "value"), "kvp")
+        validator.check({ it.key != "key" }, "unexpected key")
+        validator.check({ it.value == "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).hasSize(1)
+        assertThat(errors["kvp"]).hasSize(1)
+    }
+
+    @Test
+    fun `typed value non-nullable validator works for negative case #2`() {
+        val validator = TypedValueValidator(KeyValuePair("key", "value"), "kvp")
+        validator.check({ it.key != "key" }, "unexpected key")
+        validator.check({ it.value != "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).hasSize(1)
+        assertThat(errors["kvp"]).hasSize(2)
+    }
+
+    @Test
+    fun `typed value nullable validator works for positive case`() {
+        val validator = TypedValueNullableValidator(KeyValuePair("key", "value"), "kvp")
+        validator.check({ it!!.key == "key" }, "unexpected key")
+        validator.check({ it!!.value == "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `typed value nullable validator works for negative case #1`() {
+        val validator = TypedValueNullableValidator(KeyValuePair("key", "value"), "kvp")
+        validator.check({ it!!.key != "key" }, "unexpected key")
+        validator.check({ it!!.value == "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).hasSize(1)
+        assertThat(errors["kvp"]).hasSize(1)
+    }
+
+    @Test
+    fun `typed value nullable validator works for negative case #2`() {
+        val validator = TypedValueNullableValidator(KeyValuePair("key", "value"), "kvp")
+        validator.check({ it!!.key != "key" }, "unexpected key")
+        validator.check({ it!!.value != "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).hasSize(1)
+        assertThat(errors["kvp"]).hasSize(2)
+    }
+
+    @Test
+    fun `typed value nullable validator works for null value`() {
+        val validator = TypedValueNullableValidator<KeyValuePair>(null, "kvp")
+        validator.check({ it!!.key == "key" }, "unexpected key")
+        validator.check({ it!!.value == "value" }, "unexpected value")
+    }
+
+    @Test
+    fun `typed value nullable validator constructed from a non-nullable one works for null value`() {
+        val validator = TypedValueValidator<KeyValuePair>(null, "kvp").allowNullable()
+        validator.check({ it!!.key == "key" }, "unexpected key")
+        validator.check({ it!!.value == "value" }, "unexpected value")
     }
 }
