@@ -12,6 +12,7 @@ import io.javalin.core.util.CorsPlugin
 import io.javalin.core.util.LogUtil
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.AsyncContext
 import javax.servlet.AsyncEvent
 import javax.servlet.AsyncListener
@@ -63,10 +64,11 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
 
-            var responseStarted = false
+            val responseStarted = AtomicBoolean(false)
+
             fun finishUpResponse(response: ServletResponse) {
-                if (responseStarted) return // prevent writing twice (ex. both async requests+errors)
-                responseStarted = true
+                if (responseStarted.getAndSet(true)) return // prevent writing twice (ex. both async requests+errors)
+
                 tryWithExceptionMapper { // run error mappers (can mutate ctx)
                     errorMapper.handle(ctx.status(), ctx)
                 }
@@ -75,7 +77,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                         entry.handler.handle(ContextUtil.update(ctx, entry, requestUri))
                     }
                 }
-
                 // write the response
                 JavalinResponseWrapper(response as HttpServletResponse, rwc).write(ctx.resultStream())
                 config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx)) // log stuff
@@ -85,9 +86,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             ctx.contentType(config.defaultContentType)
             tryBeforeAndEndpointHandlers()
             val resultFuture = ctx.resultFuture() // store the future, so it's not overwritten by `result` below
-            if (resultFuture == null) {
-                return finishUpResponse(res) // request lifecycle is complete (blocking/synchronous)
-            }
+                ?: return finishUpResponse(res) // if result is null, request lifecycle is complete (blocking/synchronous)
             // user has set a Future result, we call startAsync and setup callbacks
             val asyncContext = req.startAsync().apply { timeout = config.asyncRequestTimeout }
             asyncContext.addTimeoutListener {
