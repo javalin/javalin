@@ -15,28 +15,63 @@ data class Rule<T>(val fieldName: String, val check: Check<T?>, val error: Valid
 data class ValidationError<T>(val message: String, val args: Map<String, Any?> = mapOf(), var value: Any? = null)
 class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException()
 
-open class BaseValidator<T>(val stringValue: String?, val clazz: Class<T>, val fieldName: String, jsonMapper: JsonMapper? = null) {
-    private var typedValue: T? = null
+data class StringSource<T>(
+    val stringValue: String?,
+    val clazz: Class<T>,
+    val jsonMapper: JsonMapper? = null
+)
+
+open class BaseValidator<T>(
+    val fieldName: String,
+    protected var typedValue: T?,
+    protected val stringSource: StringSource<T>?
+) {
     internal val rules = mutableListOf<Rule<T>>()
+
     private val errors by lazy {
-        if (this is BodyValidator) {
-            try {
-                typedValue = jsonMapper!!.fromJsonString(stringValue!!, clazz)
-            } catch (e: Exception) {
-                JavalinLogger.info("Couldn't deserialize body to ${clazz.simpleName}", e)
-                return@lazy mapOf(REQUEST_BODY to listOf(ValidationError("DESERIALIZATION_FAILED", value = stringValue)))
-            }
-        } else if (this is NullableValidator || this is Validator) {
-            try {
-                typedValue = JavalinValidation.convertValue(clazz, stringValue)
-            } catch (e: Exception) {
-                JavalinLogger.info("Parameter '${fieldName}' with value '${stringValue}' is not a valid ${clazz.simpleName}")
-                return@lazy mapOf(fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value = stringValue)))
-            }
-            if (this !is NullableValidator && typedValue == null) { // only check typedValue - null might map to 0, which could be valid?
-                return@lazy mapOf(fieldName to listOf(ValidationError("NULLCHECK_FAILED", value = stringValue)))
+        if (stringSource != null) {
+            if (this is BodyValidator) {
+                try {
+                    typedValue = stringSource.jsonMapper!!
+                        .fromJsonString(stringSource.stringValue!!, stringSource.clazz)
+                } catch (e: Exception) {
+                    JavalinLogger.info("Couldn't deserialize body to ${stringSource.clazz.simpleName}", e)
+                    return@lazy mapOf(
+                        REQUEST_BODY to listOf(
+                            ValidationError(
+                                "DESERIALIZATION_FAILED",
+                                value = stringSource.stringValue
+                            )
+                        )
+                    )
+                }
+            } else if (this is NullableValidator || this is Validator) {
+                try {
+                    typedValue = JavalinValidation.convertValue(stringSource.clazz, stringSource.stringValue)
+                } catch (e: Exception) {
+                    JavalinLogger.info(
+                        "Parameter '$fieldName' with value '${stringSource.stringValue}' is not a valid" +
+                            " ${stringSource.clazz.simpleName}"
+                    )
+                    return@lazy mapOf(
+                        fieldName to listOf(
+                            ValidationError(
+                                "TYPE_CONVERSION_FAILED",
+                                value = stringSource.stringValue
+                            )
+                        )
+                    )
+                }
+                if (this !is NullableValidator && typedValue == null) { // only check typedValue - null might map to 0, which could be valid?
+                    return@lazy mapOf(
+                        fieldName to listOf(
+                            ValidationError("NULLCHECK_FAILED", value = stringSource.stringValue)
+                        )
+                    )
+                }
             }
         }
+
         /** after this point [typedValue] replaces [stringValue] */
         val errors = mutableMapOf<String, MutableList<ValidationError<T>>>()
         rules.filter { !it.check(typedValue) }.forEach { failedRule ->
@@ -57,11 +92,17 @@ open class BaseValidator<T>(val stringValue: String?, val clazz: Class<T>, val f
         return this
     }
 
+    constructor(
+        stringValue: String?,
+        clazz: Class<T>,
+        fieldName: String,
+        jsonMapper: JsonMapper? = null
+    ) : this(fieldName, null, StringSource<T>(stringValue, clazz, jsonMapper))
+
     open fun get(): T? = when {
         errors.isEmpty() -> typedValue
         else -> throw ValidationException(errors as Map<String, List<ValidationError<Any>>>)
     }
 
     fun errors(): Map<String, List<ValidationError<T>>> = errors
-
 }
