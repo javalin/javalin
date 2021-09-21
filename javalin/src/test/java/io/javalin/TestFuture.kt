@@ -4,6 +4,7 @@ import io.javalin.core.util.Header
 import io.javalin.http.ContentType
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.io.InputStream
@@ -72,7 +73,20 @@ class TestFuture {
         assertThat(http.get("/test-future").status).isEqualTo(500)
     }
 
+    /* Such a scenario doesn't really make sense, the future may perform various side effect tasks - not only set the result response.
+     * Despite the fact it doesn't make sense, this operation is also not thread-safe, because of the mutable nature of Context.
+     * Example:
+     *
+     * task = externalThreadPool.task {
+     *   ctx.result("Overridden") // There is a chance it will be called before async context initialization because 'result' may override async task
+     *   ctx.status(404)          // May fail, as context was handled as sync and has been already sent
+     * }
+     *
+     * ctx.future(task)
+     *
+     */
     @Test
+    @Disabled
     fun `future is overwritten if String result is set`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx ->
             ctx.future(getFuture("Result"))
@@ -132,7 +146,7 @@ class TestFuture {
         app.get("/") {
             Executors.newSingleThreadScheduledExecutor().schedule({
                 future.complete("Test")
-            }, 50, TimeUnit.MILLISECONDS)
+            }, 500, TimeUnit.MILLISECONDS)
             it.future(future)
         }
         assertThat(http.get("/").body).isEqualTo("Request timed out")

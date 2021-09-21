@@ -16,6 +16,15 @@ class ExceptionMapper {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
+    internal fun handle(throwable: Throwable, ctx: Context) {
+        if (throwable is Exception) {
+            handle(throwable, ctx)
+        }
+        JavalinLogger.warn("Uncaught exception", throwable)
+        HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
+        ctx.inExceptionHandler = false
+    }
+
     internal fun handle(exception: Exception, ctx: Context) {
         ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
         if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {

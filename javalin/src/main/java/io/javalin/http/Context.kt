@@ -21,6 +21,7 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -34,8 +35,8 @@ import javax.servlet.http.HttpServletResponse
 open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, internal val appAttributes: Map<String, Any> = mapOf()) {
 
     // @formatter:off
-    @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
     @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
+    @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
@@ -44,8 +45,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
-    private var resultFuture: CompletableFuture<*>? = null
+    internal var async = AtomicReference<CompletableFuture<*>?>(null)
     internal var futureConsumer: Consumer<Any?>? = null
+
     private val body by lazy {
         this.throwPayloadTooLargeIfPayloadTooLarge()
         req.inputStream.readBytes()
@@ -342,7 +344,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
-        this.resultFuture = null
         this.resultStream = resultStream
         return this
     }
@@ -359,9 +360,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
             throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
         }
         resultStream = null
-        resultFuture = future
+        async.set(future)
         futureConsumer = callback ?: Consumer { result ->
             when (result) {
+                is Unit -> {}
                 is InputStream -> result(result)
                 is String -> result(result)
                 is Any -> json(result)
@@ -371,7 +373,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>? = resultFuture
+    fun resultFuture(): CompletableFuture<*>? = async.get()
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {
