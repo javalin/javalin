@@ -13,22 +13,32 @@ import javax.servlet.AsyncListener
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-data class ServletContext(
+internal typealias LayerHandler = () -> Unit
+
+internal data class Scope(
+    val name: String,
+    val allowsErrors: Boolean = false,
+    private val initialize: Scope.(Queue<Pair<Scope, LayerHandler>>) -> Unit
+) {
+
+    fun initialize(queue: Queue<Pair<Scope, LayerHandler>>) =
+        initialize(this, queue)
+
+    fun submit(queue: Queue<Pair<Scope, LayerHandler>>, task: LayerHandler) =
+        queue.offer(Pair(this, task))
+
+}
+
+internal data class JavalinFlowContext(
     val type: HandlerType,
     val responseWrapperContext: ResponseWrapperContext,
     val requestUri: String,
     val ctx: Context
 )
 
-data class Scope(
-    val name: String,
-    val allowsErrors: Boolean = false,
-    val initialize: Queue<() -> Unit>.() -> Unit
-)
-
-class JavalinServletFlow(
+internal class JavalinServletFlow(
     private val servlet: JavalinServlet,
-    private val context: ServletContext,
+    private val context: JavalinFlowContext,
     private val request: HttpServletRequest,
     private var response: HttpServletResponse,
     rawScopes: List<Scope>
@@ -41,8 +51,7 @@ class JavalinServletFlow(
 
     private val scopes = ConcurrentLinkedQueue(rawScopes) // Scopes with async request handling support
     private var flow: CompletableFuture<*> = CompletableFuture.completedFuture(Unit).exceptionally { servlet.exceptionMapper.handle(it, ctx) } // Main stage used to pipeline handlers as a chain
-    private val handlerPipeline = ConcurrentLinkedQueue<() -> Unit>()
-    private lateinit var currentScope: Scope
+    private val handlerPipeline = ConcurrentLinkedQueue<Pair<Scope, LayerHandler>>()
     private val finished = AtomicBoolean(false) // requires support for atomic switch
     private var asyncContext: AsyncContext? = null
     private var latestFuture: CompletableFuture<*>? = null
@@ -57,7 +66,7 @@ class JavalinServletFlow(
     private fun continueFlow() {
         if (handlerPipeline.isEmpty()) {
             while (scopes.isNotEmpty() && handlerPipeline.isEmpty()) {
-                this.currentScope = scopes.poll()
+                val currentScope = scopes.poll()
                 currentScope.initialize(handlerPipeline)
             }
             if (scopes.isEmpty() && handlerPipeline.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
@@ -66,11 +75,10 @@ class JavalinServletFlow(
             }
         }
 
-        val handlerScope = currentScope // cache current scope for future task handling in compose body
-        val handler = handlerPipeline.poll()
+        val (scope, handler) = handlerPipeline.poll()
 
         this.flow = flow.thenCompose {
-            if (errored && handlerScope.allowsErrors.not()) { // skip handlers that don't support errored pipeline
+            if (errored && scope.allowsErrors.not()) { // skip handlers that don't support errored pipeline
                 return@thenCompose syncStage().thenAccept { continueFlow() }
             }
 

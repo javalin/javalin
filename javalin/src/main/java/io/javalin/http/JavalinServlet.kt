@@ -23,39 +23,39 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) {
         try {
-            tryService(req, res)
+            handle(req, res)
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(res, throwable)
         }
     }
 
-    private fun tryService(request: HttpServletRequest, response: HttpServletResponse) {
+    private fun handle(request: HttpServletRequest, response: HttpServletResponse) {
         val type = HandlerType.fromServletRequest(request)
         val responseWrapperContext = ResponseWrapperContext(request, config)
         val requestUri = request.requestURI.removePrefix(request.contextPath)
         val ctx = Context(request, response, config.inner.appAttributes)
-        val context = ServletContext(type, responseWrapperContext, requestUri, ctx)
+        val context = JavalinFlowContext(type, responseWrapperContext, requestUri, ctx)
 
         val beforeScope = Scope("before") {
-            matcher.findEntries(HandlerType.BEFORE, requestUri).forEach {
-                offer { handle(context, it) }
+            matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
+                submit(it) { handle(context, entry) }
             }
         }
         val httpScope = Scope("http") {
-            matcher.findEntries(type, requestUri).firstOrNull()?.let {
-                offer { handle(context, it) }
+            matcher.findEntries(type, requestUri).firstOrNull()?.let { entry ->
+                submit(it) { handle(context, entry) }
                 return@Scope // return after first match
             }
-            offer {
+            submit(it) {
                 if (type == HandlerType.HEAD && matcher.hasEntries(HandlerType.GET, requestUri)) { // return 200, there is a get handler
-                    return@offer
+                    return@submit
                 }
                 if (type == HandlerType.HEAD || type == HandlerType.GET) { // check for static resources (will write response if found)
-                    if (config.inner.resourceHandler?.handle(request, JavalinResponseWrapper(response, responseWrapperContext)) == true) return@offer
-                    if (config.inner.singlePageHandler.handle(ctx)) return@offer
+                    if (config.inner.resourceHandler?.handle(request, JavalinResponseWrapper(response, responseWrapperContext)) == true) return@submit
+                    if (config.inner.singlePageHandler.handle(ctx)) return@submit
                 }
                 if (type == HandlerType.OPTIONS && isCorsEnabled(config)) { // CORS is enabled, so we return 200 for OPTIONS
-                    return@offer
+                    return@submit
                 }
                 if (ctx.handlerType == HandlerType.BEFORE) { // no match, status will be 404 or 405 after this point
                     ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
@@ -68,11 +68,11 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             }
         }
         val errorScope = Scope("error", allowsErrors = true) {
-            offer { handleError(ctx) }
+            submit(it) { handleError(ctx) }
         }
         val afterScope = Scope("after", allowsErrors = true) {
-            matcher.findEntries(HandlerType.AFTER, requestUri).forEach {
-                offer { handle(context, it) }
+            matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
+                submit(it) { handle(context, entry) }
             }
         }
 
@@ -82,14 +82,14 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         flow.start() // Start request lifecycle
     }
 
-    private fun updateContext(servletContext: ServletContext, handlerEntry: HandlerEntry) = servletContext.ctx.apply {
+    private fun updateContext(servletContext: JavalinFlowContext, handlerEntry: HandlerEntry) = servletContext.ctx.apply {
         matchedPath = handlerEntry.path
         pathParamMap = handlerEntry.extractPathParams(servletContext.requestUri)
         handlerType = handlerEntry.type
         if (handlerType != HandlerType.AFTER) endpointHandlerPath = handlerEntry.path // Idk what it does
     }
 
-    internal fun handle(context: ServletContext, handlerEntry: HandlerEntry) =
+    internal fun handle(context: JavalinFlowContext, handlerEntry: HandlerEntry) =
         handlerEntry.handler.handle(updateContext(context, handlerEntry))
 
     internal fun handleError(ctx: Context) =
