@@ -1,10 +1,9 @@
 package io.javalin.http
 
 import io.javalin.core.util.LogUtil
+import java.util.ArrayDeque
 import java.util.Queue
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.AsyncContext
 import javax.servlet.AsyncEvent
@@ -40,36 +39,36 @@ internal class JavalinServletFlow(
     private val scopes: List<Scope>
 ) {
 
-    private val ctx = context.ctx
-    private var flow: CompletableFuture<*> = CompletableFuture.completedFuture(Unit).exceptionally { servlet.exceptionMapper.handle(it, ctx) } // Main stage used to pipeline handlers as a chain
     private var currentScope = 0
-    private val handlerPipeline = ConcurrentLinkedQueue<Pair<Scope, LayerHandler>>()
+    private val pipeline = ArrayDeque<Pair<Scope, LayerHandler>>(scopes.size * 2) // As long as timeout listener does not touch this pipeline there is no need to use thread-safe structure
+    private var flow: CompletableFuture<*> = syncStage() // Main stage used to pipeline handlers as a chain
     private var asyncContext: AsyncContext? = null
     private var latestFuture: CompletableFuture<*>? = null
-    private val finished = AtomicBoolean(false) // requires support for atomic switch
     private var errored = false
+    private val finished = AtomicBoolean(false) // requires support for atomic switch
 
     fun start() =
         continueFlow()
 
-    private fun syncStage(): CompletionStage<Void?> =
+    private fun syncStage(): CompletableFuture<Void?> =
         CompletableFuture.completedFuture(null) // creates completed stage that behaves like sync request until it's not replaced by future result
 
     private fun continueFlow() {
+        val ctx = context.ctx
         val exceptionMapper: ExceptionMapper = servlet.exceptionMapper
 
-        if (handlerPipeline.isEmpty()) {
-            while (currentScope < scopes.size && handlerPipeline.isEmpty()) {
+        if (pipeline.isEmpty()) {
+            while (currentScope < scopes.size && pipeline.isEmpty()) {
                 val scope = scopes[currentScope++]
-                scope.initialize(handlerPipeline, context)
+                scope.initialize(pipeline, context)
             }
-            if (currentScope == scopes.size && handlerPipeline.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
+            if (currentScope == scopes.size && pipeline.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
                 finishResponse()
                 return
             }
         }
 
-        val (scope, handler) = handlerPipeline.poll()
+        val (scope, handler) = pipeline.poll()
 
         this.flow = flow.thenCompose {
             if (errored && scope.allowsErrors.not()) { // skip handlers that don't support errored pipeline
@@ -103,8 +102,10 @@ internal class JavalinServletFlow(
             it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
                 flow.cancel(true) // cancel current flow
                 latestFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
-                ctx.status(500).result("Request timed out")
-                servlet.handleError(ctx)
+                with(context.ctx) {
+                    status(500).result("Request timed out")
+                    servlet.handleError(this)
+                }
                 finishResponse()
             }
         }
@@ -115,6 +116,7 @@ internal class JavalinServletFlow(
             return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         }
         try {
+            val ctx = context.ctx
             JavalinResponseWrapper(response, context.responseWrapperContext).write(ctx.resultStream())
             servlet.config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
