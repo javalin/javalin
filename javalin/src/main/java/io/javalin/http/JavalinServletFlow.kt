@@ -1,6 +1,5 @@
 package io.javalin.http
 
-import io.javalin.core.JavalinConfig
 import io.javalin.core.util.LogUtil
 import java.util.Queue
 import java.util.concurrent.CompletableFuture
@@ -13,48 +12,41 @@ import javax.servlet.AsyncListener
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-internal typealias LayerHandler = () -> Unit
+internal typealias LayerHandler = (JavalinServletFlow) -> Unit
 
 internal data class Scope(
     val name: String,
     val allowsErrors: Boolean = false,
-    private val initialize: Scope.(Queue<Pair<Scope, LayerHandler>>) -> Unit
+    private val initialize: JavalinFlowContext.(submitTask: (LayerHandler) -> Unit) -> Unit
 ) {
 
-    fun initialize(queue: Queue<Pair<Scope, LayerHandler>>) =
-        initialize(this, queue)
-
-    fun submit(queue: Queue<Pair<Scope, LayerHandler>>, task: LayerHandler) =
-        queue.offer(Pair(this, task))
+    fun initialize(queue: Queue<Pair<Scope, LayerHandler>>, context: JavalinFlowContext) =
+        initialize(context) { task -> queue.offer(Pair(this, task)) }
 
 }
 
 internal data class JavalinFlowContext(
+    val ctx: Context,
     val type: HandlerType,
-    val responseWrapperContext: ResponseWrapperContext,
     val requestUri: String,
-    val ctx: Context
+    val responseWrapperContext: ResponseWrapperContext
 )
 
 internal class JavalinServletFlow(
+    val request: HttpServletRequest,
+    var response: HttpServletResponse,
     private val servlet: JavalinServlet,
     private val context: JavalinFlowContext,
-    private val request: HttpServletRequest,
-    private var response: HttpServletResponse,
-    rawScopes: List<Scope>
+    private val scopes: List<Scope>
 ) {
 
-    // Utilities pulled out of dependencies
-    private val config: JavalinConfig = servlet.config
-    private val exceptionMapper: ExceptionMapper = servlet.exceptionMapper
     private val ctx = context.ctx
-
-    private val scopes = ConcurrentLinkedQueue(rawScopes) // Scopes with async request handling support
     private var flow: CompletableFuture<*> = CompletableFuture.completedFuture(Unit).exceptionally { servlet.exceptionMapper.handle(it, ctx) } // Main stage used to pipeline handlers as a chain
+    private var currentScope = 0
     private val handlerPipeline = ConcurrentLinkedQueue<Pair<Scope, LayerHandler>>()
-    private val finished = AtomicBoolean(false) // requires support for atomic switch
     private var asyncContext: AsyncContext? = null
     private var latestFuture: CompletableFuture<*>? = null
+    private val finished = AtomicBoolean(false) // requires support for atomic switch
     private var errored = false
 
     fun start() =
@@ -64,12 +56,14 @@ internal class JavalinServletFlow(
         CompletableFuture.completedFuture(null) // creates completed stage that behaves like sync request until it's not replaced by future result
 
     private fun continueFlow() {
+        val exceptionMapper: ExceptionMapper = servlet.exceptionMapper
+
         if (handlerPipeline.isEmpty()) {
-            while (scopes.isNotEmpty() && handlerPipeline.isEmpty()) {
-                val currentScope = scopes.poll()
-                currentScope.initialize(handlerPipeline)
+            while (currentScope < scopes.size && handlerPipeline.isEmpty()) {
+                val scope = scopes[currentScope++]
+                scope.initialize(handlerPipeline, context)
             }
-            if (scopes.isEmpty() && handlerPipeline.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
+            if (currentScope == scopes.size && handlerPipeline.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
                 finishResponse()
                 return
             }
@@ -83,7 +77,7 @@ internal class JavalinServletFlow(
             }
 
             try {
-                handler()
+                handler(this)
             } catch (exception: Exception) {
                 this.errored = true
                 exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
@@ -105,7 +99,7 @@ internal class JavalinServletFlow(
     private fun startAsync() {
         this.asyncContext = request.startAsync().also {
             this.response = it.response as HttpServletResponse
-            it.timeout = config.asyncRequestTimeout
+            it.timeout = servlet.config.asyncRequestTimeout
             it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
                 flow.cancel(true) // cancel current flow
                 latestFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
@@ -122,7 +116,7 @@ internal class JavalinServletFlow(
         }
         try {
             JavalinResponseWrapper(response, context.responseWrapperContext).write(ctx.resultStream())
-            config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
+            servlet.config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
             servlet.exceptionMapper.handleUnexpectedThrowable(response, throwable) // handle any unexpected error, e.g. write failure
         }
