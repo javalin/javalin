@@ -73,14 +73,17 @@ class TestLogging {
     }
 
     @Test
-    fun `debug logging works with binary stream`() {
-        val app = Javalin.create { it.enableDevLogging() }.start(0)
+    fun `debug logging works with binary stream`() = TestUtil.test(Javalin.create { it.enableDevLogging() }) { app, http ->
         app.get("/") {
             val imagePath = this::class.java.classLoader.getResource("upload-test/image.png")
             val stream = File(imagePath.toURI()).inputStream()
             it.result(stream)
         }
-        val log = captureStdOut { Unirest.get("http://localhost:" + app.port() + "/").asString() }
+        val log = captureStdOut {
+            http.getBody("/")
+            http.getBody("/")
+            // TODO: why must this be called twice on windows to avoid empty log output?
+        }
         assertThat(log).contains("Body is binary (not logged)")
     }
 }
