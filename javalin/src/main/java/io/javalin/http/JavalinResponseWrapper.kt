@@ -107,7 +107,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, private val rwc: Respons
     fun finalize() {
         when {
             brotliEnabled && res.getHeader(CONTENT_ENCODING) == BR -> (compressingStream as BrotliOutputStream).close()
-            gzipEnabled && res.getHeader(CONTENT_ENCODING) == GZIP -> (compressingStream as LeveledGzipStream).finish()
+            gzipEnabled && res.getHeader(CONTENT_ENCODING) == GZIP -> (compressingStream as LeveledGzipStream).close()
         }
     }
 
