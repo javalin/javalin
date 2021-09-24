@@ -18,33 +18,24 @@ class ExceptionMapper {
 
     internal fun handle(throwable: Throwable, ctx: Context) {
         if (throwable is Exception) {
-            handle(throwable, ctx)
-        }
-        JavalinLogger.warn("Uncaught exception", throwable)
-        HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
-        ctx.inExceptionHandler = false
-    }
-
-    internal fun handle(exception: Exception, ctx: Context) {
-        ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
-        if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
-            HttpResponseExceptionMapper.handle(exception, ctx)
-        } else {
-            val exceptionHandler = Util.findByClass(handlers, exception.javaClass)
-            if (exceptionHandler != null) {
-                exceptionHandler.handle(exception, ctx)
+            ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
+            if (HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable)) {
+                HttpResponseExceptionMapper.handle(throwable, ctx)
             } else {
-                JavalinLogger.warn("Uncaught exception", exception)
-                HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
+                val exceptionHandler = Util.findByClass(handlers, throwable.javaClass)
+                if (exceptionHandler != null) {
+                    exceptionHandler.handle(throwable, ctx)
+                } else {
+                    JavalinLogger.warn("Uncaught exception", throwable)
+                    HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
+                }
             }
+            ctx.inExceptionHandler = false
         }
-        ctx.inExceptionHandler = false
-    }
-
-    internal inline fun catchException(ctx: Context, func: () -> Unit) = try {
-        func.invoke()
-    } catch (e: Exception) {
-        handle(e, ctx)
+        else {
+            JavalinLogger.warn("Uncaught exception", throwable)
+            HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
+        }
     }
 
     internal fun handleFutureException(ctx: Context, throwable: Throwable): Nothing? {
@@ -66,4 +57,5 @@ class ExceptionMapper {
 
     private fun noUserHandler(e: Exception) =
         this.handlers[e::class.java] == null && this.handlers[HttpResponseException::class.java] == null
+
 }
