@@ -80,7 +80,10 @@ class TestLogging {
             val stream = File(imagePath.toURI()).inputStream()
             it.result(stream)
         }
-        val log = captureStdOut { Unirest.get("http://localhost:" + app.port() + "/").asString() }
+        val log = captureStdOut { 
+            Unirest.get("http://localhost:" + app.port() + "/").asString() 
+            Unirest.get("http://localhost:" + app.port() + "/").asString() 
+        }
         assertThat(log).contains("Body is binary (not logged)")
     }
 }
