@@ -35,8 +35,8 @@ import javax.servlet.http.HttpServletResponse
 open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, internal val appAttributes: Map<String, Any> = mapOf()) {
 
     // @formatter:off
-    @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
+    @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
