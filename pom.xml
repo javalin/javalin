@@ -99,7 +99,7 @@
         <swagger.ui.version>3.43.0</swagger.ui.version>
         <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <velocity.version>2.3</velocity.version>
-        <jte.version>1.11.0</jte.version>
+        <jte.version>1.12.0</jte.version>
         <graphql-kotlin.version>4.1.1</graphql-kotlin.version>
         <reactor-core.version>3.2.9.RELEASE</reactor-core.version>
 
