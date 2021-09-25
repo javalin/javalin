@@ -18,7 +18,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.0.2-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -58,7 +58,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <kotlin.version>1.5.30</kotlin.version>
+        <kotlin.version>1.5.31</kotlin.version>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
@@ -99,7 +99,7 @@
         <swagger.ui.version>3.43.0</swagger.ui.version>
         <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <velocity.version>2.3</velocity.version>
-        <jte.version>1.11.0</jte.version>
+        <jte.version>1.12.0</jte.version>
         <graphql-kotlin.version>4.1.1</graphql-kotlin.version>
         <reactor-core.version>3.2.9.RELEASE</reactor-core.version>
 
