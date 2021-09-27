@@ -27,11 +27,6 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
     constructor(stringValue: String?, clazz: Class<T>, fieldName: String, jsonMapper: JsonMapper? = null) :
         this(fieldName, null, StringSource<T>(stringValue, clazz, jsonMapper))
 
-    open fun get(): T? = when {
-        errors.isEmpty() -> typedValue
-        else -> throw ValidationException(errors as Map<String, List<ValidationError<Any>>>)
-    }
-
     private val errors by lazy {
         if (stringSource != null) {
             if (this is BodyValidator) {
@@ -72,6 +67,11 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
     protected fun addRule(fieldName: String, check: Check<T?>, error: ValidationError<T>): BaseValidator<T> {
         rules.add(Rule(fieldName, check, error))
         return this
+    }
+
+    open fun get(): T? = when {
+        errors.isEmpty() -> typedValue
+        else -> throw ValidationException(errors as Map<String, List<ValidationError<Any>>>)
     }
 
     fun errors(): Map<String, List<ValidationError<T>>> = errors
