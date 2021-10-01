@@ -344,6 +344,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
+        this.resultStream?.also { kotlin.runCatching { it.close() } } // avoid memory leaks for multiple result() calls
         this.resultStream = resultStream
         return this
     }
@@ -359,7 +360,6 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         if (/* !handlerType.isHttpMethod() || */ inExceptionHandler) {
             throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
         }
-        resultStream = null
         async.set(future)
         futureConsumer = callback ?: Consumer { result ->
             when (result) {

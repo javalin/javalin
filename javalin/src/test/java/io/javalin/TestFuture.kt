@@ -68,10 +68,10 @@ class TestFuture {
 
     @Test
     fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
-        app.before("/future") { it.future(getFuture("1")) }
-        app.get("/future") { it.future(getFuture("${it.resultString()}2")) }
-        app.after("/future") { it.future(getFuture("${it.resultString()}3")) }
-        assertThat(http.get("/future").body).isEqualTo("123")
+        app.before("/future") { it.future(getFuture("before")) }
+        app.get("/future") { it.future(getFuture("nothing")) { /* do nothing */ } }
+        app.after("/future") { it.future(getFuture("${it.resultString()}, after")) }
+        assertThat(http.get("/future").body).isEqualTo("before, after")
     }
 
     @Test
