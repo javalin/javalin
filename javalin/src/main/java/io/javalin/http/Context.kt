@@ -356,8 +356,8 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
-        if (!handlerType.isHttpMethod() || inExceptionHandler) {
-            throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
+        if (inExceptionHandler) {
+            throw IllegalStateException("You can only set CompletableFuture results in exception handlers.")
         }
         resultStream = null
         async.set(future)
