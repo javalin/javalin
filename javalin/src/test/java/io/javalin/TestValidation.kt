@@ -12,6 +12,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.JavalinValidation
+import io.javalin.core.validation.NullableValidator
 import io.javalin.core.validation.ValidationError
 import io.javalin.core.validation.ValidationException
 import io.javalin.core.validation.Validator
@@ -339,5 +340,79 @@ class TestValidation {
         }
         assertThat(http.getBody("/?number=20&locale=en")).contains("The value has to at least 6 and at most 9")
         assertThat(http.getBody("/?number=20&locale=fr")).contains("La valeur doit au moins 6 et au plus 9")
+    }
+
+    data class KeyValuePair(val key: String, val value: String)
+
+    @Test
+    fun `typed value non-nullable validator works for positive case`() {
+        val validator = Validator("kvp", KeyValuePair("key", "value"))
+        validator.check({ it.key == "key" }, "unexpected key")
+        validator.check({ it.value == "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `typed value non-nullable validator works for negative case #1`() {
+        val validator = Validator("kvp", KeyValuePair("key", "value"))
+        validator.check({ it.key != "key" }, "unexpected key")
+        validator.check({ it.value == "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).hasSize(1)
+        assertThat(errors["kvp"]).hasSize(1)
+    }
+
+    @Test
+    fun `typed value non-nullable validator works for negative case #2`() {
+        val validator = Validator("kvp", KeyValuePair("key", "value"))
+        validator.check({ it.key != "key" }, "unexpected key")
+        validator.check({ it.value != "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).hasSize(1)
+        assertThat(errors["kvp"]).hasSize(2)
+    }
+
+    @Test
+    fun `typed value nullable validator works for positive case`() {
+        val validator = NullableValidator("kvp", KeyValuePair("key", "value"))
+        validator.check({ it!!.key == "key" }, "unexpected key")
+        validator.check({ it!!.value == "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).isEmpty()
+    }
+
+    @Test
+    fun `typed value nullable validator works for negative case #1`() {
+        val validator = NullableValidator("kvp", KeyValuePair("key", "value"))
+        validator.check({ it!!.key != "key" }, "unexpected key")
+        validator.check({ it!!.value == "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).hasSize(1)
+        assertThat(errors["kvp"]).hasSize(1)
+    }
+
+    @Test
+    fun `typed value nullable validator works for negative case #2`() {
+        val validator = NullableValidator("kvp", KeyValuePair("key", "value"))
+        validator.check({ it!!.key != "key" }, "unexpected key")
+        validator.check({ it!!.value != "value" }, "unexpected value")
+        val errors = validator.errors()
+        assertThat(errors).hasSize(1)
+        assertThat(errors["kvp"]).hasSize(2)
+    }
+
+    @Test
+    fun `typed value nullable validator works for null value`() {
+        val validator = NullableValidator<KeyValuePair>("kvp")
+        validator.check({ it!!.key == "key" }, "unexpected key")
+        validator.check({ it!!.value == "value" }, "unexpected value")
+    }
+
+    @Test
+    fun `typed value nullable validator constructed from a non-nullable one works for null value`() {
+        val validator = Validator<KeyValuePair>("kvp").allowNullable()
+        validator.check({ it!!.key == "key" }, "unexpected key")
+        validator.check({ it!!.value == "value" }, "unexpected value")
     }
 }
