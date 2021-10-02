@@ -343,9 +343,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Sets context result to the specified [InputStream].
      * Will overwrite the current result if there is one.
      */
-    fun result(resultStream: InputStream): Context {
-        this.resultStream?.also { kotlin.runCatching { it.close() } } // avoid memory leaks for multiple result() calls
-        this.resultStream = resultStream
+    fun result(result: InputStream): Context {
+        runCatching { resultStream?.close() } // avoid memory leaks for multiple result() calls
+        this.resultStream = result
         return this
     }
 
