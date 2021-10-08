@@ -94,5 +94,10 @@ object LogUtil {
                 |----------------------------------------------------------------------------------""".trimMargin())
     }
 
+    @JvmStatic
+    fun handlerRegistrationDevLogger(httpMethod: HandlerType, path: String) {
+        JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: $httpMethod[$path]")
+    }
+
 }
 

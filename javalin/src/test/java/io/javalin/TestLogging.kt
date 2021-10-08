@@ -31,6 +31,8 @@ class TestLogging {
         assertThat(log).contains("JAVALIN REQUEST DEBUG LOG")
         assertThat(log).contains("Hello Blocking World!")
         assertThat(log).contains("Hello Async World!")
+        assertThat(log).contains("JAVALIN HANDLER REGISTRATION DEBUG LOG: GET[/blocking]")
+        assertThat(log).contains("JAVALIN HANDLER REGISTRATION DEBUG LOG: GET[/async]")
     }
 
     @Test

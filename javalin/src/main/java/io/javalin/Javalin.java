@@ -26,6 +26,7 @@ import io.javalin.http.Context;
 import io.javalin.http.ErrorMapperKt;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
+import io.javalin.http.HandlerRegistrationLogger;
 import io.javalin.http.HandlerType;
 import io.javalin.http.JavalinServlet;
 import io.javalin.http.sse.SseClient;
@@ -305,8 +306,19 @@ public class Javalin {
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
         javalinServlet.addHandler(handlerType, path, handler, roleSet);
+        logHandlerRegistration(handlerType, path);
         eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), handler, roleSet));
         return this;
+    }
+
+    private void logHandlerRegistration(@NotNull HandlerType handlerType, @NotNull String path) {
+        HandlerRegistrationLogger logger = javalinServlet.getConfig().inner.handlerRegistrationLogger;
+        if (logger != null) {
+            javalinServlet.getConfig().inner.handlerRegistrationLogger.handle(
+                handlerType,
+                Util.prefixContextPath(javalinServlet.getConfig().contextPath, path)
+            );
+        }
     }
 
     /**

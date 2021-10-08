@@ -24,6 +24,7 @@ import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.ContentType;
 import io.javalin.http.Handler;
+import io.javalin.http.HandlerRegistrationLogger;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
 import io.javalin.http.ContextResolver;
@@ -72,6 +73,7 @@ public class JavalinConfig {
         @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new LinkedHashMap<>();
         @NotNull public Map<String, Object> appAttributes = new HashMap<>();
         @Nullable public RequestLogger requestLogger = null;
+        @Nullable public HandlerRegistrationLogger handlerRegistrationLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
         @NotNull public SinglePageHandler singlePageHandler = new SinglePageHandler();
@@ -108,6 +110,7 @@ public class JavalinConfig {
     public void enableDevLogging() {
         requestLogger(LogUtil::requestDevLogger);
         wsLogger(LogUtil::wsDevLogger);
+        handlerRegistrationLogger(LogUtil::handlerRegistrationDevLogger);
     }
 
     public void enableWebjars() {
@@ -159,6 +162,10 @@ public class JavalinConfig {
 
     public void requestLogger(@NotNull RequestLogger requestLogger) {
         inner.requestLogger = requestLogger;
+    }
+
+    public void handlerRegistrationLogger(@NotNull HandlerRegistrationLogger handlerRegistrationLogger) {
+        inner.handlerRegistrationLogger = handlerRegistrationLogger;
     }
 
     public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
