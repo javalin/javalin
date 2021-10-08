@@ -35,6 +35,17 @@ class Emitter(private var asyncContext: AsyncContext) {
         }
     }
 
+    fun emit(comment: String) {
+        try {
+            comment.split(newline).forEach {
+            output.print(": $it$newline")
+            }
+            asyncContext.response.flushBuffer()
+        } catch (e: IOException) {
+            closed = true
+        }
+    }
+
     fun isClosed() = closed
 
 }

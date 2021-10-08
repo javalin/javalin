@@ -81,4 +81,25 @@ class TestSse {
         assertThat(body).contains("data: " + "my-qp")
     }
 
+    @Test
+    fun `sending Comment works`() = TestUtil.test(shortTimeoutServer()) { app, http ->
+        app.sse("/sse") { it.sendComment("test comment works") }
+        val body = http.sse("/sse?qp=my-qp").get().body
+        assertThat(body).isEqualTo(": test comment works\n")
+    }
+
+    @Test
+    fun `sending empty Comment works`() = TestUtil.test(shortTimeoutServer()) { app, http ->
+        app.sse("/sse") { it.sendComment("") }
+        val body = http.sse("/sse?qp=my-qp").get().body
+        assertThat(body).isEqualTo(": \n")
+    }
+
+    @Test
+    fun `sending multi line Comment works`() = TestUtil.test(shortTimeoutServer()) { app, http ->
+        app.sse("/sse") { it.sendComment("a\nb") }
+        val body = http.sse("/sse?qp=my-qp").get().body
+        assertThat(body).isEqualTo(": a\n: b\n")
+    }
+
 }
