@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.RandomAccessFile
+import java.nio.channels.Channels
 import java.util.*
 
 class TestResponse {
@@ -70,14 +72,18 @@ class TestResponse {
     @Test
     fun `setting an InputStream result works and InputStream is closed`() = TestUtil.test { app, http ->
         val path = "src/test/my-file.txt"
-        File(path).printWriter().use { out ->
-            out.print("Hello, World!")
+
+        RandomAccessFile(path, "rw").use { hugeFile ->
+            hugeFile.setLength(1L * 1024 * 1024 * 1024) // 1GB
+
+            app.get("/file") { ctx ->
+                // looks like something is caching/storing the incoming data,
+                // because streams are in fact closed, but the transferred data kill app data anyway
+                ctx.result(Channels.newInputStream(hugeFile.channel))
+            }
+            assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
+            assertThat(File(path).delete()).isEqualTo(true)
         }
-        app.get("/file") { ctx ->
-            ctx.result(FileUtils.openInputStream(File(path)))
-        }
-        assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
-        assertThat(File(path).delete()).isEqualTo(true)
     }
 
     @Test
