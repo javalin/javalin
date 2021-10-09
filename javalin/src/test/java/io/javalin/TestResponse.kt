@@ -9,7 +9,10 @@ package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
+import io.javalin.core.compression.CompressionStrategy
+import io.javalin.core.compression.CompressionStrategy.Companion
 import io.javalin.core.util.Header
+import io.javalin.core.util.LogUtil
 import io.javalin.http.ContentType
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
@@ -72,17 +75,36 @@ class TestResponse {
     @Test
     fun `setting an InputStream result works and InputStream is closed`() = TestUtil.test { app, http ->
         val path = "src/test/my-file.txt"
+        File(path).printWriter().use { out ->
+            out.print("Hello, World!")
+        }
+        app.get("/file") { ctx ->
+            ctx.result(FileUtils.openInputStream(File(path)))
+        }
+        assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
+        assertThat(File(path).delete()).isEqualTo(true)
+    }
 
-        RandomAccessFile(path, "rw").use { hugeFile ->
-            hugeFile.setLength(1L * 1024 * 1024 * 1024) // 1GB
+    // @Test
+    fun `response wrapper test`() {
+        val javalin = Javalin.create { javalinConfig ->
+            javalinConfig.enableCorsForAllOrigins()
+            javalinConfig.showJavalinBanner = false
+            javalinConfig.maxRequestSize = 5_000_000
 
-            app.get("/file") { ctx ->
-                // looks like something is caching/storing the incoming data,
-                // because streams are in fact closed, but the transferred data kill app data anyway
-                ctx.result(Channels.newInputStream(hugeFile.channel))
+            javalinConfig.requestLogger { ctx, executionTimeMs ->
+                LogUtil.requestDevLogger(ctx, executionTimeMs)
             }
-            assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
-            assertThat(File(path).delete()).isEqualTo(true)
+        }.start(9005)
+
+        val longString = Array(5_000_000 + 1) { "0" }.joinToString()
+
+        javalin.get("/route") { ctx ->
+            ctx.result(longString)
+        }
+
+        while (true) {
+            assertThat(Unirest.get("http://localhost:9005/route").asString().body).isEqualTo(longString)
         }
     }
 
