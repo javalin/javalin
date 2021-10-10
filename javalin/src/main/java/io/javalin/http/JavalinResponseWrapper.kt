@@ -55,7 +55,7 @@ class JavalinResponseWrapper(val res: HttpServletResponse, private val rwc: Resp
         }
         inputStream.copyTo(outputStreamWrapper)
         inputStream.close()
-        outputStreamWrapper.finalize()
+        outputStreamWrapper.finalizeCompression()
     }
 
 }
@@ -63,7 +63,6 @@ class JavalinResponseWrapper(val res: HttpServletResponse, private val rwc: Resp
 class OutputStreamWrapper(val res: HttpServletResponse, private val rwc: ResponseWrapperContext) : ServletOutputStream() {
 
     private lateinit var compressingStream: OutputStream
-
     private var initialized = false
     private var brotliEnabled = false
     private var gzipEnabled = false
@@ -105,7 +104,7 @@ class OutputStreamWrapper(val res: HttpServletResponse, private val rwc: Respons
         }
     }
 
-    fun finalize() {
+    fun finalizeCompression() {
         when {
             brotliEnabled && res.getHeader(CONTENT_ENCODING) == BR -> (compressingStream as BrotliOutputStream).close()
             gzipEnabled && res.getHeader(CONTENT_ENCODING) == GZIP -> (compressingStream as LeveledGzipStream).close()
