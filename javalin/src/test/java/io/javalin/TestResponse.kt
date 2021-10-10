@@ -9,22 +9,18 @@ package io.javalin
 
 import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
-import io.javalin.core.compression.CompressionStrategy
-import io.javalin.core.compression.CompressionStrategy.Companion
 import io.javalin.core.util.Header
-import io.javalin.core.util.LogUtil
 import io.javalin.http.ContentType
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.RandomAccessFile
-import java.nio.channels.Channels
 import java.util.*
 
 class TestResponse {
@@ -85,27 +81,22 @@ class TestResponse {
         assertThat(File(path).delete()).isEqualTo(true)
     }
 
-    // @Test
-    fun `response wrapper test`() {
+    @Disabled("https://github.com/tipsy/javalin/pull/1413")
+    @Test
+    fun `gh-1409 entrypoint to analyze compression strategy lifecycle`() {
         val javalin = Javalin.create { javalinConfig ->
             javalinConfig.enableCorsForAllOrigins()
             javalinConfig.showJavalinBanner = false
             javalinConfig.maxRequestSize = 5_000_000
-
-            javalinConfig.requestLogger { ctx, executionTimeMs ->
-                LogUtil.requestDevLogger(ctx, executionTimeMs)
-            }
         }.start(9005)
 
-        val longString = Array(5_000_000 + 1) { "0" }.joinToString()
+        val longString = Array(Short.MAX_VALUE.toInt()) { "0" }.joinToString()
 
         javalin.get("/route") { ctx ->
             ctx.result(longString)
         }
 
-        while (true) {
-            assertThat(Unirest.get("http://localhost:9005/route").asString().body).isEqualTo(longString)
-        }
+        while (true) {} // should be requested by external tool
     }
 
     @Test
