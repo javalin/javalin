@@ -16,6 +16,7 @@ import io.javalin.testing.TestUtil
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -78,6 +79,24 @@ class TestResponse {
         }
         assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
         assertThat(File(path).delete()).isEqualTo(true)
+    }
+
+    @Disabled("https://github.com/tipsy/javalin/pull/1413")
+    @Test
+    fun `gh-1409 entrypoint to analyze compression strategy lifecycle`() {
+        val javalin = Javalin.create { javalinConfig ->
+            javalinConfig.enableCorsForAllOrigins()
+            javalinConfig.showJavalinBanner = false
+            javalinConfig.maxRequestSize = 5_000_000
+        }.start(9005)
+
+        val longString = Array(Short.MAX_VALUE.toInt()) { "0" }.joinToString()
+
+        javalin.get("/route") { ctx ->
+            ctx.result(longString)
+        }
+
+        while (true) {} // should be requested by external tool
     }
 
     @Test
