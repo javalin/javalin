@@ -27,4 +27,11 @@ class SseClient(@JvmField val ctx: Context) {
         }
     }
 
+    fun sendComment(comment: String) {
+        emitter.emit(comment)
+        if (emitter.isClosed()) {
+            closeCallback.run()
+        }
+    }
+
 }

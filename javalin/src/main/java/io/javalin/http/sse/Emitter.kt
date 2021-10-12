@@ -5,6 +5,8 @@ import java.io.InputStream
 import javax.servlet.AsyncContext
 import javax.servlet.ServletOutputStream
 
+const val COMMENT_PREFIX = ":"
+
 class Emitter(private var asyncContext: AsyncContext) {
 
     private lateinit var output: ServletOutputStream
@@ -34,6 +36,16 @@ class Emitter(private var asyncContext: AsyncContext) {
             closed = true
         }
     }
+
+    fun emit(comment: String) = try {
+        comment.split(newline).forEach {
+            output.print("$COMMENT_PREFIX $it$newline")
+        }
+        asyncContext.response.flushBuffer()
+    } catch (e: IOException) {
+        closed = true
+    }
+
 
     fun isClosed() = closed
 
