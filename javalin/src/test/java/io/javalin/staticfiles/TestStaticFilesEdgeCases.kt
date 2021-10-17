@@ -12,9 +12,13 @@ import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 class TestStaticFilesEdgeCases {
+
+    @TempDir
+    lateinit var workingDirectory: File
 
     @Test
     fun `server doesn't start for non-existent classpath folder`() {
@@ -33,18 +37,14 @@ class TestStaticFilesEdgeCases {
     @Test
     fun `server doesn't start for empty classpath folder`() {
         assertThatExceptionOfType(RuntimeException::class.java)
-            .isThrownBy {
-                File("src/test/external/empty").mkdir()
-                Javalin.create { it.addStaticFiles("src/test/external/empty", Location.CLASSPATH) }.start()
-            }
-            .withMessageStartingWith("Static resource directory with path: 'src/test/external/empty' does not exist.")
+            .isThrownBy { Javalin.create { it.addStaticFiles(workingDirectory.absolutePath, Location.CLASSPATH) }.start() }
+            .withMessageStartingWith("Static resource directory with path: '${workingDirectory.absolutePath}' does not exist.")
             .withMessageEndingWith("Depending on your setup, empty folders might not get copied to classpath.")
     }
 
     @Test
     fun `server starts for empty external folder`() {
-        File("src/test/external/empty").mkdir()
-        Javalin.create { it.addStaticFiles("src/test/external/empty", Location.EXTERNAL) }.start(0).stop()
+        Javalin.create { it.addStaticFiles(workingDirectory.absolutePath, Location.EXTERNAL) }.start(0).stop()
     }
 
     @Test

@@ -17,9 +17,13 @@ import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 class TestSinglePageMode {
+
+    @TempDir
+    lateinit var workingDirectory: File
 
     private val rootSinglePageApp_classPath: Javalin by lazy {
         Javalin.create {
@@ -134,15 +138,13 @@ class TestSinglePageMode {
 
     @Test
     fun `SinglePageHandler doesn't cache on localhost`() {
-        val filePath = "src/test/external/my-special-file.html"
-        val file = File(filePath).apply { createNewFile() }.apply { writeText("OLD FILE") }
-        val app = Javalin.create { it.addSinglePageRoot("/", filePath, Location.EXTERNAL) }.start(0)
+        val file = File(workingDirectory, "my-special-file.html").also { it.writeText("old file") }
+        val app = Javalin.create { it.addSinglePageRoot("/", file.absolutePath, Location.EXTERNAL) }.start(0)
         fun getSpaPage() = Unirest.get("http://localhost:${app.port()}/").header(Header.ACCEPT, ContentType.HTML).asString().body
-        assertThat(getSpaPage()).contains("OLD FILE")
-        file.writeText("NEW FILE")
-        assertThat(getSpaPage()).contains("NEW FILE")
+        assertThat(getSpaPage()).contains("old file")
+        file.writeText("new file")
+        assertThat(getSpaPage()).contains("new file")
         app.stop()
-        file.delete()
     }
 
     @Test

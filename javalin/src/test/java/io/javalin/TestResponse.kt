@@ -18,12 +18,16 @@ import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
 
 class TestResponse {
+
+    @TempDir
+    lateinit var workingDirectory: File
 
     @Test
     fun `setting a String result works`() = TestUtil.test { app, http ->
@@ -70,15 +74,15 @@ class TestResponse {
 
     @Test
     fun `setting an InputStream result works and InputStream is closed`() = TestUtil.test { app, http ->
-        val path = "src/test/my-file.txt"
-        File(path).printWriter().use { out ->
-            out.print("Hello, World!")
-        }
         app.get("/file") { ctx ->
-            ctx.result(FileUtils.openInputStream(File(path)))
+            val file = File(workingDirectory, "my-file.txt").also {
+                it.printWriter().use { out ->
+                    out.print("Hello, World!")
+                }
+            }
+            ctx.result(FileUtils.openInputStream(file))
         }
         assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
-        assertThat(File(path).delete()).isEqualTo(true)
     }
 
     @Disabled("https://github.com/tipsy/javalin/pull/1413")
