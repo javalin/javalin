@@ -10,6 +10,7 @@ import io.javalin.Javalin;
 import io.javalin.core.compression.Brotli;
 import io.javalin.core.compression.CompressionStrategy;
 import io.javalin.core.compression.Gzip;
+import io.javalin.core.event.EventListener;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginInitLifecycleViolationException;
@@ -23,11 +24,11 @@ import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.ContentType;
+import io.javalin.http.ContextResolver;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerRegistrationLogger;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
-import io.javalin.http.ContextResolver;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
@@ -214,6 +215,7 @@ public class JavalinConfig {
         app.events(listener -> {
             listener.handlerAdded(x -> anyHandlerAdded.set(true));
             listener.wsHandlerAdded(x -> anyHandlerAdded.set(true));
+            logAddedHandler(config, listener);
         });
 
         config.getPluginsExtending(PluginLifecycleInit.class)
@@ -233,6 +235,12 @@ public class JavalinConfig {
         app.attribute(maxRequestSizeKey, config.maxRequestSize);
 
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
+    }
+
+    private static void logAddedHandler(JavalinConfig config, EventListener listener) {
+        if (config.inner.handlerRegistrationLogger != null) {
+            listener.handlerAdded(handler -> config.inner.handlerRegistrationLogger.handle(handler.getHttpMethod(), handler.getPath()));
+        }
     }
 
     private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {
