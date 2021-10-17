@@ -88,8 +88,8 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             LogUtil.setup(context.ctx, matcher, config.inner.requestLogger != null)
             context.ctx.contentType(config.defaultContentType)
 
-            val flow = JavalinServletFlow(request, response, this, context, scopes)
-            flow.start() // Start request lifecycle
+            val flow = JavalinServletFlow(scopes, this, context, request, response)
+            flow.start()
         }
         catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)

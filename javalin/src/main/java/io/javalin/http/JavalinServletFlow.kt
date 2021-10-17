@@ -32,45 +32,44 @@ internal data class JavalinFlowContext(
 )
 
 internal class JavalinServletFlow(
-    val request: HttpServletRequest,
-    var response: HttpServletResponse,
+    private val scopes: List<Scope>,
     private val servlet: JavalinServlet,
     private val context: JavalinFlowContext,
-    private val scopes: List<Scope>
+    val request: HttpServletRequest,
+    var response: HttpServletResponse
 ) {
 
+    // Flow state
+    private var currentStage: CompletableFuture<*> = syncStage() // main stage used to pipeline handlers as a chain
     private var currentScope = 0
-    private val pipeline = ArrayDeque<Pair<Scope, LayerHandler>>(scopes.size * 2) // As long as timeout listener does not touch this pipeline there is no need to use thread-safe structure
-    private var flow: CompletableFuture<*> = syncStage() // Main stage used to pipeline handlers as a chain
+    private val queuedHandlers = ArrayDeque<Pair<Scope, LayerHandler>>(scopes.size * 2) // as long as timeout listener does not touch this pipeline there is no need to use thread-safe structure
+    // Request state
     private var asyncContext: AsyncContext? = null
-    private var latestFuture: CompletableFuture<*>? = null
     private var errored = false
     private val finished = AtomicBoolean(false) // requires support for atomic switch
+    private var latestFuture: CompletableFuture<*>? = null
+    // Utility values
+    private val ctx: Context = context.ctx
+    private val exceptionMapper = servlet.exceptionMapper
 
     fun start() =
-        continueFlow()
-
-    private fun syncStage(): CompletableFuture<Void?> =
-        CompletableFuture.completedFuture(null) // creates completed stage that behaves like sync request until it's not replaced by future result
+        continueFlow() // Start request lifecycle
 
     private fun continueFlow() {
-        val ctx = context.ctx
-        val exceptionMapper: ExceptionMapper = servlet.exceptionMapper
-
-        if (pipeline.isEmpty()) {
-            while (currentScope < scopes.size && pipeline.isEmpty()) {
+        if (queuedHandlers.isEmpty()) {
+            while (currentScope < scopes.size && queuedHandlers.isEmpty()) {
                 val scope = scopes[currentScope++]
-                scope.initialize(pipeline, context)
+                scope.initialize(queuedHandlers, context)
             }
-            if (currentScope == scopes.size && pipeline.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
+            if (currentScope == scopes.size && queuedHandlers.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
                 finishResponse()
                 return
             }
         }
 
-        val (scope, handler) = pipeline.poll()
+        val (scope, handler) = queuedHandlers.poll()
 
-        this.flow = flow.thenCompose {
+        this.currentStage = currentStage.thenCompose {
             if (errored && scope.allowsErrors.not()) { // skip handlers that don't support errored pipeline
                 return@thenCompose syncStage().thenAccept { continueFlow() }
             }
@@ -82,7 +81,7 @@ internal class JavalinServletFlow(
                 exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
             }
 
-            val resultFuture = ctx.async.getAndSet(null)
+            val resultFuture = ctx.async.getAndSet(null) // consume future value
                 ?.also { latestFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
                 ?.also { if (asyncContext == null) startAsync() } // enable async context
                 ?.exceptionally { exceptionMapper.handleFutureException(ctx, it) } // handle standard exceptions
@@ -100,9 +99,9 @@ internal class JavalinServletFlow(
             this.response = it.response as HttpServletResponse
             it.timeout = servlet.config.asyncRequestTimeout
             it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
-                flow.cancel(true) // cancel current flow
+                currentStage.cancel(true) // cancel current flow
                 latestFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
-                with(context.ctx) {
+                with(ctx) {
                     status(500).result("Request timed out")
                     servlet.handleError(this)
                 }
@@ -116,16 +115,18 @@ internal class JavalinServletFlow(
             return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         }
         try {
-            val ctx = context.ctx
             JavalinResponseWrapper(response, context.responseWrapperContext).write(ctx.resultStream())
             servlet.config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
-            servlet.exceptionMapper.handleUnexpectedThrowable(response, throwable) // handle any unexpected error, e.g. write failure
+            exceptionMapper.handleUnexpectedThrowable(response, throwable) // handle any unexpected error, e.g. write failure
         }
         finally {
             asyncContext?.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
         }
     }
+
+    private fun syncStage(): CompletableFuture<Void?> =
+        CompletableFuture.completedFuture(null) // creates completed stage that behaves like sync request until it's not replaced by future result
 
 }
 
