@@ -10,7 +10,6 @@ import io.javalin.Javalin;
 import io.javalin.core.compression.Brotli;
 import io.javalin.core.compression.CompressionStrategy;
 import io.javalin.core.compression.Gzip;
-import io.javalin.core.event.EventListener;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginInitLifecycleViolationException;
@@ -26,7 +25,6 @@ import io.javalin.core.util.LogUtil;
 import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
 import io.javalin.http.Handler;
-import io.javalin.http.HandlerRegistrationLogger;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
 import io.javalin.http.staticfiles.Location;
@@ -74,7 +72,6 @@ public class JavalinConfig {
         @NotNull public Map<Class<? extends Plugin>, Plugin> plugins = new LinkedHashMap<>();
         @NotNull public Map<String, Object> appAttributes = new HashMap<>();
         @Nullable public RequestLogger requestLogger = null;
-        @Nullable public HandlerRegistrationLogger handlerRegistrationLogger = null;
         @Nullable public ResourceHandler resourceHandler = null;
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
         @NotNull public SinglePageHandler singlePageHandler = new SinglePageHandler();
@@ -111,7 +108,7 @@ public class JavalinConfig {
     public void enableDevLogging() {
         requestLogger(LogUtil::requestDevLogger);
         wsLogger(LogUtil::wsDevLogger);
-        handlerRegistrationLogger(LogUtil::handlerRegistrationDevLogger);
+        registerPlugin(new LogUtil.HandlerLoggingPlugin());
     }
 
     public void enableWebjars() {
@@ -165,10 +162,6 @@ public class JavalinConfig {
         inner.requestLogger = requestLogger;
     }
 
-    public void handlerRegistrationLogger(@NotNull HandlerRegistrationLogger handlerRegistrationLogger) {
-        inner.handlerRegistrationLogger = handlerRegistrationLogger;
-    }
-
     public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
         JettyUtil.disableJettyLogger();
         inner.sessionHandler = sessionHandlerSupplier.get();
@@ -215,7 +208,6 @@ public class JavalinConfig {
         app.events(listener -> {
             listener.handlerAdded(x -> anyHandlerAdded.set(true));
             listener.wsHandlerAdded(x -> anyHandlerAdded.set(true));
-            logAddedHandler(config, listener);
         });
 
         config.getPluginsExtending(PluginLifecycleInit.class)
@@ -235,12 +227,6 @@ public class JavalinConfig {
         app.attribute(maxRequestSizeKey, config.maxRequestSize);
 
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
-    }
-
-    private static void logAddedHandler(JavalinConfig config, EventListener listener) {
-        if (config.inner.handlerRegistrationLogger != null) {
-            listener.handlerAdded(handler -> config.inner.handlerRegistrationLogger.handle(handler.getHttpMethod(), handler.getPath()));
-        }
     }
 
     private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {
