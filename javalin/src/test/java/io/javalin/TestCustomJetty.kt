@@ -31,6 +31,7 @@ import org.eclipse.jetty.servlet.FilterHolder
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
@@ -44,8 +45,10 @@ import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-
 class TestCustomJetty {
+
+    @TempDir
+    lateinit var workingDirectory: File
 
     @Test
     fun `setting port works`() {
@@ -122,8 +125,7 @@ class TestCustomJetty {
             httpOnly = true
             sessionCache = DefaultSessionCache(this).apply {
                 sessionDataStore = FileSessionDataStore().apply {
-                    val baseDir = File(System.getProperty("java.io.tmpdir"))
-                    this.storeDir = File(baseDir, "javalin-session-store-for-test").apply { mkdir() }
+                    this.storeDir = workingDirectory
                 }
             }
         }
@@ -134,9 +136,6 @@ class TestCustomJetty {
         val httpHandler = (newServer.handlers[0] as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
         javalin.stop()
-
-        val baseDir = File(System.getProperty("java.io.tmpdir"))
-        File(baseDir, "javalin-session-store-for-test").deleteRecursively()
     }
 
     @Test
