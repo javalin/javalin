@@ -6,6 +6,9 @@
 
 package io.javalin.core.util
 
+import io.javalin.Javalin
+import io.javalin.core.plugin.Plugin
+import io.javalin.core.plugin.PluginLifecycleInit
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.PathMatcher
@@ -92,6 +95,17 @@ object LogUtil {
                 |QueryParams: ${if (this.queryString() != null) this.queryParamMap().mapValues { (_, v) -> v.toString() }.toString() else "No query string was provided"}
                 |$additionalInfo
                 |----------------------------------------------------------------------------------""".trimMargin())
+    }
+
+    internal class HandlerLoggingPlugin : Plugin, PluginLifecycleInit {
+        override fun apply(app: Javalin) {}
+        override fun init(app: Javalin) {
+            app.events { on ->
+                on.handlerAdded { handlerMetaInfo ->
+                    JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: ${handlerMetaInfo.httpMethod}[${handlerMetaInfo.path}]")
+                }
+            }
+        }
     }
 
 }
