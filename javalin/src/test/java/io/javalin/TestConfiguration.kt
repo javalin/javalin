@@ -57,6 +57,7 @@ class TestConfiguration {
             // Misc
             it.accessManager { _, _, _ -> }
             it.showJavalinBanner = false
+            it.showJavalinStartupMessages = false
             it.configureServletContextHandler { handler ->
                 handler.addEventListener(object : HttpSessionListener {
                     override fun sessionCreated(e: HttpSessionEvent?) {

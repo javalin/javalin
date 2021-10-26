@@ -168,10 +168,10 @@ public class Javalin {
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
-            JavalinLogger.info("Starting Javalin ...");
-            Util.logJavalinVersion();
+            if(this._conf.showJavalinStartupMessages) JavalinLogger.info("Starting Javalin ...");
+            if(this._conf.showJavalinStartupMessages) Util.logJavalinVersion();
             jettyServer.start(javalinJettyServlet);
-            JavalinLogger.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
+            if(this._conf.showJavalinStartupMessages) JavalinLogger.info("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
             JavalinLogger.error("Failed to start Javalin");
