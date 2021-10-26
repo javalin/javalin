@@ -9,6 +9,7 @@ package io.javalin
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.ContentType
 import io.javalin.http.Context
@@ -57,7 +58,6 @@ class TestConfiguration {
             // Misc
             it.accessManager { _, _, _ -> }
             it.showJavalinBanner = false
-            it.showJavalinStartupMessages = false
             it.configureServletContextHandler { handler ->
                 handler.addEventListener(object : HttpSessionListener {
                     override fun sessionCreated(e: HttpSessionEvent?) {

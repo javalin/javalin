@@ -129,7 +129,7 @@ object Util {
             it.load(this.javaClass.classLoader.getResourceAsStream(propertiesPath))
         }
         val (version, buildTime) = listOf(properties.getProperty("version")!!, properties.getProperty("buildTime")!!)
-        JavalinLogger.info("You are running Javalin $version (released ${formatBuildTime(buildTime)}).")
+        JavalinLogger.startup("You are running Javalin $version (released ${formatBuildTime(buildTime)}).")
     } catch (e: Exception) {
         // it's not that important
     }

@@ -39,7 +39,7 @@ class JettyServer(val config: JavalinConfig) {
     fun start(wsAndHttpServlet: JavalinJettyServlet) {
         if (serverPort == -1 && config.inner.server == null) {
             serverPort = 8080
-            if(config.showJavalinStartupMessages) JavalinLogger.info("No port specified, starting on port $serverPort. Call start(port) to change ports.")
+            JavalinLogger.startup("No port specified, starting on port $serverPort. Call start(port) to change ports.")
         }
 
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
@@ -65,11 +65,11 @@ class JettyServer(val config: JavalinConfig) {
         }.start()
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
-            if(config.showJavalinStartupMessages) JavalinLogger.info("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
+            JavalinLogger.startup("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
         }
 
         server().connectors.filter { it !is ServerConnector }.forEach {
-            JavalinLogger.info("Binding to: $it")
+            JavalinLogger.startup("Binding to: $it")
         }
 
         JettyUtil.reEnableJettyLogger()
