@@ -29,7 +29,7 @@ class TestSse {
     @Test
     fun `sending json works`() = TestUtil.test(shortTimeoutServer()) { app, http ->
         app.sse("/sse") { it.sendEvent(event, SerializableObject()) }
-        assertThat(http.sse("/sse").get().body).contains("""data: {"value1":"FirstValue","value2":"SecondValue"}""")
+        assertThat(http.sse("/sse").get().body).contains("""data: {"value1":"FirstValue","value2":"SecondValue","value3":2021}""")
     }
 
     @Test

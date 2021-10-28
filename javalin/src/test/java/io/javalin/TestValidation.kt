@@ -164,11 +164,23 @@ class TestValidation {
         """{"REQUEST_BODY":[{"message":"DESERIALIZATION_FAILED","args":{},"value":"not-json"}]}""".let { expected ->
             assertThat(http.post("/json").body("not-json").asString().body).isEqualTo(expected)
         }
-        """{"REQUEST_BODY":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
+        """{"REQUEST_BODY":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue","value3":2021}}]}""".let { expected ->
             assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo(expected)
         }
 
         assertThat(http.post("/json").body(validJson).asString().body).isEqualTo("Bananas")
+    }
+
+    @Test
+    fun `bodyValidator does not hide parse exception`() = TestUtil.test { app, http ->
+        app.post("/json") { ctx ->
+            val errors = ctx.bodyValidator<SerializableObject>().errors()
+            ctx.json(errors)
+        }
+        val invalidJson = "{\"value1\":\"FirstValue\",\"value2\":\"SecondValue\",\"value3\":\"notInt\"}"
+
+        assertThat(http.post("/json").body(invalidJson).asString().body)
+            .contains("com.fasterxml.jackson.databind.exc.InvalidFormatException")
     }
 
     @Test
@@ -181,9 +193,9 @@ class TestValidation {
                 .get()
         }
         val expected = """{"REQUEST_BODY":[
-            {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}},
-            {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue"}}],
-            "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
+            {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue","value3":2021}},
+            {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue","value3":2021}}],
+            "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue","value3":2021}}]}""".replace("\\s".toRegex(), "")
         val response = http.post("/json").body(JavalinJackson().toJsonString(SerializableObject())).asString().body
         assertThat(response).isEqualTo(expected)
     }
@@ -287,7 +299,7 @@ class TestValidation {
                 .check("first_name", { (it["first_name"]?.length ?: 0) < 6 }, "Too long")
                 .errors()
 
-            ctx.json(errors)
+            ctx.json(JavalinValidation.sanitizeErrors(errors))
         }
 
         // Test valid param

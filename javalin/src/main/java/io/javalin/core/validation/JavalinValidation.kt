@@ -47,7 +47,19 @@ object JavalinValidation {
     @JvmStatic
     fun addValidationExceptionMapper(app: Javalin) {
         app.exception(ValidationException::class.java) { e, ctx ->
-            ctx.json(e.errors).status(400)
+            ctx.json(sanitizeErrors(e.errors)).status(400)
+        }
+    }
+
+    /**
+     * Removes from ValidationError causedBy field for safe error exposing (e.g. through json)
+     */
+    @JvmStatic
+    fun sanitizeErrors(errors: Map<String, List<ValidationError<out Any>>>): Map<String, List<Map<String, Any?>>> {
+        return errors.entries.associate { (key, value) ->
+            key to value.map { (message, args, value) ->
+                mapOf("message" to message, "args" to args, "value" to value)
+            }
         }
     }
 }
