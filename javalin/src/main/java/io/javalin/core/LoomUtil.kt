@@ -19,7 +19,7 @@ object LoomUtil {
         if (!loomAvailable) {
             throw IllegalStateException("Your Java version (${System.getProperty("java.version")}) doesn't support Loom")
         }
-        return Executors::class.java.getMethod("newVirtualThreadExecutor").invoke(Executors::class.java) as ExecutorService
+        return Executors::class.java.getMethod("newVirtualThreadPerTaskExecutor").invoke(Executors::class.java) as ExecutorService
     }
 
 }
