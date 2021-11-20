@@ -9,6 +9,7 @@ package io.javalin
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
+import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.RouteOverviewPlugin
 import io.javalin.http.ContentType
 import io.javalin.http.Context

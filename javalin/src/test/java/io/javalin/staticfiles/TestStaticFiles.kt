@@ -20,6 +20,7 @@ import org.eclipse.jetty.server.ServletResponseHttpWrapper
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -33,6 +34,9 @@ import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 
 class TestStaticFiles {
+
+    @TempDir
+    lateinit var workingDirectory: File
 
     private val defaultStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("/public", Location.CLASSPATH) } }
     private val externalStaticResourceApp: Javalin by lazy { Javalin.create { it.addStaticFiles("src/test/external/", Location.EXTERNAL) } }
@@ -72,62 +76,57 @@ class TestStaticFiles {
         }
     }
 
-    private fun createSymLink(targetPath: String, linkPath: String): File? {
-        val target = Paths.get(targetPath).toAbsolutePath()
-        val link = Paths.get(linkPath).toAbsolutePath()
-        // delete before creating new link
-        link.toFile().delete()
-        try {
-            Files.createSymbolicLink(link, target)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return null
-        }
+    private fun createSymLink(resourcePath: String, linkName: String): File? {
+        val resource = Paths.get(resourcePath).toAbsolutePath()
+        val link = workingDirectory.toPath().resolve(linkName).toAbsolutePath()
+        Files.createSymbolicLink(link, resource)
         return link.toFile()
     }
 
     @Test
     fun `alias checks for static files should work`() {
-        val staticWithAliasResourceApp = Javalin.create {
+        val staticWithAliasResourceApp = Javalin.create { config ->
             // block aliases for txt files
             val aliasCheck = ContextHandler.AliasCheck { path, resource -> !path.endsWith(".txt") }
-            it.addStaticFiles {
+            config.addStaticFiles {
                 it.aliasCheck = aliasCheck
-                it.directory = "src/test/external/"
+                it.directory = workingDirectory.absolutePath
                 it.location = Location.EXTERNAL
             }
-            it.addStaticFiles {
+            config.addStaticFiles {
                 it.hostedPath = "/url-prefix"
                 it.aliasCheck = aliasCheck
             }
         }
 
-        val createdHtml = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
-        if (createdHtml != null) {
-            val createdTxt = createSymLink("src/test/external/txt.txt", "src/test/external/linked_txt.txt")
-            if (createdTxt != null) {
-                TestUtil.test(staticWithAliasResourceApp) { _, http ->
-                    assertThat(http.get("/linked_html.html").status).isEqualTo(200)
-                    assertThat(http.get("/linked_txt.txt").status).isEqualTo(404)
-                    assertThat(http.get("/url-prefix/styles.css").status).isEqualTo(200)
-                }
-                createdTxt.delete()
+        try {
+            createSymLink("src/test/external/html.html", "linked_html.html")
+            createSymLink("src/test/external/txt.txt", "linked_txt.txt")
+
+            TestUtil.test(staticWithAliasResourceApp) { _, http ->
+                assertThat(http.get("/linked_html.html").status).isEqualTo(200)
+                assertThat(http.get("/linked_txt.txt").status).isEqualTo(404)
+                assertThat(http.get("/url-prefix/styles.css").status).isEqualTo(200)
             }
-            createdHtml.delete()
+        } catch (ioException: IOException) {
+            ioException.printStackTrace()
         }
     }
 
     @Test
     fun `if aliases are not specified returns 404 for linked static file`() {
         val staticNoAliasCheckResourceApp = Javalin.create {
-            it.addStaticFiles("src/test/external/", Location.EXTERNAL)
+            it.addStaticFiles(workingDirectory.absolutePath, Location.EXTERNAL)
         }
-        val created = createSymLink("src/test/external/html.html", "src/test/external/linked_html.html")
-        if (created != null) {
+
+        try {
+            createSymLink("src/test/external/html.html", "linked_html.html")
+
             TestUtil.test(staticNoAliasCheckResourceApp) { _, http ->
                 assertThat(http.get("/linked_html.html").status).isEqualTo(404)
             }
-            created.delete()
+        } catch (ioException: IOException) {
+            ioException.printStackTrace()
         }
     }
 

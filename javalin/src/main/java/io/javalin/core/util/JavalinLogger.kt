@@ -9,6 +9,13 @@ object JavalinLogger {
     private val log = LoggerFactory.getLogger(Javalin::class.java)!!
 
     @JvmField var enabled = true
+    @JvmField var startupInfo = true
+
+
+    @JvmOverloads @JvmStatic fun startup(message: String) {
+        if (!enabled) return
+        if (startupInfo) log.info(message)
+    }
 
     @JvmOverloads @JvmStatic fun info(message: String, throwable: Throwable? = null) {
         if (!enabled) return

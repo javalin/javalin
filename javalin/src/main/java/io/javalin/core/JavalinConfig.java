@@ -23,10 +23,10 @@ import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.ContentType;
+import io.javalin.http.ContextResolver;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
 import io.javalin.http.SinglePageHandler;
-import io.javalin.http.ContextResolver;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
@@ -108,6 +108,7 @@ public class JavalinConfig {
     public void enableDevLogging() {
         requestLogger(LogUtil::requestDevLogger);
         wsLogger(LogUtil::wsDevLogger);
+        registerPlugin(new LogUtil.HandlerLoggingPlugin());
     }
 
     public void enableWebjars() {
