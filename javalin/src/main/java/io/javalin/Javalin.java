@@ -40,11 +40,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import org.eclipse.jetty.server.Server;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unchecked")
-public class Javalin {
+public class Javalin implements AutoCloseable {
 
     /**
      * Do not use this field unless you know what you're doing.
@@ -205,6 +207,15 @@ public class Javalin {
         JavalinLogger.info("Javalin has stopped");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
         return this;
+    }
+
+    @Override
+    public void close() {
+        final Server server = jettyServer.server();
+        if (server.isStopping() || server.isStopped()) {
+            return;
+        }
+        stop();
     }
 
     public Javalin events(Consumer<EventListener> listener) {
