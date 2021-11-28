@@ -19,12 +19,12 @@ public class TestUtil {
 
     public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
         JavalinLogger.enabled = false;
-        javalin.start(0);
-        HttpUtil http = new HttpUtil(javalin.port());
-        test.accept(javalin, http);
-        javalin.delete("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
-        http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
-        javalin.stop();
+        try (final Javalin closingJavalin = javalin.start(0)) {
+            HttpUtil http = new HttpUtil(closingJavalin.port());
+            test.accept(closingJavalin, http);
+            closingJavalin.delete("/x-test-cookie-cleaner", ctx -> ctx.cookieMap().keySet().forEach(ctx::removeCookie));
+            http.call(HttpMethod.DELETE, "/x-test-cookie-cleaner");
+        }
         JavalinLogger.enabled = true;
     }
 
