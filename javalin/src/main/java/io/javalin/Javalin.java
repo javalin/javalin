@@ -194,7 +194,14 @@ public class Javalin implements AutoCloseable {
     /**
      * Synchronously stops the application instance.
      *
+     * Recommended to use {@link Javalin#close} instead with Java's try-with-resources
+     * or Kotlin's {@code use}. This differs from {@link Javalin#close} by
+     * firing lifecycle events even if the server is stopping or already stopped.
+     * This could cause your listeners to observe nonsensical state transitions.
+     * E.g. started -> stopping -> stopped -> stopping -> stopped.
+     *
      * @return stopped application instance.
+     * @see Javalin#close()
      */
     public Javalin stop() {
         JavalinLogger.info("Stopping Javalin ...");
@@ -209,6 +216,11 @@ public class Javalin implements AutoCloseable {
         return this;
     }
 
+    /**
+     * Synchronously stops the application instance.
+     *
+     * Can safely be called multiple times.
+     */
     @Override
     public void close() {
         final Server server = jettyServer.server();
