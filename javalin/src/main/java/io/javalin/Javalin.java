@@ -40,11 +40,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import org.eclipse.jetty.server.Server;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unchecked")
-public class Javalin {
+public class Javalin implements AutoCloseable {
 
     /**
      * Do not use this field unless you know what you're doing.
@@ -192,7 +194,14 @@ public class Javalin {
     /**
      * Synchronously stops the application instance.
      *
+     * Recommended to use {@link Javalin#close} instead with Java's try-with-resources
+     * or Kotlin's {@code use}. This differs from {@link Javalin#close} by
+     * firing lifecycle events even if the server is stopping or already stopped.
+     * This could cause your listeners to observe nonsensical state transitions.
+     * E.g. started -> stopping -> stopped -> stopping -> stopped.
+     *
      * @return stopped application instance.
+     * @see Javalin#close()
      */
     public Javalin stop() {
         JavalinLogger.info("Stopping Javalin ...");
@@ -205,6 +214,20 @@ public class Javalin {
         JavalinLogger.info("Javalin has stopped");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
         return this;
+    }
+
+    /**
+     * Synchronously stops the application instance.
+     *
+     * Can safely be called multiple times.
+     */
+    @Override
+    public void close() {
+        final Server server = jettyServer.server();
+        if (server.isStopping() || server.isStopped()) {
+            return;
+        }
+        stop();
     }
 
     public Javalin events(Consumer<EventListener> listener) {

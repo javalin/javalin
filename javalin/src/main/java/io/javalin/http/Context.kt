@@ -441,13 +441,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      * Serializes object to a JSON-string using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun json(obj: Any): Context = result(jsonMapper().toJsonString(obj)).contentType(ContentType.APPLICATION_JSON)
+    fun json(obj: Any): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonString(obj))
 
     /**
      * Serializes object to a JSON-stream using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun jsonStream(obj: Any): Context = result(jsonMapper().toJsonStream(obj)).contentType(ContentType.APPLICATION_JSON)
+    fun jsonStream(obj: Any): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj))
 
     /**
      * Renders a file with specified values and sets it as the context result.
