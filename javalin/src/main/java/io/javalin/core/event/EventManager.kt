@@ -20,6 +20,6 @@ class EventManager {
     fun fireWsHandlerAddedEvent(metaInfo: WsHandlerMetaInfo) = wsHandlerAddedHandlers.apply { this.forEach { it.accept(metaInfo) } }
 }
 
-enum class JavalinEvent { SERVER_STARTING, SERVER_STARTED, SERVER_START_FAILED, SERVER_STOPPING, SERVER_STOPPED }
+enum class JavalinEvent { SERVER_STARTING, SERVER_STARTED, SERVER_START_FAILED, SERVER_STOP_FAILED, SERVER_STOPPING, SERVER_STOPPED }
 data class HandlerMetaInfo(val httpMethod: HandlerType, val path: String, val handler: Any, val roles: Set<RouteRole>)
 data class WsHandlerMetaInfo(val handlerType: WsHandlerType, val path: String, val handler: Any, val roles: Set<RouteRole>)
