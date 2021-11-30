@@ -209,7 +209,9 @@ public class Javalin implements AutoCloseable {
         try {
             jettyServer.server().stop();
         } catch (Exception e) {
+            eventManager.fireEvent(JavalinEvent.SERVER_STOP_FAILED);
             JavalinLogger.error("Javalin failed to stop gracefully", e);
+            throw new JavalinException(e);
         }
         JavalinLogger.info("Javalin has stopped");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
