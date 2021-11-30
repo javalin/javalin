@@ -2,7 +2,6 @@ package io.javalin.http
 
 import io.javalin.core.util.LogUtil
 import java.util.ArrayDeque
-import java.util.Queue
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.AsyncContext
@@ -17,17 +16,12 @@ internal fun interface Task {
 
 internal data class Cycle(
     val name: String,
-    val allowsErrors: Boolean = false,
-    private val initialize: JavalinServletHandler.(submitTask: (Task) -> Unit) -> Unit
-) {
-
-    fun initialize(queue: Queue<Pair<Cycle, Task>>, context: JavalinServletHandler) =
-        initialize(context) { task -> queue.offer(Pair(this, task)) }
-
-}
+    val ignoreExceptions: Boolean = false, // tasks in this scope should be executed even if some previous cycle ended up with exception
+    val tasksInitialization: JavalinServletHandler.(submitTask: (Task) -> Unit) -> Unit // DLS method to add task to the cycle's queue
+)
 
 internal class JavalinServletHandler(
-    private val lifecycle: List<Cycle>,
+    lifecycle: List<Cycle>,
     private val servlet: JavalinServlet,
     private val exceptionMapper: ExceptionMapper = servlet.exceptionMapper,
     val ctx: Context,
@@ -38,9 +32,9 @@ internal class JavalinServletHandler(
     var response: HttpServletResponse
 ) {
 
-    private var currentStage: CompletableFuture<*> = emptyStage() // main stage used to pipeline handlers as a chain
     private val cycles = lifecycle.iterator()
-    private val tasks = ArrayDeque<Pair<Cycle, Task>>(lifecycle.size * 2) // as long as timeout listener does not touch this pipeline there is no need to use thread-safe structure
+    private val tasks = ArrayDeque<Pair<Cycle, Task>>(lifecycle.size * 2)
+    private var currentTask: CompletableFuture<*> = emptyStage()
     private var asyncContext: AsyncContext? = null
     private var errored = false
     private val finished = AtomicBoolean(false) // requires support for atomic switch
@@ -51,17 +45,19 @@ internal class JavalinServletHandler(
     private fun executeNextTask() {
         if (tasks.isEmpty()) {
             while (cycles.hasNext() && tasks.isEmpty()) {
-                cycles.next().initialize(tasks, this)
+                cycles.next().also {
+                    it.tasksInitialization(this) { task -> tasks.offer(Pair(it, task)) } // add tasks from cycle to handler's tasks queue
+                }
             }
-            if (!cycles.hasNext() && tasks.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
+            if (tasks.isEmpty()) {
                 return finishResponse()
             }
         }
 
         val (cycle, task) = tasks.poll()
 
-        this.currentStage = currentStage.thenCompose {
-            if (errored && cycle.allowsErrors.not()) { // skip handlers that don't support errored pipeline
+        this.currentTask = currentTask.thenCompose {
+            if (errored && !cycle.ignoreExceptions) { // skip handlers that don't support errored pipeline
                 return@thenCompose emptyStage().thenAccept { executeNextTask() }
             }
 
@@ -90,7 +86,7 @@ internal class JavalinServletHandler(
             this.response = it.response as HttpServletResponse
             it.timeout = servlet.config.asyncRequestTimeout
             it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
-                currentStage.cancel(true) // cancel current flow
+                currentTask.cancel(true) // cancel current flow
                 latestFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
                 with(ctx) {
                     status(500).result("Request timed out")
