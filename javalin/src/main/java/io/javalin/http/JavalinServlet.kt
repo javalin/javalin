@@ -26,20 +26,16 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     val exceptionMapper = ExceptionMapper()
     val errorMapper = ErrorMapper()
 
-    private val scopes = listOf(
-        Scope("before") { submitTask ->
+    private val lifecycle = listOf(
+        Cycle("before") { submitTask ->
             matcher.findEntries(BEFORE, requestUri).forEach { entry ->
-                submitTask {
-                    handle(ctx, requestUri, entry)
-                }
+                submitTask { handle(ctx, requestUri, entry) }
             }
         },
-        Scope("http") { submitTask ->
+        Cycle("http") { submitTask ->
             matcher.findEntries(type, requestUri).firstOrNull()?.let { entry ->
-                submitTask {
-                    handle(ctx, requestUri, entry)
-                }
-                return@Scope // return after first match
+                submitTask { handle(ctx, requestUri, entry) }
+                return@Cycle // return after first match
             }
             submitTask {
                 if (type == HEAD && matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
@@ -62,36 +58,33 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
         },
-        Scope("error", allowsErrors = true) { submitTask ->
-            submitTask {
-                handleError(ctx)
-            }
+        Cycle("error", allowsErrors = true) { submitTask ->
+            submitTask { handleError(ctx) }
         },
-        Scope("after", allowsErrors = true) { submitTask ->
+        Cycle("after", allowsErrors = true) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
-                submitTask {
-                    handle(ctx, requestUri, entry)
-                }
+                submitTask { handle(ctx, requestUri, entry) }
             }
         }
     )
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
-            val context = JavalinFlowContext(
+            val ctx = Context(request, response, config.inner.appAttributes)
+            LogUtil.setup(ctx, matcher, config.inner.requestLogger != null)
+            ctx.contentType(config.defaultContentType)
+
+            JavalinServletHandler(
+                lifecycle = lifecycle,
+                servlet = this,
+                ctx = ctx,
                 type = HandlerType.fromServletRequest(request),
-                ctx = Context(request, response, config.inner.appAttributes),
                 requestUri = request.requestURI.removePrefix(request.contextPath),
-                responseWrapperContext = ResponseWrapperContext(request, config)
-            )
-
-            LogUtil.setup(context.ctx, matcher, config.inner.requestLogger != null)
-            context.ctx.contentType(config.defaultContentType)
-
-            val flow = JavalinServletFlow(scopes, this, context, request, response)
-            flow.start()
-        }
-        catch (throwable: Throwable) {
+                responseWrapperContext = ResponseWrapperContext(request, config),
+                request = request,
+                response = response
+            ).execute()
+        } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)
         }
     }
@@ -110,12 +103,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         errorMapper.handle(ctx.status(), ctx)
 
     fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<RouteRole>) {
-        val protectedHandler =
-            if (handlerType.isHttpMethod())
-                Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) }
-            else
-                handler
-
+        val protectedHandler = if (handlerType.isHttpMethod()) Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, config.ignoreTrailingSlashes, protectedHandler, handler))
     }
 

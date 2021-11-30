@@ -11,71 +11,62 @@ import javax.servlet.AsyncListener
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-internal typealias LayerHandler = (JavalinServletFlow) -> Unit
+internal fun interface Task {
+    fun execute(context: JavalinServletHandler)
+}
 
-internal data class Scope(
+internal data class Cycle(
     val name: String,
     val allowsErrors: Boolean = false,
-    private val initialize: JavalinFlowContext.(submitTask: (LayerHandler) -> Unit) -> Unit
+    private val initialize: JavalinServletHandler.(submitTask: (Task) -> Unit) -> Unit
 ) {
 
-    fun initialize(queue: Queue<Pair<Scope, LayerHandler>>, context: JavalinFlowContext) =
+    fun initialize(queue: Queue<Pair<Cycle, Task>>, context: JavalinServletHandler) =
         initialize(context) { task -> queue.offer(Pair(this, task)) }
 
 }
 
-internal data class JavalinFlowContext(
+internal class JavalinServletHandler(
+    private val lifecycle: List<Cycle>,
+    private val servlet: JavalinServlet,
+    private val exceptionMapper: ExceptionMapper = servlet.exceptionMapper,
     val ctx: Context,
     val type: HandlerType,
     val requestUri: String,
-    val responseWrapperContext: ResponseWrapperContext
-)
-
-internal class JavalinServletFlow(
-    private val scopes: List<Scope>,
-    private val servlet: JavalinServlet,
-    private val context: JavalinFlowContext,
+    val responseWrapperContext: ResponseWrapperContext,
     val request: HttpServletRequest,
     var response: HttpServletResponse
 ) {
 
-    // Flow state
-    private var currentStage: CompletableFuture<*> = syncStage() // main stage used to pipeline handlers as a chain
-    private var currentScope = 0
-    private val queuedHandlers = ArrayDeque<Pair<Scope, LayerHandler>>(scopes.size * 2) // as long as timeout listener does not touch this pipeline there is no need to use thread-safe structure
-    // Request state
+    private var currentStage: CompletableFuture<*> = emptyStage() // main stage used to pipeline handlers as a chain
+    private val cycles = lifecycle.iterator()
+    private val tasks = ArrayDeque<Pair<Cycle, Task>>(lifecycle.size * 2) // as long as timeout listener does not touch this pipeline there is no need to use thread-safe structure
     private var asyncContext: AsyncContext? = null
     private var errored = false
     private val finished = AtomicBoolean(false) // requires support for atomic switch
     private var latestFuture: CompletableFuture<*>? = null
-    // Utility values
-    private val ctx: Context = context.ctx
-    private val exceptionMapper = servlet.exceptionMapper
 
-    fun start() =
-        continueFlow() // Start request lifecycle
+    fun execute() = executeNextTask()
 
-    private fun continueFlow() {
-        if (queuedHandlers.isEmpty()) {
-            while (currentScope < scopes.size && queuedHandlers.isEmpty()) {
-                val scope = scopes[currentScope++]
-                scope.initialize(queuedHandlers, context)
+    private fun executeNextTask() {
+        if (tasks.isEmpty()) {
+            while (cycles.hasNext() && tasks.isEmpty()) {
+                cycles.next().initialize(tasks, this)
             }
-            if (currentScope == scopes.size && queuedHandlers.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
-                finishResponse()
-                return
+            if (!cycles.hasNext() && tasks.isEmpty()) { // if scopes & pipelines are empty, it means that response has been finished
+                return finishResponse()
             }
         }
 
-        val (scope, handler) = queuedHandlers.poll()
+        val (cycle, task) = tasks.poll()
 
         this.currentStage = currentStage.thenCompose {
-            if (errored && scope.allowsErrors.not()) { // skip handlers that don't support errored pipeline
-                return@thenCompose syncStage().thenAccept { continueFlow() }
+            if (errored && cycle.allowsErrors.not()) { // skip handlers that don't support errored pipeline
+                return@thenCompose emptyStage().thenAccept { executeNextTask() }
             }
 
             try {
-                handler(this)
+                task.execute(this)
             } catch (exception: Exception) {
                 this.errored = true
                 exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
@@ -87,9 +78,9 @@ internal class JavalinServletFlow(
                 ?.exceptionally { exceptionMapper.handleFutureException(ctx, it) } // handle standard exceptions
                 ?.thenAccept { result -> ctx.futureConsumer?.accept(result) } // future post-processing, this consumer can set result, status, etc
                 ?.exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // exception might occur when writing response/in future handler
-                ?: syncStage() // stub future for sync & completed async requests
+                ?: emptyStage() // stub future for sync & completed async requests
 
-            return@thenCompose resultFuture.thenAccept { continueFlow() } // move to next available handler in the pipeline
+            return@thenCompose resultFuture.thenAccept { executeNextTask() } // move to next available handler in the pipeline
         }
         .exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // default catch-all for whole scope
     }
@@ -111,11 +102,10 @@ internal class JavalinServletFlow(
     }
 
     private fun finishResponse() {
-        if (finished.getAndSet(true)) {
-            return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
-        }
+        if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
+
         try {
-            JavalinResponseWrapper(response, context.responseWrapperContext).write(ctx.resultStream())
+            JavalinResponseWrapper(response, responseWrapperContext).write(ctx.resultStream())
             servlet.config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable) // handle any unexpected error, e.g. write failure
@@ -125,9 +115,6 @@ internal class JavalinServletFlow(
         }
     }
 
-    private fun syncStage(): CompletableFuture<Void?> =
-        CompletableFuture.completedFuture(null) // creates completed stage that behaves like sync request until it's not replaced by future result
-
 }
 
 private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.addListener(object : AsyncListener {
@@ -136,3 +123,6 @@ private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.addList
     override fun onStartAsync(event: AsyncEvent) {}
     override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
 })
+
+private fun emptyStage(): CompletableFuture<Void?> =
+    CompletableFuture.completedFuture(null) // creates completed stage that behaves like sync request until it's not replaced by future result
