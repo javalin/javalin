@@ -15,6 +15,7 @@ import io.javalin.http.HandlerType.BEFORE
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HandlerType.OPTIONS
+import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
@@ -89,15 +90,8 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         }
     }
 
-    private fun updateContext(ctx: Context, requestUri: String, handlerEntry: HandlerEntry) = ctx.apply {
-        matchedPath = handlerEntry.path
-        pathParamMap = handlerEntry.extractPathParams(requestUri)
-        handlerType = handlerEntry.type
-        if (handlerType != AFTER) endpointHandlerPath = handlerEntry.path // Idk what it does
-    }
-
     internal fun handle(ctx: Context, requestUri: String, handlerEntry: HandlerEntry) =
-        handlerEntry.handler.handle(updateContext(ctx, requestUri, handlerEntry))
+        handlerEntry.handler.handle(ContextUtil.update(ctx, handlerEntry, requestUri))
 
     internal fun handleError(ctx: Context) =
         errorMapper.handle(ctx.status(), ctx)

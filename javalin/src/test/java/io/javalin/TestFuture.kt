@@ -58,15 +58,6 @@ class TestFuture {
     }
 
     @Test
-    @Disabled
-    fun `calling future in after-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { it.future(getFuture("Not result")) }
-        app.after("/test-future") { ctx -> ctx.future(getFuture("Not result")) }
-        assertThat(http.get("/test-future").body).isEqualTo("Internal server error")
-        assertThat(http.get("/test-future").status).isEqualTo(500)
-    }
-
-    @Test
     fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
         app.before("/future") { it.future(getFuture("before")) }
         app.get("/future") { it.future(getFuture("nothing")) { /* do nothing */ } }
@@ -92,7 +83,6 @@ class TestFuture {
      * }
      *
      * ctx.future(task)
-     *
      */
     @Test
     @Disabled

@@ -57,5 +57,4 @@ class ExceptionMapper {
 
     private fun noUserHandler(e: Exception) =
         this.handlers[e::class.java] == null && this.handlers[HttpResponseException::class.java] == null
-
 }
