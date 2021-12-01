@@ -59,10 +59,10 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
         },
-        Cycle("error", ignoreExceptions = true) { submitTask ->
+        Cycle("error", ignoresExceptions = true) { submitTask ->
             submitTask { handleError(ctx) }
         },
-        Cycle("after", ignoreExceptions = true) { submitTask ->
+        Cycle("after", ignoresExceptions = true) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
                 submitTask { handle(ctx, requestUri, entry) }
             }
