@@ -80,10 +80,16 @@ class TestRouting {
     }
 
     @Test
-    fun `colon in path throws exception`() {
+    fun `old style colon path parameter throws exception`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
             .isThrownBy { Javalin.create().get("/:test") {} }
             .withMessageStartingWith("Path '/:test' invalid - Javalin 4 switched from ':param' to '{param}'.")
+    }
+
+    @Test
+    fun `literal colon in path segment works`() = TestUtil.test { app, http ->
+        app.get("/hello:world") { ctx -> ctx.result("Hello World") }
+        assertThat(http.getBody("/hello:world")).isEqualTo("Hello World")
     }
 
     @Test
