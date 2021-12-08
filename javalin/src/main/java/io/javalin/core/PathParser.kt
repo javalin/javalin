@@ -11,7 +11,7 @@ import io.javalin.http.util.ContextUtil
 class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
 
     init {
-        if (rawPath.contains(":")) {
+        if (rawPath.contains("/:")) {
             throw IllegalArgumentException("Path '$rawPath' invalid - Javalin 4 switched from ':param' to '{param}'.")
         }
     }
