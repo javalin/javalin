@@ -28,7 +28,7 @@ object Util {
     @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
 
-    private fun classExists(className: String) = try {
+    fun classExists(className: String) = try {
         Class.forName(className)
         true
     } catch (e: ClassNotFoundException) {
