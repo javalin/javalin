@@ -27,7 +27,7 @@ object JettyUtil {
         JavalinLogger.info("Loom is available, using Virtual ThreadPool... Neat!")
         LoomThreadPool()
     } else {
-        QueuedThreadPool(250, 8, 60_000)
+        QueuedThreadPool(250, 8, 60_000).apply { name = "JettyServerThreadPool" }
     }
 
     @JvmField

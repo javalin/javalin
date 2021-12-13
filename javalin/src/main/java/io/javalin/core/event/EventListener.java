@@ -21,6 +21,7 @@ public class EventListener {
     public void serverStarting(@NotNull EventHandler eventHandler)    {  addLifecycleEvent(JavalinEvent.SERVER_STARTING,     eventHandler); }
     public void serverStarted(@NotNull EventHandler eventHandler)     {  addLifecycleEvent(JavalinEvent.SERVER_STARTED,      eventHandler); }
     public void serverStartFailed(@NotNull EventHandler eventHandler) {  addLifecycleEvent(JavalinEvent.SERVER_START_FAILED, eventHandler); }
+    public void serverStopFailed(@NotNull EventHandler eventHandler)  {  addLifecycleEvent(JavalinEvent.SERVER_STOP_FAILED, eventHandler); }
     public void serverStopping(@NotNull EventHandler eventHandler)    {  addLifecycleEvent(JavalinEvent.SERVER_STOPPING,     eventHandler); }
     public void serverStopped(@NotNull EventHandler eventHandler)     {  addLifecycleEvent(JavalinEvent.SERVER_STOPPED,      eventHandler); }
     // @formatter:on
