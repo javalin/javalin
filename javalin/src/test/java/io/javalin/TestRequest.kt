@@ -334,6 +334,15 @@ class TestRequest {
     }
 
     @Test
+    fun `fullUrl works`() = TestUtil.test { app, http ->
+        val origin = "http://localhost:" + app.port() + "/";
+        app.get("/") { ctx -> ctx.result(ctx.fullUrl()) }
+        assertThat(http.getBody("/")).isEqualTo(origin)
+        assertThat(http.getBody("/?test")).isEqualTo(origin + "?test")
+        assertThat(http.getBody("/?test=tast")).isEqualTo(origin + "?test=tast")
+    }
+
+    @Test
     fun `empty contextPath works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.contextPath()) }
         assertThat(http.getBody("/")).isEqualTo("")

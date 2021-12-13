@@ -280,7 +280,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun queryString(): String? = req.queryString
 
     /** Gets the request scheme. */
-    fun scheme(): String = req.scheme
+    fun scheme(): String = contextResolver().shceme.invoke(this)
 
     /** Sets an attribute for the user session. */
     fun sessionAttribute(key: String, value: Any?) = req.session.setAttribute(key, value)
@@ -300,10 +300,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun sessionAttributeMap(): Map<String, Any?> = req.session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
 
     /** Gets the request url. */
-    fun url(): String = req.requestURL.toString()
+    fun url(): String = contextResolver().url.invoke(this)
 
     /** Gets the full request url, including query string (if present) */
-    fun fullUrl(): String = url() + if (queryString() != null) "?" + queryString() else ""
+    fun fullUrl(): String = contextResolver().fullUrl.invoke(this)
 
     /** Gets the request context path. */
     fun contextPath(): String = req.contextPath
