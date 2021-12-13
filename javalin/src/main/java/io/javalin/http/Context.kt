@@ -280,7 +280,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun queryString(): String? = req.queryString
 
     /** Gets the request scheme. */
-    fun scheme(): String = contextResolver().shceme.invoke(this)
+    fun scheme(): String = contextResolver().scheme.invoke(this)
 
     /** Sets an attribute for the user session. */
     fun sessionAttribute(key: String, value: Any?) = req.session.setAttribute(key, value)

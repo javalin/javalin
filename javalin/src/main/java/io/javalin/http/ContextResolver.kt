@@ -11,7 +11,7 @@ fun Context.contextResolver() = this.appAttribute<ContextResolver>(CONTEXT_RESOL
 class ContextResolver {
     var ip: (Context) -> String = { it.req.remoteAddr }
     var host: (Context) -> String? = { it.header(Header.HOST) }
-    var shceme: (Context) -> String = { it.req.scheme }
+    var scheme: (Context) -> String = { it.req.scheme }
     var url: (Context) -> String = { it.req.requestURL.toString() }
     var fullUrl: (Context) -> String = { it.url() + if (it.queryString() != null) "?" + it.queryString() else "" }
 }
