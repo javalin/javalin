@@ -51,12 +51,15 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
     }
 
     companion object {
-        fun defaultMapper(): ObjectMapper = try {
-            val className = OptionalDependency.JACKSON_KT.testClass
-            ObjectMapper().registerModule(Class.forName(className).getConstructor().newInstance() as Module)
-        } catch (e: ClassNotFoundException) {
-            ObjectMapper()
-        }
+        fun defaultMapper(): ObjectMapper = ObjectMapper()
+                .registerOptionalModule(OptionalDependency.JACKSON_KT.testClass)
+                .registerOptionalModule(OptionalDependency.JACKSON_JSR_310.testClass)
     }
+}
 
+private fun ObjectMapper.registerOptionalModule(classString: String): ObjectMapper {
+    if (Util.classExists(classString)) {
+        this.registerModule(Class.forName(classString).getConstructor().newInstance() as Module)
+    }
+    return this
 }

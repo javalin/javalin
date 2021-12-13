@@ -17,6 +17,7 @@ import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.InputStream
+import java.time.Instant
 
 class TestJson {
 
@@ -28,6 +29,14 @@ class TestJson {
         val response = http.get("/")
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
         assertThat(response.body).isEqualTo(serializableObjectString)
+    }
+
+    @Test
+    fun `default mapper can serialize instant`() = TestUtil.test { app, http ->
+        app.get("/") { ctx -> ctx.json(Instant.EPOCH) }
+        val response = http.get("/")
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
+        assertThat(response.body).isEqualTo("0.0")
     }
 
     @Test
