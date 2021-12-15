@@ -10,18 +10,18 @@ import javax.servlet.AsyncListener
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-internal fun interface Task {
+fun interface Task {
     fun execute(context: JavalinServletHandler)
 }
 
-internal data class Cycle(
+data class Stage(
     val name: String,
-    val ignoresExceptions: Boolean = false, // tasks in this scope should be executed even if some previous cycle ended up with exception
-    val tasksInitialization: JavalinServletHandler.(submitTask: (Task) -> Unit) -> Unit // DLS method to add task to the cycle's queue
+    val ignoresExceptions: Boolean = false, // tasks in this scope should be executed even if some previous stage ended up with exception
+    val tasksInitialization: JavalinServletHandler.(submitTask: (Task) -> Unit) -> Unit // DLS method to add task to the stage's queue
 )
 
-internal class JavalinServletHandler(
-    lifecycle: List<Cycle>,
+class JavalinServletHandler(
+    lifecycle: List<Stage>,
     private val servlet: JavalinServlet,
     private val exceptionMapper: ExceptionMapper = servlet.exceptionMapper,
     val ctx: Context,
@@ -32,8 +32,8 @@ internal class JavalinServletHandler(
     var response: HttpServletResponse
 ) {
 
-    private val cycles = lifecycle.iterator()
-    private val tasks = ArrayDeque<Pair<Cycle, Task>>(lifecycle.size * 2)
+    private val stages = lifecycle.iterator()
+    private val tasks = ArrayDeque<Pair<Stage, Task>>(lifecycle.size * 2)
     private var currentTask: CompletableFuture<*> = emptyStage()
     private var asyncContext: AsyncContext? = null
     private var errored = false
@@ -44,19 +44,19 @@ internal class JavalinServletHandler(
         executeNextTask()
 
     private fun executeNextTask() {
-        while (tasks.isEmpty() && cycles.hasNext()) {
-            cycles.next().also {
-                it.tasksInitialization(this) { task -> tasks.offer(Pair(it, task)) } // add tasks from cycle to handler's tasks queue
+        while (tasks.isEmpty() && stages.hasNext()) {
+            stages.next().also {
+                it.tasksInitialization(this) { task -> tasks.offer(Pair(it, task)) } // add tasks from stage to handler's tasks queue
             }
         }
         if (tasks.isEmpty()) {
             return finishResponse()
         }
 
-        val (cycle, task) = tasks.poll()
+        val (stage, task) = tasks.poll()
 
         this.currentTask = currentTask.thenCompose {
-            if (errored && !cycle.ignoresExceptions) { // skip handlers that don't support errored pipeline
+            if (errored && !stage.ignoresExceptions) { // skip handlers that don't support errored pipeline
                 return@thenCompose emptyStage().thenAccept { executeNextTask() }
             }
 
