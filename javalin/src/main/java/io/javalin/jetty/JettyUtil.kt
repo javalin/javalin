@@ -53,7 +53,8 @@ object JettyUtil {
         if (logIfNotStarted && !jettyServer.started) {
             JavalinLogger.info("It looks like you created a Javalin instance, but you never started it.")
             JavalinLogger.info("Try: Javalin app = Javalin.create().start();")
-            JavalinLogger.info("For more help, visit https://javalin.io/documentation#starting-and-stopping")
+            JavalinLogger.info("For more help, visit https://javalin.io/documentation#server-setup")
+            JavalinLogger.info("To disable this message, do `JettyUtil.logIfNotStarted = false`")
         }
     }.start()
 
@@ -97,4 +98,3 @@ class LoomThreadPool : ThreadPool {
     override fun getIdleThreads() = 1
     override fun isLowOnThreads() = false
 }
-
