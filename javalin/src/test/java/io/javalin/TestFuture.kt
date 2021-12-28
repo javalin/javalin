@@ -73,25 +73,14 @@ class TestFuture {
         assertThat(http.get("/test-future").status).isEqualTo(500)
     }
 
-    /* Such a scenario doesn't really make sense, the future may perform various side effect tasks - not only set the result response.
-     * Despite the fact it doesn't make sense, this operation is also not thread-safe, because of the mutable nature of Context.
-     * Example:
-     *
-     * task = externalThreadPool.task {
-     *   ctx.result("Overridden") // There is a chance it will be called before async context initialization because 'result' may override async task
-     *   ctx.status(404)          // May fail, as context was handled as sync and has been already sent
-     * }
-     *
-     * ctx.future(task)
-     */
     @Test
-    @Disabled
-    fun `future is overwritten if String result is set`() = TestUtil.test { app, http ->
+    fun `future has priority over standard result response`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx ->
+            ctx.result("Not overridden")
             ctx.future(getFuture("Result"))
-            ctx.result("Overridden")
+            ctx.result("Not overridden")
         }
-        assertThat(http.getBody("/test-future")).isEqualTo("Overridden")
+        assertThat(http.getBody("/test-future")).isEqualTo("Result")
     }
 
     @Test
