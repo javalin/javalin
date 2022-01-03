@@ -74,6 +74,7 @@ object Header {
     const val VIA = "Via"
     const val WARNING = "Warning"
     const val WWW_AUTHENTICATE = "WWW-Authenticate"
+    const val X_FORWARDED_FOR = "X-Forwarded-For"
     const val X_FRAME_OPTIONS = "X-Frame-Options"
     const val X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options"
     const val X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override"
