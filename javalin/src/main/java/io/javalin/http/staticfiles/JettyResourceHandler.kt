@@ -19,6 +19,7 @@ import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import java.nio.file.AccessDeniedException
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletRequestWrapper
 import javax.servlet.http.HttpServletResponse
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
@@ -40,7 +41,8 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private 
         for (handler in handlers) {
             try {
                 val resource = handler.getResource(target)
-                if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
+                val hasDirectoryWithWelcomeFile = resource.isDirectoryWithWelcomeFile(handler, target)
+                if (resource.isFile() || hasDirectoryWithWelcomeFile) {
                     val maxAge = if (target.startsWith("/immutable/") || handler is WebjarHandler) 31622400 else 0
                     httpResponse.setHeader(Header.CACHE_CONTROL, "max-age=$maxAge")
                     // Remove the default content type because Jetty will not set the correct one
@@ -49,7 +51,8 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private 
                         return true
                     }
                     httpResponse.contentType = null
-                    handler.handle(target, baseRequest, httpRequest, httpResponse)
+                    val req = if (hasDirectoryWithWelcomeFile) welcomeDirectoryHttpRequest(httpRequest) else httpRequest
+                    handler.handle(target, baseRequest, req, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
                     (httpResponse as JavalinResponseWrapper).outputStream.finalize()
                     return true
@@ -62,6 +65,18 @@ class JettyResourceHandler(val precompressStaticFiles: Boolean = false, private 
         }
         return false
     }
+
+    private fun welcomeDirectoryHttpRequest(req: HttpServletRequest): HttpServletRequest {
+        val welcomeDirectory = req.pathInfo
+        return object : HttpServletRequestWrapper(req) {
+            override fun getPathInfo() = when (val pathInfo = super.getPathInfo()) {
+                welcomeDirectory -> addSlashSuffix(pathInfo)
+                else -> pathInfo
+            }
+        }
+    }
+
+    private fun addSlashSuffix(path: String) = "${path.removeSuffix("/")}/"
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
 

@@ -18,6 +18,7 @@ class TestStaticDirectorySlash {
 
     @Test
     fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { _, http ->
+        http.disableUnirestRedirects()
         assertThat(http.getBody("/subpage")).isEqualTo("TEST") // ok, is directory
         assertThat(http.getBody("/subpage/")).isEqualTo("TEST") // ok, is directory
     }
