@@ -16,6 +16,7 @@ class GraphQLOptions(val path: String, val context: Any? = null) {
     var mutations: MutableList<TopLevelObject> = mutableListOf()
     var subscriptions: MutableList<TopLevelObject> = mutableListOf()
     var packages: MutableList<String> = mutableListOf("kotlin.Unit")
+    var dataLoaders: MutableList<KotlinDataLoader<*, *>> = mutableListOf()
 
     fun register(vararg queries: QueryGraphql) = apply {
         this.queries.addAll(queries.map { TopLevelObject(it) })
@@ -27,6 +28,10 @@ class GraphQLOptions(val path: String, val context: Any? = null) {
 
     fun register(vararg subscriptions: SubscriptionGraphql) = apply {
         this.subscriptions.addAll(subscriptions.map { TopLevelObject(it) })
+    }
+
+    fun register(vararg dataLoaders: KotlinDataLoader<*, *>) = apply {
+        this.dataLoaders.addAll(dataLoaders)
     }
 
     fun addPackage(`package`: String) = apply {

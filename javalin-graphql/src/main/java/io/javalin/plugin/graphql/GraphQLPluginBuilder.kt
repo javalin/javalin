@@ -37,6 +37,7 @@ class GraphQLPluginBuilder<out T : GraphQLContext>(
             graphQLPluginBuilder.mutations = options.mutations
             graphQLPluginBuilder.subscriptions = options.subscriptions
             graphQLPluginBuilder.packages = options.packages
+            graphQLPluginBuilder.dataLoaders = options.dataLoaders
             return graphQLPluginBuilder
         }
     }
