@@ -16,6 +16,7 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.websocket.WsContext
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.StatusCode
 import org.eclipse.jetty.websocket.api.WebSocketConstants
@@ -527,6 +528,54 @@ class TestWebSocket {
             .header(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, "mqtt")
             .asString()
         assertThat(response.headers.getFirst(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)).isEqualTo("mqtt")
+    }
+
+    @Test
+    fun `websocket closeSession() methods`() = TestUtil.test { app, http ->
+        app.ws("/websocket") {
+            it.onConnect {
+                app.logger().log.add("Connected")
+            }
+            it.onMessage {
+                val message = it.message()
+
+                if (message.equals("closeSession()")) {
+                    it.closeSession();
+                } else if (message.equals("closeSession(CloseStatus)")) {
+                    it.closeSession(CloseStatus(3456, "Test"))
+                } else if (message.equals("closeSession(code: Int, reason: String?)")) {
+                    it.closeSession(3456, "Test")
+                }
+
+                it.closeSession(4567, "Unexpected Message")
+            }
+            it.onClose {
+                app.logger().log.add("${it.status()}:${it.reason()}")
+            }
+        }
+
+        val testClient = TestClient(app, "/websocket")
+
+        //region closeSession()
+        doAndSleepWhile({ testClient.connect() }, { "Connected" !in app.logger().log })
+        doAndSleepWhile({ testClient.send("closeSession()") }, { "Closing" !in app.logger().log })
+        doAndSleepWhile({  }, { "3456:Test" !in app.logger().log })
+        assertThat(app.logger().log).contains("3456:Test")
+        //endregion
+
+        //region closeSession(CloseStatus)
+        doAndSleepWhile({ testClient.connect() }, { "Connected" !in app.logger().log })
+        doAndSleepWhile({ testClient.send("closeSession(CloseStatus)") }, { "Closing" !in app.logger().log })
+        doAndSleepWhile({  }, { "3456:Test" !in app.logger().log })
+        assertThat(app.logger().log).contains("3456:Test")
+        //endregion
+
+        //region closeSession(code: Int, reason: String?)
+        doAndSleepWhile({ testClient.connect() }, { "Connected" !in app.logger().log })
+        doAndSleepWhile({ testClient.send("closeSession(code: Int, reason: String?)") }, { "Closing" !in app.logger().log })
+        doAndSleepWhile({  }, { "3456:Test" !in app.logger().log })
+        assertThat(app.logger().log).contains("3456:Test")
+        //endregion
     }
 
     // ********************************************************************************************
