@@ -2,6 +2,7 @@ package io.javalin
 
 import io.javalin.core.util.Header
 import io.javalin.http.ContentType
+import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -111,6 +112,14 @@ class TestFuture {
         assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
     }
 
+    @Test
+    fun `exceptions in future callback are mapped`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.future(getFuture("result")) { throw NotFoundResponse() }
+        }
+        assertThat(http.get("/").status).isEqualTo(404)
+    }
+
     private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5 } }
 
     @Test
@@ -169,4 +178,3 @@ class TestFuture {
     }
 
 }
-

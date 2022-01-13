@@ -97,7 +97,9 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             resultFuture.exceptionally { throwable ->
                 exceptionMapper.handleFutureException(ctx, throwable)
             }.thenAccept { futureValue ->
-                ctx.futureConsumer?.accept(futureValue) // this consumer can set result, status, etc
+                tryWithExceptionMapper {
+                    ctx.futureConsumer?.accept(futureValue) // this consumer can set result, status, etc
+                }
                 finishUpResponse(asyncContext.response).also { asyncContext.complete() }
             }.exceptionally { throwable -> // exception might occur when writing response
                 exceptionMapper.handleUnexpectedThrowable(res, throwable).also { asyncContext.complete() }
