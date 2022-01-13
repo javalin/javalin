@@ -10,6 +10,7 @@ import io.javalin.http.Context
 import io.javalin.jetty.upgradeContextKey
 import io.javalin.jetty.upgradeSessionAttrsKey
 import io.javalin.plugin.json.jsonMapper
+import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
@@ -58,6 +59,10 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
     fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
+
+    fun closeSession() = session.close()
+    fun closeSession(closeStatus: CloseStatus) = session.close(closeStatus)
+    fun closeSession(code: Int, reason: String?) = session.close(code, reason)
 
     override fun equals(other: Any?) = session == (other as WsContext).session
     override fun hashCode() = session.hashCode()
