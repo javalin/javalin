@@ -40,13 +40,10 @@ class JavalinServletHandler(
     private val finished = AtomicBoolean(false) // requires support for atomic switch
     private var latestFuture: CompletableFuture<*>? = null
 
-    fun execute() =
-        executeNextTask()
-
-    private fun executeNextTask() {
+    internal fun executeNextTask() {
         while (tasks.isEmpty() && stages.hasNext()) {
-            stages.next().also {
-                it.tasksInitialization(this) { task -> tasks.offer(Pair(it, task)) } // add tasks from stage to handler's tasks queue
+            stages.next().also { stage ->
+                stage.tasksInitialization(this) { tasks.offer(Pair(stage, it)) } // add tasks from stage to handler's tasks queue
             }
         }
         if (tasks.isEmpty()) {
@@ -67,18 +64,18 @@ class JavalinServletHandler(
                 exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
             }
 
-            return@thenCompose (handleAsync() ?: emptyStage()) // chain future or create stub for sync/completed async requests
-                .thenAccept { executeNextTask() } // move to next available handler in the pipeline
+            return@thenCompose handleAsync().thenAccept { executeNextTask() } // move to next available handler in the pipeline
         }
         .exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
-    private fun handleAsync(): CompletableFuture<Void>? =
+    private fun handleAsync(): CompletableFuture<Void?> =
         ctx.async.getAndSet(null) // consume future value
             ?.also { latestFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
             ?.also { if (asyncContext == null) this.asyncContext = startAsync() } // enable async context
             ?.thenAccept { result -> ctx.futureConsumer?.accept(result) } // future post-processing, this consumer can set result, status, etc
             ?.exceptionally { exceptionMapper.handleFutureException(ctx, it) } // standard exception handler
+            ?: emptyStage() // sync stub
 
     private fun startAsync(): AsyncContext = request.startAsync().also {
         this.response = it.response as HttpServletResponse
@@ -86,8 +83,7 @@ class JavalinServletHandler(
         it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
             currentTask.cancel(true) // cancel current flow
             latestFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
-            ctx.status(500)
-            ctx.result("Request timed out")
+            ctx.status(500).result("Request timed out")
             servlet.handleError(ctx)
             finishResponse()
         }

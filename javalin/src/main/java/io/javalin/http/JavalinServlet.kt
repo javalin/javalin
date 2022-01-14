@@ -87,7 +87,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 responseWrapperContext = ResponseWrapperContext(request, config),
                 request = request,
                 response = response
-            ).execute()
+            ).executeNextTask()
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)
         }
