@@ -97,11 +97,11 @@ class JavalinServletHandler(
         if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         try {
             JavalinResponseWrapper(response, responseWrapperContext).write(ctx.resultStream())
+            servlet.config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable) // handle any unexpected error, e.g. write failure
         } finally {
             asyncContext?.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
-            servlet.config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         }
     }
 
