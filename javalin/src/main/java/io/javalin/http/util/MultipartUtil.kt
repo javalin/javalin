@@ -18,7 +18,8 @@ object MultipartUtil {
     var preUploadFunction: (HttpServletRequest) -> Unit = { req ->
         val existingConfig = req.getAttribute(MULTIPART_CONFIG_ATTRIBUTE)
         if (existingConfig == null) {
-            req.setAttribute(MULTIPART_CONFIG_ATTRIBUTE, MultipartConfigElement(System.getProperty("java.io.tmpdir")))
+            req.setAttribute(MULTIPART_CONFIG_ATTRIBUTE,
+                    MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1))
         }
     }
 
