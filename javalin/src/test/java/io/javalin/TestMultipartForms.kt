@@ -19,7 +19,9 @@ import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.lang.IllegalStateException
 import java.nio.charset.StandardCharsets
+import javax.servlet.MultipartConfigElement
 
 class TestMultipartForms {
 
@@ -112,6 +114,27 @@ class TestMultipartForms {
             .field("text-field", "text")
             .asString()
         assertThat(response.body).isEqualTo("image.png, sound.mp3, text.txt")
+    }
+
+    @Test
+    fun `custom multipart properties applied correctly`() = TestUtil.test { app, http ->
+        app.before("/test-upload") { ctx ->
+            ctx.attribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement("/tmp", 10, 10, 5))
+        }
+
+        app.post("/test-upload") { ctx ->
+            ctx.result(ctx.uploadedFiles().joinToString(", ") { it.filename })
+        }
+
+        app.exception(IllegalStateException::class.java) { e, ctx ->
+            ctx.result("${e::class.java.canonicalName} ${e.message}")
+        }
+
+        val response = http.post("/test-upload")
+                .field("upload", File("src/test/resources/upload-test/image.png"))
+                .field("text-field", "text")
+                .asString()
+        assertThat(response.body).isEqualTo("java.lang.IllegalStateException Request exceeds maxRequestSize (10)")
     }
 
     @Test
