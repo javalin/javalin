@@ -13,9 +13,14 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.Part
 
 object MultipartUtil {
+    private const val MULTIPART_CONFIG_ATTRIBUTE = "org.eclipse.jetty.multipartConfig";
 
     var preUploadFunction: (HttpServletRequest) -> Unit = { req ->
-        req.setAttribute("org.eclipse.jetty.multipartConfig", MultipartConfigElement(System.getProperty("java.io.tmpdir")))
+        val existingConfig = req.getAttribute(MULTIPART_CONFIG_ATTRIBUTE)
+        if (existingConfig == null) {
+            req.setAttribute(MULTIPART_CONFIG_ATTRIBUTE,
+                    MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1))
+        }
     }
 
     fun getUploadedFiles(req: HttpServletRequest, partName: String): List<UploadedFile> {

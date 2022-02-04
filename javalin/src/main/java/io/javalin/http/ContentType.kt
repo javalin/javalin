@@ -24,8 +24,7 @@ enum class ContentType(
     /* Image */
 
     IMAGE_ICO("image/vnd.microsoft.icon", true, "ico"),
-    IMAGE_JPEG("image/jpeg", true, "jpeg"),
-    IMAGE_JPG("image/jpg", true, "jpg"),
+    IMAGE_JPEG("image/jpeg", true, "jpeg", "jpg"),
     IMAGE_PNG("image/png", true, "png"),
     IMAGE_TIFF("image/tiff", true, "tiff", "tif"),
 
