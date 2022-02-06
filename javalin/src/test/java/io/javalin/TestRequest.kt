@@ -43,6 +43,14 @@ class TestRequest {
     }
 
     @Test
+    fun `session-attribute retrieval does not create session`() = TestUtil.test { app, http ->
+        app.get("/read-session") { ctx -> ctx.result("" + ctx.sessionAttribute<String>("nonexisting")) }
+        app.get("/has-session") { ctx -> ctx.result("" + (ctx.req.getSession(false) != null)) }
+        assertThat(http.getBody("/read-session")).isEqualTo("null")
+        assertThat(http.getBody("/has-session")).isEqualTo("false")
+    }
+
+    @Test
     fun `session-attribute can be consumed easily`() = TestUtil.test { app, http ->
         app.get("/store-attr") { it.sessionAttribute("attr", "Rowin") }
         app.get("/read-attr") { it.result(it.consumeSessionAttribute("attr") ?: "Consumed") }
