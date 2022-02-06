@@ -37,7 +37,7 @@ object JavalinVue {
 
     @JvmField var cacheControl = "no-cache, no-store, must-revalidate"
     // @formatter:on
-    fun walkPaths(): Set<Path> = Files.walk(rootDirectory, 20).collect(Collectors.toSet())
+    fun walkPaths(): Set<Path> = Files.walk(rootDirectory, 20).use { it.collect(Collectors.toSet()) }
     internal val cachedPaths by lazy { walkPaths() }
     internal val cachedDependencyResolver by lazy { VueDependencyResolver(cachedPaths, vueAppName) }
 }
