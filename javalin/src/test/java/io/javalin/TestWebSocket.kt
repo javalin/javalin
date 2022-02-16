@@ -577,7 +577,7 @@ class TestWebSocket {
     ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
         override fun onOpen(serverHandshake: ServerHandshake) { onOpen(this) }
-        override fun onClose(status: Int, message: String, byRemote: Boolean) { System.err.println("Connection closed $status $message $byRemote") }
+        override fun onClose(status: Int, message: String, byRemote: Boolean) { /* System.err.println("Connection closed $status $message $byRemote") */ }
         override fun onError(exception: Exception) { exception.printStackTrace() }
         override fun onMessage(message: String) { app.logger().log.add(message) }
 
