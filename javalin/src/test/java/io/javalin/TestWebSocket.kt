@@ -575,11 +575,11 @@ class TestWebSocket {
         path: String,
         headers: Map<String, String> = emptyMap(),
         val onOpen: (TestClient) -> Unit = {}
-    ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
+    ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 60), AutoCloseable {
 
         override fun onOpen(serverHandshake: ServerHandshake) { onOpen(this) }
-        override fun onClose(i: Int, s: String, b: Boolean) {}
-        override fun onError(e: Exception) {}
+        override fun onClose(i: Int, s: String, b: Boolean) { }
+        override fun onError(e: Exception) { e.printStackTrace() }
         override fun onMessage(s: String) {
             app.logger().log.add(s)
         }
