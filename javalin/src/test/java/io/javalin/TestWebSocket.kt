@@ -15,6 +15,7 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.websocket.WsContext
+import io.javalin.websocket.WsMessageContext
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
@@ -489,9 +490,9 @@ class TestWebSocket {
         app.ws("/ws") { it.onConnect { throw exception } }
 
         val client = object : TestClient(app, "/ws") {
-            override fun onClose(i: Int, s: String, b: Boolean) {
-                this.app.logger().log.add("Status code: $i")
-                this.app.logger().log.add("Reason: $s")
+            override fun onClose(status: Int, message: String, byRemote: Boolean) {
+                this.app.logger().log.add("Status code: $status")
+                this.app.logger().log.add("Reason: $message")
             }
         }
 
@@ -531,52 +532,54 @@ class TestWebSocket {
     }
 
     @Test
-    fun `websocket closeSession() methods`() = TestUtil.test { app, http ->
-        app.ws("/websocket") {
-            it.onConnect { app.logger().log.add("Connected") }
-            it.onMessage {
-                when (it.message()) {
-                    "NO_ARGS" -> it.closeSession()
-                    "STATUS_OBJECT" -> it.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
-                    "CODE_AND_REASON" -> it.closeSession(1002, "CODE_AND_REASON")
-                    else -> it.closeSession(1003, "UNEXPECTED")
-                }
+    fun `websocket closeSession() methods`() {
+        val scenarios = mapOf(
+            { client: TestClient -> client.send("NO_ARGS") } to CloseStatus(1000, "null"),
+            { client: TestClient -> client.send("STATUS_OBJECT") } to CloseStatus(1001, "STATUS_OBJECT"),
+            { client: TestClient -> client.send("CODE_AND_REASON") } to CloseStatus(1002, "CODE_AND_REASON"),
+            { client: TestClient -> client.send("UNEXPECTED") } to CloseStatus(1003, "UNEXPECTED")
+        )
+
+        val closeFunction = { ctx: WsMessageContext, message: String ->
+            when (message) {
+                "NO_ARGS" -> ctx.closeSession()
+                "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
+                "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
+                else -> ctx.closeSession(1003, "UNEXPECTED")
             }
-            it.onClose { app.logger().log.add("${it.status()}:${it.reason()}") }
         }
 
-        // test closeSession()
-        var testClient = TestClient(app, "/websocket")
-        doAndSleepWhile({ testClient.connect() }, { "Connected" !in app.logger().log })
-        doAndSleepWhile({ testClient.send("NO_ARGS") }, { "1000:null" !in app.logger().log })
-        app.logger().log.clear()
+        scenarios.forEach { (scenario, expectedValue) ->
+            TestUtil.test { app, _ ->
+                app.ws("/websocket") { ws ->
+                    ws.onMessage { ctx -> closeFunction(ctx, ctx.message()) }
+                    ws.onClose {
+                        assertThat(it.reason() ?: "null").isEqualTo(expectedValue.phrase)
+                        assertThat(it.status()).isEqualTo(expectedValue.code)
+                    }
+                }
 
-        // test closeSession(CloseStatus)
-        testClient = TestClient(app, "/websocket")
-        doAndSleepWhile({ testClient.connect() }, { "Connected" !in app.logger().log })
-        doAndSleepWhile({ testClient.send("STATUS_OBJECT") }, { "1001:STATUS_OBJECT" !in app.logger().log })
-        app.logger().log.clear()
-
-        // test closeSession(code: Int, reason: String?)
-        testClient = TestClient(app, "/websocket")
-        doAndSleepWhile({ testClient.connect() }, { "Connected" !in app.logger().log })
-        doAndSleepWhile({ testClient.send("CODE_AND_REASON") }, { "1002:CODE_AND_REASON" !in app.logger().log })
-        app.logger().log.clear()
+                val testClient = TestClient(app, "/websocket", onOpen = { scenario(it) })
+                testClient.connectBlocking()
+            }
+        }
     }
 
     // ********************************************************************************************
     // Helpers
     // ********************************************************************************************
 
-    internal open inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) :
-        WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
+    internal open inner class TestClient(
+        var app: Javalin,
+        path: String,
+        headers: Map<String, String> = emptyMap(),
+        val onOpen: (TestClient) -> Unit = {}
+    ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
-        override fun onOpen(serverHandshake: ServerHandshake) {}
-        override fun onClose(i: Int, s: String, b: Boolean) {}
-        override fun onError(e: Exception) {}
-        override fun onMessage(s: String) {
-            app.logger().log.add(s)
-        }
+        override fun onOpen(serverHandshake: ServerHandshake) { onOpen(this) }
+        override fun onClose(status: Int, message: String, byRemote: Boolean) { /* System.err.println("Connection closed $status $message $byRemote") */ }
+        override fun onError(exception: Exception) { exception.printStackTrace() }
+        override fun onMessage(message: String) { app.logger().log.add(message) }
 
         fun connectAndDisconnect() {
             doAndSleepWhile({ connect() }, { !isOpen })
@@ -586,7 +589,7 @@ class TestWebSocket {
 
     private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(1)) {
         val startTime = System.currentTimeMillis()
-        val limitTime = startTime + timeout.toMillis();
+        val limitTime = startTime + timeout.toMillis()
 
         slowFunction.invoke()
 
