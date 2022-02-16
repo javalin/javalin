@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test
 import java.lang.RuntimeException
 import java.net.URI
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeoutException
@@ -542,8 +541,6 @@ class TestWebSocket {
 
         scenarios.forEach { (scenario, expectedValue) ->
             TestUtil.test { app, _ ->
-                val expectedResult = CompletableFuture<CloseStatus>()
-
                 app.ws("/websocket") { ws ->
                     ws.onMessage { ctx ->
                         when (ctx.message()) {
@@ -558,16 +555,13 @@ class TestWebSocket {
                             throw RuntimeException()
                         }
 
-                        expectedResult.complete(CloseStatus(it.status(), it.reason() ?: "null")); }
+                        assertThat(it.reason() ?: "null").isEqualTo(expectedValue.phrase)
+                        assertThat(it.status()).isEqualTo(expectedValue.code)
+                    }
                 }
 
-                TestClient(app, "/websocket", onOpen = { scenario(it) })
-                    .also { it.connect() }
-                    .use {
-                        val result = expectedResult.get()
-                        assertThat(result.phrase).isEqualTo(expectedValue.phrase)
-                        assertThat(result.code).isEqualTo(expectedValue.code)
-                    }
+                val testClient = TestClient(app, "/websocket", onOpen = { scenario(it) })
+                testClient.connectBlocking()
             }
         }
     }
