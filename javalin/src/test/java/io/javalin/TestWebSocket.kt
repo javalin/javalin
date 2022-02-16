@@ -15,6 +15,7 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.websocket.WsContext
+import io.javalin.websocket.WsMessageContext
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.MessageTooLargeException
@@ -24,7 +25,6 @@ import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
 import org.junit.jupiter.api.Test
-import java.lang.RuntimeException
 import java.net.URI
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
@@ -490,9 +490,9 @@ class TestWebSocket {
         app.ws("/ws") { it.onConnect { throw exception } }
 
         val client = object : TestClient(app, "/ws") {
-            override fun onClose(i: Int, s: String, b: Boolean) {
-                this.app.logger().log.add("Status code: $i")
-                this.app.logger().log.add("Reason: $s")
+            override fun onClose(status: Int, message: String, byRemote: Boolean) {
+                this.app.logger().log.add("Status code: $status")
+                this.app.logger().log.add("Reason: $message")
             }
         }
 
@@ -536,25 +536,24 @@ class TestWebSocket {
         val scenarios = mapOf(
             { client: TestClient -> client.send("NO_ARGS") } to CloseStatus(1000, "null"),
             { client: TestClient -> client.send("STATUS_OBJECT") } to CloseStatus(1001, "STATUS_OBJECT"),
-            { client: TestClient -> client.send("CODE_AND_REASON") } to CloseStatus(1002, "CODE_AND_REASON")
+            { client: TestClient -> client.send("CODE_AND_REASON") } to CloseStatus(1002, "CODE_AND_REASON"),
+            { client: TestClient -> client.send("UNEXPECTED") } to CloseStatus(1003, "UNEXPECTED")
         )
+
+        val closeFunction = { ctx: WsMessageContext, message: String ->
+            when (message) {
+                "NO_ARGS" -> ctx.closeSession()
+                "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
+                "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
+                else -> ctx.closeSession(1003, "UNEXPECTED")
+            }
+        }
 
         scenarios.forEach { (scenario, expectedValue) ->
             TestUtil.test { app, _ ->
                 app.ws("/websocket") { ws ->
-                    ws.onMessage { ctx ->
-                        when (ctx.message()) {
-                            "NO_ARGS" -> ctx.closeSession()
-                            "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
-                            "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
-                            else -> ctx.closeSession(1003, "UNEXPECTED")
-                        }
-                    }
+                    ws.onMessage { ctx -> closeFunction(ctx, ctx.message()) }
                     ws.onClose {
-                        if (it.status() == 1006) {
-                            throw RuntimeException()
-                        }
-
                         assertThat(it.reason() ?: "null").isEqualTo(expectedValue.phrase)
                         assertThat(it.status()).isEqualTo(expectedValue.code)
                     }
@@ -578,11 +577,9 @@ class TestWebSocket {
     ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
         override fun onOpen(serverHandshake: ServerHandshake) { onOpen(this) }
-        override fun onClose(i: Int, s: String, b: Boolean) { System.err.println("Connection closed $i $s $b") }
-        override fun onError(e: Exception) { e.printStackTrace() }
-        override fun onMessage(s: String) {
-            app.logger().log.add(s)
-        }
+        override fun onClose(status: Int, message: String, byRemote: Boolean) { System.err.println("Connection closed $status $message $byRemote") }
+        override fun onError(exception: Exception) { exception.printStackTrace() }
+        override fun onMessage(message: String) { app.logger().log.add(message) }
 
         fun connectAndDisconnect() {
             doAndSleepWhile({ connect() }, { !isOpen })
