@@ -552,7 +552,7 @@ class TestWebSocket {
                             else -> ctx.closeSession(1003, "UNEXPECTED")
                         }
                     }
-                    ws.onClose { expectedResult.completeAsync { CloseStatus(it.status(), it.reason() ?: "null") } }
+                    ws.onClose { expectedResult.complete(CloseStatus(it.status(), it.reason() ?: "null")) }
                 }
 
                 TestClient(app, "/websocket", onOpen = { scenario(it) })
