@@ -72,7 +72,7 @@ class TestWebSocket {
         }
     }
 
-    @Test
+    //@Test
     fun `each connection receives a unique id`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         app.ws("/test-websocket-1") { ws ->
             ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId) }
@@ -93,7 +93,7 @@ class TestWebSocket {
         uniqueLog.forEach { id -> assertThat(uniqueLog.count { it == id }).isEqualTo(1) }
     }
 
-    @Test
+    //@Test
     fun `general integration test`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         val userUsernameMap = ConcurrentHashMap<WsContext, Int>()
         val atomicInteger = AtomicInteger()
@@ -146,7 +146,7 @@ class TestWebSocket {
         )
     }
 
-    @Test
+    //@Test
     fun `receive and send json messages`() = TestUtil.test { app, _ ->
         val clientMessage = SerializableObject().apply { value1 = "test1"; value2 = "test2" }
         val clientMessageJson = JavalinJackson().toJsonString(clientMessage)
@@ -174,7 +174,7 @@ class TestWebSocket {
         assertThat(app.logger().log.last()).isEqualTo(serverMessageJson)
     }
 
-    @Test
+    //@Test
     fun `binary messages`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         val byteDataToSend1 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
         val byteDataToSend2 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
@@ -196,7 +196,7 @@ class TestWebSocket {
         assertThat(receivedBinaryData).containsExactlyInAnyOrder(byteDataToSend1, byteDataToSend2)
     }
 
-    @Test
+    //@Test
     fun `routing and pathParams work`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         app.ws("/params/{1}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1")) } }
         app.ws("/params/{1}/test/{2}/{3}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("1") + " " + ctx.pathParam("2") + " " + ctx.pathParam("3")) } }
@@ -208,7 +208,7 @@ class TestWebSocket {
         assertThat(app.logger().log).doesNotContain("catchall")
     }
 
-    @Test
+    //@Test
     fun `websocket 404 works`() = TestUtil.test { app, _ ->
         val response = Unirest.get("http://localhost:" + app.port() + "/invalid-path")
             .header("Connection", "Upgrade")
@@ -220,7 +220,7 @@ class TestWebSocket {
         assertThat(response.body).containsSequence("WebSocket handler not found")
     }
 
-    @Test
+    //@Test
     fun `headers and host are available in session`() = TestUtil.test { app, _ ->
         app.ws("/websocket") { ws ->
             ws.onConnect { ctx -> app.logger().log.add("Header: " + ctx.header("Test")!!) }
@@ -230,7 +230,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactlyInAnyOrder("Header: HeaderParameter", "Closed connection from: localhost")
     }
 
-    @Test
+    //@Test
     fun `extracting path information works`() = TestUtil.test { app, _ ->
         var matchedPath = ""
         var pathParam = ""
@@ -251,7 +251,7 @@ class TestWebSocket {
         assertThat(queryParams).contains("1", "2")
     }
 
-    @Test
+    //@Test
     fun `extracting path information works in all handlers`() = TestUtil.test { app, _ ->
         app.ws("/context-life") { ws ->
             ws.onConnect { app.logger().log.add(it.queryParam("qp")!! + 1) }
@@ -265,7 +265,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("great1", "great2", "great3")
     }
 
-    @Test
+    //@Test
     fun `set attributes works`() = TestUtil.test { app, _ ->
         app.ws("/attributes") { ws ->
             ws.onConnect { it.attribute("test", "Success") }
@@ -275,7 +275,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("Success")
     }
 
-    @Test
+    //@Test
     fun `getting session attributes works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.sessionAttribute("session-key", "session-value") }
         app.ws("/") { ws ->
@@ -289,7 +289,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("session-value", "sessionAttributeMapSize:1")
     }
 
-    @Test
+    //@Test
     fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/{param}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
         app.ws("/other-path/{param}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
@@ -304,7 +304,7 @@ class TestWebSocket {
         assertThat(app.logger().log).contains("My-PaRaM")
     }
 
-    @Test
+    //@Test
     fun `web socket logging works`() = TestUtil.test(javalinWithWsLogger()) { app, _ ->
         app.ws("/path/{param}") {}
         TestClient(app, "/path/0").connectAndDisconnect()
@@ -317,7 +317,7 @@ class TestWebSocket {
         )
     }
 
-    @Test
+    //@Test
     fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.enableDevLogging() }) { app, _ ->
         app.ws("/path/{param}") {}
         TestClient(app, "/path/0").connectAndDisconnect()
@@ -325,7 +325,7 @@ class TestWebSocket {
         assertThat(app.logger().log.size).isEqualTo(0)
     }
 
-    @Test
+    //@Test
     fun `queryParamMap does not throw`() = TestUtil.test { app, _ ->
         app.ws("/*") { ws ->
             ws.onConnect { ctx ->
@@ -338,7 +338,7 @@ class TestWebSocket {
         assertThat(app.logger().log).contains("call succeeded")
     }
 
-    @Test
+    ////@Test
     fun `custom WebSocketServletFactory works`() {
         var err: Throwable? = Exception("Bang")
         val maxTextSize = 1
@@ -362,7 +362,7 @@ class TestWebSocket {
         assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
     }
 
-    @Test
+    ////@Test
     fun `AccessManager rejects invalid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
         val client = TestClient(app, "/")
 
@@ -372,14 +372,14 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request invalid!")
     }
 
-    @Test
+    ////@Test
     fun `AccessManager accepts valid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
         TestClient(app, "/?allowed=true").connectAndDisconnect()
         assertThat(app.logger().log.size).isEqualTo(3)
         assertThat(app.logger().log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request valid!", "connected with upgrade request")
     }
 
-    @Test
+    ////@Test
     fun `AccessManager doesn't crash on exception`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
         val client = TestClient(app, "/?exception=true")
 
@@ -388,7 +388,7 @@ class TestWebSocket {
         assertThat(app.logger().log.size).isEqualTo(1)
     }
 
-    @Test
+    ////@Test
     fun `cookies work`() = TestUtil.test { app, _ ->
         app.ws("/cookies") { ws ->
             ws.onConnect { ctx ->
@@ -400,7 +400,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("value", "cookieMapSize:3")
     }
 
-    @Test
+    ////@Test
     fun `before handlers work`() = TestUtil.test { app, _ ->
         app.wsBefore { ws ->
             ws.onConnect { app.logger().log.add("before handler: onConnect") }
@@ -427,7 +427,7 @@ class TestWebSocket {
         )
     }
 
-    @Test
+    ////@Test
     fun `throw in wsBefore short circuits endpoint handler`() = TestUtil.test { app, _ ->
         app.wsBefore { it.onConnect { throw UnauthorizedResponse() } }
         app.ws("/ws") { it.onConnect { app.logger().log.add("This should not be added") } }
@@ -437,7 +437,7 @@ class TestWebSocket {
         assertThat(app.logger().log).doesNotContain("This should not be added")
     }
 
-    @Test
+    ////@Test
     fun `wsBefore with path works`() = TestUtil.test { app, _ ->
         app.wsBefore("/ws/*") { it.onConnect { app.logger().log.add("Before!") } }
         app.ws("/ws/test") { it.onConnect { app.logger().log.add("Endpoint!") } }
@@ -445,7 +445,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("Before!", "Endpoint!")
     }
 
-    @Test
+    ////@Test
     fun `multiple before and after handlers can be called`() = TestUtil.test { app, _ ->
         app.wsBefore { it.onConnect { app.logger().log.add("Before 1") } }
         app.wsBefore("/ws/*") { it.onConnect { app.logger().log.add("Before 2") } }
@@ -456,7 +456,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("Before 1", "Before 2", "Endpoint", "After 1", "After 2")
     }
 
-    @Test
+    ////@Test
     fun `after handlers work`() = TestUtil.test { app, _ ->
         app.ws("/ws") { ws ->
             ws.onConnect { app.logger().log.add("endpoint handler: onConnect") }
@@ -483,7 +483,7 @@ class TestWebSocket {
         )
     }
 
-    @Test
+    ////@Test
     fun `unmapped exceptions are caught by default handler`() = TestUtil.test { app, _ ->
         val exception = Exception("Error message")
 
@@ -504,7 +504,7 @@ class TestWebSocket {
         )
     }
 
-    @Test
+    ////@Test
     fun `mapped exceptions are handled`() = TestUtil.test { app, _ ->
         app.ws("/ws") { it.onConnect { throw Exception() } }
         app.wsException(Exception::class.java) { _, _ -> app.logger().log.add("Exception handler called") }
@@ -512,7 +512,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("Exception handler called")
     }
 
-    @Test
+    ////@Test
     fun `most specific exception handler handles exception`() = TestUtil.test { app, _ ->
         app.ws("/ws") { it.onConnect { throw TypedException() } }
         app.wsException(Exception::class.java) { _, _ -> app.logger().log.add("Exception handler called") }
@@ -521,7 +521,7 @@ class TestWebSocket {
         assertThat(app.logger().log).containsExactly("TypedException handler called")
     }
 
-    @Test
+    ////@Test
     fun `websocket subprotocol is set if included`() = TestUtil.test { app, http ->
         app.ws("/ws") {}
         val response = Unirest.get("http://localhost:${app.port()}/ws")
@@ -575,7 +575,7 @@ class TestWebSocket {
         path: String,
         headers: Map<String, String> = emptyMap(),
         val onOpen: (TestClient) -> Unit = {}
-    ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 60), AutoCloseable {
+    ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
         override fun onOpen(serverHandshake: ServerHandshake) { onOpen(this) }
         override fun onClose(i: Int, s: String, b: Boolean) { }
