@@ -40,13 +40,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
+    @get:JvmSynthetic @set:JvmSynthetic internal var async = AtomicReference<CompletableFuture<*>?>(null)
+    @get:JvmSynthetic @set:JvmSynthetic internal var futureConsumer: Consumer<Any?>? = null
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     private var resultStream: InputStream? = null
-    internal var async = AtomicReference<CompletableFuture<*>?>(null)
-    internal var futureConsumer: Consumer<Any?>? = null
 
     private val body by lazy {
         this.throwPayloadTooLargeIfPayloadTooLarge()
