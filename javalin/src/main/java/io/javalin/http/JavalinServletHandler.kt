@@ -15,7 +15,7 @@ fun interface Task {
 }
 
 data class Stage(
-    val name: String,
+    val name: StageName,
     val ignoresExceptions: Boolean = false, // tasks in this scope should be executed even if some previous stage ended up with exception
     val tasksInitialization: JavalinServletHandler.(submitTask: (Task) -> Unit) -> Unit // DLS method to add task to the stage's queue
 )
@@ -84,7 +84,7 @@ class JavalinServletHandler(
             currentTask.cancel(true) // cancel current flow
             latestFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
             ctx.status(500).result("Request timed out")
-            servlet.handleError(ctx)
+            servlet.errorMapper.handle(ctx.status(), ctx)
             finishResponse()
         }
     }
