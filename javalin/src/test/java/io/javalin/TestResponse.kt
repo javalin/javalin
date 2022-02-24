@@ -229,8 +229,10 @@ class TestResponse {
             return if (remaining() == 0L) {
                 -1
             } else if (alreadyRead < prefixSize) {
+                alreadyRead++
                 ' '.code
             } else {
+                alreadyRead++
                 'J'.code
             }
         }
