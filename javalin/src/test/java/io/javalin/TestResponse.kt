@@ -240,7 +240,7 @@ class TestResponse {
     fun `seekable - large file works`() = TestUtil.test { app, http ->
         val prefixSize = 1L shl 31 //2GB
         val contentSize = 100L
-        app.get("/seekable-5") { ctx -> ctx.seekableStream(getLargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN) }
+        app.get("/seekable-5") { ctx -> ctx.seekableStream(getLargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
         val response = Unirest.get(http.origin + "/seekable-5")
                 .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
                 .asString()
