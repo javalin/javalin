@@ -348,7 +348,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Writes the specified inputStream as a seekable stream */
-    fun seekableStream(inputStream: InputStream, contentType: String) = SeekableWriter.write(this, inputStream, contentType)
+    @JvmOverloads
+    fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) =
+            SeekableWriter.write(this, inputStream, contentType, size)
 
     /** Gets the current context result as an [InputStream] (if set). */
     fun resultStream(): InputStream? = resultStream
