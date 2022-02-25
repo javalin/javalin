@@ -197,52 +197,11 @@ class TestResponse {
         assertThat(response.length).isEqualTo(150)
     }
 
-    private fun getLargeSeekableInput(prefixSize: Long, contentSize: Long) = object : InputStream() {
-        var alreadyRead = 0L
-
-        private fun remaining(): Long = prefixSize + contentSize - alreadyRead
-
-        override fun available(): Int {
-            val rem = remaining()
-            return if (rem < Int.MAX_VALUE) {
-                rem.toInt()
-            } else {
-                Int.MAX_VALUE
-            }
-        }
-
-        override fun skip(toSkip: Long): Long {
-            if (toSkip <= 0) {
-                return 0;
-            }
-            val rem = remaining()
-            return if (rem < toSkip) {
-                alreadyRead += rem
-                rem
-            } else {
-                alreadyRead += toSkip
-                toSkip
-            }
-        }
-
-        override fun read(): Int {
-            return if (remaining() == 0L) {
-                -1
-            } else if (alreadyRead < prefixSize) {
-                alreadyRead++
-                ' '.code
-            } else {
-                alreadyRead++
-                'J'.code
-            }
-        }
-    }
-
     @Test
     fun `seekable - large file works`() = TestUtil.test { app, http ->
         val prefixSize = 1L shl 31 //2GB
         val contentSize = 100L
-        app.get("/seekable-5") { ctx -> ctx.seekableStream(getLargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
+        app.get("/seekable-5") { ctx -> ctx.seekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
         val response = Unirest.get(http.origin + "/seekable-5")
                 .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
                 .asString()
