@@ -16,6 +16,7 @@ class SseHandler(private val clientConsumer: Consumer<SseClient>) : Handler {
                 contentType = "text/event-stream"
                 addHeader(Header.CONNECTION, "close")
                 addHeader(Header.CACHE_CONTROL, "no-cache")
+                addHeader("X-Accel-Buffering", "no") // See https://serverfault.com/a/801629
                 flushBuffer()
             }
             ctx.req.startAsync(ctx.req, ctx.res)
