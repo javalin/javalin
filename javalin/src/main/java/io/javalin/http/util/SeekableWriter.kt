@@ -7,19 +7,18 @@ import java.io.OutputStream
 
 object SeekableWriter {
     var chunkSize = 128000
-    fun write(ctx: Context, inputStream: InputStream, contentType: String) {
+    fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long) {
         if (ctx.header(Header.RANGE) == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)
             ctx.result(inputStream)
             return
         }
-        val totalBytes = inputStream.available()
         val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
-        val from = requestedRange[0].toInt()
+        val from = requestedRange[0].toLong()
         val to = when {
             from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
-            requestedRange.size == 2 -> requestedRange[1].toInt() // chunk smaller than file, to/from specified
-            else -> from + chunkSize - 1 // chunk smaller then file, to/from not specified
+            requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
+            else -> from + chunkSize - 1 // chunk smaller than file, to/from not specified
         }
         ctx.status(206)
         ctx.header(Header.CONTENT_TYPE, contentType)
@@ -29,11 +28,15 @@ object SeekableWriter {
         ctx.res.outputStream.write(inputStream, from, to)
     }
 
-    private fun OutputStream.write(inputStream: InputStream, from: Int, to: Int, buffer: ByteArray = ByteArray(1024)) = inputStream.use {
-        it.skip(from.toLong())
+    private fun OutputStream.write(inputStream: InputStream, from: Long, to: Long, buffer: ByteArray = ByteArray(1024)) = inputStream.use {
+        var toSkip = from
+        while (toSkip > 0) {
+            val skipped = it.skip(toSkip)
+            toSkip -= skipped
+        }
         var bytesLeft = to - from + 1
-        while (bytesLeft != 0) {
-            val read = it.read(buffer, 0, Math.min(buffer.size, bytesLeft))
+        while (bytesLeft != 0L) {
+            val read = it.read(buffer, 0, buffer.size.toLong().coerceAtMost(bytesLeft).toInt())
             this.write(buffer, 0, read)
             bytesLeft -= read
         }

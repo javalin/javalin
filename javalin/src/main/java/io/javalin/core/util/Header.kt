@@ -79,4 +79,5 @@ object Header {
     const val X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options"
     const val X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override"
     const val X_PERMITTED_CROSS_DOMAIN_POLICIES = "X-Permitted-Cross-Domain-Policies"
+    const val X_ACCEL_BUFFERING = "X-Accel-Buffering"
 }
