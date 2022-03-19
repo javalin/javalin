@@ -23,7 +23,7 @@ data class Stage(
 )
 
 class JavalinServletHandler(
-    lifecycle: List<Stage>,
+    private val stages: Iterator<Stage>,
     private val config: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
@@ -35,8 +35,7 @@ class JavalinServletHandler(
     var response: HttpServletResponse
 ) {
 
-    private val stages = lifecycle.iterator()
-    private val tasks = ArrayDeque<TaskEntry>(lifecycle.size * 2)
+    private val tasks = ArrayDeque<TaskEntry>(8)
     private var currentTask: CompletableFuture<*> = emptySyncStage()
     private var asyncContext: AsyncContext? = null
     private var errored = false

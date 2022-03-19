@@ -80,7 +80,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             ctx.contentType(config.defaultContentType)
 
             JavalinServletHandler(
-                lifecycle = lifecycle,
+                stages = lifecycle.iterator(),
                 config = config,
                 errorMapper = errorMapper,
                 exceptionMapper = exceptionMapper,
