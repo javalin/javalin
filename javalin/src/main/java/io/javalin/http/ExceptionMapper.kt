@@ -16,26 +16,20 @@ class ExceptionMapper {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
-    internal fun handle(throwable: Throwable, ctx: Context) {
-        if (throwable is Exception) {
-            ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
-            if (HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable)) {
-                HttpResponseExceptionMapper.handle(throwable, ctx)
+    internal fun handle(exception: Exception, ctx: Context) {
+        ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
+        if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
+            HttpResponseExceptionMapper.handle(exception, ctx)
+        } else {
+            val exceptionHandler = Util.findByClass(handlers, exception.javaClass)
+            if (exceptionHandler != null) {
+                exceptionHandler.handle(exception, ctx)
             } else {
-                val exceptionHandler = Util.findByClass(handlers, throwable.javaClass)
-                if (exceptionHandler != null) {
-                    exceptionHandler.handle(throwable, ctx)
-                } else {
-                    JavalinLogger.warn("Uncaught exception", throwable)
-                    HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
-                }
+                JavalinLogger.warn("Uncaught exception", exception)
+                HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
             }
-            ctx.inExceptionHandler = false
         }
-        else {
-            JavalinLogger.warn("Uncaught exception", throwable)
-            HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
-        }
+        ctx.inExceptionHandler = false
     }
 
     internal fun handleFutureException(ctx: Context, throwable: Throwable): Nothing? {
