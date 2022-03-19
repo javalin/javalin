@@ -81,7 +81,9 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
             JavalinServletHandler(
                 lifecycle = lifecycle,
-                servlet = this,
+                config = config,
+                errorMapper = errorMapper,
+                exceptionMapper = exceptionMapper,
                 ctx = ctx,
                 type = HandlerType.fromServletRequest(request),
                 requestUri = request.requestURI.removePrefix(request.contextPath),
