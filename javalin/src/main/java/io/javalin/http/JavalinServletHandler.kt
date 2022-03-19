@@ -70,7 +70,7 @@ class JavalinServletHandler(
     }
 
     private fun handleAsync(): CompletableFuture<Void?> =
-        ctx.async.getAndSet(null) // consume future value
+        ctx.asyncTaskReference.getAndSet(null) // consume future value
             ?.also { latestFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
             ?.also { if (asyncContext == null) this.asyncContext = startAsync() } // enable async context
             ?.thenAccept { result -> ctx.futureConsumer?.accept(result) } // future post-processing, this consumer can set result, status, etc

@@ -40,13 +40,13 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @get:JvmSynthetic @set:JvmSynthetic internal var async = AtomicReference<CompletableFuture<*>?>(null)
+    @get:JvmSynthetic @set:JvmSynthetic internal var asyncTaskReference = AtomicReference<CompletableFuture<*>?>(null)
     @get:JvmSynthetic @set:JvmSynthetic internal var futureConsumer: Consumer<Any?>? = null
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
-    private var resultStream: InputStream? = null
+    private var resultInputStream: InputStream? = null
 
     private val body by lazy {
         this.throwPayloadTooLargeIfPayloadTooLarge()
@@ -232,7 +232,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     inline fun <reified T : Any> headerAsClass(header: String) = headerAsClass(header, T::class.java)
 
     /** Gets a map with all the header keys and values on the request. */
-    fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
+    fun headerMap(): Map<String, String> = req.headerNames.asSequence().associateWith { header(it)!! }
 
     /** Gets the request host, or null. */
     fun host(): String? = contextResolver().host.invoke(this)
@@ -336,16 +336,16 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
 
-    /** Gets the current [resultStream] as a [String] (if possible), and reset [resultStream] */
-    fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultStream, responseCharset())
+    /** Gets the current [resultInputStream] as a [String] (if possible), and reset [resultInputStream] */
+    fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultInputStream, responseCharset())
 
     /**
      * Sets context result to the specified [InputStream].
      * Will overwrite the current result if there is one.
      */
-    fun result(result: InputStream): Context {
-        runCatching { resultStream?.close() } // avoid memory leaks for multiple result() calls
-        this.resultStream = result
+    fun result(resultStream: InputStream): Context {
+        runCatching { resultInputStream?.close() } // avoid memory leaks for multiple result() calls
+        this.resultInputStream = resultStream
         return this
     }
 
@@ -355,14 +355,14 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
             SeekableWriter.write(this, inputStream, contentType, size)
 
     /** Gets the current context result as an [InputStream] (if set). */
-    fun resultStream(): InputStream? = resultStream
+    fun resultStream(): InputStream? = resultInputStream
 
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
-        if (/* !handlerType.isHttpMethod() || */ inExceptionHandler) {
+        if (inExceptionHandler) {
             throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
         }
-        async.set(future)
+        asyncTaskReference.set(future)
         futureConsumer = callback ?: Consumer { result ->
             when (result) {
                 is Unit -> {}
@@ -375,7 +375,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>? = async.get()
+    fun resultFuture(): CompletableFuture<*>? = asyncTaskReference.get()
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {
