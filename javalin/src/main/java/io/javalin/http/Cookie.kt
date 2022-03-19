@@ -14,7 +14,7 @@ enum class SameSite(val value: String) {
     override fun toString() = this.value
 }
 
-data class Cookie(
+data class Cookie @JvmOverloads constructor(
     var name: String,
     var value: String,
     var path: String = "/",
