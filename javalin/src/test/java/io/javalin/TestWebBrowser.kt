@@ -38,6 +38,9 @@ class TestWebBrowser {
             assumeTrue("mac" !in os && "darwin" !in os)
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
+                // GH-1488, details about flags: https://stackoverflow.com/questions/50642308/webdriverexception-unknown-error-devtoolsactiveport-file-doesnt-exist-while-t
+                addArguments("--no-sandbox")
+                addArguments("--disable-dev-shm-usage")
                 addArguments("--headless")
                 addArguments("--disable-gpu")
             })
