@@ -21,10 +21,6 @@ import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-interface StageName
-
-enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
-
 class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 
     val matcher = PathMatcher()
@@ -90,7 +86,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 responseWrapperContext = ResponseWrapperContext(request, config),
                 request = request,
                 response = response
-            ).executeNextTask()
+            ).queueNextTask()
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)
         }

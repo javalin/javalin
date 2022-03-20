@@ -11,16 +11,20 @@ import javax.servlet.AsyncListener
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-typealias Task = (JavalinServletHandler) -> Unit
-typealias TaskEntry = Pair<Stage, Task>
-typealias SubmitTask = (Task) -> Unit
-typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> Unit
+interface StageName
+enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
 
 data class Stage(
     val name: StageName,
     val ignoresExceptions: Boolean = false, // tasks in this scope should be executed even if some previous stage ended up with exception
     val stageInitializer: StageInitializer // DLS method to add task to the stage's queue
 )
+
+data class Task(val stage: Stage, val handler: TaskHandler)
+typealias TaskHandler = (JavalinServletHandler) -> Unit
+
+typealias SubmitTask = (TaskHandler) -> Unit
+typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> Unit
 
 class JavalinServletHandler(
     private val stages: Iterator<Stage>,
@@ -35,41 +39,42 @@ class JavalinServletHandler(
     var response: HttpServletResponse
 ) {
 
-    private val tasks = ArrayDeque<TaskEntry>(8)
+    private val tasks = ArrayDeque<Task>(8)
     private var currentStage: CompletableFuture<*> = emptySyncStage()
     private var asyncContext: AsyncContext? = null
+    private var latestResultFuture: CompletableFuture<*>? = null // future defined by user in Context, we have to keep this only for timeout listener
     private var errored = false
     private val finished = AtomicBoolean(false) // requires support for atomic switch
-    private var latestContextResultFuture: CompletableFuture<*>? = null // future defined by user in Context, we have to keep this only for timeout listener
 
-    internal fun executeNextTask() {
-        if (initializeStageTasks()) {
+    internal fun queueNextTask() {
+        if (refillTasks()) { // finish response, if there is no more tasks
             return finishResponse()
         }
 
-        val (stage, task) = tasks.poll()
-
-        this.currentStage = currentStage.thenCompose {
-            if (errored && !stage.ignoresExceptions) { // skip handlers that don't support errored pipeline
-                return@thenCompose emptySyncStage().thenAccept { executeNextTask() }
-            }
-
-            try {
-                task(this)
-            } catch (exception: Exception) {
-                this.errored = true
-                exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
-            }
-
-            return@thenCompose handleAsync().thenAccept { executeNextTask() } // move to next available handler in the pipeline
-        }
-        .exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
+        this.currentStage = tasks.poll()
+            .let { task -> currentStage.thenCompose { executeTask(task) } }
+            .exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
-    private fun initializeStageTasks(): Boolean {
-        while (tasks.isEmpty() && stages.hasNext()) {
+    private fun executeTask(task: Task): CompletableFuture<Void?> {
+        if (errored && !task.stage.ignoresExceptions) { // skip handlers that don't support errored pipeline
+            return emptySyncStage().thenAccept { queueNextTask() }
+        }
+
+        try {
+            task.handler(this)
+        } catch (exception: Exception) {
+            this.errored = true
+            exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
+        }
+
+        return handleAsync().thenAccept { queueNextTask() } // move to next available handler in the pipeline
+    }
+
+    private fun refillTasks(): Boolean {
+        while (tasks.isEmpty() && stages.hasNext()) { // refill tasks from a next stage only if the current pool is empty
             stages.next().also { stage ->
-                stage.stageInitializer(this) { tasks.offer(TaskEntry(stage, it)) } // add tasks from stage to handler's tasks queue
+                stage.stageInitializer(this) { tasks.offer(Task(stage, it)) } // add tasks from stage to handler's tasks queue
             }
         }
         return tasks.isEmpty()
@@ -77,7 +82,7 @@ class JavalinServletHandler(
 
     private fun handleAsync(): CompletableFuture<Void?> =
         ctx.asyncTaskReference.getAndSet(null) // consume future value
-            ?.also { latestContextResultFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
+            ?.also { latestResultFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
             ?.also { if (asyncContext == null) this.asyncContext = startAsync() } // enable async context
             ?.thenAccept { result -> ctx.futureConsumer?.accept(result) } // future post-processing, this consumer can set result, status, etc
             ?.exceptionally { exceptionMapper.handleFutureException(ctx, it) } // standard exception handler
@@ -88,7 +93,7 @@ class JavalinServletHandler(
         it.timeout = config.asyncRequestTimeout
         it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
             currentStage.cancel(true) // cancel current flow
-            latestContextResultFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
+            latestResultFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
             ctx.status(500).result("Request timed out")
             errorMapper.handle(ctx.status(), ctx)
             finishResponse()
