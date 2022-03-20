@@ -27,6 +27,10 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
     val exceptionMapper = ExceptionMapper()
     val errorMapper = ErrorMapper()
 
+    /**
+     * Default request lifecycle used by servlet to handle HTTP requests.
+     * You can modify its state to add/remove stages and directly affect the way that Javalin handles requests.
+     */
     val lifecycle = mutableListOf(
         Stage(DefaultName.BEFORE) { submitTask ->
             matcher.findEntries(BEFORE, requestUri).forEach { entry ->

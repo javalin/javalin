@@ -26,6 +26,10 @@ typealias TaskHandler = (JavalinServletHandler) -> Unit
 typealias SubmitTask = (TaskHandler) -> Unit
 typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> Unit
 
+/**
+ * Executes request lifecycle.
+ * It's bounded to the request state, so it can be called only once per request.
+ */
 class JavalinServletHandler(
     private val stages: Iterator<Stage>,
     private val config: JavalinConfig,
@@ -39,23 +43,35 @@ class JavalinServletHandler(
     var response: HttpServletResponse
 ) {
 
-    private val tasks = ArrayDeque<Task>(8)
-    private var currentStage: CompletableFuture<*> = emptySyncStage()
+    /** Queue of tasks to execute within the current [Stage] */
+    private val tasks = ArrayDeque<Task>(4)
+    /** Future representing currently queued task */
+    private var currentTaskFuture: CompletableFuture<*> = emptySyncStage()
+    /** Async context, if it's null request is handled using standard sync stages (default behaviour) */
     private var asyncContext: AsyncContext? = null
-    private var latestResultFuture: CompletableFuture<*>? = null // future defined by user in Context, we have to keep this only for timeout listener
+    /** Caches future defined by user in Context, we have to keep this only for timeout listener */
+    private var latestResultFuture: CompletableFuture<*>? = null //
+    /** Indicates if exception occurred during execution of a tasks chain */
     private var errored = false
-    private val finished = AtomicBoolean(false) // requires support for atomic switch
+    /** Indicates if [JavalinServletHandler] already wrote response to client, requires support for atomic switch */
+    private val finished = AtomicBoolean(false)
 
+    /**
+     * This method starts execution process of all stages in a given lifecycle.
+     * Execution is based on recursive calls of this method,
+     * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
+     */
     internal fun queueNextTask() {
-        if (refillTasks()) { // finish response, if there is no more tasks
+        if (refillTasks()) { // finish response if there is no more tasks
             return finishResponse()
         }
 
-        this.currentStage = tasks.poll()
-            .let { task -> currentStage.thenCompose { executeTask(task) } }
+        this.currentTaskFuture = tasks.poll()
+            .let { task -> currentTaskFuture.thenCompose { executeTask(task) } } // chain new task into the previous one
             .exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
+    /** Executes the given task with proper error handling and returns next task to execute as future */
     private fun executeTask(task: Task): CompletableFuture<Void?> {
         if (errored && !task.stage.ignoresExceptions) { // skip handlers that don't support errored pipeline
             return emptySyncStage().thenAccept { queueNextTask() }
@@ -71,6 +87,7 @@ class JavalinServletHandler(
         return handleAsync().thenAccept { queueNextTask() } // move to next available handler in the pipeline
     }
 
+    /** Ensures there are tasks to execute in a queue. If there is no more tasks to execute, returns true which means that queue has been completed. */
     private fun refillTasks(): Boolean {
         while (tasks.isEmpty() && stages.hasNext()) { // refill tasks from a next stage only if the current pool is empty
             stages.next().also { stage ->
@@ -80,6 +97,7 @@ class JavalinServletHandler(
         return tasks.isEmpty()
     }
 
+    /** Fetches result future defined by user in [Context] and wraps it as a next task to execute in chain. */
     private fun handleAsync(): CompletableFuture<Void?> =
         ctx.asyncTaskReference.getAndSet(null) // consume future value
             ?.also { latestResultFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
@@ -88,11 +106,12 @@ class JavalinServletHandler(
             ?.exceptionally { exceptionMapper.handleFutureException(ctx, it) } // standard exception handler
             ?: emptySyncStage() // sync stub
 
+    /** Initializes async context for current request. */
     private fun startAsync(): AsyncContext = request.startAsync().also {
         this.response = it.response as HttpServletResponse
         it.timeout = config.asyncRequestTimeout
         it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
-            currentStage.cancel(true) // cancel current flow
+            currentTaskFuture.cancel(true) // cancel current flow
             latestResultFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
             ctx.status(500).result("Request timed out")
             errorMapper.handle(ctx.status(), ctx)
@@ -100,6 +119,7 @@ class JavalinServletHandler(
         }
     }
 
+    /** Writes response to the client and frees resources */
     private fun finishResponse() {
         if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         try {
@@ -121,4 +141,6 @@ private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.addList
     override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
 })
 
-private fun emptySyncStage(): CompletableFuture<Void?> = CompletableFuture.completedFuture(null) // creates completed stage that behaves like sync request until it's replaced by future result
+/** Creates completed stage that behaves like sync request until it's replaced by future result */
+private fun emptySyncStage(): CompletableFuture<Void?> =
+    CompletableFuture.completedFuture(null)
