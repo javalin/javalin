@@ -43,12 +43,7 @@ class JavalinServletHandler(
     private var latestContextResultFuture: CompletableFuture<*>? = null // future defined by user in Context, we have to keep this only for timeout listener
 
     internal fun executeNextTask() {
-        while (tasks.isEmpty() && stages.hasNext()) {
-            stages.next().also { stage ->
-                stage.stageInitializer(this) { tasks.offer(TaskEntry(stage, it)) } // add tasks from stage to handler's tasks queue
-            }
-        }
-        if (tasks.isEmpty()) {
+        if (initializeStageTasks()) {
             return finishResponse()
         }
 
@@ -69,6 +64,15 @@ class JavalinServletHandler(
             return@thenCompose handleAsync().thenAccept { executeNextTask() } // move to next available handler in the pipeline
         }
         .exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
+    }
+
+    private fun initializeStageTasks(): Boolean {
+        while (tasks.isEmpty() && stages.hasNext()) {
+            stages.next().also { stage ->
+                stage.stageInitializer(this) { tasks.offer(TaskEntry(stage, it)) } // add tasks from stage to handler's tasks queue
+            }
+        }
+        return tasks.isEmpty()
     }
 
     private fun handleAsync(): CompletableFuture<Void?> =
