@@ -2,10 +2,10 @@ package io.javalin
 
 import io.javalin.core.util.Header
 import io.javalin.http.ContentType
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.io.InputStream
@@ -56,6 +56,15 @@ class TestFuture {
         }
         app.exception(UnsupportedOperationException::class.java) { _, ctx -> ctx.result("Handled") }
         assertThat(http.getBody("/test-future")).isEqualTo("Handled")
+    }
+
+    @Test
+    fun `errors are handled as unexpected throwables`() = TestUtil.test { app, http ->
+        app.get("/out-of-memory") { throw OutOfMemoryError() }
+        assertThat(http.getStatus("/out-of-memory")).isEqualTo(INTERNAL_SERVER_ERROR)
+
+        app.get("/out-of-memory-future") { it.future(getFailingFuture(OutOfMemoryError())) }
+        assertThat(http.getStatus("/out-of-memory-future")).isEqualTo(INTERNAL_SERVER_ERROR)
     }
 
     @Test
@@ -163,7 +172,7 @@ class TestFuture {
     }
 
     private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {
-        return CompletableFuture.supplyAsync({ throw failure })
+        return CompletableFuture.supplyAsync { throw failure }
     }
 
     private fun getFutureFailingStream(): CompletableFuture<InputStream> {

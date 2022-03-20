@@ -10,6 +10,7 @@ import com.mashape.unirest.http.HttpMethod
 import com.mashape.unirest.http.Unirest
 import com.mashape.unirest.request.HttpRequestWithBody
 import io.javalin.http.ContentType
+import io.javalin.http.HttpCode
 import org.apache.http.impl.client.HttpClients
 
 class HttpUtil(port: Int) {
@@ -24,6 +25,7 @@ class HttpUtil(port: Int) {
     fun get(path: String) = Unirest.get(origin + path).asString()
     fun get(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString()
 
+    fun getStatus(path: String) = HttpCode.forStatus(get(path).status)
     fun getBody(path: String) = Unirest.get(origin + path).asString().body
     fun getBody(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString().body
     fun post(path: String) = Unirest.post(origin + path)
