@@ -28,10 +28,12 @@ typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> U
 
 /**
  * Executes request lifecycle.
- * It's bounded to the request state, so it can be called only once per request.
+ * The lifecycle consists of multiple [stages] (before/http/etc), each of which
+ * can have one or more [tasks]. The default lifecycle is define in [JavalinServlet].
+ * [JavalinServletHandler] is called only once per request, and has a mutable state.
  */
 class JavalinServletHandler(
-    private val stages: Iterator<Stage>,
+    private val stages: ArrayDeque<Stage>,
     private val config: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
@@ -71,14 +73,13 @@ class JavalinServletHandler(
             refillTasks()
             if (tasks.isEmpty()) return finishResponse() // we didn't find any more tasks, time to write the response
         }
-
-        this.currentTaskFuture = tasks.poll()
-            .let { task -> currentTaskFuture.thenCompose { executeTask(task) } } // chain new task into the previous one
+        this.currentTaskFuture = this.currentTaskFuture
+            .thenCompose { executeTask(tasks.poll()) } // wrap current task in future and chain into current future
             .exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
-    private fun executeTask(task: Task): CompletableFuture<Void?> {
+    private fun executeTask(task: Task): CompletableFuture<Void> {
         if (errored && !task.stage.ignoresExceptions) { // skip handlers that don't support errored pipeline
             return emptySyncStage().thenAccept { queueNextTask() }
         }
@@ -95,15 +96,15 @@ class JavalinServletHandler(
 
     /** Refill [tasks] if [tasks] is empty (and there are more [stages] with tasks) */
     private fun refillTasks() {
-        while (tasks.isEmpty() && stages.hasNext()) { // refill tasks from a next stage only if the current pool is empty
-            stages.next().also { stage ->
+        while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from a next stage only if the current pool is empty
+            stages.poll().also { stage ->
                 stage.stageInitializer(this) { tasks.offer(Task(stage, it)) } // add tasks from stage to handler's tasks queue
             }
         }
     }
 
     /** Fetches result future defined by user in [Context] and wraps it as a next task to execute in chain. */
-    private fun handleAsync(): CompletableFuture<Void?> =
+    private fun handleAsync(): CompletableFuture<Void> =
         ctx.asyncTaskReference.getAndSet(null) // consume future value
             ?.also { latestResultFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
             ?.also { if (asyncContext == null) this.asyncContext = startAsync() } // enable async context
@@ -147,5 +148,5 @@ private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.addList
 })
 
 /** Creates completed stage that behaves like sync request until it's replaced by future result */
-private fun emptySyncStage(): CompletableFuture<Void?> =
+private fun emptySyncStage(): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)

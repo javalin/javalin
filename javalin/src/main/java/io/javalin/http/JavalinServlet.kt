@@ -17,6 +17,7 @@ import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
+import java.util.*
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -80,7 +81,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             ctx.contentType(config.defaultContentType)
 
             JavalinServletHandler(
-                stages = lifecycle.iterator(),
+                stages = ArrayDeque(lifecycle),
                 config = config,
                 errorMapper = errorMapper,
                 exceptionMapper = exceptionMapper,
