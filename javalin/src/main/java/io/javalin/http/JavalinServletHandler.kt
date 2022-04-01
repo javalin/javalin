@@ -47,9 +47,6 @@ class JavalinServletHandler(
     /** Future representing currently queued task */
     private var currentTaskFuture: CompletableFuture<*> = emptySyncStage()
 
-    /** Caches future defined by user in Context, we have to keep this only for timeout listener */
-    private var latestResultFuture: CompletableFuture<*>? = null //
-
     /** Indicates if exception occurred during execution of a tasks chain */
     private var errored = false
 
@@ -84,7 +81,7 @@ class JavalinServletHandler(
             exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
         }
 
-        return handleAsync().thenAccept { queueNextTask() } // move to next available handler in the pipeline
+        return userFutureOrEmptyStage().thenAccept { queueNextTask() } // move to next available handler in the pipeline
     }
 
     /** Refill [tasks] if [tasks] is empty (and there are more [stages] with tasks) */
@@ -96,24 +93,22 @@ class JavalinServletHandler(
         }
     }
 
-    /** Fetches result future defined by user in [Context] and wraps it as a next task to execute in chain. */
-    private fun handleAsync(): CompletableFuture<Void> =
-        ctx.asyncTaskReference.getAndSet(null) // consume future value
-            ?.also { latestResultFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
-            ?.also { if (!ctx.req.isAsyncStarted) startAsync() } // enable async context
-            ?.thenAccept { result -> ctx.futureConsumer?.accept(result) } // future post-processing, this consumer can set result, status, etc
-            ?.exceptionally { exceptionMapper.handleFutureException(ctx, it) } // standard exception handler
-            ?: emptySyncStage() // sync stub
+    /** Fetches result future defined by user in [Context] or returns an empty stage */
+    private fun userFutureOrEmptyStage(): CompletableFuture<Void> =
+        ctx.asyncTaskReference.getAndSet(null)
+            ?.apply { if (!ctx.req.isAsyncStarted) startAsyncAndAddDefaultTimeoutListeners() }
+            ?.apply { ctx.req.asyncContext.addTimeoutListener { this.cancel(true) } }
+            ?.thenAccept { result -> ctx.futureConsumer?.accept(result) } // user callback for when future resolves, this consumer can set result, status, etc
+            ?.exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
+            ?: emptySyncStage() // user hasn't set a future, we return an empty stage
 
-    /** Initializes async context for current request. */
-    private fun startAsync() = ctx.req.startAsync().also {
-        it.timeout = config.asyncRequestTimeout
-        it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
-            currentTaskFuture.cancel(true) // cancel current flow
-            latestResultFuture?.cancel(true) // cancel latest user future (futures does not propagate cancel request to their dependencies)
-            ctx.status(500).result("Request timed out")
-            errorMapper.handle(ctx.status(), ctx)
-            finishResponse()
+    private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync().let { asyncCtx ->
+        asyncCtx.timeout = config.asyncRequestTimeout
+        asyncCtx.addTimeoutListener { // a timeout avoids the pipeline - we need to handle it manually
+            currentTaskFuture.cancel(true) // cancel current task
+            ctx.status(500).result("Request timed out") // default error handling
+            errorMapper.handle(ctx.status(), ctx) // user defined error handling
+            finishResponse() // write response
         }
     }
 

@@ -131,7 +131,7 @@ class TestFuture {
         assertThat(http.get("/").status).isEqualTo(404)
     }
 
-    private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5 } }
+    private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 30 } }
 
     @Test
     fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->
@@ -156,7 +156,7 @@ class TestFuture {
 
     @Test
     fun `latest timed out future is canceled`() = TestUtil.test(impatientServer) { app, http ->
-        app.before { it.future(getFuture("Success", delay = 0)) }
+        app.before { it.future(getFuture("Success", delay = 10)) }
         val future = getFuture("Test", delay = 500)
         app.get("/") { it.future(future) }
         assertThat(http.get("/").body).isEqualTo("Request timed out")
