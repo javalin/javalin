@@ -48,7 +48,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     return@submitTask
                 }
                 if (type == HEAD || type == GET) { // check for static resources (will write response if found)
-                    if (config.inner.resourceHandler?.handle(it.request, JavalinResponseWrapper(it.response, responseWrapperContext)) == true) return@submitTask
+                    if (config.inner.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx.res, responseWrapperContext)) == true) return@submitTask
                     if (config.inner.singlePageHandler.handle(ctx)) return@submitTask
                 }
                 if (type == OPTIONS && config.inner.plugins[CorsPlugin::class.java] != null) { // CORS is enabled, so we return 200 for OPTIONS
@@ -89,8 +89,6 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 type = HandlerType.fromServletRequest(request),
                 requestUri = request.requestURI.removePrefix(request.contextPath),
                 responseWrapperContext = ResponseWrapperContext(request, config),
-                request = request,
-                response = response
             ).queueNextTask()
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)

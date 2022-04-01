@@ -8,8 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.AsyncContext
 import javax.servlet.AsyncEvent
 import javax.servlet.AsyncListener
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 interface StageName
 enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
@@ -41,8 +39,6 @@ class JavalinServletHandler(
     val type: HandlerType,
     val requestUri: String,
     val responseWrapperContext: ResponseWrapperContext,
-    val request: HttpServletRequest,
-    var response: HttpServletResponse
 ) {
 
     /** Queue of tasks to execute within the current [Stage] */
@@ -75,7 +71,7 @@ class JavalinServletHandler(
         }
         this.currentTaskFuture = this.currentTaskFuture
             .thenCompose { executeTask(tasks.poll()) } // wrap current task in future and chain into current future
-            .exceptionally { exceptionMapper.handleUnexpectedThrowable(response, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
+            .exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
@@ -113,8 +109,7 @@ class JavalinServletHandler(
             ?: emptySyncStage() // sync stub
 
     /** Initializes async context for current request. */
-    private fun startAsync(): AsyncContext = request.startAsync().also {
-        this.response = it.response as HttpServletResponse
+    private fun startAsync(): AsyncContext = ctx.req.startAsync().also {
         it.timeout = config.asyncRequestTimeout
         it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
             currentTaskFuture.cancel(true) // cancel current flow
@@ -129,10 +124,10 @@ class JavalinServletHandler(
     private fun finishResponse() {
         if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         try {
-            JavalinResponseWrapper(response, responseWrapperContext).write(ctx.resultStream())
+            JavalinResponseWrapper(ctx.res, responseWrapperContext).write(ctx.resultStream())
             config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
-            exceptionMapper.handleUnexpectedThrowable(response, throwable) // handle any unexpected error, e.g. write failure
+            exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) // handle any unexpected error, e.g. write failure
         } finally {
             asyncContext?.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
         }
