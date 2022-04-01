@@ -148,13 +148,17 @@ class TestFuture {
 
     @Test
     fun `timed out futures are canceled`() = TestUtil.test(impatientServer) { app, http ->
-        val future = CompletableFuture<String>()
-        app.get("/") {
-            Executors.newSingleThreadScheduledExecutor().schedule({
-                future.complete("Test")
-            }, 500, TimeUnit.MILLISECONDS)
-            it.future(future)
-        }
+        val future = getFuture("Test", delay = 500)
+        app.get("/") { it.future(future) }
+        assertThat(http.get("/").body).isEqualTo("Request timed out")
+        assertThat(future.isCancelled).isTrue()
+    }
+
+    @Test
+    fun `latest timed out future is canceled`() = TestUtil.test(impatientServer) { app, http ->
+        app.before { it.future(getFuture("Success", delay = 0)) }
+        val future = getFuture("Test", delay = 500)
+        app.get("/") { it.future(future) }
         assertThat(http.get("/").body).isEqualTo("Request timed out")
         assertThat(future.isCancelled).isTrue()
     }

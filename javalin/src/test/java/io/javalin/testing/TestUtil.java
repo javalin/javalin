@@ -18,7 +18,7 @@ public class TestUtil {
     public static Handler okHandler = ctx -> ctx.result("OK");
 
     public static void test(Javalin javalin, ThrowingBiConsumer<Javalin, HttpUtil> test) {
-        JavalinLogger.enabled = false;
+        JavalinLogger.enabled = true;
         try (final Javalin closingJavalin = javalin.start(0)) {
             HttpUtil http = new HttpUtil(closingJavalin.port());
             test.accept(closingJavalin, http);

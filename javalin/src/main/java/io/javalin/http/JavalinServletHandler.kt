@@ -47,9 +47,6 @@ class JavalinServletHandler(
     /** Future representing currently queued task */
     private var currentTaskFuture: CompletableFuture<*> = emptySyncStage()
 
-    /** Async context, if it's null request is handled using standard sync stages (default behaviour) */
-    private var asyncContext: AsyncContext? = null
-
     /** Caches future defined by user in Context, we have to keep this only for timeout listener */
     private var latestResultFuture: CompletableFuture<*>? = null //
 
@@ -69,7 +66,7 @@ class JavalinServletHandler(
             refillTasks()
             if (tasks.isEmpty()) return finishResponse() // we didn't find any more tasks, time to write the response
         }
-        this.currentTaskFuture = this.currentTaskFuture
+        currentTaskFuture = currentTaskFuture
             .thenCompose { executeTask(tasks.poll()) } // wrap current task in future and chain into current future
             .exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
@@ -83,7 +80,7 @@ class JavalinServletHandler(
         try {
             task.handler(this)
         } catch (exception: Exception) {
-            this.errored = true
+            errored = true
             exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
         }
 
@@ -103,13 +100,13 @@ class JavalinServletHandler(
     private fun handleAsync(): CompletableFuture<Void> =
         ctx.asyncTaskReference.getAndSet(null) // consume future value
             ?.also { latestResultFuture = it } // cache the latest future to provide a possibility to cancel this in timeout listener
-            ?.also { if (asyncContext == null) this.asyncContext = startAsync() } // enable async context
+            ?.also { if (!ctx.req.isAsyncStarted) startAsync() } // enable async context
             ?.thenAccept { result -> ctx.futureConsumer?.accept(result) } // future post-processing, this consumer can set result, status, etc
             ?.exceptionally { exceptionMapper.handleFutureException(ctx, it) } // standard exception handler
             ?: emptySyncStage() // sync stub
 
     /** Initializes async context for current request. */
-    private fun startAsync(): AsyncContext = ctx.req.startAsync().also {
+    private fun startAsync() = ctx.req.startAsync().also {
         it.timeout = config.asyncRequestTimeout
         it.addTimeoutListener { // the timeout kinda escapes the pipeline, so we need to shut down it manually with: cancel -> error message -> error handling -> finishing response
             currentTaskFuture.cancel(true) // cancel current flow
@@ -129,7 +126,7 @@ class JavalinServletHandler(
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) // handle any unexpected error, e.g. write failure
         } finally {
-            asyncContext?.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
+            if (ctx.req.isAsyncStarted) ctx.req.asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
         }
     }
 
