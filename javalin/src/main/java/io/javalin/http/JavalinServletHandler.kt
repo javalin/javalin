@@ -2,7 +2,7 @@ package io.javalin.http
 
 import io.javalin.core.JavalinConfig
 import io.javalin.core.util.LogUtil
-import java.util.ArrayDeque
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.AsyncContext
@@ -45,14 +45,19 @@ class JavalinServletHandler(
 
     /** Queue of tasks to execute within the current [Stage] */
     private val tasks = ArrayDeque<Task>(4)
+
     /** Future representing currently queued task */
     private var currentTaskFuture: CompletableFuture<*> = emptySyncStage()
+
     /** Async context, if it's null request is handled using standard sync stages (default behaviour) */
     private var asyncContext: AsyncContext? = null
+
     /** Caches future defined by user in Context, we have to keep this only for timeout listener */
     private var latestResultFuture: CompletableFuture<*>? = null //
+
     /** Indicates if exception occurred during execution of a tasks chain */
     private var errored = false
+
     /** Indicates if [JavalinServletHandler] already wrote response to client, requires support for atomic switch */
     private val finished = AtomicBoolean(false)
 
@@ -62,8 +67,9 @@ class JavalinServletHandler(
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
     internal fun queueNextTask() {
-        if (refillTasks()) { // finish response if there is no more tasks
-            return finishResponse()
+        if (tasks.isEmpty()) {
+            refillTasks()
+            if (tasks.isEmpty()) return finishResponse() // we didn't find any more tasks, time to write the response
         }
 
         this.currentTaskFuture = tasks.poll()
@@ -87,14 +93,13 @@ class JavalinServletHandler(
         return handleAsync().thenAccept { queueNextTask() } // move to next available handler in the pipeline
     }
 
-    /** Ensures there are tasks to execute in a queue. If there is no more tasks to execute, returns true which means that queue has been completed. */
-    private fun refillTasks(): Boolean {
+    /** Refill [tasks] if [tasks] is empty (and there are more [stages] with tasks) */
+    private fun refillTasks() {
         while (tasks.isEmpty() && stages.hasNext()) { // refill tasks from a next stage only if the current pool is empty
             stages.next().also { stage ->
                 stage.stageInitializer(this) { tasks.offer(Task(stage, it)) } // add tasks from stage to handler's tasks queue
             }
         }
-        return tasks.isEmpty()
     }
 
     /** Fetches result future defined by user in [Context] and wraps it as a next task to execute in chain. */
