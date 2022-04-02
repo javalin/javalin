@@ -94,7 +94,10 @@ class JavalinServletHandler(
     private fun executeUserFuture(previousResult: InputStream?): CompletableFuture<InputStream?> =
         ctx.resultReference.getAndSet(Result(previousResult))
             .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
-            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { result.future.cancel(true) } }
+            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener {
+                println("╭∩╮(Ο_Ο)╭∩╮ ASYNC: Other timeout listener")
+                result.future.cancel(true)
+            } }
             .let { result ->
                 result.future
                     .thenApply { (result.callback ?: defaultFutureCallback()).accept(it) } // user callback for when future resolves, this consumer can set result, status, etc
@@ -114,6 +117,7 @@ class JavalinServletHandler(
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
         .addTimeoutListener { // a timeout avoids the pipeline - we need to handle it manually
+            println("╭∩╮(Ο_Ο)╭∩╮ ASYNC: First timeout listener")
             currentTaskFuture.cancel(true) // cancel current task
             ctx.status(500).result("Request timed out") // default error handling
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
