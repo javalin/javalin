@@ -27,9 +27,12 @@ internal data class Result(
     val callback: Consumer<Any?>? = null,
 )
 
-data class Task(val stage: Stage, val handler: TaskHandler)
-typealias TaskHandler = (JavalinServletHandler) -> Unit
+internal data class Task(
+    val stage: Stage,
+    val handler: TaskHandler
+)
 
+typealias TaskHandler = (JavalinServletHandler) -> Unit
 typealias SubmitTask = (TaskHandler) -> Unit
 typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> Unit
 
@@ -69,14 +72,14 @@ class JavalinServletHandler(
     internal fun queueNextTask() {
         while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from a next stage only if the current pool is empty
             val stage = stages.poll()
-            stage.initializer.invoke(this) { tasks.offer(Task(stage, it)) } // add tasks from stage to handler's tasks queue
+            stage.initializer.invoke(this) { taskHandler -> tasks.offer(Task(stage, taskHandler)) } // add tasks from stage to handler's tasks queue
         }
         if (tasks.isEmpty()) { // we looked but didn't find any more tasks, time to write the response
             return finishResponse()
         }
         currentTaskFuture = currentTaskFuture
-            .thenCompose { executeTask(it, tasks.poll()) } // wrap current task in future and chain into current future
-            .exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
+            .thenCompose { inputStream -> executeTask(inputStream, tasks.poll()) } // wrap current task in future and chain into current future
+            .exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
@@ -93,14 +96,13 @@ class JavalinServletHandler(
         }
         return ctx.resultReference.getAndSet(Result(previousResult))
             .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
-            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { result.future.cancel(true) }
-            }
+            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { result.future.cancel(true) } }
             .let { result ->
                 result.future
-                    .thenApply { (result.callback ?: defaultFutureCallback()).accept(it) } // user callback for when future resolves, this consumer can set result, status, etc
-                    .thenApply { ctx.resultStream() ?: previousResult }
+                    .thenAccept { any -> (result.callback ?: defaultFutureCallback()).accept(any) } // callback after future resolves - modifies ctx result, status, etc
+                    .thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
                     .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
-                    .thenApply { it.also { queueNextTask() } } // we have to attach the "also" to the input stream to avoid mapping a void
+                    .thenApply { inputStream -> inputStream.also { queueNextTask() } } // we have to attach the "also" to the input stream to avoid mapping a void
             }
     }
 
@@ -110,7 +112,7 @@ class JavalinServletHandler(
             ctx.status(500).result("Request timed out") // default error handling
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
             finishResponse() // write response
-        }.also { it.timeout = config.asyncRequestTimeout }
+        }.also { asyncCtx -> asyncCtx.timeout = config.asyncRequestTimeout }
 
     /** Writes response to the client and frees resources */
     private fun finishResponse() {
