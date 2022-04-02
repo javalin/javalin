@@ -20,7 +20,7 @@ data class Stage(
     val initializer: StageInitializer // DLS method to add task to the stage's queue
 )
 
-data class Result(
+internal data class Result(
     val previous: InputStream? = null,
     val future: CompletableFuture<Any?> = emptySyncStage(),
     val callback: Consumer<Any?>? = null,
@@ -44,9 +44,8 @@ class JavalinServletHandler(
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
     val ctx: Context,
-    val type: HandlerType,
-    val requestUri: String,
-    val responseWrapperContext: ResponseWrapperContext,
+    val type: HandlerType = HandlerType.fromServletRequest(ctx.req),
+    val requestUri: String = ctx.req.requestURI.removePrefix(ctx.req.contextPath),
 ) {
 
     /** Queue of tasks to execute within the current [Stage] */
@@ -126,7 +125,7 @@ class JavalinServletHandler(
     private fun finishResponse() {
         if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         try {
-            JavalinResponseWrapper(ctx.res, responseWrapperContext).write(ctx.resultStream())
+            JavalinResponseWrapper(ctx, config).write(ctx.resultStream())
             config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) // handle any unexpected error, e.g. write failure
