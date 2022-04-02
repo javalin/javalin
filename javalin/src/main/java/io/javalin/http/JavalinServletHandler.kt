@@ -58,6 +58,9 @@ class JavalinServletHandler(
     /** Future representing currently queued task */
     private var currentTaskFuture: CompletableFuture<InputStream?> = completedFuture(null)
 
+    /** InputStream representing previous result */
+    private var previousResult: InputStream? = null
+
     /** Indicates if exception occurred during execution of a tasks chain */
     private var errored = false
 
@@ -77,14 +80,15 @@ class JavalinServletHandler(
         if (tasks.isEmpty()) {
             finishResponse() // we looked but didn't find any more tasks, time to write the response
         } else {
-            currentTaskFuture = currentTaskFuture
-                .thenCompose { inputStream -> executeNextTask(inputStream) } // wrap current task in future and chain into current future
-                .exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
+            currentTaskFuture = currentTaskFuture.thenCompose { inputStream ->
+                previousResult = inputStream
+                executeNextTask() // chain next task into current future
+            }.exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
         }
     }
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
-    private fun executeNextTask(previousResult: InputStream?): CompletableFuture<InputStream> {
+    private fun executeNextTask(): CompletableFuture<InputStream> {
         val task = tasks.poll()
         if (errored && task.stage.haltsOnError) {
             queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
