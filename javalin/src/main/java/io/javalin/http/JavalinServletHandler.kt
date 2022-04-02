@@ -101,6 +101,10 @@ class JavalinServletHandler(
             ?.thenAccept { result -> ctx.futureConsumer?.accept(result) } // user callback for when future resolves, this consumer can set result, status, etc
             ?.exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
             ?: emptySyncStage() // user hasn't set a future, we return an empty stage
+            //TODO(@dzikoysk): If I try to remove this empty sync stage, everything comes crashing down
+            //TODO(@dzikoysk): This seems weird, since I'm always setting a future in Context
+            //TODO(@dzikoysk): There's something I'm not understanding here
+            /** see changes to [Context.asyncTaskReference] */
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync().let { asyncCtx ->
         asyncCtx.timeout = config.asyncRequestTimeout

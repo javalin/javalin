@@ -76,24 +76,6 @@ class TestFuture {
     }
 
     @Test
-    fun `calling future in an exception-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { throw Exception() }
-        app.exception(Exception::class.java) { _, ctx -> ctx.future(getFuture("Not result")) }
-        assertThat(http.getBody("/test-future")).isEqualTo("")
-        assertThat(http.get("/test-future").status).isEqualTo(500)
-    }
-
-    @Test
-    fun `future has priority over standard result response`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.result("Not overridden")
-            ctx.future(getFuture("Result"))
-            ctx.result("Not overridden")
-        }
-        assertThat(http.getBody("/test-future")).isEqualTo("Result")
-    }
-
-    @Test
     fun `exceptions that occur during response writing are handled`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.future(getFutureFailingStream()) }
         assertThat(http.get("/test-future").body).isEqualTo("")

@@ -40,13 +40,12 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @get:JvmSynthetic @set:JvmSynthetic internal var asyncTaskReference = AtomicReference<CompletableFuture<*>?>(null)
+    @get:JvmSynthetic @set:JvmSynthetic internal var asyncTaskReference = AtomicReference<CompletableFuture<*>>(CompletableFuture.completedFuture(null))
     @get:JvmSynthetic @set:JvmSynthetic internal var futureConsumer: Consumer<Any?>? = null
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
-    private var resultInputStream: InputStream? = null
 
     private val body by lazy {
         this.throwPayloadTooLargeIfPayloadTooLarge()
@@ -337,31 +336,30 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
 
     /** Gets the current [resultInputStream] as a [String] (if possible), and reset [resultInputStream] */
-    fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultInputStream, responseCharset())
+    fun resultString() = ContextUtil.readAndResetStreamIfPossible(asyncTaskReference, responseCharset())
 
     /**
      * Sets context result to the specified [InputStream].
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
-        runCatching { resultInputStream?.close() } // avoid memory leaks for multiple result() calls
-        this.resultInputStream = resultStream
-        return this
+        val oldResult = asyncTaskReference.get()?.get()
+        if (oldResult is InputStream) {
+            runCatching { oldResult.close() } // avoid memory leaks for multiple result() calls
+        }
+        return this.future(CompletableFuture.completedFuture(resultStream))
     }
 
     /** Writes the specified inputStream as a seekable stream */
     @JvmOverloads
     fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) =
-            SeekableWriter.write(this, inputStream, contentType, size)
+        SeekableWriter.write(this, inputStream, contentType, size)
 
     /** Gets the current context result as an [InputStream] (if set). */
-    fun resultStream(): InputStream? = resultInputStream
+    fun resultStream(): InputStream? = asyncTaskReference.get()?.get() as InputStream?
 
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
-        if (inExceptionHandler) {
-            throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
-        }
         asyncTaskReference.set(future)
         futureConsumer = callback ?: Consumer { result ->
             when (result) {
