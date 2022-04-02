@@ -69,23 +69,25 @@ class JavalinServletHandler(
      * Execution is based on recursive calls of this method,
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
-    internal fun queueNextTask() {
-        while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from a next stage only if the current pool is empty
+    internal fun queueNextTaskOrFinish() {
+        while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from next stage, if the current queue is empty
             val stage = stages.poll()
-            stage.initializer.invoke(this) { taskHandler -> tasks.offer(Task(stage, taskHandler)) } // add tasks from stage to handler's tasks queue
+            stage.initializer.invoke(this) { taskHandler -> tasks.offer(Task(stage, taskHandler)) } // add tasks from stage to task queue
         }
-        if (tasks.isEmpty()) { // we looked but didn't find any more tasks, time to write the response
-            return finishResponse()
+        if (tasks.isEmpty()) {
+            finishResponse() // we looked but didn't find any more tasks, time to write the response
+        } else {
+            currentTaskFuture = currentTaskFuture
+                .thenCompose { inputStream -> executeNextTask(inputStream) } // wrap current task in future and chain into current future
+                .exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
         }
-        currentTaskFuture = currentTaskFuture
-            .thenCompose { inputStream -> executeTask(inputStream, tasks.poll()) } // wrap current task in future and chain into current future
-            .exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
-    private fun executeTask(previousResult: InputStream?, task: Task): CompletableFuture<InputStream> {
+    private fun executeNextTask(previousResult: InputStream?): CompletableFuture<InputStream> {
+        val task = tasks.poll()
         if (errored && task.stage.haltsOnError) {
-            queueNextTask() // each subsequent task for this stage will be queued and skipped
+            queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
             return completedFuture(previousResult)
         }
         try {
@@ -103,7 +105,7 @@ class JavalinServletHandler(
                     .thenAccept { any -> (result.callback ?: defaultFutureCallback()).accept(any) } // callback after future resolves - modifies ctx result, status, etc
                     .thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
                     .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
-                    .thenApply { inputStream -> inputStream.also { queueNextTask() } } // we have to attach the "also" to the input stream to avoid mapping a void
+                    .thenApply { inputStream -> inputStream.also { queueNextTaskOrFinish() } } // we have to attach the "also" to the input stream to avoid mapping a void
             }
     }
 

@@ -86,7 +86,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 errorMapper = errorMapper,
                 exceptionMapper = exceptionMapper,
                 ctx = ctx
-            ).queueNextTask()
+            ).queueNextTaskOrFinish()
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)
         }
