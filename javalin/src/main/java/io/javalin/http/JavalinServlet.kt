@@ -64,10 +64,10 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
         },
-        Stage(DefaultName.ERROR, ignoresExceptions = true) { submitTask ->
+        Stage(DefaultName.ERROR, haltsOnError = false) { submitTask ->
             submitTask { errorMapper.handle(ctx.status(), ctx) }
         },
-        Stage(DefaultName.AFTER, ignoresExceptions = true) { submitTask ->
+        Stage(DefaultName.AFTER, haltsOnError = false) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
                 submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
             }

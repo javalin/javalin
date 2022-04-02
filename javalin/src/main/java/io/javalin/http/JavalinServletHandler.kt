@@ -17,8 +17,8 @@ enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
 
 data class Stage(
     val name: StageName,
-    val ignoresExceptions: Boolean = false, // tasks in this scope should be executed even if some previous stage ended up with exception
-    val initializer: StageInitializer // DLS method to add task to the stage's queue
+    val haltsOnError: Boolean = true, // tasks in this scope should be executed even if some previous stage ended up with exception
+    val initializer: StageInitializer // DSL method to add task to the stage's queue
 )
 
 internal data class Result(
@@ -84,11 +84,12 @@ class JavalinServletHandler(
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
     private fun executeTask(previousResult: InputStream?, task: Task): CompletableFuture<InputStream> {
-        if (errored && !task.stage.ignoresExceptions) { // skip handlers that don't support errored pipeline
-            queueNextTask() // TODO(dzikoysk) can this queueing be connected to the line below?
+        if (errored && task.stage.haltsOnError) {
+            queueNextTask() // each subsequent task for this stage will be queued and skipped
             return completedFuture(previousResult)
         }
         try {
+            /** run code added through submitTask in [JavalinServlet] */
             task.handler(this)
         } catch (exception: Exception) {
             errored = true
