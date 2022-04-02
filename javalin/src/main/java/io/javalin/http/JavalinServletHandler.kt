@@ -106,15 +106,14 @@ class JavalinServletHandler(
             //TODO(@dzikoysk): There's something I'm not understanding here
             /** see changes to [Context.asyncTaskReference] */
 
-    private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync().let { asyncCtx ->
-        asyncCtx.timeout = config.asyncRequestTimeout
-        asyncCtx.addTimeoutListener { // a timeout avoids the pipeline - we need to handle it manually
+    private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
+        .also { it.timeout = config.asyncRequestTimeout }
+        .addTimeoutListener { // a timeout avoids the pipeline - we need to handle it manually
             currentTaskFuture.cancel(true) // cancel current task
             ctx.status(500).result("Request timed out") // default error handling
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
             finishResponse() // write response
         }
-    }
 
     /** Writes response to the client and frees resources */
     private fun finishResponse() {
