@@ -113,13 +113,13 @@ class JavalinServletHandler(
     }
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
-        .also { it.timeout = config.asyncRequestTimeout }
         .addTimeoutListener { // a timeout avoids the pipeline - we need to handle it manually
             currentTaskFuture.cancel(true) // cancel current task
             ctx.status(500).result("Request timed out") // default error handling
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
             finishResponse() // write response
-        }
+        }.also { it.timeout = config.asyncRequestTimeout }
+
 
     /** Writes response to the client and frees resources */
     private fun finishResponse() {
@@ -144,12 +144,14 @@ class JavalinServletHandler(
 
 }
 
-private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.addListener(object : AsyncListener {
-    override fun onComplete(event: AsyncEvent) {}
-    override fun onError(event: AsyncEvent) {}
-    override fun onStartAsync(event: AsyncEvent) {}
-    override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
-})
+private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.apply {
+    addListener(object : AsyncListener {
+        override fun onComplete(event: AsyncEvent) {}
+        override fun onError(event: AsyncEvent) {}
+        override fun onStartAsync(event: AsyncEvent) {}
+        override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
+    })
+}
 
 /** Checks if request is executed asynchronously */
 private fun Context.isAsync(): Boolean = req.isAsyncStarted
