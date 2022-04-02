@@ -20,8 +20,6 @@ import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.*
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -120,8 +118,7 @@ object ContextUtil {
         return req.getAttribute("$sessionCacheKeyPrefix$key") as T?
     }
 
-    fun readAndResetStreamIfPossible(asyncTaskReference: AtomicReference<CompletableFuture<*>>, charset: Charset) = try {
-        val stream = asyncTaskReference.get()?.get() as InputStream?
+    fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {
         stream?.apply { reset() }?.readBytes()?.toString(charset).also { stream?.reset() }
     } catch (e: Exception) {
         "resultString unavailable (resultStream couldn't be reset)"

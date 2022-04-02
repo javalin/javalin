@@ -40,7 +40,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @get:JvmSynthetic @set:JvmSynthetic internal var asyncTaskReference = AtomicReference<CompletableFuture<*>>(CompletableFuture.completedFuture(null))
+    @get:JvmSynthetic @set:JvmSynthetic internal var asyncTaskReference = AtomicReference<CompletableFuture<*>>(emptySyncStage())
     @get:JvmSynthetic @set:JvmSynthetic internal var futureConsumer: Consumer<Any?>? = null
     // @formatter:on
 
@@ -336,7 +336,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
 
     /** Gets the current [resultInputStream] as a [String] (if possible), and reset [resultInputStream] */
-    fun resultString() = ContextUtil.readAndResetStreamIfPossible(asyncTaskReference, responseCharset())
+    fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
 
     /**
      * Sets context result to the specified [InputStream].
@@ -356,7 +356,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         SeekableWriter.write(this, inputStream, contentType, size)
 
     /** Gets the current context result as an [InputStream] (if set). */
-    fun resultStream(): InputStream? = asyncTaskReference.get()?.get() as InputStream?
+    fun resultStream(): InputStream? = asyncTaskReference.get()
+        ?.takeIf { it.isDone }
+        ?.get() as InputStream?
 
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
