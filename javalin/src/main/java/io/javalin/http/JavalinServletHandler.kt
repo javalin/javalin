@@ -6,6 +6,7 @@ import io.javalin.core.util.LogUtil
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 import javax.servlet.AsyncContext
@@ -23,7 +24,7 @@ data class Stage(
 
 internal data class Result(
     val previous: InputStream? = null,
-    val future: CompletableFuture<Any?> = emptySyncStage(),
+    val future: CompletableFuture<Any?> = completedFuture(null),
     val callback: Consumer<Any?>? = null,
 )
 
@@ -53,7 +54,7 @@ class JavalinServletHandler(
     private val tasks = ArrayDeque<Task>(4)
 
     /** Future representing currently queued task */
-    private var currentTaskFuture: CompletableFuture<InputStream?> = emptySyncStage(null)
+    private var currentTaskFuture: CompletableFuture<InputStream?> = completedFuture(null)
 
     /** Indicates if exception occurred during execution of a tasks chain */
     private var errored = false
@@ -67,38 +68,38 @@ class JavalinServletHandler(
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
     internal fun queueNextTask() {
-        if (tasks.isEmpty()) refillTasks()
-        if (tasks.isEmpty()) return finishResponse() // we didn't find any more tasks, time to write the response
-
+        while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from a next stage only if the current pool is empty
+            val stage = stages.poll()
+            stage.initializer.invoke(this) { tasks.offer(Task(stage, it)) } // add tasks from stage to handler's tasks queue
+        }
+        if (tasks.isEmpty()) { // we looked but didn't find any more tasks, time to write the response
+            return finishResponse()
+        }
         currentTaskFuture = currentTaskFuture
             .thenCompose { executeTask(it, tasks.poll()) } // wrap current task in future and chain into current future
             .exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
-    private fun executeTask(previousResult: InputStream?, task: Task): CompletableFuture<InputStream?> {
+    private fun executeTask(previousResult: InputStream?, task: Task): CompletableFuture<InputStream> {
         if (errored && !task.stage.ignoresExceptions) { // skip handlers that don't support errored pipeline
-            return queueNextTask().run { emptySyncStage(previousResult) }
+            queueNextTask() // TODO(dzikoysk) can this queueing be connected to the line below?
+            return completedFuture(previousResult)
         }
-
         try {
             task.handler(this)
         } catch (exception: Exception) {
             errored = true
             exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
         }
-
-        return executeUserFuture(previousResult) // move to the next available handler in the pipeline
-    }
-
-    /** Fetches result future defined by user in [Context] or returns an empty stage */
-    private fun executeUserFuture(previousResult: InputStream?): CompletableFuture<InputStream?> =
-        ctx.resultReference.getAndSet(Result(previousResult))
+        return ctx.resultReference.getAndSet(Result(previousResult))
             .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
-            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener {
-                JavalinLogger.info("╭∩╮(Ο_Ο)╭∩╮ ASYNC: Other timeout listener")
-                result.future.cancel(true)
-            } }
+            .also { result ->
+                if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener {
+                    JavalinLogger.info("╭∩╮(Ο_Ο)╭∩╮ ASYNC: Other timeout listener")
+                    result.future.cancel(true)
+                }
+            }
             .let { result ->
                 result.future
                     .thenApply { (result.callback ?: defaultFutureCallback()).accept(it) } // user callback for when future resolves, this consumer can set result, status, etc
@@ -106,14 +107,6 @@ class JavalinServletHandler(
                     .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
                     .thenApply { it.also { queueNextTask() } } // we have to attach the "also" to the input stream to avoid mapping a void
             }
-
-    private fun defaultFutureCallback(): Consumer<Any?> = Consumer { result ->
-        when (result) {
-            is Unit -> {}
-            is InputStream -> ctx.result(result)
-            is String -> ctx.result(result)
-            is Any -> ctx.json(result)
-        }
     }
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
@@ -124,7 +117,6 @@ class JavalinServletHandler(
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
             finishResponse() // write response
         }.also { it.timeout = config.asyncRequestTimeout }
-
 
     /** Writes response to the client and frees resources */
     private fun finishResponse() {
@@ -139,15 +131,20 @@ class JavalinServletHandler(
         }
     }
 
-    /** Refill [tasks] if [tasks] is empty (and there are more [stages] with tasks) */
-    private fun refillTasks() {
-        while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from a next stage only if the current pool is empty
-            val stage = stages.poll()
-            stage.initializer.invoke(this) { tasks.offer(Task(stage, it)) } // add tasks from stage to handler's tasks queue
+    /** Runs after a future is resolved, if not user defined callback exists */
+    private fun defaultFutureCallback(): Consumer<Any?> = Consumer { result ->
+        when (result) {
+            is Unit -> {}
+            is InputStream -> ctx.result(result)
+            is String -> ctx.result(result)
+            is Any -> ctx.json(result)
         }
     }
 
 }
+
+/** Checks if request is executed asynchronously */
+private fun Context.isAsync(): Boolean = req.isAsyncStarted
 
 private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.apply {
     addListener(object : AsyncListener {
@@ -157,9 +154,3 @@ private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.apply {
         override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
     })
 }
-
-/** Checks if request is executed asynchronously */
-private fun Context.isAsync(): Boolean = req.isAsyncStarted
-
-/** Creates completed stage that behaves like sync request until it's replaced by future result */
-fun <T : Any?> emptySyncStage(result: T? = null): CompletableFuture<T> = CompletableFuture.completedFuture(result)
