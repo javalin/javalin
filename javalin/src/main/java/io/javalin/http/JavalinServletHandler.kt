@@ -1,7 +1,6 @@
 package io.javalin.http
 
 import io.javalin.core.JavalinConfig
-import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.LogUtil
 import java.io.InputStream
 import java.util.*
@@ -94,11 +93,7 @@ class JavalinServletHandler(
         }
         return ctx.resultReference.getAndSet(Result(previousResult))
             .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
-            .also { result ->
-                if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener {
-                    JavalinLogger.info("╭∩╮(Ο_Ο)╭∩╮ ASYNC: Other timeout listener")
-                    result.future.cancel(true)
-                }
+            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { result.future.cancel(true) }
             }
             .let { result ->
                 result.future
@@ -111,7 +106,6 @@ class JavalinServletHandler(
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
         .addTimeoutListener { // a timeout avoids the pipeline - we need to handle it manually
-            JavalinLogger.info("╭∩╮(Ο_Ο)╭∩╮ ASYNC: First timeout listener")
             currentTaskFuture.cancel(true) // cancel current task
             ctx.status(500).result("Request timed out") // default error handling
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
