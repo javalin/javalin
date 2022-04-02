@@ -89,11 +89,11 @@ class JavalinServletHandler(
             return completedFuture(previousResult)
         }
         try {
-            /** run code added through submitTask in [JavalinServlet] */
+            /** run code added through submitTask in [JavalinServlet]. This mutates [ctx] */
             task.handler(this)
         } catch (exception: Exception) {
             errored = true
-            exceptionMapper.handle(exception, ctx) // still can throw errors that occurred in catch body
+            exceptionMapper.handle(exception, ctx)
         }
         return ctx.resultReference.getAndSet(Result(previousResult))
             .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed

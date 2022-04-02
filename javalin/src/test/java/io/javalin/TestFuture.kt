@@ -113,6 +113,13 @@ class TestFuture {
         assertThat(http.get("/").status).isEqualTo(404)
     }
 
+    @Test
+    fun `can use future in exception mapper`() = TestUtil.test { app, http ->
+        app.get("/") { throw Exception("Oh no!") }
+        app.exception(Exception::class.java) { _, ctx -> ctx.future(CompletableFuture.completedFuture("Wee")) }
+        assertThat(http.get("/").body).isEqualTo("Wee")
+    }
+
     private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5 } }
 
     @Test

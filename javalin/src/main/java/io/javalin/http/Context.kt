@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletResponse
 open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, internal val appAttributes: Map<String, Any> = mapOf()) {
 
     // @formatter:off
-    @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
     @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
@@ -334,7 +333,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
 
-    /** Gets the current [resultInputStream] as a [String] (if possible), and reset [resultInputStream] */
+    /** Gets the current [resultReference] as a [String] (if possible), and reset the underlying stream */
     fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
 
     /**
