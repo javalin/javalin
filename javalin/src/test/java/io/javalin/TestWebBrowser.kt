@@ -43,6 +43,7 @@ class TestWebBrowser {
                 addArguments("--disable-dev-shm-usage")
                 addArguments("--headless")
                 addArguments("--disable-gpu")
+                addArguments("--remote-debugging-port=9222") // Disables lookup for DevToolsActivePort file at all
             })
         }
 
