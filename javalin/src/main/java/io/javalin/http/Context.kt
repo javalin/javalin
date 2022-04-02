@@ -40,7 +40,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @get:JvmSynthetic @set:JvmSynthetic internal var asyncTaskReference: AtomicReference<Triple<InputStream?, CompletableFuture<Any?>, Consumer<Any?>?>> = AtomicReference(Triple(null, emptySyncStage(), null))
+    @get:JvmSynthetic @set:JvmSynthetic internal var resultReference = AtomicReference(Result())
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
@@ -351,28 +351,24 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) =
         SeekableWriter.write(this, inputStream, contentType, size)
 
-    /** Gets the current context result as an [InputStream] (if set). */
-    fun resultStream(): InputStream? = asyncTaskReference.get()
-        ?.second
-        ?.takeIf { it.isDone }
-        ?.get() as? InputStream?
-        ?: previousResult()
-
-    fun previousResult(): InputStream? =
-        asyncTaskReference.get().first
+    fun resultStream(): InputStream? = resultReference.get().let { result ->
+        result.future.takeIf { it.isDone }?.get() as InputStream? ?: result.previous
+    }
 
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
-        asyncTaskReference.set(Triple(
-            asyncTaskReference.get().first,
-            future as CompletableFuture<Any?>, // we need a cast to keep API compatibility with a <*> signature
-            callback
-        ))
+        resultReference.set(
+            Result(
+                resultReference.get().previous,
+                future as CompletableFuture<Any?>, // we need a cast to keep API compatibility with a <*> signature
+                callback
+            )
+        )
         return this
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>? = asyncTaskReference.get().second
+    fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {

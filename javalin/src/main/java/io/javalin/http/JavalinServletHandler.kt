@@ -2,9 +2,7 @@ package io.javalin.http
 
 import io.javalin.core.JavalinConfig
 import io.javalin.core.util.LogUtil
-import io.javalin.http.util.ContextUtil
 import java.io.InputStream
-import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
@@ -22,6 +20,12 @@ data class Stage(
     val initializer: StageInitializer // DLS method to add task to the stage's queue
 )
 
+data class Result(
+    val previous: InputStream? = null,
+    val future: CompletableFuture<Any?> = emptySyncStage(),
+    val callback: Consumer<Any?>? = null,
+)
+
 data class Task(val stage: Stage, val handler: TaskHandler)
 typealias TaskHandler = (JavalinServletHandler) -> Unit
 
@@ -31,7 +35,7 @@ typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> U
 /**
  * Executes request lifecycle.
  * The lifecycle consists of multiple [stages] (before/http/etc), each of which
- * can have one or more [tasks]. The default lifecycle is define in [JavalinServlet].
+ * can have one or more [tasks]. The default lifecycle is defined in [JavalinServlet].
  * [JavalinServletHandler] is called only once per request, and has a mutable state.
  */
 class JavalinServletHandler(
@@ -89,17 +93,18 @@ class JavalinServletHandler(
 
     /** Fetches result future defined by user in [Context] or returns an empty stage */
     private fun executeUserFuture(previousResult: InputStream?): CompletableFuture<InputStream?> =
-        ctx.asyncTaskReference.getAndSet(Triple(previousResult, emptySyncStage(), null))
-            .also { (_, future) -> if (!ctx.isAsync() && !future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
-            .also { (_, future) -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { future.cancel(true) } }
-            .let { (_, future, consumer) -> future
-                .thenAlso { (consumer ?: defaultFutureConsumer()).accept(it) } // user callback for when future resolves, this consumer can set result, status, etc
-                .thenApply { ctx.resultStream() ?: previousResult }
-                .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
-                .thenAlso { queueNextTask() }
+        ctx.resultReference.getAndSet(Result(previousResult))
+            .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
+            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { result.future.cancel(true) } }
+            .let { result ->
+                result.future
+                    .thenApply { (result.callback ?: defaultFutureCallback()).accept(it) } // user callback for when future resolves, this consumer can set result, status, etc
+                    .thenApply { ctx.resultStream() ?: previousResult }
+                    .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
+                    .thenApply { it.also { queueNextTask() } } // we have to attach the "also" to the input stream to avoid mapping a void
             }
 
-    private fun defaultFutureConsumer(): Consumer<Any?> = Consumer { result ->
+    private fun defaultFutureCallback(): Consumer<Any?> = Consumer { result ->
         when (result) {
             is Unit -> {}
             is InputStream -> ctx.result(result)
@@ -149,9 +154,6 @@ private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.addList
 
 /** Checks if request is executed asynchronously */
 private fun Context.isAsync(): Boolean = req.isAsyncStarted
-
-/** Adds [Any.also] alternative to [CompletableFuture] */
-private fun <T> CompletableFuture<T>.thenAlso(also: (T) -> Unit): CompletableFuture<T> = thenApply {it.also { also(it) } }
 
 /** Creates completed stage that behaves like sync request until it's replaced by future result */
 fun <T : Any?> emptySyncStage(result: T? = null): CompletableFuture<T> = CompletableFuture.completedFuture(result)
