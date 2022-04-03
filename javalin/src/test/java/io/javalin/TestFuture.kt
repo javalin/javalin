@@ -77,6 +77,17 @@ class TestFuture {
     }
 
     @Test
+    fun `calling future twice cancels first future`() = TestUtil.test { app, http ->
+        val firstFuture = getFuture("Result", delay = 5000)
+        app.get("/test-future") { ctx ->
+            ctx.future(firstFuture)
+            ctx.future(CompletableFuture.completedFuture("Second future"))
+        }
+        assertThat(http.getBody("/test-future")).isEqualTo("Second future")
+        assertThat(firstFuture.isCancelled).isTrue()
+    }
+
+    @Test
     fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
         app.before("/future") { it.future(getFuture("before")) }
         app.get("/future") { it.future(getFuture("nothing")) { /* do nothing */ } }

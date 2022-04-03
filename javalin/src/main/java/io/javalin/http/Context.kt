@@ -356,6 +356,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
+        resultReference.get().future.cancel(true)
         resultReference.set(
             Result(
                 resultReference.get().previous,
