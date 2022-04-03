@@ -77,14 +77,13 @@ class JavalinServletHandler(
             val stage = stages.poll()
             stage.initializer.invoke(this) { taskHandler -> tasks.offer(Task(stage, taskHandler)) } // add tasks from stage to task queue
         }
-        if (tasks.isEmpty()) {
+        if (tasks.isEmpty())
             finishResponse() // we looked but didn't find any more tasks, time to write the response
-        } else {
-            currentTaskFuture = currentTaskFuture.thenCompose { inputStream ->
-                previousResult = inputStream
-                executeNextTask() // chain next task into current future
-            }.exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
-        }
+        else
+            currentTaskFuture = currentTaskFuture
+                .thenAccept { inputStream -> previousResult = inputStream }
+                .thenCompose { executeNextTask() }  // chain next task into current future
+                .exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
@@ -99,6 +98,7 @@ class JavalinServletHandler(
             task.handler(this)
         } catch (exception: Exception) {
             errored = true
+            ctx.resultReference.getAndSet(Result(previousResult)).future.cancel(true)
             exceptionMapper.handle(exception, ctx)
         }
         return ctx.resultReference.getAndSet(Result(previousResult))
@@ -119,7 +119,8 @@ class JavalinServletHandler(
             ctx.status(500).result("Request timed out") // default error handling
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
             finishResponse() // write response
-        }.also { asyncCtx -> asyncCtx.timeout = config.asyncRequestTimeout }
+        }
+        .also { asyncCtx -> asyncCtx.timeout = config.asyncRequestTimeout }
 
     /** Writes response to the client and frees resources */
     private fun finishResponse() {

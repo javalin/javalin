@@ -124,7 +124,7 @@ class TestFuture {
 
     @Test
     fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->
-        app.get("/") { it.future(getFuture("Test", delay = 5000)) }
+        app.get("/") { it.future(getFuture("Test", delay = 500)) }
         assertThat(http.get("/").body).isEqualTo("Request timed out")
     }
 
@@ -140,6 +140,17 @@ class TestFuture {
         val future = getFuture("Test", delay = 5000)
         app.get("/") { it.future(future) }
         assertThat(http.get("/").body).isEqualTo("Request timed out")
+        assertThat(future.isCancelled).isTrue()
+    }
+
+    @Test
+    fun `user's future should be cancelled in case of exception in handler`() = TestUtil.test(impatientServer) { app, http ->
+        val future = CompletableFuture<String>()
+        app.get("/") {
+            it.future(future)
+            throw RuntimeException()
+        }
+        assertThat(http.get("/").body).isEqualTo("Internal server error")
         assertThat(future.isCancelled).isTrue()
     }
 
