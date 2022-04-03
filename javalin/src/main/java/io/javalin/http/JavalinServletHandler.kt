@@ -23,7 +23,7 @@ data class Stage(
 
 internal data class Result(
     val previous: InputStream? = null,
-    val future: CompletableFuture<Any?> = completedFuture(null),
+    val future: CompletableFuture<*> = completedFuture(null),
     val callback: Consumer<Any?>? = null,
 )
 

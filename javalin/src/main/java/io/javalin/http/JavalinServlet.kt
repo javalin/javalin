@@ -51,7 +51,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     if (config.inner.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx, config)) == true) return@submitTask
                     if (config.inner.singlePageHandler.handle(ctx)) return@submitTask
                 }
-                if (type == OPTIONS && config.inner.plugins[CorsPlugin::class.java] != null) { // CORS is enabled, so we return 200 for OPTIONS
+                if (type == OPTIONS && config.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
                     return@submitTask
                 }
                 if (ctx.handlerType == BEFORE) { // no match, status will be 404 or 405 after this point
@@ -96,5 +96,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         val protectedHandler = if (handlerType.isHttpMethod()) Handler { ctx -> config.inner.accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, config.ignoreTrailingSlashes, protectedHandler, handler))
     }
+
+    private fun JavalinConfig.isCorsEnabled() = this.inner.plugins[CorsPlugin::class.java] != null
 
 }

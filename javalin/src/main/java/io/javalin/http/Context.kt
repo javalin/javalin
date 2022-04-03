@@ -356,14 +356,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
-        resultReference.get().future.cancel(true)
-        resultReference.set(
-            Result(
-                resultReference.get().previous,
-                future as CompletableFuture<Any?>, // we need a cast to keep API compatibility with a <*> signature
-                callback
-            )
-        )
+        resultReference.updateAndGet { oldResult ->
+            oldResult.future.cancel(true)
+            Result(oldResult.previous, future, callback)
+        }
         return this
     }
 
