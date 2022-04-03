@@ -21,6 +21,7 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -34,18 +35,16 @@ import javax.servlet.http.HttpServletResponse
 open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, internal val appAttributes: Map<String, Any> = mapOf()) {
 
     // @formatter:off
-    @get:JvmSynthetic @set:JvmSynthetic internal var inExceptionHandler = false
     @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
+    @get:JvmSynthetic @set:JvmSynthetic internal var resultReference = AtomicReference(Result())
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
-    private var resultStream: InputStream? = null
-    private var resultFuture: CompletableFuture<*>? = null
-    internal var futureConsumer: Consumer<Any?>? = null
+
     private val body by lazy {
         this.throwPayloadTooLargeIfPayloadTooLarge()
         req.inputStream.readBytes()
@@ -230,7 +229,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     inline fun <reified T : Any> headerAsClass(header: String) = headerAsClass(header, T::class.java)
 
     /** Gets a map with all the header keys and values on the request. */
-    fun headerMap(): Map<String, String> = req.headerNames.asSequence().associate { it to header(it)!! }
+    fun headerMap(): Map<String, String> = req.headerNames.asSequence().associateWith { header(it)!! }
 
     /** Gets the request host, or null. */
     fun host(): String? = contextResolver().host.invoke(this)
@@ -334,46 +333,38 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
 
-    /** Gets the current [resultStream] as a [String] (if possible), and reset [resultStream] */
-    fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultStream, responseCharset())
+    /** Gets the current [resultReference] as a [String] (if possible), and reset the underlying stream */
+    fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
 
     /**
      * Sets context result to the specified [InputStream].
      * Will overwrite the current result if there is one.
      */
     fun result(resultStream: InputStream): Context {
-        this.resultFuture = null
-        this.resultStream = resultStream
-        return this
+        runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
+        return this.future(CompletableFuture.completedFuture(resultStream))
     }
 
     /** Writes the specified inputStream as a seekable stream */
     @JvmOverloads
     fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) =
-            SeekableWriter.write(this, inputStream, contentType, size)
+        SeekableWriter.write(this, inputStream, contentType, size)
 
-    /** Gets the current context result as an [InputStream] (if set). */
-    fun resultStream(): InputStream? = resultStream
+    fun resultStream(): InputStream? = resultReference.get().let { result ->
+        result.future.takeIf { it.isDone }?.get() as InputStream? ?: result.previous
+    }
 
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
-        if (!handlerType.isHttpMethod() || inExceptionHandler) {
-            throw IllegalStateException("You can only set CompletableFuture results in endpoint handlers.")
-        }
-        resultStream = null
-        resultFuture = future
-        futureConsumer = callback ?: Consumer { result ->
-            when (result) {
-                is InputStream -> result(result)
-                is String -> result(result)
-                is Any -> json(result)
-            }
+        resultReference.updateAndGet { oldResult ->
+            oldResult.future.cancel(true)
+            Result(oldResult.previous, future, callback)
         }
         return this
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>? = resultFuture
+    fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {
