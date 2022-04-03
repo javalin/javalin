@@ -68,6 +68,15 @@ class TestFuture {
     }
 
     @Test
+    fun `future is overwritten if String result is set`() = TestUtil.test { app, http ->
+        app.get("/test-future") { ctx ->
+            ctx.future(getFuture("Result"))
+            ctx.result("Overridden")
+        }
+        assertThat(http.getBody("/test-future")).isEqualTo("Overridden")
+    }
+
+    @Test
     fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
         app.before("/future") { it.future(getFuture("before")) }
         app.get("/future") { it.future(getFuture("nothing")) { /* do nothing */ } }
