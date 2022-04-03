@@ -124,7 +124,7 @@ class TestFuture {
 
     @Test
     fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->
-        app.get("/") { it.future(getFuture("Test", delay = 500)) }
+        app.get("/") { it.future(getFuture("Test", delay = 5000)) }
         assertThat(http.get("/").body).isEqualTo("Request timed out")
     }
 
