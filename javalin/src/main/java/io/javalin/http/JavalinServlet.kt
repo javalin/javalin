@@ -39,19 +39,19 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
             }
         },
         Stage(DefaultName.HTTP) { submitTask ->
-            matcher.findEntries(type, requestUri).firstOrNull()?.let { entry ->
+            matcher.findEntries(requestType, requestUri).firstOrNull()?.let { entry ->
                 submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
                 return@Stage // return after first match
             }
             submitTask {
-                if (type == HEAD && matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
+                if (requestType == HEAD && matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
                     return@submitTask
                 }
-                if (type == HEAD || type == GET) { // check for static resources (will write response if found)
-                    if (config.inner.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx, config)) == true) return@submitTask
+                if (requestType == HEAD || requestType == GET) { // check for static resources (will write response if found)
+                    if (config.inner.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx, config, requestType)) == true) return@submitTask
                     if (config.inner.singlePageHandler.handle(ctx)) return@submitTask
                 }
-                if (type == OPTIONS && config.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
+                if (requestType == OPTIONS && config.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
                     return@submitTask
                 }
                 if (ctx.handlerType == BEFORE) { // no match, status will be 404 or 405 after this point
