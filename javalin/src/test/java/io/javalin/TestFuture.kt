@@ -2,6 +2,7 @@ package io.javalin
 
 import io.javalin.core.util.Header
 import io.javalin.http.ContentType
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -58,19 +59,12 @@ class TestFuture {
     }
 
     @Test
-    fun `calling future in after-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { it.future(getFuture("Not result")) }
-        app.after("/test-future") { ctx -> ctx.future(getFuture("Not result")) }
-        assertThat(http.get("/test-future").body).isEqualTo("Internal server error")
-        assertThat(http.get("/test-future").status).isEqualTo(500)
-    }
+    fun `errors are handled as unexpected throwables`() = TestUtil.test { app, http ->
+        app.get("/out-of-memory") { throw OutOfMemoryError() }
+        assertThat(http.getStatus("/out-of-memory")).isEqualTo(INTERNAL_SERVER_ERROR)
 
-    @Test
-    fun `calling future in an exception-handler throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { throw Exception() }
-        app.exception(Exception::class.java) { _, ctx -> ctx.future(getFuture("Not result")) }
-        assertThat(http.getBody("/test-future")).isEqualTo("")
-        assertThat(http.get("/test-future").status).isEqualTo(500)
+        app.get("/out-of-memory-future") { it.future(getFailingFuture(OutOfMemoryError())) }
+        assertThat(http.getStatus("/out-of-memory-future")).isEqualTo(INTERNAL_SERVER_ERROR)
     }
 
     @Test
@@ -80,6 +74,25 @@ class TestFuture {
             ctx.result("Overridden")
         }
         assertThat(http.getBody("/test-future")).isEqualTo("Overridden")
+    }
+
+    @Test
+    fun `calling future twice cancels first future`() = TestUtil.test { app, http ->
+        val firstFuture = getFuture("Result", delay = 5000)
+        app.get("/test-future") { ctx ->
+            ctx.future(firstFuture)
+            ctx.future(CompletableFuture.completedFuture("Second future"))
+        }
+        assertThat(http.getBody("/test-future")).isEqualTo("Second future")
+        assertThat(firstFuture.isCancelled).isTrue()
+    }
+
+    @Test
+    fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
+        app.before("/future") { it.future(getFuture("before")) }
+        app.get("/future") { it.future(getFuture("nothing")) { /* do nothing */ } }
+        app.after("/future") { it.future(getFuture("${it.resultString()}, after")) }
+        assertThat(http.get("/future").body).isEqualTo("before, after")
     }
 
     @Test
@@ -120,30 +133,52 @@ class TestFuture {
         assertThat(http.get("/").status).isEqualTo(404)
     }
 
+    @Test
+    fun `can use future in exception mapper`() = TestUtil.test { app, http ->
+        app.get("/") { throw Exception("Oh no!") }
+        app.exception(Exception::class.java) { _, ctx -> ctx.future(CompletableFuture.completedFuture("Wee")) }
+        assertThat(http.get("/").body).isEqualTo("Wee")
+    }
+
     private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5 } }
 
     @Test
     fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->
-        app.get("/") { it.future(getFuture("Test", delay = 50)) }
+        app.get("/") { it.future(getFuture("Test", delay = 5000)) }
         assertThat(http.get("/").body).isEqualTo("Request timed out")
     }
 
     @Test
     fun `can override timeout with custom error message`() = TestUtil.test(impatientServer) { app, http ->
-        app.get("/") { it.future(getFuture("Test", delay = 50)) }
+        app.get("/") { it.future(getFuture("Test", delay = 5000)) }
         app.error(500) { ctx -> ctx.result("My own simple error message") }
         assertThat(http.get("/").body).isEqualTo("My own simple error message")
     }
 
     @Test
     fun `timed out futures are canceled`() = TestUtil.test(impatientServer) { app, http ->
+        val future = getFuture("Test", delay = 5000)
+        app.get("/") { it.future(future) }
+        assertThat(http.get("/").body).isEqualTo("Request timed out")
+        assertThat(future.isCancelled).isTrue()
+    }
+
+    @Test
+    fun `user's future should be cancelled in case of exception in handler`() = TestUtil.test(impatientServer) { app, http ->
         val future = CompletableFuture<String>()
         app.get("/") {
-            Executors.newSingleThreadScheduledExecutor().schedule({
-                future.complete("Test")
-            }, 50, TimeUnit.MILLISECONDS)
             it.future(future)
+            throw RuntimeException()
         }
+        assertThat(http.get("/").body).isEqualTo("Internal server error")
+        assertThat(future.isCancelled).isTrue()
+    }
+
+    @Test
+    fun `latest timed out future is canceled`() = TestUtil.test(impatientServer) { app, http ->
+        app.before { it.future(CompletableFuture.completedFuture("Success")) }
+        val future = getFuture("Test", delay = 5000)
+        app.get("/") { it.future(future) }
         assertThat(http.get("/").body).isEqualTo("Request timed out")
         assertThat(future.isCancelled).isTrue()
     }
@@ -161,7 +196,7 @@ class TestFuture {
     }
 
     private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {
-        return CompletableFuture.supplyAsync({ throw failure })
+        return CompletableFuture.supplyAsync { throw failure }
     }
 
     private fun getFutureFailingStream(): CompletableFuture<InputStream> {

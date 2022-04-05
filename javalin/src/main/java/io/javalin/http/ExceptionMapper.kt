@@ -17,7 +17,6 @@ class ExceptionMapper {
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
-        ctx.inExceptionHandler = true // prevent user from setting Future as result in exception handlers
         if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
             HttpResponseExceptionMapper.handle(exception, ctx)
         } else {
@@ -29,13 +28,6 @@ class ExceptionMapper {
                 HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
             }
         }
-        ctx.inExceptionHandler = false
-    }
-
-    internal inline fun catchException(ctx: Context, func: () -> Unit) = try {
-        func.invoke()
-    } catch (e: Exception) {
-        handle(e, ctx)
     }
 
     internal fun handleFutureException(ctx: Context, throwable: Throwable): Nothing? {
