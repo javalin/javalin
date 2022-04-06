@@ -18,7 +18,6 @@ import cc.vileda.openapi.dsl.securityScheme
 import cc.vileda.openapi.dsl.server
 import cc.vileda.openapi.dsl.tag
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.mashape.unirest.http.Unirest
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.CrudHandler
@@ -42,6 +41,7 @@ import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test

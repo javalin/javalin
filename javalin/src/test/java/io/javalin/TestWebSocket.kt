@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import com.mashape.unirest.http.Unirest
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.core.util.Header
 import io.javalin.http.UnauthorizedResponse
@@ -16,6 +15,7 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsMessageContext
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.MessageTooLargeException

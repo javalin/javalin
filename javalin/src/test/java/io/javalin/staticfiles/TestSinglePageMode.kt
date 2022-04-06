@@ -6,7 +6,6 @@
 
 package io.javalin.staticfiles
 
-import com.mashape.unirest.http.Unirest
 import io.javalin.Javalin
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
@@ -14,6 +13,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
