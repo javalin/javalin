@@ -14,10 +14,8 @@ public interface ThrowingBiConsumer<T, U> extends BiConsumer<T, U> {
     default void accept(T t, U u) {
         try {
             acceptThrows(t, u);
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

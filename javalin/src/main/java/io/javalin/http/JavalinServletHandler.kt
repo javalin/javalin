@@ -48,7 +48,7 @@ class JavalinServletHandler(
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
     val ctx: Context,
-    val type: HandlerType = HandlerType.fromServletRequest(ctx.req),
+    val requestType: HandlerType = HandlerType.fromServletRequest(ctx.req),
     val requestUri: String = ctx.req.requestURI.removePrefix(ctx.req.contextPath),
 ) {
 
@@ -126,7 +126,7 @@ class JavalinServletHandler(
     private fun finishResponse() {
         if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         try {
-            JavalinResponseWrapper(ctx, config).write(ctx.resultStream())
+            JavalinResponseWrapper(ctx, config, requestType).write(ctx.resultStream())
             config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) // handle any unexpected error, e.g. write failure
