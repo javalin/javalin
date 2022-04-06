@@ -183,6 +183,17 @@ class TestFuture {
         assertThat(future.isCancelled).isTrue()
     }
 
+    @Test
+    fun `can set default callback via context resolvers`() {
+        val ignoringServer = Javalin.create {
+            it.contextResolvers { it.futureCallback = { ctx, _ -> ctx.result("Ignore result") } }
+        }
+        TestUtil.test(ignoringServer) { app, http ->
+            app.get("/") {  it.future(CompletableFuture.completedFuture("Success")) }
+            assertThat(http.get("/").body).isEqualTo("Ignore result")
+        }
+    }
+
     private fun getFuture(result: String?, delay: Long = 10): CompletableFuture<String> {
         val future = CompletableFuture<String>()
         Executors.newSingleThreadScheduledExecutor().schedule({
