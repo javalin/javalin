@@ -9,6 +9,7 @@ import io.javalin.core.util.Header.ETAG
 import io.javalin.core.util.Header.IF_NONE_MATCH
 import io.javalin.core.util.Util
 import io.javalin.http.HandlerType.GET
+import io.javalin.http.HttpCode.NOT_MODIFIED
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
@@ -20,12 +21,10 @@ import javax.servlet.http.HttpServletResponseWrapper
 
 class JavalinResponseWrapper(private val ctx: Context, private val config: JavalinConfig, private val requestType: HandlerType) : HttpServletResponseWrapper(ctx.res) {
 
-    private val outputStreamWrapper by lazy { OutputStreamWrapper(ctx, config) }
+    private val outputStreamWrapper by lazy { OutputStreamWrapper(config, ctx.req, ctx.res) }
     override fun getOutputStream() = outputStreamWrapper
 
-    private val outputStreamWrapper by lazy { OutputStreamWrapper(config, ctx.req, ctx.res) }
-
-    private val serverEtag by lazy { ctx.res.getHeader(ETAG) }
+    private val serverEtag by lazy { getHeader(ETAG) }
     private val clientEtag by lazy { ctx.req.getHeader(IF_NONE_MATCH) }
 
     fun write(resultStream: InputStream?) = when {
@@ -36,10 +35,9 @@ class JavalinResponseWrapper(private val ctx: Context, private val config: Javal
     }
 
     private fun generateEtagWriteAndClose(resultStream: InputStream) {
-        // TODO: https://github.com/tipsy/javalin/issues/1505
-        val inputStream = resultStream.readBytes().inputStream().also { resultStream.close() }
+        val inputStream = resultStream.use { it.readBytes().inputStream() } // TODO: https://github.com/tipsy/javalin/issues/1505
         val generatedEtag = Util.getChecksumAndReset(inputStream)
-        ctx.res.setHeader(ETAG, generatedEtag)
+        setHeader(ETAG, generatedEtag)
         when (generatedEtag) {
             clientEtag -> closeWith304(inputStream)
             else -> writeToWrapperAndClose(inputStream)
@@ -47,13 +45,17 @@ class JavalinResponseWrapper(private val ctx: Context, private val config: Javal
     }
 
     private fun writeToWrapperAndClose(inputStream: InputStream) {
-        inputStream.copyTo(outputStreamWrapper).also { inputStream.close() }
-        outputStreamWrapper.finalizeCompression()
+        inputStream.use { input ->
+            outputStreamWrapper.use { output ->
+                input.copyTo(output)
+            }
+        }
     }
 
-    private fun closeWith304(inputStream: InputStream) = inputStream.close().also { ctx.res.status = 304 }
+    private fun closeWith304(inputStream: InputStream) {
+        inputStream.use { ctx.status(NOT_MODIFIED) }
+    }
 
-    override fun getOutputStream() = outputStreamWrapper
 }
 
 class OutputStreamWrapper(val config: JavalinConfig, val request: HttpServletRequest, val response: HttpServletResponse) : ServletOutputStream() {
