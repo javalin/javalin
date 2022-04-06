@@ -7,11 +7,11 @@
 
 package io.javalin
 
-import com.mashape.unirest.http.Unirest
 import io.javalin.core.LoomUtil
 import io.javalin.http.HttpCode
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.Handler

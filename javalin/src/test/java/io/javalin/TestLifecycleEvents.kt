@@ -33,17 +33,14 @@ class TestLifecycleEvents {
     }
 
     @Test
-    fun `serverStartFailed event works`() =
-            `test failed lifecycle event`("StartingStartFailed") {
-                every { start(any()) } throws RuntimeException("expected")
-            }
+    fun `serverStartFailed event works`() = `test failed lifecycle event`("StartingStartFailed") {
+        every { start(any()) } throws RuntimeException("Lifecycle test exception")
+    }
 
     @Test
-    fun `serverStopFailed event works`() =
-            `test failed lifecycle event`("StartingStartedStoppingStopFailed") {
-                every { server().stop() } throws RuntimeException("expected")
-            }
-
+    fun `serverStopFailed event works`() = `test failed lifecycle event`("StartingStartedStoppingStopFailed") {
+        every { server().stop() } throws RuntimeException("Lifecycle test exception")
+    }
 
     private fun `test failed lifecycle event`(expected: String, mockBlock: JettyServer.() -> Unit) {
         val jettyServer = mockk<JettyServer>(relaxed = true)
@@ -63,7 +60,7 @@ class TestLifecycleEvents {
 
         assertThat(log).isEqualTo(expected)
         assertThat(exception.cause).isInstanceOf(RuntimeException::class.java)
-        assertThat(exception.cause!!.message).isEqualTo("expected")
+        assertThat(exception.cause!!.message).isEqualTo("Lifecycle test exception")
     }
 
     @Test

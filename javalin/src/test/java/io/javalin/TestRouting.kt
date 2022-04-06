@@ -7,14 +7,15 @@
 
 package io.javalin
 
-import com.mashape.unirest.http.HttpMethod
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.core.routing.MissingBracketsException
 import io.javalin.core.routing.ParameterNamesNotUniqueException
 import io.javalin.core.routing.WildcardBracketAdjacentException
+import io.javalin.http.HandlerType.TRACE
 import io.javalin.testing.TestUtil
+import kong.unirest.HttpMethod
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
@@ -44,14 +45,16 @@ class TestRouting {
         app.patch("/mapped", TestUtil.okHandler)
         app.head("/mapped", TestUtil.okHandler)
         app.options("/mapped", TestUtil.okHandler)
-        for (httpMethod in HttpMethod.values()) {
+        app.addHandler(TRACE, "/mapped", TestUtil.okHandler)
+
+        for (httpMethod in http.allMethods()) {
             assertThat(http.call(httpMethod, "/mapped").status).isEqualTo(200)
         }
     }
 
     @Test
     fun `all unmapped verbs return 404`() = TestUtil.test { _, http ->
-        for (httpMethod in HttpMethod.values()) {
+        for (httpMethod in http.allMethods()) {
             assertThat(http.call(httpMethod, "/unmapped").status).isEqualTo(404)
         }
     }

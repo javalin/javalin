@@ -6,12 +6,12 @@
 
 package io.javalin
 
-import com.mashape.unirest.http.Unirest
 import io.javalin.core.security.BasicAuthFilter
 import io.javalin.core.util.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil
 import io.javalin.testing.TestUtil
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -365,7 +365,7 @@ class TestRequest {
     @Test
     fun `userAgent works`() = TestUtil.test { app, http ->
         app.get("/") { ctx -> ctx.result(ctx.userAgent()!!) }
-        assertThat(http.getBody("/")).isEqualTo("unirest-java/1.3.11")
+        assertThat(http.getBody("/")).isEqualTo("unirest-java/3.1.00")
     }
 
     @Test

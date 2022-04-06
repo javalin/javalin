@@ -1,7 +1,7 @@
 package io.javalin.http
 
 import io.javalin.core.util.Header
-import javax.servlet.http.HttpServletRequest
+import java.io.InputStream
 
 
 const val CONTEXT_RESOLVER_KEY = "contextResolver"
@@ -15,5 +15,13 @@ class ContextResolver {
     @JvmField var scheme: (Context) -> String = { it.req.scheme }
     @JvmField var url: (Context) -> String = { it.req.requestURL.toString() }
     @JvmField var fullUrl: (Context) -> String = { it.url() + if (it.queryString() != null) "?" + it.queryString() else "" }
+    @JvmField var defaultFutureCallback: (ctx: Context, result: Any?) -> Unit = { ctx, result ->
+        when (result) {
+            is Unit -> {}
+            is InputStream -> ctx.result(result)
+            is String -> ctx.result(result)
+            is Any -> ctx.json(result)
+        }
+    }
     // @formatter:on
 }

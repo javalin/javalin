@@ -121,7 +121,7 @@ class TestFuture {
         assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
         val noContentResponse = http.get("/?no-content")
         assertThat(noContentResponse.status).isEqualTo(204)
-        assertThat(noContentResponse.body).isEqualTo(null)
+        assertThat(noContentResponse.body).isEqualTo("")
         assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
     }
 
@@ -181,6 +181,17 @@ class TestFuture {
         app.get("/") { it.future(future) }
         assertThat(http.get("/").body).isEqualTo("Request timed out")
         assertThat(future.isCancelled).isTrue()
+    }
+
+    @Test
+    fun `can set default callback via context resolvers`() {
+        val ignoringServer = Javalin.create {
+            it.contextResolvers { it.defaultFutureCallback = { ctx, _ -> ctx.result("Ignore result") } }
+        }
+        TestUtil.test(ignoringServer) { app, http ->
+            app.get("/") {  it.future(CompletableFuture.completedFuture("Success")) }
+            assertThat(http.get("/").body).isEqualTo("Ignore result")
+        }
     }
 
     private fun getFuture(result: String?, delay: Long = 10): CompletableFuture<String> {

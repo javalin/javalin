@@ -1,15 +1,15 @@
 package io.javalin.plugin.graphql
 
-import com.mashape.unirest.http.JsonNode
 import io.javalin.Javalin
 import io.javalin.plugin.graphql.helpers.*
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
+import kong.unirest.JsonNode
+import kong.unirest.json.JSONObject
 import org.assertj.core.api.Assertions.assertThat
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
-import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -110,8 +110,7 @@ class TestGraphQL {
 
     private fun sendPetition(httpUtil: HttpUtil, body: String): JSONObject {
         val response = httpUtil.post(graphqlPath).body(JsonNode(body)).asString()
-        val json = JSONObject(response.body)
-        return json
+        return JSONObject(response.body)
     }
 
     internal open inner class TestClient(var app: Javalin, path: String, headers: Map<String, String> = emptyMap()) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0) {
