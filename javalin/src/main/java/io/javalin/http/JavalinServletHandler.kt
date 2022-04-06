@@ -106,7 +106,7 @@ class JavalinServletHandler(
             .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { result.future.cancel(true) } }
             .let { result ->
                 result.future
-                    .thenAccept { any -> (result.callback ?: defaultFutureCallback()).accept(any) } // callback after future resolves - modifies ctx result, status, etc
+                    .thenAccept { any -> (result.callback?.accept(any) ?: ctx.contextResolver().defaultFutureCallback(ctx, any)) } // callback after future resolves - modifies ctx result, status, etc
                     .thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
                     .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
                     .thenApply { inputStream -> inputStream.also { queueNextTaskOrFinish() } } // we have to attach the "also" to the input stream to avoid mapping a void
@@ -132,16 +132,6 @@ class JavalinServletHandler(
             exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) // handle any unexpected error, e.g. write failure
         } finally {
             if (ctx.isAsync()) ctx.req.asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
-        }
-    }
-
-    /** Runs after a future is resolved, if not user defined callback exists */
-    private fun defaultFutureCallback(): Consumer<Any?> = Consumer { result ->
-        when (result) {
-            is Unit -> {}
-            is InputStream -> ctx.result(result)
-            is String -> ctx.result(result)
-            is Any -> ctx.json(result)
         }
     }
 

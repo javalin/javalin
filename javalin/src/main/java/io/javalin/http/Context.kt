@@ -354,6 +354,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         result.future.takeIf { it.isDone }?.get() as InputStream? ?: result.previous
     }
 
+    /** The default callback (used if no callback is provided) can be configured through [ContextResolver.defaultFutureCallback] */
     @JvmOverloads
     fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
         resultReference.updateAndGet { oldResult ->
