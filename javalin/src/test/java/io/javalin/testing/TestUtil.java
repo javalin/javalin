@@ -6,10 +6,10 @@
 
 package io.javalin.testing;
 
-import com.mashape.unirest.http.HttpMethod;
 import io.javalin.Javalin;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.http.Handler;
+import kong.unirest.HttpMethod;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 

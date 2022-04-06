@@ -7,11 +7,11 @@
  */
 
 package io.javalin;
-
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
+;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.junit.jupiter.api.Disabled;

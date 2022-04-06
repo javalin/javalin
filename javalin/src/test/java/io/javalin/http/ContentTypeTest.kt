@@ -42,7 +42,7 @@ class ContentTypeTest {
             val response = http.get("/test.md")
             assertThat(response.status).isEqualTo(200)
             assertThat(response.body).contains("# Hello Markdown!")
-            assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isNull()
+            assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("")
         }
     }
 

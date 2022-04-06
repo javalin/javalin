@@ -121,7 +121,7 @@ class TestFuture {
         assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
         val noContentResponse = http.get("/?no-content")
         assertThat(noContentResponse.status).isEqualTo(204)
-        assertThat(noContentResponse.body).isEqualTo(null)
+        assertThat(noContentResponse.body).isEqualTo("")
         assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
     }
 

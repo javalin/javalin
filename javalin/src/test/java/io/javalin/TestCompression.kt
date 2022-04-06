@@ -6,7 +6,6 @@
 
 package io.javalin
 
-import com.mashape.unirest.http.Unirest
 import com.nixxcode.jvmbrotli.common.BrotliLoader
 import com.nixxcode.jvmbrotli.dec.BrotliInputStream
 import io.javalin.core.compression.Brotli
@@ -17,6 +16,7 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.http.OutputStreamWrapper
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import kong.unirest.Unirest
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request

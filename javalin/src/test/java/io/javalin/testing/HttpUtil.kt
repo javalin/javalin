@@ -6,20 +6,19 @@
 
 package io.javalin.testing
 
-import com.mashape.unirest.http.HttpMethod
-import com.mashape.unirest.http.Unirest
-import com.mashape.unirest.request.HttpRequestWithBody
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode
-import org.apache.http.impl.client.HttpClients
+import kong.unirest.HttpMethod
+import kong.unirest.Unirest
 
 class HttpUtil(port: Int) {
 
     @JvmField
     val origin: String = "http://localhost:$port"
 
-    fun enableUnirestRedirects() = Unirest.setHttpClient(HttpClients.custom().build())
-    fun disableUnirestRedirects() = Unirest.setHttpClient(HttpClients.custom().disableRedirectHandling().build())
+    fun allMethods() = HttpMethod.GET.all() // TODO: Can be changed to HttpMethod.all() when https://github.com/Kong/unirest-java/issues/439 will be fixed
+    fun enableUnirestRedirects() = Unirest.config().reset().followRedirects(true)
+    fun disableUnirestRedirects() = Unirest.config().reset().followRedirects(false)
 
     // Unirest
     fun get(path: String) = Unirest.get(origin + path).asString()
@@ -29,7 +28,7 @@ class HttpUtil(port: Int) {
     fun getBody(path: String) = Unirest.get(origin + path).asString().body
     fun getBody(path: String, headers: Map<String, String>) = Unirest.get(origin + path).headers(headers).asString().body
     fun post(path: String) = Unirest.post(origin + path)
-    fun call(method: HttpMethod, pathname: String) = HttpRequestWithBody(method, origin + pathname).asString()
+    fun call(method: HttpMethod, pathname: String) = Unirest.request(method.name(), origin + pathname).asString()
     fun htmlGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.HTML).asString()
     fun jsonGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.JSON).asString()
     fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()

@@ -7,20 +7,18 @@
 
 package io.javalin
 
-import com.mashape.unirest.http.HttpMethod
-import com.mashape.unirest.http.Unirest
 import io.javalin.core.util.Header
 import io.javalin.http.ContentType
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
+import kong.unirest.HttpMethod
+import kong.unirest.Unirest
 import org.apache.commons.io.FileUtils
-import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
 
@@ -55,10 +53,9 @@ class TestResponse {
         }
 
         app.get("/hello") { ctx -> ctx.result(bytes) }
-        val response = http.call(HttpMethod.GET, "/hello")
-        val bout = ByteArrayOutputStream()
-        assertThat(IOUtils.copy(response.rawBody, bout)).isEqualTo(bytes.size)
-        assertThat(bytes).isEqualTo(bout.toByteArray())
+        val response = Unirest.get("${http.origin}/hello").asBytes()
+        assertThat(response.body.size).isEqualTo(bytes.size)
+        assertThat(bytes).isEqualTo(response.body)
     }
 
     @Test
@@ -66,10 +63,9 @@ class TestResponse {
         val buf = ByteArray(65537) // big and not on a page boundary
         Random().nextBytes(buf)
         app.get("/stream") { ctx -> ctx.result(ByteArrayInputStream(buf)) }
-        val response = http.call(HttpMethod.GET, "/stream")
-        val bout = ByteArrayOutputStream()
-        assertThat(IOUtils.copy(response.rawBody, bout)).isEqualTo(buf.size)
-        assertThat(buf).isEqualTo(bout.toByteArray())
+        val response = Unirest.get("${http.origin}/stream").asBytes()
+        assertThat(response.body.size).isEqualTo(buf.size)
+        assertThat(buf).isEqualTo(response.body)
     }
 
     @Test
@@ -179,13 +175,20 @@ class TestResponse {
     }
 
     @Test
-    @Disabled("This functionality is apparently broken")
+    @Disabled("https://github.com/tipsy/javalin/issues/1502")
     fun `seekable - overreaching range works`() = TestUtil.test { app, http ->
         app.get("/seekable-3") { ctx -> ctx.seekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-3")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
-            .asString().body
-        assertThat(response.length).isEqualTo(SeekableWriter.chunkSize * 3)
+            .asBytes()
+
+        println(response.headers)
+        println(SeekableWriter.chunkSize)
+        println(response.status)
+        println(response.statusText)
+        println(response.body)
+        println(response.parsingError)
+        assertThat(response.body.size).isEqualTo(SeekableWriter.chunkSize * 3)
     }
 
     @Test
