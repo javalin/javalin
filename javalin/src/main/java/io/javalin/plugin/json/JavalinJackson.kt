@@ -56,7 +56,7 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
                 .registerOptionalModule(OptionalDependency.JACKSON_KT.testClass)
                 .registerOptionalModule(OptionalDependency.JACKSON_JSR_310.testClass)
                 // extra dependencies
-            .registerOptionalModule(OptionalDependency.JACKSON_KTORM.testClass)
+                .registerOptionalModule(OptionalDependency.JACKSON_KTORM.testClass)
     }
 }
 
