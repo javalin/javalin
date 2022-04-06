@@ -4,6 +4,7 @@ import io.javalin.core.util.Header
 import io.javalin.http.Context
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.math.min
 
 object SeekableWriter {
     var chunkSize = 128000
@@ -24,7 +25,7 @@ object SeekableWriter {
         ctx.header(Header.CONTENT_TYPE, contentType)
         ctx.header(Header.ACCEPT_RANGES, "bytes")
         ctx.header(Header.CONTENT_RANGE, "bytes $from-$to/$totalBytes")
-        ctx.header(Header.CONTENT_LENGTH, "${to - from + 1}")
+        ctx.header(Header.CONTENT_LENGTH, "${min(to - from + 1, totalBytes)}")
         ctx.res.outputStream.write(inputStream, from, to)
     }
 

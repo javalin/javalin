@@ -175,19 +175,11 @@ class TestResponse {
     }
 
     @Test
-    @Disabled("https://github.com/tipsy/javalin/issues/1502")
     fun `seekable - overreaching range works`() = TestUtil.test { app, http ->
         app.get("/seekable-3") { ctx -> ctx.seekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-3")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
             .asBytes()
-
-        println(response.headers)
-        println(SeekableWriter.chunkSize)
-        println(response.status)
-        println(response.statusText)
-        println(response.body)
-        println(response.parsingError)
         assertThat(response.body.size).isEqualTo(SeekableWriter.chunkSize * 3)
     }
 
