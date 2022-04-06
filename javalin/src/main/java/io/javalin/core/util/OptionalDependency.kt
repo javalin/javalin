@@ -12,7 +12,8 @@ enum class OptionalDependency(val displayName: String, val testClass: String, va
     JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "2.12.4"),
     JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.12.4"),
     JACKSON_JSR_310("JacksonJsr310", "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", "com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.12.4"),
-    JACKSON_KTORM("Jackson Ktorm","org.ktorm.jackson.KtormModule","org.ktorm","ktorm-jackson","3.4.1"),
+    JACKSON_KTORM("Jackson Ktorm", "org.ktorm.jackson.KtormModule", "org.ktorm","ktorm-jackson", "3.4.1"),
+
 
 
     // Logging
