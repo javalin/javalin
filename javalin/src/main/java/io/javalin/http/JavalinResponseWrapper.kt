@@ -57,11 +57,12 @@ class OutputStreamWrapper(private val ctx: Context, config: JavalinConfig) : Ser
     private val acceptsGzip by lazy { ctx.req.getHeader(ACCEPT_ENCODING)?.contains(GZIP, ignoreCase = true) == true }
     private val compression = config.inner.compressionStrategy
     private val response: HttpServletResponse by lazy { ctx.res }
+    private val isAllowedType by lazy { response.contentType == null || excludedMimeTypes.none { response.contentType.contains(it, ignoreCase = true) } }
 
     private var compressedStream: OutputStream? = null
 
     override fun write(bytes: ByteArray, offset: Int, length: Int) {
-        if (compressedStream == null && isCompressible(length)) {
+        if (isAllowedType && compressedStream == null && length >= minSizeForCompression) {
             if (acceptsBrotli && compression.brotli != null) {
                 response.setHeader(CONTENT_ENCODING, BR)
                 compressedStream = LeveledBrotliStream(response.outputStream, compression.brotli.level)
@@ -74,12 +75,6 @@ class OutputStreamWrapper(private val ctx: Context, config: JavalinConfig) : Ser
     }
 
     fun finalizeCompression() = compressedStream?.close()
-
-    private fun isCompressible(length: Int) =
-        length >= minSizeForCompression && !excludedMimeType(response.contentType) && response.getHeader(CONTENT_ENCODING).isNullOrEmpty()
-
-    private fun excludedMimeType(mimeType: String?) =
-        if (mimeType.isNullOrBlank()) false else excludedMimeTypes.any { mimeType.contains(it, ignoreCase = true) }
 
     override fun isReady(): Boolean = response.outputStream.isReady
     override fun setWriteListener(writeListener: WriteListener?) = response.outputStream.setWriteListener(writeListener)
