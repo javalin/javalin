@@ -106,7 +106,7 @@ class JavalinServletHandler(
             .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { result.future.cancel(true) } }
             .let { result ->
                 result.future
-                    .thenAccept { any -> (result.callback ?: ctx.contextResolver().futureCallback(ctx, any)) } // callback after future resolves - modifies ctx result, status, etc
+                    .thenAccept { any -> (result.callback?.accept(any) ?: ctx.contextResolver().futureCallback(ctx, any)) } // callback after future resolves - modifies ctx result, status, etc
                     .thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
                     .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
                     .thenApply { inputStream -> inputStream.also { queueNextTaskOrFinish() } } // we have to attach the "also" to the input stream to avoid mapping a void
