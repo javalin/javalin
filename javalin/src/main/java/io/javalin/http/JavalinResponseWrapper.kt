@@ -8,6 +8,7 @@ import io.javalin.core.util.Header.CONTENT_ENCODING
 import io.javalin.core.util.Header.ETAG
 import io.javalin.core.util.Header.IF_NONE_MATCH
 import io.javalin.core.util.Util
+import io.javalin.http.HandlerType.GET
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
@@ -17,34 +18,37 @@ import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpServletResponseWrapper
 
 class JavalinResponseWrapper(private val ctx: Context, private val config: JavalinConfig, private val requestType: HandlerType) : HttpServletResponseWrapper(ctx.res) {
-    private val response: HttpServletResponse by lazy { ctx.res }
+
     private val outputStreamWrapper by lazy { OutputStreamWrapper(ctx, config) }
     override fun getOutputStream() = outputStreamWrapper
 
-    fun write(resultStream: InputStream?) {
-        if (resultStream == null) return
-        var inputStream = resultStream
-        if (response.getHeader(ETAG) != null || (config.autogenerateEtags && requestType == HandlerType.GET)) {
-            val serverEtag: String
-            if (response.getHeader(ETAG) != null) {
-                serverEtag = response.getHeader(ETAG)
-            } else {
-                //we must load and wrap the whole input stream into memory in order to generate the etag based on the whole content
-                inputStream = resultStream.readBytes().inputStream()
-                resultStream.close() //close original stream, it was already copied to byte array
-                serverEtag = Util.getChecksumAndReset(inputStream)
-            }
-            response.setHeader(ETAG, serverEtag)
-            if (serverEtag == ctx.req.getHeader(IF_NONE_MATCH)) {
-                response.status = 304
-                inputStream.close()
-                return // don't write body
-            }
+    private val serverEtag by lazy { ctx.res.getHeader(ETAG) }
+    private val clientEtag by lazy { ctx.req.getHeader(IF_NONE_MATCH) }
+
+    fun write(resultStream: InputStream?) = when {
+        resultStream == null -> {} // nothing to write (and nothing to close)
+        serverEtag != null && serverEtag == clientEtag -> closeWith304(resultStream) // client etag matches, nothing to write
+        serverEtag == null && requestType == GET && config.autogenerateEtags -> generateEtagWriteAndClose(resultStream)
+        else -> writeToWrapperAndClose(resultStream)
+    }
+
+    private fun generateEtagWriteAndClose(resultStream: InputStream) {
+        // TODO: https://github.com/tipsy/javalin/issues/1505
+        val inputStream = resultStream.readBytes().inputStream().also { resultStream.close() }
+        val generatedEtag = Util.getChecksumAndReset(inputStream)
+        ctx.res.setHeader(ETAG, generatedEtag)
+        when (generatedEtag) {
+            clientEtag -> closeWith304(inputStream)
+            else -> writeToWrapperAndClose(inputStream)
         }
-        inputStream.copyTo(outputStreamWrapper)
-        inputStream.close()
+    }
+
+    private fun writeToWrapperAndClose(inputStream: InputStream) {
+        inputStream.copyTo(outputStreamWrapper).also { inputStream.close() }
         outputStreamWrapper.finalizeCompression()
     }
+
+    private fun closeWith304(inputStream: InputStream) = inputStream.close().also { ctx.res.status = 304 }
 
 }
 
