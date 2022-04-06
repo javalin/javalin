@@ -48,7 +48,7 @@ class JettyResourceHandler : JavalinResourceHandler {
                     httpResponse.contentType = null // Jetty will only set the content-type if it's null
                     handler.handle(target, baseRequest, httpRequest, httpResponse)
                     httpRequest.setAttribute("handled-as-static-file", true)
-                    (httpResponse as JavalinResponseWrapper).outputStream.finalizeCompression()
+                    httpResponse.outputStream?.close()
                     return true
                 }
             } catch (e: Exception) { // it's fine, we'll just 404

@@ -25,7 +25,7 @@ class JavalinResponseWrapper(private val ctx: Context, private val config: Javal
         if (resultStream == null) return
         val inputStream = writeETagIfNeeded(resultStream) ?: return
         inputStream.use { it.copyTo(outputStreamWrapper) }
-        outputStreamWrapper.finalizeCompression()
+        outputStreamWrapper.close()
     }
 
     private fun writeETagIfNeeded(resultStream: InputStream): InputStream? {
@@ -75,10 +75,10 @@ class OutputStreamWrapper(val config: JavalinConfig, val request: HttpServletReq
             CompressedStream(GZIP, LeveledGzipStream(response.outputStream, compression.gzip.level))
         else null
 
-    fun finalizeCompression() = compressedStream?.outputStream?.close()
     override fun write(byte: Int) = response.outputStream.write(byte)
     override fun setWriteListener(writeListener: WriteListener?) = response.outputStream.setWriteListener(writeListener)
     override fun isReady(): Boolean = response.outputStream.isReady
+    override fun close() { compressedStream?.outputStream?.close() }
 }
 
 private fun HttpServletResponse.isAllowedForCompression(excludedMimeTypesFromCompression: Collection<String>): Boolean =
