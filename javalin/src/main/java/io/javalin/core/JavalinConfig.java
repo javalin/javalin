@@ -23,6 +23,7 @@ import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.ContentType;
+import io.javalin.http.Context;
 import io.javalin.http.ContextResolver;
 import io.javalin.http.Handler;
 import io.javalin.http.RequestLogger;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -50,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
+import static io.javalin.http.ContextResolverKt.createDefaultFutureCallback;
 import static io.javalin.http.util.ContextUtil.maxRequestSizeKey;
 import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
@@ -81,6 +84,7 @@ public class JavalinConfig {
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
         @NotNull public CompressionStrategy compressionStrategy = CompressionStrategy.GZIP;
+        @NotNull public BiConsumer<Context, Object> defaultFutureCallback = createDefaultFutureCallback();
     }
     // @formatter:on
 

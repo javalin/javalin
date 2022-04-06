@@ -1,8 +1,8 @@
 package io.javalin.http
 
 import io.javalin.core.util.Header
-import javax.servlet.http.HttpServletRequest
-
+import java.io.InputStream
+import java.util.function.BiConsumer
 
 const val CONTEXT_RESOLVER_KEY = "contextResolver"
 
@@ -16,4 +16,13 @@ class ContextResolver {
     @JvmField var url: (Context) -> String = { it.req.requestURL.toString() }
     @JvmField var fullUrl: (Context) -> String = { it.url() + if (it.queryString() != null) "?" + it.queryString() else "" }
     // @formatter:on
+}
+
+internal fun createDefaultFutureCallback(): BiConsumer<Context, Any?> = BiConsumer { ctx, result ->
+    when (result) {
+        is Unit -> {}
+        is InputStream -> ctx.result(result)
+        is String -> ctx.result(result)
+        is Any -> ctx.json(result)
+    }
 }
