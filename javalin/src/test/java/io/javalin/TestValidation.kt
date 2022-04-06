@@ -265,17 +265,9 @@ class TestValidation {
 
         http.get("/?number=7&first_name=my-overly-long-first-name").apply {
             assertThat(status).isEqualTo(200)
-
-            val errors = jacksonObjectMapper().readValue<Map<String, List<String>>>(body)
-
-            assertThat(errors).size().isEqualTo(2)
-            assertThat(errors.keys).contains("number", "first_name")
-
-            assertThat(errors["number"]).size().isEqualTo(2)
-            assertThat(errors["number"]).contains("must be greater than 12.", "must be even.")
-
-            assertThat(errors["first_name"]).size().isEqualTo(2)
-            assertThat(errors["first_name"]).contains("cannot contain hyphens.", "cannot be longer than 10 characters.")
+            assertThat(body).contains("number", "first_name")
+            assertThat(body).contains("must be greater than 12.", "must be even.")
+            assertThat(body).contains("cannot contain hyphens.", "cannot be longer than 10 characters.")
         }
     }
 
