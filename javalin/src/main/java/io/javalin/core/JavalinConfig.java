@@ -55,7 +55,6 @@ import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
 public class JavalinConfig {
     // @formatter:off
-    @NotNull public Inner inner = new Inner();
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
@@ -65,6 +64,7 @@ public class JavalinConfig {
     @NotNull public String contextPath = "/";
     public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests
     @NotNull public Long asyncRequestTimeout = 0L;
+    @NotNull public Inner inner = new Inner();
 
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
