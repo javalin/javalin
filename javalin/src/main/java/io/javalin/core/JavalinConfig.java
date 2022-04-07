@@ -35,10 +35,8 @@ import io.javalin.jetty.JettyUtil;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -67,19 +65,6 @@ public class JavalinConfig {
     @NotNull public String contextPath = "/";
     public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests
     @NotNull public Long asyncRequestTimeout = 0L;
-    public int minSizeForCompression = 1500; // 1500 is the size of a packet, compressing responses smaller than this serves no purpose
-    @NotNull public List<String> excludedMimeTypesFromCompression = Arrays.asList(
-        "image/",
-        "audio/",
-        "video/",
-        "application/compress",
-        "application/zip",
-        "application/gzip",
-        "application/bzip2",
-        "application/brotli",
-        "application/x-xz",
-        "application/x-rar-compressed"
-    );
 
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters

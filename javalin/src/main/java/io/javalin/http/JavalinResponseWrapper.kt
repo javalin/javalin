@@ -10,6 +10,9 @@ import io.javalin.core.util.Header.IF_NONE_MATCH
 import io.javalin.core.util.Util
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HttpCode.NOT_MODIFIED
+import io.javalin.jetty.JettyPrecompressingResourceHandler.CompressType
+import io.javalin.jetty.JettyPrecompressingResourceHandler.CompressType.BR
+import io.javalin.jetty.JettyPrecompressingResourceHandler.CompressType.GZIP
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
@@ -63,22 +66,25 @@ class OutputStreamWrapper(val config: JavalinConfig, val request: HttpServletReq
     private var compressedStream: CompressedStream? = null
 
     override fun write(bytes: ByteArray, offset: Int, length: Int) {
-        if (compressedStream == null && length >= config.minSizeForCompression && response.isAllowedForCompression(config.excludedMimeTypesFromCompression)) {
-            compressedStream = createBrotliStream() ?: createGzipStream()
-            compressedStream?.run { response.setHeader(CONTENT_ENCODING, name) }
+        if (compressedStream == null && length >= compression.minSizeForCompression && isAllowedForCompression()) {
+            compressedStream = tryCreateBrotliStream() ?: tryCreateGzipStream()
+            compressedStream?.apply { response.setHeader(CONTENT_ENCODING, type.typeName) }
         }
         (compressedStream?.outputStream ?: response.outputStream).write(bytes, offset, length) // fall back to default stream if no compression
     }
 
-    fun createBrotliStream(): CompressedStream? =
-        if (compression.brotli != null && request.getHeader(ACCEPT_ENCODING)?.contains(BR, ignoreCase = true) == true)
+    fun tryCreateBrotliStream(): CompressedStream? =
+        if (compression.brotli != null && request.getHeader(ACCEPT_ENCODING)?.contains(BR.typeName, ignoreCase = true) == true)
             CompressedStream(BR, LeveledBrotliStream(response.outputStream, compression.brotli.level))
         else null
 
-    fun createGzipStream(): CompressedStream? =
-        if (compression.gzip != null && request.getHeader(ACCEPT_ENCODING)?.contains(GZIP, ignoreCase = true) == true)
+    fun tryCreateGzipStream(): CompressedStream? =
+        if (compression.gzip != null && request.getHeader(ACCEPT_ENCODING)?.contains(GZIP.typeName, ignoreCase = true) == true)
             CompressedStream(GZIP, LeveledGzipStream(response.outputStream, compression.gzip.level))
         else null
+
+    private fun isAllowedForCompression(): Boolean =
+        response.contentType?.let { compression.excludedMimeTypesFromCompression.none { excluded -> it.contains(excluded, ignoreCase = true) } } ?: true
 
     override fun write(byte: Int) = response.outputStream.write(byte)
     override fun setWriteListener(writeListener: WriteListener?) = response.outputStream.setWriteListener(writeListener)
@@ -86,17 +92,12 @@ class OutputStreamWrapper(val config: JavalinConfig, val request: HttpServletReq
     override fun close() { compressedStream?.outputStream?.close() }
 }
 
-private fun HttpServletResponse.isAllowedForCompression(excludedMimeTypesFromCompression: Collection<String>): Boolean =
-    contentType?.let { excludedMimeTypesFromCompression.none { excluded -> it.contains(excluded, ignoreCase = true) } } ?: true
+data class CompressedStream(val type: CompressType, val outputStream: OutputStream)
 
-data class CompressedStream(val name: String, val outputStream: OutputStream)
-
-private const val GZIP = "gzip"
 class LeveledGzipStream(out: OutputStream, level: Int) : GZIPOutputStream(out) {
     init {
         this.def.setLevel(level)
     }
 }
 
-private const val BR = "br"
 class LeveledBrotliStream(out: OutputStream, level: Int) : BrotliOutputStream(out, Encoder.Parameters().setQuality(level))

@@ -9,6 +9,7 @@ package io.javalin
 import com.nixxcode.jvmbrotli.common.BrotliLoader
 import com.nixxcode.jvmbrotli.dec.BrotliInputStream
 import io.javalin.core.compression.Brotli
+import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.FileUtil
 import io.javalin.core.util.Header
@@ -37,29 +38,27 @@ class TestCompression {
 
     private fun customCompresionApp(limit: Int): Javalin =
         Javalin.create {
-            it.minSizeForCompression = limit
+            it.inner.compressionStrategy.minSizeForCompression = limit
             it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
 
     private val fullCompressionApp by lazy {
         Javalin.create {
-            it.minSizeForCompression = testDocument.length
-            it.compressionStrategy(Brotli(), Gzip())
+            it.compressionStrategy(CompressionStrategy(Brotli(), Gzip()).apply { minSizeForCompression = testDocument.length })
             it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
     }
 
     private val brotliDisabledApp by lazy {
         Javalin.create {
-            it.minSizeForCompression = testDocument.length
-            it.compressionStrategy(null, Gzip())
+            it.compressionStrategy(CompressionStrategy(null, Gzip()).apply { minSizeForCompression = testDocument.length })
             it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
     }
 
     private val etagApp by lazy {
         Javalin.create {
-            it.minSizeForCompression = testDocument.length
+            it.inner.compressionStrategy.minSizeForCompression = testDocument.length
             it.addStaticFiles("/public", Location.CLASSPATH)
             it.autogenerateEtags = true
         }.addTestEndpoints()
@@ -155,7 +154,7 @@ class TestCompression {
     @Test
     fun `does gzip when CompressionStrategy not set`() {
         val defaultApp = Javalin.create {
-            it.minSizeForCompression = testDocument.length
+            it.inner.compressionStrategy.minSizeForCompression = testDocument.length
             it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
         TestUtil.test(defaultApp) { _, http ->
