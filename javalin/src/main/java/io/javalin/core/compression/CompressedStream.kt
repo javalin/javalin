@@ -2,15 +2,14 @@ package io.javalin.core.compression
 
 import com.nixxcode.jvmbrotli.enc.BrotliOutputStream
 import com.nixxcode.jvmbrotli.enc.Encoder
+import io.javalin.core.compression.CompressionType.BR
+import io.javalin.core.compression.CompressionType.GZIP
 import io.javalin.core.util.Header
 import io.javalin.http.Context
-import io.javalin.jetty.JettyPrecompressingResourceHandler.CompressType
-import io.javalin.jetty.JettyPrecompressingResourceHandler.CompressType.BR
-import io.javalin.jetty.JettyPrecompressingResourceHandler.CompressType.GZIP
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 
-data class CompressedStream(val type: CompressType, val outputStream: OutputStream) {
+data class CompressedStream(val type: CompressionType, val outputStream: OutputStream) {
     companion object {
         fun tryBrotli(compression: CompressionStrategy, ctx: Context): CompressedStream? =
             if (compression.brotli != null && ctx.header(Header.ACCEPT_ENCODING)?.contains(BR.typeName, ignoreCase = true) == true)

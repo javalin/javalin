@@ -1,5 +1,7 @@
 package io.javalin.jetty
 
+import io.javalin.core.compression.CompressionStrategy
+import io.javalin.core.compression.CompressionType
 import io.javalin.core.compression.LeveledBrotliStream
 import io.javalin.core.compression.LeveledGzipStream
 import io.javalin.core.util.Header
@@ -14,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-
 object JettyPrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
@@ -22,32 +23,21 @@ object JettyPrecompressingResourceHandler {
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
-    val excludedMimeTypes = setOf(
-        "image/",
-        "audio/",
-        "video/",
-        "application/compress",
-        "application/zip",
-        "application/gzip",
-        "application/bzip2",
-        "application/brotli",
-        "application/x-xz",
-        "application/x-rar-compressed"
-    )
+    val excludedMimeTypes = CompressionStrategy().excludedMimeTypesFromCompression
 
     fun handle(resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
         if (resource.exists() && !resource.isDirectory) {
             val target = req.getAttribute("jetty-target") as String
-            var acceptCompressType = CompressType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
+            var acceptCompressType = CompressionType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
             val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
             if (contentType == null || excludedMimeType(contentType)) {
-                acceptCompressType = CompressType.NONE
+                acceptCompressType = CompressionType.NONE
             }
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
             res.setContentLength(resultByteArray.size)
             res.setHeader(Header.CONTENT_TYPE, contentType)
 
-            if (acceptCompressType != CompressType.NONE)
+            if (acceptCompressType != CompressionType.NONE)
                 res.setHeader(Header.CONTENT_ENCODING, acceptCompressType.typeName)
 
             val weakETag = resource.weakETag // jetty resource use weakETag too
@@ -65,7 +55,7 @@ object JettyPrecompressingResourceHandler {
         return false
     }
 
-    private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressType): ByteArray? {
+    private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressionType): ByteArray? {
         if (resource.length() > resourceMaxSize) {
             JavalinLogger.warn(
                 "Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
@@ -76,14 +66,14 @@ object JettyPrecompressingResourceHandler {
         return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
     }
 
-    private fun getCompressedByteArray(resource: Resource, type: CompressType): ByteArray {
+    private fun getCompressedByteArray(resource: Resource, type: CompressionType): ByteArray {
         val fileInput = resource.inputStream
         val byteArrayOutputStream = ByteArrayOutputStream()
         val outputStream: OutputStream = when {
-            type == CompressType.GZIP -> {
+            type == CompressionType.GZIP -> {
                 LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
             }
-            type == CompressType.BR && Util.dependencyIsPresent(OptionalDependency.JVMBROTLI) -> {
+            type == CompressionType.BR && Util.dependencyIsPresent(OptionalDependency.JVMBROTLI) -> {
                 LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
             }
             else -> byteArrayOutputStream
@@ -97,19 +87,4 @@ object JettyPrecompressingResourceHandler {
     private fun excludedMimeType(mimeType: String) =
         if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
-    enum class CompressType(val typeName: String, val extension: String) {
-        GZIP("gzip", ".gz"),
-        BR("br", ".br"),
-        NONE("", "");
-
-        fun acceptEncoding(acceptEncoding: String): Boolean {
-            return acceptEncoding.contains(typeName, ignoreCase = true)
-        }
-
-        companion object {
-            fun getByAcceptEncoding(acceptEncoding: String): CompressType {
-                return values().find { it.acceptEncoding(acceptEncoding) } ?: NONE
-            }
-        }
-    }
 }
