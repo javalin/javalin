@@ -9,11 +9,11 @@ package io.javalin
 import com.nixxcode.jvmbrotli.common.BrotliLoader
 import com.nixxcode.jvmbrotli.dec.BrotliInputStream
 import io.javalin.core.compression.Brotli
+import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.FileUtil
 import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
-import io.javalin.http.OutputStreamWrapper
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
@@ -23,7 +23,6 @@ import okhttp3.Request
 import okhttp3.Response
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions.assumeTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.zip.GZIPInputStream
 
@@ -32,30 +31,34 @@ class TestCompression {
     private data class SillyObject(var fieldOne: String, var fieldTwo: String, var fieldThree: String)
 
     private fun getSomeObjects(numberOfObjects: Int) = (1..numberOfObjects).map { i -> SillyObject("f$i", "f$i", "f$i") }.toList()
+    private val tinyLength = getSomeObjects(10).toString().length
+    private val hugeLength = getSomeObjects(1000).toString().length
 
     private val testDocument = FileUtil.readResource("/public/html.html")
 
-    @BeforeEach
-    fun reset() {
-        OutputStreamWrapper.minSizeForCompression = testDocument.length
-    }
-
-    val fullCompressionApp by lazy {
+    private fun customCompresionApp(limit: Int): Javalin =
         Javalin.create {
-            it.compressionStrategy(Brotli(), Gzip())
+            it.inner.compressionStrategy.minSizeForCompression = limit
+            it.addStaticFiles("/public", Location.CLASSPATH)
+        }.addTestEndpoints()
+
+    private val fullCompressionApp by lazy {
+        Javalin.create {
+            it.compressionStrategy(CompressionStrategy(Brotli(), Gzip()).apply { minSizeForCompression = testDocument.length })
             it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
     }
 
-    val brotliDisabledApp by lazy {
+    private val brotliDisabledApp by lazy {
         Javalin.create {
-            it.compressionStrategy(null, Gzip())
+            it.compressionStrategy(CompressionStrategy(null, Gzip()).apply { minSizeForCompression = testDocument.length })
             it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
     }
 
-    val etagApp by lazy {
+    private val etagApp by lazy {
         Javalin.create {
+            it.inner.compressionStrategy.minSizeForCompression = testDocument.length
             it.addStaticFiles("/public", Location.CLASSPATH)
             it.autogenerateEtags = true
         }.addTestEndpoints()
@@ -65,9 +68,6 @@ class TestCompression {
         get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
         get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
     }
-
-    private val tinyLength = getSomeObjects(10).toString().length
-    private val hugeLength = getSomeObjects(1000).toString().length
 
     @Test
     fun `doesn't compress when Accepts is not set`() = TestUtil.test(fullCompressionApp) { _, http ->
@@ -79,12 +79,13 @@ class TestCompression {
     }
 
     @Test
-    fun `doesn't compress when response is too small`() = TestUtil.test(fullCompressionApp) { _, http ->
-        OutputStreamWrapper.minSizeForCompression = tinyLength + 1 // Ensure tiny response length is too short for compression
+    fun `doesn't compress when response is too small`() = TestUtil.test(customCompresionApp(tinyLength + 1)) { _, http -> // Ensure tiny response length is too short for compression
         assertThat(Unirest.get(http.origin + "/tiny").asString().body.length).isEqualTo(tinyLength)
         assertThat(getResponse(http.origin, "/tiny", "br, gzip").headers.get(Header.CONTENT_ENCODING)).isNull()
+    }
 
-        OutputStreamWrapper.minSizeForCompression = testDocument.length + 1 // Ensure static file length is too short for compression
+    @Test
+    fun `doesn't compress small static files`() = TestUtil.test(customCompresionApp(testDocument.length + 1)) { _, http ->  // Ensure static file length is too short for compression
         assertThat(Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "br, gzip").asString().body.length).isEqualTo(testDocument.length)
         assertThat(getResponse(http.origin, "/html.html", "br, gzip").headers.get(Header.CONTENT_ENCODING)).isNull()
     }
@@ -153,6 +154,7 @@ class TestCompression {
     @Test
     fun `does gzip when CompressionStrategy not set`() {
         val defaultApp = Javalin.create {
+            it.inner.compressionStrategy.minSizeForCompression = testDocument.length
             it.addStaticFiles("/public", Location.CLASSPATH)
         }.addTestEndpoints()
         TestUtil.test(defaultApp) { _, http ->

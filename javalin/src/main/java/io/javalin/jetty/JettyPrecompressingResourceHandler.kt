@@ -1,11 +1,11 @@
 package io.javalin.jetty
 
+import io.javalin.core.compression.LeveledBrotliStream
+import io.javalin.core.compression.LeveledGzipStream
 import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
-import io.javalin.http.LeveledBrotliStream
-import io.javalin.http.LeveledGzipStream
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream

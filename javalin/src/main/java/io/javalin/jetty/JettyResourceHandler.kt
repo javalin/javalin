@@ -8,7 +8,6 @@ package io.javalin.jetty
 
 import io.javalin.core.util.JavalinException
 import io.javalin.core.util.JavalinLogger
-import io.javalin.http.JavalinResponseWrapper
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import org.eclipse.jetty.server.Request
@@ -46,9 +45,8 @@ class JettyResourceHandler : JavalinResourceHandler {
                         return true
                     }
                     httpResponse.contentType = null // Jetty will only set the content-type if it's null
-                    handler.handle(target, baseRequest, httpRequest, httpResponse)
+                    httpResponse.outputStream.use { handler.handle(target, baseRequest, httpRequest, httpResponse) }
                     httpRequest.setAttribute("handled-as-static-file", true)
-                    (httpResponse as JavalinResponseWrapper).outputStream.finalizeCompression()
                     return true
                 }
             } catch (e: Exception) { // it's fine, we'll just 404
