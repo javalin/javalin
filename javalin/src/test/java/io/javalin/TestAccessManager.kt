@@ -21,10 +21,10 @@ class TestAccessManager {
 
     enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
-    private val managedApp = Javalin.create { config ->
-        config.accessManager { handler, ctx, roles ->
+    private fun managedApp() = Javalin.create { config ->
+        config.accessManager { handler, ctx, routeRoles ->
             val userRole = ctx.queryParam("role")
-            if (userRole != null && roles.contains(MyRoles.valueOf(userRole))) {
+            if (userRole != null && MyRoles.valueOf(userRole) in routeRoles) {
                 handler.handle(ctx)
             } else {
                 ctx.status(401).result("Unauthorized")
@@ -39,7 +39,7 @@ class TestAccessManager {
     }
 
     @Test
-    fun `AccessManager can restrict access for instance`() = TestUtil.test(managedApp) { app, http ->
+    fun `AccessManager can restrict access for instance`() = TestUtil.test(managedApp()) { app, http ->
         app.get("/secured", { it.result("Hello") }, ROLE_ONE, ROLE_TWO)
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/secured", "ROLE_TWO")).isEqualTo("Hello")
@@ -47,7 +47,7 @@ class TestAccessManager {
     }
 
     @Test
-    fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test(managedApp) { app, http ->
+    fun `AccessManager can restrict access for ApiBuilder`() = TestUtil.test(managedApp()) { app, http ->
         app.routes {
             get("/static-secured", { it.result("Hello") }, ROLE_ONE, ROLE_TWO)
         }
@@ -57,7 +57,7 @@ class TestAccessManager {
     }
 
     @Test
-    fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp) { app, http ->
+    fun `AccessManager can restrict access for ApiBuilder crud`() = TestUtil.test(managedApp()) { app, http ->
         app.routes {
             crud("/users/{userId}", TestApiBuilder.UserController(), ROLE_ONE, ROLE_TWO)
         }

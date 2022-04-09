@@ -126,13 +126,13 @@ class TestApiBuilder {
         val app1 = Javalin.create().start(0)
         val app2 = Javalin.create().start(0)
         app1.routes { get("/hello-1") { it.result("Hello-1") } }
-        app1.routes { get("/hello-2") { it.result("Hello-2") } }
-        app2.routes { get("/hello-1") { it.result("Hello-1") } }
         app2.routes { get("/hello-2") { it.result("Hello-2") } }
+        app2.routes { get("/hello-3") { it.result("Hello-3") } }
+        app1.routes { get("/hello-4") { it.result("Hello-4") } }
         assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-1").asString().body).isEqualTo("Hello-1")
-        assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-2").asString().body).isEqualTo("Hello-2")
-        assertThat(Unirest.get("http://localhost:" + app2.port() + "/hello-1").asString().body).isEqualTo("Hello-1")
         assertThat(Unirest.get("http://localhost:" + app2.port() + "/hello-2").asString().body).isEqualTo("Hello-2")
+        assertThat(Unirest.get("http://localhost:" + app2.port() + "/hello-3").asString().body).isEqualTo("Hello-3")
+        assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-4").asString().body).isEqualTo("Hello-4")
         app1.stop()
         app2.stop()
     }

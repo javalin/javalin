@@ -23,20 +23,20 @@ class TestAppAttributes {
     }
 
     private val attributedJavalin = Javalin.create().apply {
-        attribute(MyJson::class.java.name, MyJson())
-        attribute(MyOtherThing::class.java.name, MyOtherThing())
+        attribute("MyJson", MyJson())
+        attribute("MyOtherThing", MyOtherThing())
     }
 
     @Test
     fun `app attributes can be accessed through the app`() = TestUtil.test(attributedJavalin) { app, _ ->
-        assertThat(app.attribute<MyOtherThing>(MyOtherThing::class.java.name).test).isEqualTo("Test")
+        assertThat(app.attribute<MyOtherThing>("MyOtherThing").test).isEqualTo("Test")
     }
 
     @Test
     fun `app attributes can be accessed through the Context`() = TestUtil.test(attributedJavalin) { app, http ->
         val gson = GsonBuilder().create()
         app.get("/") { ctx ->
-            val rendered = ctx.appAttribute<MyJson>(MyJson::class.java.name).render(SerializableObject())
+            val rendered = ctx.appAttribute<MyJson>("MyJson").render(SerializableObject())
             ctx.result(rendered)
         }
         assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))

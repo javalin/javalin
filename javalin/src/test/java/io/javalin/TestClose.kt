@@ -14,9 +14,7 @@ class TestClose {
     @Test
     fun useStopsServer() {
         val app = Javalin.create()
-
         app.start(0).use { }
-
         assertThat(app.jettyServer.server().isStopped).isTrue
     }
 
@@ -27,9 +25,7 @@ class TestClose {
             it.serverStopping { log += "Stopping" }
             it.serverStopped { log += "Stopped" }
         }
-
         app.start(0).use { }
-
         assertThat(log).isEqualTo("StoppingStopped")
     }
 
@@ -40,9 +36,7 @@ class TestClose {
             it.serverStopping { log += "Stopping" }
             it.serverStopped { log += "Stopped" }
         }
-
         app.start(0).use { it.close() }
-
         assertThat(app.jettyServer.server().isStopped).isTrue
         assertThat(log).isEqualTo("StoppingStopped")
     }
