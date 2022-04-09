@@ -14,6 +14,7 @@ import io.javalin.plugin.json.JsonMapper
 import io.javalin.testing.NonSerializableObject
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
+import io.javalin.testing.fasterJacksonMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.InputStream
@@ -21,7 +22,7 @@ import java.time.Instant
 
 class TestJson {
 
-    val serializableObjectString = JavalinJackson().toJsonString(SerializableObject())
+    val serializableObjectString = fasterJacksonMapper.toJsonString(SerializableObject())
 
     @Test
     fun `default mapper maps object to json`() = TestUtil.test { app, http ->
@@ -49,7 +50,7 @@ class TestJson {
     fun `default mapper doesn't deadlock when streaming large objects`() = TestUtil.test { app, http ->
         val big = mapOf("big" to "1".repeat(100_000))
         app.get("/") { it.jsonStream(big) }
-        assertThat(http.getBody("/")).isEqualTo(JavalinJackson().toJsonString(big))
+        assertThat(http.getBody("/")).isEqualTo(fasterJacksonMapper.toJsonString(big))
     }
 
     @Test

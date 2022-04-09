@@ -147,16 +147,16 @@ class TestTemplates {
 
     @Test
     fun `base Model works`() = TestUtil.test { app, http ->
-        JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap()) }
-        app.get("/hello/{pp}") { it.render("/templates/freemarker/test-with-base.ftl", model("message", "Hello Freemarker!")) }
-        assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>bar</h3>")
+        JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel }
+        app.get("/") { it.render("/templates/freemarker/test-with-base.ftl") }
+        assertThat(http.getBody("/")).contains("<h3>bar</h3>")
     }
 
     @Test
     fun `base model overwrite works`() = TestUtil.test { app, http ->
-        JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel + mapOf("queryParams" to ctx.queryParamMap(), "pathParams" to ctx.pathParamMap()) }
-        app.get("/hello/{pp}") { it.render("/templates/freemarker/test-with-base.ftl", model("foo", "baz")) }
-        assertThat(http.getBody("/hello/world?im=good")).isEqualTo("<h1>good</h1><h2>world</h2><h3>baz</h3>")
+        JavalinRenderer.baseModelFunction = { ctx -> defaultBaseModel }
+        app.get("/") { it.render("/templates/freemarker/test-with-base.ftl", model("foo", "baz")) }
+        assertThat(http.getBody("/")).contains("<h3>baz</h3>")
     }
 
     data class JteTestPage(val hello: String, val world: String)
