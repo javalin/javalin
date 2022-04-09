@@ -58,7 +58,7 @@ class TestWebBrowser {
 
     @Test
     fun `hello world works in chrome`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.result("Hello, Selenium!") }
+        app.get("/hello") { it.result("Hello, Selenium!") }
         driver.get(http.origin + "/hello")
         assertThat(driver.pageSource).contains("Hello, Selenium")
     }
@@ -70,7 +70,7 @@ class TestWebBrowser {
             it.compressionStrategy(Brotli(4), null)
             it.enableDevLogging()
         }.start(0)
-        app.get("/hello") { ctx -> ctx.result(payload) }
+        app.get("/hello") { it.result(payload) }
         val logResult = captureStdOut { driver.get("http://localhost:" + app.port() + "/hello") }
         assertThat(driver.pageSource).contains(payload)
         assertThat(logResult).contains("Content-Encoding=br")

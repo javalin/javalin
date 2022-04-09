@@ -65,8 +65,8 @@ class TestCompression {
     }
 
     fun Javalin.addTestEndpoints() = this.apply {
-        get("/huge") { ctx -> ctx.result(getSomeObjects(1000).toString()) }
-        get("/tiny") { ctx -> ctx.result(getSomeObjects(10).toString()) }
+        get("/huge") { it.result(getSomeObjects(1000).toString()) }
+        get("/tiny") { it.result(getSomeObjects(10).toString()) }
     }
 
     @Test

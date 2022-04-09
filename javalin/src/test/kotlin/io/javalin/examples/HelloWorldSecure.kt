@@ -27,7 +27,7 @@ fun main() {
         }
     }.start()
 
-    app.get("/") { ctx -> ctx.result("Hello World") } // valid endpoint for both connectors
+    app.get("/") { it.result("Hello World") } // valid endpoint for both connectors
 }
 
 private fun sslContextFactory(): SslContextFactory {

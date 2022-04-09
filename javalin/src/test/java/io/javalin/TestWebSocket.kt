@@ -277,7 +277,7 @@ class TestWebSocket {
 
     @Test
     fun `getting session attributes works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.sessionAttribute("session-key", "session-value") }
+        app.get("/") { it.sessionAttribute("session-key", "session-value") }
         app.ws("/") { ws ->
             ws.onConnect {
                 app.logger().log.add(it.sessionAttribute("session-key")!!)

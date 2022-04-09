@@ -55,7 +55,7 @@ class TestLogging {
     }
 
     private fun runTest(app: Javalin) {
-        app.get("/blocking") { ctx -> ctx.result("Hello Blocking World!") }
+        app.get("/blocking") { it.result("Hello Blocking World!") }
         app.get("/async") { ctx ->
             val future = CompletableFuture<String>()
             Executors.newSingleThreadScheduledExecutor().schedule<Boolean>({ future.complete("Hello Async World!") }, 10, TimeUnit.MILLISECONDS)

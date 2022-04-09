@@ -18,13 +18,13 @@ class TestBodyReading {
 
     @Test
     fun `reading body as bytes works`() = TestUtil.test { app, http ->
-        app.post("/body-reader") { ctx -> ctx.result(ByteArrayInputStream(ctx.bodyAsBytes())) }
+        app.post("/body-reader") { it.result(ByteArrayInputStream(it.bodyAsBytes())) }
         assertThat(http.post("/body-reader").body("my-body").asString().body).isEqualTo("my-body")
     }
 
     @Test
     fun `reading query-params then body works`() = TestUtil.test { app, http ->
-        app.post("/body-reader") { ctx -> ctx.result(ctx.body() + "|" + ctx.queryParam("qp")!!) }
+        app.post("/body-reader") { it.result(it.body() + "|" + it.queryParam("qp")!!) }
         val response = http.post("/body-reader")
             .queryString("qp", "queryparam")
             .body("body")
@@ -34,7 +34,7 @@ class TestBodyReading {
 
     @Test
     fun `reading body then query-params works`() = TestUtil.test { app, http ->
-        app.post("/body-reader") { ctx -> ctx.result(ctx.queryParam("qp")!! + "|" + ctx.body()) }
+        app.post("/body-reader") { it.result(it.queryParam("qp")!! + "|" + it.body()) }
         val response = http.post("/body-reader")
             .queryString("qp", "queryparam")
             .body("body")
@@ -44,21 +44,21 @@ class TestBodyReading {
 
     @Test
     fun `reading form-params then body works`() = TestUtil.test { app, http ->
-        app.post("/body-reader") { ctx -> ctx.result(ctx.formParam("username")!! + "|" + ctx.body()) }
+        app.post("/body-reader") { it.result(it.formParam("username")!! + "|" + it.body()) }
         val response = http.post("/body-reader").body("username=some-user").asString()
         assertThat(response.body).isEqualTo("some-user|username=some-user")
     }
 
     @Test
     fun `reading body then form-params works`() = TestUtil.test { app, http ->
-        app.post("/body-reader") { ctx -> ctx.result(ctx.body() + "|" + ctx.formParam("username")!!) }
+        app.post("/body-reader") { it.result(it.body() + "|" + it.formParam("username")!!) }
         val response = http.post("/body-reader").body("username=some-user").asString()
         assertThat(response.body).isEqualTo("username=some-user|some-user")
     }
 
     @Test
     fun `reading unicode form-params works`() = TestUtil.test { app, http ->
-        app.post("/unicode") { ctx -> ctx.result(ctx.formParam("unicode")!!) }
+        app.post("/unicode") { it.result(it.formParam("unicode")!!) }
         val responseBody = http.post("/unicode")
             .body("unicode=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
             .asString().body
@@ -90,7 +90,7 @@ class TestBodyReading {
 
     @Test
     fun `reading body as stream works`() = TestUtil.test { app, http ->
-        app.post("/body-stream-reader") { ctx -> ctx.result(ctx.bodyAsInputStream()) }
+        app.post("/body-stream-reader") { it.result(it.bodyAsInputStream()) }
         assertThat(http.post("/body-stream-reader").body("my-body").asString().body).isEqualTo("my-body")
     }
 

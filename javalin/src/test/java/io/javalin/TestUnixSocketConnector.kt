@@ -40,7 +40,7 @@ class TestUnixSocketConnector {
             }
         }
 
-        unixSocketJavalin.get(testPath) { ctx -> ctx.status(200).result(expectedResultString) }
+        unixSocketJavalin.get(testPath) { it.status(200).result(expectedResultString) }
 
         TestUtil.test(unixSocketJavalin) { _, _ ->
 

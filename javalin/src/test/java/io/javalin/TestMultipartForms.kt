@@ -35,7 +35,7 @@ class TestMultipartForms {
 
     @Test
     fun `text is uploaded correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx -> ctx.result(IOUtils.toString(ctx.uploadedFile("upload")!!.content, StandardCharsets.UTF_8)) }
+        app.post("/test-upload") { it.result(IOUtils.toString(it.uploadedFile("upload")!!.content, StandardCharsets.UTF_8)) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/text.txt"))
             .asString()
@@ -84,7 +84,7 @@ class TestMultipartForms {
 
     @Test
     fun `multiple files are handled correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx -> ctx.result(ctx.uploadedFiles("upload").size.toString()) }
+        app.post("/test-upload") { it.result(it.uploadedFiles("upload").size.toString()) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/image.png"))
             .field("upload", File("src/test/resources/upload-test/sound.mp3"))
@@ -139,7 +139,7 @@ class TestMultipartForms {
 
     @Test
     fun `getting all files doesn't throw for non multipart request`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx -> ctx.result(ctx.uploadedFiles().joinToString("\n")) }
+        app.post("/test-upload") { it.result(it.uploadedFiles().joinToString("\n")) }
 
         val response = http.post("/test-upload")
             .header("content-type", ContentType.PLAIN)
@@ -151,7 +151,7 @@ class TestMultipartForms {
 
     @Test
     fun `mixing files and text fields works`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload")!!.filename) }
+        app.post("/test-upload") { it.result(it.formParam("field") + " and " + it.uploadedFile("upload")!!.filename) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/image.png"))
             .field("field", "text-value")
@@ -161,7 +161,7 @@ class TestMultipartForms {
 
     @Test
     fun `mixing files and text fields works with multiple fields`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.formParam("field2")) }
+        app.post("/test-upload") { it.result(it.formParam("field") + " and " + it.formParam("field2")) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/image.png"))
             .field("field", "text-value")
@@ -172,7 +172,7 @@ class TestMultipartForms {
 
     @Test
     fun `unicode text-fields work`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { ctx -> ctx.result(ctx.formParam("field") + " and " + ctx.uploadedFile("upload")!!.filename) }
+        app.post("/test-upload") { it.result(it.formParam("field") + " and " + it.uploadedFile("upload")!!.filename) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/text.txt"))
             .field("field", "♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")

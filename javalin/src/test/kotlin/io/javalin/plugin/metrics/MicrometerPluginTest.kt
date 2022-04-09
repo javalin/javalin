@@ -14,7 +14,7 @@ class MicrometerPluginTest {
         val registry = SimpleMeterRegistry()
 
         TestUtil.test(Javalin.create { it.registerPlugin(MicrometerPlugin(registry)) }) { app, http ->
-            app.get("/test") { ctx -> ctx.json("Hello world") }
+            app.get("/test") { it.json("Hello world") }
             repeat(10) {
                 http.get("/test")
             }

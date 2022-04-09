@@ -9,7 +9,7 @@ class TestServerHeader {
 
     @Test
     fun `server header is not set by default`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.status(200).result("Hello world") }
+        app.get("/hello") { it.status(200).result("Hello world") }
         val response = http.call(HttpMethod.GET, "/hello")
         assertThat(response.headers.getFirst("Server")).isEqualTo("")
     }

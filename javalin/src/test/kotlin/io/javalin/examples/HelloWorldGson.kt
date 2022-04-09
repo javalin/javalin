@@ -21,6 +21,6 @@ fun main() {
     }
 
     val app = Javalin.create { it.jsonMapper(gsonMapper) }.start(7070)
-    app.get("/") { ctx -> ctx.json(Arrays.asList("a", "b", "c")) }
+    app.get("/") { it.json(Arrays.asList("a", "b", "c")) }
 
 }

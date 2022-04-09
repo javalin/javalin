@@ -33,7 +33,7 @@ class TestCors {
     fun `enableCorsForOrigin enables cors for specific origins`() {
         val javalin = Javalin.create { it.enableCorsForOrigin("origin-1", "referer-1") }
         TestUtil.test(javalin) { app, http ->
-            app.get("/") { ctx -> ctx.result("Hello") }
+            app.get("/") { it.result("Hello") }
             assertThat(Unirest.get(http.origin).asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isEmpty()
             assertThat(Unirest.get(http.origin).header(ORIGIN, "origin-1").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("origin-1")
             assertThat(Unirest.get(http.origin).header(REFERER, "referer-1").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("referer-1")
@@ -44,7 +44,7 @@ class TestCors {
     fun `rejectCorsForInvalidOrigin reject where origin doesn't match`() {
         val javalin = Javalin.create { it.enableCorsForOrigin("origin-1.com") }
         TestUtil.test(javalin) { app, http ->
-            app.get("/") { ctx -> ctx.result("Hello") }
+            app.get("/") { it.result("Hello") }
             assertThat(Unirest.get(http.origin).header(ORIGIN, "origin-2.com").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isEmpty()
             assertThat(Unirest.get(http.origin).header(ORIGIN, "origin-1.com.au").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isEmpty()
         }
@@ -54,7 +54,7 @@ class TestCors {
     fun `enableCorsForAllOrigins enables cors for all origins`() {
         val javalin = Javalin.create { it.enableCorsForAllOrigins() }
         TestUtil.test(javalin) { app, http ->
-            app.get("/") { ctx -> ctx.result("Hello") }
+            app.get("/") { it.result("Hello") }
             assertThat(Unirest.get(http.origin).header("Origin", "some-origin").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("some-origin")
             assertThat(Unirest.get(http.origin).header("Origin", "some-origin").asString().headers[ACCESS_CONTROL_ALLOW_CREDENTIALS]!![0]).isEqualTo("true") // cookies allowed
             assertThat(Unirest.get(http.origin).header("Referer", "some-referer").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("some-referer")
@@ -71,7 +71,7 @@ class TestCors {
             }
         }
         TestUtil.test(accessManagedCorsApp) { app, http ->
-            app.get("/", { ctx -> ctx.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
+            app.get("/", { it.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
             assertThat(http.get("/").body).isEqualTo("Unauthorized")
             val response = Unirest.options(http.origin)
                 .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
@@ -87,7 +87,7 @@ class TestCors {
     fun `enableCorsForAllOrigins allows options endpoint mapping`() {
         val javalin = Javalin.create { it.enableCorsForAllOrigins() }
         TestUtil.test(javalin) { app, http ->
-            app.options("/") { ctx -> ctx.result("Hello") }
+            app.options("/") { it.result("Hello") }
             val response = Unirest.options(http.origin)
                 .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
                 .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")

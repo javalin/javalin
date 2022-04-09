@@ -81,7 +81,7 @@ class TestHttpResponseExceptions {
     @Test
     fun `throwing HttpResponseExceptions in before-handler works`() = TestUtil.test { app, http ->
         app.before("/admin/*") { throw UnauthorizedResponse() }
-        app.get("/admin/protected") { ctx -> ctx.result("Protected resource") }
+        app.get("/admin/protected") { it.result("Protected resource") }
         assertThat(http.get("/admin/protected").status).isEqualTo(401)
         assertThat(http.getBody("/admin/protected")).isNotEqualTo("Protected resource")
     }
@@ -96,7 +96,7 @@ class TestHttpResponseExceptions {
     @Test
     fun `after-handlers execute after HttpResponseExceptions`() = TestUtil.test { app, http ->
         app.get("/some-route") { throw UnauthorizedResponse("Stop!") }
-        app.after { ctx -> ctx.status(418) }
+        app.after { it.status(418) }
         assertThat(http.get("/some-route").status).isEqualTo(418)
         assertThat(http.getBody("/some-route")).isEqualTo("Stop!")
     }

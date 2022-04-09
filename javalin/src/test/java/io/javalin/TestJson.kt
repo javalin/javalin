@@ -25,7 +25,7 @@ class TestJson {
 
     @Test
     fun `default mapper maps object to json`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.json(SerializableObject()) }
+        app.get("/") { it.json(SerializableObject()) }
         val response = http.get("/")
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
         assertThat(response.body).isEqualTo(serializableObjectString)
@@ -33,7 +33,7 @@ class TestJson {
 
     @Test
     fun `default mapper can serialize instant`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.json(Instant.EPOCH) }
+        app.get("/") { it.json(Instant.EPOCH) }
         val response = http.get("/")
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
         assertThat(response.body).isEqualTo("0.0")
@@ -41,7 +41,7 @@ class TestJson {
 
     @Test
     fun `default mapper treats strings as already being json`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.json("ok") }
+        app.get("/") { it.json("ok") }
         assertThat(http.getBody("/")).isEqualTo("ok")
     }
 
@@ -87,7 +87,7 @@ class TestJson {
 
     @Test
     fun `empty mapper throws exception`() = TestUtil.test(Javalin.create { it.jsonMapper(object : JsonMapper {}) }) { app, http ->
-        app.get("/") { ctx -> ctx.json("Test") }
+        app.get("/") { it.json("Test") }
         assertThat(http.getBody("/")).isEqualTo("")
         assertThat(http.get("/").status).isEqualTo(500)
     }
@@ -162,7 +162,7 @@ class TestJson {
             override fun toJsonString(obj: Any) = gson.toJson(obj)
         }
         TestUtil.test(Javalin.create { it.jsonMapper(gsonMapper) }) { app, http ->
-            app.get("/") { ctx -> ctx.json(SerializableObject()) }
+            app.get("/") { it.json(SerializableObject()) }
             assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
             app.post("/") { ctx ->
                 ctx.bodyAsClass(SerializableObject::class.java)

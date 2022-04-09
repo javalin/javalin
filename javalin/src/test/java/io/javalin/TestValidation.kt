@@ -31,19 +31,19 @@ class TestValidation {
 
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test { app, http ->
-        app.get("/{param}") { ctx -> ctx.pathParamAsClass<Int>("param").get() }
+        app.get("/{param}") { it.pathParamAsClass<Int>("param").get() }
         assertThat(http.get("/abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
     fun `queryParam gives correct error message`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.queryParamAsClass<Int>("param").get() }
+        app.get("/") { it.queryParamAsClass<Int>("param").get() }
         assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.formParamAsClass<Int>("param").get() }
+        app.post("/") { it.formParamAsClass<Int>("param").get() }
         assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
         JavalinLogger.enabled = true
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
@@ -53,14 +53,14 @@ class TestValidation {
 
     @Test
     fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.queryParamAsClass<String>("my-qp").get() }
+        app.get("/") { it.queryParamAsClass<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
         assertThat(http.get("/").status).isEqualTo(400)
     }
 
     @Test
     fun `notNullOrEmpty works for NullableValidator`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.queryParamAsClass<String>("my-qp").allowNullable().get() }
+        app.get("/") { it.queryParamAsClass<String>("my-qp").allowNullable().get() }
         assertThat(http.get("/").body).isEqualTo("")
         assertThat(http.get("/").status).isEqualTo(200)
     }

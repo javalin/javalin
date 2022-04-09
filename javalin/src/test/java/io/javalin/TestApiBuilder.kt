@@ -89,7 +89,7 @@ class TestApiBuilder {
     fun `filters work as expected`() = TestUtil.test { app, http ->
         app.routes {
             path("level-1") {
-                before { ctx -> ctx.result("1") }
+                before { it.result("1") }
                 path("level-2") {
                     path("level-3") { get("/hello", updateAnswer("Hello")) }
                     after(updateAnswer("2"))
@@ -103,21 +103,21 @@ class TestApiBuilder {
     fun `slashes can be omitted for both path-method and verbs`() = TestUtil.test { app, http ->
         app.routes {
             path("level-1") {
-                get { ctx -> ctx.result("level-1") }
-                get("hello") { ctx -> ctx.result("Hello") }
+                get { it.result("level-1") }
+                get("hello") { it.result("Hello") }
             }
         }
         assertThat(http.getBody("/level-1")).isEqualTo("level-1")
         assertThat(http.getBody("/level-1/hello")).isEqualTo("Hello")
     }
 
-    private fun simpleAnswer(body: String) = Handler { ctx -> ctx.result(body) }
-    private fun updateAnswer(body: String) = Handler { ctx -> ctx.result(ctx.resultString()!! + body) }
+    private fun simpleAnswer(body: String) = Handler { it.result(body) }
+    private fun updateAnswer(body: String) = Handler { it.result(it.resultString()!! + body) }
 
     @Test
     fun `ApiBuilder throws if used outside of routes{} call`() = TestUtil.test { _, _ ->
         assertThatExceptionOfType(IllegalStateException::class.java)
-            .isThrownBy { ApiBuilder.get("/") { ctx -> ctx.result("") } }
+            .isThrownBy { ApiBuilder.get("/") { it.result("") } }
             .withMessageStartingWith("The static API can only be used within a routes() call.")
     }
 
@@ -125,10 +125,10 @@ class TestApiBuilder {
     fun `ApiBuilder works with two services at once`() {
         val app1 = Javalin.create().start(0)
         val app2 = Javalin.create().start(0)
-        app1.routes { get("/hello-1") { ctx -> ctx.result("Hello-1") } }
-        app1.routes { get("/hello-2") { ctx -> ctx.result("Hello-2") } }
-        app2.routes { get("/hello-1") { ctx -> ctx.result("Hello-1") } }
-        app2.routes { get("/hello-2") { ctx -> ctx.result("Hello-2") } }
+        app1.routes { get("/hello-1") { it.result("Hello-1") } }
+        app1.routes { get("/hello-2") { it.result("Hello-2") } }
+        app2.routes { get("/hello-1") { it.result("Hello-1") } }
+        app2.routes { get("/hello-2") { it.result("Hello-2") } }
         assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-1").asString().body).isEqualTo("Hello-1")
         assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-2").asString().body).isEqualTo("Hello-2")
         assertThat(Unirest.get("http://localhost:" + app2.port() + "/hello-1").asString().body).isEqualTo("Hello-1")

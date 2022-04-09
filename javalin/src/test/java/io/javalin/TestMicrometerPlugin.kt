@@ -22,7 +22,7 @@ class TestMicrometerPlugin {
     @Test
     fun `successful request`() = TestUtil.test(setupApp()) { app, http ->
         val requestCount = (2..9).random()
-        app.get("/hello/{name}") { ctx -> ctx.result("Hello: " + ctx.pathParam("name")) }
+        app.get("/hello/{name}") { it.result("Hello: " + it.pathParam("name")) }
         repeat(requestCount) { http.get("/hello/jon") }
         val timerCount = meterRegistry.get("jetty.server.requests")
             .tag("uri", "/hello/{name}")
@@ -70,8 +70,8 @@ class TestMicrometerPlugin {
     @Test
     fun redirect() = TestUtil.test(setupApp()) { app, http ->
         val requestCount = (2..9).random()
-        app.get("/hello") { ctx -> ctx.result("Hello") }
-        app.get("/redirect") { ctx -> ctx.redirect("/hello") }
+        app.get("/hello") { it.result("Hello") }
+        app.get("/redirect") { it.redirect("/hello") }
         repeat(requestCount) { http.get("/redirect") }
         val redirCount = meterRegistry.get("jetty.server.requests")
             .tag("uri", "REDIRECTION")
@@ -95,8 +95,8 @@ class TestMicrometerPlugin {
     @Test
     fun `redirect tagged`() = TestUtil.test(setupApp(tagRedirectPaths = true)) { app, http ->
         val requestCount = (2..9).random()
-        app.get("/hello") { ctx -> ctx.result("Hello") }
-        app.get("/redirect") { ctx -> ctx.redirect("/hello") }
+        app.get("/hello") { it.result("Hello") }
+        app.get("/redirect") { it.redirect("/hello") }
         repeat(requestCount) { http.get("/redirect") }
         val redirCount = meterRegistry.get("jetty.server.requests")
             .tag("uri", "/redirect")
@@ -120,7 +120,7 @@ class TestMicrometerPlugin {
     @Test
     fun `etags tagged`() = TestUtil.test(setupApp(tagRedirectPaths = true, autoGenerateEtags = true)) { app, http ->
         val requestCount = (2..9).random()
-        app.get("/hello") { ctx -> ctx.result("Hello") }
+        app.get("/hello") { it.result("Hello") }
         repeat(requestCount) {
             val response = http.get("/hello")
             val etag = response.headers["ETag"]?.first() ?: ""

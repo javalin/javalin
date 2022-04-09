@@ -51,26 +51,26 @@ class TestCookie {
      */
     @Test
     fun `single cookie returns null when missing`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-1") { ctx -> ctx.result("" + ctx.cookie("my-cookie")) }
+        app.get("/read-cookie-1") { it.result("" + it.cookie("my-cookie")) }
         assertThat(http.getBody("/read-cookie-1")).isEqualTo("null")
     }
 
     @Test
     fun `single cookie works`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-2") { ctx -> ctx.result(ctx.cookie("my-cookie")!!) }
+        app.get("/read-cookie-2") { it.result(it.cookie("my-cookie")!!) }
         val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
         assertThat(response.body).isEqualTo("my-cookie-value")
     }
 
     @Test
     fun `cookie-map returns empty when no cookies are set`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-3") { ctx -> ctx.result(ctx.cookieMap().toString()) }
+        app.get("/read-cookie-3") { it.result(it.cookieMap().toString()) }
         assertThat(http.getBody("/read-cookie-3")).isEqualTo("{}")
     }
 
     @Test
     fun `cookie-map returns all cookies if cookies are set`() = TestUtil.test { app, http ->
-        app.get("/read-cookie-4") { ctx -> ctx.result(ctx.cookieMap().toString()) }
+        app.get("/read-cookie-4") { it.result(it.cookieMap().toString()) }
         val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
         assertThat(response.body).isEqualTo("{k1=v1, k2=v2, k3=v3}")
     }
@@ -80,15 +80,15 @@ class TestCookie {
      */
     @Test
     fun `setting a cookie works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { ctx -> ctx.cookie("Test", "Tast") }
-        app.get("/get-cookie") { ctx -> ctx.result(ctx.cookie("Test")!!) }
+        app.get("/create-cookie") { it.cookie("Test", "Tast") }
+        app.get("/get-cookie") { it.result(it.cookie("Test")!!) }
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).isEqualTo("Test=Tast; Path=/")
         assertThat(http.getBody("/get-cookie")).isEqualTo("Tast")
     }
 
     @Test
     fun `setting a Cookie object works`() = TestUtil.test { app, http ->
-        app.get("/create-cookie") { ctx -> ctx.cookie(Cookie("Hest", "Hast", maxAge = 7)) }
+        app.get("/create-cookie") { it.cookie(Cookie("Hest", "Hast", maxAge = 7)) }
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Hest=Hast")
         assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Max-Age=7")
     }

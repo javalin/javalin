@@ -18,7 +18,7 @@ class TestCookieStore {
 
     @Test
     fun `cookieStore works between two handlers`() = TestUtil.test { app, http ->
-        app.get("/cookie-store") { ctx -> ctx.cookieStore("test-object", 123) }
+        app.get("/cookie-store") { it.cookieStore("test-object", 123) }
         app.after("/cookie-store") { ctx ->
             if (ctx.cookieStore<Any>("test-object") is Int) {
                 ctx.result("Got stored value from different handler")
@@ -29,9 +29,9 @@ class TestCookieStore {
 
     @Test
     fun `cookieStore can be cleared`() = TestUtil.test { app, http ->
-        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 123) }
+        app.get("/cookie-storer") { it.cookieStore("test-object", 123) }
         app.get("/cookie-clearer") { it.clearCookieStore() }
-        app.get("/cookie-checker") { ctx -> ctx.result("stored: " + ctx.cookie("javalin-cookie-store")) }
+        app.get("/cookie-checker") { it.result("stored: " + it.cookie("javalin-cookie-store")) }
         http.getBody("/cookie-storer")
         http.getBody("/cookie-clearer")
         assertThat(http.getBody("/cookie-checker")).isEqualTo("stored: null")
@@ -39,7 +39,7 @@ class TestCookieStore {
 
     @Test
     fun `cookieStore works between two requests`() = TestUtil.test { app, http ->
-        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 123) }
+        app.get("/cookie-storer") { it.cookieStore("test-object", 123) }
         app.get("/cookie-reader") { ctx ->
             if (ctx.cookieStore<Any>("test-object") is Int) {
                 ctx.result("Got stored value from different request")
@@ -51,8 +51,8 @@ class TestCookieStore {
 
     @Test
     fun `cookieStore works between two request with object overwrite`() = TestUtil.test { app, http ->
-        app.get("/cookie-storer") { ctx -> ctx.cookieStore("test-object", 1) }
-        app.get("/cookie-overwriter") { ctx -> ctx.cookieStore("test-object", "Hello world!") }
+        app.get("/cookie-storer") { it.cookieStore("test-object", 1) }
+        app.get("/cookie-overwriter") { it.cookieStore("test-object", "Hello world!") }
         app.get("/cookie-reader") { ctx ->
             if ("Hello world!" == ctx.cookieStore<Any>("test-object")) {
                 ctx.result("Overwrote cookie from previous request")

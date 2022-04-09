@@ -19,7 +19,7 @@ class TestEncoding {
 
     @Test
     fun `unicode path-params work`() = TestUtil.test { app, http ->
-        app.get("/{path-param}") { ctx -> ctx.result(ctx.pathParam("path-param")) }
+        app.get("/{path-param}") { it.result(it.pathParam("path-param")) }
         assertThat(http.getBody("/æøå")).isEqualTo("æøå")
         assertThat(http.getBody("/♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
         assertThat(http.getBody("/こんにちは")).isEqualTo("こんにちは")
@@ -27,7 +27,7 @@ class TestEncoding {
 
     @Test
     fun `unicode query-params work`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
+        app.get("/") { it.result(it.queryParam("qp")!!) }
         assertThat(http.getBody("/?qp=æøå")).isEqualTo("æøå")
         assertThat(http.getBody("/?qp=♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")).isEqualTo("♚♛♜♜♝♝♞♞♟♟♟♟♟♟♟♟")
         assertThat(http.getBody("/?qp=こんにちは")).isEqualTo("こんにちは")
@@ -35,7 +35,7 @@ class TestEncoding {
 
     @Test
     fun `URLEncoded query-params work utf-8`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
+        app.get("/") { it.result(it.queryParam("qp")!!) }
         assertThat(http.getBody("/?qp=" + "8%3A00+PM")).isEqualTo("8:00 PM")
         val encoded = URLEncoder.encode("!#$&'()*+,/:;=?@[]", "UTF-8")
         assertThat(http.getBody("/?qp=$encoded")).isEqualTo("!#$&'()*+,/:;=?@[]")
@@ -43,7 +43,7 @@ class TestEncoding {
 
     @Test
     fun `URLEncoded query-params work ISO-8859-1`() = TestUtil.test { app, http ->
-        app.get("/") { ctx -> ctx.result(ctx.queryParam("qp")!!) }
+        app.get("/") { it.result(it.queryParam("qp")!!) }
         val encoded = URLEncoder.encode("æøå", "ISO-8859-1")
         val response = Unirest.get(http.origin + "/?qp=$encoded").header("Content-Type", "text/plain; charset=ISO-8859-1").asString()
         assertThat(response.body).isEqualTo("æøå")
@@ -51,7 +51,7 @@ class TestEncoding {
 
     @Test
     fun `URLEncoded form-params work`() = TestUtil.test { app, http ->
-        app.post("/") { ctx -> ctx.result(ctx.formParam("qp")!!) }
+        app.post("/") { it.result(it.formParam("qp")!!) }
         val response = Unirest
             .post(http.origin)
             .body("qp=8%3A00+PM")
@@ -61,9 +61,9 @@ class TestEncoding {
 
     @Test
     fun `default charsets work`() = TestUtil.test { app, http ->
-        app.get("/text") { ctx -> ctx.result("суп из капусты") }
-        app.get("/json") { ctx -> ctx.json("白菜湯") }
-        app.get("/html") { ctx -> ctx.html("kålsuppe") }
+        app.get("/text") { it.result("суп из капусты") }
+        app.get("/json") { it.json("白菜湯") }
+        app.get("/html") { it.html("kålsuppe") }
         assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
         assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
         assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.HTML)
@@ -74,7 +74,7 @@ class TestEncoding {
 
     @Test
     fun `setting a default content-type works`() = TestUtil.test(Javalin.create { it.defaultContentType = ContentType.JSON }) { app, http ->
-        app.get("/default") { ctx -> ctx.result("not json") }
+        app.get("/default") { it.result("not json") }
         assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JSON)
     }
 

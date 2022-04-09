@@ -16,14 +16,14 @@ fun main() {
     val corsApp = Javalin.create { it.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002") }.start(7070)
 
     corsApp.routes {
-        get { ctx -> ctx.json("Hello Get") }
-        post { ctx -> ctx.json("Hello Post") }
-        patch { ctx -> ctx.json("Hello Patch") }
+        get { it.json("Hello Get") }
+        post { it.json("Hello Post") }
+        patch { it.json("Hello Patch") }
     }
 
-    Javalin.create().start(7001).get("/") { ctx -> ctx.html("Try some CORS") }
-    Javalin.create().start(7002).get("/") { ctx -> ctx.html("Try some CORS") }
-    Javalin.create().start(7003).get("/") { ctx -> ctx.html("No CORS here") }
+    Javalin.create().start(7001).get("/") { it.html("Try some CORS") }
+    Javalin.create().start(7002).get("/") { it.html("Try some CORS") }
+    Javalin.create().start(7003).get("/") { it.html("No CORS here") }
 
 }
 

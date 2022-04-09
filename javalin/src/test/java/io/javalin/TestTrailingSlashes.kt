@@ -24,7 +24,7 @@ class TestTrailingSlashes {
 
     @Test
     fun `trailing slashes are ignored by default`() = TestUtil.test { app, http ->
-        app.get("/hello") { ctx -> ctx.result("Hello, slash!") }
+        app.get("/hello") { it.result("Hello, slash!") }
         assertThat(http.getBody("/hello")).isEqualTo("Hello, slash!")
         assertThat(http.getBody("/hello/")).isEqualTo("Hello, slash!")
     }
@@ -33,8 +33,8 @@ class TestTrailingSlashes {
     fun `trailing slashes are ignored by default - ApiBuilder`() = TestUtil.test { app, http ->
         app.routes {
             path("a") {
-                get { ctx -> ctx.result("a") }
-                get("/") { ctx -> ctx.result("a-slash") }
+                get { it.result("a") }
+                get("/") { it.result("a-slash") }
             }
         }
         assertThat(http.getBody("/a")).isEqualTo("a")
@@ -44,8 +44,8 @@ class TestTrailingSlashes {
     @Test
     fun `trailing slashes are treat as different url, if configuration is set - ApiBuilder`() {
         TestUtil.test(javalin) { app, http ->
-            app.get("/a") { ctx -> ctx.result("a") }
-            app.get("/a/") { ctx -> ctx.result("a-slash") }
+            app.get("/a") { it.result("a") }
+            app.get("/a/") { it.result("a-slash") }
             assertThat(http.getBody("/a")).isEqualTo("a")
             assertThat(http.getBody("/a/")).isEqualTo("a-slash")
         }
@@ -54,8 +54,8 @@ class TestTrailingSlashes {
     @Test
     fun `trailing slashes don't change url params behaviour`() {
         TestUtil.test(javalin) { app, http ->
-            app.get("/a") { ctx -> ctx.result("a") }
-            app.get("/a/") { ctx -> ctx.result("a-slash") }
+            app.get("/a") { it.result("a") }
+            app.get("/a/") { it.result("a-slash") }
             assertThat(http.getBody("/a")).isEqualTo("a")
             assertThat(http.getBody("/a/")).isEqualTo("a-slash")
         }
@@ -87,39 +87,39 @@ class TestTrailingSlashes {
 
     @Test
     fun `case sensitive urls work`() = TestUtil.test(javalin) { app, http ->
-        app.get("/My-Url") { ctx -> ctx.result("OK") }
+        app.get("/My-Url") { it.result("OK") }
         assertThat(http.getBody("/MY-URL")).isEqualTo("Not found")
         assertThat(http.getBody("/My-Url")).isEqualTo("OK")
-        app.get("/My-Url/") { ctx -> ctx.result("OK/") }
+        app.get("/My-Url/") { it.result("OK/") }
         assertThat(http.getBody("/MY-URL/")).isEqualTo("Not found")
         assertThat(http.getBody("/My-Url/")).isEqualTo("OK/")
     }
 
     @Test
     fun `utf-8 encoded path-params work`() = TestUtil.test(javalin) { app, http ->
-        app.get("/{path-param}") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        app.get("/{path-param}/") { ctx -> ctx.result(ctx.pathParam("path-param") + "/") }
+        app.get("/{path-param}") { it.result(it.pathParam("path-param")) }
+        app.get("/{path-param}/") { it.result(it.pathParam("path-param") + "/") }
         assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST", "UTF-8"))).isEqualTo("TE/ST")
         assertThat(okHttp.getBody(http.origin + "/" + URLEncoder.encode("TE/ST/", "UTF-8"))).isEqualTo("TE/ST/")
     }
 
     @Test
     fun `path-params work case-sensitive`() = TestUtil.test(javalin) { app, http ->
-        app.get("/{userId}") { ctx -> ctx.result(ctx.pathParam("userId")) }
+        app.get("/{userId}") { it.result(it.pathParam("userId")) }
         assertThat(http.getBody("/path-param")).isEqualTo("path-param")
-        app.get("/{a}/{A}") { ctx -> ctx.result("${ctx.pathParam("a")}-${ctx.pathParam("A")}") }
+        app.get("/{a}/{A}") { it.result("${it.pathParam("a")}-${it.pathParam("A")}") }
         assertThat(http.getBody("/a/B")).isEqualTo("a-B")
 
-        app.get("/{userId}/") { ctx -> ctx.result(ctx.pathParam("userId") + "/") }
+        app.get("/{userId}/") { it.result(it.pathParam("userId") + "/") }
         assertThat(http.getBody("/path-param/")).isEqualTo("path-param/")
-        app.get("/{a}/{A}/") { ctx -> ctx.result("${ctx.pathParam("a")}-${ctx.pathParam("A")}/") }
+        app.get("/{a}/{A}/") { it.result("${it.pathParam("a")}-${it.pathParam("A")}/") }
         assertThat(http.getBody("/a/B/")).isEqualTo("a-B/")
     }
 
     @Test
     fun `path-param values retain their casing`() = TestUtil.test(javalin) { app, http ->
-        app.get("/{path-param}") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        app.get("/{path-param}/") { ctx -> ctx.result(ctx.pathParam("path-param") + "/") }
+        app.get("/{path-param}") { it.result(it.pathParam("path-param")) }
+        app.get("/{path-param}/") { it.result(it.pathParam("path-param") + "/") }
         assertThat(http.getBody("/SomeCamelCasedValue/")).isEqualTo("SomeCamelCasedValue/")
         assertThat(http.getBody("/SomeCamelCasedValue/")).isEqualTo("SomeCamelCasedValue/")
     }
@@ -128,8 +128,8 @@ class TestTrailingSlashes {
     @Disabled
     @Test
     fun `path regex works`() = TestUtil.test(javalin) { app, http ->
-        app.get("/{path-param}/[0-9]+") { ctx -> ctx.result(ctx.pathParam("path-param")) }
-        app.get("/{path-param}/[0-9]+/") { ctx -> ctx.result(ctx.pathParam("path-param") + "/") }
+        app.get("/{path-param}/[0-9]+") { it.result(it.pathParam("path-param")) }
+        app.get("/{path-param}/[0-9]+/") { it.result(it.pathParam("path-param") + "/") }
         assertThat(http.getBody("/test/pathParam")).isEqualTo("Not found")
         assertThat(http.getBody("/test/21")).isEqualTo("test")
         assertThat(http.getBody("/test/pathParam/")).isEqualTo("Not found")
@@ -140,9 +140,9 @@ class TestTrailingSlashes {
     fun `automatic slash prefixing works`() = TestUtil.test(javalin) { app, http ->
         app.routes {
             path("test") {
-                path("{id}") { get { ctx -> ctx.result(ctx.pathParam("id")) } }
-                path("{id}/") { get { ctx -> ctx.result(ctx.pathParam("id") + "/") } }
-                get { ctx -> ctx.result("test") }
+                path("{id}") { get { it.result(it.pathParam("id")) } }
+                path("{id}/") { get { it.result(it.pathParam("id") + "/") } }
+                get { it.result("test") }
             }
         }
         assertThat(http.getBody("/test/path-param")).isEqualTo("path-param")

@@ -25,14 +25,14 @@ class TestFuture {
     @Test
     fun `after-handlers run after future is resolved`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.future(getFuture("Not result")) }
-        app.after { ctx -> ctx.result("Overwritten by after-handler") }
+        app.after { it.result("Overwritten by after-handler") }
         assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by after-handler")
     }
 
     @Test
     fun `error-handlers run after future is resolved`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.status(555).future(getFuture("Not result")) }
-        app.error(555) { ctx -> ctx.result("Overwritten by error-handler") }
+        app.error(555) { it.result("Overwritten by error-handler") }
         assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by error-handler")
     }
 
@@ -151,7 +151,7 @@ class TestFuture {
     @Test
     fun `can override timeout with custom error message`() = TestUtil.test(impatientServer) { app, http ->
         app.get("/") { it.future(getFuture("Test", delay = 5000)) }
-        app.error(500) { ctx -> ctx.result("My own simple error message") }
+        app.error(500) { it.result("My own simple error message") }
         assertThat(http.get("/").body).isEqualTo("My own simple error message")
     }
 

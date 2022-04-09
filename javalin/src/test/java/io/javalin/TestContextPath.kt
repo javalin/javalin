@@ -43,7 +43,7 @@ class TestContextPath {
     fun `router works with context-path`() {
         val javalin = Javalin.create { it.contextPath = "/context-path" }
         TestUtil.test(javalin) { app, http ->
-            app.get("/hello") { ctx -> ctx.result("Hello World") }
+            app.get("/hello") { it.result("Hello World") }
             assertThat(http.get("/hello").status).isEqualTo(404)
             assertThat(http.getBody("/context-path/hello")).isEqualTo("Hello World")
         }
@@ -53,7 +53,7 @@ class TestContextPath {
     fun `router works with multi-level context-path`() {
         val javalin = Javalin.create { it.contextPath = "/context-path/path-context" }
         TestUtil.test(javalin) { app, http ->
-            app.get("/hello") { ctx -> ctx.result("Hello World") }
+            app.get("/hello") { it.result("Hello World") }
             assertThat(http.get("/context-path/").status).isEqualTo(404)
             assertThat(http.getBody("/context-path/path-context/hello")).isEqualTo("Hello World")
         }
