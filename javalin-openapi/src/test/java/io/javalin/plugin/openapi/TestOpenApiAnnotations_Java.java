@@ -16,6 +16,7 @@ import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+
 import static io.javalin.testing.TestLoggingUtil.captureStdOut;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -272,7 +273,7 @@ class JavaAnonymousClassFieldReference {
 class ClassHandlerWithInvalidPath {
     @OpenApi(
         method = HttpMethod.GET,
-        path = "/account", // /account/:id would be correct
+        path = "/account", // /account/{id} would be correct
         pathParams = @OpenApiParam(name = "id", type = Integer.class)
     )
     void getOne(Context ctx) {
@@ -284,6 +285,29 @@ class ClassHandlerWithInvalidPath {
     )
     void getAll(Context ctx) {
     }
+}
+
+class JavaFieldPathParam {
+    @OpenApi(
+        method = HttpMethod.GET,
+        path = "/account",  // /account/{id} would be correct
+        pathParams = @OpenApiParam(name = "id", type = Integer.class)
+    )
+    public final Handler getOne = new Handler() {
+        @Override
+        public void handle(@NotNull Context ctx) throws Exception {
+        }
+    };
+
+    @OpenApi(
+        method = HttpMethod.GET,
+        path = "/account"
+    )
+    public final Handler getAll = new Handler() {
+        @Override
+        public void handle(@NotNull Context ctx) throws Exception {
+        }
+    };
 }
 
 public class TestOpenApiAnnotations_Java {
@@ -508,8 +532,27 @@ public class TestOpenApiAnnotations_Java {
         );
         assertThat(log).contains(
             "The `path` of one of the @OpenApi annotations on io.javalin.plugin.openapi.ClassHandlerWithInvalidPath is incorrect. " +
-                "The path param \":id\" is documented, but couldn't be found in GET \"/account\". " +
-                "Do you mean GET \"/account/:id\"?"
+                "The path param \"id\" is documented, but couldn't be found in GET \"/account\". " +
+                "You need to use Javalin's path parameter syntax inside the path and only use the parameter name for the name field. " +
+                "Do you mean GET \"/account/{id}\"?"
+        );
+    }
+
+    @Test
+    void testPathExampleWorks() {
+        String log = captureStdOut(() ->
+            OpenApiTestUtils.extractSchemaForTest(app -> {
+                JavaFieldPathParam instance = new JavaFieldPathParam();
+                app.get("/account", instance.getAll);
+                app.get("/account/{id}", instance.getOne);
+                return Unit.INSTANCE;
+            })
+        );
+        assertThat(log).contains(
+            "The `path` of one of the @OpenApi annotations on io.javalin.plugin.openapi.JavaFieldPathParam is incorrect. " +
+                "The path param \"id\" is documented, but couldn't be found in GET \"/account\". " +
+                "You need to use Javalin's path parameter syntax inside the path and only use the parameter name for the name field. " +
+                "Do you mean GET \"/account/{id}\"?"
         );
     }
 }

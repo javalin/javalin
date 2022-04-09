@@ -1,5 +1,6 @@
 package io.javalin.plugin.openapi.annotations
 
+import io.javalin.core.PathParser
 import io.javalin.core.util.JavalinLogger
 import kotlin.reflect.KClass
 
@@ -140,11 +141,10 @@ fun OpenApi.warnUserIfPathParameterIsMissingInPath(parentClass: Class<*>) {
         // Nothing to check
         return
     }
+    val detectedPathParams = PathParser(path, ignoreTrailingSlashes = true).pathParamNames.toSet()
+    val pathParamsPlaceholderNotInPath = pathParams.map { it.name }.filter { it !in detectedPathParams }
 
-    val pathParamsPlaceholders = pathParams.map { ":${it.name}" };
-    val pathParamsPlaceholderNotInPath = pathParamsPlaceholders.filter { !path.contains(it) }
-
-    if (pathParamsPlaceholderNotInPath.size > 0) {
+    if (pathParamsPlaceholderNotInPath.isNotEmpty()) {
         JavalinLogger.warn(
                 formatMissingPathParamsPlaceholderWarningMessage(parentClass, pathParamsPlaceholderNotInPath)
         )
@@ -161,7 +161,8 @@ fun OpenApi.formatMissingPathParamsPlaceholderWarningMessage(parentClass: Class<
     }
     return "The `path` of one of the @OpenApi annotations on ${parentClass.canonicalName} is incorrect. " +
             secondSentence + " " +
-            "Do you mean $methodAsString \"$path/${pathParamsPlaceholders.joinToString("/")}\"?"
+            "You need to use Javalin's path parameter syntax inside the path and only use the parameter name for the name field." + " " +
+            "Do you mean $methodAsString \"$path/${pathParamsPlaceholders.joinToString("/") { "{$it}" }}\"?"
 }
 
 fun List<String>.toFormattedString(): String {
