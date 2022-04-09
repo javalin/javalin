@@ -34,7 +34,8 @@ class TestWebBrowser {
         @BeforeAll
         @JvmStatic
         fun setupClass() {
-            val os: String = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
+            assumeTrue(System.getProperty("RunningOnCi") == null)
+            val os: String = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)
             assumeTrue("mac" !in os && "darwin" !in os)
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
