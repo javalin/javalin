@@ -112,7 +112,6 @@
         <kotlin.openapi.dsl.version>1.0.0</kotlin.openapi.dsl.version>
         <junit.version>5.7.2</junit.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <mockk.version>1.12.0</mockk.version>
         <bytebuddy.version>1.11.13</bytebuddy.version>
         <bytebuddyagent.version>1.11.13</bytebuddyagent.version>
         <okhttp.version>4.9.1</okhttp.version>
@@ -376,11 +375,6 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-unixsocket</artifactId>
                 <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.mockk</groupId>
-                <artifactId>mockk</artifactId>
-                <version>${mockk.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.bytebuddy</groupId>

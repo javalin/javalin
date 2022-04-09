@@ -7,19 +7,14 @@
 
 package io.javalin
 
-import io.javalin.core.util.JavalinException
-import io.javalin.jetty.JettyServer
 import io.javalin.testing.TestUtil
-import io.mockk.every
-import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class TestLifecycleEvents {
 
     @Test
-    fun `life cycle events work`() {
+    fun `lifecycle events work`() {
         var log = ""
         Javalin.create().events { event ->
             event.serverStarting { log += "Starting" }
@@ -33,34 +28,16 @@ class TestLifecycleEvents {
     }
 
     @Test
-    fun `serverStartFailed event works`() = `test failed lifecycle event`("StartingStartFailed") {
-        every { start(any()) } throws RuntimeException("Lifecycle test exception")
-    }
-
-    @Test
-    fun `serverStopFailed event works`() = `test failed lifecycle event`("StartingStartedStoppingStopFailed") {
-        every { server().stop() } throws RuntimeException("Lifecycle test exception")
-    }
-
-    private fun `test failed lifecycle event`(expected: String, mockBlock: JettyServer.() -> Unit) {
-        val jettyServer = mockk<JettyServer>(relaxed = true)
-        mockBlock(jettyServer)
-        val app = Javalin(jettyServer, null)
+    fun `server started event works`() {
         var log = ""
-        app.events {
-            it.serverStartFailed { log += "StartFailed" }
-            it.serverStopFailed { log += "StopFailed" }
-            it.serverStarting { log += "Starting" }
-            it.serverStarted { log += "Started" }
-            it.serverStopping { log += "Stopping" }
-            it.serverStopped { log += "Stopped" }
+        val existingApp = Javalin.create().start(20000)
+        runCatching {
+            Javalin.create().events { event ->
+                event.serverStartFailed { log += "Failed to start" }
+            }.start(20000).stop() // port conflict
         }
-
-        val exception = assertThrows<JavalinException> { app.start(0).stop() }
-
-        assertThat(log).isEqualTo(expected)
-        assertThat(exception.cause).isInstanceOf(RuntimeException::class.java)
-        assertThat(exception.cause!!.message).isEqualTo("Lifecycle test exception")
+        assertThat(log).isEqualTo("Failed to start")
+        existingApp.stop()
     }
 
     @Test

@@ -12,7 +12,7 @@ object JavalinLogger {
     @JvmField var startupInfo = true
 
 
-    @JvmOverloads @JvmStatic fun startup(message: String) {
+    @JvmStatic fun startup(message: String) {
         if (!enabled) return
         if (startupInfo) log.info(message)
     }

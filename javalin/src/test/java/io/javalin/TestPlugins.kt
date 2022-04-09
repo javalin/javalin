@@ -6,8 +6,6 @@ import io.javalin.core.plugin.PluginAlreadyRegisteredException
 import io.javalin.core.plugin.PluginInitLifecycleViolationException
 import io.javalin.core.plugin.PluginLifecycleInit
 import io.javalin.core.plugin.PluginNotFoundException
-import io.mockk.spyk
-import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -30,24 +28,11 @@ open class TestPlugin : Plugin, PluginLifecycleInit {
     }
 }
 
-private interface PluginWithAllLifecycles : Plugin, PluginLifecycleInit
-
 class TestPlugins {
+
     @BeforeEach
     fun resetCalls() {
         calls = mutableListOf()
-    }
-
-    @Test
-    fun `should run lifecycle methods with right arguments`() {
-        val plugin = spyk<PluginWithAllLifecycles>()
-
-        val app = Javalin.create {
-            it.registerPlugin(plugin)
-        }
-
-        verify { plugin.init(app) }
-        verify { plugin.apply(app) }
     }
 
     @Test
