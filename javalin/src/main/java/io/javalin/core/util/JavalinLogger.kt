@@ -34,7 +34,7 @@ object JavalinLogger {
 
     @JvmOverloads @JvmStatic fun debug(message: String, throwable: Throwable? = null) {
         if (!enabled) return
-        if (throwable != null) log.debug(message, throwable) else log.error(message)
+        if (throwable != null) log.debug(message, throwable) else log.debug(message)
     }
 
 }
