@@ -6,16 +6,9 @@
 
 package io.javalin
 
-import io.javalin.http.Context
-import io.javalin.plugin.json.JavalinJackson
-import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestUtil
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -66,7 +59,6 @@ class TestJavalinVue {
     @Test
     fun `vue component without state`() = TestUtil.test { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-
         app.get("/no-state", VueComponent("test-component"))
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
@@ -78,7 +70,6 @@ class TestJavalinVue {
     fun `vue3 component without state`() = TestUtil.test { app, http ->
         JavalinVue.vueVersion { it.vue3("app") }
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-
         app.get("/no-state", VueComponent("test-component-3"))
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
@@ -104,9 +95,7 @@ class TestJavalinVue {
     @Test
     fun `vue component with component-specific state`() = TestUtil.test { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-
         val encodedTestState = """{"pathParams":{},"state":{"test":"tast"}}""".uriEncodeForJavascript()
-
         app.get("/no-state", VueComponent("test-component"))
         val noStateRes = http.getBody("/no-state")
         app.get("/specific-state", VueComponent("test-component", mapOf("test" to "tast")))
@@ -176,63 +165,70 @@ class TestJavalinVue {
         assertThat(http.get("/fail").status).isEqualTo(500)
     }
 
+
     @Test
     fun `@cdnWebjar resolves to webjar on localhost`() {
-        val ctx = mockk<Context>(relaxed = true)
-        every { ctx.jsonMapper() } returns JavalinJackson()
-        JavalinVue.isDev = true // reset
-        every { ctx.url() } returns "http://localhost:1234/"
-        VueComponent("test-component").handle(ctx)
-        val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
-        assertThat(slot.captured).contains("""src="/webjars/""")
+        val localhostApp = Javalin.create {
+            it.contextResolvers { it.url = { "http://localhost:1234/" } }
+        }
+        TestUtil.test(localhostApp) { app, http ->
+            app.get("/path", VueComponent("test-component"))
+            assertThat(http.getBody("/path")).contains("""src="/webjars/""")
+        }
     }
 
     @Test
     fun `@cdnWebjar resolves to cdn on non-localhost`() {
-        val ctx = mockk<Context>(relaxed = true)
-        every { ctx.jsonMapper() } returns JavalinJackson()
-        every { ctx.url() } returns "https://example.com"
-        VueComponent("test-component").handle(ctx)
-        val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
-        assertThat(slot.captured).contains("""src="https://cdn.jsdelivr.net/webjars/""")
+        val nonLocalhostApp = Javalin.create {
+            it.contextResolvers { it.url = { "https://example.com" } }
+        }
+        TestUtil.test(nonLocalhostApp) { app, http ->
+            app.get("/path", VueComponent("test-component"))
+            assertThat(http.getBody("/path")).contains("""src="https://cdn.jsdelivr.net/webjars/""")
+        }
     }
 
     @Test
     fun `@cdnWebjar resolves to https even on non https hosts`() {
-        val ctx = mockk<Context>(relaxed = true)
-        every { ctx.jsonMapper() } returns JavalinJackson()
-        every { ctx.url() } returns "http://123.123.123.123:1234/"
-        VueComponent("test-component").handle(ctx)
-        val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
-        assertThat(slot.captured).contains("""src="https://cdn.jsdelivr.net/webjars/""")
+        val nonLocalhostApp = Javalin.create {
+            it.contextResolvers { it.url = { "http://123.123.123.123:1234/" } }
+        }
+        TestUtil.test(nonLocalhostApp) { app, http ->
+            app.get("/path", VueComponent("test-component"))
+            assertThat(http.getBody("/path")).contains("""src="https://cdn.jsdelivr.net/webjars/""")
+        }
     }
 
     @Test
     fun `@inlineFile functionality works as expected if not-dev`() {
-        val ctx = mockk<Context>(relaxed = true)
-        every { ctx.jsonMapper() } returns JavalinJackson()
-        every { ctx.url() } returns "http://123.123.123.123:1234/"
-        VueComponent("test-component").handle(ctx)
-        val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
-        assertThat(slot.captured).contains("""<script>let a = "Always included";let ${"\$"}a = "Dollar works"</script>""")
-        assertThat(slot.captured).contains("""<script>let b = "Included if not dev"</script>""")
-        assertThat(slot.captured).doesNotContain("""<script>let b = "Included if dev"</script>""")
-        assertThat(slot.captured).doesNotContain("""<script>@inlineFileDev("/vue/scripts-dev.js")</script>""")
-        assertThat(slot.captured).doesNotContain("""<script>@inlineFile""")
+        val nonLocalhostApp = Javalin.create {
+            it.contextResolvers { it.url = { "http://123.123.123.123:1234/" } }
+        }
+        TestUtil.test(nonLocalhostApp) { app, http ->
+            app.get("/path", VueComponent("test-component"))
+            val responseBody = http.getBody("/path")
+            assertThat(responseBody).contains("""<script>let a = "Always included";let ${"\$"}a = "Dollar works"</script>""")
+            assertThat(responseBody).contains("""<script>let b = "Included if not dev"</script>""")
+            assertThat(responseBody).doesNotContain("""<script>let b = "Included if dev"</script>""")
+            assertThat(responseBody).doesNotContain("""<script>@inlineFileDev("/vue/scripts-dev.js")</script>""")
+            assertThat(responseBody).doesNotContain("""<script>@inlineFile""")
+        }
     }
 
     @Test
     fun `@inlineFile functionality works as expected if dev`() {
-        val ctx = mockk<Context>(relaxed = true)
-        every { ctx.jsonMapper() } returns JavalinJackson()
-        every { ctx.url() } returns "http://localhost:1234/"
-        VueComponent("test-component").handle(ctx)
-        val slot = slot<String>().also { verify { ctx.html(html = capture(it)) } }
-        assertThat(slot.captured).contains("""<script>let a = "Always included";let ${"\$"}a = "Dollar works"</script>""")
-        assertThat(slot.captured).contains("""<script>let b = "Included if dev"</script>""")
-        assertThat(slot.captured).doesNotContain("""<script>let b = "Included if not dev"</script>""")
-        assertThat(slot.captured).doesNotContain("""<script>@inlineFileNotDev("/vue/scripts-not-dev.js")</script>""")
-        assertThat(slot.captured).doesNotContain("""<script>@inlineFile""")
+        val localhostApp = Javalin.create {
+            it.contextResolvers { it.url = { "http://localhost:1234/" } }
+        }
+        TestUtil.test(localhostApp) { app, http ->
+            app.get("/path", VueComponent("test-component"))
+            val responseBody = http.getBody("/path")
+            assertThat(responseBody).contains("""<script>let a = "Always included";let ${"\$"}a = "Dollar works"</script>""")
+            assertThat(responseBody).contains("""<script>let b = "Included if dev"</script>""")
+            assertThat(responseBody).doesNotContain("""<script>let b = "Included if not dev"</script>""")
+            assertThat(responseBody).doesNotContain("""<script>@inlineFileNotDev("/vue/scripts-not-dev.js")</script>""")
+            assertThat(responseBody).doesNotContain("""<script>@inlineFile""")
+        }
     }
 
     @Test
