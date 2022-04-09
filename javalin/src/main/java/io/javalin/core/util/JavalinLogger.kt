@@ -32,5 +32,10 @@ object JavalinLogger {
         if (throwable != null) log.error(message, throwable) else log.error(message)
     }
 
+    @JvmOverloads @JvmStatic fun debug(message: String, throwable: Throwable? = null) {
+        if (!enabled) return
+        if (throwable != null) log.debug(message, throwable) else log.error(message)
+    }
+
 }
 // @formatter:on
