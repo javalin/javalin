@@ -21,6 +21,7 @@ import io.javalin.websocket.WsPathMatcher
 import java.util.function.Consumer
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.server.session.Session
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
 import org.eclipse.jetty.websocket.server.JettyWebSocketCreator
 import org.eclipse.jetty.websocket.server.JettyWebSocketServlet
@@ -48,7 +49,8 @@ class JavalinJettyServlet(val config: JavalinConfig, private val httpServlet: Ja
         factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context
             req.httpServletRequest.setAttribute(upgradeContextKey, ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
-            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, req.servletAttributes /*?.asSequence()?.associateWith { req.session.getAttribute(it) }*/)
+            val session = req.session as? Session?
+            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
             return@JettyWebSocketCreator WsConnection(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
         })
     }

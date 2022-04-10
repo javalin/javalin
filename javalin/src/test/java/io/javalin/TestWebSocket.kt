@@ -581,9 +581,13 @@ class TestWebSocket {
         override fun onError(exception: Exception) { exception.printStackTrace() }
         override fun onMessage(message: String) { app.logger().log.add(message) }
 
+        @Suppress("ControlFlowWithEmptyBody")
         fun connectAndDisconnect() {
-            doAndSleepWhile({ connect() }, { !isOpen })
-            doAndSleepWhile({ close() }, { !isClosed })
+            connect()
+            while (!isOpen) {} // wait for open
+            close()
+            while (!isClosed) {} // wait for close
+            Thread.sleep(1) // Sleep this thread to let others finish their work
         }
     }
 
@@ -597,7 +601,7 @@ class TestWebSocket {
             if (System.currentTimeMillis() > limitTime) {
                 throw TimeoutException("Wait for condition has timed out")
             }
-            Thread.sleep(2)
+            Thread.sleep(50)
         }
     }
 }

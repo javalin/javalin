@@ -5,11 +5,13 @@ import io.javalin.testing.TestUtil
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class MicrometerPluginTest {
 
     @Test
+    @Disabled("Micrometer does not support JakartaEE 9 yet")
     fun `test that JettyConnectionMetrics is registered`() {
         val registry = SimpleMeterRegistry()
 
