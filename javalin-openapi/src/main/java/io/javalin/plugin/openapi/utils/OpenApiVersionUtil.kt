@@ -1,6 +1,7 @@
 package io.javalin.plugin.openapi.utils
 
-object VersionIssuesUtil {
+object OpenApiVersionUtil {
+    var logWarnings = true
     val javaVersion = System.getProperty("java.version").split(".")[0].replace(Regex("[^0-9]+"), "").toInt()
     val kotlinVersion = KotlinVersion.CURRENT.minor // let's face it, to JetBrains minor means major
     val hasIssue = javaVersion >= 15 || kotlinVersion >= 5

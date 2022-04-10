@@ -276,8 +276,8 @@ class TestStaticFiles {
 
     @Test
     fun `logs handlers added on startup`() {
-        val logOutput = TestLoggingUtil.captureStdOut { TestUtil.test(multiLocationStaticResourceApp) { _, _ -> } }
-        assertThat(logOutput.split("Static file handler added").size - 1).isEqualTo(4)
+        TestUtil.test(multiLocationStaticResourceApp) { _, _ -> }
+        assertThat(multiLocationStaticResourceApp.attribute<String>("testlogs").split("Static file handler added").size - 1).isEqualTo(4)
     }
 
 }

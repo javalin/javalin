@@ -12,4 +12,8 @@ data class StaticFileConfig(
     @JvmField var aliasCheck: AliasCheck? = null,
     @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
     @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
-)
+) {
+    internal fun refinedToString(): String {
+        return this.toString().replace(", skipFileFunction=(javax.servlet.http.HttpServletRequest) -> kotlin.Boolean", "")
+    }
+}

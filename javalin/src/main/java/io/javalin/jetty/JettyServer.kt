@@ -64,6 +64,8 @@ class JettyServer(val config: JavalinConfig) {
             }
         }.start()
 
+        JavalinLogger.logAllDelayed()
+
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
         }

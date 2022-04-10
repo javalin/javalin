@@ -20,7 +20,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import io.javalin.plugin.openapi.annotations.OpenApiSecurity
-import io.javalin.plugin.openapi.utils.VersionIssuesUtil
+import io.javalin.plugin.openapi.utils.OpenApiVersionUtil
 import org.junit.jupiter.api.Test
 
 private const val XML = "application/xml"
@@ -311,7 +311,7 @@ fun getEnumParamsHandler(ctx: Context) {
 class TestOpenApiAnnotations {
     @Test
     fun `createOpenApiSchema works with complexExample and annotations`() {
-        if (VersionIssuesUtil.hasIssue) {
+        if (OpenApiVersionUtil.hasIssue) {
             return  // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         val app = Javalin.create {
@@ -385,7 +385,7 @@ class TestOpenApiAnnotations {
 
     @Test
     fun `createOpenApiSchema with query param bean`() {
-        if (VersionIssuesUtil.hasIssue) {
+        if (OpenApiVersionUtil.hasIssue) {
             return  // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         val actual = extractSchemaForTest {
@@ -395,7 +395,7 @@ class TestOpenApiAnnotations {
 
     @Test
     fun `createOpenApiSchema with repeatable query param`() {
-        if (VersionIssuesUtil.hasIssue) {
+        if (OpenApiVersionUtil.hasIssue) {
             return  // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         extractSchemaForTest {
@@ -412,7 +412,7 @@ class TestOpenApiAnnotations {
 
     @Test
     fun `createOpenApiSchema with kotlin function`() {
-        if (VersionIssuesUtil.hasIssue) {
+        if (OpenApiVersionUtil.hasIssue) {
             return  // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         extractSchemaForTest {
@@ -436,7 +436,7 @@ class TestOpenApiAnnotations {
 
     @Test
     fun `createOpenApiSchema works with composed body and response`() {
-        if (VersionIssuesUtil.hasIssue) {
+        if (OpenApiVersionUtil.hasIssue) {
             return  // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         extractSchemaForTest {

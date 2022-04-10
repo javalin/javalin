@@ -8,7 +8,7 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
 import io.javalin.plugin.openapi.ui.ReDocRenderer
 import io.javalin.plugin.openapi.ui.SwaggerRenderer
-import io.javalin.plugin.openapi.utils.VersionIssuesUtil
+import io.javalin.plugin.openapi.utils.OpenApiVersionUtil
 
 /**
  * Plugin for the the automatic generation of an open api schema.
@@ -17,9 +17,10 @@ import io.javalin.plugin.openapi.utils.VersionIssuesUtil
 class OpenApiPlugin(private vararg val options: OpenApiOptions) : Plugin, PluginLifecycleInit {
 
     init {
-        if (VersionIssuesUtil.warning != null) {
-            JavalinLogger.warn("${VersionIssuesUtil.warning} - the OpenAPI plugin will not work properly. " +
+        if (OpenApiVersionUtil.logWarnings && OpenApiVersionUtil.warning != null) {
+            JavalinLogger.warn("${OpenApiVersionUtil.warning} - the OpenAPI plugin will not work properly. " +
                     "Please visit https://github.com/tipsy/javalin/issues/1193 if you want to help fix this issue.")
+            JavalinLogger.warn("You can disable this warning by doing `OpenApiVersionUtil.logWarnings = false`")
         }
     }
 

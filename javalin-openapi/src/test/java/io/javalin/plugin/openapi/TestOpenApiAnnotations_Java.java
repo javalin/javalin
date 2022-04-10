@@ -10,7 +10,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi;
 import io.javalin.plugin.openapi.annotations.OpenApiContent;
 import io.javalin.plugin.openapi.annotations.OpenApiParam;
 import io.javalin.plugin.openapi.annotations.OpenApiResponse;
-import io.javalin.plugin.openapi.utils.VersionIssuesUtil;
+import io.javalin.plugin.openapi.utils.OpenApiVersionUtil;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import kotlin.Unit;
@@ -344,7 +344,7 @@ public class TestOpenApiAnnotations_Java {
 
     @Test
     public void testWithJavaMethodReference() {
-        if (VersionIssuesUtil.INSTANCE.getHasIssue()) {
+        if (OpenApiVersionUtil.INSTANCE.getHasIssue()) {
             return; // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         Info info = new Info().title("Example").version("1.0.0");
@@ -359,7 +359,7 @@ public class TestOpenApiAnnotations_Java {
 
     @Test
     public void testWithExtendedJavaMethodReference() {
-        if (VersionIssuesUtil.INSTANCE.getHasIssue()) {
+        if (OpenApiVersionUtil.INSTANCE.getHasIssue()) {
             return; // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         Info info = new Info().title("Example").version("1.0.0");
@@ -374,7 +374,7 @@ public class TestOpenApiAnnotations_Java {
 
     @Test
     public void testWithJavaMethodReferenceAndMultipleMethods() {
-        if (VersionIssuesUtil.INSTANCE.getHasIssue()) {
+        if (OpenApiVersionUtil.INSTANCE.getHasIssue()) {
             return; // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         Info info = new Info().title("Example").version("1.0.0");
@@ -391,7 +391,7 @@ public class TestOpenApiAnnotations_Java {
 
     @Test
     public void testWithJavaMethodReferenceAndMultipleMethodsAndSamePath() {
-        if (VersionIssuesUtil.INSTANCE.getHasIssue()) {
+        if (OpenApiVersionUtil.INSTANCE.getHasIssue()) {
             return; // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         Info info = new Info().title("Example").version("1.0.0");
@@ -519,7 +519,7 @@ public class TestOpenApiAnnotations_Java {
 
     @Test
     public void testIfUserIsWarnedOnInvalidPath() {
-        if (VersionIssuesUtil.INSTANCE.getHasIssue()) {
+        if (OpenApiVersionUtil.INSTANCE.getHasIssue()) {
             return; // TODO: We have to either find a way to fix this, or scrap this functionality
         }
         String log = captureStdOut(() ->
