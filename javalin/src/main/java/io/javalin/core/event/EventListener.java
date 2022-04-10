@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class EventListener {
 
-    private EventManager eventManager;
+    private final EventManager eventManager;
 
     public EventListener(EventManager eventManager) {
         this.eventManager = eventManager;

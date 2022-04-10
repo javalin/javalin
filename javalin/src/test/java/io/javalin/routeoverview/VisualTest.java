@@ -24,7 +24,7 @@ import static io.javalin.apibuilder.ApiBuilder.post;
 
 public class VisualTest {
 
-    private static Handler lambdaField = ctx -> {
+    private static final Handler lambdaField = ctx -> {
     };
 
     public static void main(String[] args) {

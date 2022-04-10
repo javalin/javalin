@@ -1,7 +1,6 @@
 package io.javalin.plugin.metrics
 
 import io.javalin.Javalin
-import io.javalin.core.util.JavalinLogger
 import io.javalin.testing.TestUtil
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat

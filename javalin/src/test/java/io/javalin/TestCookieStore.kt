@@ -104,7 +104,6 @@ class TestCookieStore {
             ctx.cookieStore("first", "hello")
             ctx.cookieStore("second", "world")
         }
-        val headers = http.get("/test").getHeaders()
-        assertThat(headers.get("Set-Cookie")).hasSize(1)
+        assertThat(http.get("/test").headers.get("Set-Cookie")).hasSize(1)
     }
 }

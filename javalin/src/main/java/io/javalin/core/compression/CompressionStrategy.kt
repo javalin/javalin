@@ -4,7 +4,6 @@ import com.nixxcode.jvmbrotli.common.BrotliLoader
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.OptionalDependency
 import io.javalin.core.util.Util
-import java.util.Arrays
 
 /**
  * This class is a settings container for Javalin's content compression.

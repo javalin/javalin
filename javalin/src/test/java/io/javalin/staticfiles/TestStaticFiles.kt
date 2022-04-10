@@ -13,7 +13,6 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.http.ContentType
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
-import io.javalin.testing.TestLoggingUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper

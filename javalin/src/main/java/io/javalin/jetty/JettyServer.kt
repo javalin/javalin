@@ -81,9 +81,9 @@ class JettyServer(val config: JavalinConfig) {
     private fun defaultConnector(server: Server) = ServerConnector(server).apply {
         this.port = serverPort
         this.host = serverHost
-        this.getConnectionFactories().forEach {
+        this.connectionFactories.forEach {
             if (it is HttpConnectionFactory) {
-                it.getHttpConfiguration().setSendServerVersion(false)
+                it.httpConfiguration.sendServerVersion = false
             }
         }
     }

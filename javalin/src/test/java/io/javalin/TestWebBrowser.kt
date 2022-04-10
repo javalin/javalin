@@ -9,7 +9,6 @@ package io.javalin
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
 import io.javalin.core.util.Header
-import io.javalin.http.NotFoundResponse
 import io.javalin.http.util.SeekableWriter.chunkSize
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent

@@ -343,11 +343,11 @@ class TestRequest {
 
     @Test
     fun `fullUrl works`() = TestUtil.test { app, http ->
-        val origin = "http://localhost:" + app.port() + "/";
+        val root = http.origin + "/"
         app.get("/") { it.result(it.fullUrl()) }
-        assertThat(http.getBody("/")).isEqualTo(origin)
-        assertThat(http.getBody("/?test")).isEqualTo(origin + "?test")
-        assertThat(http.getBody("/?test=tast")).isEqualTo(origin + "?test=tast")
+        assertThat(http.getBody("/")).isEqualTo(root)
+        assertThat(http.getBody("/?test")).isEqualTo("$root?test")
+        assertThat(http.getBody("/?test=tast")).isEqualTo("$root?test=tast")
     }
 
     @Test
