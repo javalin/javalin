@@ -12,10 +12,10 @@ class MicrometerPluginTest {
 
     @Test
     fun `test that JettyConnectionMetrics is registered`() {
-        JavalinLogger.enabled = false
         val registry = SimpleMeterRegistry()
+        val micrometerApp = Javalin.create { it.registerPlugin(MicrometerPlugin(registry)) }
 
-        TestUtil.test(Javalin.create { it.registerPlugin(MicrometerPlugin(registry)) }) { app, http ->
+        TestUtil.test(micrometerApp) { app, http ->
             app.get("/test") { it.json("Hello world") }
             repeat(10) {
                 http.get("/test")
@@ -27,6 +27,5 @@ class MicrometerPluginTest {
 
         val messagesOutCounter = registry.find("jetty.connections.messages.out").counter() ?: fail("\"jetty.connections.messages.out\" not found")
         assertThat(messagesOutCounter.count()).isGreaterThan(0.0)
-        JavalinLogger.enabled = true
     }
 }

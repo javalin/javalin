@@ -8,9 +8,6 @@ package io.javalin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.javalin.core.util.JavalinLogger
 import io.javalin.core.validation.JavalinValidation
 import io.javalin.core.validation.NullableValidator
 import io.javalin.core.validation.ValidationError
@@ -46,7 +43,6 @@ class TestValidation {
     fun `formParam gives correct error message`() = TestUtil.test { app, http ->
         app.post("/") { it.formParamAsClass<Int>("param").get() }
         assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
-        JavalinLogger.enabled = true
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
         assertThat(log).contains("Parameter 'param' with value 'abc' is not a valid Integer")
 

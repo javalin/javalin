@@ -7,7 +7,7 @@
 
 package io.javalin;
 
-import io.javalin.core.util.JavalinLogger;
+import io.javalin.testing.TestUtil;
 import org.eclipse.jetty.server.Server;
 import org.junit.jupiter.api.Test;
 
@@ -19,53 +19,53 @@ class TestClose_Java {
 
     @Test
     void tryWithResourcesStopsServer() {
-        JavalinLogger.enabled = false;
-        final Javalin app = Javalin.create();
+        TestUtil.runLogLess(() -> {
+            final Javalin app = Javalin.create();
 
-        //noinspection EmptyTryBlock
-        try (final Javalin ignored = app.start(0)) {
-            // do nothing
-        }
+            //noinspection EmptyTryBlock
+            try (final Javalin ignored = app.start(0)) {
+                // do nothing
+            }
 
-        final Server server = Objects.requireNonNull(app.jettyServer()).server();
-        assertThat(server.isStopped()).isTrue();
-        JavalinLogger.enabled = true;
+            final Server server = Objects.requireNonNull(app.jettyServer()).server();
+            assertThat(server.isStopped()).isTrue();
+        });
     }
 
     @Test
     void tryWithResourcesCallsLifecycleEvents() {
-        JavalinLogger.enabled = false;
-        final StringBuilder log = new StringBuilder();
-        final Javalin app = Javalin.create().events(event -> {
-            event.serverStopping(() -> log.append("Stopping"));
-            event.serverStopped(() -> log.append("Stopped"));
+        TestUtil.runLogLess(() -> {
+            final StringBuilder log = new StringBuilder();
+            final Javalin app = Javalin.create().events(event -> {
+                event.serverStopping(() -> log.append("Stopping"));
+                event.serverStopped(() -> log.append("Stopped"));
+            });
+
+            //noinspection EmptyTryBlock
+            try (final Javalin ignored = app.start(0)) {
+                // do nothing
+            }
+
+            assertThat(log.toString()).isEqualTo("StoppingStopped");
         });
-
-        //noinspection EmptyTryBlock
-        try (final Javalin ignored = app.start(0)) {
-            // do nothing
-        }
-
-        assertThat(log.toString()).isEqualTo("StoppingStopped");
-        JavalinLogger.enabled = true;
     }
 
     @Test
     void closingInsideTryWithResourcesIsIdempotent() {
-        JavalinLogger.enabled = false;
-        final StringBuilder log = new StringBuilder();
-        final Javalin app = Javalin.create().events(event -> {
-            event.serverStopping(() -> log.append("Stopping"));
-            event.serverStopped(() -> log.append("Stopped"));
-        });
-        try (final Javalin startedApp = app.start(0)) {
-            //noinspection RedundantExplicitClose
-            startedApp.close();
-        }
+        TestUtil.runLogLess(() -> {
+            final StringBuilder log = new StringBuilder();
+            final Javalin app = Javalin.create().events(event -> {
+                event.serverStopping(() -> log.append("Stopping"));
+                event.serverStopped(() -> log.append("Stopped"));
+            });
+            try (final Javalin startedApp = app.start(0)) {
+                //noinspection RedundantExplicitClose
+                startedApp.close();
+            }
 
-        final Server server = Objects.requireNonNull(app.jettyServer()).server();
-        assertThat(server.isStopped()).isTrue();
-        assertThat(log.toString()).isEqualTo("StoppingStopped");
-        JavalinLogger.enabled = true;
+            final Server server = Objects.requireNonNull(app.jettyServer()).server();
+            assertThat(server.isStopped()).isTrue();
+            assertThat(log.toString()).isEqualTo("StoppingStopped");
+        });
     }
 }

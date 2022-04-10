@@ -9,7 +9,7 @@ package io.javalin
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
 import io.javalin.core.util.Header
-import io.javalin.core.util.JavalinLogger
+import io.javalin.http.NotFoundResponse
 import io.javalin.http.util.SeekableWriter.chunkSize
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
@@ -67,20 +67,21 @@ class TestWebBrowser {
 
     @Test
     fun `brotli works in chrome`() {
-        JavalinLogger.enabled = false
-        val payload = "Hello, Selenium!".repeat(150)
-        val app = Javalin.create {
-            it.compressionStrategy(Brotli(4), null)
-            it.enableDevLogging()
-        }.start(0)
-        app.get("/hello") { it.result(payload) }
-        val logResult = captureStdOut {
-            JavalinLogger.enabled = true
-            driver.get("http://localhost:" + app.port() + "/hello") }
-        assertThat(driver.pageSource).contains(payload)
-        assertThat(logResult).contains("Content-Encoding=br")
-        assertThat(logResult).contains("Body is brotlied (${payload.length} bytes, not logged)")
-        app.stop()
+        TestUtil.runAndCaptureLogs {
+            val payload = "Hello, Selenium!".repeat(150)
+            val app = Javalin.create {
+                it.compressionStrategy(Brotli(4), null)
+                it.enableDevLogging()
+            }.start(0)
+            app.get("/hello") { it.result(payload) }
+            val logResult = captureStdOut {
+                driver.get("http://localhost:" + app.port() + "/hello")
+            }
+            assertThat(driver.pageSource).contains(payload)
+            assertThat(logResult).contains("Content-Encoding=br")
+            assertThat(logResult).contains("Body is brotlied (${payload.length} bytes, not logged)")
+            app.stop()
+        }
     }
 
     @Test

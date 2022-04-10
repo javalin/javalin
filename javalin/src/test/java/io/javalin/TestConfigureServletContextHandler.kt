@@ -7,7 +7,6 @@
 
 package io.javalin
 
-import io.javalin.core.util.JavalinLogger
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -26,8 +25,7 @@ import javax.servlet.ServletResponse
 class TestConfigureServletContextHandler {
 
     @Test
-    fun `adding an event listener to the ServletContextHandler works`() {
-        JavalinLogger.enabled = false
+    fun `adding an event listener to the ServletContextHandler works`() = TestUtil.runLogLess {
         val listener = object : ServletContextListener {
             var called = false
             override fun contextInitialized(ev: ServletContextEvent?) {
@@ -49,7 +47,6 @@ class TestConfigureServletContextHandler {
         http.htmlGet("/");
 
         assertThat(listener.called).isTrue()
-        JavalinLogger.enabled = true
     }
 
     @Test
