@@ -8,6 +8,7 @@
 package io.javalin
 
 import io.javalin.core.LoomUtil
+import io.javalin.core.util.JavalinLogger
 import io.javalin.http.HttpCode
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
@@ -53,22 +54,27 @@ class TestCustomJetty {
 
     @Test
     fun `setting port works`() {
+        JavalinLogger.enabled = false
         val port = (2000..9999).random()
         val app = Javalin.create().start(port).get("/") { it.result("PORT WORKS") }
         assertThat(Unirest.get("http://localhost:$port/").asString().body).isEqualTo("PORT WORKS")
         app.stop()
+        JavalinLogger.enabled = true
     }
 
     @Test
     fun `setting host works`() {
+        JavalinLogger.enabled = false
         val port = (2000..9999).random()
         val app = Javalin.create().start("127.0.0.1", port).get("/") { it.result("HOST WORKS") }
         assertThat(Unirest.get("http://127.0.0.1:$port/").asString().body).isEqualTo("HOST WORKS")
         app.stop()
+        JavalinLogger.enabled = true
     }
 
     @Test
     fun `embedded server can have custom jetty Handler`() {
+        JavalinLogger.enabled = false
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
         val app = Javalin.create { it.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
@@ -81,10 +87,12 @@ class TestCustomJetty {
         assertThat(statisticsHandler.dispatched).isEqualTo(requests * 2)
         assertThat(statisticsHandler.responses2xx).isEqualTo(requests)
         assertThat(statisticsHandler.responses4xx).isEqualTo(requests)
+        JavalinLogger.enabled = true
     }
 
     @Test
     fun `embedded server can have custom jetty Handler chain`() {
+        JavalinLogger.enabled = false
         val logCount = AtomicLong(0)
         val requestLogHandler = RequestLogHandler().apply { requestLog = RequestLog { _, _ -> logCount.incrementAndGet() } }
         val handlerChain = StatisticsHandler().apply { handler = requestLogHandler }
@@ -100,10 +108,12 @@ class TestCustomJetty {
         assertThat(handlerChain.responses2xx).`as`("responses 2xx").isEqualTo(requests)
         assertThat(handlerChain.responses4xx).`as`("responses 4xx").isEqualTo(requests)
         assertThat(logCount.get()).`as`("logCount").isEqualTo((requests * 2).toLong())
+        JavalinLogger.enabled = true
     }
 
     @Test
     fun `embedded server can have a wrapped handler collection`() {
+        JavalinLogger.enabled = false
         val handlerCollection = HandlerCollection()
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
@@ -117,10 +127,12 @@ class TestCustomJetty {
         assertThat(handlerChain.dispatched).isEqualTo(requests * 2)
         assertThat(handlerChain.responses2xx).isEqualTo(requests)
         assertThat(handlerChain.responses4xx).isEqualTo(requests)
+        JavalinLogger.enabled = true
     }
 
     @Test
     fun `custom SessionHandler works`() {
+        JavalinLogger.enabled = false
         val newServer = Server()
         val fileSessionHandler = SessionHandler().apply {
             httpOnly = true
@@ -137,6 +149,7 @@ class TestCustomJetty {
         val httpHandler = (newServer.handlers[0] as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
         javalin.stop()
+        JavalinLogger.enabled = true
     }
 
     @Test

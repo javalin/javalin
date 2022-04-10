@@ -10,6 +10,7 @@ import io.javalin.http.ContentType
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
+import io.javalin.testing.fasterJacksonMapper
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -57,7 +58,7 @@ class TestMultipartForms {
             .field("upload", uploadFile)
             .asString()
 
-        val uploadInfo = JavalinJackson().fromJsonString(response.body, UploadInfo::class.java)
+        val uploadInfo = fasterJacksonMapper.fromJsonString(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo(ContentType.OCTET_STREAM)
@@ -74,7 +75,7 @@ class TestMultipartForms {
         val response = http.post("/test-upload")
             .field("upload", uploadFile, ContentType.IMAGE_PNG.mimeType)
             .asString()
-        val uploadInfo = JavalinJackson().fromJsonString(response.body, UploadInfo::class.java)
+        val uploadInfo = fasterJacksonMapper.fromJsonString(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo(ContentType.IMAGE_PNG.mimeType)

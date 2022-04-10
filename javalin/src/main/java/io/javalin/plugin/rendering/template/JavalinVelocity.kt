@@ -35,8 +35,8 @@ object JavalinVelocity : FileRenderer {
     }
 
     fun defaultVelocityEngine() = VelocityEngine().apply {
-        setProperty("resource.loader", "class")
-        setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
+        setProperty("resource.loaders", "class")
+        setProperty("resource.loader.class.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader")
     }
 
 }

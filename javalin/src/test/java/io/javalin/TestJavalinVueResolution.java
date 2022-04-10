@@ -15,6 +15,7 @@
  */
 package io.javalin;
 
+import io.javalin.core.util.JavalinLogger;
 import io.javalin.plugin.rendering.vue.JavalinVue;
 import io.javalin.plugin.rendering.vue.VueComponent;
 import io.javalin.testing.TestUtil;
@@ -117,6 +118,7 @@ public class TestJavalinVueResolution {
 
     @Test
     public void resolveMultiComponentFileDependencyTest() {
+        JavalinLogger.enabled = false;
         TestUtil.test((server, httpUtil) -> {
             server.get("/multi-view-one", new VueComponent("<view-two></view-two>"));
             String body = httpUtil.getBody("/multi-view-one");
@@ -142,6 +144,7 @@ public class TestJavalinVueResolution {
             assertThat(body).contains("dependency-four");
             assertThat(body).doesNotContain("nested-dependency");
         });
+        JavalinLogger.enabled = true;
     }
 
     @Test

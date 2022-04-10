@@ -9,12 +9,11 @@ package io.javalin
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.core.util.Header
 import io.javalin.http.UnauthorizedResponse
-import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
+import io.javalin.testing.fasterJacksonMapper
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.WsMessageContext
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
@@ -47,13 +46,6 @@ class TestWebSocket {
     }
 
     fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
-
-    fun javalinWithWsLogger() = Javalin.create().apply {
-        this._conf.wsLogger { ws ->
-            ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
-            ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
-        }
-    }
 
     fun accessManagedJavalin() = Javalin.create().apply {
         this._conf.accessManager { handler, ctx, roles ->
@@ -95,19 +87,18 @@ class TestWebSocket {
 
     @Test
     fun `general integration test`() = TestUtil.test(contextPathJavalin()) { app, _ ->
-        val userUsernameMap = ConcurrentHashMap<WsContext, Int>()
+        val idMap = ConcurrentHashMap<WsContext, Int>()
         val atomicInteger = AtomicInteger()
         app.ws("/test-websocket-1") { ws ->
             ws.onConnect { ctx ->
-                userUsernameMap[ctx] = atomicInteger.getAndIncrement()
-                app.logger().log.add(userUsernameMap[ctx].toString() + " connected")
+                idMap[ctx] = atomicInteger.getAndIncrement()
+                app.logger().log.add("${idMap[ctx]} connected")
             }
             ws.onMessage { ctx ->
-                val message = ctx.message()
-                app.logger().log.add(userUsernameMap[ctx].toString() + " sent '" + message + "' to server")
-                userUsernameMap.forEach { (client, _) -> client.send("Server sent '" + message + "' to " + userUsernameMap[client]) }
+                app.logger().log.add("${idMap[ctx]} sent '${ctx.message()}' to server")
+                idMap.forEach { (client, _) -> client.send("Server sent '${ctx.message()}' to ${idMap[client]}") }
             }
-            ws.onClose { ctx -> app.logger().log.add(userUsernameMap[ctx].toString() + " disconnected") }
+            ws.onClose { ctx -> app.logger().log.add("${idMap[ctx]} disconnected") }
         }
         app.routes { // use .routes to test apibuilder
             ws("/test-websocket-2") { ws ->
@@ -116,20 +107,15 @@ class TestWebSocket {
             }
         }
 
-        val testClient0 = TestClient(app, "/websocket/test-websocket-1")
-        val testClient1 = TestClient(app, "/websocket/test-websocket-1")
-        val otherClient = TestClient(app, "/websocket/test-websocket-2")
-
-        doAndSleepWhile({ testClient0.connect() }, { "0 connected" !in app.logger().log })
-        doAndSleepWhile({ testClient1.connect() }, { "1 connected" !in app.logger().log })
-        doAndSleepWhile({
-            testClient0.send("A")
-            testClient1.send("B")
-        }, { app.logger().log.size != 8 })
-        doAndSleepWhile({ testClient0.close() }, { testClient0.isClosing })
-        doAndSleepWhile({ testClient1.close() }, { testClient1.isClosing })
-        doAndSleepWhile({ otherClient.connect() }, { !otherClient.isOpen })
-        doAndSleepWhile({ otherClient.close() }, { otherClient.isClosing })
+        val testClient0 = TestClient(app, "/websocket/test-websocket-1").also { it.connectBlocking() } // logsize = 1
+        val testClient1 = TestClient(app, "/websocket/test-websocket-1").also { it.connectBlocking() } // logsize = 2
+        doBlocking({
+            testClient0.send("A") // logsize = 3 (this will add +2 to logsize when clients register echo)
+            testClient1.send("B") // logsize = 4 (this will add +2 to logsize when clients register echo)
+        }, { app.logger().log.size != 8 }) // // logsize = 8 (block until all echos registered)
+        testClient0.closeBlocking()
+        testClient1.closeBlocking()
+        TestClient(app, "/websocket/test-websocket-2").also { it.connectAndDisconnect() }
         assertThat(app.logger().log).containsExactlyInAnyOrder(
             "0 connected",
             "1 connected",
@@ -147,52 +133,44 @@ class TestWebSocket {
     }
 
     @Test
-    fun `receive and send json messages`() = TestUtil.test { app, _ ->
-        val clientMessage = SerializableObject().apply { value1 = "test1"; value2 = "test2" }
-        val clientMessageJson = JavalinJackson().toJsonString(clientMessage)
-
-        val serverMessage = SerializableObject().apply { value1 = "echo1"; value2 = "echo2" }
-        val serverMessageJson = JavalinJackson().toJsonString(serverMessage)
-
-        var receivedJson: String? = null
-        var receivedMessage: SerializableObject? = null
+    fun `receive and send json messages`() = TestUtil.test(Javalin.create {
+        it.jsonMapper(fasterJacksonMapper)
+    }) { app, _ ->
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->
-                receivedJson = ctx.message()
-                receivedMessage = ctx.messageAsClass<SerializableObject>()
-                ctx.send(serverMessage)
+                val receivedMessage = ctx.messageAsClass<SerializableObject>()
+                receivedMessage.value1 = "updated"
+                ctx.send(receivedMessage)
             }
         }
 
-        val testClient = TestClient(app, "/message")
-        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
-        doAndSleepWhile({ testClient.send(clientMessageJson) }, { receivedJson == null || receivedMessage == null })
-        assertThat(receivedMessage!!.value1).isEqualTo(clientMessage.value1)
-        assertThat(receivedMessage!!.value2).isEqualTo(clientMessage.value2)
-        // the websocket client logs to the javalin instance
-        repeat(100) { if (app.logger().log.size < 1) Thread.sleep(2) }
-        assertThat(app.logger().log.last()).isEqualTo(serverMessageJson)
+        val clientJsonString = fasterJacksonMapper.toJsonString(SerializableObject().apply { value1 = "test1"; value2 = "test2" })
+        var response: String? = null
+        val testClient = TestClient(app, "/message").also {
+            it.onMessage = { msg -> response = msg }
+            it.connectBlocking()
+        }
+        doBlocking({ testClient.send(clientJsonString) }, { response == null }) // have to wait for client to recive response
+        assertThat(response).contains(""""value1":"updated"""")
+        assertThat(response).contains(""""value2":"test2"""")
     }
 
     @Test
     fun `binary messages`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         val byteDataToSend1 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
         val byteDataToSend2 = (0 until 4096).shuffled().map { it.toByte() }.toByteArray()
-
         val receivedBinaryData = mutableListOf<ByteArray>()
         app.ws("/binary") { ws ->
             ws.onBinaryMessage { ctx ->
                 receivedBinaryData.add(ctx.data())
             }
         }
-
-        val testClient = TestClient(app, "/websocket/binary")
-
-        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
-        testClient.send(byteDataToSend1)
-        testClient.send(byteDataToSend2)
-        doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
-
+        TestClient(app, "/websocket/binary").also {
+            it.connectBlocking()
+            it.send(byteDataToSend1)
+            it.send(byteDataToSend2)
+            it.closeBlocking()
+        }
         assertThat(receivedBinaryData).containsExactlyInAnyOrder(byteDataToSend1, byteDataToSend2)
     }
 
@@ -258,10 +236,7 @@ class TestWebSocket {
             ws.onMessage { app.logger().log.add(it.queryParam("qp")!! + 2) }
             ws.onClose { app.logger().log.add(it.queryParam("qp")!! + 3) }
         }
-        val client = TestClient(app, "/context-life?qp=great")
-        doAndSleepWhile({ client.connect() }, { !client.isOpen })
-        client.send("not-important")
-        doAndSleepWhile({ client.close() }, { client.isClosing })
+        TestClient(app, "/context-life?qp=great").connectSendAndDisconnect("not-important")
         assertThat(app.logger().log).containsExactly("great1", "great2", "great3")
     }
 
@@ -293,19 +268,19 @@ class TestWebSocket {
     fun `routing and path-params case sensitive works`() = TestUtil.test { app, _ ->
         app.ws("/pAtH/{param}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
         app.ws("/other-path/{param}") { ws -> ws.onConnect { ctx -> app.logger().log.add(ctx.pathParam("param")) } }
-
-        val client = TestClient(app, "/PaTh/my-param")
-
-        doAndSleepWhile({ client.connect() }, { !client.isClosed })
-
-        TestClient(app, "/other-path/My-PaRaM").connectAndDisconnect()
-
+        TestClient(app, "/PaTh/my-param").connectAndDisconnect()
         assertThat(app.logger().log).doesNotContain("my-param")
+        TestClient(app, "/other-path/My-PaRaM").connectAndDisconnect()
         assertThat(app.logger().log).contains("My-PaRaM")
     }
 
     @Test
-    fun `web socket logging works`() = TestUtil.test(javalinWithWsLogger()) { app, _ ->
+    fun `web socket logging works`() = TestUtil.test(Javalin.create().apply {
+        this._conf.wsLogger { ws ->
+            ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
+            ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
+        }
+    }) { app, _ ->
         app.ws("/path/{param}") {}
         TestClient(app, "/path/0").connectAndDisconnect()
         TestClient(app, "/path/1").connectAndDisconnect()
@@ -333,7 +308,6 @@ class TestWebSocket {
                 app.logger().log.add("call succeeded")
             }
         }
-
         TestClient(app, "/path/0").connectAndDisconnect()
         assertThat(app.logger().log).contains("call succeeded")
     }
@@ -350,24 +324,17 @@ class TestWebSocket {
             }
         }.ws("/ws") { ws ->
             ws.onError { ctx -> err = ctx.error() }
-        }.start(0)
-
-        val testClient = TestClient(app, "/ws")
-        doAndSleepWhile({ testClient.connect() }, { !testClient.isOpen })
-        testClient.send(textToSend)
-        doAndSleepWhile({ testClient.close() }, { testClient.isClosing })
-        app.stop()
-
-        assertThat(err!!.message).isEqualTo(expectedMessage)
-        assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
+        }
+        TestUtil.test(app) { _, _ ->
+            TestClient(app, "/ws").connectSendAndDisconnect("This text is far too long.")
+            assertThat(err!!.message).isEqualTo("Text message size [26] exceeds maximum size [$maxTextSize]")
+            assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
+        }
     }
 
     @Test
     fun `AccessManager rejects invalid request`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
-        val client = TestClient(app, "/")
-
-        doAndSleepWhile({ client.connect() }, { !client.isClosed })
-
+        TestClient(app, "/").connectAndDisconnect()
         assertThat(app.logger().log.size).isEqualTo(2)
         assertThat(app.logger().log).containsExactlyInAnyOrder("handling upgrade request ...", "upgrade request invalid!")
     }
@@ -381,10 +348,7 @@ class TestWebSocket {
 
     @Test
     fun `AccessManager doesn't crash on exception`() = TestUtil.test(accessManagedJavalin()) { app, _ ->
-        val client = TestClient(app, "/?exception=true")
-
-        doAndSleepWhile({ client.connect() }, { !client.isClosed })
-
+        TestClient(app, "/?exception=true").connectAndDisconnect()
         assertThat(app.logger().log.size).isEqualTo(1)
     }
 
@@ -413,13 +377,7 @@ class TestWebSocket {
             ws.onMessage { app.logger().log.add("endpoint handler: onMessage") }
             ws.onClose { app.logger().log.add("endpoint handler: onClose") }
         }
-
-        val client = TestClient(app, "/ws")
-
-        doAndSleepWhile({ client.connect() }, { !client.isOpen })
-        client.send("test")
-        doAndSleepWhile({ client.close() }, { client.isClosing })
-
+        TestClient(app, "/ws").connectSendAndDisconnect("test")
         assertThat(app.logger().log).containsExactly(
             "before handler: onConnect", "endpoint handler: onConnect",
             "before handler: onMessage", "endpoint handler: onMessage",
@@ -463,19 +421,12 @@ class TestWebSocket {
             ws.onMessage { app.logger().log.add("endpoint handler: onMessage") }
             ws.onClose { app.logger().log.add("endpoint handler: onClose") }
         }
-
         app.wsAfter { ws ->
             ws.onConnect { app.logger().log.add("after handler: onConnect") }
             ws.onMessage { app.logger().log.add("after handler: onMessage") }
             ws.onClose { app.logger().log.add("after handler: onClose") }
         }
-
-        val client = TestClient(app, "/ws")
-
-        doAndSleepWhile({ client.connect() }, { !client.isOpen })
-        client.send("test")
-        doAndSleepWhile({ client.close() }, { client.isClosing })
-
+        TestClient(app, "/ws").connectSendAndDisconnect("test")
         assertThat(app.logger().log).containsExactly(
             "endpoint handler: onConnect", "after handler: onConnect",
             "endpoint handler: onMessage", "after handler: onMessage",
@@ -496,7 +447,7 @@ class TestWebSocket {
             }
         }
 
-        doAndSleepWhile({ client.connect() }, { !client.isClosed })
+        doBlocking({ client.connect() }, { !client.isClosed }) // hmmm
 
         assertThat(client.app.logger().log).containsExactly(
             "Status code: ${StatusCode.SERVER_ERROR}",
@@ -540,27 +491,23 @@ class TestWebSocket {
             { client: TestClient -> client.send("UNEXPECTED") } to CloseStatus(1003, "UNEXPECTED")
         )
 
-        val closeFunction = { ctx: WsMessageContext, message: String ->
-            when (message) {
-                "NO_ARGS" -> ctx.closeSession()
-                "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
-                "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
-                else -> ctx.closeSession(1003, "UNEXPECTED")
-            }
-        }
-
-        scenarios.forEach { (scenario, expectedValue) ->
+        scenarios.forEach { (sendAction, closeStatus) ->
             TestUtil.test { app, _ ->
                 app.ws("/websocket") { ws ->
-                    ws.onMessage { ctx -> closeFunction(ctx, ctx.message()) }
+                    ws.onMessage { ctx ->
+                        when (ctx.message()) {
+                            "NO_ARGS" -> ctx.closeSession()
+                            "STATUS_OBJECT" -> ctx.closeSession(CloseStatus(1001, "STATUS_OBJECT"))
+                            "CODE_AND_REASON" -> ctx.closeSession(1002, "CODE_AND_REASON")
+                            else -> ctx.closeSession(1003, "UNEXPECTED")
+                        }
+                    }
                     ws.onClose {
-                        assertThat(it.reason() ?: "null").isEqualTo(expectedValue.phrase)
-                        assertThat(it.status()).isEqualTo(expectedValue.code)
+                        assertThat(it.reason() ?: "null").isEqualTo(closeStatus.phrase)
+                        assertThat(it.status()).isEqualTo(closeStatus.code)
                     }
                 }
-
-                val testClient = TestClient(app, "/websocket", onOpen = { scenario(it) })
-                testClient.connectBlocking()
+                TestClient(app, "/websocket", onOpen = { sendAction(it) }).connectBlocking()
             }
         }
     }
@@ -573,30 +520,42 @@ class TestWebSocket {
         var app: Javalin,
         path: String,
         headers: Map<String, String> = emptyMap(),
-        val onOpen: (TestClient) -> Unit = {}
+        val onOpen: (TestClient) -> Unit = {},
+        var onMessage: ((String) -> Unit)? = null
     ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
-        override fun onOpen(serverHandshake: ServerHandshake) { onOpen(this) }
-        override fun onClose(status: Int, message: String, byRemote: Boolean) { /* System.err.println("Connection closed $status $message $byRemote") */ }
-        override fun onError(exception: Exception) { exception.printStackTrace() }
-        override fun onMessage(message: String) { app.logger().log.add(message) }
+        override fun onOpen(serverHandshake: ServerHandshake) = onOpen(this)
+        override fun onClose(status: Int, message: String, byRemote: Boolean) {}
+        override fun onError(exception: Exception) {}
+        override fun onMessage(message: String) {
+            onMessage?.invoke(message)
+            app.logger().log.add(message)
+        }
 
         @Suppress("ControlFlowWithEmptyBody")
+        /*
         fun connectAndDisconnect() {
             connect()
             while (!isOpen) {} // wait for open
             close()
             while (!isClosed) {} // wait for close
             Thread.sleep(1) // Sleep this thread to let others finish their work
+
+         */
+
+        fun connectAndDisconnect() = connectBlocking().also { closeBlocking() }
+
+        fun connectSendAndDisconnect(message: String) {
+            connectBlocking()
+            send(message)
+            closeBlocking()
         }
     }
 
-    private fun doAndSleepWhile(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(1)) {
+    private fun doBlocking(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(1)) {
         val startTime = System.currentTimeMillis()
         val limitTime = startTime + timeout.toMillis()
-
         slowFunction.invoke()
-
         while (conditionFunction.invoke()) {
             if (System.currentTimeMillis() > limitTime) {
                 throw TimeoutException("Wait for condition has timed out")

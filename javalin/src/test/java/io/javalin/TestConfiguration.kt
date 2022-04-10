@@ -28,6 +28,7 @@ class TestConfiguration {
 
     @Test
     fun `test all config options`() {
+        JavalinLogger.enabled = false
         val app = Javalin.create {
             // JavalinServlet
             it.addSinglePageRoot("/", "/public/html.html")
@@ -70,6 +71,7 @@ class TestConfiguration {
         }.start(0)
         assertThat(app.jettyServer.started).isTrue()
         app.stop()
+        JavalinLogger.enabled = true
     }
 
     @Test

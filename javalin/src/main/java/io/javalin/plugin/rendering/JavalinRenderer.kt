@@ -35,7 +35,7 @@ object JavalinRenderer {
 
     fun renderBasedOnExtension(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         val renderer = extensions[filePath.extension] ?: throw IllegalArgumentException("No Renderer registered for extension '${filePath.extension}'.")
-        return renderer.render(filePath, baseModelFunction(ctx) + model, ctx)//overrides the base model
+        return renderer.render(filePath, baseModelFunction(ctx) + model, ctx) // overrides the base model
     }
 
     @JvmStatic

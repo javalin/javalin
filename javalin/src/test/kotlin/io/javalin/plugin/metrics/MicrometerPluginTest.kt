@@ -1,6 +1,7 @@
 package io.javalin.plugin.metrics
 
 import io.javalin.Javalin
+import io.javalin.core.util.JavalinLogger
 import io.javalin.testing.TestUtil
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
@@ -13,6 +14,7 @@ class MicrometerPluginTest {
     @Test
     @Disabled("Micrometer does not support JakartaEE 9 yet")
     fun `test that JettyConnectionMetrics is registered`() {
+        JavalinLogger.enabled = false
         val registry = SimpleMeterRegistry()
 
         TestUtil.test(Javalin.create { it.registerPlugin(MicrometerPlugin(registry)) }) { app, http ->
@@ -27,5 +29,6 @@ class MicrometerPluginTest {
 
         val messagesOutCounter = registry.find("jetty.connections.messages.out").counter() ?: fail("\"jetty.connections.messages.out\" not found")
         assertThat(messagesOutCounter.count()).isGreaterThan(0.0)
+        JavalinLogger.enabled = true
     }
 }

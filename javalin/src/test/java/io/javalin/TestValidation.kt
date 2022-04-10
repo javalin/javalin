@@ -20,6 +20,7 @@ import io.javalin.core.validation.collectErrors
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
+import io.javalin.testing.fasterJacksonMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.http.HttpStatus
 import org.junit.jupiter.api.Test
@@ -156,8 +157,8 @@ class TestValidation {
                 .get()
             ctx.result(obj.value1)
         }
-        val invalidJson = JavalinJackson().toJsonString(SerializableObject())
-        val validJson = JavalinJackson().toJsonString(SerializableObject().apply {
+        val invalidJson = fasterJacksonMapper.toJsonString(SerializableObject())
+        val validJson = fasterJacksonMapper.toJsonString(SerializableObject().apply {
             value1 = "Bananas"
         })
 
@@ -184,7 +185,7 @@ class TestValidation {
             {"message":"UnnamedFieldCheck1","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}},
             {"message":"UnnamedFieldCheck2","args":{},"value":{"value1":"First Value","value2":"SecondValue"}}],
             "named_field":[{"message":"NamedFieldCheck3","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".replace("\\s".toRegex(), "")
-        val response = http.post("/json").body(JavalinJackson().toJsonString(SerializableObject())).asString().body
+        val response = http.post("/json").body(fasterJacksonMapper.toJsonString(SerializableObject())).asString().body
         assertThat(response).isEqualTo(expected)
     }
 

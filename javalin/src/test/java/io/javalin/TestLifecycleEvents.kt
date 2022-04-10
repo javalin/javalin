@@ -7,6 +7,7 @@
 
 package io.javalin
 
+import io.javalin.core.util.JavalinLogger
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -15,6 +16,7 @@ class TestLifecycleEvents {
 
     @Test
     fun `lifecycle events work`() {
+        JavalinLogger.enabled = false
         var log = ""
         Javalin.create().events { event ->
             event.serverStarting { log += "Starting" }
@@ -25,10 +27,12 @@ class TestLifecycleEvents {
             event.serverStopped { log += "Stopped" }
         }.start(0).stop()
         assertThat(log).isEqualTo("StartingStartedStoppingStoppingStoppingStopped")
+        JavalinLogger.enabled = true
     }
 
     @Test
     fun `server started event works`() {
+        JavalinLogger.enabled = false
         var log = ""
         val existingApp = Javalin.create().start(20000)
         runCatching {
@@ -38,6 +42,7 @@ class TestLifecycleEvents {
         }
         assertThat(log).isEqualTo("Failed to start")
         existingApp.stop()
+        JavalinLogger.enabled = true
     }
 
     @Test

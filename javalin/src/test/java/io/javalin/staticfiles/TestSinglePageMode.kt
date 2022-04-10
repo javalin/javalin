@@ -139,12 +139,12 @@ class TestSinglePageMode {
     @Test
     fun `SinglePageHandler doesn't cache on localhost`() {
         val file = File(workingDirectory, "my-special-file.html").also { it.writeText("old file") }
-        val app = Javalin.create { it.addSinglePageRoot("/", file.absolutePath, Location.EXTERNAL) }.start(0)
-        fun getSpaPage() = Unirest.get("http://localhost:${app.port()}/").header(Header.ACCEPT, ContentType.HTML).asString().body
-        assertThat(getSpaPage()).contains("old file")
-        file.writeText("new file")
-        assertThat(getSpaPage()).contains("new file")
-        app.stop()
+        TestUtil.test(Javalin.create { it.addSinglePageRoot("/", file.absolutePath, Location.EXTERNAL) }) { app, http ->
+            fun getSpaPage() = http.getBody("/")
+            assertThat(getSpaPage()).contains("old file")
+            file.writeText("new file")
+            assertThat(getSpaPage()).contains("new file")
+        }
     }
 
     @Test

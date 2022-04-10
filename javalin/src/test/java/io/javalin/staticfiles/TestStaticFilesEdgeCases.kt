@@ -8,6 +8,7 @@ package io.javalin.staticfiles
 
 import io.javalin.Javalin
 import io.javalin.core.util.FileUtil
+import io.javalin.core.util.JavalinLogger
 import io.javalin.http.staticfiles.Location
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -44,7 +45,9 @@ class TestStaticFilesEdgeCases {
 
     @Test
     fun `server starts for empty external folder`() {
+        JavalinLogger.enabled = false
         Javalin.create { it.addStaticFiles(workingDirectory.absolutePath, Location.EXTERNAL) }.start(0).stop()
+        JavalinLogger.enabled = true
     }
 
     @Test
