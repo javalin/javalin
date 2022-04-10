@@ -16,7 +16,6 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
-import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -36,7 +35,7 @@ class TestMultipartForms {
 
     @Test
     fun `text is uploaded correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { it.result(IOUtils.toString(it.uploadedFile("upload")!!.content, StandardCharsets.UTF_8)) }
+        app.post("/test-upload") { it.result(it.uploadedFile("upload")!!.content.readBytes().toString(Charsets.UTF_8)) }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/text.txt"))
             .asString()
@@ -217,7 +216,7 @@ class TestMultipartForms {
         val prefix = "PREFIX: "
         val tempFile = File("src/test/resources/upload-test/text.txt")
         app.post("/test-multipart-file-and-text") { ctx ->
-            val fileContent = IOUtils.toString(ctx.uploadedFile("upload")!!.content, StandardCharsets.UTF_8)
+            val fileContent = ctx.uploadedFile("upload")!!.content.readBytes().toString(Charsets.UTF_8)
             ctx.result(ctx.formParam("prefix")!! + fileContent)
         }
         val responseAsString = okHttp.newCall(

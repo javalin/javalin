@@ -13,7 +13,6 @@ import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
 import kong.unirest.Unirest
-import org.apache.commons.io.FileUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -76,7 +75,7 @@ class TestResponse {
                     out.print("Hello, World!")
                 }
             }
-            ctx.result(FileUtils.openInputStream(file))
+            ctx.result(file.inputStream())
         }
         assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
     }
