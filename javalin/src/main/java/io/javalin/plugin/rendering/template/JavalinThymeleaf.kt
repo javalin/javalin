@@ -14,6 +14,7 @@ import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.WebContext
 import org.thymeleaf.templatemode.TemplateMode
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
+import org.thymeleaf.web.servlet.JakartaServletWebApplication
 
 object JavalinThymeleaf : FileRenderer {
 
@@ -27,7 +28,8 @@ object JavalinThymeleaf : FileRenderer {
 
     override fun render(filePath: String, model: Map<String, Any?>, ctx: Context): String {
         Util.ensureDependencyPresent(OptionalDependency.THYMELEAF)
-        val context = WebContext(ctx.req, ctx.res, ctx.req.servletContext)
+        val application = JakartaServletWebApplication.buildApplication(ctx.req.servletContext)
+        val context = WebContext(application.buildExchange(ctx.req, ctx.res))
         context.setVariables(model)
         return (templateEngine ?: defaultTemplateEngine).process(filePath, context)
     }

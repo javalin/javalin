@@ -22,8 +22,8 @@ import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics
 import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
 import io.micrometer.core.instrument.binder.jetty.TimedHandler
 import org.apache.commons.lang3.StringUtils
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class MicrometerPlugin @JvmOverloads constructor(
     private val registry: MeterRegistry = Metrics.globalRegistry,
@@ -39,6 +39,7 @@ class MicrometerPlugin @JvmOverloads constructor(
                 app.exception(Exception::class.java, EXCEPTION_HANDLER)
             }
 
+            /* TODO: Unsupported
             server.insertHandler(TimedHandler(registry, tags, object : DefaultHttpServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {
                     val exceptionName = if (tagExceptionName) {
@@ -62,6 +63,7 @@ class MicrometerPlugin @JvmOverloads constructor(
                     )
                 }
             }))
+             */
 
             JettyServerThreadPoolMetrics(server.threadPool, tags).bindTo(registry)
             app.events {

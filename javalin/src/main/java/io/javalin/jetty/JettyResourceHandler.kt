@@ -10,6 +10,8 @@ import io.javalin.core.util.JavalinException
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.eclipse.jetty.util.URIUtil
@@ -17,8 +19,6 @@ import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import java.nio.file.AccessDeniedException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler : JavalinResourceHandler {

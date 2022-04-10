@@ -4,8 +4,8 @@ import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import java.util.function.Consumer
-import javax.servlet.AsyncEvent
-import javax.servlet.AsyncListener
+import jakarta.servlet.AsyncEvent
+import jakarta.servlet.AsyncListener
 
 class SseHandler(private val clientConsumer: Consumer<SseClient>) : Handler {
     override fun handle(ctx: Context) {

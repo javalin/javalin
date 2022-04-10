@@ -1,8 +1,8 @@
 package io.javalin.http
 
 import io.javalin.core.util.Header
-import javax.servlet.http.HttpServletResponse
-import javax.servlet.http.Cookie as ServletCookie
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.http.Cookie as ServletCookie
 
 const val SAME_SITE = "SameSite"
 

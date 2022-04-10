@@ -31,8 +31,8 @@ public class HelloWorldSecure {
         }).start().get("/", ctx -> ctx.result("Hello World")); // valid endpoint for both connectors
     }
 
-    private static SslContextFactory getSslContextFactory() {
-        SslContextFactory sslContextFactory = new SslContextFactory();
+    private static SslContextFactory.Server getSslContextFactory() {
+        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setKeyStorePath(HelloWorldSecure.class.getResource("/keystore.jks").toExternalForm());
         sslContextFactory.setKeyStorePassword("password");
         return sslContextFactory;

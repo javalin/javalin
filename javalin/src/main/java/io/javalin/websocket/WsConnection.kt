@@ -12,7 +12,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
+import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest
 import java.util.*
 
 /**
@@ -85,4 +85,8 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
 
 }
 
-private fun Session.uriNoContextPath() = this.upgradeRequest.requestURI.path.removePrefix((this.upgradeRequest as ServletUpgradeRequest).httpServletRequest.contextPath)
+private fun Session.uriNoContextPath(): String =
+    this.upgradeRequest.requestURI.path.removePrefix(jettyUpgradeRequest().httpServletRequest.contextPath)
+
+internal fun Session.jettyUpgradeRequest(): JettyServerUpgradeRequest =
+    this.upgradeRequest as JettyServerUpgradeRequest

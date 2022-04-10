@@ -2,7 +2,7 @@ package io.javalin.http.staticfiles
 
 import io.javalin.core.util.Header
 import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 data class StaticFileConfig(
     @JvmField var hostedPath: String = "/",

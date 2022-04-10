@@ -30,10 +30,10 @@ fun main() {
     app.get("/") { it.result("Hello World") } // valid endpoint for both connectors
 }
 
-private fun sslContextFactory(): SslContextFactory {
-    val sslContextFactory = SslContextFactory()
-    sslContextFactory.keyStorePath = HelloWorldSecure::class.java.getResource("/keystore.jks").toExternalForm()
-    sslContextFactory.setKeyStorePassword("password")
+private fun sslContextFactory(): SslContextFactory.Server {
+    val sslContextFactory = SslContextFactory.Server()
+    sslContextFactory.keyStorePath = HelloWorldSecure::class.java.getResource("/keystore.jks")!!.toExternalForm()
+    sslContextFactory.keyStorePassword = "password"
     return sslContextFactory
 }
 

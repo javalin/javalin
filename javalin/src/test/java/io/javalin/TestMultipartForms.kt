@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test
 import java.io.File
 import java.lang.IllegalStateException
 import java.nio.charset.StandardCharsets
-import javax.servlet.MultipartConfigElement
+import jakarta.servlet.MultipartConfigElement
 
 class TestMultipartForms {
 

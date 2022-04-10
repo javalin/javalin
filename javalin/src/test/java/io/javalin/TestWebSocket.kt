@@ -18,9 +18,9 @@ import io.javalin.websocket.WsMessageContext
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
-import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.StatusCode
-import org.eclipse.jetty.websocket.api.WebSocketConstants
+import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
+import org.eclipse.jetty.websocket.api.util.WebSocketConstants
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
@@ -341,12 +341,12 @@ class TestWebSocket {
     @Test
     fun `custom WebSocketServletFactory works`() {
         var err: Throwable? = Exception("Bang")
-        val maxTextSize = 1
+        val maxTextSize = 1L
         val textToSend = "This text is far too long."
-        val expectedMessage = "Text message size [${textToSend.length}] exceeds maximum size [$maxTextSize]"
+        val expectedMessage = "Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize"
         val app = Javalin.create {
             it.wsFactoryConfig { wsFactory ->
-                wsFactory.policy.maxTextMessageSize = maxTextSize
+                wsFactory.maxTextMessageSize = maxTextSize
             }
         }.ws("/ws") { ws ->
             ws.onError { ctx -> err = ctx.error() }

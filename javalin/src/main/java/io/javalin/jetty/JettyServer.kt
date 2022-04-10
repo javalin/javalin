@@ -20,8 +20,9 @@ import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import java.net.BindException
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 
 class JettyServer(val config: JavalinConfig) {
 
@@ -55,6 +56,7 @@ class JettyServer(val config: JavalinConfig) {
             this.sessionHandler = config.inner.sessionHandler
             config.inner.servletContextHandlerConsumer?.accept(this)
             addServlet(ServletHolder(wsAndHttpServlet), "/*")
+            JettyWebSocketServletContainerInitializer.configure(this, null) // Initializes WebSocketComponents
         }
 
         server().apply {

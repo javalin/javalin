@@ -18,13 +18,13 @@ import io.javalin.websocket.WsEntry
 import io.javalin.websocket.WsExceptionMapper
 import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsPathMatcher
-import org.eclipse.jetty.websocket.api.WebSocketConstants
-import org.eclipse.jetty.websocket.servlet.WebSocketCreator
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 import java.util.function.Consumer
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.websocket.api.util.WebSocketConstants
+import org.eclipse.jetty.websocket.server.JettyWebSocketCreator
+import org.eclipse.jetty.websocket.server.JettyWebSocketServlet
+import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 
 internal const val upgradeContextKey = "javalin-ws-upgrade-context"
 internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
@@ -34,7 +34,7 @@ internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"
  * It extends Jetty's [WebSocketServlet], and has a [JavalinServlet] as a constructor arg.
  * It switches between WebSocket and HTTP in the [service] method.
  */
-class JavalinJettyServlet(val config: JavalinConfig, private val httpServlet: JavalinServlet) : WebSocketServlet() {
+class JavalinJettyServlet(val config: JavalinConfig, private val httpServlet: JavalinServlet) : JettyWebSocketServlet() {
 
     val wsExceptionMapper = WsExceptionMapper()
     val wsPathMatcher = WsPathMatcher()
@@ -43,14 +43,14 @@ class JavalinJettyServlet(val config: JavalinConfig, private val httpServlet: Ja
         wsPathMatcher.add(WsEntry(handlerType, path, config.ignoreTrailingSlashes, WsConfig().apply { ws.accept(this) }, roles))
     }
 
-    override fun configure(factory: WebSocketServletFactory) { // this is called once, before everything
+    override fun configure(factory: JettyWebSocketServletFactory) { // this is called once, before everything
         config.inner.wsFactoryConfig?.accept(factory)
-        factory.creator = WebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
+        factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context
             req.httpServletRequest.setAttribute(upgradeContextKey, ContextUtil.changeBaseRequest(preUpgradeContext, req.httpServletRequest))
-            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, req.session?.attributeNames?.asSequence()?.associateWith { req.session.getAttribute(it) })
-            return@WebSocketCreator WsConnection(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
-        }
+            req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, req.servletAttributes /*?.asSequence()?.associateWith { req.session.getAttribute(it) }*/)
+            return@JettyWebSocketCreator WsConnection(wsPathMatcher, wsExceptionMapper, config.inner.wsLogger)
+        })
     }
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) { // this handles both http and websocket

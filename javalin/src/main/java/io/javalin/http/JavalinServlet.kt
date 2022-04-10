@@ -18,9 +18,9 @@ import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import java.util.*
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServlet
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
 

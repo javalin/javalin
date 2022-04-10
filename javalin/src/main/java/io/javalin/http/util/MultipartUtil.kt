@@ -8,9 +8,9 @@ package io.javalin.http.util
 
 import io.javalin.http.UploadedFile
 import java.nio.charset.Charset
-import javax.servlet.MultipartConfigElement
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.Part
+import jakarta.servlet.MultipartConfigElement
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.Part
 
 object MultipartUtil {
     private const val MULTIPART_CONFIG_ATTRIBUTE = "org.eclipse.jetty.multipartConfig";

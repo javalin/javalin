@@ -2,8 +2,8 @@ package io.javalin.http.sse
 
 import java.io.IOException
 import java.io.InputStream
-import javax.servlet.AsyncContext
-import javax.servlet.ServletOutputStream
+import jakarta.servlet.AsyncContext
+import jakarta.servlet.ServletOutputStream
 
 const val COMMENT_PREFIX = ":"
 

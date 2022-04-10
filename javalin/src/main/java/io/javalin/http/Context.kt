@@ -23,8 +23,8 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * Provides access to functions for handling the request and response
@@ -419,7 +419,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Removes cookie specified by name and path (optional). */
     @JvmOverloads
     fun removeCookie(name: String, path: String? = "/"): Context {
-        res.addCookie(javax.servlet.http.Cookie(name, "").apply {
+        res.addCookie(jakarta.servlet.http.Cookie(name, "").apply {
             this.path = path
             this.maxAge = 0
         })
