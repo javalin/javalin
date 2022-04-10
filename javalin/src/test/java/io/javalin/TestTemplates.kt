@@ -43,7 +43,7 @@ class TestTemplates {
     @Test
     fun `velocity external templates work`() = TestUtil.test { app, http ->
         JavalinVelocity.configure(VelocityEngine().apply {
-            setProperty("file.resource.loader.path", "src/test/resources/templates/velocity")
+            setProperty("resource.loader.file.path", "src/test/resources/templates/velocity")
         })
         app.get("/hello") { it.render("test.vm") }
         assertThat(http.getBody("/hello")).isEqualTo("<h1>\$message</h1>")

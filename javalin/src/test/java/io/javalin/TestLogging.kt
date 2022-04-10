@@ -22,7 +22,7 @@ class TestLogging {
     @Test
     fun `default logging works`() {
         val log = captureStdOut { runTest(Javalin.create()) }
-        println(log) // hard to test for absence ...
+        assertThat(log).contains("[main] INFO io.javalin.Javalin - Starting Javalin ...")
     }
 
     @Test
@@ -37,10 +37,13 @@ class TestLogging {
 
     @Test
     fun `dev logging works with inputstreams`() = TestUtil.test(Javalin.create { it.enableDevLogging() }) { app, http ->
-        JavalinLogger.enabled = true
         val fileStream = TestLogging::class.java.getResourceAsStream("/public/file")
         app.get("/") { it.result(fileStream) }
-        val log = captureStdOut { http.getBody("/") }
+        val log = captureStdOut {
+            JavalinLogger.enabled = true
+            http.getBody("/")
+            JavalinLogger.enabled = false
+        }
         assertThat(log).doesNotContain("Stream closed")
         assertThat(log).contains("Body is an InputStream which can't be reset, so it can't be logged")
     }
@@ -48,9 +51,11 @@ class TestLogging {
     @Test
     fun `custom requestlogger is called`() {
         var loggerCalled = false
+        JavalinLogger.enabled = false
         runTest(Javalin.create {
             it.requestLogger { _, _ -> loggerCalled = true }
         })
+        JavalinLogger.enabled = true
         assertThat(loggerCalled).isTrue()
     }
 
@@ -86,16 +91,16 @@ class TestLogging {
 
     @Test
     fun `debug logging works with binary stream`() = TestUtil.test(Javalin.create { it.enableDevLogging() }) { app, http ->
-        JavalinLogger.enabled = true
         app.get("/") {
             val imagePath = this::class.java.classLoader.getResource("upload-test/image.png")
             val stream = File(imagePath.toURI()).inputStream()
             it.result(stream)
         }
         val log = captureStdOut {
+            JavalinLogger.enabled = true
             http.getBody("/")
-            http.getBody("/")
-            // TODO: why must this be called twice on windows to avoid empty log output?
+            http.getBody("/") // TODO: why must this be called twice on windows to avoid empty log output?
+            JavalinLogger.enabled = false
         }
         assertThat(log).contains("Body is binary (not logged)")
     }

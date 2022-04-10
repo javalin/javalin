@@ -6,6 +6,7 @@
  */
 package io.javalin
 
+import io.javalin.core.util.JavalinLogger
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -13,13 +14,16 @@ class TestClose {
 
     @Test
     fun useStopsServer() {
+        JavalinLogger.enabled = false
         val app = Javalin.create()
         app.start(0).use { }
         assertThat(app.jettyServer.server().isStopped).isTrue
+        JavalinLogger.enabled = true
     }
 
     @Test
     fun useCallsLifecycleEvents() {
+        JavalinLogger.enabled = false
         var log = ""
         val app = Javalin.create().events {
             it.serverStopping { log += "Stopping" }
@@ -27,10 +31,12 @@ class TestClose {
         }
         app.start(0).use { }
         assertThat(log).isEqualTo("StoppingStopped")
+        JavalinLogger.enabled = true
     }
 
     @Test
     fun closingInsideUseIsIdempotent() {
+        JavalinLogger.enabled = false
         var log = ""
         val app = Javalin.create().events {
             it.serverStopping { log += "Stopping" }
@@ -39,5 +45,6 @@ class TestClose {
         app.start(0).use { it.close() }
         assertThat(app.jettyServer.server().isStopped).isTrue
         assertThat(log).isEqualTo("StoppingStopped")
+        JavalinLogger.enabled = true
     }
 }

@@ -7,6 +7,7 @@
 
 package io.javalin;
 
+import io.javalin.core.util.JavalinLogger;
 import org.eclipse.jetty.server.Server;
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +19,7 @@ class TestClose_Java {
 
     @Test
     void tryWithResourcesStopsServer() {
+        JavalinLogger.enabled = false;
         final Javalin app = Javalin.create();
 
         //noinspection EmptyTryBlock
@@ -27,10 +29,12 @@ class TestClose_Java {
 
         final Server server = Objects.requireNonNull(app.jettyServer()).server();
         assertThat(server.isStopped()).isTrue();
+        JavalinLogger.enabled = true;
     }
 
     @Test
     void tryWithResourcesCallsLifecycleEvents() {
+        JavalinLogger.enabled = false;
         final StringBuilder log = new StringBuilder();
         final Javalin app = Javalin.create().events(event -> {
             event.serverStopping(() -> log.append("Stopping"));
@@ -43,10 +47,12 @@ class TestClose_Java {
         }
 
         assertThat(log.toString()).isEqualTo("StoppingStopped");
+        JavalinLogger.enabled = true;
     }
 
     @Test
     void closingInsideTryWithResourcesIsIdempotent() {
+        JavalinLogger.enabled = false;
         final StringBuilder log = new StringBuilder();
         final Javalin app = Javalin.create().events(event -> {
             event.serverStopping(() -> log.append("Stopping"));
@@ -60,5 +66,6 @@ class TestClose_Java {
         final Server server = Objects.requireNonNull(app.jettyServer()).server();
         assertThat(server.isStopped()).isTrue();
         assertThat(log.toString()).isEqualTo("StoppingStopped");
+        JavalinLogger.enabled = true;
     }
 }
