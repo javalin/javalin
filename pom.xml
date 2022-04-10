@@ -427,10 +427,6 @@
                             <goal>test-compile</goal>
                         </goals>
                         <configuration>
-                            <args>
-                                <!-- Workaround for bug in Kotlin compiler: https://youtrack.jetbrains.com/issue/KT-29475 -->
-                                <arg>-Xsanitize-parentheses</arg>
-                            </args>
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
                                 <sourceDir>${project.basedir}/src/test/java</sourceDir>
