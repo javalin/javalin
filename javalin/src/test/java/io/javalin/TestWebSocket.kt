@@ -317,7 +317,6 @@ class TestWebSocket {
         var err: Throwable? = Exception("Bang")
         val maxTextSize = 1L
         val textToSend = "This text is far too long."
-        val expectedMessage = "Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize"
         val app = Javalin.create {
             it.wsFactoryConfig { wsFactory ->
                 wsFactory.maxTextMessageSize = maxTextSize
@@ -326,8 +325,8 @@ class TestWebSocket {
             ws.onError { ctx -> err = ctx.error() }
         }
         TestUtil.test(app) { _, _ ->
-            TestClient(app, "/ws").connectSendAndDisconnect("This text is far too long.")
-            assertThat(err!!.message).isEqualTo("Text message size [26] exceeds maximum size [$maxTextSize]")
+            TestClient(app, "/ws").connectSendAndDisconnect(textToSend)
+            assertThat(err!!.message).isEqualTo("Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize")
             assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
         }
     }
@@ -532,24 +531,20 @@ class TestWebSocket {
             app.logger().log.add(message)
         }
 
-        @Suppress("ControlFlowWithEmptyBody")
-        /*
         fun connectAndDisconnect() {
-            connect()
-            while (!isOpen) {} // wait for open
-            close()
-            while (!isClosed) {} // wait for close
-            Thread.sleep(1) // Sleep this thread to let others finish their work
-
-         */
-
-        fun connectAndDisconnect() = connectBlocking().also { closeBlocking() }
+            connectBlocking()
+            closeBlocking()
+            awaitResponse()
+        }
 
         fun connectSendAndDisconnect(message: String) {
             connectBlocking()
             send(message)
             closeBlocking()
+            awaitResponse()
         }
+
+        private fun awaitResponse() = Thread.sleep(1) // freeze this thread, so we're sure that other threads had a chance to finish responses
     }
 
     private fun doBlocking(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(1)) {
