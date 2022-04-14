@@ -292,7 +292,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Sets an attribute for the user session, and caches it on the request */
     fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, req)
 
-    /** Gets specified attribute from the from request attribute cache, or the user session, or null. */
+    /** Gets specified attribute from the request attribute cache, or the user session, or null. */
     fun <T> cachedSessionAttribute(key: String): T? = ContextUtil.getCachedRequestAttributeOrSessionAttribute(key, req)
 
     /** Gets a map of all the attributes in the user session. */

@@ -21,7 +21,6 @@ import io.micrometer.core.instrument.binder.http.DefaultHttpServletRequestTagsPr
 import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics
 import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
 import io.micrometer.core.instrument.binder.jetty.TimedHandler
-import org.apache.commons.lang3.StringUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
@@ -79,7 +78,7 @@ class MicrometerPlugin @JvmOverloads constructor(
 
         var EXCEPTION_HANDLER = ExceptionHandler { e: Exception, ctx: Context ->
             val simpleName = e.javaClass.simpleName
-            ctx.header(EXCEPTION_HEADER, if (StringUtils.isNotBlank(simpleName)) simpleName else e.javaClass.name)
+            ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
             ctx.status(500)
         }
     }

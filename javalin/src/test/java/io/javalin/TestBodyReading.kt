@@ -10,7 +10,6 @@ package io.javalin
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayInputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 

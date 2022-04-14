@@ -16,7 +16,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestRouteOverview_Java {
 
-    private static Handler lambdaField = ctx -> {
+    private static final Handler lambdaField = ctx -> {
     };
 
     private void methodReference(Context context) {

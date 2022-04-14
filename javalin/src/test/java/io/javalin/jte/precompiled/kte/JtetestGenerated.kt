@@ -24,7 +24,7 @@ class JtetestGenerated {
         @JvmStatic
         fun renderMap(jteOutput: gg.jte.html.HtmlTemplateOutput, jteHtmlInterceptor: gg.jte.html.HtmlInterceptor?, params: Map<String, Any>) {
             val page = params.get("page") as JteTestPage
-            render(jteOutput, jteHtmlInterceptor, page);
+            render(jteOutput, jteHtmlInterceptor, page)
         }
     }
 }

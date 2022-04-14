@@ -101,7 +101,7 @@ class TestCookie {
             it.cookie("Test-3", "3")
             it.cookie("Test-3", "4")  // duplicate
         }
-        val response = http.get("/create-cookies");
+        val response = http.get("/create-cookies")
         assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-1=1; Path=/")
         assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-2=2; Path=/")
         assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-3=4; Path=/")
@@ -114,7 +114,7 @@ class TestCookie {
             it.cookie("MyCookie", "A")
             it.cookie("MyCookie", "B")  // duplicate
         }
-        val response = http.get("/create-cookies");
+        val response = http.get("/create-cookies")
         assertThat(response.headers[Header.SET_COOKIE]!!).contains("MyCookie=B; Path=/")
         assertThat(response.headers[Header.SET_COOKIE]!!.size).isEqualTo(1)
     }

@@ -23,7 +23,7 @@ class JtemultipleparamsGenerated {
         fun renderMap(jteOutput: gg.jte.html.HtmlTemplateOutput, jteHtmlInterceptor: gg.jte.html.HtmlInterceptor?, params: Map<String, Any>) {
             val one = params.get("one") as String
             val two = params.get("two") as String
-            render(jteOutput, jteHtmlInterceptor, one, two);
+            render(jteOutput, jteHtmlInterceptor, one, two)
         }
     }
 }

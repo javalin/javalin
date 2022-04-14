@@ -66,6 +66,8 @@ class JettyServer(val config: JavalinConfig) {
             }
         }.start()
 
+        JavalinLogger.logAllDelayed()
+
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
         }
@@ -81,9 +83,9 @@ class JettyServer(val config: JavalinConfig) {
     private fun defaultConnector(server: Server) = ServerConnector(server).apply {
         this.port = serverPort
         this.host = serverHost
-        this.getConnectionFactories().forEach {
+        this.connectionFactories.forEach {
             if (it is HttpConnectionFactory) {
-                it.getHttpConfiguration().setSendServerVersion(false)
+                it.httpConfiguration.sendServerVersion = false
             }
         }
     }

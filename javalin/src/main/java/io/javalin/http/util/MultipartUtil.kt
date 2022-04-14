@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
 
 object MultipartUtil {
-    private const val MULTIPART_CONFIG_ATTRIBUTE = "org.eclipse.jetty.multipartConfig";
+    private const val MULTIPART_CONFIG_ATTRIBUTE = "org.eclipse.jetty.multipartConfig"
 
     var preUploadFunction: (HttpServletRequest) -> Unit = { req ->
         val existingConfig = req.getAttribute(MULTIPART_CONFIG_ATTRIBUTE)

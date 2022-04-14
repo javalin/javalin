@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SimpleAsyncTest {
 
-    private static Logger log = LoggerFactory.getLogger(SimpleAsyncTest.class);
+    private static final Logger log = LoggerFactory.getLogger(SimpleAsyncTest.class);
 
     @Test
     @Disabled("For running manually")

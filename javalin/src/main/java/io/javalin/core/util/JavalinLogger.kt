@@ -2,6 +2,7 @@ package io.javalin.core.util
 
 import io.javalin.Javalin
 import org.slf4j.LoggerFactory
+import java.util.*
 
 // @formatter:off
 object JavalinLogger {
@@ -10,7 +11,6 @@ object JavalinLogger {
 
     @JvmField var enabled = true
     @JvmField var startupInfo = true
-
 
     @JvmStatic fun startup(message: String) {
         if (!enabled) return
@@ -37,5 +37,11 @@ object JavalinLogger {
         if (throwable != null) log.debug(message, throwable) else log.debug(message)
     }
 
+    // we want to log some stuff from JettyResourceHandler after server starts,
+    // but we don't really want those classes to be aware of each other ...
+    // someone should call christina aguilera, because this is dirrty.
+    private val delayed = ArrayDeque<(Unit) -> Unit>()
+    internal fun addDelayed(action: (Unit) -> Unit) = delayed.add(action)
+    internal fun logAllDelayed() { while (delayed.size > 0) delayed.poll().invoke(Unit) }
 }
 // @formatter:on

@@ -13,7 +13,6 @@ import io.javalin.core.util.OptionalDependency
 import io.javalin.http.ContentType
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
-import io.javalin.testing.TestLoggingUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
@@ -276,8 +275,8 @@ class TestStaticFiles {
 
     @Test
     fun `logs handlers added on startup`() {
-        val logOutput = TestLoggingUtil.captureStdOut { TestUtil.test(multiLocationStaticResourceApp) { _, _ -> } }
-        assertThat(logOutput.split("Static file handler added").size - 1).isEqualTo(4)
+        TestUtil.test(multiLocationStaticResourceApp) { _, _ -> }
+        assertThat(multiLocationStaticResourceApp.attribute<String>("testlogs").split("Static file handler added").size - 1).isEqualTo(4)
     }
 
 }

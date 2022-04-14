@@ -48,7 +48,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
 import static io.javalin.http.util.ContextUtil.maxRequestSizeKey;
 import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;

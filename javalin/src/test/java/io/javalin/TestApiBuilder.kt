@@ -18,7 +18,6 @@ import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.apibuilder.ApiBuilder.post
 import io.javalin.apibuilder.ApiBuilder.put
 import io.javalin.apibuilder.CrudHandler
-import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.testing.TestUtil
@@ -123,8 +122,7 @@ class TestApiBuilder {
     }
 
     @Test
-    fun `ApiBuilder works with two services at once`() {
-        JavalinLogger.enabled = false
+    fun `ApiBuilder works with two services at once`() = TestUtil.runLogLess {
         val app1 = Javalin.create().start(0)
         val app2 = Javalin.create().start(0)
         app1.routes { get("/hello-1") { it.result("Hello-1") } }
@@ -137,7 +135,6 @@ class TestApiBuilder {
         assertThat(Unirest.get("http://localhost:" + app1.port() + "/hello-4").asString().body).isEqualTo("Hello-4")
         app1.stop()
         app2.stop()
-        JavalinLogger.enabled = true
     }
 
     @Test

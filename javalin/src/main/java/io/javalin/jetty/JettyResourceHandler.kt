@@ -70,7 +70,10 @@ open class ConfigurableHandler(val config: StaticFileConfig) : ResourceHandler()
         resourceBase = getResourceBase(config)
         isDirAllowed = false
         isEtags = true
-        JavalinLogger.info("Static file handler added: $config. File system location: '${getResourceBase(config)}'")
+        JavalinLogger.addDelayed {
+            JavalinLogger.info("Static file handler added: ${config.refinedToString()}. File system location: '${getResourceBase(config)}'")
+        }
+
     }
 
     override fun getResource(path: String): Resource {

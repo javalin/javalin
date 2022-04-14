@@ -8,7 +8,6 @@ package io.javalin
 
 import com.google.gson.GsonBuilder
 import io.javalin.core.util.Header
-import io.javalin.core.util.JavalinLogger
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JsonMapper
 import io.javalin.testing.NonSerializableObject
@@ -95,8 +94,6 @@ class TestJson {
 
     @Test
     fun `empty mapper logs proper error messages`() = TestUtil.test(Javalin.create { it.jsonMapper(object : JsonMapper {}) }) { app, http ->
-        JavalinLogger.enabled = true
-
         var log = TestUtil.captureStdOut { app.get("/write-string") { it.json("") }.also { http.getBody("/write-string") } }
         assertThat(log).contains("JsonMapper#toJsonString not implemented")
 
