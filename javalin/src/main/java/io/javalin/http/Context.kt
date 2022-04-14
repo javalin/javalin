@@ -295,6 +295,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets specified attribute from the request attribute cache, or the user session, or null. */
     fun <T> cachedSessionAttribute(key: String): T? = ContextUtil.getCachedRequestAttributeOrSessionAttribute(key, req)
 
+    /** Gets specified attribute from the request attribute cache, or the user session, or computes the value from callback. */
+    fun <T> cachedSessionAttributeOrCompute(key: String, callback: (Context) -> T): T? = ContextUtil.cachedSessionAttributeOrCompute(callback, key, this)
+
     /** Gets a map of all the attributes in the user session. */
     fun sessionAttributeMap(): Map<String, Any?> = req.session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
 

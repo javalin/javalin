@@ -93,6 +93,22 @@ class TestRequest {
     }
 
     @Test
+    fun `cached session attributes can be computed if not set`() = TestUtil.test { app, http ->
+        app.get("/assert-notsetness") {
+            it.result("Computed: ${it.cachedSessionAttribute<String>("computed")}")
+        }
+        app.get("/compute-attribute") {
+            it.result("Computed: ${it.cachedSessionAttributeOrCompute("computed") { "Hello" }}")
+        }
+        app.get("/cant-recompute-it") {
+            it.result("Computed: ${it.cachedSessionAttributeOrCompute("computed") { "Hola" }}")
+        }
+        http.get("/assert-notsetness").let { assertThat(it.body).isEqualTo("Computed: null") }
+        http.get("/compute-attribute").let { assertThat(it.body).isEqualTo("Computed: Hello") }
+        http.get("/cant-recompute-it").let { assertThat(it.body).isEqualTo("Computed: Hello") }
+    }
+
+    @Test
     fun `attributes can be removed`() = TestUtil.test { app, http ->
         app.get("/store") { ctx ->
             ctx.attribute("test", "not-null")
