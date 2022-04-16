@@ -16,7 +16,6 @@ class HttpUtil(port: Int) {
     @JvmField
     val origin: String = "http://localhost:$port"
 
-    fun allMethods() = HttpMethod.GET.all() // TODO: Can be changed to HttpMethod.all() when https://github.com/Kong/unirest-java/issues/439 will be fixed
     fun enableUnirestRedirects() = Unirest.config().reset().followRedirects(true)
     fun disableUnirestRedirects() = Unirest.config().reset().followRedirects(false)
 
