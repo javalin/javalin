@@ -115,7 +115,7 @@
         <bytebuddy.version>1.11.13</bytebuddy.version>
         <bytebuddyagent.version>1.11.13</bytebuddyagent.version>
         <okhttp.version>4.9.1</okhttp.version>
-        <unirest.version>3.13.6</unirest.version>
+        <unirest.version>3.13.8</unirest.version>
         <selenium.chrome.driver.version>4.1.3</selenium.chrome.driver.version>
         <webdrivermanager.version>5.1.0</webdrivermanager.version>
     </properties>
