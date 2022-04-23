@@ -2,7 +2,7 @@ package io.javalin.plugin.rendering.vue
 
 import io.javalin.http.Context
 
-class VueRenderer {
+open class VueRenderer {
 
     open fun preRender(template: String, ctx: Context): String{
         return template;
