@@ -39,8 +39,8 @@ public class VueDependencyResolver {
         componentIdToOwnContent = new HashMap<>();
         componentIdToDependencyContent = new HashMap<>();
         componentRegex = Pattern.compile(appVarName + ".component\\s*\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
-        paths.stream().filter(VueComponentKt::isVueFile).forEach(path -> {
-            String fileContent = VueComponentKt.readText(path);
+        paths.stream().filter(VueHandlerKt::isVueFile).forEach(path -> {
+            String fileContent = VueHandlerKt.readText(path);
             Matcher matcher = componentRegex.matcher(fileContent); // check for a vue component
             while (matcher.find()) {
                 componentIdToOwnContent.put(matcher.group(1), fileContent); // cache the file content, bound to the component name
