@@ -11,11 +11,11 @@ class VueComponent  @JvmOverloads constructor(val component: String, val state: 
         return state;
     }
 
-    override fun String.preRender(ctx: Context): String {
-        return renderer.preRender(this,ctx);
+    override fun preRender(template: String, ctx: Context): String {
+        return renderer.preRender(template,ctx);
     }
 
-    override fun String.postRender(ctx:Context):String {
-        return renderer.postRender(this,ctx);
+    override fun postRender(template: String, ctx:Context):String {
+        return renderer.postRender(template,ctx);
     }
 }

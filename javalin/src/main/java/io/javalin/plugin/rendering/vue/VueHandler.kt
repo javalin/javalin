@@ -27,12 +27,18 @@ abstract class VueHandler : Handler {
     open fun state(ctx: Context):Any?{
         return null;
     }
-    open fun String.preRender(ctx:Context): String{
-        return this;
+    open fun preRender(template: String, ctx:Context): String{
+        return template;
+    }
+    open fun postRender(template: String, ctx:Context): String{
+        return template;
+    }
+    private fun String.preRenderHook(ctx:Context): String{
+        return preRender(this,ctx);
     }
 
-    open fun String.postRender(ctx: Context): String{
-        return this;
+    private fun String.postRenderHook(ctx: Context): String{
+        return postRender(this,ctx);
     }
     override fun handle(ctx: Context) {
         isDev = isDev ?: isDevFunction(ctx)
@@ -46,7 +52,7 @@ abstract class VueHandler : Handler {
         if (componentId !in dependencies) throw InternalServerErrorResponse("Route component not found: $routeComponent")
         ctx.html(
             allFiles.find { it.endsWith("vue/layout.html") }!!.readText() // we start with the layout file
-                .preRender(ctx)
+                .preRenderHook(ctx)
                 .inlineFiles(allFiles.filterNot { it.isVueFile() }) // we then inline css/js files
                 .replace("@componentRegistration", "@loadableData@componentRegistration@serverState") // add anchors for later
                 .replace("@loadableData", loadableDataScript) // add loadable data class
@@ -54,7 +60,7 @@ abstract class VueHandler : Handler {
                 .replace("@serverState", getState(ctx, state(ctx))) // add escaped params and state
                 .replace("@routeComponent", routeComponent) // finally, add the route component itself
                 .replace("@cdnWebjar/", if (isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
-                .postRender(ctx)
+                .postRenderHook(ctx)
         ).header(Header.CACHE_CONTROL, cacheControl)
     }
 }
