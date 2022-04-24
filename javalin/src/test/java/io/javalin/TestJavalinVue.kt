@@ -71,9 +71,9 @@ class TestJavalinVue {
     @Test
     fun `vue component without state with pre renderer`() = TestUtil.test { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component", null, object:  VueRenderer(){
-            override fun preRender(template: String, ctx: Context): String{
-                return template.plus("PRE_RENDER");
+        app.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
+            override fun preRender(layout: String, ctx: Context): String {
+                return layout.plus("PRE_RENDER");
             }
         }))
         val res = http.getBody("/no-state")
@@ -87,9 +87,9 @@ class TestJavalinVue {
     @Test
     fun `vue component without state with post renderer`() = TestUtil.test { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component", null, object:  VueRenderer(){
-            override fun postRender(template: String, ctx: Context): String{
-                return template + "POST_RENDER";
+        app.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
+            override fun postRender(layout: String, ctx: Context): String {
+                return layout + "POST_RENDER";
             }
         }))
         val res = http.getBody("/no-state")
@@ -115,13 +115,13 @@ class TestJavalinVue {
     @Test
     fun `vue component without state with pre and post renderer`() = TestUtil.test { app, http ->
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
-        app.get("/no-state", VueComponent("test-component",null, object:  VueRenderer(){
-            override fun postRender(template: String, ctx: Context): String{
-                return template + "POST_RENDER";
+        app.get("/no-state", VueComponent("test-component", null, object : VueRenderer() {
+            override fun postRender(layout: String, ctx: Context): String {
+                return layout + "POST_RENDER";
             }
 
-            override fun preRender(template: String, ctx: Context): String{
-                return template + "PRE_RENDER";
+            override fun preRender(layout: String, ctx: Context): String {
+                return layout + "PRE_RENDER";
             }
         }))
         val res = http.getBody("/no-state")

@@ -20,31 +20,16 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.regex.Matcher
 
-abstract class VueHandler : Handler {
+abstract class VueHandler(private val componentId: String) : Handler {
 
-    abstract fun component(ctx: Context): String;
+    open fun state(ctx: Context): Any? = null
+    open fun preRender(layout: String, ctx: Context): String = layout
+    open fun postRender(layout: String, ctx: Context): String = layout
 
-    open fun state(ctx: Context):Any?{
-        return null;
-    }
-    open fun preRender(template: String, ctx:Context): String{
-        return template;
-    }
-    open fun postRender(template: String, ctx:Context): String{
-        return template;
-    }
-    private fun String.preRenderHook(ctx:Context): String{
-        return preRender(this,ctx);
-    }
-
-    private fun String.postRenderHook(ctx: Context): String{
-        return postRender(this,ctx);
-    }
     override fun handle(ctx: Context) {
         isDev = isDev ?: isDevFunction(ctx)
         rootDirectory = rootDirectory ?: PathMaster.defaultLocation(isDev)
-        val component = component(ctx);
-        val routeComponent = if (component.startsWith("<")) component else "<$component></$component>"
+        val routeComponent = if (componentId.startsWith("<")) componentId else "<$componentId></$componentId>"
         val allFiles = if (isDev == true) walkPaths() else cachedPaths
         val resolver by lazy { if (isDev == true) VueDependencyResolver(allFiles, JavalinVue.vueAppName) else cachedDependencyResolver }
         val componentId = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
@@ -63,7 +48,11 @@ abstract class VueHandler : Handler {
                 .postRenderHook(ctx)
         ).header(Header.CACHE_CONTROL, cacheControl)
     }
+
+    private fun String.preRenderHook(ctx: Context) = preRender(this, ctx);
+    private fun String.postRenderHook(ctx: Context) = postRender(this, ctx);
 }
+
 
 private fun Set<Path>.joinVueFiles() = this.filter { it.isVueFile() }.joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
 

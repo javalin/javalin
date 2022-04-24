@@ -2,20 +2,8 @@ package io.javalin.plugin.rendering.vue
 
 import io.javalin.http.Context
 
-class VueComponent  @JvmOverloads constructor(val component: String, val state: Any? = null, val renderer: VueRenderer? = null) : VueHandler() {
-    override fun component(ctx: Context): String {
-       return this.component;
-    }
-
-    override fun state(ctx: Context): Any? {
-        return this.state;
-    }
-
-    override fun preRender(template: String, ctx: Context): String {
-        return renderer?.preRender(template, ctx) ?: template;
-    }
-
-    override fun postRender(template: String, ctx:Context):String {
-        return renderer?.postRender(template, ctx) ?: template;
-    }
+class VueComponent @JvmOverloads constructor(val component: String, val state: Any? = null, private val renderer: VueRenderer = VueRenderer()) : VueHandler(component) {
+    override fun state(ctx: Context) = this.state // we are extending VueHandler and just returning the state passed by the user
+    override fun preRender(layout: String, ctx: Context) = renderer.preRender(layout, ctx) // default implementation does no pre rendering
+    override fun postRender(layout: String, ctx: Context) = renderer.postRender(layout, ctx) // default implementation does no post rendering
 }

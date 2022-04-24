@@ -19,16 +19,11 @@ public class TestJavalinVueHandler {
         TestJavalinVue.Companion.before();
         JavalinVue.optimizeDependencies = true;
     }
+
     @Test
     public void testDefaultPreAndPostRenderer() {
         TestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler(){
-
-                @NotNull
-                @Override
-                public String component(@NotNull Context ctx) {
-                    return "test-component";
-                }
+            server.get("/no-state", new VueHandler("test-component") {
             });
             String body = httpUtil.getBody("/no-state");
             assertThat(body).contains("<body><test-component></test-component></body>");
@@ -40,18 +35,11 @@ public class TestJavalinVueHandler {
     @Test
     public void testPreRenderer() {
         TestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler(){
-
+            server.get("/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
-                public String component(@NotNull Context ctx) {
-                    return "test-component";
-                }
-
-                @NotNull
-                @Override
-                public String preRender(@NotNull String template, @NotNull Context ctx) {
-                    return template.concat("PRE_RENDER");
+                public String preRender(@NotNull String layout, @NotNull Context ctx) {
+                    return layout.concat("PRE_RENDER");
                 }
             });
             String body = httpUtil.getBody("/no-state");
@@ -64,18 +52,11 @@ public class TestJavalinVueHandler {
     @Test
     public void testPostRenderer() {
         TestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueHandler(){
-
+            server.get("/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
-                public String component(@NotNull Context ctx) {
-                    return "test-component";
-                }
-
-                @NotNull
-                @Override
-                public String postRender(@NotNull String template, @NotNull Context ctx) {
-                    return template.concat("POST_RENDER");
+                public String postRender(@NotNull String layout, @NotNull Context ctx) {
+                    return layout.concat("POST_RENDER");
                 }
             });
             String body = httpUtil.getBody("/no-state");
@@ -88,16 +69,16 @@ public class TestJavalinVueHandler {
     @Test
     public void testVueRenderer() {
         TestUtil.test((server, httpUtil) -> {
-            server.get("/no-state", new VueComponent("test-component",null, new VueRenderer(){
+            server.get("/no-state", new VueComponent("test-component", null, new VueRenderer() {
                 @NotNull
                 @Override
-                public String postRender(@NotNull String template, @NotNull Context ctx) {
-                    return template.concat("POST_RENDER");
+                public String postRender(@NotNull String layout, @NotNull Context ctx) {
+                    return layout.concat("POST_RENDER");
                 }
 
                 @Override
-                public String preRender(@NotNull String template, @NotNull Context ctx){
-                    return template.concat("PRE_RENDER");
+                public String preRender(@NotNull String layout, @NotNull Context ctx) {
+                    return layout.concat("PRE_RENDER");
                 }
             }));
             String body = httpUtil.getBody("/no-state");
