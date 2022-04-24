@@ -6,8 +6,10 @@
 
 package io.javalin
 
+import io.javalin.http.Context
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent
+import io.javalin.plugin.rendering.vue.VueRenderer
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -64,6 +66,70 @@ class TestJavalinVue {
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
         assertThat(res).contains("Vue.prototype.\$javalin")
+    }
+
+    @Test
+    fun `vue component without state with pre renderer`() = TestUtil.test { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
+        app.get("/no-state", VueComponent("test-component", null, object:  VueRenderer(){
+            override fun preRender(template: String, ctx: Context): String{
+                return template.plus("PRE_RENDER");
+            }
+        }))
+        val res = http.getBody("/no-state")
+        assertThat(res).contains(encodedEmptyState)
+        assertThat(res).contains("<body><test-component></test-component></body>")
+        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).contains("PRE_RENDER")
+        assertThat(res).doesNotContain("POST_RENDER")
+    }
+
+    @Test
+    fun `vue component without state with post renderer`() = TestUtil.test { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
+        app.get("/no-state", VueComponent("test-component", null, object:  VueRenderer(){
+            override fun postRender(template: String, ctx: Context): String{
+                return template + "POST_RENDER";
+            }
+        }))
+        val res = http.getBody("/no-state")
+        assertThat(res).contains(encodedEmptyState)
+        assertThat(res).contains("<body><test-component></test-component></body>")
+        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).doesNotContain("PRE_RENDER")
+        assertThat(res).contains("POST_RENDER")
+    }
+
+    @Test
+    fun `vue component without state with default renderer`() = TestUtil.test { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
+        app.get("/no-state", VueComponent("test-component", VueRenderer()))
+        val res = http.getBody("/no-state")
+        assertThat(res).contains(encodedEmptyState)
+        assertThat(res).contains("<body><test-component></test-component></body>")
+        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).doesNotContain("PRE_RENDER")
+        assertThat(res).doesNotContain("POST_RENDER")
+    }
+
+    @Test
+    fun `vue component without state with pre and post renderer`() = TestUtil.test { app, http ->
+        val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
+        app.get("/no-state", VueComponent("test-component",null, object:  VueRenderer(){
+            override fun postRender(template: String, ctx: Context): String{
+                return template + "POST_RENDER";
+            }
+
+            override fun preRender(template: String, ctx: Context): String{
+                return template + "PRE_RENDER";
+            }
+        }))
+        val res = http.getBody("/no-state")
+        assertThat(res).contains(encodedEmptyState)
+        assertThat(res).contains("<body><test-component></test-component></body>")
+        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).contains("POST_RENDER")
+        assertThat(res).contains("PRE_RENDER")
     }
 
     @Test
