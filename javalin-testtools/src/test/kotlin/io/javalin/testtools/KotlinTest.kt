@@ -15,7 +15,7 @@ class KotlinTest {
     )
 
     @Test
-    fun `get method works`() = TestUtil.test { server, client ->
+    fun `get method works`() = JavalinTest.test { server, client ->
         server.get("/hello") { it.result("Hello, World!") }
         val response = client.get("/hello")
         assertThat(response.code).isEqualTo(200)
@@ -23,7 +23,7 @@ class KotlinTest {
     }
 
     @Test
-    fun `can do query-params and headers`() = TestUtil.test { server, client ->
+    fun `can do query-params and headers`() = JavalinTest.test { server, client ->
         server.get("/hello") {
             val response = "${it.queryParam("from")} ${it.header(Header.FROM)}"
             it.result(response)
@@ -33,14 +33,14 @@ class KotlinTest {
     }
 
     @Test
-    fun `post with json serialization works`() = TestUtil.test { server, client ->
+    fun `post with json serialization works`() = JavalinTest.test { server, client ->
         server.post("/hello") { it.result(it.bodyAsClass<MyKotlinClass>().field1) }
         val response = client.post("/hello", MyKotlinClass("v1", "v2"))
         assertThat(response.body?.string()).isEqualTo("v1")
     }
 
     @Test
-    fun `all common verbs work`() = TestUtil.test { server, client ->
+    fun `all common verbs work`() = JavalinTest.test { server, client ->
         server.get("/") { it.result("GET") }
         assertThat(client.get("/").body?.string()).isEqualTo("GET")
 
@@ -58,7 +58,7 @@ class KotlinTest {
     }
 
     @Test
-    fun `request method works`() = TestUtil.test { server, client ->
+    fun `request method works`() = JavalinTest.test { server, client ->
         server.post("/form") { it.result(it.formParam("username")!!) }
         val response = client.request("/form") {
             it.post(FormBody.Builder().add("username", "test").build())
@@ -70,25 +70,25 @@ class KotlinTest {
     fun `custom javalin works`() {
         val app = Javalin.create()
                 .get("/hello") { it.result("Hello, World!") }
-        TestUtil.test(app) { server, client ->
+        JavalinTest.test(app) { server, client ->
             assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, World!")
         }
     }
 
     @Test
-    fun `capture std out works`() = TestUtil.test { server, client ->
+    fun `capture std out works`() = JavalinTest.test { server, client ->
         val logger = LoggerFactory.getLogger(KotlinTest::class.java)
         server.get("/hello") { ctx ->
             println("sout was called")
             logger.info("logger was called")
         }
-        val stdOut = TestUtil.captureStdOut { client.get("/hello") }
+        val stdOut = JavalinTest.captureStdOut { client.get("/hello") }
         assertThat(stdOut).contains("sout was called")
         assertThat(stdOut).contains("logger was called")
     }
 
     @Test
-    fun `testing full app works`() = TestUtil.test(KotlinApp.app) { server, client ->
+    fun `testing full app works`() = JavalinTest.test(KotlinApp.app) { server, client ->
         assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, app!");
         assertThat(client.get("/hello/").body?.string()).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
     }
