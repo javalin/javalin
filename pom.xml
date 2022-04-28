@@ -85,6 +85,7 @@
         <freemarker.version>2.3.31</freemarker.version>
         <guava.version>31.1-jre</guava.version>
         <jackson.version>2.13.2</jackson.version>
+        <jackson.databind.version>2.13.2.2</jackson.databind.version>
         <jetty.version>9.4.46.v20220331</jetty.version>
         <jtwig.version>5.87.0.RELEASE</jtwig.version>
         <jvmbrotli.version>0.2.0</jvmbrotli.version>
@@ -214,7 +215,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson.databind.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
