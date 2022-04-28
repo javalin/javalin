@@ -47,14 +47,14 @@ class TestRouting {
         app.options("/mapped", TestUtil.okHandler)
         app.addHandler(TRACE, "/mapped", TestUtil.okHandler)
 
-        for (httpMethod in http.allMethods()) {
+        for (httpMethod in HttpMethod.all()) {
             assertThat(http.call(httpMethod, "/mapped").status).isEqualTo(200)
         }
     }
 
     @Test
     fun `all unmapped verbs return 404`() = TestUtil.test { _, http ->
-        for (httpMethod in http.allMethods()) {
+        for (httpMethod in HttpMethod.all()) {
             assertThat(http.call(httpMethod, "/unmapped").status).isEqualTo(404)
         }
     }

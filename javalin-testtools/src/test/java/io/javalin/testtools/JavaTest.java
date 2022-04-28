@@ -26,7 +26,7 @@ public class JavaTest {
 
     @Test
     public void get_method_works() {
-        TestUtil.test((server, client) -> {
+        JavalinTest.test((server, client) -> {
             server.get("/hello", ctx -> ctx.result("Hello, World!"));
             Response response = client.get("/hello");
             assertThat(response.code()).isEqualTo(200);
@@ -36,7 +36,7 @@ public class JavaTest {
 
     @Test
     public void can_do_query_params_and_headers() {
-        TestUtil.test((server, client) -> {
+        JavalinTest.test((server, client) -> {
             server.get("/hello", ctx -> {
                 String response = ctx.queryParam("from") + " " + ctx.header(Header.FROM);
                 ctx.result(response);
@@ -48,7 +48,7 @@ public class JavaTest {
 
     @Test
     public void post_with_json_serialization_works() {
-        TestUtil.test((server, client) -> {
+        JavalinTest.test((server, client) -> {
             server.post("/hello", ctx -> ctx.result(ctx.bodyAsClass(MyJavaClass.class).field1));
             Response response = client.post("/hello", new MyJavaClass("v1", "v2"));
             assertThat(response.body().string()).isEqualTo("v1");
@@ -57,7 +57,7 @@ public class JavaTest {
 
     @Test
     public void all_common_verbs_work() {
-        TestUtil.test((server, client) -> {
+        JavalinTest.test((server, client) -> {
             server.get("/", ctx -> ctx.result("GET"));
             assertThat(client.get("/").body().string()).isEqualTo("GET");
 
@@ -77,7 +77,7 @@ public class JavaTest {
 
     @Test
     public void request_method_works() {
-        TestUtil.test((server, client) -> {
+        JavalinTest.test((server, client) -> {
             server.post("/form", ctx -> ctx.result(ctx.formParam("username")));
             Response response = client.request("/form", requestBuilder -> {
                 requestBuilder.post(new FormBody.Builder().add("username", "test").build());
@@ -90,7 +90,7 @@ public class JavaTest {
     public void custom_javalin_works() {
         Javalin app = Javalin.create()
             .get("/hello", ctx -> ctx.result("Hello, World!"));
-        TestUtil.test(app, (server, client) -> {
+        JavalinTest.test(app, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, World!");
         });
     }
@@ -98,12 +98,12 @@ public class JavaTest {
     @Test
     public void capture_std_out_works() {
         Logger logger = LoggerFactory.getLogger(JavaTest.class);
-        TestUtil.test((server, client) -> {
+        JavalinTest.test((server, client) -> {
             server.get("/hello", ctx -> {
                 System.out.println("sout was called");
                 logger.info("logger was called");
             });
-            String stdOut = TestUtil.captureStdOut(() -> client.get("/hello"));
+            String stdOut = JavalinTest.captureStdOut(() -> client.get("/hello"));
             assertThat(stdOut).contains("sout was called");
             assertThat(stdOut).contains("logger was called");
         });
@@ -111,7 +111,7 @@ public class JavaTest {
 
     @Test
     public void testing_full_app_works() {
-        TestUtil.test(JavaApp.app, (server, client) -> {
+        JavalinTest.test(JavaApp.app, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, app!");
             assertThat(client.get("/hello/").body().string()).isEqualTo("Not found"); // JavaApp.app won't ignore trailing slashes
         });

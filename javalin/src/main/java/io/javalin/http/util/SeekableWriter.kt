@@ -41,5 +41,6 @@ object SeekableWriter {
             this.write(buffer, 0, read)
             bytesLeft -= read
         }
+        inputStream.close()
     }
 }

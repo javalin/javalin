@@ -118,6 +118,13 @@ object ContextUtil {
         return req.getAttribute("$sessionCacheKeyPrefix$key") as T?
     }
 
+    fun <T> cachedSessionAttributeOrCompute(callback: (Context) -> T, key: String, ctx: Context): T? {
+        if (getCachedRequestAttributeOrSessionAttribute<T?>(key, ctx.req) == null) {
+            cacheAndSetSessionAttribute(key, callback(ctx), ctx.req) // set new value from callback
+        }
+        return getCachedRequestAttributeOrSessionAttribute(key, ctx.req) // existing or computed (or null)
+    }
+
     fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {
         stream?.apply { reset() }?.readBytes()?.toString(charset).also { stream?.reset() }
     } catch (e: Exception) {

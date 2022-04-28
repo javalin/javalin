@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.util.*
 
+@Deprecated("Use JavalinTest class instead")
 object TestUtil {
 
     @JvmField

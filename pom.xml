@@ -18,7 +18,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>4.5.0-SNAPSHOT</version>
+    <version>4.5.1-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -86,6 +86,8 @@
         <guava.version>31.1-jre</guava.version>
         <jackson.version>2.13.2</jackson.version>
         <jetty.version>11.0.9</jetty.version>
+        <jackson.databind.version>2.13.2.2</jackson.databind.version>
+        <jetty.version>9.4.46.v20220331</jetty.version>
         <jtwig.version>5.87.0.RELEASE</jtwig.version>
         <jvmbrotli.version>0.2.0</jvmbrotli.version>
         <logback.version>1.2.3</logback.version>
@@ -98,6 +100,8 @@
         <swagger.parser.version>2.0.27</swagger.parser.version>
         <swagger.ui.version>3.43.0</swagger.ui.version>
         <thymeleaf.version>3.1.0.M1</thymeleaf.version>
+        <swagger.ui.version>4.10.3</swagger.ui.version>
+        <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <velocity.version>2.3</velocity.version>
         <jte.version>1.12.0</jte.version>
         <graphql-kotlin.version>4.1.1</graphql-kotlin.version>
@@ -115,7 +119,7 @@
         <bytebuddy.version>1.11.13</bytebuddy.version>
         <bytebuddyagent.version>1.11.13</bytebuddyagent.version>
         <okhttp.version>4.9.1</okhttp.version>
-        <unirest.version>3.13.6</unirest.version>
+        <unirest.version>3.13.8</unirest.version>
         <selenium.chrome.driver.version>4.1.3</selenium.chrome.driver.version>
         <webdrivermanager.version>5.1.0</webdrivermanager.version>
     </properties>
@@ -221,7 +225,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson.databind.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
