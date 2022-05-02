@@ -38,10 +38,10 @@ object JavalinValidation {
     fun register(clazz: Class<*>, converter: (String) -> Any?) = converters.put(clazz, converter)
 
     @JvmStatic
-    fun collectErrors(vararg validators: Validator<*>) = collectErrors(validators.toList())
+    fun collectErrors(vararg validators: BaseValidator<*>) = collectErrors(validators.toList())
 
     @JvmStatic
-    fun collectErrors(validators: Iterable<Validator<*>>): Map<String, List<ValidationError<out Any?>>> =
+    fun collectErrors(validators: Iterable<BaseValidator<*>>): Map<String, List<ValidationError<out Any?>>> =
         validators.flatMap { it.errors().entries }.associate { it.key to it.value }
 
     @JvmStatic
@@ -53,5 +53,5 @@ object JavalinValidation {
 }
 
 
-fun Iterable<Validator<*>>.collectErrors(): Map<String, List<ValidationError<out Any?>>> =
+fun Iterable<BaseValidator<*>>.collectErrors(): Map<String, List<ValidationError<out Any?>>> =
     JavalinValidation.collectErrors(this)
