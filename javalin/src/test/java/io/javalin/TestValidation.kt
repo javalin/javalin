@@ -257,14 +257,30 @@ class TestValidation {
                 .check({ !it.contains("-") }, "cannot contain hyphens.")
                 .check({ it.length < 10 }, "cannot be longer than 10 characters.")
 
-            ctx.json(listOf(numberValidator, stringValidator).collectErrors())
+            val nullableValidator = ctx.queryParamAsClass<String>("username")
+                .allowNullable()
+                .check({ it.isNullOrEmpty() || it != "admin" }, "cannot be admin user.")
+
+            ctx.json(listOf(numberValidator, stringValidator, nullableValidator).collectErrors())
         }
 
-        http.get("/?number=7&first_name=my-overly-long-first-name").apply {
+        app.post("/") { ctx ->
+            val bodyValidator = ctx.bodyValidator<Map<String, String>>()
+                .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
+
+            ctx.json(listOf(bodyValidator).collectErrors())
+        }
+
+        http.get("/?number=7&first_name=my-overly-long-first-name&username=admin").apply {
             assertThat(status).isEqualTo(200)
-            assertThat(body).contains("number", "first_name")
-            assertThat(body).contains("must be greater than 12.", "must be even.")
+            assertThat(body).contains("number", "first_name", "username")
+            assertThat(body).contains("must be greater than 12.", "must be even.", "cannot be admin user.")
             assertThat(body).contains("cannot contain hyphens.", "cannot be longer than 10 characters.")
+        }
+
+        http.post("/").body("{\"number\":7}").asString().apply {
+            assertThat(status).isEqualTo(200)
+            assertThat(body).isEqualTo("""{"first_name":[{"message":"This field is mandatory","args":{},"value":{"number":7}}]}""")
         }
     }
 
