@@ -97,7 +97,6 @@
         <slf4j.version>1.7.36</slf4j.version>
         <swagger.core.version>2.1.10</swagger.core.version>
         <swagger.parser.version>2.0.27</swagger.parser.version>
-        <swagger.ui.version>3.43.0</swagger.ui.version>
         <thymeleaf.version>3.1.0.M1</thymeleaf.version>
         <swagger.ui.version>4.10.3</swagger.ui.version>
         <velocity.version>2.3</velocity.version>
