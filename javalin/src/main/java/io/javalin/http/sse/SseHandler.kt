@@ -34,7 +34,7 @@ class SseHandler @JvmOverloads constructor(
                 override fun onTimeout(event: AsyncEvent) { awaitFuture.complete(null) }
                 override fun onError(event: AsyncEvent) { awaitFuture.complete(null) }
             })
-            ctx.future(awaitFuture) { /* do nothing future in callback */ }
+            ctx.future(awaitFuture) { /* do nothing with the future result in callback */ }
 
             clientConsumer.accept(SseClient(ctx))
         }
