@@ -92,6 +92,17 @@ class TestValidation {
         assertThat(http.get("/").body).isEqualTo("788")
     }
 
+    class CustomException(message: String) : RuntimeException(message)
+
+    @Test
+    fun `custom exception converter works`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val myInt = ctx.queryParamAsClass<Int>("my-qp").getOrThrow { CustomException("'${it.keys.first()}' is not a number") }
+            ctx.result(myInt.toString())
+        }.exception(CustomException::class.java) { e, ctx -> ctx.result(e.message ?: "") }
+        assertThat(http.get("/").body).isEqualTo("'my-qp' is not a number")
+    }
+
     @Test
     fun `unregistered converter fails`() = TestUtil.test { app, http ->
         app.get("/duration") { it.queryParamAsClass<Duration>("from").get() }
