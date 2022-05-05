@@ -71,7 +71,7 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
 
     open fun get(): T? = getOrThrow { ValidationException(it) }
 
-    open fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Throwable): T? = when {
+    open fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Exception): T? = when {
         errors.isEmpty() -> typedValue
         else -> throw exceptionFunction(errors as Map<String, List<ValidationError<Any>>>)
     }

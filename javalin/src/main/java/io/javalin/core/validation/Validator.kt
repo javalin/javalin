@@ -35,7 +35,7 @@ open class Validator<T>(fieldName: String, typedValue: T? = null, stringSource: 
     fun getOrDefault(default: T) = if (hasValue()) super.get()!! else default
 
     @NotNull
-    override fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Throwable) = super.getOrThrow(exceptionFunction)!!
+    override fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Exception) = super.getOrThrow(exceptionFunction)!!
 
     companion object {
         @JvmStatic

@@ -21,5 +21,5 @@ open class BodyValidator<T>(stringValue: String?, clazz: Class<T>, jsonMapper: J
     override fun get(): T = super.get()!!
 
     @NotNull
-    override fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Throwable): T = super.getOrThrow(exceptionFunction)!!
+    override fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Exception): T = super.getOrThrow(exceptionFunction)!!
 }
