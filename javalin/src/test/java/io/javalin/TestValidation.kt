@@ -95,7 +95,7 @@ class TestValidation {
     class CustomException(message: String) : RuntimeException(message)
 
     @Test
-    fun `custom exception converter works`() = TestUtil.test { app, http ->
+    fun `getOrThrow works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val myInt = ctx.queryParamAsClass<Int>("my-qp").getOrThrow { CustomException("'${it.keys.first()}' is not a number") }
             ctx.result(myInt.toString())
