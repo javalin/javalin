@@ -500,6 +500,13 @@ public class Javalin implements AutoCloseable {
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
+     */
+    public Javalin sse(@NotNull String path, @NotNull SseHandler handler) {
+        return get(path, handler);
+    }
+
+    /**
+     * Adds a lambda handler for a Server Sent Event connection on the specified path.
      * Requires an access manager to be set on the instance.
      */
     public Javalin sse(@NotNull String path, @NotNull Consumer<SseClient> client, @NotNull RouteRole... roles) {
