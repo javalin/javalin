@@ -34,6 +34,9 @@ open class Validator<T>(fieldName: String, typedValue: T? = null, stringSource: 
 
     fun getOrDefault(default: T) = if (hasValue()) super.get()!! else default
 
+    @NotNull
+    override fun getOrThrow(exceptionFunction: (Map<String, List<ValidationError<Any>>>) -> Exception) = super.getOrThrow(exceptionFunction)!!
+
     companion object {
         @JvmStatic
         fun <T> create(clazz: Class<T>, value: String?, fieldName: String) = if (JavalinValidation.hasConverter(clazz)) {
