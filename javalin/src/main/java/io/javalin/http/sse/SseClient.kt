@@ -17,11 +17,9 @@ class SseClient(
         this.closeCallback = closeCallback
     }
 
-    fun sendEvent(data: Any) =
-        sendEvent("message", data)
+    override fun close() = closeSse.close()
 
-    override fun close() =
-        closeSse.close()
+    fun sendEvent(data: Any) = sendEvent("message", data)
 
     @JvmOverloads
     fun sendEvent(event: String, data: Any, id: String? = null) {
