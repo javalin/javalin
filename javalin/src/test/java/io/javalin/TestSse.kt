@@ -8,9 +8,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.LockSupport
-
 
 class TestSse {
 
@@ -128,12 +125,10 @@ class TestSse {
         """.trimIndent().trim())
     }
 
-    @Test
     @Timeout(5)
+    @Test
     fun `should close sse if requested`() = TestUtil.test { app, http ->
-        app.sse("/sse") {
-            it.close()
-        }
+        app.sse("/sse") { it.close() }
         val body = http.sse("/sse").get().body
         assertThat(body).isEqualTo("")
     }
