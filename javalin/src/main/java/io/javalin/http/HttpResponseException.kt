@@ -6,68 +6,170 @@
 
 package io.javalin.http
 
-import org.eclipse.jetty.http.HttpStatus
+open class HttpResponseException @JvmOverloads constructor(
+    val status: Int,
+    message: String,
+    val details: Map<String, String> = emptyMap()
+) : RuntimeException(message) {
 
-open class HttpResponseException @JvmOverloads constructor(val status: Int, message: String, val details: Map<String, String> = mapOf()) : RuntimeException(message)
+    @JvmOverloads constructor(
+        status: HttpCode,
+        message: String = status.message,
+        details: Map<String, String> = emptyMap()
+    ) : this(status.status, message, details)
 
-class RedirectResponse @JvmOverloads constructor(
-    status: Int = HttpStatus.FOUND_302,
-    message: String = "Redirected",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(status, message, details)
+}
 
+open class RedirectResponse @JvmOverloads constructor(
+    val location: String,
+    status: Int,
+    message: String,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(status, message, details) {
+
+    @JvmOverloads constructor(
+        location: String,
+        status: HttpCode,
+        message: String = status.message,
+        details: Map<String, String> = emptyMap()
+    ) : this(location, status.status, message, details)
+
+}
+
+class TemporaryRedirectResponse @JvmOverloads constructor(
+    location: String,
+    message: String = HttpCode.TEMPORARY_REDIRECT.message,
+    details: Map<String, String> = emptyMap()
+) : RedirectResponse(location, HttpCode.TEMPORARY_REDIRECT, message, details) {
+
+    constructor(
+        location: String,
+        details: Map<String, String>,
+    ) : this(location, HttpCode.TEMPORARY_REDIRECT.message, details)
+
+}
+
+class PermanentRedirectResponse @JvmOverloads constructor(
+    location: String,
+    message: String = HttpCode.PERMANENT_REDIRECT.message,
+    details: Map<String, String> = emptyMap()
+) : RedirectResponse(location, HttpCode.PERMANENT_REDIRECT, message, details) {
+
+    constructor(
+        location: String,
+        details: Map<String, String>,
+    ) : this(location, HttpCode.PERMANENT_REDIRECT.message, details)
+
+}
+
+class FoundRedirectResponse @JvmOverloads constructor(
+    location: String,
+    message: String = HttpCode.FOUND.message,
+    details: Map<String, String> = emptyMap()
+) : RedirectResponse(location, HttpCode.FOUND, message, details) {
+
+    constructor(
+        location: String,
+        details: Map<String, String>,
+    ) : this(location, HttpCode.FOUND.message, details)
+
+}
 
 class BadRequestResponse @JvmOverloads constructor(
-    message: String = "Bad request",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.BAD_REQUEST_400, message, details)
+    message: String = HttpCode.BAD_REQUEST.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.BAD_REQUEST, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.BAD_REQUEST.message, details)
+
+}
 
 class UnauthorizedResponse @JvmOverloads constructor(
-    message: String = "Unauthorized",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.UNAUTHORIZED_401, message, details)
+    message: String = HttpCode.UNAUTHORIZED.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.UNAUTHORIZED, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.UNAUTHORIZED.message, details)
+
+}
 
 class ForbiddenResponse @JvmOverloads constructor(
-    message: String = "Forbidden",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.FORBIDDEN_403, message, details)
+    message: String = HttpCode.FORBIDDEN.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.FORBIDDEN, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.FORBIDDEN.message, details)
+
+}
 
 class NotFoundResponse @JvmOverloads constructor(
-    message: String = "Not found",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.NOT_FOUND_404, message, details)
+    message: String = HttpCode.NOT_FOUND.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.NOT_FOUND, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.NOT_FOUND.message, details)
+
+}
 
 class MethodNotAllowedResponse @JvmOverloads constructor(
-    message: String = "Method not allowed",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.METHOD_NOT_ALLOWED_405, message, details)
+    message: String = HttpCode.METHOD_NOT_ALLOWED.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.METHOD_NOT_ALLOWED, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.METHOD_NOT_ALLOWED.message, details)
+
+}
 
 class ConflictResponse @JvmOverloads constructor(
-    message: String = "Conflict",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.CONFLICT_409, message, details)
+    message: String = HttpCode.CONFLICT.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.CONFLICT, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.CONFLICT.message, details)
+
+}
 
 class GoneResponse @JvmOverloads constructor(
-    message: String = "Gone",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.GONE_410, message, details)
+    message: String = HttpCode.GONE.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.GONE, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.GONE.message, details)
+
+}
 
 class InternalServerErrorResponse @JvmOverloads constructor(
-    message: String = "Internal server error",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.INTERNAL_SERVER_ERROR_500, message, details)
+    message: String = HttpCode.INTERNAL_SERVER_ERROR.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.INTERNAL_SERVER_ERROR, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.INTERNAL_SERVER_ERROR.message, details)
+
+}
 
 class BadGatewayResponse @JvmOverloads constructor(
-    message: String = "Bad gateway",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.BAD_GATEWAY_502, message, details)
+    message: String = HttpCode.BAD_GATEWAY.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.BAD_GATEWAY, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.BAD_GATEWAY.message, details)
+
+}
 
 class ServiceUnavailableResponse @JvmOverloads constructor(
-    message: String = "Service unavailable",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.SERVICE_UNAVAILABLE_503, message, details)
+    message: String = HttpCode.SERVICE_UNAVAILABLE.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.SERVICE_UNAVAILABLE, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.SERVICE_UNAVAILABLE.message, details)
+
+}
 
 class GatewayTimeoutResponse @JvmOverloads constructor(
-    message: String = "Gateway timeout",
-    details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpStatus.GATEWAY_TIMEOUT_504, message, details)
+    message: String = HttpCode.GATEWAY_TIMEOUT.message,
+    details: Map<String, String> = emptyMap()
+) : HttpResponseException(HttpCode.GATEWAY_TIMEOUT, message, details) {
+
+    constructor(details: Map<String, String>) : this(HttpCode.GATEWAY_TIMEOUT.message, details)
+
+}

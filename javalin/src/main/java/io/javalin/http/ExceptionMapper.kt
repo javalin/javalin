@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.core.util.Header
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
 import io.javalin.jetty.JettyUtil
@@ -17,6 +18,13 @@ class ExceptionMapper {
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
+        if (exception is RedirectResponse) {
+            val redirectException: RedirectResponse = exception;
+            ctx
+                .status(redirectException.status)
+                .header(Header.LOCATION, redirectException.location)
+        }
+
         if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
             HttpResponseExceptionMapper.handle(exception, ctx)
         } else {
