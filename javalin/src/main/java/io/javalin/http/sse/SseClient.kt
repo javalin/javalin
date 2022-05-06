@@ -2,16 +2,22 @@ package io.javalin.http.sse
 
 import io.javalin.http.Context
 import io.javalin.plugin.json.jsonMapper
+import java.io.Closeable
 import java.io.InputStream
 
-class SseClient(@JvmField val ctx: Context) {
+class SseClient internal constructor(
+    private val closeSse: CloseSseFunction,
+    @JvmField val ctx: Context
+) : Closeable {
 
-    private val emitter: Emitter = Emitter(ctx.req.asyncContext)
-    private var closeCallback: Runnable = Runnable {}
+    private val emitter = Emitter(ctx.req.asyncContext)
+    private var closeCallback = Runnable {}
 
     fun onClose(closeCallback: Runnable) {
         this.closeCallback = closeCallback
     }
+
+    override fun close() = closeSse.close()
 
     fun sendEvent(data: Any) = sendEvent("message", data)
 

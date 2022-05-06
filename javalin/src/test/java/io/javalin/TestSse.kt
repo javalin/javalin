@@ -6,10 +6,8 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.LockSupport
-
 
 class TestSse {
 
@@ -108,11 +106,11 @@ class TestSse {
 
     @Test
     fun `send async data is properly processed`() = TestUtil.test { app, http ->
-        app.get("/sse", SseHandler(100) {
+        app.sse("/sse", SseHandler(100) {
             it.sendEvent("Sync event")
 
             CompletableFuture.runAsync {
-                LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(10))
+                Thread.sleep(10)
                 it.sendEvent("Async event")
             }
         })
@@ -125,6 +123,14 @@ class TestSse {
         event: message
         data: Async event
         """.trimIndent().trim())
+    }
+
+    @Timeout(5)
+    @Test
+    fun `should close sse if requested`() = TestUtil.test { app, http ->
+        app.sse("/sse") { it.close() }
+        val body = http.sse("/sse").get().body
+        assertThat(body).isEqualTo("")
     }
 
 }
