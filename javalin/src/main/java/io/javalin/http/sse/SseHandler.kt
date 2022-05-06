@@ -3,10 +3,13 @@ package io.javalin.http.sse
 import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import javax.servlet.AsyncEvent
 import javax.servlet.AsyncListener
+
+fun interface CloseSseFunction : Closeable
 
 class SseHandler @JvmOverloads constructor(
     private val timeout: Long = 0,
@@ -27,16 +30,18 @@ class SseHandler @JvmOverloads constructor(
             ctx.req.startAsync(ctx.req, ctx.res)
             ctx.req.asyncContext.timeout = timeout
 
-            val awaitFuture = CompletableFuture<Void>()
+            val closeSse = CompletableFuture<Void>()
+                .also { ctx.future(it) { /* do nothing with the future result in callback */ } }
+                .let { CloseSseFunction { it.complete(null) } }
+
             ctx.req.asyncContext.addListener(object : AsyncListener {
                 override fun onComplete(event: AsyncEvent) {}
                 override fun onStartAsync(event: AsyncEvent) {}
-                override fun onTimeout(event: AsyncEvent) { awaitFuture.complete(null) }
-                override fun onError(event: AsyncEvent) { awaitFuture.complete(null) }
+                override fun onTimeout(event: AsyncEvent) { closeSse.close() }
+                override fun onError(event: AsyncEvent) { closeSse.close() }
             })
-            ctx.future(awaitFuture) { /* do nothing with the future result in callback */ }
 
-            clientConsumer.accept(SseClient(ctx))
+            clientConsumer.accept(SseClient(closeSse, ctx))
         }
     }
 
