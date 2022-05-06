@@ -5,7 +5,7 @@ import io.javalin.plugin.json.jsonMapper
 import java.io.Closeable
 import java.io.InputStream
 
-class SseClient(
+class SseClient internal constructor(
     private val closeSse: CloseSseFunction,
     @JvmField val ctx: Context
 ) : Closeable {

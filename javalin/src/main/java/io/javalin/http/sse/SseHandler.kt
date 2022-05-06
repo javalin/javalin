@@ -9,7 +9,7 @@ import java.util.function.Consumer
 import javax.servlet.AsyncEvent
 import javax.servlet.AsyncListener
 
-fun interface CloseSseFunction : Closeable
+internal fun interface CloseSseFunction : Closeable
 
 class SseHandler @JvmOverloads constructor(
     private val timeout: Long = 0,
