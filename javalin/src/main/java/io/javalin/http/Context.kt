@@ -389,11 +389,9 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Sets the response status code and redirects to the specified location. */
     @JvmOverloads
     fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
-        res.setHeader(Header.LOCATION, location)
+        header(Header.LOCATION, location)
         status(httpStatusCode)
-        if (handlerType == HandlerType.BEFORE) {
-            throw RedirectResponse(httpStatusCode)
-        }
+        attribute("javalin-redirected", true)
     }
 
     /** Sets the response status. */

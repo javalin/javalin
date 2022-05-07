@@ -64,6 +64,9 @@ class JavalinServletHandler(
     /** Indicates if exception occurred during execution of a tasks chain */
     private var errored = false
 
+    /** Indicates if following stages should be skipped, since request was redirected */
+    private var redirected = false
+
     /** Indicates if [JavalinServletHandler] already wrote response to client, requires support for atomic switch */
     private val finished = AtomicBoolean(false)
 
@@ -73,6 +76,10 @@ class JavalinServletHandler(
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
     internal fun queueNextTaskOrFinish() {
+        if (ctx.attribute<Boolean>("javalin-redirected") == true) {
+            ctx.attribute("javalin-redirected", null)
+            redirected = true
+        }
         while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from next stage, if the current queue is empty
             val stage = stages.poll()
             stage.initializer.invoke(this) { taskHandler -> tasks.offer(Task(stage, taskHandler)) } // add tasks from stage to task queue
@@ -89,7 +96,7 @@ class JavalinServletHandler(
     /** Executes the given task with proper error handling and returns next task to execute as future */
     private fun executeNextTask(): CompletableFuture<InputStream> {
         val task = tasks.poll()
-        if (errored && task.stage.haltsOnError) {
+        if (errored && task.stage.haltsOnError || redirected) {
             queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
             return completedFuture(previousResult)
         }

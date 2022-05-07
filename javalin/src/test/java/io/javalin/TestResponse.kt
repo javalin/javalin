@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.core.util.Header
 import io.javalin.http.ContentType
+import io.javalin.http.HttpResponseException
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
@@ -100,6 +101,14 @@ class TestResponse {
 
     @Test
     fun `redirect in before-handler works`() = TestUtil.test { app, http ->
+        app.before("/before") { it.redirect("/redirected") }
+        app.get("/redirected") { it.result("Redirected") }
+        assertThat(http.getBody("/before")).isEqualTo("Redirected")
+    }
+
+    @Test
+    fun `redirects can't be broken`() = TestUtil.test { app, http ->
+        app.exception(HttpResponseException::class.java) { e, ctx -> ctx.status(500) }
         app.before("/before") { it.redirect("/redirected") }
         app.get("/redirected") { it.result("Redirected") }
         assertThat(http.getBody("/before")).isEqualTo("Redirected")
