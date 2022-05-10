@@ -53,6 +53,10 @@ class User(val name: String, val address: Address? = null, val userType: UserTyp
 
 class Log(val timestamp: Instant, val message: String)
 
+annotation class TestAnnotation
+
+class NonSchemaAnnotatedLog(@TestAnnotation val timestamp: Instant, val message: String)
+
 class AnnotatedLog(@Schema(type = "string", example = "test example") val timestamp: Instant, val message: String)
 
 
@@ -523,6 +527,33 @@ class TestOpenApi {
         val timestampSchemaType = schema.properties["timestamp"]!!
         assertThat(timestampSchemaType.type).isEqualTo("string")
         assertThat(timestampSchemaType.example).isEqualTo("test example")
+    }
+
+    @Test
+    fun `createSchema Instants respect annotations but only the right ones`() {
+        val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
+            .modelConverterFactory(
+                JacksonModelConverterFactory(
+                    JavalinJackson.defaultMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
+                )
+            )
+
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        val logsDocumentation = document()
+            .jsonArray<NonSchemaAnnotatedLog>("200")
+
+        with(app) {
+            get("/logs", documented(logsDocumentation) {})
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+        val schema = actual.components.schemas["NonSchemaAnnotatedLog"]!!
+        val timestampSchemaType = schema.properties["timestamp"]!!
+        assertThat(timestampSchemaType.type).isEqualTo("integer")
+        assertThat(timestampSchemaType.format).isEqualTo("int64")
     }
 
     @Test
