@@ -15,6 +15,8 @@ import kong.unirest.HttpMethod;
 
 public class TestUtil {
 
+    public static Boolean captureLogs = true;
+
     public static Handler okHandler = ctx -> ctx.result("OK");
 
     public static void test(ThrowingBiConsumer<Javalin, HttpUtil> test) {
@@ -43,8 +45,10 @@ public class TestUtil {
         PrintStream printStream = new PrintStream(out);
         PrintStream oldOut = System.out;
         PrintStream oldErr = System.err;
-        System.setOut(printStream);
-        System.setErr(printStream);
+        if (captureLogs) {
+            System.setOut(printStream);
+            System.setErr(printStream);
+        }
         try {
             testCode.run();
         } catch (Exception e) {
