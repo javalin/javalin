@@ -13,6 +13,9 @@ object JavalinTest {
     @JvmField
     var clearCookies = true
 
+    @JvmField
+    var captureLogs = true
+
     @JvmStatic
     fun test(app: Javalin, testCase: TestCase) {
         val result: RunResult = runAndCaptureLogs {
@@ -43,8 +46,10 @@ object JavalinTest {
         val printStream = PrintStream(out)
         val oldOut = System.out
         val oldErr = System.err
-        System.setOut(printStream)
-        System.setErr(printStream)
+        if (captureLogs) {
+            System.setOut(printStream)
+            System.setErr(printStream)
+        }
         try {
             testCode.run()
         } catch (e: Exception) {
