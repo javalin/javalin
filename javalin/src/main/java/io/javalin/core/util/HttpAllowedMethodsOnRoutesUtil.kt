@@ -31,11 +31,8 @@ class HttpAllowedMethodsOnRoutesUtil() : Plugin, PluginLifecycleInit {
     }
 
     private fun addOptionsToList(handlerMetaInfo: HandlerMetaInfo) {
-        if (endpoints[handlerMetaInfo.path] == null) {
-            endpoints[handlerMetaInfo.path] = mutableSetOf(handlerMetaInfo)
-        } else {
-            endpoints[handlerMetaInfo.path]!!.add(handlerMetaInfo)
-        }
+        val endpoint = endpoints.getOrPut(handlerMetaInfo.path) { mutableSetOf(handlerMetaInfo) }
+        endpoint.add(handlerMetaInfo)
     }
 
     private fun createOptionsEndPoint(app: Javalin) {
