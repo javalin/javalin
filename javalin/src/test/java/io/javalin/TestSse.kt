@@ -14,9 +14,11 @@ class TestSse {
     private val event = "HI"
     private val data = "Hello, world!"
 
+    private fun SseClient.doAndClose(runnable: Runnable) = runnable.run().also { this.close() }
+
     @Test
-    fun `sending events works`() = TestUtil.test() { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendEvent(event, data) })
+    fun `sending events works`() = TestUtil.test { app, http ->
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val body = http.sse("/sse").get().body
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: $data")
@@ -24,19 +26,19 @@ class TestSse {
 
     @Test
     fun `sending input stream works`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendEvent(event, "MY DATA".byteInputStream()) })
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, "MY DATA".byteInputStream()) } }
         assertThat(http.sse("/sse").get().body).contains("data: MY DATA")
     }
 
     @Test
     fun `sending json works`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendEvent(event, SerializableObject()) })
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, SerializableObject()) } }
         assertThat(http.sse("/sse").get().body).contains("""data: {"value1":"FirstValue","value2":"SecondValue"}""")
     }
 
     @Test
     fun `sending events with ID works`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendEvent(event, data, id = "SOME_ID") })
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data, id = "SOME_ID") } }
         val body = http.sse("/sse").get().body
         assertThat(body).contains("id: SOME_ID")
         assertThat(body).contains("event: $event")
@@ -47,10 +49,11 @@ class TestSse {
     fun `sending events to multiple clients works`() {
         TestUtil.test { app, http ->
             val eventSources: MutableList<SseClient> = ArrayList()
-            app.sse("/sse", SseHandler(10) {
+            app.sse("/sse") {
                 eventSources.add(it)
                 it.sendEvent(event, data + eventSources.size)
-            })
+                it.close()
+            }
             val bodyClient1 = http.sse("/sse").get().body
             val bodyClient2 = http.sse("/sse").get().body
             assertThat(bodyClient1).isNotEqualTo(bodyClient2)
@@ -60,7 +63,7 @@ class TestSse {
 
     @Test
     fun `all headers are correctly configured`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendEvent(event, data) })
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val headers = http.sse("/sse").get().headers // Headers extends HashMap<String, List<String>>
         assertThat(headers.getFirst("Connection")).containsIgnoringCase("close")
         assertThat(headers.getFirst("Content-Type")).containsIgnoringCase("text/event-stream")
@@ -70,67 +73,61 @@ class TestSse {
 
     @Test
     fun `default http status is 200`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendEvent(event, data) })
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val status = http.sse("/sse").get().status
         assertThat(status).isEqualTo(200)
     }
 
     @Test
     fun `getting queryParam in sse handler works`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendEvent(event, it.ctx.queryParam("qp")!!) })
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, it.ctx.queryParam("qp")!!) } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: " + "my-qp")
     }
 
     @Test
-    fun `sending Comment works`() = TestUtil.test() { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendComment("test comment works") })
+    fun `sending Comment works`() = TestUtil.test { app, http ->
+        app.sse("/sse") { it.doAndClose { it.sendComment("test comment works") } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).isEqualTo(": test comment works\n")
     }
 
     @Test
     fun `sending empty Comment works`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendComment("") })
+        app.sse("/sse") { it.doAndClose { it.sendComment("") } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).isEqualTo(": \n")
     }
 
     @Test
     fun `sending multi line Comment works`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(10) { it.sendComment("a\nb") })
+        app.sse("/sse") { it.doAndClose { it.sendComment("a\nb") } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).isEqualTo(": a\n: b\n")
     }
 
     @Test
     fun `send async data is properly processed`() = TestUtil.test { app, http ->
-        app.sse("/sse", SseHandler(100) {
+        app.sse("/sse") {
             it.sendEvent("Sync event")
-
             CompletableFuture.runAsync {
                 Thread.sleep(10)
                 it.sendEvent("Async event")
+                it.close()
             }
-        })
+        }
 
         val body = http.sse("/sse").get().body
-        assertThat(body.trim()).isEqualTo("""
-        event: message
-        data: Sync event
+        assertThat(body.trim()).isEqualTo(
+            """
+            event: message
+            data: Sync event
 
-        event: message
-        data: Async event
-        """.trimIndent().trim())
-    }
-
-    @Timeout(5)
-    @Test
-    fun `should close sse if requested`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.close() }
-        val body = http.sse("/sse").get().body
-        assertThat(body).isEqualTo("")
+            event: message
+            data: Async event
+            """.trimIndent().trim()
+        )
     }
 
 }
