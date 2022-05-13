@@ -19,7 +19,7 @@ class JavalinModelResolver(mapper: ObjectMapper) : ModelResolver(mapper) {
         val type = extractJavaType(annotatedType)
 
         if (type.isTypeOrSubTypeOf(Instant::class.java) && _mapper.isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            && annotatedType.ctxAnnotations.isEmpty()
+            && annotatedType.ctxAnnotations?.none { it.annotationClass == io.swagger.v3.oas.annotations.media.Schema::class.java } != false
         ) {
             return PrimitiveType.LONG.createProperty()
         }

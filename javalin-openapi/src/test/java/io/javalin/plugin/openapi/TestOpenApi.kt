@@ -38,6 +38,7 @@ import io.javalin.testing.TestUtil
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
+import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
@@ -52,6 +53,12 @@ class Address(val street: String, val number: Int)
 class User(val name: String, val address: Address? = null, val userType: UserType? = null)
 
 class Log(val timestamp: Instant, val message: String)
+
+annotation class TestAnnotation
+
+class NonSchemaAnnotatedLog(@TestAnnotation val timestamp: Instant, val message: String)
+
+class ListLog(val timestamps: List<Instant>, val message: String)
 
 class AnnotatedLog(@Schema(type = "string", example = "test example") val timestamp: Instant, val message: String)
 
@@ -523,6 +530,62 @@ class TestOpenApi {
         val timestampSchemaType = schema.properties["timestamp"]!!
         assertThat(timestampSchemaType.type).isEqualTo("string")
         assertThat(timestampSchemaType.example).isEqualTo("test example")
+    }
+
+    @Test
+    fun `createSchema Instants respect annotations but only the right ones`() {
+        val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
+            .modelConverterFactory(
+                JacksonModelConverterFactory(
+                    JavalinJackson.defaultMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
+                )
+            )
+
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        val logsDocumentation = document()
+            .jsonArray<NonSchemaAnnotatedLog>("200")
+
+        with(app) {
+            get("/logs", documented(logsDocumentation) {})
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+        val schema = actual.components.schemas["NonSchemaAnnotatedLog"]!!
+        val timestampSchemaType = schema.properties["timestamp"]!!
+        assertThat(timestampSchemaType.type).isEqualTo("integer")
+        assertThat(timestampSchemaType.format).isEqualTo("int64")
+    }
+
+    @Test
+    fun `createSchema list of Instants respects annotations`() {
+        val openApiOptions = OpenApiOptions(Info().title("Example").version("1.0.0"))
+            .modelConverterFactory(
+                JacksonModelConverterFactory(
+                    JavalinJackson.defaultMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true)
+                )
+            )
+
+        val app = Javalin.create {
+            it.registerPlugin(OpenApiPlugin(openApiOptions))
+        }
+
+        val logsDocumentation = document()
+            .jsonArray<ListLog>("200")
+
+        with(app) {
+            get("/logs", documented(logsDocumentation) {})
+        }
+
+        val actual = JavalinOpenApi.createSchema(app)
+        val schema = actual.components.schemas["ListLog"]!!
+        val timestampSchemaType = schema.properties["timestamps"]!! as ArraySchema
+        assertThat(timestampSchemaType.type).isEqualTo("array")
+        val innerSchema = timestampSchemaType.items
+        assertThat(innerSchema.type).isEqualTo("integer")
+        assertThat(innerSchema.format).isEqualTo("int64")
     }
 
     @Test
