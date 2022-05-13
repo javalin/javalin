@@ -1,3 +1,9 @@
+/*
+ * Javalin - https://javalin.io
+ * Copyright 2017 David Åse
+ * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
+ */
+
 package io.javalin
 
 import io.javalin.core.util.Header
@@ -6,7 +12,7 @@ import kong.unirest.Unirest
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
-class TestHttpOptionsRoute {
+class TestHttpAllowedMethodsOnRoutesUtil {
     @Test
     fun `enableHttpOptionsForRoutes allows possible methods on routes`() {
         val javalin = Javalin.create { it.enableHttpAllowedMethodsOnRoutes() }
