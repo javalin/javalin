@@ -48,11 +48,15 @@ class HttpClient(val app: Javalin) {
     fun delete(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
         request(path, combine(req, { it.delete(json.toRequestBody()) }))
 
-    fun sse(path: String, handler: SseTestOnMessage) {
+    fun sse(path: String, handler: SseTestHandler) {
         val client = okHttp.newBuilder().readTimeout(0, TimeUnit.SECONDS).build()
         val eventSourceListener = object : EventSourceListener() {
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-                handler.process(SseEvent(client, eventSource, id, type, data))
+                handler.onMessage(SseEvent(client, eventSource, id, type, data))
+            }
+
+            override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
+                handler.onFailure(SseFailure(client, eventSource, t, response))
             }
         }
         val request = Request.Builder()
