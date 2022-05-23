@@ -2,11 +2,18 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.core.util.Header;
+import kotlin.Pair;
 import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
 import okhttp3.Response;
+import okhttp3.sse.EventSource;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class JavaTest {
@@ -114,6 +121,22 @@ public class JavaTest {
         JavalinTest.test(JavaApp.app, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, app!");
             assertThat(client.get("/hello/").body().string()).isEqualTo("Not found"); // JavaApp.app won't ignore trailing slashes
+        });
+    }
+
+    @Test
+    public void testing_sse() {
+        JavalinTest.test(JavaApp.app, (server, client) -> {
+            List<String> listOfEvents = new ArrayList<>();
+            Pair<OkHttpClient, EventSource> pair = client.sse("/parameter/listen", (eventSource, eventId, eventType, eventData) ->
+                listOfEvents.add(eventData)
+            );
+            OkHttpClient newClient = pair.component1();
+            EventSource eventSource = pair.component2();
+            Thread.sleep(3_000);
+            eventSource.cancel();
+            newClient.dispatcher().executorService().shutdown();
+            assertThat(listOfEvents.size() == 5);
         });
     }
 

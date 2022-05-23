@@ -93,4 +93,16 @@ class KotlinTest {
         assertThat(client.get("/hello/").body?.string()).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
     }
 
+    @Test
+    fun `testing SSE`() = JavalinTest.test(KotlinApp.app) { server, client ->
+        val listOfEvents = mutableListOf<String>()
+        val (newClient, eventSource) = client.sse("/parameter/listen") { eventSource, eventId, eventType, eventData ->
+            listOfEvents.add(eventData)
+        }
+        Thread.sleep(3_000)
+        eventSource.cancel()
+        newClient.dispatcher.executorService.shutdown()
+        assertThat(listOfEvents.size == 5)
+    }
+
 }
