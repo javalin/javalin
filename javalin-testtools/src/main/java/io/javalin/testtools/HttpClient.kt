@@ -9,6 +9,10 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.sse.EventSource
+import okhttp3.sse.EventSourceListener
+import okhttp3.sse.EventSources
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 class HttpClient(val app: Javalin) {
@@ -43,6 +47,22 @@ class HttpClient(val app: Javalin) {
     @JvmOverloads
     fun delete(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
             request(path, combine(req, { it.delete(json.toRequestBody()) }))
+
+    fun sse(path: String, handler: SseTestOnMessage): Pair<OkHttpClient, EventSource> {
+        val client = okHttp.newBuilder().readTimeout(0, TimeUnit.SECONDS).build()
+        val eventSourceListener = object : EventSourceListener() {
+            override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
+                handler.process(eventSource, id, type, data)
+            }
+        }
+        val request = Request.Builder()
+            .url(origin + path)
+            .header("Accept-Encoding", "")
+            .header("Accept", "text/event-stream")
+            .header("Cache-Control", "no-cache")
+            .build()
+        return Pair(client, EventSources.createFactory(client).newEventSource(request, eventSourceListener))
+    }
 
     private fun Any?.toRequestBody(): RequestBody {
         return if (this == null) {
