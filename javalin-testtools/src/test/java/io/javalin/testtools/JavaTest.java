@@ -136,7 +136,7 @@ public class JavaTest {
             Thread.sleep(3_000);
             eventSource.cancel();
             newClient.dispatcher().executorService().shutdown();
-            assertThat(listOfEvents.size() == 5);
+            assertThat(listOfEvents.size()).isEqualTo(5);
         });
     }
 
