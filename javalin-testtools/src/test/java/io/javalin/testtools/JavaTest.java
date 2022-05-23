@@ -7,6 +7,7 @@ import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.sse.EventSource;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,25 +118,51 @@ public class JavaTest {
     }
 
     @Test
-    public void testing_full_app_works() {
-        JavalinTest.test(JavaApp.app, (server, client) -> {
-            assertThat(client.get("/hello").body().string()).isEqualTo("Hello, app!");
-            assertThat(client.get("/hello/").body().string()).isEqualTo("Not found"); // JavaApp.app won't ignore trailing slashes
-        });
-    }
-
-    @Test
     public void testing_sse() {
-        JavalinTest.test(JavaApp.app, (server, client) -> {
+        JavalinTest.test((server, client) -> {
+            server.sse("/listen", (sseClient) -> {
+                try {
+                    for (int i = 0; i < 5; i++) {
+                        sseClient.sendEvent("Hello!");
+                        Thread.sleep(200);
+                    }
+                    sseClient.close();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             List<String> listOfEvents = new ArrayList<>();
-            client.sse("/listen", (sseEvent) -> {
+            client.sse("/listen", new DefaultSseTestHandler() {
+                @Override
+                public void onMessage(SseEvent sseEvent) {
                     listOfEvents.add(sseEvent.getData());
                     if (listOfEvents.size() == 5) {
                         sseEvent.closeClient();
                         assert (true);
                     }
                 }
-            );
+            });
+        });
+    }
+
+    @Test
+    public void sse_to_invalid_url_should_trigger_failure() {
+        JavalinTest.test((server, client) -> {
+            client.sse("/url_that_does_not_exist", new DefaultSseTestHandler() {
+                @Override
+                public void onFailure(@NotNull SseFailure sseFailure) {
+                    sseFailure.closeClient();
+                    assert (true);
+                }
+            });
+        });
+    }
+
+    @Test
+    public void testing_full_app_works() {
+        JavalinTest.test(JavaApp.app, (server, client) -> {
+            assertThat(client.get("/hello").body().string()).isEqualTo("Hello, app!");
+            assertThat(client.get("/hello/").body().string()).isEqualTo("Not found"); // JavaApp.app won't ignore trailing slashes
         });
     }
 

@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory
 class KotlinTest {
 
     class MyKotlinClass(
-            val field1: String,
-            val field2: String
+        val field1: String,
+        val field2: String
     )
 
     @Test
@@ -69,7 +69,7 @@ class KotlinTest {
     @Test
     fun `custom javalin works`() {
         val app = Javalin.create()
-                .get("/hello") { it.result("Hello, World!") }
+            .get("/hello") { it.result("Hello, World!") }
         JavalinTest.test(app) { server, client ->
             assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, World!")
         }
@@ -88,21 +88,40 @@ class KotlinTest {
     }
 
     @Test
-    fun `testing full app works`() = JavalinTest.test(KotlinApp.app) { server, client ->
-        assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, app!");
-        assertThat(client.get("/hello/").body?.string()).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
+    fun `testing SSE`() = JavalinTest.test { server, client ->
+        val listOfEvents = mutableListOf<String>()
+        server.sse("/listen") { sseClient ->
+            repeat(5) {
+                sseClient.sendEvent("Hello!")
+                Thread.sleep(200)
+            }
+            sseClient.close()
+        }
+        client.sse("/listen", object : DefaultSseTestHandler() {
+            override fun onMessage(sseEvent: SseEvent?) {
+                listOfEvents.add(sseEvent!!.data)
+                if (listOfEvents.size == 5) {
+                    sseEvent.closeClient()
+                    assert(true)
+                }
+            }
+        })
     }
 
     @Test
-    fun `testing SSE`() = JavalinTest.test(KotlinApp.app) { server, client ->
-        val listOfEvents = mutableListOf<String>()
-        client.sse("/listen") { sseEvent ->
-            listOfEvents.add(sseEvent.data)
-            if (listOfEvents.size == 5) {
-                sseEvent.closeClient()
+    fun `SSE request should fail for invalid URL`() = JavalinTest.test { server, client ->
+        client.sse("/url_that_does_not_exist", object : DefaultSseTestHandler() {
+            override fun onFailure(sseFailure: SseFailure) {
+                sseFailure.closeClient()
                 assert(true)
             }
-        }
+        })
+    }
+
+    @Test
+    fun `testing full app works`() = JavalinTest.test(KotlinApp.app) { server, client ->
+        assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, app!");
+        assertThat(client.get("/hello/").body?.string()).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
     }
 
 }
