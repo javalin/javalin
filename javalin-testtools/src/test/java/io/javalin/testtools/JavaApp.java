@@ -15,7 +15,6 @@ public class JavaApp {
         javalin.ignoreTrailingSlashes = false;
     }).routes(() -> {
         get("/hello", HelloController::hello);
-        sse("/listen", HelloController::sayHelloFiveTimes);
     });
 
     static class HelloController {
@@ -23,17 +22,6 @@ public class JavaApp {
             ctx.result("Hello, app!");
         }
 
-        public static void sayHelloFiveTimes(SseClient sseClient) {
-            try {
-                for (int i = 0; i < 5; i++) {
-                    sseClient.sendEvent("Hello!");
-                    Thread.sleep(200);
-                }
-                sseClient.close();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
 }
