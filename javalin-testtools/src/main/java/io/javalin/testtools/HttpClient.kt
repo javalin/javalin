@@ -30,7 +30,7 @@ class HttpClient(val app: Javalin) {
 
     @JvmOverloads
     fun get(path: String, req: Consumer<Request.Builder>? = null) =
-            request(path, combine(req, { it.get() }))
+        request(path, combine(req, { it.get() }))
 
     @JvmOverloads
     fun post(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
@@ -38,21 +38,21 @@ class HttpClient(val app: Javalin) {
 
     @JvmOverloads
     fun put(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
-            request(path, combine(req, { it.put(json.toRequestBody()) }))
+        request(path, combine(req, { it.put(json.toRequestBody()) }))
 
     @JvmOverloads
     fun patch(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
-            request(path, combine(req, { it.patch(json.toRequestBody()) }))
+        request(path, combine(req, { it.patch(json.toRequestBody()) }))
 
     @JvmOverloads
     fun delete(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
-            request(path, combine(req, { it.delete(json.toRequestBody()) }))
+        request(path, combine(req, { it.delete(json.toRequestBody()) }))
 
-    fun sse(path: String, handler: SseTestOnMessage): Pair<OkHttpClient, EventSource> {
+    fun sse(path: String, handler: SseTestOnMessage) {
         val client = okHttp.newBuilder().readTimeout(0, TimeUnit.SECONDS).build()
         val eventSourceListener = object : EventSourceListener() {
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-                handler.process(eventSource, id, type, data)
+                handler.process(SseEvent(client, eventSource, id, type, data))
             }
         }
         val request = Request.Builder()
@@ -61,7 +61,7 @@ class HttpClient(val app: Javalin) {
             .header("Accept", "text/event-stream")
             .header("Cache-Control", "no-cache")
             .build()
-        return Pair(client, EventSources.createFactory(client).newEventSource(request, eventSourceListener))
+        EventSources.createFactory(client).newEventSource(request, eventSourceListener)
     }
 
     private fun Any?.toRequestBody(): RequestBody {
