@@ -30,6 +30,7 @@ class SseClient internal constructor(
         }
         if (emitter.isClosed()) { // can't detect if closed before we try emitting?
             closeCallback.run()
+            close()
         }
     }
 
@@ -37,6 +38,7 @@ class SseClient internal constructor(
         emitter.emit(comment)
         if (emitter.isClosed()) {
             closeCallback.run()
+            close()
         }
     }
 
