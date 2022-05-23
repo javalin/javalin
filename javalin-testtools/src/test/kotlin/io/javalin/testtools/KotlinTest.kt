@@ -96,10 +96,10 @@ class KotlinTest {
     @Test
     fun `testing SSE`() = JavalinTest.test(KotlinApp.app) { server, client ->
         val listOfEvents = mutableListOf<String>()
-        val (newClient, eventSource) = client.sse("/parameter/listen") { eventSource, eventId, eventType, eventData ->
+        val (newClient, eventSource) = client.sse("/listen") { eventSource, eventId, eventType, eventData ->
             listOfEvents.add(eventData)
         }
-        Thread.sleep(3_000)
+        Thread.sleep(10_000)
         eventSource.cancel()
         newClient.dispatcher.executorService.shutdown()
         assertThat(listOfEvents.size).isEqualTo(5)

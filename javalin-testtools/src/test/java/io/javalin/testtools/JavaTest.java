@@ -128,12 +128,12 @@ public class JavaTest {
     public void testing_sse() {
         JavalinTest.test(JavaApp.app, (server, client) -> {
             List<String> listOfEvents = new ArrayList<>();
-            Pair<OkHttpClient, EventSource> pair = client.sse("/parameter/listen", (eventSource, eventId, eventType, eventData) ->
+            Pair<OkHttpClient, EventSource> pair = client.sse("/listen", (eventSource, eventId, eventType, eventData) ->
                 listOfEvents.add(eventData)
             );
             OkHttpClient newClient = pair.component1();
             EventSource eventSource = pair.component2();
-            Thread.sleep(3_000);
+            Thread.sleep(10_000);
             eventSource.cancel();
             newClient.dispatcher().executorService().shutdown();
             assertThat(listOfEvents.size()).isEqualTo(5);
