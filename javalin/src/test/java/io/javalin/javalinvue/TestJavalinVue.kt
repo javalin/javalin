@@ -4,8 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin
+package io.javalin.javalinvue
 
+import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.plugin.rendering.vue.JavalinVue
 import io.javalin.plugin.rendering.vue.VueComponent

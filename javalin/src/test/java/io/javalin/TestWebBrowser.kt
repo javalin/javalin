@@ -10,8 +10,6 @@ import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.core.compression.Brotli
 import io.javalin.core.util.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
-import io.javalin.plugin.rendering.vue.JavalinVue
-import io.javalin.plugin.rendering.vue.VueComponent
 import io.javalin.testing.TestLoggingUtil.captureStdOut
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
@@ -39,12 +37,9 @@ class TestWebBrowser {
             assumeTrue("mac" !in os && "darwin" !in os)
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
-                // GH-1488, details about flags: https://stackoverflow.com/questions/50642308/webdriverexception-unknown-error-devtoolsactiveport-file-doesnt-exist-while-t
                 addArguments("--no-sandbox")
-                addArguments("--disable-dev-shm-usage")
                 addArguments("--headless")
                 addArguments("--disable-gpu")
-                addArguments("--remote-debugging-port=9222") // Disables lookup for DevToolsActivePort file at all
             })
         }
 
@@ -105,62 +100,6 @@ class TestWebBrowser {
             assertThat(chunkCount).isEqualTo(expectedChunkCount)
             chunkSize = 128000
         }
-    }
-
-    @Test
-    fun `path params are not html-encoded on the Vue prototype`() = TestUtil.test { app, http ->
-        TestJavalinVue.before()
-        app.get("/vue/{my-param}", VueComponent("test-component"))
-        driver.get(http.origin + "/vue/odd&co")
-
-        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
-        assertThat(pathParam).isEqualTo("odd&co")
-    }
-
-    @Test
-    fun `script tags in state function does not break page rendering`() = TestUtil.test { app, http ->
-        TestJavalinVue.before()
-        val testValue = "some value with <script></script> tags in it"
-        JavalinVue.stateFunction = {
-            mapOf("some_key" to testValue)
-        }
-        app.get("/script_in_state", VueComponent("test-component"))
-        driver.get(http.origin + "/script_in_state")
-        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
-        assertThat(stateValue).isEqualTo(testValue)
-    }
-
-    @Test
-    fun `utf8 characters in state and parameters`() = TestUtil.test { app, http ->
-        TestJavalinVue.before()
-        val testValue = "some value with weird ✔️ \uD83C\uDF89 characters in it"
-        JavalinVue.stateFunction = {
-            mapOf("some_key" to testValue)
-        }
-        app.get("/script_in_state/{param}", VueComponent("test-component"))
-        driver.get(http.origin + "/script_in_state/my_path_param_with_\uD83D\uDE80")
-        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
-        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
-
-        assertThat(stateValue).isEqualTo(testValue)
-        assertThat(pathParam).isEqualTo("my_path_param_with_\uD83D\uDE80")
-    }
-
-    @Test
-    fun `problematic characters in state and parameters`() = TestUtil.test { app, http ->
-        TestJavalinVue.before()
-        val testValue = "-_.!~*'()"
-
-        JavalinVue.stateFunction = {
-            mapOf("some_key" to testValue)
-        }
-        app.get("/script_in_state/{param}", VueComponent("test-component"))
-        driver.get(http.origin + "/script_in_state/$testValue")
-        val stateValue = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
-        val pathParam = TestWebBrowser.driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
-
-        assertThat(stateValue).isEqualTo(testValue)
-        assertThat(pathParam).isEqualTo(testValue)
     }
 
 }
