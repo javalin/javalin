@@ -7,6 +7,7 @@ const val loadableDataScript = """
             this._url = url;
             this._errorCallback = errorCallback;
             this.refresh(cache);
+            this.addRefreshListener();
         }
         refresh(cache = true) {
             this.data = null;
@@ -34,6 +35,16 @@ const val loadableDataScript = """
                     this._errorCallback(error);
                 }
             }).finally(() => this.loading = false);
+        }
+        static refreshAll(url) {
+            window.dispatchEvent(new CustomEvent("javalinvue-loadable-data-update", {detail: url}));
+        }
+        addRefreshListener() {
+            window.addEventListener("javalinvue-loadable-data-update", e => {
+                if (this._url === e.detail) {
+                    this.refresh(false);
+                }
+            }, false);
         }
     }
 </script>"""
