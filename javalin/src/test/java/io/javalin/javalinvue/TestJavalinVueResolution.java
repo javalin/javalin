@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.javalin;
+package io.javalin.javalinvue;
 
 import io.javalin.plugin.rendering.vue.JavalinVue;
 import io.javalin.plugin.rendering.vue.VueComponent;

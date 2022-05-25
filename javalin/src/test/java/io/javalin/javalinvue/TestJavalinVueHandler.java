@@ -1,4 +1,4 @@
-package io.javalin;
+package io.javalin.javalinvue;
 
 import io.javalin.http.Context;
 import io.javalin.plugin.rendering.vue.JavalinVue;
