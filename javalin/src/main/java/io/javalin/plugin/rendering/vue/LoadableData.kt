@@ -36,6 +36,9 @@ const val loadableDataScript = """
                 }
             }).finally(() => this.loading = false);
         }
+        refreshAll() {
+            LoadableData.refreshAll(this._url);
+        }
         static refreshAll(url) {
             window.dispatchEvent(new CustomEvent("javalinvue-loadable-data-update", {detail: url}));
         }
