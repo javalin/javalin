@@ -109,10 +109,12 @@ class TestJavalinVueBrowser {
     @Test
     fun `LoadableData loads data correctly`() = TestUtil.test(loadableDataTestApp()) { app, http ->
         driver.get(http.origin + "/ld")
+        driver.executeScript("localStorage.clear()")
         driver.createLoadableData("ld", "new LoadableData('/api/users')")
         assertThat(driver.checkWindow("ld.loading === false")).isTrue()
         assertThat(driver.checkWindow("ld.loadError === null")).isTrue()
         assertThat(driver.checkWindow("ld.data.length === 1")).isTrue()
+        assertThat(driver.checkWindow("localStorage.length === 1")).isTrue() // cache is true by default
         driver.createMaryOnBackend()
         driver.executeScript("window.ld.refresh()")
         driver.waitForCondition("ld.loaded")
@@ -124,6 +126,14 @@ class TestJavalinVueBrowser {
         driver.get(http.origin + "/ld")
         driver.createLoadableData("ld", "new LoadableData('/wrong-url')")
         assertThat(driver.checkWindow("ld.loadError !== null")).isTrue()
+    }
+
+    @Test
+    fun `LoadableData cache can be disabled`() = TestUtil.test(loadableDataTestApp()) { app, http ->
+        driver.get(http.origin + "/ld")
+        driver.executeScript("localStorage.clear()")
+        driver.createLoadableData("ld", "new LoadableData('/api/users', false)")
+        assertThat(driver.checkWindow("localStorage.length === 0")).isTrue()
     }
 
     @Test
