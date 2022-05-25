@@ -137,6 +137,14 @@ class TestJavalinVueBrowser {
     }
 
     @Test
+    fun `LoadableData errorCallback works`() = TestUtil.test(loadableDataTestApp()) { app, http ->
+        driver.get(http.origin + "/ld")
+        driver.createLoadableData("ld", "new LoadableData('/wrong-url', false, () => window.myVar = 'Error')")
+        assertThat(driver.checkWindow("ld.loadError.code === 404")).isTrue()
+        assertThat(driver.checkWindow("myVar === 'Error'")).isTrue()
+    }
+
+    @Test
     fun `LoadableData instance can refresh itself`() = TestUtil.test(loadableDataTestApp()) { app, http ->
         driver.get(http.origin + "/ld")
         driver.createLoadableData("ld", "new LoadableData('/api/users')")
