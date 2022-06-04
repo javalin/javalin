@@ -16,7 +16,7 @@ public interface JsonMapper {
     }
 
     /**
-     * Javalin uses this method for {@link io.javalin.http.Context#json(Object, boolean)},
+     * Javalin uses this method for {@link io.javalin.http.Context#json(Object)},
      * if called with useStreamingMapper = true.
      * When implementing this method, use (or look at) PipedStreamUtil to get
      * an InputStream from an OutputStream.
