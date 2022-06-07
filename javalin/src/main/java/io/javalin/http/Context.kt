@@ -313,6 +313,19 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** Gets the request user agent, or null. */
     fun userAgent(): String? = req.getHeader(Header.USER_AGENT)
 
+    /** Start an async context for this request */
+    private val implementationWorkaroundFuture = CompletableFuture<Void>()
+    fun asyncStart(timeout: Long? = null) {
+        this.req.startAsync()
+        if (timeout != null) {
+            this.req.asyncContext.timeout = timeout
+        }
+        this.future(implementationWorkaroundFuture) { /* do nothing with the future result in callback */ }
+    }
+
+    /** Complete the async context for this request */
+    fun asyncComplete() = implementationWorkaroundFuture.complete(null) // JavalinServletHandler will complete it
+
     ///////////////////////////////////////////////////////////////
     // Response-ish methods
     ///////////////////////////////////////////////////////////////
