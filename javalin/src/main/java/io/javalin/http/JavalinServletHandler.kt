@@ -73,6 +73,10 @@ class JavalinServletHandler(
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
     internal fun queueNextTaskOrFinish() {
+        if (ctx.isAsync() && ctx.resultFuture() == null && ctx.asyncWorkaroundFuture == null) {
+            ctx.asyncWorkaroundFuture = CompletableFuture<Void>()
+            ctx.future(ctx.asyncWorkaroundFuture!!)
+        }
         while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from next stage, if the current queue is empty
             val stage = stages.poll()
             stage.initializer.invoke(this) { taskHandler -> tasks.offer(Task(stage, taskHandler)) } // add tasks from stage to task queue

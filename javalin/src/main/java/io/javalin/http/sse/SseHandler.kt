@@ -29,19 +29,7 @@ class SseHandler @JvmOverloads constructor(
             }
             ctx.req.startAsync(ctx.req, ctx.res)
             ctx.req.asyncContext.timeout = timeout
-
-            val closeSse = CompletableFuture<Void>()
-                .also { ctx.future(it) { /* do nothing with the future result in callback */ } }
-                .let { CloseSseFunction { it.complete(null) } }
-
-            ctx.req.asyncContext.addListener(object : AsyncListener {
-                override fun onComplete(event: AsyncEvent) {}
-                override fun onStartAsync(event: AsyncEvent) {}
-                override fun onTimeout(event: AsyncEvent) { closeSse.close() }
-                override fun onError(event: AsyncEvent) { closeSse.close() }
-            })
-
-            clientConsumer.accept(SseClient(closeSse, ctx))
+            clientConsumer.accept(SseClient(ctx))
         }
     }
 

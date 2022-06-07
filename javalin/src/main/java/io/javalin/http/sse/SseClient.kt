@@ -4,9 +4,9 @@ import io.javalin.http.Context
 import io.javalin.plugin.json.jsonMapper
 import java.io.Closeable
 import java.io.InputStream
+import java.util.concurrent.CompletableFuture
 
 class SseClient internal constructor(
-    private val closeSse: CloseSseFunction,
     @JvmField val ctx: Context
 ) : Closeable {
 
@@ -18,7 +18,7 @@ class SseClient internal constructor(
     }
 
     override fun close() {
-        closeSse.close()
+        ctx.asyncWorkaroundFuture?.complete(null)
         closeCallback.run()
     }
 

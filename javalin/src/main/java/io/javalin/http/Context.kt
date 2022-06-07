@@ -40,6 +40,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
     @get:JvmSynthetic @set:JvmSynthetic internal var resultReference = AtomicReference(Result())
+    @get:JvmSynthetic @set:JvmSynthetic internal var asyncWorkaroundFuture: CompletableFuture<Void>? = null
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
