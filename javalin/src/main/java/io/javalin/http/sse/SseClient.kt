@@ -6,7 +6,6 @@ import java.io.Closeable
 import java.io.InputStream
 
 class SseClient internal constructor(
-    private val closeSse: CloseSseFunction,
     @JvmField val ctx: Context
 ) : Closeable {
 
@@ -18,7 +17,7 @@ class SseClient internal constructor(
     }
 
     override fun close() {
-        closeSse.close()
+        ctx.req.asyncContext.complete()
         closeCallback.run()
     }
 

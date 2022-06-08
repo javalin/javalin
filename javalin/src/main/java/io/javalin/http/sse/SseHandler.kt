@@ -7,8 +7,6 @@ import io.javalin.http.addListener
 import java.io.Closeable
 import java.util.function.Consumer
 
-internal fun interface CloseSseFunction : Closeable
-
 class SseHandler @JvmOverloads constructor(
     private val timeout: Long = 0,
     private val clientConsumer: Consumer<SseClient>
@@ -25,17 +23,14 @@ class SseHandler @JvmOverloads constructor(
                 addHeader(Header.X_ACCEL_BUFFERING, "no") // See https://serverfault.com/a/801629
                 flushBuffer()
             }
-
-            ctx.req.startAsync(ctx.req, ctx.res)
-            ctx.req.asyncContext.timeout = timeout
-            val closeSse = CloseSseFunction { ctx.req.asyncContext.complete() }
-
-            ctx.req.asyncContext.addListener(
-                onTimeout = { closeSse.close() },
-                onError = { closeSse.close() }
-            )
-
-            clientConsumer.accept(SseClient(closeSse, ctx))
+            ctx.req.startAsync(ctx.req, ctx.res).let { asyncContext ->
+                asyncContext.timeout = timeout
+                asyncContext.addListener(
+                    onTimeout = { asyncContext.complete() },
+                    onError = { asyncContext.complete() }
+                )
+            }
+            clientConsumer.accept(SseClient(ctx))
         }
     }
 

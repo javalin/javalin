@@ -104,7 +104,7 @@ class JavalinServletHandler(
         }
         return ctx.resultReference.getAndSet(Result(previousResult))
             .let { result ->
-                when {
+                when { // we need to check if the user has called startAsync manually, and keep the connection open if so
                     ctx.isAsync() && !wasAsync -> result.copy(future = CompletableFuture<Void>()) // GH-1560: freeze JavalinServletHandler infinitely, TODO: Remove it in Javalin 5.x
                     else -> result
                 }
