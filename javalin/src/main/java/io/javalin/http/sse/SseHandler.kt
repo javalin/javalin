@@ -28,15 +28,15 @@ class SseHandler @JvmOverloads constructor(
                 addHeader(Header.X_ACCEL_BUFFERING, "no") // See https://serverfault.com/a/801629
                 flushBuffer()
             }
-            ctx.req.startAsync(ctx.req, ctx.res)
-            ctx.req.asyncContext.timeout = timeout
+            ctx.req.startAsync(ctx.req, ctx.res).let { asyncContext ->
+                asyncContext.timeout = timeout
+                asyncContext.addListener(
+                    onTimeout = { asyncContext.complete() },
+                    onError = { asyncContext.complete() }
+                )
+            }
 
-            ctx.req.asyncContext.addListener(
-                onTimeout = { ctx.req.asyncContext.complete() },
-                onError = { ctx.req.asyncContext.complete() }
-            )
-
-            clientConsumer.accept(SseClient({ ctx.req.asyncContext.complete() }, ctx))
+            clientConsumer.accept(SseClient(ctx))
         }
     }
 

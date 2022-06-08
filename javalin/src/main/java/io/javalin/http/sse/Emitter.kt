@@ -17,7 +17,7 @@ class Emitter(private var asyncContext: AsyncContext) {
         try {
             this.output = asyncContext.response.outputStream
         } catch (e: IOException) {
-            closed = true
+            this.close()
         }
     }
 
@@ -33,7 +33,7 @@ class Emitter(private var asyncContext: AsyncContext) {
             output.print(newline)
             asyncContext.response.flushBuffer()
         } catch (e: IOException) {
-            closed = true
+            this.close()
         }
     }
 
@@ -43,10 +43,15 @@ class Emitter(private var asyncContext: AsyncContext) {
         }
         asyncContext.response.flushBuffer()
     } catch (e: IOException) {
-        closed = true
+        this.close()
     }
 
 
     fun isClosed() = closed
+
+    internal fun close() {
+        this.asyncContext.complete()
+        closed = true
+    }
 
 }
