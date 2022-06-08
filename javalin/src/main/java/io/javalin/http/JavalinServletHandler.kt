@@ -82,7 +82,7 @@ class JavalinServletHandler(
         else
             currentTaskFuture = currentTaskFuture
                 .thenAccept { inputStream -> previousResult = inputStream }
-                .thenCompose { executeNextTask() }  // chain next task into current future
+                .thenCompose { executeNextTask() } // chain next task into current future
                 .exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
@@ -93,6 +93,7 @@ class JavalinServletHandler(
             queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
             return completedFuture(previousResult)
         }
+        val wasAsync = ctx.isAsync() // necessary to detect if user called startAsync() manually
         try {
             /** run code added through submitTask in [JavalinServlet]. This mutates [ctx] */
             task.handler(this)
@@ -102,8 +103,14 @@ class JavalinServletHandler(
             exceptionMapper.handle(exception, ctx)
         }
         return ctx.resultReference.getAndSet(Result(previousResult))
+            .let { result ->
+                when {
+                    ctx.isAsync() && !wasAsync -> result.copy(future = CompletableFuture<Void>()) // GH-1560: freeze JavalinServletHandler infinitely, TODO: Remove it in Javalin 5.x
+                    else -> result
+                }
+            }
             .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
-            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addTimeoutListener { result.future.cancel(true) } }
+            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addListener(onTimeout = { result.future.cancel(true) }) }
             .let { result ->
                 result.future
                     .thenAccept { any -> (result.callback?.accept(any) ?: ctx.contextResolver().defaultFutureCallback(ctx, any)) } // callback after future resolves - modifies ctx result, status, etc
@@ -114,12 +121,12 @@ class JavalinServletHandler(
     }
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
-        .addTimeoutListener { // a timeout avoids the pipeline - we need to handle it manually
+        .addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually
             currentTaskFuture.cancel(true) // cancel current task
             ctx.status(500).result("Request timed out") // default error handling
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
             finishResponse() // write response
-        }
+        })
         .also { asyncCtx -> asyncCtx.timeout = config.asyncRequestTimeout }
 
     /** Writes response to the client and frees resources */
@@ -140,11 +147,16 @@ class JavalinServletHandler(
 /** Checks if request is executed asynchronously */
 private fun Context.isAsync(): Boolean = req.isAsyncStarted
 
-private fun AsyncContext.addTimeoutListener(callback: () -> Unit) = this.apply {
+internal fun AsyncContext.addListener(
+    onComplete: (AsyncEvent) -> Unit = {},
+    onError: (AsyncEvent) -> Unit = {},
+    onStartAsync: (AsyncEvent) -> Unit = {},
+    onTimeout: (AsyncEvent) -> Unit = {},
+) : AsyncContext = apply {
     addListener(object : AsyncListener {
-        override fun onComplete(event: AsyncEvent) {}
-        override fun onError(event: AsyncEvent) {}
-        override fun onStartAsync(event: AsyncEvent) {}
-        override fun onTimeout(event: AsyncEvent) = callback() // this is all we care about
+        override fun onComplete(event: AsyncEvent) = onComplete(event)
+        override fun onError(event: AsyncEvent) = onError(event)
+        override fun onStartAsync(event: AsyncEvent) = onStartAsync(event)
+        override fun onTimeout(event: AsyncEvent) = onTimeout(event)
     })
 }

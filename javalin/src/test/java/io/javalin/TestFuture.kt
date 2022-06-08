@@ -189,9 +189,23 @@ class TestFuture {
             it.contextResolvers { it.defaultFutureCallback = { ctx, _ -> ctx.result("Ignore result") } }
         }
         TestUtil.test(ignoringServer) { app, http ->
-            app.get("/") {  it.future(CompletableFuture.completedFuture("Success")) }
+            app.get("/") { it.future(CompletableFuture.completedFuture("Success")) }
             assertThat(http.get("/").body).isEqualTo("Ignore result")
         }
+    }
+
+    @Test
+    fun `should support legacy usage of asyncStart`() = TestUtil.test(impatientServer) { app, http ->
+        app.get("/") { ctx ->
+            ctx.req.startAsync()
+
+            getFuture("response").thenAccept {
+                ctx.res.outputStream.write(it.toByteArray())
+                ctx.req.asyncContext.complete()
+            }
+        }
+
+        assertThat(http.get("/").body).isEqualTo("response")
     }
 
     private fun getFuture(result: String?, delay: Long = 10): CompletableFuture<String> {

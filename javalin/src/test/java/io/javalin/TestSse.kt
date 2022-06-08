@@ -1,12 +1,10 @@
 package io.javalin
 
 import io.javalin.http.sse.SseClient
-import io.javalin.http.sse.SseHandler
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Timeout
 import java.util.concurrent.CompletableFuture
 
 class TestSse {
@@ -112,7 +110,7 @@ class TestSse {
         app.sse("/sse") {
             it.sendEvent("Sync event")
             CompletableFuture.runAsync {
-                Thread.sleep(10)
+                Thread.sleep(100)
                 it.sendEvent("Async event")
                 it.close()
             }
