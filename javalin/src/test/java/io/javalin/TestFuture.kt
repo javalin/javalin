@@ -201,7 +201,6 @@ class TestFuture {
 
             getFuture("response").thenAccept {
                 ctx.res.outputStream.write(it.toByteArray())
-                Thread.sleep(100)
                 ctx.req.asyncContext.complete()
             }
         }

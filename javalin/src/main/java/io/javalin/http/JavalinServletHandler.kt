@@ -105,7 +105,7 @@ class JavalinServletHandler(
         return ctx.resultReference.getAndSet(Result(previousResult))
             .let { result ->
                 when {
-                    ctx.isAsync() && !wasAsync -> result.copy(future = CompletableFuture<Void>()) // freeze JavalinServletHandler infinitely, TODO: Remove it in Javalin 5.x
+                    ctx.isAsync() && !wasAsync -> result.copy(future = CompletableFuture<Void>()) // GH-1560: freeze JavalinServletHandler infinitely, TODO: Remove it in Javalin 5.x
                     else -> result
                 }
             }
