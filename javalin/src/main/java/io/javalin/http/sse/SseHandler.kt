@@ -5,7 +5,6 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.addListener
 import java.io.Closeable
-import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
 internal fun interface CloseSseFunction : Closeable
@@ -26,12 +25,10 @@ class SseHandler @JvmOverloads constructor(
                 addHeader(Header.X_ACCEL_BUFFERING, "no") // See https://serverfault.com/a/801629
                 flushBuffer()
             }
+
             ctx.req.startAsync(ctx.req, ctx.res)
             ctx.req.asyncContext.timeout = timeout
-
-            val closeSse = CompletableFuture<Void>()
-                .also { ctx.future(it) { /* do nothing with the future result in callback */ } }
-                .let { CloseSseFunction { it.complete(null) } }
+            val closeSse = CloseSseFunction { ctx.req.asyncContext.complete() }
 
             ctx.req.asyncContext.addListener(
                 onTimeout = { closeSse.close() },
