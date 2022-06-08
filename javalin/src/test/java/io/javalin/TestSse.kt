@@ -110,7 +110,7 @@ class TestSse {
         app.sse("/sse") {
             it.sendEvent("Sync event")
             CompletableFuture.runAsync {
-                Thread.sleep(10)
+                Thread.sleep(100)
                 it.sendEvent("Async event")
                 it.close()
             }

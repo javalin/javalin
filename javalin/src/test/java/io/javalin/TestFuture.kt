@@ -200,7 +200,8 @@ class TestFuture {
             ctx.req.startAsync()
 
             getFuture("response").thenAccept {
-                ctx.result(it)
+                ctx.res.outputStream.write(it.toByteArray())
+                Thread.sleep(100)
                 ctx.req.asyncContext.complete()
             }
         }
