@@ -82,7 +82,7 @@ class JavalinServletHandler(
         else
             currentTaskFuture = currentTaskFuture
                 .thenAccept { inputStream -> previousResult = inputStream }
-                .thenCompose { executeNextTask() }  // chain next task into current future
+                .thenCompose { executeNextTask() } // chain next task into current future
                 .exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
@@ -93,7 +93,7 @@ class JavalinServletHandler(
             queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
             return completedFuture(previousResult)
         }
-        val wasAsync = ctx.isAsync()
+        val wasAsync = ctx.isAsync() // necessary to detect if user called startAsync() manually
         try {
             /** run code added through submitTask in [JavalinServlet]. This mutates [ctx] */
             task.handler(this)

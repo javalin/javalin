@@ -7,8 +7,6 @@ import io.javalin.http.addListener
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
-import javax.servlet.AsyncEvent
-import javax.servlet.AsyncListener
 
 internal fun interface CloseSseFunction : Closeable
 
@@ -31,12 +29,16 @@ class SseHandler @JvmOverloads constructor(
             ctx.req.startAsync(ctx.req, ctx.res)
             ctx.req.asyncContext.timeout = timeout
 
+            val closeSse = CompletableFuture<Void>()
+                .also { ctx.future(it) { /* do nothing with the future result in callback */ } }
+                .let { CloseSseFunction { it.complete(null) } }
+
             ctx.req.asyncContext.addListener(
-                onTimeout = { ctx.req.asyncContext.complete() },
-                onError = { ctx.req.asyncContext.complete() }
+                onTimeout = { closeSse.close() },
+                onError = { closeSse.close() }
             )
 
-            clientConsumer.accept(SseClient({ ctx.req.asyncContext.complete() }, ctx))
+            clientConsumer.accept(SseClient(closeSse, ctx))
         }
     }
 
