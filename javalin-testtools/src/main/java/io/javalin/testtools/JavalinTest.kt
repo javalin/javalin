@@ -31,8 +31,8 @@ object JavalinTest {
         }
         app.attribute("testlogs", result.logs)
         if (result.exception != null) {
-            JavalinLogger.error("There were non-assertion errors in test code.\n" + result.logs);
-            throw RuntimeException(result.exception)
+            JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs);
+            throw result.exception
         }
     }
 
@@ -52,8 +52,12 @@ object JavalinTest {
         }
         try {
             testCode.run()
-        } catch (e: Exception) {
-            exception = e
+        } catch (t: Throwable) {
+            exception = when(t) {
+                is Exception -> t
+                is AssertionError -> Exception("Assertion error: " + t.message)
+                else -> Exception("Unexpected Throwable in test. Message: '${t.message}'", t)
+            }
         } finally {
             System.out.flush()
             System.setOut(oldOut)
@@ -66,7 +70,7 @@ object JavalinTest {
     fun runLogLess(run: Runnable) {
         val result: RunResult = runAndCaptureLogs(run)
         if (result.exception != null) {
-            JavalinLogger.error("There were non-assertion errors in test code:\n" + result.logs)
+            JavalinLogger.error("JavalinTest#runLogLess failed - full log output below:\n" + result.logs);
             throw RuntimeException(result.exception)
         }
     }
