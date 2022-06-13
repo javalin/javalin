@@ -54,7 +54,7 @@ public class TestUtil {
         } catch (Throwable t) {
             if (t instanceof Exception) exception = (Exception) t;
             else if (t instanceof AssertionError) exception = new Exception("Assertion error: " + t.getMessage());
-            else exception = new Exception("Unexpected Throwable in test. Message: '${t.message}'", t);
+            else exception = new Exception("Unexpected Throwable in test. Message: '" + t.getMessage() + "'", t);
         } finally {
             System.out.flush();
             System.setOut(oldOut);
