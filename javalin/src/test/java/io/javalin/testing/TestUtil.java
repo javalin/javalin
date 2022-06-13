@@ -34,7 +34,7 @@ public class TestUtil {
         });
         app.attribute("testlogs", result.logs);
         if (result.exception != null) {
-            JavalinLogger.error("There were non-assertion errors in test code.\n" + result.logs);
+            JavalinLogger.error("TestUtil#test failed - full log output below:\n" + result.logs);
             throw new RuntimeException(result.exception);
         }
     }
@@ -51,8 +51,10 @@ public class TestUtil {
         }
         try {
             testCode.run();
-        } catch (Exception e) {
-            exception = e;
+        } catch (Throwable t) {
+            if (t instanceof Exception) exception = (Exception) t;
+            else if (t instanceof AssertionError) exception = new Exception("Assertion error: " + t.getMessage());
+            else exception = new Exception("Unexpected Throwable in test. Message: '${t.message}'", t);
         } finally {
             System.out.flush();
             System.setOut(oldOut);
@@ -64,7 +66,7 @@ public class TestUtil {
     public static void runLogLess(Runnable run) {
         RunResult result = runAndCaptureLogs(run);
         if (result.exception != null) {
-            JavalinLogger.error("There were non-assertion errors in test code.\n" + result.logs);
+            JavalinLogger.error("TestUtil#runLogLess failed - full log output below:\n" + result.logs);
             throw new RuntimeException(result.exception);
         }
     }
