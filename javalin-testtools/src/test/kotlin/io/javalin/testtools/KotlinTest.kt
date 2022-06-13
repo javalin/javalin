@@ -7,6 +7,8 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 
 class KotlinTest {
@@ -122,6 +124,38 @@ class KotlinTest {
         JavalinTest.test(app, TestConfig(okHttpClient = okHttpClientAddingHeader)) { server, client ->
             assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, Javalin!")
         }
+    }
+
+    @Test
+    fun `exceptions in test code get re-thrown`() {
+        assertThrows<Exception>("Error in test code"){
+            JavalinTest.test { server, client ->
+                throw Exception("Error in test code")
+            }
+        }
+    }
+
+    @Test
+    fun `exceptions in handler code are caught by exception handler and not thrown`() {
+        assertDoesNotThrow {
+            JavalinTest.test { server, client ->
+                server.get("/hello") {
+                    throw Exception("Error in handler code")
+                }
+                assertThat(client.get("/hello").code).isEqualTo(500)
+            }
+        }
+    }
+
+    @Test
+    fun `exception in handler code is printed to std out`() = JavalinTest.test { server, client ->
+        server.get("/hello") {
+            throw Exception("Error in handler code")
+        }
+
+        client.get("/hello")
+
+        // TODO: Test that log contains "JavalinTest#test failed - full log output below"
     }
 
 }

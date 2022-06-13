@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class JavaTest {
@@ -151,4 +153,37 @@ public class JavaTest {
         });
     }
 
+    public void exceptions_in_test_code_get_rethrown() {
+        assertThatExceptionOfType(Exception.class).isThrownBy(() ->
+            JavalinTest.test((server, client) -> {
+                throw new Exception("Error in test code");
+            })
+        ).withMessageMatching("Error in test code");
+    }
+
+    @Test
+    public void exceptions_in_handler_code_are_caught_by_exception_handler_and_not_thrown() {
+        assertThatNoException().isThrownBy(() ->
+            JavalinTest.test( (server, client) -> {
+                server.get("/hello", ctx -> {
+                    throw new Exception("Error in handler code");
+                });
+
+                assertThat(client.get("/hello").code()).isEqualTo(500);
+            })
+        );
+    }
+
+    @Test
+    public void exception_in_handler_code_is_printed_to_std_out() {
+        JavalinTest.test( (server, client) -> {
+            server.get("/hello", ctx -> {
+                throw new Exception("Error in handler code");
+            });
+
+            client.get("/hello");
+
+            // TODO: Test that log contains "JavalinTest#test failed - full log output below"
+        });
+    }
 }
