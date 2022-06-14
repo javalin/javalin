@@ -33,6 +33,8 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun send(message: String) = session.remote.sendStringByFuture(message)
     fun send(message: ByteBuffer) = session.remote.sendBytesByFuture(message)
 
+    @JvmOverloads fun sendPing(message: ByteBuffer? = null) = session.remote.sendPing(message ?: ByteBuffer.allocate(0))
+
     fun queryString(): String? = upgradeCtx.queryString()
     fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
     fun queryParams(key: String): List<String> = upgradeCtx.queryParams(key)
