@@ -7,7 +7,6 @@
         <module>javalin-graphql</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
-        <module>javalin-osgi</module>
     </modules>
 
     <parent>
