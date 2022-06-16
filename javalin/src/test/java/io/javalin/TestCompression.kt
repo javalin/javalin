@@ -13,8 +13,8 @@ import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.FileUtil
 import io.javalin.core.util.Header
-import io.javalin.core.util.OptionalDependency
 import io.javalin.http.staticfiles.Location
+import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import okhttp3.OkHttpClient
@@ -199,7 +199,7 @@ class TestCompression {
 
     @Test
     fun `gzip works for large static files`() {
-        val path = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js"
+        val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
         val gzipWebjars = Javalin.create {
             it.compressionStrategy(null, Gzip(6))
             it.enableWebjars()
@@ -212,7 +212,7 @@ class TestCompression {
     @Test
     fun `brotli works for large static files`() {
         assumeTrue(BrotliLoader.isBrotliAvailable())
-        val path = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui-bundle.js"
+        val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
         val compressedWebjars = Javalin.create {
             it.compressionStrategy(Brotli(4), null)
             it.enableWebjars()
@@ -257,7 +257,7 @@ class TestCompression {
             it.enableWebjars()
         }
         TestUtil.test(preCompressedTestApp) { _, http ->
-            assertUncompressedResponse(http.origin, "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}/swagger-ui.js.gz")
+            assertUncompressedResponse(http.origin, "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.js.gz")
             assertUncompressedResponse(http.origin, "/readme.md.br")
         }
     }

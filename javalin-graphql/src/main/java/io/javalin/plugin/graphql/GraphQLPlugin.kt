@@ -3,9 +3,9 @@ package io.javalin.plugin.graphql
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
+import io.javalin.http.HttpCode
 import io.javalin.plugin.graphql.server.JavalinGraphQLServer
 import kotlinx.coroutines.runBlocking
-import org.eclipse.jetty.http.HttpStatus
 
 class GraphQLPlugin(private val builder: GraphQLPluginBuilder<*>) : Plugin, PluginLifecycleInit {
 
@@ -30,7 +30,7 @@ class GraphQLPlugin(private val builder: GraphQLPluginBuilder<*>) : Plugin, Plug
             if (response != null) {
                 ctx.json(response)
             } else {
-                ctx.status(HttpStatus.BAD_REQUEST_400).json(mapOf("error" to "Invalid request"))
+                ctx.status(HttpCode.BAD_REQUEST).json(mapOf("error" to "Invalid request"))
             }
         }
         app.ws(builder.path) { ws ->
