@@ -32,12 +32,12 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
         }
     }
 
-    override fun <T> fromJsonString(json: String, targetClass: Class<T>): T {
+    override fun <T: Any> fromJsonString(json: String, targetClass: Class<T>): T {
         ensureDependenciesPresent(targetClass)
         return objectMapper!!.readValue(json, targetClass)
     }
 
-    override fun <T : Any?> fromJsonStream(json: InputStream, targetClass: Class<T>): T {
+    override fun <T : Any> fromJsonStream(json: InputStream, targetClass: Class<T>): T {
         ensureDependenciesPresent(targetClass)
         return objectMapper!!.readValue(json, targetClass)
     }
