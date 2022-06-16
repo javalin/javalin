@@ -3,7 +3,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>javalin</module>
-        <module>javalin-graphql</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
     </modules>
@@ -78,7 +77,6 @@
         <source.plugin.version>3.2.1</source.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <classgraph.version>4.8.102</classgraph.version>
         <commonmark.version>0.18.0</commonmark.version>
         <freemarker.version>2.3.31</freemarker.version>
         <guava.version>31.1-jre</guava.version>
@@ -96,8 +94,6 @@
         <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
         <velocity.version>2.3</velocity.version>
         <jte.version>1.12.0</jte.version>
-        <graphql-kotlin.version>4.1.1</graphql-kotlin.version>
-        <reactor-core.version>3.2.9.RELEASE</reactor-core.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.20.2</assertj.version>
@@ -274,21 +270,6 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.expediagroup</groupId>
-                <artifactId>graphql-kotlin-schema-generator</artifactId>
-                <version>${graphql-kotlin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.expediagroup</groupId>
-                <artifactId>graphql-kotlin-server</artifactId>
-                <version>${graphql-kotlin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.projectreactor</groupId>
-                <artifactId>reactor-core</artifactId>
-                <version>${reactor-core.version}</version>
             </dependency>
             <!-- END Optional dependencies -->
 
