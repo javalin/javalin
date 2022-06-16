@@ -91,6 +91,7 @@
         <pebble.version>3.1.5</pebble.version>
         <slf4j.version>1.7.36</slf4j.version>
         <swagger.ui.version>4.10.3</swagger.ui.version>
+        <thymeleaf.version>3.1.0.M2</thymeleaf.version>
         <velocity.version>2.3</velocity.version>
         <jte.version>1.12.0</jte.version>
 
