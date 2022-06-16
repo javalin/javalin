@@ -133,7 +133,7 @@ class TestJson {
     @Test
     fun `user can configure custom fromJsonString`() {
         val sillyMapper = object : JsonMapper {
-            override fun <T : Any?> fromJsonString(json: String, targetClass: Class<T>): T = "fromJsonString" as T
+            override fun <T : Any> fromJsonString(json: String, targetClass: Class<T>): T = "fromJsonString" as T
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
             app.get("/") { it.result(it.bodyAsClass<String>()) }
@@ -144,7 +144,7 @@ class TestJson {
     @Test
     fun `user can configure custom fromJsonStream`() {
         val sillyMapper = object : JsonMapper {
-            override fun <T : Any?> fromJsonStream(json: InputStream, targetClass: Class<T>): T = "fromJsonStream" as T
+            override fun <T : Any> fromJsonStream(json: InputStream, targetClass: Class<T>): T = "fromJsonStream" as T
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
             app.get("/") { it.result(it.bodyStreamAsClass<String>()) }
@@ -156,7 +156,7 @@ class TestJson {
     fun `user can use GSON`() {
         val gson = GsonBuilder().create()
         val gsonMapper = object : JsonMapper {
-            override fun <T> fromJsonString(json: String, targetClass: Class<T>): T = gson.fromJson(json, targetClass)
+            override fun <T: Any> fromJsonString(json: String, targetClass: Class<T>): T = gson.fromJson(json, targetClass)
             override fun toJsonString(obj: Any) = gson.toJson(obj)
         }
         TestUtil.test(Javalin.create { it.jsonMapper(gsonMapper) }) { app, http ->
