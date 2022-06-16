@@ -3,11 +3,9 @@ package io.javalin.http.sse
 import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.http.addListener
 import java.io.Closeable
-import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
-import jakarta.servlet.AsyncEvent
-import jakarta.servlet.AsyncListener
 
 internal fun interface CloseSseFunction : Closeable
 
@@ -27,21 +25,14 @@ class SseHandler @JvmOverloads constructor(
                 addHeader(Header.X_ACCEL_BUFFERING, "no") // See https://serverfault.com/a/801629
                 flushBuffer()
             }
-            ctx.req.startAsync(ctx.req, ctx.res)
-            ctx.req.asyncContext.timeout = timeout
-
-            val closeSse = CompletableFuture<Void>()
-                .also { ctx.future(it) { /* do nothing with the future result in callback */ } }
-                .let { CloseSseFunction { it.complete(null) } }
-
-            ctx.req.asyncContext.addListener(object : AsyncListener {
-                override fun onComplete(event: AsyncEvent) {}
-                override fun onStartAsync(event: AsyncEvent) {}
-                override fun onTimeout(event: AsyncEvent) { closeSse.close() }
-                override fun onError(event: AsyncEvent) { closeSse.close() }
-            })
-
-            clientConsumer.accept(SseClient(closeSse, ctx))
+            ctx.req.startAsync(ctx.req, ctx.res).let { asyncContext ->
+                asyncContext.timeout = timeout
+                asyncContext.addListener(
+                    onTimeout = { asyncContext.complete() },
+                    onError = { asyncContext.complete() }
+                )
+            }
+            clientConsumer.accept(SseClient(ctx))
         }
     }
 

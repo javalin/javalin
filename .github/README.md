@@ -34,14 +34,14 @@ General information:
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>4.6.0</version>
+    <version>4.6.1</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-implementation "io.javalin:javalin:4.6.0"
+implementation "io.javalin:javalin:4.6.1"
 ```
 
 ### Start programming (Java)
@@ -141,11 +141,6 @@ app.post("/upload") { ctx ->
     }
 }
 ```
-
-### OpenAPI (Swagger)
-
-Javalin has an OpenAPI (Swagger) plugin. Documentation can be enabled both through a DSL and through annotations,
-and Javalin can render docs using both SwaggerUI and ReDoc. Read more at https://javalin.io/plugins/openapi.
 
 ## Special thanks
 * Blake Mizerany, for creating [Sinatra](http://www.sinatrarb.com/)

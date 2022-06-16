@@ -3,10 +3,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>javalin</module>
-        <module>javalin-openapi</module>
-        <module>javalin-graphql</module>
         <module>javalin-bundle</module>
-        <module>javalin-without-jetty</module>
         <module>javalin-testtools</module>
     </modules>
 
@@ -18,7 +15,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>4.6.1-SNAPSHOT</version>
+    <version>4.6.3-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -52,13 +49,13 @@
 
         <copy-build-resources.skip>true</copy-build-resources.skip>
 
-        <dokka.jdkVersion>8</dokka.jdkVersion>
+        <dokka.jdkVersion>11</dokka.jdkVersion>
         <dokka.skip>true</dokka.skip>
         <javadoc.skip>true</javadoc.skip>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <kotlin.version>1.6.20</kotlin.version>
+        <kotlin.version>1.7.0</kotlin.version>
         <kotlin.compiler.jvmTarget>11</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
@@ -80,45 +77,36 @@
         <source.plugin.version>3.2.1</source.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <classgraph.version>4.8.102</classgraph.version>
         <commonmark.version>0.18.0</commonmark.version>
         <freemarker.version>2.3.31</freemarker.version>
         <guava.version>31.1-jre</guava.version>
-        <jackson.version>2.13.2</jackson.version>
+        <jackson.version>2.13.3</jackson.version>
         <jetty.version>11.0.9</jetty.version>
-        <jackson.databind.version>2.13.2.2</jackson.databind.version>
+        <jackson.databind.version>2.13.3</jackson.databind.version>
         <jtwig.version>5.87.0.RELEASE</jtwig.version>
         <jvmbrotli.version>0.2.0</jvmbrotli.version>
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.2.11</logback.version>
         <micrometer.version>1.8.4</micrometer.version>
         <mustache.version>0.9.7</mustache.version>
         <pebble.version>3.1.5</pebble.version>
-        <redoc.version>2.0.0-rc.45</redoc.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <swagger.core.version>2.1.10</swagger.core.version>
-        <swagger.parser.version>2.0.27</swagger.parser.version>
-        <thymeleaf.version>3.1.0.M1</thymeleaf.version>
         <swagger.ui.version>4.10.3</swagger.ui.version>
         <velocity.version>2.3</velocity.version>
         <jte.version>1.12.0</jte.version>
-        <graphql-kotlin.version>4.1.1</graphql-kotlin.version>
-        <reactor-core.version>3.2.9.RELEASE</reactor-core.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.20.2</assertj.version>
         <common.io.version>2.11.0</common.io.version>
-        <gson.version>2.8.6</gson.version>
+        <gson.version>2.8.9</gson.version>
         <java.websocket.version>1.5.2</java.websocket.version>
         <!-- <javax.servlet.api.version>3.1.0</javax.servlet.api.version> -->
         <kotlin.openapi.dsl.version>1.0.0</kotlin.openapi.dsl.version>
         <junit.version>5.7.2</junit.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <bytebuddy.version>1.11.13</bytebuddy.version>
-        <bytebuddyagent.version>1.11.13</bytebuddyagent.version>
         <okhttp.version>4.9.1</okhttp.version>
-        <unirest.version>3.13.8</unirest.version>
-        <selenium.chrome.driver.version>4.1.3</selenium.chrome.driver.version>
-        <webdrivermanager.version>5.1.0</webdrivermanager.version>
+        <unirest.version>3.13.10</unirest.version>
+        <selenium.chrome.driver.version>4.2.2</selenium.chrome.driver.version>
+        <webdrivermanager.version>5.2.0</webdrivermanager.version>
     </properties>
 
     <dependencies>
@@ -280,32 +268,6 @@
                 <version>${micrometer.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-core</artifactId>
-                <version>${swagger.core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-models</artifactId>
-                <version>${swagger.core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.swagger.parser.v3</groupId>
-                <artifactId>swagger-parser</artifactId>
-                <version>${swagger.parser.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.webjars.npm</groupId>
-                <artifactId>redoc</artifactId>
-                <version>${redoc.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>org.webjars</groupId>
                 <artifactId>swagger-ui</artifactId>
                 <version>${swagger.ui.version}</version>
@@ -315,26 +277,6 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>io.github.classgraph</groupId>
-                <artifactId>classgraph</artifactId>
-                <version>${classgraph.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.expediagroup</groupId>
-                <artifactId>graphql-kotlin-schema-generator</artifactId>
-                <version>${graphql-kotlin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.expediagroup</groupId>
-                <artifactId>graphql-kotlin-server</artifactId>
-                <version>${graphql-kotlin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.projectreactor</groupId>
-                <artifactId>reactor-core</artifactId>
-                <version>${reactor-core.version}</version>
             </dependency>
             <!-- END Optional dependencies -->
 
@@ -381,16 +323,6 @@
                 <type>pom</type>
             </dependency>
             <dependency>
-                <groupId>net.bytebuddy</groupId>
-                <artifactId>byte-buddy-agent</artifactId>
-                <version>${bytebuddyagent.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>net.bytebuddy</groupId>
-                <artifactId>byte-buddy</artifactId>
-                <version>${bytebuddy.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
                 <artifactId>selenium-chrome-driver</artifactId>
                 <version>${selenium.chrome.driver.version}</version>
@@ -399,11 +331,6 @@
                 <groupId>io.github.bonigarcia</groupId>
                 <artifactId>webdrivermanager</artifactId>
                 <version>${webdrivermanager.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>cc.vileda</groupId>
-                <artifactId>kotlin-openapi3-dsl</artifactId>
-                <version>${kotlin.openapi.dsl.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

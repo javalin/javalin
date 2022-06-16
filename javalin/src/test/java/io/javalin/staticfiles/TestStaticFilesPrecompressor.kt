@@ -13,6 +13,7 @@ import io.javalin.core.util.Header
 import io.javalin.core.util.OptionalDependency
 import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
+import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Test
 
 class TestStaticFilesPrecompressor {
 
-    private val swaggerBasePath = "/webjars/swagger-ui/${OptionalDependency.SWAGGERUI.version}"
+    private val swaggerBasePath = "/webjars/swagger-ui/${TestDependency.swaggerVersion}"
 
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
         Javalin.create { javalin ->

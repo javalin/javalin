@@ -21,6 +21,7 @@ import io.javalin.core.util.CorsPlugin;
 import io.javalin.core.util.Header;
 import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
+import io.javalin.core.util.HttpAllowedMethodsOnRoutesUtil;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
@@ -239,5 +240,9 @@ public class JavalinConfig {
         ContextResolver finalResolver = new ContextResolver();
         userResolver.accept(finalResolver);
         inner.appAttributes.put(CONTEXT_RESOLVER_KEY, finalResolver);
+    }
+
+    public void enableHttpAllowedMethodsOnRoutes() {
+        registerPlugin(new HttpAllowedMethodsOnRoutesUtil());
     }
 }

@@ -6,7 +6,6 @@ import java.io.Closeable
 import java.io.InputStream
 
 class SseClient internal constructor(
-    private val closeSse: CloseSseFunction,
     @JvmField val ctx: Context
 ) : Closeable {
 
@@ -17,7 +16,10 @@ class SseClient internal constructor(
         this.closeCallback = closeCallback
     }
 
-    override fun close() = closeSse.close()
+    override fun close() {
+        ctx.req.asyncContext.complete()
+        closeCallback.run()
+    }
 
     fun sendEvent(data: Any) = sendEvent("message", data)
 
@@ -29,14 +31,14 @@ class SseClient internal constructor(
             else -> emitter.emit(event, ctx.jsonMapper().toJsonString(data).byteInputStream(), id)
         }
         if (emitter.isClosed()) { // can't detect if closed before we try emitting?
-            closeCallback.run()
+            this.close()
         }
     }
 
     fun sendComment(comment: String) {
         emitter.emit(comment)
         if (emitter.isClosed()) {
-            closeCallback.run()
+            this.close()
         }
     }
 

@@ -40,7 +40,8 @@ class ExceptionMapper {
     }
 
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
-        if (JettyUtil.isClientAbortException(throwable) || JettyUtil.isJettyTimeoutException(throwable)) {
+        val unwrapped = (throwable as? CompletionException)?.cause ?: throwable
+        if (JettyUtil.isClientAbortException(unwrapped) || JettyUtil.isJettyTimeoutException(unwrapped)) {
             JavalinLogger.debug("Client aborted or timed out", throwable)
             return null // jetty aborts and timeouts happen when clients disconnect, they are not actually unexpected
         }
