@@ -6,7 +6,6 @@
         <module>javalin-openapi</module>
         <module>javalin-graphql</module>
         <module>javalin-bundle</module>
-        <module>javalin-without-jetty</module>
         <module>javalin-testtools</module>
         <module>javalin-osgi</module>
     </modules>
