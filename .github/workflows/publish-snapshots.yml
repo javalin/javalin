@@ -17,6 +17,8 @@ jobs:
           java-version: 11
       - name: Grant execute permission for mvnw
         run: chmod +x ./mvnw
+      - name: Check if secrets on fork works
+        run: echo "${{ secrets.MAVEN_NAME }}"
       - uses: s4u/maven-settings-action@v2.6.0
         with:
           servers: |
