@@ -6,7 +6,6 @@
 
 package io.javalin.core.util
 
-import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -86,8 +85,6 @@ object Util {
             |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
             |-------------------------------------------------------------------""".trimMargin()
 
-    fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
-
     @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
         if (!loggingLibraryExists()) {
@@ -112,11 +109,11 @@ object Util {
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
         if (showBanner) JavalinLogger.info("\n" + """
-          |       __                      __ _            __ __
-          |      / /____ _ _   __ ____ _ / /(_)____      / // /
-          | __  / // __ `/| | / // __ `// // // __ \    / // /_
-          |/ /_/ // /_/ / | |/ // /_/ // // // / / /   /__  __/
-          |\____/ \__,_/  |___/ \__,_//_//_//_/ /_/      /_/
+          |       __                      __ _           ______
+          |      / /____ _ _   __ ____ _ / /(_)____     / ____/
+          | __  / // __ `/| | / // __ `// // // __ \   /___ \
+          |/ /_/ // /_/ / | |/ // /_/ // // // / / /  ____/ /
+          |\____/ \__,_/  |___/ \__,_//_//_//_/ /_/  /_____/
           |
           |          https://javalin.io/documentation
           |""".trimMargin())
@@ -157,24 +154,6 @@ object Util {
 
     @JvmStatic
     fun getResourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
-
-    @JvmStatic
-    fun getWebjarPublicPath(ctx: Context, dependency: OptionalDependency): String {
-        return "${ctx.contextPath()}/webjars/${dependency.artifactId}/${dependency.version}"
-    }
-
-    @JvmStatic
-    fun assertWebjarInstalled(dependency: OptionalDependency) = try {
-        getWebjarResourceUrl(dependency)
-    } catch (e: Exception) {
-        JavalinLogger.warn(missingDependencyMessage(dependency))
-    }
-
-    @JvmStatic
-    fun getWebjarResourceUrl(dependency: OptionalDependency): URL? {
-        val webjarBaseUrl = "META-INF/resources/webjars"
-        return getResourceUrl("$webjarBaseUrl/${dependency.artifactId}/${dependency.version}")
-    }
 
     fun getFileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
 
