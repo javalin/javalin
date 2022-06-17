@@ -8,7 +8,6 @@ package io.javalin.staticfiles
 
 import io.javalin.Javalin
 import io.javalin.core.util.Header
-import io.javalin.core.util.OptionalDependency
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location

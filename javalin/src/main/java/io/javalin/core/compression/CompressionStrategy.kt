@@ -2,8 +2,8 @@ package io.javalin.core.compression
 
 import com.nixxcode.jvmbrotli.common.BrotliLoader
 import io.javalin.core.util.JavalinLogger
-import io.javalin.core.util.OptionalDependency
-import io.javalin.core.util.Util
+import io.javalin.core.util.CoreDependency
+import io.javalin.core.util.DependencyUtil
 
 /**
  * This class is a settings container for Javalin's content compression.
@@ -55,7 +55,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * If this fails, we keep Brotli disabled and warn the user.
      */
     private fun tryLoadBrotli(brotli: Brotli): Brotli? {
-        Util.ensureDependencyPresent(OptionalDependency.JVMBROTLI, startupCheck = true)
+        DependencyUtil.ensurePresence(CoreDependency.JVMBROTLI, startupCheck = true)
         return if (BrotliLoader.isBrotliAvailable()) {
             brotli
         } else {

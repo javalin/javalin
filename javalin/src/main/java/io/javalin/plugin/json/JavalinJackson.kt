@@ -8,7 +8,8 @@ package io.javalin.plugin.json
 
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.javalin.core.util.OptionalDependency
+import io.javalin.core.util.CoreDependency
+import io.javalin.core.util.DependencyUtil
 import io.javalin.core.util.Util
 import java.io.InputStream
 
@@ -43,18 +44,18 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
     }
 
     private fun ensureDependenciesPresent(targetClass: Class<*>? = null) {
-        Util.ensureDependencyPresent(OptionalDependency.JACKSON)
+        DependencyUtil.ensurePresence(CoreDependency.JACKSON)
         if (targetClass != null && Util.isKotlinClass(targetClass)) {
-            Util.ensureDependencyPresent(OptionalDependency.JACKSON_KT)
+            DependencyUtil.ensurePresence(CoreDependency.JACKSON_KT)
         }
         objectMapper = objectMapper ?: defaultMapper()
     }
 
     companion object {
         fun defaultMapper(): ObjectMapper = ObjectMapper()
-                .registerOptionalModule(OptionalDependency.JACKSON_KT.testClass)
-                .registerOptionalModule(OptionalDependency.JACKSON_JSR_310.testClass)
-                .registerOptionalModule(OptionalDependency.JACKSON_KTORM.testClass) // very optional module for ktorm (a kotlin orm)
+                .registerOptionalModule(CoreDependency.JACKSON_KT.testClass)
+                .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass)
+                .registerOptionalModule(CoreDependency.JACKSON_KTORM.testClass) // very optional module for ktorm (a kotlin orm)
     }
 }
 

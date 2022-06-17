@@ -10,7 +10,6 @@ import io.javalin.Javalin
 import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
-import io.javalin.core.util.OptionalDependency
 import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestDependency
