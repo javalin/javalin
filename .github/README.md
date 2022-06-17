@@ -34,14 +34,14 @@ General information:
 <dependency>
     <groupId>io.javalin</groupId>
     <artifactId>javalin</artifactId>
-    <version>4.6.1</version>
+    <version>4.6.3</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-implementation "io.javalin:javalin:4.6.1"
+implementation "io.javalin:javalin:4.6.3"
 ```
 
 ### Start programming (Java)
