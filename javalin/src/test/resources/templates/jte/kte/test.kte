@@ -1,3 +1,0 @@
-@import io.javalin.TestTemplates.JteTestPage
-@param page:JteTestPage
-<h1>${page.hello} ${page.world}!</h1>

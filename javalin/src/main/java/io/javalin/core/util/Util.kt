@@ -6,12 +6,9 @@
 
 package io.javalin.core.util
 
-import io.javalin.http.Context
-import io.javalin.http.InternalServerErrorResponse
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.net.URL
-import java.net.URLEncoder
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -43,80 +40,35 @@ object Util {
         false
     }
 
-    fun dependencyIsPresent(dependency: OptionalDependency) = try {
-        ensureDependencyPresent(dependency)
-        true
-    } catch (e: Exception) {
-        false
+    fun loggingLibraryExists(): Boolean {
+        return classExists(CoreDependency.SLF4JSIMPLE.testClass) ||
+                serviceImplementationExists(CoreDependency.SLF4J_PROVIDER_API.testClass)
     }
-
-    private val dependencyCheckCache = HashMap<String, Boolean>()
-
-    fun ensureDependencyPresent(dependency: OptionalDependency, startupCheck: Boolean = false) {
-        if (dependencyCheckCache[dependency.testClass] == true) {
-            return
-        }
-        if (!classExists(dependency.testClass)) {
-            val message = missingDependencyMessage(dependency)
-            if (startupCheck) {
-                throw IllegalStateException(message)
-            } else {
-                JavalinLogger.warn(message)
-                throw InternalServerErrorResponse(message)
-            }
-        }
-        dependencyCheckCache[dependency.testClass] = true
-    }
-
-    internal fun missingDependencyMessage(dependency: OptionalDependency) = """|
-            |-------------------------------------------------------------------
-            |Missing dependency '${dependency.displayName}'. Add the dependency.
-            |
-            |pom.xml:
-            |<dependency>
-            |    <groupId>${dependency.groupId}</groupId>
-            |    <artifactId>${dependency.artifactId}</artifactId>
-            |    <version>${dependency.version}</version>
-            |</dependency>
-            |
-            |build.gradle:
-            |implementation group: '${dependency.groupId}', name: '${dependency.artifactId}', version: '${dependency.version}'
-            |
-            |Find the latest version here:
-            |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
-            |-------------------------------------------------------------------""".trimMargin()
-
-    fun pathToList(pathString: String): List<String> = pathString.split("/").filter { it.isNotEmpty() }
 
     @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
         if (!loggingLibraryExists()) {
             System.err.println("""
             |-------------------------------------------------------------------
-            |${missingDependencyMessage(OptionalDependency.SLF4JSIMPLE)}
+            |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4JSIMPLE)}
             |-------------------------------------------------------------------
             |OR
             |-------------------------------------------------------------------
-            |${missingDependencyMessage(OptionalDependency.SLF4J_PROVIDER_API)} and
-            |${missingDependencyMessage(OptionalDependency.SLF4J_PROVIDER_SIMPLE)}
+            |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4J_PROVIDER_API)} and
+            |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4J_PROVIDER_SIMPLE)}
             |-------------------------------------------------------------------
             |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin())
         }
     }
 
-    fun loggingLibraryExists(): Boolean {
-        return classExists(OptionalDependency.SLF4JSIMPLE.testClass) ||
-                serviceImplementationExists(OptionalDependency.SLF4J_PROVIDER_API.testClass)
-    }
-
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
         if (showBanner) JavalinLogger.info("\n" + """
-          |       __                      __ _            __ __
-          |      / /____ _ _   __ ____ _ / /(_)____      / // /
-          | __  / // __ `/| | / // __ `// // // __ \    / // /_
-          |/ /_/ // /_/ / | |/ // /_/ // // // / / /   /__  __/
-          |\____/ \__,_/  |___/ \__,_//_//_//_/ /_/      /_/
+          |       __                      __ _           ______
+          |      / /____ _ _   __ ____ _ / /(_)____     / ____/
+          | __  / // __ `/| | / // __ `// // // __ \   /___ \
+          |/ /_/ // /_/ / | |/ // /_/ // // // / / /  ____/ /
+          |\____/ \__,_/  |___/ \__,_//_//_//_/ /_/  /_____/
           |
           |          https://javalin.io/documentation
           |""".trimMargin())
@@ -157,24 +109,6 @@ object Util {
 
     @JvmStatic
     fun getResourceUrl(path: String): URL? = this.javaClass.classLoader.getResource(path)
-
-    @JvmStatic
-    fun getWebjarPublicPath(ctx: Context, dependency: OptionalDependency): String {
-        return "${ctx.contextPath()}/webjars/${dependency.artifactId}/${dependency.version}"
-    }
-
-    @JvmStatic
-    fun assertWebjarInstalled(dependency: OptionalDependency) = try {
-        getWebjarResourceUrl(dependency)
-    } catch (e: Exception) {
-        JavalinLogger.warn(missingDependencyMessage(dependency))
-    }
-
-    @JvmStatic
-    fun getWebjarResourceUrl(dependency: OptionalDependency): URL? {
-        val webjarBaseUrl = "META-INF/resources/webjars"
-        return getResourceUrl("$webjarBaseUrl/${dependency.artifactId}/${dependency.version}")
-    }
 
     fun getFileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
 
