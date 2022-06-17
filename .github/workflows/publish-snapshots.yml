@@ -2,7 +2,7 @@ name: Snapshot build
 
 on:
   push:
-    branches: [ 'master', 'gh-1570/snapshot-builds' ]
+    branches: [ 'master' ]
 
 jobs:
   publish:
