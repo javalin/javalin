@@ -77,23 +77,15 @@
         <source.plugin.version>3.2.1</source.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <commonmark.version>0.18.0</commonmark.version>
-        <freemarker.version>2.3.31</freemarker.version>
         <guava.version>31.1-jre</guava.version>
         <jackson.version>2.13.3</jackson.version>
         <jackson.databind.version>2.13.3</jackson.databind.version>
         <jetty.version>9.4.46.v20220331</jetty.version>
-        <jtwig.version>5.87.0.RELEASE</jtwig.version>
         <jvmbrotli.version>0.2.0</jvmbrotli.version>
         <logback.version>1.2.11</logback.version>
         <micrometer.version>1.7.3</micrometer.version>
-        <mustache.version>0.9.7</mustache.version>
-        <pebble.version>3.1.5</pebble.version>
-        <slf4j.version>1.7.36</slf4j.version>
         <swagger.ui.version>4.10.3</swagger.ui.version>
-        <thymeleaf.version>3.0.12.RELEASE</thymeleaf.version>
-        <velocity.version>2.3</velocity.version>
-        <jte.version>1.12.0</jte.version>
+        <slf4j.version>1.7.36</slf4j.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.20.2</assertj.version>
@@ -214,46 +206,6 @@
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.velocity</groupId>
-                <artifactId>velocity-engine-core</artifactId>
-                <version>${velocity.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.freemarker</groupId>
-                <artifactId>freemarker</artifactId>
-                <version>${freemarker.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thymeleaf</groupId>
-                <artifactId>thymeleaf</artifactId>
-                <version>${thymeleaf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.spullara.mustache.java</groupId>
-                <artifactId>compiler</artifactId>
-                <version>${mustache.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.pebbletemplates</groupId>
-                <artifactId>pebble</artifactId>
-                <version>${pebble.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>gg.jte</groupId>
-                <artifactId>jte</artifactId>
-                <version>${jte.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>gg.jte</groupId>
-                <artifactId>jte-kotlin</artifactId>
-                <version>${jte.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.commonmark</groupId>
-                <artifactId>commonmark</artifactId>
-                <version>${commonmark.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.micrometer</groupId>

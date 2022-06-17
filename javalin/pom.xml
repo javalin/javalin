@@ -57,46 +57,6 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.apache.velocity</groupId>
-            <artifactId>velocity-engine-core</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.thymeleaf</groupId>
-            <artifactId>thymeleaf</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.github.spullara.mustache.java</groupId>
-            <artifactId>compiler</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.pebbletemplates</groupId>
-            <artifactId>pebble</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>gg.jte</groupId>
-            <artifactId>jte</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>gg.jte</groupId>
-            <artifactId>jte-kotlin</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.commonmark</groupId>
-            <artifactId>commonmark</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
             <optional>true</optional>

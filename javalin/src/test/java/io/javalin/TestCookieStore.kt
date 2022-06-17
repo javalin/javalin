@@ -8,7 +8,6 @@ package io.javalin
 
 import io.javalin.core.util.Header
 import io.javalin.http.util.CookieStore
-import io.javalin.plugin.rendering.template.TemplateUtil
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -70,7 +69,7 @@ class TestCookieStore {
             ctx.cookieStore("i", 42)
             ctx.cookieStore("d", 42.0)
             ctx.cookieStore("l", Arrays.asList("One", "Two", "Three"))
-            ctx.cookieStore("m", TemplateUtil.model("K1", "V", "K2", 1000.0, "K3", Arrays.asList("One", "Two", "Three")))
+            ctx.cookieStore("m", mapOf("K1" to "V", "K2" to 1000.0, "K3" to Arrays.asList("One", "Two", "Three")))
         }
         app.get("/cookie-reader") { ctx ->
             val s = ctx.cookieStore<String>("s")
