@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.plugin.rendering.vue
+package io.javalin.vue
 
 import io.javalin.http.Context
 import io.javalin.http.util.ContextUtil.isLocalhost
@@ -14,7 +14,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.Consumer
 import java.util.stream.Collectors
-import io.javalin.plugin.rendering.vue.JavalinVue.resourcesJarClass as jarClass
+import io.javalin.vue.JavalinVue.resourcesJarClass as jarClass
 
 enum class VueVersion { VUE_2, VUE_3 }
 

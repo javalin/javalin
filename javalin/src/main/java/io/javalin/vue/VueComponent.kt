@@ -1,4 +1,4 @@
-package io.javalin.plugin.rendering.vue
+package io.javalin.vue
 
 import io.javalin.http.Context
 

@@ -1,10 +1,10 @@
 package io.javalin.javalinvue;
 
 import io.javalin.http.Context;
-import io.javalin.plugin.rendering.vue.JavalinVue;
-import io.javalin.plugin.rendering.vue.VueComponent;
-import io.javalin.plugin.rendering.vue.VueHandler;
-import io.javalin.plugin.rendering.vue.VueRenderer;
+import io.javalin.vue.JavalinVue;
+import io.javalin.vue.VueComponent;
+import io.javalin.vue.VueHandler;
+import io.javalin.vue.VueRenderer;
 import io.javalin.testing.TestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;

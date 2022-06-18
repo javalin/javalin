@@ -15,8 +15,8 @@
  */
 package io.javalin.javalinvue;
 
-import io.javalin.plugin.rendering.vue.JavalinVue;
-import io.javalin.plugin.rendering.vue.VueComponent;
+import io.javalin.vue.JavalinVue;
+import io.javalin.vue.VueComponent;
 import io.javalin.testing.TestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

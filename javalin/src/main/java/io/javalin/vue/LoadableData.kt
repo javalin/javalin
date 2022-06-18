@@ -1,6 +1,7 @@
-package io.javalin.plugin.rendering.vue
+package io.javalin.vue
 
 const val loadableDataScript = """
+
 <script>
     class LoadableData {
         constructor(url, cache = true, errorCallback = null) {

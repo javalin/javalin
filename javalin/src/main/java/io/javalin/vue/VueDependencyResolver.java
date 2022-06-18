@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.javalin.plugin.rendering.vue;
+package io.javalin.vue;
 
 import java.nio.file.Path;
 import java.util.HashMap;
