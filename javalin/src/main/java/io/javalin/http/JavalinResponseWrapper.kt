@@ -13,6 +13,7 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.HttpServletResponseWrapper
+import java.io.ByteArrayInputStream
 
 class JavalinResponseWrapper(private val ctx: Context, private val config: JavalinConfig, private val requestType: HandlerType) : HttpServletResponseWrapper(ctx.res) {
 
@@ -25,17 +26,16 @@ class JavalinResponseWrapper(private val ctx: Context, private val config: Javal
     fun write(resultStream: InputStream?) = when {
         resultStream == null -> {} // nothing to write (and nothing to close)
         serverEtag != null && serverEtag == clientEtag -> closeWith304(resultStream) // client etag matches, nothing to write
-        serverEtag == null && requestType == GET && config.autogenerateEtags -> generateEtagWriteAndClose(resultStream)
+        serverEtag == null && config.autogenerateEtags && requestType == GET && resultStream is ByteArrayInputStream -> generateEtagWriteAndClose(resultStream)
         else -> writeToWrapperAndClose(resultStream)
     }
 
-    private fun generateEtagWriteAndClose(resultStream: InputStream) {
-        val inputStream = resultStream.use { it.readBytes().inputStream() } // TODO: https://github.com/tipsy/javalin/issues/1505
-        val generatedEtag = Util.getChecksumAndReset(inputStream)
+    private fun generateEtagWriteAndClose(resultStream: ByteArrayInputStream) {
+        val generatedEtag = Util.getChecksumAndReset(resultStream)
         setHeader(ETAG, generatedEtag)
         when (generatedEtag) {
-            clientEtag -> closeWith304(inputStream)
-            else -> writeToWrapperAndClose(inputStream)
+            clientEtag -> closeWith304(resultStream)
+            else -> writeToWrapperAndClose(resultStream)
         }
     }
 
