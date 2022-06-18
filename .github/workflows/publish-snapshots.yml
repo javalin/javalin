@@ -24,7 +24,7 @@ jobs:
             [{
               "id": "reposilite-repository",
               "username": "${{ secrets.MAVEN_NAME }}",
-              "password": "${{ secrets.MAVEN_TOKEN }}"
+              "password": "${{ secrets.MAVEN_SECRET }}"
             }]
       - name: Publish with Maven
         run: ./mvnw -DRunningOnCi=true clean deploy --file pom.xml --batch-mode --fail-never
