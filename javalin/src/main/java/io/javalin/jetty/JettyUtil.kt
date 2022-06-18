@@ -4,8 +4,12 @@ import io.javalin.core.LoomUtil
 import io.javalin.core.LoomUtil.loomAvailable
 import io.javalin.core.LoomUtil.useLoomThreadPool
 import io.javalin.core.util.JavalinLogger
+import org.eclipse.jetty.http.UriCompliance
+import org.eclipse.jetty.server.HttpConfiguration
+import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
@@ -18,6 +22,11 @@ object JettyUtil {
 
     @JvmStatic
     fun getOrDefault(server: Server?) = server ?: Server(defaultThreadPool()).apply {
+        val httpConfiguration = HttpConfiguration()
+        httpConfiguration.uriCompliance = UriCompliance.RFC3986 // accept ambiguous values in path and let Javalin handle them
+        val connector = ServerConnector(this, HttpConnectionFactory(httpConfiguration))
+        addConnector(connector)
+
         addBean(LowResourceMonitor(this))
         insertHandler(StatisticsHandler())
         setAttribute("is-default-server", true)

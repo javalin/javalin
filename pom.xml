@@ -182,6 +182,12 @@
                 <artifactId>jetty-alpn-conscrypt-server</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-unixsocket-server</artifactId>
+                <version>${jetty.version}</version>
+                <scope>test</scope>
+            </dependency>
 
             <!-- Jetty WebSocket -->
             <dependency>
