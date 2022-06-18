@@ -56,7 +56,10 @@ class JettyServer(val config: JavalinConfig) {
             this.sessionHandler = config.inner.sessionHandler
             config.inner.servletContextHandlerConsumer?.accept(this)
             addServlet(ServletHolder(wsAndHttpServlet), "/*")
-            JettyWebSocketServletContainerInitializer.configure(this, null) // Initializes WebSocketComponents
+            // Initializes WebSocketComponents
+            JettyWebSocketServletContainerInitializer.configure(this) { _, _ ->
+                /* we don't want to configure WebSocketMappings during ServletContext initialization phase */
+            }
         }
 
         server().apply {

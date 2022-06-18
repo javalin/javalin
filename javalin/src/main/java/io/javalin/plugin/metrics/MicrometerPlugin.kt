@@ -12,17 +12,12 @@ import io.javalin.core.util.CoreDependency
 import io.javalin.core.util.DependencyUtil
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
-import io.javalin.http.HandlerType
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag
 import io.micrometer.core.instrument.Tags
-import io.micrometer.core.instrument.binder.http.DefaultHttpServletRequestTagsProvider
 import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics
 import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
-import io.micrometer.core.instrument.binder.jetty.TimedHandler
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 
 class MicrometerPlugin @JvmOverloads constructor(
     private val registry: MeterRegistry = Metrics.globalRegistry,
@@ -38,7 +33,10 @@ class MicrometerPlugin @JvmOverloads constructor(
                 app.exception(Exception::class.java, EXCEPTION_HANDLER)
             }
 
-            /* TODO: Unsupported
+            // TODO: Uncomment and adjust changes when the following Micrometer's issue will be resolved:
+            // ~ https://github.com/micrometer-metrics/micrometer/issues/3234
+
+            /*
             server.insertHandler(TimedHandler(registry, tags, object : DefaultHttpServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {
                     val exceptionName = if (tagExceptionName) {
