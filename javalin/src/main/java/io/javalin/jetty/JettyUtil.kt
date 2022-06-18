@@ -22,11 +22,6 @@ object JettyUtil {
 
     @JvmStatic
     fun getOrDefault(server: Server?) = server ?: Server(defaultThreadPool()).apply {
-        val httpConfiguration = HttpConfiguration()
-        httpConfiguration.uriCompliance = UriCompliance.RFC3986 // accept ambiguous values in path and let Javalin handle them
-        val connector = ServerConnector(this, HttpConnectionFactory(httpConfiguration))
-        addConnector(connector)
-
         addBean(LowResourceMonitor(this))
         insertHandler(StatisticsHandler())
         setAttribute("is-default-server", true)

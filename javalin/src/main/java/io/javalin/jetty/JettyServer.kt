@@ -22,6 +22,8 @@ import org.eclipse.jetty.servlet.ServletHolder
 import java.net.BindException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.http.UriCompliance
+import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 
 class JettyServer(val config: JavalinConfig) {
@@ -83,12 +85,18 @@ class JettyServer(val config: JavalinConfig) {
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
-    private fun defaultConnector(server: Server) = ServerConnector(server).apply {
-        this.port = serverPort
-        this.host = serverHost
-        this.connectionFactories.forEach {
-            if (it is HttpConnectionFactory) {
-                it.httpConfiguration.sendServerVersion = false
+    private fun defaultConnector(server: Server): ServerConnector {
+        // TODO: Required to support ignoreTrailingSlashes, because Jetty 11 will refuse requests with doubled slashes
+        val httpConfiguration = HttpConfiguration()
+        httpConfiguration.uriCompliance = UriCompliance.RFC3986 // accept ambiguous values in path and let Javalin handle them
+
+        return ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
+            this.port = serverPort
+            this.host = serverHost
+            this.connectionFactories.forEach {
+                if (it is HttpConnectionFactory) {
+                    it.httpConfiguration.sendServerVersion = false
+                }
             }
         }
     }
