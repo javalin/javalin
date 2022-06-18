@@ -59,12 +59,17 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
-    public boolean ignoreTrailingSlashes = true;
     @NotNull public String defaultContentType = ContentType.PLAIN;
     @NotNull public String contextPath = "/";
     public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests
     @NotNull public Long asyncRequestTimeout = 0L;
+    @NotNull public RoutingConfig routing = new RoutingConfig();
     @NotNull public Inner inner = new Inner();
+
+    public static class RoutingConfig {
+        public boolean ignoreTrailingSlashes = true;
+        public boolean treatMultipleSlashesAsSingleSlash = false;
+    }
 
     // it's not bad to access this, the main reason it's hidden
     // is to provide a cleaner API with dedicated setters
