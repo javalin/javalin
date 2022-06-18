@@ -280,40 +280,4 @@ class TestRouting {
             }
         }
     }
-
-    @Test
-    fun `multiple slashes at the start are okay when multipleSlashes is enabled`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.result("ok") }
-        val res = http.get("//hello")
-        assertThat(res.status).isEqualTo(200)
-        assertThat(res.body).isEqualTo("ok")
-    }
-
-    @Test
-    fun `multiple slashes in the middle are okay when multipleSlashes is enabled`() = TestUtil.test { app, http ->
-        app.get("/hello/world") { it.result("ok") }
-        val res = http.get("/hello//world")
-        assertThat(res.status).isEqualTo(200)
-        assertThat(res.body).isEqualTo("ok")
-    }
-
-    @Test
-    fun `multiple slashes at the end are okay when multipleSlashes is enabled`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.result("ok") }
-        val res = http.get("/hello//")
-        assertThat(res.status).isEqualTo(200)
-        assertThat(res.body).isEqualTo("ok")
-    }
-
-    @Test
-    fun `multiple slashes are not accepted when not enabled`() = TestUtil.test { app, http ->
-        app.get("/hello/world") { it.result("ok") }
-        listOf(
-            "//hello/world",
-            "/hello//world",
-            "/hello/world//"
-        ).forEach {
-            assertThat(http.get(it).status).isEqualTo(404)
-        }
-    }
 }

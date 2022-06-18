@@ -60,6 +60,7 @@ public class JavalinConfig {
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
     public boolean ignoreTrailingSlashes = true;
+    public boolean treatMultipleSlashesAsSingleSlash = false;
     @NotNull public String defaultContentType = ContentType.PLAIN;
     @NotNull public String contextPath = "/";
     public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests

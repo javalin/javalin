@@ -10,7 +10,21 @@ import io.javalin.http.util.ContextUtil
 
 data class PathParserOptions(val ignoreTrailingSlashes: Boolean, val treatMultipleSlashesAsSingleSlash: Boolean)
 
-fun createPathParserOptionsFromConfig(config: JavalinConfig) = PathParserOptions(config.ignoreTrailingSlashes, false)
+fun createPathParserOptionsFromConfig(config: JavalinConfig) = PathParserOptions(
+    ignoreTrailingSlashes = config.ignoreTrailingSlashes,
+    treatMultipleSlashesAsSingleSlash = config.treatMultipleSlashesAsSingleSlash
+)
+
+internal data class CombinedOptions constructor(
+    val ignoreTrailingSlashes: Boolean = false,
+    val treatMultipleSlashesAsSingleSlash: Boolean = false,
+    val matchPathAndEverySubPath: Boolean = false
+) {
+    constructor(options: PathParserOptions) : this(
+        ignoreTrailingSlashes = options.ignoreTrailingSlashes,
+        treatMultipleSlashesAsSingleSlash = options.treatMultipleSlashesAsSingleSlash
+    )
+}
 
 class PathParser(private val rawPath: String, options: PathParserOptions) {
 
@@ -22,8 +36,10 @@ class PathParser(private val rawPath: String, options: PathParserOptions) {
         }
     }
 
-    private val matchPathAndEverySubPath: Boolean = rawPath.endsWith(">*") || rawPath.endsWith("}*")
-    private val path: String = if (matchPathAndEverySubPath) rawPath.removeSuffix("*") else rawPath
+    private val combinedOptions: CombinedOptions = CombinedOptions(options).copy(
+        matchPathAndEverySubPath = rawPath.endsWith(">*") || rawPath.endsWith("}*")
+    )
+    private val path: String = if (combinedOptions.matchPathAndEverySubPath) rawPath.removeSuffix("*") else rawPath
 
     val segments: List<PathSegment> = path.split("/")
         .filter { it.isNotEmpty() }
@@ -36,16 +52,27 @@ class PathParser(private val rawPath: String, options: PathParserOptions) {
         }
     }
 
-    //compute matchRegex suffix : if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
-    private val regexSuffix = when {
-        options.ignoreTrailingSlashes -> "/?"
-        rawPath.endsWith("/") -> "/"
-        else -> ""
+    //compute matchRegex suffix :
+    private val regexSuffix = if(combinedOptions.treatMultipleSlashesAsSingleSlash) {
+        // when multiple slashes are accepted we have to allow 0-n slashes when using ignoreTrailingSlashes
+        // otherwise we also have to allow multiple slashes when only one slash is specified
+        when {
+            options.ignoreTrailingSlashes -> "/*"
+            rawPath.endsWith("/") -> "/+"
+            else -> ""
+        }
+    } else {
+        // if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
+        when {
+            options.ignoreTrailingSlashes -> "/?"
+            rawPath.endsWith("/") -> "/"
+            else -> ""
+        }
     }
 
-    private val matchRegex = constructRegexList(matchPathAndEverySubPath, segments, regexSuffix) { it.asRegexString() }
+    private val matchRegex = constructRegexList(combinedOptions, segments, regexSuffix) { it.asRegexString() }
     private val pathParamRegex =
-        constructRegexList(matchPathAndEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
+        constructRegexList(combinedOptions, segments, regexSuffix) { it.asGroupedRegexString() }
 
     fun matches(url: String): Boolean = matchRegex.any { url matches it }
 
