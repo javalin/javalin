@@ -8,7 +8,13 @@ import io.javalin.core.routing.pathParamNames
 import io.javalin.core.routing.values
 import io.javalin.http.util.ContextUtil
 
-class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
+data class PathParserOptions(val ignoreTrailingSlashes: Boolean, val treatMultipleSlashesAsSingleSlash: Boolean)
+
+fun createPathParserOptionsFromConfig(config: JavalinConfig) = PathParserOptions(config.ignoreTrailingSlashes, false)
+
+class PathParser(private val rawPath: String, options: PathParserOptions) {
+
+    constructor(rawPath: String, config: JavalinConfig): this(rawPath, createPathParserOptionsFromConfig(config))
 
     init {
         if (rawPath.contains("/:")) {
@@ -32,7 +38,7 @@ class PathParser(private val rawPath: String, ignoreTrailingSlashes: Boolean) {
 
     //compute matchRegex suffix : if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
     private val regexSuffix = when {
-        ignoreTrailingSlashes -> "/?"
+        options.ignoreTrailingSlashes -> "/?"
         rawPath.endsWith("/") -> "/"
         else -> ""
     }
