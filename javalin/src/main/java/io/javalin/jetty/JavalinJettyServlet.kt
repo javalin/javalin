@@ -40,7 +40,7 @@ class JavalinJettyServlet(val config: JavalinConfig, private val httpServlet: Ja
     val wsPathMatcher = WsPathMatcher()
 
     fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<RouteRole>) {
-        wsPathMatcher.add(WsEntry(handlerType, path, config.ignoreTrailingSlashes, WsConfig().apply { ws.accept(this) }, roles))
+        wsPathMatcher.add(WsEntry(handlerType, path, config.routing, WsConfig().apply { ws.accept(this) }, roles))
     }
 
     override fun configure(factory: WebSocketServletFactory) { // this is called once, before everything

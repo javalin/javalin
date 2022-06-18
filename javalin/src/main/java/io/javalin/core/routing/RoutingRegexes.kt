@@ -1,6 +1,9 @@
 package io.javalin.core.routing
 
+import io.javalin.core.JavalinConfig.RoutingConfig
+
 internal fun constructRegexList(
+    options: RoutingConfig,
     matchEverySubPath: Boolean,
     segments: List<PathSegment>,
     regexSuffix: String,
@@ -9,24 +12,33 @@ internal fun constructRegexList(
 ): List<Regex> {
     fun addRegexForExtraWildcard(): List<Regex> {
         return if (matchEverySubPath) {
-            listOf(constructRegex(segments + PathSegment.Wildcard, regexSuffix, regexOptions, mapper))
+            listOf(constructRegex(options, segments + PathSegment.Wildcard, regexSuffix, regexOptions, mapper))
         } else {
             emptyList()
         }
     }
 
-    return listOf(constructRegex(segments, regexSuffix, regexOptions, mapper)) + addRegexForExtraWildcard()
+    return listOf(constructRegex(options, segments, regexSuffix, regexOptions, mapper)) + addRegexForExtraWildcard()
 }
 
 internal fun constructRegex(
+    options: RoutingConfig,
     segments: List<PathSegment>,
     regexSuffix: String,
     regexOptions: Set<RegexOption> = emptySet(),
     mapper: (PathSegment) -> String
 ): Regex {
+    val slashRegex = if (options.treatMultipleSlashesAsSingleSlash) {
+        "/+"
+    } else {
+        "/"
+    }
     return buildString {
         append("^/")
-        append(segments.joinToString(separator = "/", transform = mapper))
+        if (options.treatMultipleSlashesAsSingleSlash) {
+            append("+")
+        }
+        append(segments.joinToString(separator = slashRegex, transform = mapper))
         append(regexSuffix)
         append("$")
     }.toRegex(regexOptions)

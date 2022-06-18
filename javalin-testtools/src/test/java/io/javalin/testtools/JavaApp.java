@@ -9,7 +9,7 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 public class JavaApp {
 
     public static Javalin app = Javalin.create(javalin -> {
-        javalin.ignoreTrailingSlashes = false;
+        javalin.routing.ignoreTrailingSlashes = false;
     }).routes(() -> {
         get("/hello", HelloController::hello);
     });
