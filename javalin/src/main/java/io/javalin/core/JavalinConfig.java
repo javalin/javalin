@@ -46,7 +46,7 @@ import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
@@ -81,7 +81,7 @@ public class JavalinConfig {
         @NotNull public AccessManager accessManager = SecurityUtil::noopAccessManager;
         @NotNull public SinglePageHandler singlePageHandler = new SinglePageHandler();
         @Nullable public SessionHandler sessionHandler = null;
-        @Nullable public Consumer<WebSocketServletFactory> wsFactoryConfig = null;
+        @Nullable public Consumer<JettyWebSocketServletFactory> wsFactoryConfig = null;
         @Nullable public WsConfig wsLogger = null;
         @Nullable public Server server = null;
         @Nullable public Consumer<ServletContextHandler> servletContextHandlerConsumer = null;
@@ -172,7 +172,7 @@ public class JavalinConfig {
         inner.sessionHandler = sessionHandlerSupplier.get();
     }
 
-    public void wsFactoryConfig(@NotNull Consumer<WebSocketServletFactory> wsFactoryConfig) {
+    public void wsFactoryConfig(@NotNull Consumer<JettyWebSocketServletFactory> wsFactoryConfig) {
         inner.wsFactoryConfig = wsFactoryConfig;
     }
 

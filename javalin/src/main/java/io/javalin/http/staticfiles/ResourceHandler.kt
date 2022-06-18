@@ -1,7 +1,7 @@
 package io.javalin.http.staticfiles
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 enum class Location { CLASSPATH, EXTERNAL; }
 

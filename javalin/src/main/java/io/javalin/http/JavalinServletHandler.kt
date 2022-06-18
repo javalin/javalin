@@ -8,9 +8,9 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
-import javax.servlet.AsyncContext
-import javax.servlet.AsyncEvent
-import javax.servlet.AsyncListener
+import jakarta.servlet.AsyncContext
+import jakarta.servlet.AsyncEvent
+import jakarta.servlet.AsyncListener
 
 interface StageName
 enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }

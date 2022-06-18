@@ -35,15 +35,15 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
-import javax.servlet.DispatcherType
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.DispatcherType
+import jakarta.servlet.Filter
+import jakarta.servlet.FilterChain
+import jakarta.servlet.FilterConfig
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.ServletResponse
+import jakarta.servlet.http.HttpServlet
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class TestCustomJetty {
 
@@ -142,14 +142,18 @@ class TestCustomJetty {
     fun `custom ContextHandlerCollection works`() {
         val newServer = Server()
         val handler = ContextHandlerCollection().apply {
-            setContextClass(ServletContextHandler::class.java)
-            val ctx = addContext("/foo", ".") as ServletContextHandler
+            val ctx = ServletContextHandler().apply {
+                contextPath = "/foo"
+                resourceBase = "."
+            }
+
             ctx.addServlet(ServletHolder(object : HttpServlet() {
                 override fun doGet(req: HttpServletRequest?, resp: HttpServletResponse?) {
                     resp?.writer?.write("yo dude")
                 }
             }), "/foo")
 
+            addHandler(ctx)
         }
         newServer.handler = handler
 

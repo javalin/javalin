@@ -12,12 +12,38 @@ import io.javalin.testing.TestUtil
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
+/**
+ * TODO: Enable when Micrometer will provide support for Jetty 11
+ * ~ https://github.com/micrometer-metrics/micrometer/issues/3234
+ */
+@Disabled("Micrometer plugin is not supported on Jetty 11")
 class TestMicrometerPlugin {
 
     private val meterRegistry: MeterRegistry = SimpleMeterRegistry()
+
+    @Test
+    fun `test that JettyConnectionMetrics is registered`() {
+        val registry = SimpleMeterRegistry()
+        val micrometerApp = Javalin.create { it.registerPlugin(MicrometerPlugin(registry)) }
+
+        TestUtil.test(micrometerApp) { app, http ->
+            app.get("/test") { it.json("Hello world") }
+            repeat(10) {
+                http.get("/test")
+            }
+        }
+
+        val maxConnectionGauge = registry.find("jetty.connections.max").gauge() ?: Assertions.fail("\"jetty.connections.max\" not found")
+        assertThat(maxConnectionGauge.value()).isGreaterThan(0.0)
+
+        val messagesOutCounter = registry.find("jetty.connections.messages.out").counter() ?: Assertions.fail("\"jetty.connections.messages.out\" not found")
+        assertThat(messagesOutCounter.count()).isGreaterThan(0.0)
+    }
 
     @Test
     fun `successful request`() = TestUtil.test(setupApp()) { app, http ->

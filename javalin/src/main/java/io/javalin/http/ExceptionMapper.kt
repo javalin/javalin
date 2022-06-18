@@ -10,7 +10,7 @@ import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
 import io.javalin.jetty.JettyUtil
 import java.util.concurrent.CompletionException
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 class ExceptionMapper {
 

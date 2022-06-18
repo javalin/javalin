@@ -9,10 +9,10 @@ import io.javalin.core.util.Util
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HttpCode.NOT_MODIFIED
 import java.io.InputStream
-import javax.servlet.ServletOutputStream
-import javax.servlet.WriteListener
-import javax.servlet.http.HttpServletResponse
-import javax.servlet.http.HttpServletResponseWrapper
+import jakarta.servlet.ServletOutputStream
+import jakarta.servlet.WriteListener
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponseWrapper
 
 class JavalinResponseWrapper(private val ctx: Context, private val config: JavalinConfig, private val requestType: HandlerType) : HttpServletResponseWrapper(ctx.res) {
 

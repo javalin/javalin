@@ -17,9 +17,9 @@ import io.javalin.websocket.WsContext
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
-import org.eclipse.jetty.websocket.api.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.StatusCode
-import org.eclipse.jetty.websocket.api.WebSocketConstants
+import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
+import org.eclipse.jetty.websocket.api.util.WebSocketConstants
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.handshake.ServerHandshake
@@ -315,17 +315,18 @@ class TestWebSocket {
     @Test
     fun `custom WebSocketServletFactory works`() {
         var err: Throwable? = Exception("Bang")
-        val maxTextSize = 1
+        val maxTextSize = 1L
+        val textToSend = "This text is far too long."
         val app = Javalin.create {
             it.wsFactoryConfig { wsFactory ->
-                wsFactory.policy.maxTextMessageSize = maxTextSize
+                wsFactory.maxTextMessageSize = maxTextSize
             }
         }.ws("/ws") { ws ->
             ws.onError { ctx -> err = ctx.error() }
         }
         TestUtil.test(app) { _, _ ->
-            TestClient(app, "/ws").connectSendAndDisconnect("This text is far too long.")
-            assertThat(err!!.message).isEqualTo("Text message size [26] exceeds maximum size [$maxTextSize]")
+            TestClient(app, "/ws").connectSendAndDisconnect(textToSend)
+            assertThat(err!!.message).isEqualTo("Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize")
             assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
         }
     }
@@ -530,13 +531,20 @@ class TestWebSocket {
             app.logger().log.add(message)
         }
 
-        fun connectAndDisconnect() = connectBlocking().also { closeBlocking() }
+        fun connectAndDisconnect() {
+            connectBlocking()
+            closeBlocking()
+            awaitResponse()
+        }
 
         fun connectSendAndDisconnect(message: String) {
             connectBlocking()
             send(message)
             closeBlocking()
+            awaitResponse()
         }
+
+        private fun awaitResponse() = Thread.sleep(1) // freeze this thread, so we're sure that other threads had a chance to finish responses
     }
 
     private fun doBlocking(slowFunction: () -> Unit, conditionFunction: () -> Boolean, timeout: Duration = Duration.ofSeconds(1)) {

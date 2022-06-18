@@ -4,8 +4,12 @@ import io.javalin.core.LoomUtil
 import io.javalin.core.LoomUtil.loomAvailable
 import io.javalin.core.LoomUtil.useLoomThreadPool
 import io.javalin.core.util.JavalinLogger
+import org.eclipse.jetty.http.UriCompliance
+import org.eclipse.jetty.server.HttpConfiguration
+import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool

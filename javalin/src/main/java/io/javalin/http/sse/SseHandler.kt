@@ -4,7 +4,6 @@ import io.javalin.core.util.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.addListener
-import java.io.Closeable
 import java.util.function.Consumer
 
 class SseHandler @JvmOverloads constructor(

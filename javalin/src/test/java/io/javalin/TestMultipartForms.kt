@@ -18,7 +18,9 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
-import javax.servlet.MultipartConfigElement
+import java.lang.IllegalStateException
+import java.nio.charset.StandardCharsets
+import jakarta.servlet.MultipartConfigElement
 
 class TestMultipartForms {
 

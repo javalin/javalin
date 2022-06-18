@@ -13,14 +13,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.servlet.FilterHolder
 import org.junit.jupiter.api.Test
 import java.util.*
-import javax.servlet.DispatcherType
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
-import javax.servlet.ServletContextEvent
-import javax.servlet.ServletContextListener
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
+import jakarta.servlet.DispatcherType
+import jakarta.servlet.Filter
+import jakarta.servlet.FilterChain
+import jakarta.servlet.FilterConfig
+import jakarta.servlet.ServletContextEvent
+import jakarta.servlet.ServletContextListener
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.ServletResponse
 
 class TestConfigureServletContextHandler {
 

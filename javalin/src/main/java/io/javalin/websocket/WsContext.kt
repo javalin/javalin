@@ -13,7 +13,6 @@ import io.javalin.plugin.json.jsonMapper
 import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
-import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
 import java.nio.ByteBuffer
 
 /**
@@ -23,15 +22,15 @@ import java.nio.ByteBuffer
  */
 abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
 
-    internal val upgradeReq by lazy { session.upgradeRequest as ServletUpgradeRequest }
+    internal val upgradeReq by lazy { session.jettyUpgradeRequest() }
     internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
     internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
     fun matchedPath() = upgradeCtx.matchedPath
 
     fun send(message: Any) = send(upgradeCtx.jsonMapper().toJsonString(message))
-    fun send(message: String) = session.remote.sendStringByFuture(message)
-    fun send(message: ByteBuffer) = session.remote.sendBytesByFuture(message)
+    fun send(message: String) = session.remote.sendString(message)
+    fun send(message: ByteBuffer) = session.remote.sendBytes(message)
 
     @JvmOverloads fun sendPing(message: ByteBuffer? = null) = session.remote.sendPing(message ?: ByteBuffer.allocate(0))
 
