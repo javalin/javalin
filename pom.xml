@@ -44,6 +44,14 @@
         <url>https://github.com/tipsy/javalin/issues</url>
     </issueManagement>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <name>Reposilite Maven Repository</name>
+            <id>reposilite-repository</id>
+            <url>https://maven.reposilite.com/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <properties>
         <jdk.version>11</jdk.version>
 
