@@ -6,18 +6,18 @@
 
 package io.javalin.http
 
-import io.javalin.core.JavalinConfig
+import io.javalin.core.JavalinConfig.RoutingConfig
 import io.javalin.core.PathParser
 import java.util.*
 
 data class HandlerEntry(
     val type: HandlerType,
     val path: String,
-    val javalinConfig: JavalinConfig,
+    val routingConfig: RoutingConfig,
     val handler: Handler,
     val rawHandler: Handler
 ) {
-    private val pathParser = PathParser(path, javalinConfig)
+    private val pathParser = PathParser(path, routingConfig)
     fun matches(requestUri: String) = pathParser.matches(requestUri)
     fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
 }

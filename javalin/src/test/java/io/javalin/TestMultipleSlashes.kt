@@ -7,12 +7,12 @@ import org.junit.jupiter.api.Test
 
 class TestMultipleSlashes {
     private val multipleSlashesApp = Javalin.create {
-        it.treatMultipleSlashesAsSingleSlash = true
+        it.routing.treatMultipleSlashesAsSingleSlash = true
     }
 
     private val multipleSlashesWithSignificantTrailingSlashesApp = Javalin.create {
-        it.treatMultipleSlashesAsSingleSlash = true
-        it.ignoreTrailingSlashes = false
+        it.routing.treatMultipleSlashesAsSingleSlash = true
+        it.routing.ignoreTrailingSlashes = false
     }.get("/a") {
         it.result("a")
     }.get("/a/") {

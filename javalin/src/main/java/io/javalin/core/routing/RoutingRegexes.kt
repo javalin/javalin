@@ -1,16 +1,17 @@
 package io.javalin.core.routing
 
-import io.javalin.core.CombinedOptions
+import io.javalin.core.JavalinConfig.RoutingConfig
 
 internal fun constructRegexList(
-    options: CombinedOptions,
+    options: RoutingConfig,
+    matchEverySubPath: Boolean,
     segments: List<PathSegment>,
     regexSuffix: String,
     regexOptions: Set<RegexOption> = emptySet(),
     mapper: (PathSegment) -> String
 ): List<Regex> {
     fun addRegexForExtraWildcard(): List<Regex> {
-        return if (options.matchPathAndEverySubPath) {
+        return if (matchEverySubPath) {
             listOf(constructRegex(options, segments + PathSegment.Wildcard, regexSuffix, regexOptions, mapper))
         } else {
             emptyList()
@@ -21,7 +22,7 @@ internal fun constructRegexList(
 }
 
 internal fun constructRegex(
-    options: CombinedOptions,
+    options: RoutingConfig,
     segments: List<PathSegment>,
     regexSuffix: String,
     regexOptions: Set<RegexOption> = emptySet(),
