@@ -14,6 +14,7 @@ import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import java.nio.ByteBuffer
+import java.util.concurrent.*
 
 /**
  * The [WsContext] class holds Jetty's [Session] and provides (convenient) delegate methods.
@@ -25,6 +26,8 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     internal val upgradeReq by lazy { session.jettyUpgradeRequest() }
     internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
     internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
+    internal var pingFuture : ScheduledFuture<*>? = null;
+
 
     fun matchedPath() = upgradeCtx.matchedPath
 
@@ -32,7 +35,13 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun send(message: String) = session.remote.sendString(message)
     fun send(message: ByteBuffer) = session.remote.sendBytes(message)
 
-    @JvmOverloads fun sendPing(message: ByteBuffer? = null) = session.remote.sendPing(message ?: ByteBuffer.allocate(0))
+    @JvmOverloads fun sendPing(applicationData: ByteBuffer? = null) = session.remote.sendPing(applicationData ?: ByteBuffer.allocate(0))
+    @JvmOverloads fun enableAutomaticPings(interval: Long = 1, unit: TimeUnit = TimeUnit.MINUTES, applicationData: ByteBuffer? = null) {
+        enableAutomaticPings(this, interval, unit, applicationData)
+    }
+    fun disableAutomaticPings() {
+        disableAutomaticPings(this)
+    }
 
     fun queryString(): String? = upgradeCtx.queryString()
     fun queryParamMap(): Map<String, List<String>> = upgradeCtx.queryParamMap()
