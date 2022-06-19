@@ -29,9 +29,6 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
     internal var pingFuture : ScheduledFuture<*>? = null;
 
-    companion object {
-        var executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
-    }
 
     fun matchedPath() = upgradeCtx.matchedPath
 
@@ -41,14 +38,10 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     @JvmOverloads fun sendPing(applicationData: ByteBuffer? = null) = session.remote.sendPing(applicationData ?: ByteBuffer.allocate(0))
     @JvmOverloads fun enableAutomaticPings(interval: Long = 1, unit: TimeUnit = TimeUnit.MINUTES, applicationData: ByteBuffer? = null) {
-        disableAutomaticPings();
-        pingFuture = executor.scheduleAtFixedRate({
-            sendPing(applicationData);
-        }, interval, interval, unit);
+        enableAutomaticPings(this, interval, unit, applicationData)
     }
     fun disableAutomaticPings() {
-        pingFuture?.cancel(false)
-        pingFuture = null;
+        disableAutomaticPings(this)
     }
 
     fun queryString(): String? = upgradeCtx.queryString()
