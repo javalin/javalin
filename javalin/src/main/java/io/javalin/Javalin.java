@@ -23,7 +23,6 @@ import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
 import io.javalin.core.validation.JavalinValidation;
 import io.javalin.http.Context;
-import io.javalin.http.ErrorMapperKt;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
@@ -304,8 +303,7 @@ public class Javalin implements AutoCloseable {
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
     public Javalin error(int statusCode, @NotNull Handler handler) {
-        javalinServlet.getErrorMapper().getErrorHandlerMap().put(statusCode, handler);
-        return this;
+        return error(statusCode, "*", handler);
     }
 
     /**
@@ -315,7 +313,8 @@ public class Javalin implements AutoCloseable {
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
     public Javalin error(int statusCode, @NotNull String contentType, @NotNull Handler handler) {
-        return error(statusCode, ErrorMapperKt.contentTypeWrap(contentType, handler));
+        javalinServlet.getErrorMapper().addHandler(statusCode, contentType, handler);
+        return this;
     }
 
     /**

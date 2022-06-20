@@ -9,12 +9,17 @@ package io.javalin.http
 import io.javalin.core.util.Header
 
 class ErrorMapper {
-    val errorHandlerMap = HashMap<Int, Handler>()
-    fun handle(statusCode: Int, ctx: Context) = errorHandlerMap[statusCode]?.handle(ctx)
-}
 
-fun contentTypeWrap(contentType: String, errorHandler: Handler) = Handler { ctx ->
-    if (ctx.header(Header.ACCEPT)?.contains(contentType, ignoreCase = true) == true) {
-        errorHandler.handle(ctx)
+    data class MapperEntry(val statusCode: Int, val contentType: String, val handler: Handler)
+    private val errorHandlers = mutableSetOf<MapperEntry>()
+
+    fun addHandler(statusCode: Int, contentType: String, handler: Handler) =
+        errorHandlers.add(MapperEntry(statusCode, contentType, handler))
+
+    fun handle(statusCode: Int, ctx: Context) = errorHandlers.filter { it.statusCode == statusCode }.forEach {
+        val contentTypeMatches by lazy { ctx.header(Header.ACCEPT)?.contains(it.contentType, ignoreCase = true) == true }
+        if (it.contentType == "*" || contentTypeMatches) {
+            it.handler.handle(ctx)
+        }
     }
 }

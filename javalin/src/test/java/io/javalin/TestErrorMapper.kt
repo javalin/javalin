@@ -47,12 +47,18 @@ class TestErrorMapper {
 
     @Test
     fun `error-mapper with content-type respects content-type`() = TestUtil.test { app, http ->
-        app.get("/html") { it.status(500).result("Error!") }.error(500, "html") { it.result("HTML error page") }
+        app.get("/html") { it.status(500).result("Error!") }
+        app.error(500, "html") { it.result("HTML error page") }
         assertThat(http.htmlGet("/html").body).isEqualTo("HTML error page")
         assertThat(http.jsonGet("/html").body).isEqualTo("Error!")
-        app.get("/json") { it.status(500).result("Error!") }.error(500, "json") { it.result("JSON error") }
-        assertThat(http.htmlGet("/json").body).isEqualTo("Error!")
-        assertThat(http.jsonGet("/json").body).isEqualTo("JSON error")
+    }
+
+    @Test
+    fun `error mapper is not overwritten`() = TestUtil.test { app, http ->
+        app.error(500, "html") { it.result("HTML error page") }
+        app.error(500, "json") { it.result("JSON error") }
+        app.get("/html") { it.status(500) }
+        assertThat(http.htmlGet("/html").body).isEqualTo("HTML error page")
     }
 
 }
