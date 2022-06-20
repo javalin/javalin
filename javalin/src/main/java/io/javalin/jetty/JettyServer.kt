@@ -9,22 +9,18 @@ package io.javalin.jetty
 import io.javalin.core.JavalinConfig
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
-import org.eclipse.jetty.server.Handler
-import org.eclipse.jetty.server.HttpConnectionFactory
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
+import io.javalin.core.util.Util.logJavalinBanner
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.http.UriCompliance
+import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerWrapper
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
-import java.net.BindException
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
-import org.eclipse.jetty.http.UriCompliance
-import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
+import java.net.BindException
 
 class JettyServer(val config: JavalinConfig) {
 
@@ -71,6 +67,8 @@ class JettyServer(val config: JavalinConfig) {
             }
         }.start()
 
+        logJavalinBanner(config.showJavalinBanner)
+
         JavalinLogger.logAllDelayed()
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
@@ -81,7 +79,6 @@ class JettyServer(val config: JavalinConfig) {
             JavalinLogger.startup("Binding to: $it")
         }
 
-        JettyUtil.reEnableJettyLogger()
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 

@@ -555,7 +555,7 @@ class TestWebSocket {
             if (System.currentTimeMillis() > limitTime) {
                 throw TimeoutException("Wait for condition has timed out")
             }
-            Thread.sleep(2)
+            Thread.sleep(25)
         }
     }
 }

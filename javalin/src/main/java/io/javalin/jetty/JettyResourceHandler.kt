@@ -23,10 +23,6 @@ import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler : JavalinResourceHandler {
 
-    init {
-        JettyUtil.disableJettyLogger()
-    }
-
     val handlers = mutableListOf<ConfigurableHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig) {

@@ -156,8 +156,6 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#create()
      */
     public Javalin start() {
-        Util.logJavalinBanner(this._conf.showJavalinBanner);
-        JettyUtil.disableJettyLogger();
         long startupTimer = System.currentTimeMillis();
         if (jettyServer.started) {
             String message = "Server already started. If you are trying to call start() on an instance " +

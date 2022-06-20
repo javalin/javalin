@@ -4,19 +4,13 @@ import io.javalin.core.LoomUtil
 import io.javalin.core.LoomUtil.loomAvailable
 import io.javalin.core.LoomUtil.useLoomThreadPool
 import io.javalin.core.util.JavalinLogger
-import org.eclipse.jetty.http.UriCompliance
-import org.eclipse.jetty.server.HttpConfiguration
-import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
 import java.io.IOException
 import java.util.concurrent.TimeoutException
-
-private var defaultLogger: org.eclipse.jetty.util.log.Logger? = null
 
 object JettyUtil {
 
@@ -32,21 +26,6 @@ object JettyUtil {
         LoomThreadPool()
     } else {
         QueuedThreadPool(250, 8, 60_000).apply { name = "JettyServerThreadPool" }
-    }
-
-    @JvmField
-    var logDuringStartup = false
-
-    @JvmStatic
-    fun disableJettyLogger() {
-        if (logDuringStartup) return
-        defaultLogger = defaultLogger ?: org.eclipse.jetty.util.log.Log.getLog()
-        org.eclipse.jetty.util.log.Log.setLog(NoopLogger())
-    }
-
-    fun reEnableJettyLogger() {
-        if (logDuringStartup) return
-        org.eclipse.jetty.util.log.Log.setLog(defaultLogger)
     }
 
     var logIfNotStarted = true
@@ -68,24 +47,6 @@ object JettyUtil {
     // Jetty may timeout connections to avoid having broken connections that remain open forever
     // This is rare, but intended (see issues #163 and #1277)
     fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
-
-    class NoopLogger : org.eclipse.jetty.util.log.Logger {
-        override fun getName() = "noop"
-        override fun getLogger(name: String) = this
-        override fun setDebugEnabled(enabled: Boolean) {}
-        override fun isDebugEnabled() = false
-        override fun ignore(ignored: Throwable) {}
-        override fun warn(msg: String, vararg args: Any) {}
-        override fun warn(thrown: Throwable) {}
-        override fun warn(msg: String, thrown: Throwable) {}
-        override fun info(msg: String, vararg args: Any) {}
-        override fun info(thrown: Throwable) {}
-        override fun info(msg: String, thrown: Throwable) {}
-        override fun debug(msg: String, vararg args: Any) {}
-        override fun debug(s: String, l: Long) {}
-        override fun debug(thrown: Throwable) {}
-        override fun debug(msg: String, thrown: Throwable) {}
-    }
 
 }
 
