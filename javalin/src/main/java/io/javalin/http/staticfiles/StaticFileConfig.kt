@@ -4,6 +4,8 @@ import io.javalin.core.util.Header
 import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 import jakarta.servlet.http.HttpServletRequest
 
+enum class Location { CLASSPATH, EXTERNAL; }
+
 data class StaticFileConfig(
     @JvmField var hostedPath: String = "/",
     @JvmField var directory: String = "/public",

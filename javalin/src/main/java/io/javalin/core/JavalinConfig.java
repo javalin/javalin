@@ -32,7 +32,6 @@ import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.jetty.JettyResourceHandler;
-import io.javalin.jetty.JettyUtil;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;

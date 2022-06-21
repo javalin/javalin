@@ -69,7 +69,7 @@ class JettyServer(val config: JavalinConfig) {
 
         logJavalinBanner(config.showJavalinBanner)
 
-        JavalinLogger.logAllDelayed()
+        config.inner.resourceHandler?.init(mapOf("server" to server()))
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
