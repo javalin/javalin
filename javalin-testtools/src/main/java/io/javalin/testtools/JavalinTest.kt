@@ -10,19 +10,16 @@ object JavalinTest {
 
     class RunResult(val logs: String?, val exception: Exception?)
 
-    @JvmField
-    var clearCookies = true
-
-    @JvmField
-    var captureLogs = true
+    data class TestConfig(val clearCookies: Boolean = true, val captureLogs: Boolean = true)
 
     @JvmStatic
-    fun test(app: Javalin, testCase: TestCase) {
-        val result: RunResult = runAndCaptureLogs {
+    @JvmOverloads
+    fun test(app: Javalin = Javalin.create(), config: TestConfig = TestConfig(), testCase: TestCase) {
+        val result: RunResult = runAndCaptureLogs(config) {
             app.start(0)
             val http = HttpClient(app)
             testCase.accept(app, http) // this is where the user's test happens
-            if (clearCookies) {
+            if (config.clearCookies) {
                 val endpointUrl = "/clear-cookies-${UUID.randomUUID()}"
                 app.delete(endpointUrl) { it.cookieMap().forEach { (k, _) -> it.removeCookie(k) } }
                 http.request(endpointUrl) { it.delete() }
@@ -37,23 +34,22 @@ object JavalinTest {
     }
 
     @JvmStatic
-    fun test(testCase: TestCase) = test(Javalin.create(), testCase)
+    fun captureStdOut(run: Runnable): String? = runAndCaptureLogs(TestConfig(), run).logs
 
-    @JvmStatic
-    fun runAndCaptureLogs(testCode: Runnable): RunResult {
+    private fun runAndCaptureLogs(testConfig: TestConfig = TestConfig(), testCode: Runnable): RunResult {
         var exception: Exception? = null
         val out = ByteArrayOutputStream()
         val printStream = PrintStream(out)
         val oldOut = System.out
         val oldErr = System.err
-        if (captureLogs) {
+        if (testConfig.captureLogs) {
             System.setOut(printStream)
             System.setErr(printStream)
         }
         try {
             testCode.run()
         } catch (t: Throwable) {
-            exception = when(t) {
+            exception = when (t) {
                 is Exception -> t
                 is AssertionError -> Exception("Assertion error: " + t.message)
                 else -> Exception("Unexpected Throwable in test. Message: '${t.message}'", t)
@@ -65,17 +61,5 @@ object JavalinTest {
         }
         return RunResult(out.toString(), exception)
     }
-
-    @JvmStatic
-    fun runLogLess(run: Runnable) {
-        val result: RunResult = runAndCaptureLogs(run)
-        if (result.exception != null) {
-            JavalinLogger.error("JavalinTest#runLogLess failed - full log output below:\n" + result.logs);
-            throw RuntimeException(result.exception)
-        }
-    }
-
-    @JvmStatic
-    fun captureStdOut(run: Runnable): String? = runAndCaptureLogs(run).logs
 
 }
