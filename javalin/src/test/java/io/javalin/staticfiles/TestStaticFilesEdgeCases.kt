@@ -36,8 +36,7 @@ class TestStaticFilesEdgeCases {
     }
 
     @Test
-    fun `server doesn't start for empty classpath folder`()
-    = TestUtil.runLogLess {
+    fun `server doesn't start for empty classpath folder`() = TestUtil.runLogLess {
         assertThatExceptionOfType(RuntimeException::class.java)
             .isThrownBy { Javalin.create { it.addStaticFiles(workingDirectory.absolutePath, Location.CLASSPATH) }.start() }
             .withMessageContaining("Static resource directory with path: '${workingDirectory.absolutePath}' does not exist.")
