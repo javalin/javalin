@@ -63,6 +63,12 @@ class TestCors {
     }
 
     @Test
+    fun `enableCorsForAllOrigins works for 404s`() = TestUtil.test(Javalin.create { it.enableCorsForAllOrigins() }) { app, http ->
+        val response = Unirest.get(http.origin + "/not-found").header("Origin", "some-origin").asString()
+        assertThat(response.headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("some-origin")
+    }
+
+    @Test
     fun `enableCorsForAllOrigins enables cors for all origins with AccessManager`() {
         val accessManagedCorsApp = Javalin.create {
             it.enableCorsForAllOrigins()
