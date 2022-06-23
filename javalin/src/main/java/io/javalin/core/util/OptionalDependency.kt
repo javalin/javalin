@@ -37,7 +37,7 @@ object DependencyUtil {
         dependencyCheckCache[dependency.testClass] = true
     }
 
-    internal fun missingDependencyMessage(dependency: OptionalDependency) = """|
+    internal fun missingDependencyMessage(dependency: OptionalDependency) = """
         |-------------------------------------------------------------------
         |Missing dependency '${dependency.displayName}'. Add the dependency.
         |
@@ -81,8 +81,6 @@ enum class CoreDependency(
 
     // Logging
     SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "1.7.31"),
-    SLF4J_PROVIDER_SIMPLE("Slf4j simple with Provider", "org.slf4j.simple.SimpleServiceProvider", "org.slf4j", "slf4j-simple", "1.8.0-beta4"),
-    SLF4J_PROVIDER_API("Slf4j simple with Provider", "org.slf4j.spi.SLF4JServiceProvider", "org.slf4j", "slf4j-api", "1.8.0-beta4"),
 
     // Monitoring
     MICROMETER("Micrometer", "io.micrometer.core.instrument.Metrics", "io.micrometer", "micrometer-core", "1.7.3"),

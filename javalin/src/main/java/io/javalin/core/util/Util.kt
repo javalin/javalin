@@ -32,32 +32,25 @@ object Util {
         false
     }
 
-    private fun serviceImplementationExists(className: String) = try {
-        val serviceClass = Class.forName(className)
+    private fun slf4jServiceImplementationExists() = try {
+        val serviceClass = Class.forName("org.slf4j.spi.SLF4JServiceProvider")
         val loader = ServiceLoader.load(serviceClass)
         loader.any()
     } catch (e: ClassNotFoundException) {
         false
     }
 
-    fun loggingLibraryExists(): Boolean {
-        return classExists(CoreDependency.SLF4JSIMPLE.testClass) ||
-                serviceImplementationExists(CoreDependency.SLF4J_PROVIDER_API.testClass)
-    }
-
     @JvmStatic
     fun printHelpfulMessageIfLoggerIsMissing() {
-        if (!loggingLibraryExists()) {
-            System.err.println("""
-            |-------------------------------------------------------------------
-            |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4JSIMPLE)}
-            |-------------------------------------------------------------------
-            |OR
-            |-------------------------------------------------------------------
-            |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4J_PROVIDER_API)} and
-            |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4J_PROVIDER_SIMPLE)}
-            |-------------------------------------------------------------------
-            |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin())
+        val hasLogger = classExists(CoreDependency.SLF4JSIMPLE.testClass) || slf4jServiceImplementationExists()
+        if (!hasLogger) {
+            System.err.println(
+                """|-------------------------------------------------------------------
+                   |It looks like you don't have a logger in your project.
+                   |The easiest way to fix this is to add 'slf4j-simple':
+                   |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4JSIMPLE).lines().drop(2).joinToString("\n")}
+                   |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin()
+            )
         }
     }
 
