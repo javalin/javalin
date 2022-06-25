@@ -167,8 +167,8 @@ public class Javalin implements AutoCloseable {
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             JavalinLogger.startup("Starting Javalin ...");
-            Util.logJavalinVersion();
             jettyServer.start(javalinJettyServlet);
+            Util.logJavalinVersion();
             JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {
