@@ -117,4 +117,12 @@ class KotlinTest {
         }
     }
 
+    @Test
+    fun `instantiate JavalinTest`() {
+        JavalinTest().run { server, client ->
+            server.get("/hello") { ctx -> ctx.result("Hello world")}
+            assertThat(client.get("/hello").body?.string()).isEqualTo("Hello world")
+        }
+    }
+
 }

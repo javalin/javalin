@@ -7,9 +7,11 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.util.*
 
-object JavalinTest {
+class JavalinTest(
+    private val testConfig: TestConfig = TestConfig()
+) {
 
-    class RunResult(val logs: String?, val exception: Exception?)
+    data class RunResult(val logs: String?, val exception: Exception?)
 
     data class TestConfig(
         val clearCookies: Boolean = true,
@@ -17,14 +19,13 @@ object JavalinTest {
         val okHttpClient: OkHttpClient = OkHttpClient()
     )
 
-    @JvmStatic
     @JvmOverloads
-    fun test(app: Javalin = Javalin.create(), config: TestConfig = TestConfig(), testCase: TestCase) {
-        val result: RunResult = runAndCaptureLogs(config) {
+    fun run(app: Javalin = Javalin.create(), testCase: TestCase) {
+        val result: RunResult = runAndCaptureLogs {
             app.start(0)
-            val http = HttpClient(app, config.okHttpClient)
+            val http = HttpClient(app, testConfig.okHttpClient)
             testCase.accept(app, http) // this is where the user's test happens
-            if (config.clearCookies) {
+            if (testConfig.clearCookies) {
                 val endpointUrl = "/clear-cookies-${UUID.randomUUID()}"
                 app.delete(endpointUrl) { it.cookieMap().forEach { (k, _) -> it.removeCookie(k) } }
                 http.request(endpointUrl) { it.delete() }
@@ -38,10 +39,7 @@ object JavalinTest {
         }
     }
 
-    @JvmStatic
-    fun captureStdOut(run: Runnable): String? = runAndCaptureLogs(TestConfig(), run).logs
-
-    private fun runAndCaptureLogs(testConfig: TestConfig = TestConfig(), testCode: Runnable): RunResult {
+    private fun runAndCaptureLogs(testCode: Runnable): RunResult {
         var exception: Exception? = null
         val out = ByteArrayOutputStream()
         val printStream = PrintStream(out)
@@ -68,4 +66,15 @@ object JavalinTest {
         return RunResult(out.toString(), exception)
     }
 
+    companion object {
+
+        @JvmStatic
+        @JvmOverloads
+        fun test(app: Javalin = Javalin.create(), config: TestConfig = TestConfig(), testCase: TestCase) =
+            JavalinTest(config).run(app, testCase)
+
+        @JvmStatic
+        fun captureStdOut(run: Runnable) = JavalinTest().runAndCaptureLogs(run).logs
+
+    }
 }
