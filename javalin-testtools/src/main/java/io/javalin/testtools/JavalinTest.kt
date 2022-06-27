@@ -2,6 +2,7 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.core.util.JavalinLogger
+import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.util.*
@@ -10,14 +11,18 @@ object JavalinTest {
 
     class RunResult(val logs: String?, val exception: Exception?)
 
-    data class TestConfig(val clearCookies: Boolean = true, val captureLogs: Boolean = true)
+    data class TestConfig(
+        val clearCookies: Boolean = true,
+        val captureLogs: Boolean = true,
+        val okHttpClient: OkHttpClient = OkHttpClient()
+    )
 
     @JvmStatic
     @JvmOverloads
     fun test(app: Javalin = Javalin.create(), config: TestConfig = TestConfig(), testCase: TestCase) {
         val result: RunResult = runAndCaptureLogs(config) {
             app.start(0)
-            val http = HttpClient(app)
+            val http = HttpClient(app, config.okHttpClient)
             testCase.accept(app, http) // this is where the user's test happens
             if (config.clearCookies) {
                 val endpointUrl = "/clear-cookies-${UUID.randomUUID()}"

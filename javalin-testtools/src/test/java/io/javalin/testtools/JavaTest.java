@@ -2,11 +2,15 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.core.util.Header;
+import io.javalin.testtools.JavalinTest.TestConfig;
 import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class JavaTest {
@@ -114,6 +118,27 @@ public class JavaTest {
         JavalinTest.test(JavaApp.app, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, app!");
             assertThat(client.get("/hello/").body().string()).isEqualTo("Not found"); // JavaApp.app won't ignore trailing slashes
+        });
+    }
+
+    @Test
+    void custom_okHttpClient_is_used() {
+        Javalin app = Javalin.create()
+            .get("/hello", ctx -> ctx.result("Hello, " + ctx.header("X-Welcome") + "!"));
+
+        OkHttpClient okHttpClientAddingHeader = new OkHttpClient.Builder()
+            .addInterceptor(chain -> {
+                Request userRequest = chain.request();
+                return chain.proceed(userRequest.newBuilder()
+                    .addHeader("X-Welcome", "Javalin")
+                    .build());
+            })
+            .build();
+
+        TestConfig config = new TestConfig(true, true, okHttpClientAddingHeader);
+
+        JavalinTest.test(app, config, (server, client) -> {
+            assertThat(client.get("/hello").body().string()).isEqualTo("Hello, Javalin!");
         });
     }
 

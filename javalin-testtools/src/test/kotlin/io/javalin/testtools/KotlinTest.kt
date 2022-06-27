@@ -2,7 +2,10 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.core.util.Header
+import io.javalin.testtools.JavalinTest.TestConfig
 import okhttp3.FormBody
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -91,6 +94,27 @@ class KotlinTest {
     fun `testing full app works`() = JavalinTest.test(KotlinApp.app) { server, client ->
         assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, app!");
         assertThat(client.get("/hello/").body?.string()).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
+    }
+
+    @Test
+    fun `custom OkHttpClient is used`() {
+        val app = Javalin.create()
+            .get("/hello") { ctx -> ctx.result("Hello, ${ctx.header("X-Welcome")}!") }
+
+        val okHttpClientAddingHeader = OkHttpClient.Builder()
+            .addInterceptor(Interceptor { chain: Interceptor.Chain ->
+                val userRequest = chain.request()
+                chain.proceed(
+                    userRequest.newBuilder()
+                        .addHeader("X-Welcome", "Javalin")
+                        .build()
+                )
+            })
+            .build()
+
+        JavalinTest.test(app, TestConfig(okHttpClient = okHttpClientAddingHeader)) { server, client ->
+            assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, Javalin!")
+        }
     }
 
 }
