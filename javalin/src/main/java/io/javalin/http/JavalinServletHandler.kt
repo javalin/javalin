@@ -21,10 +21,10 @@ data class Stage(
     val initializer: StageInitializer // DSL method to add task to the stage's queue
 )
 
-internal data class Result(
+internal data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
-    val future: CompletableFuture<*> = completedFuture(null),
-    val callback: Consumer<Any?>? = null,
+    val future: CompletableFuture<VALUE> = completedFuture(null),
+    val callback: Consumer<VALUE>? = null,
 )
 
 internal data class Task(
@@ -87,6 +87,7 @@ class JavalinServletHandler(
     }
 
     /** Executes the given task with proper error handling and returns next task to execute as future */
+    @Suppress("UNCHECKED_CAST")
     private fun executeNextTask(): CompletableFuture<InputStream> {
         val task = tasks.poll()
         if (errored && task.stage.haltsOnError) {
@@ -105,7 +106,7 @@ class JavalinServletHandler(
         return ctx.resultReference.getAndSet(Result(previousResult))
             .let { result ->
                 when { // we need to check if the user has called startAsync manually, and keep the connection open if so
-                    ctx.isAsync() && !wasAsync -> result.copy(future = CompletableFuture<Void>()) // GH-1560: freeze JavalinServletHandler infinitely, TODO: Remove it in Javalin 5.x
+                    ctx.isAsync() && !wasAsync -> Result(result.previous, CompletableFuture<Void?>()) {} // GH-1560: freeze JavalinServletHandler infinitely, TODO: Remove it in Javalin 5.x
                     else -> result
                 }
             }
@@ -113,7 +114,7 @@ class JavalinServletHandler(
             .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addListener(onTimeout = { result.future.cancel(true) }) }
             .let { result ->
                 result.future
-                    .thenAccept { any -> (result.callback?.accept(any) ?: ctx.contextResolver().defaultFutureCallback(ctx, any)) } // callback after future resolves - modifies ctx result, status, etc
+                    .thenAccept { value -> result.callback?.also { (it as Consumer<Any?>).accept(value) } ?: ctx.contextResolver().defaultFutureCallback(ctx, value) } // callback after future resolves - modifies ctx result, status, etc
                     .thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
                     .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
                     .thenApply { inputStream -> inputStream.also { queueNextTaskOrFinish() } } // we have to attach the "also" to the input stream to avoid mapping a void

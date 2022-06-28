@@ -106,10 +106,10 @@ class TestFuture {
     fun `loonyrunes is happy with the api`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val hasContent = ctx.queryParam("has-content") != null
-            ctx.future(getFuture("some-future-result")) { result ->
+            ctx.future(getFuture("some-future-result")) { result: String ->
                 if (hasContent) {
                     ctx.status(200)
-                    ctx.json(result!!)
+                    ctx.json(result)
                 } else {
                     ctx.status(204)
                 }
@@ -192,6 +192,19 @@ class TestFuture {
             app.get("/") { it.future(CompletableFuture.completedFuture("Success")) }
             assertThat(http.get("/").body).isEqualTo("Ignore result")
         }
+    }
+
+    @Test
+    fun `can set custom callback`() = TestUtil.test(impatientServer) { app, http ->
+        val futureWithNullableValue: CompletableFuture<String?> = CompletableFuture.completedFuture("value")
+
+        app.get("/") { ctx ->
+            ctx.future(futureWithNullableValue) { value: String? ->
+                ctx.result("Processed $value")
+            }
+        }
+
+        assertThat(http.get("/").body).isEqualTo("Processed value")
     }
 
     @Test

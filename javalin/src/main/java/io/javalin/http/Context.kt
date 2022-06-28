@@ -39,7 +39,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
     @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
     @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @get:JvmSynthetic @set:JvmSynthetic internal var resultReference = AtomicReference(Result())
+    @get:JvmSynthetic @set:JvmSynthetic internal var resultReference = AtomicReference<Result<out Any?>>(Result())
     // @formatter:on
 
     private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
@@ -359,7 +359,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** The default callback (used if no callback is provided) can be configured through [ContextResolver.defaultFutureCallback] */
     @JvmOverloads
-    fun future(future: CompletableFuture<*>, callback: Consumer<Any?>? = null): Context {
+    fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>? = null): Context {
         resultReference.updateAndGet { oldResult ->
             oldResult.future.cancel(true)
             Result(oldResult.previous, future, callback)
