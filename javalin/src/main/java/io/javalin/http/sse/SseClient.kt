@@ -14,7 +14,12 @@ class SseClient internal constructor(
     private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
 
-    fun block() {
+    /**
+     * By blocking SSE connection, you can share client outside the handler to notify it from other sources.
+     * Keep in mind that this function is based on top of the [Context.future],
+     * so you can't use any result function in this scope anymore.
+     */
+    fun await() {
         this.blockingFuture = ctx.future(
             future = CompletableFuture<Nothing?>(),
             callback = { /* noop */}
