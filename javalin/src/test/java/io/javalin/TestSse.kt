@@ -4,9 +4,7 @@ import io.javalin.http.sse.SseClient
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.bouncycastle.crypto.tls.ConnectionEnd.client
 import org.junit.jupiter.api.Test
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
