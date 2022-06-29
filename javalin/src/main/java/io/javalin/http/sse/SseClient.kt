@@ -4,21 +4,35 @@ import io.javalin.http.Context
 import io.javalin.plugin.json.jsonMapper
 import java.io.Closeable
 import java.io.InputStream
+import java.util.concurrent.CompletableFuture
 
 class SseClient internal constructor(
     @JvmField val ctx: Context
 ) : Closeable {
 
-    private val emitter = Emitter(ctx.req.asyncContext)
+    private val emitter = Emitter(ctx.res)
+    private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
+
+    /**
+     * By blocking SSE connection, you can share client outside the handler to notify it from other sources.
+     * Keep in mind that this function is based on top of the [Context.future],
+     * so you can't use any result function in this scope anymore.
+     */
+    fun keepAlive() {
+        this.blockingFuture = ctx.future(
+            future = CompletableFuture<Nothing?>(),
+            callback = { /* noop */}
+        ).resultFuture()
+    }
 
     fun onClose(closeCallback: Runnable) {
         this.closeCallback = closeCallback
     }
 
     override fun close() {
-        ctx.req.asyncContext.complete()
         closeCallback.run()
+        blockingFuture?.complete(null)
     }
 
     fun sendEvent(data: Any) = sendEvent("message", data)
@@ -30,14 +44,14 @@ class SseClient internal constructor(
             is String -> emitter.emit(event, data.byteInputStream(), id)
             else -> emitter.emit(event, ctx.jsonMapper().toJsonString(data).byteInputStream(), id)
         }
-        if (emitter.isClosed()) { // can't detect if closed before we try emitting?
+        if (emitter.closed) { // can't detect if closed before we try emitting?
             this.close()
         }
     }
 
     fun sendComment(comment: String) {
         emitter.emit(comment)
-        if (emitter.isClosed()) {
+        if (emitter.closed) {
             this.close()
         }
     }

@@ -5,7 +5,8 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class TestSse {
 
@@ -109,14 +110,14 @@ class TestSse {
     fun `sending async data is properly processed`() = TestUtil.test { app, http ->
         app.sse("/sse") {
             it.sendEvent("Sync event")
-            CompletableFuture.runAsync {
+            it.ctx.async {
                 Thread.sleep(100)
                 it.sendEvent("Async event")
-                it.close()
             }
         }
 
         val body = http.sse("/sse").get().body
+
         assertThat(body.trim()).isEqualTo(
             """
             event: message
@@ -126,6 +127,25 @@ class TestSse {
             data: Async event
             """.trimIndent().trim()
         )
+    }
+
+    @Test
+    fun `user can freeze sse handler to leak sse client outside the handler`() = TestUtil.test { app, http ->
+        val clients = mutableListOf<SseClient>()
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
+            clients.forEach {
+                it.sendComment("Emitted and closed!")
+                it.close()
+            }
+        }, 50L, 50L, TimeUnit.MILLISECONDS)
+
+        app.sse("/sse") { client ->
+            clients.add(client)
+            client.keepAlive()
+        }
+
+        assertThat(http.sse("/sse").get().body.trim()).isEqualTo(": Emitted and closed!")
     }
 
 }

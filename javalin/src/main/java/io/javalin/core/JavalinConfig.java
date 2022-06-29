@@ -38,6 +38,7 @@ import io.javalin.websocket.WsConfig;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -48,6 +49,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static io.javalin.http.ContextKt.ASYNC_EXECUTOR_KEY;
 import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
 import static io.javalin.http.util.ContextUtil.maxRequestSizeKey;
 import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
@@ -226,10 +229,12 @@ public class JavalinConfig {
         if (config.enforceSsl) {
             app.before(SecurityUtil::sslRedirect);
         }
-        config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
-        app.attribute(maxRequestSizeKey, config.maxRequestSize);
 
+        config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
+        config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, Executors.newCachedThreadPool(new NamedThreadFactory("JavalinDefaultAsyncThreadPool")));
+
+        app.attribute(maxRequestSizeKey, config.maxRequestSize);
     }
 
     private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {
