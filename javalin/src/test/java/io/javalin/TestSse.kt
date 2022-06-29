@@ -5,6 +5,7 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.util.concurrent.CompletableFuture
 
 class TestSse {
 
@@ -125,6 +126,31 @@ class TestSse {
             data: Async event
             """.trimIndent().trim()
         )
+    }
+
+    @Test
+    fun `user can block sse handler to leak sse client`() = TestUtil.test { app, http ->
+        val clients = mutableListOf<SseClient>()
+
+        // some 3rd party service
+        fun notifyClients() {
+            clients.forEach {
+                it.sendComment("Blocked")
+                it.close()
+            }
+        }
+
+        app.sse("/sse") { client ->
+            clients.add(client)
+            client.block()
+
+            CompletableFuture.runAsync {
+                Thread.sleep(500)
+                notifyClients()
+            }
+        }
+
+        assertThat(http.sse("/sse").get().body.trim()).isEqualTo(": Blocked")
     }
 
 }

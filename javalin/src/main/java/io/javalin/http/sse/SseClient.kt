@@ -4,13 +4,22 @@ import io.javalin.http.Context
 import io.javalin.plugin.json.jsonMapper
 import java.io.Closeable
 import java.io.InputStream
+import java.util.concurrent.CompletableFuture
 
 class SseClient internal constructor(
     @JvmField val ctx: Context
 ) : Closeable {
 
     private val emitter = Emitter(ctx.res)
+    private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
+
+    fun block() {
+        this.blockingFuture = ctx.future(
+            future = CompletableFuture<Nothing?>(),
+            callback = { /* noop */}
+        ).resultFuture()
+    }
 
     fun onClose(closeCallback: Runnable) {
         this.closeCallback = closeCallback
@@ -18,6 +27,7 @@ class SseClient internal constructor(
 
     override fun close() {
         closeCallback.run()
+        blockingFuture?.complete(null)
     }
 
     fun sendEvent(data: Any) = sendEvent("message", data)
