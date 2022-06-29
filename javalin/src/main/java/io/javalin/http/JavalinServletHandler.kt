@@ -94,7 +94,6 @@ class JavalinServletHandler(
             queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
             return completedFuture(previousResult)
         }
-        val wasAsync = ctx.isAsync() // necessary to detect if user called startAsync() manually
         try {
             /** run code added through submitTask in [JavalinServlet]. This mutates [ctx] */
             task.handler(this)
@@ -104,14 +103,8 @@ class JavalinServletHandler(
             exceptionMapper.handle(exception, ctx)
         }
         return ctx.resultReference.getAndSet(Result(previousResult))
-            .let { result ->
-                when { // we need to check if the user has called startAsync manually, and keep the connection open if so
-                    ctx.isAsync() && !wasAsync -> Result(result.previous, CompletableFuture<Void?>()) {} // GH-1560: freeze JavalinServletHandler infinitely, TODO: Remove it in Javalin 5.x
-                    else -> result
-                }
-            }
-            .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
-            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addListener(onTimeout = { result.future.cancel(true) }) }
+            .apply { if (!ctx.isAsync() && !future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
+            .apply { if (ctx.isAsync()) ctx.req.asyncContext.addListener(onTimeout = { future.cancel(true) }) }
             .let { result ->
                 result.future
                     .thenAccept { value -> result.callback?.also { (it as Consumer<Any?>).accept(value) } ?: ctx.contextResolver().defaultFutureCallback(ctx, value) } // callback after future resolves - modifies ctx result, status, etc
