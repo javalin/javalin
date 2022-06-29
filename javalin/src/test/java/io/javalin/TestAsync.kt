@@ -19,13 +19,15 @@ internal class TestAsync {
 
     @Test
     fun `exception in async works`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
-            ctx.async {
-                throw UnsupportedOperationException()
+        app
+            .get("/") { ctx ->
+                ctx.async { throw UnsupportedOperationException() }
             }
-        }
+            .exception(UnsupportedOperationException::class.java) { error, ctx ->
+                ctx.result("Unsupported")
+            }
 
-        assertThat(http.get("/").body).isEqualTo("Internal server error")
+        assertThat(http.get("/").body).isEqualTo("Unsupported")
     }
 
     @Test

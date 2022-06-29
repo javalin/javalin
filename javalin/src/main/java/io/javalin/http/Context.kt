@@ -363,7 +363,25 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         result.future?.takeIf { it.isDone }?.get() as InputStream? ?: result.previous
     }
 
-    /** Utility function that allows to run async task on top of the [Context.future] method. */
+    /**
+     * Utility function that allows to run async task on top of the [Context.future] method.
+     * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
+     *
+     * @param executor Thread-pool used to execute the given task,
+     * by default this method will use global predefined executor service stored in [appAttributes] as [ASYNC_EXECUTOR_KEY].
+     * You can change this default in [io.javalin.core.JavalinConfig].
+     *
+     * @param timeout Timeout in milliseconds,
+     * by default it's 0 which means timeout watcher is disabled.
+     *
+     * @param onTimeout Timeout listener executed when [TimeoutException] is thrown in specified task.
+     * This timeout listener is a part of request lifecycle, so you can still modify context here.
+     *
+     * @return As a result, function returns a new future that you can listen to.
+     * The limitation is that you can't modify context after such event,
+     * because it'll most likely be executed when the connection is already closed,
+     * so it's just not thread-safe.
+     */
     @JvmOverloads
     fun async(
         executor: ExecutorService = appAttribute(ASYNC_EXECUTOR_KEY),
