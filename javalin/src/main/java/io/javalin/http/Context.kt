@@ -391,18 +391,20 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     ): CompletableFuture<*> {
         var await = CompletableFuture.runAsync(task, executor)
 
-        if (timeout > 0)
+        if (timeout > 0) {
             await = await.orTimeout(timeout, MILLISECONDS)
+        }
 
-        if (onTimeout != null)
+        if (onTimeout != null) {
             await = await.exceptionally {
                 when (it) {
                     is TimeoutException -> onTimeout().let { null }
                     else -> throw it
                 }
             }
+        }
 
-        future(await) { /* do not process the result value */ }
+        future(await, callback = { /* noop */ })
         return await
     }
 

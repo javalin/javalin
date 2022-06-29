@@ -25,12 +25,7 @@ internal data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
     val future: CompletableFuture<VALUE>? = null,
     val callback: Consumer<VALUE>? = null,
-) {
-
-    fun futureOrCompletedStage(): CompletableFuture<VALUE> =
-        future ?: completedFuture(null)
-
-}
+)
 
 internal data class Task(
     val stage: Stage,
@@ -111,7 +106,7 @@ class JavalinServletHandler(
             .apply { if (!ctx.isAsync() && future?.isDone == false) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
             .apply { if (ctx.isAsync()) ctx.req.asyncContext.addListener(onTimeout = { future?.cancel(true) }) }
             .let { result ->
-                result.futureOrCompletedStage()
+                (result.future ?: completedFuture(null))
                     .thenAccept { value -> result.callback?.also { (it as Consumer<Any?>).accept(value) } ?: ctx.contextResolver().defaultFutureCallback(ctx, value) } // callback after future resolves - modifies ctx result, status, etc
                     .thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
                     .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
