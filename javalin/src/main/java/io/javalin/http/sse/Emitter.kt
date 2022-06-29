@@ -1,50 +1,44 @@
 package io.javalin.http.sse
 
-import io.javalin.http.Context
 import java.io.IOException
 import java.io.InputStream
-import jakarta.servlet.ServletOutputStream
+import jakarta.servlet.http.HttpServletResponse
 
 const val COMMENT_PREFIX = ":"
+const val NEW_LINE = "\n"
 
-class Emitter(private var context: Context) {
+class Emitter(private var response: HttpServletResponse) {
 
-    private val output: ServletOutputStream by lazy {
-        try {
-            context.req.asyncContext.response.outputStream
-        } catch (exception: Exception) {
-            closed = true
-            context.res.outputStream
-        }}
-
-    private var closed = false
-    private val newline = "\n"
+    var closed = false
+        private set
 
     fun emit(event: String, data: InputStream, id: String?) = synchronized(this) {
         try {
             if (id != null) {
-                output.print("id: $id$newline")
+                write("id: $id$NEW_LINE")
             }
-            output.print("event: $event$newline")
-            output.print("data: ")
-            data.copyTo(output)
-            output.print(newline)
-            output.print(newline)
-            context.req.asyncContext.response.flushBuffer()
-        } catch (e: IOException) {
+            write("event: $event$NEW_LINE")
+            write("data: ")
+            data.copyTo(response.outputStream)
+            write(NEW_LINE)
+            write(NEW_LINE)
+            response.flushBuffer()
+        } catch (ignored: IOException) {
             closed = true
         }
     }
 
-    fun emit(comment: String) = try {
-        comment.split(newline).forEach {
-            output.print("$COMMENT_PREFIX $it$newline")
+    fun emit(comment: String) =
+        try {
+            comment.split(NEW_LINE).forEach {
+                write("$COMMENT_PREFIX $it$NEW_LINE")
+            }
+            response.flushBuffer()
+        } catch (ignored: IOException) {
+            closed = true
         }
-        context.req.asyncContext.response.flushBuffer()
-    } catch (ignored: IOException) {
-        closed = true
-    }
 
-    fun isClosed() = closed
+    private fun write(value: String) =
+        response.outputStream.print(value)
 
 }

@@ -1,13 +1,10 @@
 package io.javalin
 
-import io.javalin.apibuilder.ApiBuilder.sse
-import io.javalin.http.Context
 import io.javalin.http.sse.SseClient
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.concurrent.CompletableFuture
 
 class TestSse {
 
@@ -130,20 +127,4 @@ class TestSse {
         )
     }
 
-}
-
-fun main() {
-    fun scheduleNextEvent(client: SseClient) {
-        println("Send")
-
-        client.ctx.async {
-            Thread.sleep(1000)
-            client.sendEvent("Test")
-            scheduleNextEvent(client)
-        }
-    }
-
-    Javalin.create()
-        .sse("/sse") { scheduleNextEvent(it) }
-        .start(8080)
 }
