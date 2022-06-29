@@ -9,7 +9,7 @@ class SseClient internal constructor(
     @JvmField val ctx: Context
 ) : Closeable {
 
-    private val emitter = Emitter(ctx.req.asyncContext)
+    private val emitter = Emitter(ctx)
     private var closeCallback = Runnable {}
 
     fun onClose(closeCallback: Runnable) {
@@ -17,7 +17,6 @@ class SseClient internal constructor(
     }
 
     override fun close() {
-        ctx.req.asyncContext.complete()
         closeCallback.run()
     }
 

@@ -23,9 +23,14 @@ data class Stage(
 
 internal data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
-    val future: CompletableFuture<VALUE> = completedFuture(null),
+    val future: CompletableFuture<VALUE>? = null,
     val callback: Consumer<VALUE>? = null,
-)
+) {
+
+    fun futureOrCompletedStage(): CompletableFuture<VALUE> =
+        future ?: completedFuture(null)
+
+}
 
 internal data class Task(
     val stage: Stage,
@@ -100,7 +105,7 @@ class JavalinServletHandler(
             task.handler(this)
         } catch (exception: Exception) {
             errored = true
-            ctx.resultReference.getAndSet(Result(previousResult)).future.cancel(true)
+            ctx.resultReference.getAndSet(Result(previousResult)).future?.cancel(true)
             exceptionMapper.handle(exception, ctx)
         }
         return ctx.resultReference.getAndSet(Result(previousResult))
@@ -110,10 +115,10 @@ class JavalinServletHandler(
                     else -> result
                 }
             }
-            .also { result -> if (!ctx.isAsync() && !result.future.isDone) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
-            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addListener(onTimeout = { result.future.cancel(true) }) }
+            .also { result -> if (!ctx.isAsync() && result.future?.isDone == false) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
+            .also { result -> if (ctx.isAsync()) ctx.req.asyncContext.addListener(onTimeout = { result.future?.cancel(true) }) }
             .let { result ->
-                result.future
+                result.futureOrCompletedStage()
                     .thenAccept { value -> result.callback?.also { (it as Consumer<Any?>).accept(value) } ?: ctx.contextResolver().defaultFutureCallback(ctx, value) } // callback after future resolves - modifies ctx result, status, etc
                     .thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
                     .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler

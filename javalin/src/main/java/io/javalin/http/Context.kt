@@ -25,6 +25,12 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeoutException
+
+/** Defines default [ExecutorService] used by [Context.future] */
+const val ASYNC_EXECUTOR_KEY = "context-async-executor"
 
 /**
  * Provides access to functions for handling the request and response
@@ -354,14 +360,39 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         SeekableWriter.write(this, inputStream, contentType, size)
 
     fun resultStream(): InputStream? = resultReference.get().let { result ->
-        result.future.takeIf { it.isDone }?.get() as InputStream? ?: result.previous
+        result.future?.takeIf { it.isDone }?.get() as InputStream? ?: result.previous
+    }
+
+    /** Utility function that allows to run async task on top of the [Context.future] method. */
+    @JvmOverloads
+    fun async(
+        executor: ExecutorService = appAttribute(ASYNC_EXECUTOR_KEY),
+        timeout: Long = 0L,
+        onTimeout: (() -> Unit)? = null,
+        task: Runnable
+    ): CompletableFuture<*> {
+        var await = CompletableFuture.runAsync(task, executor)
+
+        if (timeout > 0)
+            await = await.orTimeout(timeout, MILLISECONDS)
+
+        if (onTimeout != null)
+            await = await.exceptionally {
+                when (it) {
+                    is TimeoutException -> onTimeout().let { null }
+                    else -> throw it
+                }
+            }
+
+        future(await) { /* do not process the result value */ }
+        return await
     }
 
     /** The default callback (used if no callback is provided) can be configured through [ContextResolver.defaultFutureCallback] */
     @JvmOverloads
     fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>? = null): Context {
         resultReference.updateAndGet { oldResult ->
-            oldResult.future.cancel(true)
+            oldResult.future?.cancel(true)
             Result(oldResult.previous, future, callback)
         }
         return this

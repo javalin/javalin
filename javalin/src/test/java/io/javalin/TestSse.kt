@@ -1,5 +1,7 @@
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder.sse
+import io.javalin.http.Context
 import io.javalin.http.sse.SseClient
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
@@ -109,14 +111,14 @@ class TestSse {
     fun `send async data is properly processed`() = TestUtil.test { app, http ->
         app.sse("/sse") {
             it.sendEvent("Sync event")
-            CompletableFuture.runAsync {
+            it.ctx.async {
                 Thread.sleep(100)
                 it.sendEvent("Async event")
-                it.close()
             }
         }
 
         val body = http.sse("/sse").get().body
+
         assertThat(body.trim()).isEqualTo(
             """
             event: message
@@ -128,4 +130,20 @@ class TestSse {
         )
     }
 
+}
+
+fun main() {
+    fun scheduleNextEvent(client: SseClient) {
+        println("Send")
+
+        client.ctx.async {
+            Thread.sleep(1000)
+            client.sendEvent("Test")
+            scheduleNextEvent(client)
+        }
+    }
+
+    Javalin.create()
+        .sse("/sse") { scheduleNextEvent(it) }
+        .start(8080)
 }
