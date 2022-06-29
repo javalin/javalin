@@ -232,7 +232,7 @@ public class JavalinConfig {
 
         config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
-        config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, Executors.newCachedThreadPool(new NamedThreadFactory("JettyServerThreadPool")));
+        config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, Executors.newCachedThreadPool(new NamedThreadFactory("JavalinDefaultAsyncThreadPool")));
 
         app.attribute(maxRequestSizeKey, config.maxRequestSize);
     }
