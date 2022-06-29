@@ -9,12 +9,14 @@ internal class TestAsync {
     @Test
     fun `async requests works`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
+            val httpThreadName = Thread.currentThread().name
+
             ctx.async {
-                ctx.result("Response")
+                ctx.result((Thread.currentThread().name != httpThreadName).toString())
             }
         }
 
-        assertThat(http.get("/").body).isEqualTo("Response")
+        assertThat(http.get("/").body).isEqualTo("true")
     }
 
     @Test
