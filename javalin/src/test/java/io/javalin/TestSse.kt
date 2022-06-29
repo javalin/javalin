@@ -4,6 +4,7 @@ import io.javalin.http.sse.SseClient
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.bouncycastle.crypto.tls.ConnectionEnd.client
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
 
@@ -130,23 +131,13 @@ class TestSse {
 
     @Test
     fun `user can freeze sse handler to leak sse client outside the handler`() = TestUtil.test { app, http ->
-        val clients = mutableListOf<SseClient>()
-
-        // some 3rd party service
-        fun notifyClients() {
-            clients.forEach {
-                it.sendComment("Blocked")
-                it.close()
-            }
-        }
-
-        app.sse("/sse") { client ->
-            clients.add(client)
-            client.keepAlive()
+        app.sse("/sse") {
+            it.keepAlive()
 
             CompletableFuture.runAsync {
                 Thread.sleep(500)
-                notifyClients()
+                it.sendComment("Blocked")
+                it.close()
             }
         }
 
