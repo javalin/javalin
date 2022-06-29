@@ -148,7 +148,6 @@ class TestSse {
         }
 
         assertThat(http.sse("/sse").get().body.trim()).isEqualTo(": Emitted and closed!")
-
     }
 
 }
