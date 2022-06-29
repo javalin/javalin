@@ -368,7 +368,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
+    fun resultFuture(): CompletableFuture<*> = resultReference.get().future
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {
