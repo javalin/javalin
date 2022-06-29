@@ -129,7 +129,7 @@ class TestSse {
     }
 
     @Test
-    fun `user can freeze sse handler to leak sse client`() = TestUtil.test { app, http ->
+    fun `user can freeze sse handler to leak sse client outside the handler`() = TestUtil.test { app, http ->
         val clients = mutableListOf<SseClient>()
 
         // some 3rd party service
@@ -142,7 +142,7 @@ class TestSse {
 
         app.sse("/sse") { client ->
             clients.add(client)
-            client.await()
+            client.keepAlive()
 
             CompletableFuture.runAsync {
                 Thread.sleep(500)

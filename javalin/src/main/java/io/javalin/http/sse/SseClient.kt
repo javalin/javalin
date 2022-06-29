@@ -19,7 +19,7 @@ class SseClient internal constructor(
      * Keep in mind that this function is based on top of the [Context.future],
      * so you can't use any result function in this scope anymore.
      */
-    fun await() {
+    fun keepAlive() {
         this.blockingFuture = ctx.future(
             future = CompletableFuture<Nothing?>(),
             callback = { /* noop */}
