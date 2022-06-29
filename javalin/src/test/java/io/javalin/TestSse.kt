@@ -7,6 +7,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.bouncycastle.crypto.tls.ConnectionEnd.client
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class TestSse {
 
@@ -131,17 +133,22 @@ class TestSse {
 
     @Test
     fun `user can freeze sse handler to leak sse client outside the handler`() = TestUtil.test { app, http ->
-        app.sse("/sse") {
-            it.keepAlive()
+        val clients = mutableListOf<SseClient>()
 
-            CompletableFuture.runAsync {
-                Thread.sleep(500)
-                it.sendComment("Blocked")
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate({
+            clients.forEach {
+                it.sendComment("Emitted and closed!")
                 it.close()
             }
+        }, 50L, 50L, TimeUnit.MILLISECONDS)
+
+        app.sse("/sse") { client ->
+            clients.add(client)
+            client.keepAlive()
         }
 
-        assertThat(http.sse("/sse").get().body.trim()).isEqualTo(": Blocked")
+        assertThat(http.sse("/sse").get().body.trim()).isEqualTo(": Emitted and closed!")
+
     }
 
 }
