@@ -105,7 +105,7 @@ class TestSse {
     }
 
     @Test
-    fun `send async data is properly processed`() = TestUtil.test { app, http ->
+    fun `sending async data is properly processed`() = TestUtil.test { app, http ->
         app.sse("/sse") {
             it.sendEvent("Sync event")
             it.ctx.async {
