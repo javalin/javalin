@@ -207,20 +207,6 @@ class TestFuture {
         assertThat(http.get("/").body).isEqualTo("Processed value")
     }
 
-    @Test
-    fun `should support legacy usage of asyncStart`() = TestUtil.test(impatientServer) { app, http ->
-        app.get("/") { ctx ->
-            ctx.req.startAsync()
-
-            getFuture("response").thenAccept {
-                ctx.res.outputStream.write(it.toByteArray())
-                ctx.req.asyncContext.complete()
-            }
-        }
-
-        assertThat(http.get("/").body).isEqualTo("response")
-    }
-
     private fun getFuture(result: String?, delay: Long = 10): CompletableFuture<String> {
         val future = CompletableFuture<String>()
         Executors.newSingleThreadScheduledExecutor().schedule({
