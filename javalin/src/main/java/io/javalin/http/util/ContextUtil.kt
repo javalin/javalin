@@ -94,14 +94,14 @@ object ContextUtil {
     }
 
     fun Context.throwPayloadTooLargeIfPayloadTooLarge() {
-        val maxRequestSize = this.appAttribute<Long>(maxRequestSizeKey)
+        val maxRequestSize = this.appAttribute<Long>(MAX_REQUEST_SIZE_KEY)
         if (this.req.contentLength > maxRequestSize) {
             JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
             throw HttpResponseException(HttpCode.PAYLOAD_TOO_LARGE.status, HttpCode.PAYLOAD_TOO_LARGE.message)
         }
     }
 
-    const val maxRequestSizeKey = "javalin-max-request-size"
+    const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"
 
     const val sessionCacheKeyPrefix = "javalin-session-attribute-cache-"
 
