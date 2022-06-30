@@ -50,17 +50,17 @@ public class Javalin implements AutoCloseable {
      * Do not use this field unless you know what you're doing.
      * Application config should be declared in {@link Javalin#create(Consumer)}
      */
-    public JavalinConfig _conf = new JavalinConfig();
+    public JavalinConfig cfg = new JavalinConfig();
 
     protected JettyServer jettyServer; // null in standalone-mode
     protected JavalinJettyServlet javalinJettyServlet; // null in standalone-mode
-    protected JavalinServlet javalinServlet = new JavalinServlet(_conf);
+    protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
 
     protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
-        this.jettyServer = new JettyServer(_conf);
-        this.javalinJettyServlet = new JavalinJettyServlet(_conf, javalinServlet);
+        this.jettyServer = new JettyServer(cfg);
+        this.javalinJettyServlet = new JavalinJettyServlet(cfg, javalinServlet);
     }
 
     public Javalin(JettyServer jettyServer, JavalinJettyServlet jettyServlet) {
@@ -89,7 +89,7 @@ public class Javalin implements AutoCloseable {
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
         JavalinValidation.addValidationExceptionMapper(app);
-        JavalinConfig.applyUserConfig(app, app._conf, config); // mutates app.config and app (adds http-handlers)
+        JavalinConfig.applyUserConfig(app, app.cfg, config); // mutates app.config and app (adds http-handlers)
         JettyUtil.maybeLogIfServerNotStarted(app.jettyServer);
         return app;
     }
@@ -97,7 +97,7 @@ public class Javalin implements AutoCloseable {
     // Create a standalone (non-jetty dependent) Javalin with the supplied config
     public static Javalin createStandalone(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin(null, null);
-        JavalinConfig.applyUserConfig(app, app._conf, config); // mutates app.config and app (adds http-handlers)
+        JavalinConfig.applyUserConfig(app, app.cfg, config); // mutates app.config and app (adds http-handlers)
         return app;
     }
 
@@ -249,7 +249,7 @@ public class Javalin implements AutoCloseable {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin attribute(String key, Object value) {
-        _conf.inner.appAttributes.put(key, value);
+        cfg.inner.appAttributes.put(key, value);
         return this;
     }
 
@@ -260,7 +260,7 @@ public class Javalin implements AutoCloseable {
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
     public <T> T attribute(String key) {
-        return (T) _conf.inner.appAttributes.get(key);
+        return (T) cfg.inner.appAttributes.get(key);
     }
 
     /**

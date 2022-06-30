@@ -48,7 +48,7 @@ class TestWebSocket {
     fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
 
     fun accessManagedJavalin() = Javalin.create().apply {
-        this._conf.accessManager { handler, ctx, roles ->
+        this.cfg.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("allowed") == "true" -> {
@@ -276,7 +276,7 @@ class TestWebSocket {
 
     @Test
     fun `web socket logging works`() = TestUtil.test(Javalin.create().apply {
-        this._conf.wsLogger { ws ->
+        this.cfg.wsLogger { ws ->
             ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
             ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
         }

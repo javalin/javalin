@@ -104,7 +104,7 @@ class TestPlugins {
             it.registerPlugin(plugin)
         }
 
-        assertThat(app._conf.getPlugin<TestPlugin>()).isEqualTo(plugin)
+        assertThat(app.cfg.getPlugin<TestPlugin>()).isEqualTo(plugin)
     }
 
     @Test
@@ -112,7 +112,7 @@ class TestPlugins {
         val app = Javalin.create {}
 
         assertThatThrownBy {
-            app._conf.getPlugin<TestPlugin>()
+            app.cfg.getPlugin<TestPlugin>()
         }.isEqualTo(PluginNotFoundException(TestPlugin::class.java))
     }
 }

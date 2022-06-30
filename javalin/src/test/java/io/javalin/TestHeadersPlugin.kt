@@ -125,7 +125,7 @@ class TestHeadersPlugin {
     @Test
     fun `test plugin is registered when calling headers method`() {
         val javalin = Javalin.create { config: JavalinConfig -> config.globalHeaders { Headers() } }
-        val retrievedPlugin: HeadersPlugin = javalin._conf.getPlugin(HeadersPlugin::class.java)
+        val retrievedPlugin: HeadersPlugin = javalin.cfg.getPlugin(HeadersPlugin::class.java)
         assertThat(retrievedPlugin).isSameAs(retrievedPlugin)
     }
 

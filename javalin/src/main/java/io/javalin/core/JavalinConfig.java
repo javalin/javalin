@@ -23,7 +23,6 @@ import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.HttpAllowedMethodsOnRoutesUtil;
 import io.javalin.core.util.JavalinExecutors;
-import io.javalin.core.util.LogUtil;
 import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
 import io.javalin.http.Handler;
@@ -33,6 +32,7 @@ import io.javalin.http.staticfiles.Location;
 import io.javalin.http.staticfiles.ResourceHandler;
 import io.javalin.http.staticfiles.StaticFileConfig;
 import io.javalin.jetty.JettyResourceHandler;
+import io.javalin.plugin.DevLoggingPlugin;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
@@ -91,9 +91,6 @@ public class JavalinConfig {
     }
     // @formatter:on
 
-    /**
-     * Register a new plugin.
-     */
     public void registerPlugin(@NotNull Plugin plugin) {
         if (inner.plugins.containsKey(plugin.getClass())) {
             throw new PluginAlreadyRegisteredException(plugin.getClass());
@@ -101,9 +98,6 @@ public class JavalinConfig {
         inner.plugins.put(plugin.getClass(), plugin);
     }
 
-    /**
-     * Get a registered plugin
-     */
     public <T extends Plugin> T getPlugin(@NotNull Class<T> pluginClass) {
         T result = (T) inner.plugins.get(pluginClass);
         if (result == null) {
@@ -112,10 +106,10 @@ public class JavalinConfig {
         return result;
     }
 
-    public void enableDevLogging() {
-        requestLogger(LogUtil::requestDevLogger);
-        wsLogger(LogUtil::wsDevLogger);
-        registerPlugin(new LogUtil.HandlerLoggingPlugin());
+    public void contextResolvers(@NotNull Consumer<ContextResolver> userResolver) {
+        ContextResolver finalResolver = new ContextResolver();
+        userResolver.accept(finalResolver);
+        inner.appAttributes.put(CONTEXT_RESOLVER_KEY, finalResolver);
     }
 
     public void enableWebjars() {
@@ -161,6 +155,18 @@ public class JavalinConfig {
         registerPlugin(CorsPlugin.forOrigins(origins));
     }
 
+    public void enableHttpAllowedMethodsOnRoutes() {
+        registerPlugin(new HttpAllowedMethodsOnRoutesUtil());
+    }
+
+    public void enableDevLogging() {
+        registerPlugin(new DevLoggingPlugin());
+    }
+
+    public void globalHeaders(Supplier<Headers> headers) {
+        registerPlugin(new HeadersPlugin(headers.get()));
+    }
+
     public void accessManager(@NotNull AccessManager accessManager) {
         inner.accessManager = accessManager;
     }
@@ -197,10 +203,6 @@ public class JavalinConfig {
 
     public void compressionStrategy(CompressionStrategy compressionStrategy) {
         inner.compressionStrategy = compressionStrategy;
-    }
-
-    public void globalHeaders(Supplier<Headers> headers) {
-        registerPlugin(new HeadersPlugin(headers.get()));
     }
 
     public void jsonMapper(JsonMapper jsonMapper) {
@@ -243,13 +245,4 @@ public class JavalinConfig {
             .map(plugin -> (T) plugin);
     }
 
-    public void contextResolvers(@NotNull Consumer<ContextResolver> userResolver) {
-        ContextResolver finalResolver = new ContextResolver();
-        userResolver.accept(finalResolver);
-        inner.appAttributes.put(CONTEXT_RESOLVER_KEY, finalResolver);
-    }
-
-    public void enableHttpAllowedMethodsOnRoutes() {
-        registerPlugin(new HttpAllowedMethodsOnRoutesUtil());
-    }
 }
