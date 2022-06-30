@@ -314,7 +314,7 @@ class TestWebSocket {
 
     @Test
     fun `custom WebSocketServletFactory works`() {
-        var err: Throwable? = Exception("Bang")
+        var handlerError: Throwable? = null
         val maxTextSize = 1L
         val textToSend = "This text is far too long."
         val app = Javalin.create {
@@ -322,12 +322,15 @@ class TestWebSocket {
                 wsFactory.maxTextMessageSize = maxTextSize
             }
         }.ws("/ws") { ws ->
-            ws.onError { ctx -> err = ctx.error() }
+            ws.onError { ctx -> handlerError = ctx.error() }
         }
         TestUtil.test(app) { _, _ ->
             TestClient(app, "/ws").connectSendAndDisconnect(textToSend)
-            assertThat(err!!.message).isEqualTo("Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize")
-            assertThat(err).isExactlyInstanceOf(MessageTooLargeException::class.java)
+            repeat(10) {
+                if (handlerError == null) Thread.sleep(5) // give Javalin time to trigger the error handler
+            }
+            assertThat(handlerError!!.message).isEqualTo("Text message too large: (actual) ${textToSend.length} > (configured max text message size) $maxTextSize")
+            assertThat(handlerError).isExactlyInstanceOf(MessageTooLargeException::class.java)
         }
     }
 
