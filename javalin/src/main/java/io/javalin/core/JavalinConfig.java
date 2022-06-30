@@ -22,6 +22,7 @@ import io.javalin.core.util.Header;
 import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.HttpAllowedMethodsOnRoutesUtil;
+import io.javalin.core.util.JavalinExecutors;
 import io.javalin.core.util.LogUtil;
 import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
@@ -38,7 +39,6 @@ import io.javalin.websocket.WsConfig;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static io.javalin.http.ContextKt.ASYNC_EXECUTOR_KEY;
 import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
-import static io.javalin.http.util.ContextUtil.maxRequestSizeKey;
+import static io.javalin.http.util.ContextUtil.MAX_REQUEST_SIZE_KEY;
 import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
 public class JavalinConfig {
@@ -232,9 +232,8 @@ public class JavalinConfig {
 
         config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
-        config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, Executors.newCachedThreadPool(new NamedThreadFactory("JavalinDefaultAsyncThreadPool")));
-
-        app.attribute(maxRequestSizeKey, config.maxRequestSize);
+        config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, JavalinExecutors.newCachedThreadPool("JavalinDefaultAsyncThreadPool"));
+        config.inner.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, config.maxRequestSize);
     }
 
     private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {

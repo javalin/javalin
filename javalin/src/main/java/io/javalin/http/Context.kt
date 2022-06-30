@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 
 /** Defines default [ExecutorService] used by [Context.future] */
-const val ASYNC_EXECUTOR_KEY = "context-async-executor"
+const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
 
 /**
  * Provides access to functions for handling the request and response
