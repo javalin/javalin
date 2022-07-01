@@ -14,7 +14,7 @@ public class HelloWorldStaticFiles {
 
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.addStaticFiles("/public", Location.CLASSPATH);
+            config.staticFiles.add("/public", Location.CLASSPATH);
         }).start(7070);
     }
 

@@ -9,7 +9,7 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
-import io.javalin.core.JavalinConfig;
+import io.javalin.core.config.JavalinConfig;
 import io.javalin.core.event.EventListener;
 import io.javalin.core.event.EventManager;
 import io.javalin.core.event.HandlerMetaInfo;

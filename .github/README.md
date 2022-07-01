@@ -76,7 +76,7 @@ All examples are in Kotlin, but you can find them in Java in the documentation (
 val app = Javalin.create { config ->
     config.defaultContentType = "application/json"
     config.autogenerateEtags = true
-    config.addStaticFiles("/public")
+    config.staticFiles.add("/public")
     config.asyncRequestTimeout = 10_000L
     config.dynamicGzip = true
     config.enforceSsl = true

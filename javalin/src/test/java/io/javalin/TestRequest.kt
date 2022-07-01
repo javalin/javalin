@@ -276,7 +276,7 @@ class TestRequest {
     fun `basic auth filter plugin works`() {
         val basicauthApp = Javalin.create {
             it.registerPlugin(BasicAuthFilter("u", "p"))
-            it.addStaticFiles("/public", Location.CLASSPATH)
+            it.staticFiles.add("/public", Location.CLASSPATH)
         }.get("/hellopath") { it.result("Hello") }
         TestUtil.test(basicauthApp) { _, http ->
             assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")

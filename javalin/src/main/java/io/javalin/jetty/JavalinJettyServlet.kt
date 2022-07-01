@@ -6,7 +6,7 @@
 
 package io.javalin.jetty
 
-import io.javalin.core.JavalinConfig
+import io.javalin.core.config.JavalinConfig
 import io.javalin.core.security.RouteRole
 import io.javalin.core.util.Header
 import io.javalin.http.Context

@@ -1,6 +1,6 @@
 package io.javalin.http
 
-import io.javalin.core.JavalinConfig
+import io.javalin.core.config.JavalinConfig
 import io.javalin.core.compression.CompressedStream
 import io.javalin.core.util.Header.CONTENT_ENCODING
 import io.javalin.core.util.Header.ETAG

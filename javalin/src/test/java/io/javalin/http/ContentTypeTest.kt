@@ -33,7 +33,7 @@ class ContentTypeTest {
     @Test
     fun `file should be served even if content type isn't set`() {
         val precompressingApp = Javalin.create { config ->
-            config.addStaticFiles {
+            config.staticFiles.add {
                 it.precompress = true
                 it.directory = "/markdown"
             }

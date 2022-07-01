@@ -11,6 +11,6 @@ import io.javalin.http.staticfiles.Location
 
 fun main() {
     Javalin.create {
-        it.addStaticFiles("src/test/external/", Location.EXTERNAL)
+        it.staticFiles.add("src/test/external/", Location.EXTERNAL)
     }.start(7070)
 }

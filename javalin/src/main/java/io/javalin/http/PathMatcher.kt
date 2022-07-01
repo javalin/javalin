@@ -6,8 +6,8 @@
 
 package io.javalin.http
 
-import io.javalin.core.JavalinConfig.RoutingConfig
 import io.javalin.core.PathParser
+import io.javalin.core.config.RoutingConfig
 import java.util.*
 
 data class HandlerEntry(

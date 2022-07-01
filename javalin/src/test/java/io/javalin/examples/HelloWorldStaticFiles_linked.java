@@ -20,7 +20,7 @@ public class HelloWorldStaticFiles_linked {
         createSymLink("src/test/external/html.html", "src/test/external/linked_html.html");
 
         Javalin.create(javalin -> {
-            javalin.addStaticFiles(staticFiles -> {
+            javalin.staticFiles.add(staticFiles -> {
                 staticFiles.directory = "src/test/external/";
                 staticFiles.location = Location.EXTERNAL;
                 staticFiles.aliasCheck = new ContextHandler.ApproveAliases();

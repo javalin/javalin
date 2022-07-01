@@ -27,23 +27,24 @@ class TestConfiguration {
     @Test
     fun `test all config options`() = TestUtil.runLogLess {
         val app = Javalin.create {
+
             // JavalinServlet
-            it.addSinglePageRoot("/", "/public/html.html")
-            it.addSinglePageRoot("/", "src/test/resources/public/html.html", Location.EXTERNAL)
-            it.addSinglePageHandler("/", {})
-            it.addStaticFiles("/public", Location.CLASSPATH)
-            it.addStaticFiles("src/test/resources/public", Location.EXTERNAL)
+            it.singlePage.addRootFile("/", "/public/html.html")
+            it.singlePage.addRootFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)
+            it.singlePage.addRootHandler("/", {})
+            it.staticFiles.add("/public", Location.CLASSPATH)
+            it.staticFiles.add("src/test/resources/public", Location.EXTERNAL)
+            it.staticFiles.enableWebjars()
+            it.registerPlugin {  }
             it.asyncRequestTimeout = 10_000L
             it.autogenerateEtags = true
             it.defaultContentType = ContentType.PLAIN
             it.enableCorsForAllOrigins()
             it.enableDevLogging()
             it.registerPlugin(RouteOverviewPlugin("/test"))
-            it.enableWebjars()
             it.enforceSsl = true
             it.prefer405over404 = false
             it.requestLogger { ctx, timeInMs -> }
-
             it.wsLogger { ws -> }
             it.registerPlugin(MicrometerPlugin())
             // Misc

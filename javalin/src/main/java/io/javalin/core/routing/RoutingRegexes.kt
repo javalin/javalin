@@ -1,6 +1,7 @@
 package io.javalin.core.routing
 
-import io.javalin.core.JavalinConfig.RoutingConfig
+import io.javalin.core.config.RoutingConfig
+
 
 internal fun constructRegexList(
     options: RoutingConfig,

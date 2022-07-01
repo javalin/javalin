@@ -27,15 +27,15 @@ class TestStaticFilesPrecompressor {
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
         Javalin.create { javalin ->
             javalin.compressionStrategy(Brotli(), Gzip())
-            javalin.addStaticFiles { staticFiles ->
+            javalin.staticFiles.add { staticFiles ->
                 staticFiles.directory = "META-INF/resources/webjars"
                 staticFiles.precompress = true
             }
-            javalin.addStaticFiles { staticFiles ->
+            javalin.staticFiles.add { staticFiles ->
                 staticFiles.directory = "/public/immutable"
                 staticFiles.precompress = true
             }
-            javalin.addStaticFiles { staticFiles ->
+            javalin.staticFiles.add { staticFiles ->
                 staticFiles.directory = "/public/protected"
                 staticFiles.precompress = true
             }
@@ -43,7 +43,7 @@ class TestStaticFilesPrecompressor {
     }
 
     @Test
-    fun `content-length unavailable for large files if precompression not enabled`() = TestUtil.test(Javalin.create { config -> config.enableWebjars() }) { _, http ->
+    fun `content-length unavailable for large files if precompression not enabled`() = TestUtil.test(Javalin.create { config -> config.staticFiles.enableWebjars() }) { _, http ->
         assertThat(http.getFile("$swaggerBasePath/swagger-ui-bundle.js", "gzip").contentLength()).isNull()
         assertThat(http.getFile("$swaggerBasePath/swagger-ui.js.gz", "gzip").contentLength()).isNull()
     }

@@ -14,11 +14,11 @@ import java.net.URL
 
 /**
  * This is just a glorified 404 handler.
- * Ex: app.addSinglePageRoot("/my-path", "index.html")
+ * Ex: app.singlePage.addRootFile("/my-path", "index.html")
  * If no routes or static files are found on "/my-path/" (or any subpath), index.html will be returned
  *
  * It also supports custom handlers (as opposed to a file path like above).
- * Ex: app.addSinglePageHandler("/my-path", myHandler)
+ * Ex: app.singlePage.addRootHandler("/my-path", myHandler)
  * If no routes or static files or single page file paths are found on "/my-path/" (or any subpath), myHandler will handle the request.
  */
 class SinglePageHandler {

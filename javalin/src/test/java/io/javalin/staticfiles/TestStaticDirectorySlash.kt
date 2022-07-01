@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 
 class TestStaticDirectorySlash {
 
-    private val normalJavalin: Javalin by lazy { Javalin.create { it.addStaticFiles("public", Location.CLASSPATH) } }
+    private val normalJavalin: Javalin by lazy { Javalin.create { it.staticFiles.add("public", Location.CLASSPATH) } }
 
     @Test
     fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { _, http ->

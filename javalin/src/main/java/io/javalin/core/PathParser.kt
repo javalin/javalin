@@ -1,6 +1,6 @@
 package io.javalin.core
 
-import io.javalin.core.JavalinConfig.RoutingConfig
+import io.javalin.core.config.RoutingConfig
 import io.javalin.core.routing.ParameterNamesNotUniqueException
 import io.javalin.core.routing.PathSegment
 import io.javalin.core.routing.constructRegexList

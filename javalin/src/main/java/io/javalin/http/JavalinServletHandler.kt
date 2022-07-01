@@ -1,6 +1,6 @@
 package io.javalin.http
 
-import io.javalin.core.JavalinConfig
+import io.javalin.core.config.JavalinConfig
 import io.javalin.core.util.LogUtil
 import java.io.InputStream
 import java.util.*

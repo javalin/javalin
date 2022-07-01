@@ -62,7 +62,7 @@ class TestContextPath {
     @Test
     fun `static-files work with context-path`() {
         val javalin = Javalin.create { servlet ->
-            servlet.addStaticFiles("/public", Location.CLASSPATH)
+            servlet.staticFiles.add("/public", Location.CLASSPATH)
             servlet.jetty.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->
@@ -74,7 +74,7 @@ class TestContextPath {
     @Test
     fun `welcome-files work with context-path`() {
         val javalin = Javalin.create { servlet ->
-            servlet.addStaticFiles("/public", Location.CLASSPATH)
+            servlet.staticFiles.add("/public", Location.CLASSPATH)
             servlet.jetty.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->

@@ -6,7 +6,7 @@
 
 package io.javalin.jetty
 
-import io.javalin.core.JavalinConfig
+import io.javalin.core.config.JavalinConfig
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
 import io.javalin.core.util.Util.logJavalinBanner
