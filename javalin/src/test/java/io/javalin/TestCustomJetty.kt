@@ -7,7 +7,7 @@
 
 package io.javalin
 
-import io.javalin.core.LoomUtil
+import io.javalin.core.util.LoomUtil
 import io.javalin.http.HttpCode
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil

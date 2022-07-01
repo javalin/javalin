@@ -1,14 +1,10 @@
 package io.javalin.jetty
 
-import io.javalin.core.LoomUtil
-import io.javalin.core.LoomUtil.loomAvailable
-import io.javalin.core.LoomUtil.useLoomThreadPool
+import io.javalin.core.util.JavalinConcurrency
 import io.javalin.core.util.JavalinLogger
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.StatisticsHandler
-import org.eclipse.jetty.util.thread.QueuedThreadPool
-import org.eclipse.jetty.util.thread.ThreadPool
 import java.io.IOException
 import java.util.concurrent.TimeoutException
 
@@ -21,12 +17,7 @@ object JettyUtil {
         setAttribute("is-default-server", true)
     }
 
-    private fun defaultThreadPool() = if (useLoomThreadPool && loomAvailable) {
-        JavalinLogger.info("Loom is available, using Virtual ThreadPool... Neat!")
-        LoomThreadPool()
-    } else {
-        QueuedThreadPool(250, 8, 60_000).apply { name = "JettyServerThreadPool" }
-    }
+    private fun defaultThreadPool() = JavalinConcurrency.threadPool("JettyServerThreadPool")
 
     var logIfNotStarted = true
 
@@ -48,18 +39,4 @@ object JettyUtil {
     // This is rare, but intended (see issues #163 and #1277)
     fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
 
-}
-
-class LoomThreadPool : ThreadPool {
-
-    private val executorService = LoomUtil.getExecutorService()
-
-    override fun execute(command: Runnable) {
-        executorService.submit(command)
-    }
-
-    override fun join() {}
-    override fun getThreads() = 1
-    override fun getIdleThreads() = 1
-    override fun isLowOnThreads() = false
 }

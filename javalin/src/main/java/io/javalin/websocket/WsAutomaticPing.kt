@@ -1,11 +1,11 @@
 package io.javalin.websocket
 
-import io.javalin.core.util.JavalinExecutors
+import io.javalin.core.util.JavalinConcurrency
 import java.nio.ByteBuffer
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-val executor: ScheduledExecutorService = JavalinExecutors.newSingleThreadScheduledExecutor("JavalinWebSocketPingThread")
+val executor: ScheduledExecutorService = JavalinConcurrency.newSingleThreadScheduledExecutor("JavalinWebSocketPingThread")
 
 fun enableAutomaticPings(ctx: WsContext, interval: Long, unit: TimeUnit, applicationData: ByteBuffer?) {
     synchronized(ctx) {
