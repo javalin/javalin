@@ -123,14 +123,7 @@ class TestHeadersPlugin {
     }
 
     @Test
-    fun `test plugin is registered when calling headers method`() {
-        val javalin = Javalin.create { config: JavalinConfig -> config.globalHeaders { Headers() } }
-        val retrievedPlugin: HeadersPlugin = javalin.cfg.getPlugin(HeadersPlugin::class.java)
-        assertThat(retrievedPlugin).isSameAs(retrievedPlugin)
-    }
-
-    @Test
-    fun `test headers are set when startung`() {
+    fun `test headers are set on app`() {
         val headers = Headers()
         headers.xContentTypeOptionsNoSniff()
         headers.clearSiteData(ClearSiteData.ANY)

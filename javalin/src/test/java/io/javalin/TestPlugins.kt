@@ -1,11 +1,9 @@
 package io.javalin
 
-import io.javalin.core.getPlugin
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginAlreadyRegisteredException
 import io.javalin.core.plugin.PluginInitLifecycleViolationException
 import io.javalin.core.plugin.PluginLifecycleInit
-import io.javalin.core.plugin.PluginNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -96,23 +94,4 @@ class TestPlugins {
         }.isEqualTo(PluginInitLifecycleViolationException(BadPlugin::class.java))
     }
 
-    @Test
-    fun `getPlugin should return instance`() {
-        val plugin = TestPlugin()
-
-        val app = Javalin.create {
-            it.registerPlugin(plugin)
-        }
-
-        assertThat(app.cfg.getPlugin<TestPlugin>()).isEqualTo(plugin)
-    }
-
-    @Test
-    fun `getPlugin should throw an error if instance does not exists`() {
-        val app = Javalin.create {}
-
-        assertThatThrownBy {
-            app.cfg.getPlugin<TestPlugin>()
-        }.isEqualTo(PluginNotFoundException(TestPlugin::class.java))
-    }
 }

@@ -12,7 +12,6 @@ import io.javalin.core.compression.CompressionStrategy;
 import io.javalin.core.compression.Gzip;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
-import io.javalin.core.plugin.PluginNotFoundException;
 import io.javalin.core.plugin.PluginUtil;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
@@ -94,14 +93,6 @@ public class JavalinConfig {
             throw new PluginAlreadyRegisteredException(plugin.getClass());
         }
         inner.plugins.put(plugin.getClass(), plugin);
-    }
-
-    public <T extends Plugin> T getPlugin(@NotNull Class<T> pluginClass) {
-        T result = (T) inner.plugins.get(pluginClass);
-        if (result == null) {
-            throw new PluginNotFoundException(pluginClass);
-        }
-        return result;
     }
 
     public void contextResolvers(@NotNull Consumer<ContextResolver> userResolver) {
