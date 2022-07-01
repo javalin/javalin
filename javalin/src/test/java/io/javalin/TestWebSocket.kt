@@ -17,17 +17,22 @@ import io.javalin.websocket.WsContext
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
+import org.eclipse.jetty.websocket.api.Frame
 import org.eclipse.jetty.websocket.api.StatusCode
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
+import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_6455
+import org.java_websocket.framing.Framedata
 import org.java_websocket.handshake.ServerHandshake
 import org.junit.jupiter.api.Test
 import java.net.URI
+import java.nio.ByteBuffer
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -513,6 +518,38 @@ class TestWebSocket {
             }
         }
     }
+    @Test
+    fun `websocket enableAutomaticPings() works`() = TestUtil.test { app, _ ->
+        app.wsBefore("/ws") { it.onConnect { ctx ->
+            // send [0, 1, 2] every 35ms by default
+            ctx.enableAutomaticPings(35, TimeUnit.MILLISECONDS, ByteBuffer.wrap(ByteArray(3) { i -> i.toByte() }))
+        } }
+        app.ws("/ws") { ws ->
+            ws.onMessage { ctx ->
+                when (ctx.message()) {
+                    "ENABLE_PINGS" ->
+                        // now send [0, 2, 4] every 30ms
+                        ctx.enableAutomaticPings(30, TimeUnit.MILLISECONDS, ByteBuffer.wrap(ByteArray(3) { i -> (i * 2).toByte() }))
+                    "DISABLE_PINGS" ->
+                        ctx.disableAutomaticPings()
+                }
+            }
+        }
+        val client = TestClient(app, "/ws", emptyMap(), {}, null, { frame : Framedata? ->
+            app.logger().log.add(frame!!.payloadData!!.get(2).toString())
+        }, null)
+        client.connectBlocking()
+        // first, let the server send us the default pings
+        Thread.sleep(60)
+        assertThat(app.logger().log).containsExactly("2", "2")
+        // then disable pings
+        client.send("DISABLE_PINGS")
+        Thread.sleep(20)
+        // reenable pings, now we get the new payload
+        client.send("ENABLE_PINGS")
+        Thread.sleep(40)
+        assertThat(app.logger().log).containsExactly("2", "2", "4")
+    }
 
     // ********************************************************************************************
     // Helpers
@@ -523,7 +560,9 @@ class TestWebSocket {
         path: String,
         headers: Map<String, String> = emptyMap(),
         val onOpen: (TestClient) -> Unit = {},
-        var onMessage: ((String) -> Unit)? = null
+        var onMessage: ((String) -> Unit)? = null,
+        var onPing: ((Framedata?) -> Unit)? = null,
+        var onPong: ((Framedata?) -> Unit)? = null
     ) : WebSocketClient(URI.create("ws://localhost:" + app.port() + path), Draft_6455(), headers, 0), AutoCloseable {
 
         override fun onOpen(serverHandshake: ServerHandshake) = onOpen(this)
@@ -532,6 +571,16 @@ class TestWebSocket {
         override fun onMessage(message: String) {
             onMessage?.invoke(message)
             app.logger().log.add(message)
+        }
+
+        override fun onWebsocketPing(conn: WebSocket?, f: Framedata?) {
+            super.onWebsocketPing(conn, f)
+            onPing?.invoke(f)
+        }
+
+        override fun onWebsocketPong(conn: WebSocket?, f: Framedata?) {
+            super.onWebsocketPong(conn, f)
+            onPong?.invoke(f)
         }
 
         fun connectAndDisconnect() {
