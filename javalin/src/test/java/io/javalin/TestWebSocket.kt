@@ -17,7 +17,6 @@ import io.javalin.websocket.WsContext
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
-import org.eclipse.jetty.websocket.api.Frame
 import org.eclipse.jetty.websocket.api.StatusCode
 import org.eclipse.jetty.websocket.api.exceptions.MessageTooLargeException
 import org.eclipse.jetty.websocket.api.util.WebSocketConstants
@@ -521,14 +520,14 @@ class TestWebSocket {
     @Test
     fun `websocket enableAutomaticPings() works`() = TestUtil.test { app, _ ->
         app.wsBefore("/ws") { it.onConnect { ctx ->
-            // send [0, 1, 2] every 35ms by default
-            ctx.enableAutomaticPings(35, TimeUnit.MILLISECONDS, ByteBuffer.wrap(ByteArray(3) { i -> i.toByte() }))
+            // send [0, 1, 2]
+            ctx.enableAutomaticPings(10, TimeUnit.MILLISECONDS, ByteBuffer.wrap(ByteArray(3) { i -> i.toByte() }))
         } }
         app.ws("/ws") { ws ->
             ws.onMessage { ctx ->
                 when (ctx.message()) {
                     "ENABLE_PINGS" ->
-                        // now send [0, 2, 4] every 30ms
+                        // now send [0, 2, 4]
                         ctx.enableAutomaticPings(30, TimeUnit.MILLISECONDS, ByteBuffer.wrap(ByteArray(3) { i -> (i * 2).toByte() }))
                     "DISABLE_PINGS" ->
                         ctx.disableAutomaticPings()
@@ -540,15 +539,21 @@ class TestWebSocket {
         }, null)
         client.connectBlocking()
         // first, let the server send us the default pings
-        Thread.sleep(60)
-        assertThat(app.logger().log).containsExactly("2", "2")
-        // then disable pings
+        Thread.sleep(100)
         client.send("DISABLE_PINGS")
-        Thread.sleep(20)
+        Thread.sleep(100)
+        val pingsA = app.logger().log.size;
+        Thread.sleep(100)
+        val pingsB = app.logger().log.size;
+        assertThat(pingsA).isEqualTo(pingsB);
+        assertThat(pingsA).isGreaterThan(0);
+        assertThat(app.logger().log).contains("2")
+        app.logger().log.clear()
         // reenable pings, now we get the new payload
         client.send("ENABLE_PINGS")
-        Thread.sleep(40)
-        assertThat(app.logger().log).containsExactly("2", "2", "4")
+        Thread.sleep(100)
+        assertThat(app.logger().log).contains("4")
+        client.disconnectBlocking();
     }
 
     // ********************************************************************************************
@@ -585,13 +590,16 @@ class TestWebSocket {
 
         fun connectAndDisconnect() {
             connectBlocking()
-            closeBlocking()
-            awaitResponse()
+            disconnectBlocking();
         }
 
         fun connectSendAndDisconnect(message: String) {
             connectBlocking()
             send(message)
+            disconnectBlocking();
+        }
+
+        fun disconnectBlocking() {
             closeBlocking()
             awaitResponse()
         }
