@@ -12,9 +12,8 @@ import io.javalin.core.compression.CompressionStrategy;
 import io.javalin.core.compression.Gzip;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
-import io.javalin.core.plugin.PluginInitLifecycleViolationException;
-import io.javalin.core.plugin.PluginLifecycleInit;
 import io.javalin.core.plugin.PluginNotFoundException;
+import io.javalin.core.plugin.PluginUtil;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.CorsPlugin;
@@ -23,6 +22,7 @@ import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.HttpAllowedMethodsOnRoutesUtil;
 import io.javalin.core.util.ConcurrencyUtil;
+import io.javalin.core.validation.JavalinValidation;
 import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
 import io.javalin.http.Handler;
@@ -39,10 +39,8 @@ import io.javalin.websocket.WsConfig;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -210,39 +208,16 @@ public class JavalinConfig {
     }
 
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
+        JavalinValidation.addValidationExceptionMapper(app); // add default mapper for validation
         userConfig.accept(config); // apply user config to the default config
-
-        AtomicBoolean anyHandlerAdded = new AtomicBoolean(false);
-        app.events(listener -> {
-            listener.handlerAdded(x -> anyHandlerAdded.set(true));
-            listener.wsHandlerAdded(x -> anyHandlerAdded.set(true));
-        });
-
-        config.getPluginsExtending(PluginLifecycleInit.class)
-            .forEach(plugin -> {
-                plugin.init(app);
-                if (anyHandlerAdded.get()) { // check if any "init" added a handler
-                    throw new PluginInitLifecycleViolationException(((Plugin) plugin).getClass());
-                }
-            });
-
-        config.inner.plugins.values().forEach(plugin -> plugin.apply(app));
-
         if (config.enforceSsl) {
-            app.before(SecurityUtil::sslRedirect);
+            app.before(SecurityUtil::sslRedirect); // needs to be the first handler
         }
-
+        PluginUtil.attachPlugins(app, config.inner.plugins.values());
         config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
         config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool"));
         config.inner.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, config.maxRequestSize);
-    }
-
-    private <T> Stream<? extends T> getPluginsExtending(Class<T> clazz) {
-        return inner.plugins.values()
-            .stream()
-            .filter(clazz::isInstance)
-            .map(plugin -> (T) plugin);
     }
 
 }

@@ -88,7 +88,6 @@ public class Javalin implements AutoCloseable {
      */
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
-        JavalinValidation.addValidationExceptionMapper(app);
         JavalinConfig.applyUserConfig(app, app.cfg, config); // mutates app.config and app (adds http-handlers)
         JettyUtil.maybeLogIfServerNotStarted(app.jettyServer);
         return app;
