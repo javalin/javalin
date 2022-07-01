@@ -7,8 +7,8 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-val executor: ScheduledExecutorService = JavalinExecutors.newSingleThreadScheduledExecutor("JavalinWebSocketPingThread")
-val pingFutures: ConcurrentHashMap<WsContext, ScheduledFuture<*>?> = ConcurrentHashMap()
+val executor: ScheduledExecutorService by lazy { JavalinExecutors.newSingleThreadScheduledExecutor("JavalinWebSocketPingThread") }
+val pingFutures: ConcurrentHashMap<WsContext, ScheduledFuture<*>?> by lazy { ConcurrentHashMap() }
 
 fun enableAutomaticPings(ctx: WsContext, interval: Long, unit: TimeUnit, applicationData: ByteBuffer?) {
     synchronized(ctx) {
