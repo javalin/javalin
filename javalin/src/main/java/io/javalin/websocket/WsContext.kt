@@ -26,7 +26,6 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     internal val upgradeReq by lazy { session.jettyUpgradeRequest() }
     internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
     internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
-    internal var pingFuture : ScheduledFuture<*>? = null;
 
 
     fun matchedPath() = upgradeCtx.matchedPath
