@@ -234,7 +234,7 @@ class TestMicrometerPlugin {
         autoGenerateEtags: Boolean? = null,
         contextPath: String = "/"
     ) = Javalin.create { config ->
-        config.contextPath = contextPath
+        config.jetty.contextPath = contextPath
         config.registerPlugin(
             MicrometerPlugin(
                 registry = meterRegistry,

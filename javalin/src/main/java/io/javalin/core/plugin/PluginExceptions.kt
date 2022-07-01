@@ -3,9 +3,6 @@ package io.javalin.core.plugin
 data class PluginAlreadyRegisteredException(val pluginClass: Class<out Plugin>) :
     RuntimeException("${pluginClass.canonicalName} is already registered")
 
-data class PluginNotFoundException(val pluginClass: Class<out Plugin>) :
-    RuntimeException("The plugin ${pluginClass.canonicalName} was not found")
-
 abstract class PluginLifecycleViolationException(pluginClass: Class<out Plugin>, override val message: String) :
     RuntimeException("Error in ${pluginClass.canonicalName}: $message")
 

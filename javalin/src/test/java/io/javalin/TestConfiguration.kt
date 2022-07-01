@@ -35,7 +35,6 @@ class TestConfiguration {
             it.addStaticFiles("src/test/resources/public", Location.EXTERNAL)
             it.asyncRequestTimeout = 10_000L
             it.autogenerateEtags = true
-            it.contextPath = "/"
             it.defaultContentType = ContentType.PLAIN
             it.enableCorsForAllOrigins()
             it.enableDevLogging()
@@ -44,19 +43,19 @@ class TestConfiguration {
             it.enforceSsl = true
             it.prefer405over404 = false
             it.requestLogger { ctx, timeInMs -> }
-            it.sessionHandler { SessionHandler() }
-            // WsServlet
-            it.wsFactoryConfig { factory -> }
+
             it.wsLogger { ws -> }
-            // Server
-            it.server {
-                Server()
-            }
             it.registerPlugin(MicrometerPlugin())
             // Misc
             it.accessManager { _, _, _ -> }
             it.showJavalinBanner = false
-            it.configureServletContextHandler { handler ->
+            it.jetty.contextPath = "/"
+            it.jetty.sessionHandler { SessionHandler() }
+            it.jetty.wsFactoryConfig { factory -> }
+            it.jetty.server {
+                Server()
+            }
+            it.jetty.contextHandlerConfig { handler ->
                 handler.addEventListener(object : HttpSessionListener {
                     override fun sessionCreated(e: HttpSessionEvent?) {
                     }

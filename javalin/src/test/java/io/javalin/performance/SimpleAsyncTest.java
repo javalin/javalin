@@ -32,7 +32,7 @@ public class SimpleAsyncTest {
 
         QueuedThreadPool threadPool = new QueuedThreadPool(10, 2, 60_000);
 
-        Javalin app = Javalin.create(c -> c.server(() -> new Server(threadPool))).start(0);
+        Javalin app = Javalin.create(c -> c.jetty.server(() -> new Server(threadPool))).start(0);
 
         HttpUtil http = new HttpUtil(app.port());
 
