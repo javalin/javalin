@@ -1,14 +1,13 @@
 package io.javalin.plugin.json
 
-import io.javalin.core.util.JavalinConcurrency
-import io.javalin.core.util.LoomUtil
+import io.javalin.core.util.ConcurrencyUtil
 import java.io.InputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 
 object PipedStreamUtil {
 
-    val executorService = JavalinConcurrency.executorService("JavalinPipedStreamingThreadPool")
+    val executorService = ConcurrencyUtil.executorService("JavalinPipedStreamingThreadPool")
 
     fun getInputStream(userCallback: (PipedOutputStream) -> Unit): InputStream {
         val pipedOutputStream = PipedOutputStream()

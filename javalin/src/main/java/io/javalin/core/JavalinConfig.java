@@ -22,7 +22,7 @@ import io.javalin.core.util.Header;
 import io.javalin.core.util.Headers;
 import io.javalin.core.util.HeadersPlugin;
 import io.javalin.core.util.HttpAllowedMethodsOnRoutesUtil;
-import io.javalin.core.util.JavalinConcurrency;
+import io.javalin.core.util.ConcurrencyUtil;
 import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
 import io.javalin.http.Handler;
@@ -234,7 +234,7 @@ public class JavalinConfig {
 
         config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
-        config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, JavalinConcurrency.executorService("JavalinDefaultAsyncThreadPool"));
+        config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool"));
         config.inner.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, config.maxRequestSize);
     }
 

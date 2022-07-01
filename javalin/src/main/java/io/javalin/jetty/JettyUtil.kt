@@ -1,6 +1,6 @@
 package io.javalin.jetty
 
-import io.javalin.core.util.JavalinConcurrency
+import io.javalin.core.util.ConcurrencyUtil
 import io.javalin.core.util.JavalinLogger
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
@@ -17,7 +17,7 @@ object JettyUtil {
         setAttribute("is-default-server", true)
     }
 
-    private fun defaultThreadPool() = JavalinConcurrency.threadPool("JettyServerThreadPool")
+    private fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool")
 
     var logIfNotStarted = true
 

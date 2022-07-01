@@ -9,7 +9,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
-object JavalinConcurrency {
+object ConcurrencyUtil {
 
     var useLoom = true
 
@@ -19,13 +19,13 @@ object JavalinConcurrency {
         false -> Executors.newCachedThreadPool(NamedThreadFactory(name))
     }
 
-    fun threadPool(name: String): ThreadPool = when (useLoom && loomAvailable) {
+    fun newSingleThreadScheduledExecutor(name: String): ScheduledExecutorService =
+        Executors.newSingleThreadScheduledExecutor(NamedThreadFactory(name))
+
+    fun jettyThreadPool(name: String): ThreadPool = when (useLoom && loomAvailable) {
         true -> LoomThreadPool(name)
         false -> QueuedThreadPool(250, 8, 60_000).apply { this.name = name }
     }
-
-    fun newSingleThreadScheduledExecutor(name: String): ScheduledExecutorService =
-        Executors.newSingleThreadScheduledExecutor(NamedThreadFactory(name))
 }
 
 internal class NamedThreadFactory(private val prefix: String) : ThreadFactory {
