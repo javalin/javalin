@@ -15,7 +15,12 @@ object JavalinExecutors {
         Executors.newSingleThreadScheduledExecutor(NamedThreadFactory(name))
 }
 
-class NamedThreadFactory(private val prefix: String) : ThreadFactory {
+internal class NamedThreadFactory(private val prefix: String) : ThreadFactory {
+
+    init {
+        require(prefix.startsWith("Javalin")) { "Thread names must start with 'Javalin'" }
+    }
+
     private val group = Thread.currentThread().threadGroup
     private val threadCount = AtomicInteger(0)
     override fun newThread(runnable: Runnable): Thread =
