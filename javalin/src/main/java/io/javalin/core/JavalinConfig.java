@@ -58,8 +58,8 @@ public class JavalinConfig {
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
+    public JettyConfig jetty = new JettyConfig();
     @NotNull public String defaultContentType = ContentType.PLAIN;
-    @NotNull public String contextPath = "/";
     public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests
     @NotNull public Long asyncRequestTimeout = 0L;
     @NotNull public RoutingConfig routing = new RoutingConfig();
@@ -68,6 +68,22 @@ public class JavalinConfig {
     public static class RoutingConfig {
         public boolean ignoreTrailingSlashes = true;
         public boolean treatMultipleSlashesAsSingleSlash = false;
+    }
+
+    public class JettyConfig {
+        @NotNull public String contextPath = "/";
+        public void server(Supplier<Server> server) {
+            inner.server = server.get();
+        }
+        public void contextHandlerConfig(Consumer<ServletContextHandler> consumer) {
+            inner.servletContextHandlerConsumer = consumer;
+        }
+        public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
+            inner.sessionHandler = sessionHandlerSupplier.get();
+        }
+        public void wsFactoryConfig(@NotNull Consumer<JettyWebSocketServletFactory> wsFactoryConfig) {
+            inner.wsFactoryConfig = wsFactoryConfig;
+        }
     }
 
     // it's not bad to access this, the main reason it's hidden
@@ -164,26 +180,10 @@ public class JavalinConfig {
         inner.requestLogger = requestLogger;
     }
 
-    public void sessionHandler(@NotNull Supplier<SessionHandler> sessionHandlerSupplier) {
-        inner.sessionHandler = sessionHandlerSupplier.get();
-    }
-
-    public void wsFactoryConfig(@NotNull Consumer<JettyWebSocketServletFactory> wsFactoryConfig) {
-        inner.wsFactoryConfig = wsFactoryConfig;
-    }
-
     public void wsLogger(@NotNull Consumer<WsConfig> ws) {
         WsConfig logger = new WsConfig();
         ws.accept(logger);
         inner.wsLogger = logger;
-    }
-
-    public void server(Supplier<Server> server) {
-        inner.server = server.get();
-    }
-
-    public void configureServletContextHandler(Consumer<ServletContextHandler> consumer) {
-        inner.servletContextHandlerConsumer = consumer;
     }
 
     public void compressionStrategy(Brotli brotli, Gzip gzip) {

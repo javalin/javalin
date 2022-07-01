@@ -44,7 +44,7 @@ class JettyServer(val config: JavalinConfig) {
         config.inner.sessionHandler = config.inner.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
-        val wsAndHttpHandler = object : ServletContextHandler(nullParent, Util.normalizeContextPath(config.contextPath), SESSIONS) {
+        val wsAndHttpHandler = object : ServletContextHandler(nullParent, Util.normalizeContextPath(config.jetty.contextPath), SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
                 request.setAttribute("jetty-target", target) // used in JettyResourceHandler
                 request.setAttribute("jetty-request", jettyRequest)
@@ -72,7 +72,7 @@ class JettyServer(val config: JavalinConfig) {
         config.inner.resourceHandler?.init(mapOf("server" to server()))
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
-            JavalinLogger.startup("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.contextPath}")
+            JavalinLogger.startup("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${config.jetty.contextPath}")
         }
 
         server().connectors.filter { it !is ServerConnector }.forEach {

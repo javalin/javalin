@@ -29,7 +29,7 @@ public class VisualTest {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create((config) -> {
-            config.contextPath = "/context-path";
+            config.jetty.contextPath = "/context-path";
             config.enableCorsForAllOrigins();
             config.registerPlugin(new RouteOverviewPlugin("/route-overview"));
         }).start();

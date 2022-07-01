@@ -21,7 +21,6 @@ import io.javalin.core.util.JavalinBindException;
 import io.javalin.core.util.JavalinException;
 import io.javalin.core.util.JavalinLogger;
 import io.javalin.core.util.Util;
-import io.javalin.core.validation.JavalinValidation;
 import io.javalin.http.Context;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
@@ -325,7 +324,7 @@ public class Javalin implements AutoCloseable {
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
         javalinServlet.addHandler(handlerType, path, handler, roleSet);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), handler, roleSet));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().jetty.contextPath, path), handler, roleSet));
         return this;
     }
 
@@ -570,7 +569,7 @@ public class Javalin implements AutoCloseable {
     private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
         javalinJettyServlet.addHandler(handlerType, path, wsConfig, roleSet);
-        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().contextPath, path), wsConfig, roleSet));
+        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().jetty.contextPath, path), wsConfig, roleSet));
         return this;
     }
 

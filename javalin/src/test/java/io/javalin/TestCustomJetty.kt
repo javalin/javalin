@@ -70,7 +70,7 @@ class TestCustomJetty {
     fun `embedded server can have custom jetty Handler`() = TestUtil.runLogLess {
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
-        val app = Javalin.create { it.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.jetty.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
         val requests = 5
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -88,7 +88,7 @@ class TestCustomJetty {
         val requestLogHandler = RequestLogHandler().apply { requestLog = RequestLog { _, _ -> logCount.incrementAndGet() } }
         val handlerChain = StatisticsHandler().apply { handler = requestLogHandler }
         val newServer = Server().apply { handler = handlerChain }
-        val app = Javalin.create { it.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.jetty.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -106,7 +106,7 @@ class TestCustomJetty {
         val handlerCollection = HandlerCollection()
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
-        val app = Javalin.create { it.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.jetty.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -130,8 +130,8 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-            it.sessionHandler { fileSessionHandler }
-            it.server { newServer }
+            it.jetty.sessionHandler { fileSessionHandler }
+            it.jetty.server { newServer }
         }.start(0)
         val httpHandler = (newServer.handlers[0] as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
@@ -157,7 +157,7 @@ class TestCustomJetty {
         }
         newServer.handler = handler
 
-        val javalin = Javalin.create { it.server { newServer } }
+        val javalin = Javalin.create { it.jetty.server { newServer } }
         TestUtil.test(javalin) { app, http ->
             app.get("/bar") { it.result("Hello") }
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
@@ -177,8 +177,8 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-            it.server { newServer }
-            it.contextPath = "/api"
+            it.jetty.server { newServer }
+            it.jetty.contextPath = "/api"
         }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { it.result("Hello Javalin World!") }
@@ -199,7 +199,7 @@ class TestCustomJetty {
     fun `custom connector works`() {
         val port = (2000..9999).random()
         val app = Javalin.create { config ->
-            config.server {
+            config.jetty.server {
                 Server().apply {
                     val httpConfiguration = HttpConfiguration()
                     httpConfiguration.addCustomizer(ForwardedRequestCustomizer())
@@ -218,7 +218,7 @@ class TestCustomJetty {
     @Test
     fun `can add filter to stop request before javalin`() {
         val filterJavalin = Javalin.create {
-            it.configureServletContextHandler { handler ->
+            it.jetty.contextHandlerConfig { handler ->
                 handler.addFilter(FilterHolder(object : Filter {
                     override fun init(config: FilterConfig?) {}
                     override fun destroy() {}

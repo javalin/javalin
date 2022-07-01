@@ -45,7 +45,7 @@ class TestWebSocket {
         return this.attribute(TestLogger::class.java.name)
     }
 
-    fun contextPathJavalin() = Javalin.create { it.contextPath = "/websocket" }
+    fun contextPathJavalin() = Javalin.create { it.jetty.contextPath = "/websocket" }
 
     fun accessManagedJavalin() = Javalin.create().apply {
         this.cfg.accessManager { handler, ctx, roles ->
@@ -318,7 +318,7 @@ class TestWebSocket {
         val maxTextSize = 1L
         val textToSend = "This text is far too long."
         val app = Javalin.create {
-            it.wsFactoryConfig { wsFactory ->
+            it.jetty.wsFactoryConfig { wsFactory ->
                 wsFactory.maxTextMessageSize = maxTextSize
             }
         }.ws("/ws") { ws ->

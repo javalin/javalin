@@ -28,7 +28,7 @@ class TestUnixSocketConnector {
         val expectedResultString = "hello unixsocket"
 
         val unixSocketJavalin = Javalin.create {
-            it.server {
+            it.jetty.server {
                 val server = Server()
                 val serverConnector = ServerConnector(server)
                 serverConnector.port = 0
