@@ -106,12 +106,13 @@ class JavalinServletHandler(
             .apply { if (!ctx.isAsync() && future?.isDone == false) startAsyncAndAddDefaultTimeoutListeners() } // start async context only if the future is not already completed
             .apply { if (ctx.isAsync()) ctx.req.asyncContext.addListener(onTimeout = { future?.cancel(true) }) }
             .let { result ->
-                (result.future ?: completedFuture(null))
-                    .thenAccept { value -> result.callback?.also { (it as Consumer<Any?>).accept(value) } ?: ctx.contextResolver().defaultFutureCallback(ctx, value) } // callback after future resolves - modifies ctx result, status, etc
-                    .thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
-                    .exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
-                    .thenApply { inputStream -> inputStream.also { queueNextTaskOrFinish() } } // we have to attach the "also" to the input stream to avoid mapping a void
+                result.future
+                    ?.thenAccept { value -> result.callback?.also { (it as Consumer<Any?>).accept(value) } ?: ctx.contextResolver().defaultFutureCallback(ctx, value) } // callback after future resolves - modifies ctx result, status, etc
+                    ?.thenApply { ctx.resultStream() ?: previousResult } // set value of future to be resultStream (or previous stream)
+                    ?.exceptionally { throwable -> exceptionMapper.handleFutureException(ctx, throwable) } // standard exception handler
+                    ?: completedFuture(null)
             }
+            .thenApply { inputStream -> inputStream.also { queueNextTaskOrFinish() } } // we have to attach the "also" to the input stream to avoid mapping a void
     }
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
