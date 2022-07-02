@@ -86,6 +86,16 @@ class TestCompression {
     }
 
     @Test
+    fun `doesn't compress when compression is disabled`() = TestUtil.test(
+        Javalin.create { it.compression.none() }.addTestEndpoints()
+    ) { _, http ->
+        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // dynamic
+            assertThat(response.body.length).isEqualTo(hugeLength)
+            assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
+        }
+    }
+
+    @Test
     fun `does gzip when Accept-Encoding header is set and size is big enough`() = TestUtil.test(superCompressingApp()) { _, http ->
         getResponse(http.origin, "/huge", "gzip").let { response -> // dynamic
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("gzip")
