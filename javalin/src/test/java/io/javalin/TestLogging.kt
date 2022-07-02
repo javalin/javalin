@@ -48,7 +48,7 @@ class TestLogging {
         var loggerCalled = false
         TestUtil.runAndCaptureLogs {
             runTest(Javalin.create {
-                it.requestLogger { _, _ -> loggerCalled = true }
+                it.requestLoggers.http { _, _ -> loggerCalled = true }
             })
         }
         assertThat(loggerCalled).isTrue()
@@ -71,7 +71,7 @@ class TestLogging {
     fun `resultString is available in request logger and can be read multiple times`() {
         val loggerLog = mutableListOf<String?>()
         val bodyLoggingJavalin = Javalin.create {
-            it.requestLogger { ctx, _ ->
+            it.requestLoggers.http { ctx, _ ->
                 loggerLog.add(ctx.resultString())
                 loggerLog.add(ctx.resultString())
             }

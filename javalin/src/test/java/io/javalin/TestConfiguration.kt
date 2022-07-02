@@ -27,8 +27,6 @@ class TestConfiguration {
     @Test
     fun `test all config options`() = TestUtil.runLogLess {
         val app = Javalin.create {
-
-            // JavalinServlet
             it.singlePage.addRootFile("/", "/public/html.html")
             it.singlePage.addRootFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)
             it.singlePage.addRootHandler("/", {})
@@ -44,10 +42,9 @@ class TestConfiguration {
             it.registerPlugin(RouteOverviewPlugin("/test"))
             it.enforceSsl = true
             it.prefer405over404 = false
-            it.requestLogger { ctx, timeInMs -> }
-            it.wsLogger { ws -> }
+            it.requestLoggers.http { ctx, timeInMs -> }
+            it.requestLoggers.webSocket { ws -> }
             it.registerPlugin(MicrometerPlugin())
-            // Misc
             it.accessManager { _, _, _ -> }
             it.showJavalinBanner = false
             it.jetty.contextPath = "/"
@@ -58,11 +55,8 @@ class TestConfiguration {
             }
             it.jetty.contextHandlerConfig { handler ->
                 handler.addEventListener(object : HttpSessionListener {
-                    override fun sessionCreated(e: HttpSessionEvent?) {
-                    }
-
-                    override fun sessionDestroyed(e: HttpSessionEvent?) {
-                    }
+                    override fun sessionCreated(e: HttpSessionEvent?) {}
+                    override fun sessionDestroyed(e: HttpSessionEvent?) {}
                 })
             }
         }.start(0)

@@ -16,10 +16,8 @@ import io.javalin.core.util.ConcurrencyUtil;
 import io.javalin.core.validation.JavalinValidation;
 import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
-import io.javalin.http.RequestLogger;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
-import io.javalin.websocket.WsConfig;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import static io.javalin.http.ContextKt.ASYNC_EXECUTOR_KEY;
@@ -28,20 +26,20 @@ import static io.javalin.http.util.ContextUtil.MAX_REQUEST_SIZE_KEY;
 import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
 public class JavalinConfig {
-    // @formatter:off
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
     public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
+    public Long maxRequestSize = 1_000_000L; // increase this or use inputstream to handle large requests
     @NotNull public String defaultContentType = ContentType.PLAIN;
-    public Long maxRequestSize = 1_000_000L; // either increase this or use inputstream to handle large requests
     @NotNull public Long asyncRequestTimeout = 0L;
-    @NotNull public RoutingConfig routing = new RoutingConfig();
-    @NotNull public InnerConfig inner = new InnerConfig();
+    public InnerConfig inner = new InnerConfig();
+    public RoutingConfig routing = new RoutingConfig();
     public JettyConfig jetty = new JettyConfig(inner);
     public StaticFilesConfig staticFiles = new StaticFilesConfig(inner);
     public SinglePageConfig singlePage = new SinglePageConfig(inner);
     public CompressionConfig compression = new CompressionConfig(inner);
+    public LoggingConfig requestLoggers = new LoggingConfig(inner);
     public DefaultPluginConfig defaultPlugins = new DefaultPluginConfig(this);
 
     public void registerPlugin(@NotNull Plugin plugin) {
@@ -59,16 +57,6 @@ public class JavalinConfig {
 
     public void accessManager(@NotNull AccessManager accessManager) {
         inner.accessManager = accessManager;
-    }
-
-    public void requestLogger(@NotNull RequestLogger requestLogger) {
-        inner.requestLogger = requestLogger;
-    }
-
-    public void wsLogger(@NotNull Consumer<WsConfig> ws) {
-        WsConfig logger = new WsConfig();
-        ws.accept(logger);
-        inner.wsLogger = logger;
     }
 
     public void jsonMapper(JsonMapper jsonMapper) {

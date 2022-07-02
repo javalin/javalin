@@ -22,7 +22,7 @@ class CompressionConfig(private val inner: InnerConfig) {
         inner.compressionStrategy = CompressionStrategy(Brotli(level), null)
     }
 
-    fun none() { 
+    fun none() {
         inner.compressionStrategy = CompressionStrategy(null, null)
     }
 }

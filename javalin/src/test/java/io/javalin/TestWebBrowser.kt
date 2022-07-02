@@ -84,8 +84,8 @@ class TestWebBrowser {
         val expectedChunkCount = ceil(file.inputStream().available() / chunkSize.toDouble()).toInt()
         var chunkCount = 0
         val requestLoggerApp = Javalin.create {
-            it.requestLogger { ctx, ms ->
-                if (ctx.req.getHeader(Header.RANGE) == null) return@requestLogger
+            it.requestLoggers.http { ctx, ms ->
+                if (ctx.req.getHeader(Header.RANGE) == null) return@http
                 chunkCount++
                 // println("Req: " + ctx.req.getHeader(Header.RANGE))
                 // println("Res: " + ctx.res.getHeader(Header.CONTENT_RANGE))
