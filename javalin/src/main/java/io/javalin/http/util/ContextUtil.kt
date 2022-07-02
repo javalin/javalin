@@ -51,18 +51,21 @@ object ContextUtil {
 
     fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
-    fun hasBasicAuthCredentials(header: String?) = try {
-        getBasicAuthCredentials(header)
-        true
-    } catch (e: Exception) {
-        false
-    }
+    fun hasBasicAuthCredentials(authorizationHeader: String?) =
+        runCatching { getBasicAuthCredentials(authorizationHeader) }.isSuccess
 
-    fun getBasicAuthCredentials(header: String?): BasicAuthCredentials {
-        require(header?.startsWith("Basic ") == true) { "Invalid basicauth header. Value was '$header'." }
-        val (username, password) = String(Base64.getDecoder().decode(header!!.removePrefix("Basic "))).split(':', limit = 2)
-        return BasicAuthCredentials(username, password)
-    }
+    /**
+     * @throws IllegalStateException if specified string is not valid Basic auth header
+     */
+    fun getBasicAuthCredentials(authorizationHeader: String?): BasicAuthCredentials =
+        authorizationHeader
+            ?.takeIf { authorizationHeader.startsWith("Basic ") }
+            ?.removePrefix("Basic ")
+            ?.let { Base64.getDecoder().decode(it) }
+            ?.decodeToString()
+            ?.split(':', limit = 2)
+            ?.let { (username, password) -> BasicAuthCredentials(username, password) }
+            ?: throw IllegalArgumentException("Invalid Basic auth header. Value was '$authorizationHeader'.")
 
     fun acceptsHtml(ctx: Context) =
         ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true

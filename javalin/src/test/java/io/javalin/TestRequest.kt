@@ -260,7 +260,7 @@ class TestRequest {
     }
 
     @Test
-    fun `basicauth requires Basic prefix to header`() = TestUtil.test { app, http ->
+    fun `basic authentication requires Basic prefix to header`() = TestUtil.test { app, http ->
         app.get("/") {
             try {
                 it.basicAuthCredentials()
@@ -269,7 +269,7 @@ class TestRequest {
             }
         }
         val response = Unirest.get("${http.origin}/").header(Header.AUTHORIZATION, "user:pass").asString()
-        assertThat(response.body).isEqualTo("Invalid basicauth header. Value was 'user:pass'.")
+        assertThat(response.body).isEqualTo("Invalid Basic auth header. Value was 'user:pass'.")
     }
 
     @Test
