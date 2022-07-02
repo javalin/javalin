@@ -41,12 +41,12 @@ class TestCompression {
     }.addTestEndpoints()
 
     private fun superCompressingApp() = Javalin.create {
-        it.compressionStrategy(CompressionStrategy(Brotli(), Gzip()).apply { minSizeForCompression = 1 })
+        it.compression.custom(CompressionStrategy(Brotli(), Gzip()).apply { minSizeForCompression = 1 })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
     private fun brotliDisabledApp() = Javalin.create {
-        it.compressionStrategy(CompressionStrategy(null, Gzip()).apply { minSizeForCompression = testDocument.length })
+        it.compression.custom(CompressionStrategy(null, Gzip()).apply { minSizeForCompression = testDocument.length })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
@@ -113,7 +113,7 @@ class TestCompression {
     @Test
     fun `doesn't gzip when gzip is disabled`() {
         val gzipDisabledApp = Javalin.create {
-            it.compressionStrategy(Brotli(), null)
+            it.compression.brotliOnly()
             it.staticFiles.add("/public", Location.CLASSPATH)
         }.addTestEndpoints()
         TestUtil.test(gzipDisabledApp) { _, http ->
@@ -201,7 +201,7 @@ class TestCompression {
     fun `gzip works for large static files`() {
         val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
         val gzipWebjars = Javalin.create {
-            it.compressionStrategy(null, Gzip(6))
+            it.compression.gzipOnly()
             it.staticFiles.enableWebjars()
         }
         TestUtil.test(gzipWebjars) { _, http ->
@@ -214,7 +214,7 @@ class TestCompression {
         assumeTrue(BrotliLoader.isBrotliAvailable())
         val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
         val compressedWebjars = Javalin.create {
-            it.compressionStrategy(Brotli(4), null)
+            it.compression.brotliOnly()
             it.staticFiles.enableWebjars()
         }
         TestUtil.test(compressedWebjars) { _, http ->

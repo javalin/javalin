@@ -24,6 +24,7 @@ import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
 import java.util.function.Consumer;
+import javax.print.attribute.standard.Compression;
 import org.jetbrains.annotations.NotNull;
 import static io.javalin.http.ContextKt.ASYNC_EXECUTOR_KEY;
 import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
@@ -44,6 +45,7 @@ public class JavalinConfig {
     public JettyConfig jetty = new JettyConfig(inner);
     public StaticFilesConfig staticFiles = new StaticFilesConfig(inner);
     public SinglePageConfig singlePage = new SinglePageConfig(inner);
+    public CompressionConfig compression = new CompressionConfig(inner);
     public DefaultPluginConfig defaultPlugins = new DefaultPluginConfig(this);
 
     public void registerPlugin(@NotNull Plugin plugin) {
@@ -71,14 +73,6 @@ public class JavalinConfig {
         WsConfig logger = new WsConfig();
         ws.accept(logger);
         inner.wsLogger = logger;
-    }
-
-    public void compressionStrategy(Brotli brotli, Gzip gzip) {
-        inner.compressionStrategy = new CompressionStrategy(brotli, gzip);
-    }
-
-    public void compressionStrategy(CompressionStrategy compressionStrategy) {
-        inner.compressionStrategy = compressionStrategy;
     }
 
     public void jsonMapper(JsonMapper jsonMapper) {

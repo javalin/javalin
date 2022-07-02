@@ -79,7 +79,7 @@ class TestConfiguration {
     @Test
     fun `compression strategy can be customized by user`() {
         val app = Javalin.create {
-            it.compressionStrategy(null, Gzip(2))
+            it.compression.custom(CompressionStrategy(null, Gzip(2)))
         }
         assertThat(app.cfg.inner.compressionStrategy.gzip?.level).isEqualTo(2)
         assertThat(app.cfg.inner.compressionStrategy.brotli).isNull()
