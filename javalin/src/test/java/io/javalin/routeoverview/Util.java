@@ -6,7 +6,7 @@
 
 package io.javalin.routeoverview;
 
-import io.javalin.core.util.RouteOverviewUtil;
+import io.javalin.plugin.RouteOverviewUtil;
 import io.javalin.http.Handler;
 
 public class Util {

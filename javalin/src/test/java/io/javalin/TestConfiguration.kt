@@ -9,7 +9,7 @@ package io.javalin
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
-import io.javalin.core.util.RouteOverviewPlugin
+import io.javalin.plugin.RouteOverviewPlugin
 import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.metrics.MicrometerPlugin
@@ -39,8 +39,8 @@ class TestConfiguration {
             it.asyncRequestTimeout = 10_000L
             it.autogenerateEtags = true
             it.defaultContentType = ContentType.PLAIN
-            it.enableCorsForAllOrigins()
-            it.enableDevLogging()
+            it.defaultPlugins.enableCorsForAllOrigins()
+            it.defaultPlugins.enableDevLogging()
             it.registerPlugin(RouteOverviewPlugin("/test"))
             it.enforceSsl = true
             it.prefer405over404 = false

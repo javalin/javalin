@@ -4,14 +4,15 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core.util
+package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
+import io.javalin.core.util.Header
 
-class HttpAllowedMethodsOnRoutesUtil() : Plugin, PluginLifecycleInit {
+class HttpAllowedMethodsOnRoutesUtil : Plugin, PluginLifecycleInit {
     private val endpoints = mutableMapOf<String, MutableSet<HandlerMetaInfo>>()
 
     override fun init(app: Javalin) {

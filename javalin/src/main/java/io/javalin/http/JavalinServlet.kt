@@ -8,7 +8,7 @@ package io.javalin.http
 
 import io.javalin.core.config.JavalinConfig
 import io.javalin.core.security.RouteRole
-import io.javalin.core.util.CorsPlugin
+import io.javalin.plugin.CorsPlugin
 import io.javalin.core.util.LogUtil
 import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.HandlerType.BEFORE

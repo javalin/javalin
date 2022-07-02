@@ -4,13 +4,28 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core.util
+package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.apibuilder.CrudFunctionHandler
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.security.RouteRole
+import io.javalin.core.util.Header
+import io.javalin.core.util.hasMethodName
+import io.javalin.core.util.implementingClassName
+import io.javalin.core.util.isClass
+import io.javalin.core.util.isCrudFunction
+import io.javalin.core.util.isJavaAnonymousLambda
+import io.javalin.core.util.isJavaField
+import io.javalin.core.util.isKotlinAnonymousLambda
+import io.javalin.core.util.isKotlinField
+import io.javalin.core.util.isKotlinMethodReference
+import io.javalin.core.util.javaFieldName
+import io.javalin.core.util.kotlinFieldName
+import io.javalin.core.util.methodName
+import io.javalin.core.util.parentClass
+import io.javalin.core.util.runMethod
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Handler

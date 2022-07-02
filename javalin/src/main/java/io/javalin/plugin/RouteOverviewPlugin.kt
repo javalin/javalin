@@ -1,4 +1,4 @@
-package io.javalin.core.util
+package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin

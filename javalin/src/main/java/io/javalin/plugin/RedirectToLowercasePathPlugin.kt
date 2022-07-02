@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http.util
+package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.core.PathParser

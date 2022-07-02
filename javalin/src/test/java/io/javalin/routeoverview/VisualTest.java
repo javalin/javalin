@@ -7,7 +7,7 @@
 package io.javalin.routeoverview;
 
 import io.javalin.Javalin;
-import io.javalin.core.util.RouteOverviewPlugin;
+import io.javalin.plugin.RouteOverviewPlugin;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
@@ -30,8 +30,8 @@ public class VisualTest {
     public static void main(String[] args) {
         Javalin app = Javalin.create((config) -> {
             config.jetty.contextPath = "/context-path";
-            config.enableCorsForAllOrigins();
-            config.registerPlugin(new RouteOverviewPlugin("/route-overview"));
+            config.defaultPlugins.enableCorsForAllOrigins();
+            config.defaultPlugins.enableRouteOverview("/route-overview");
         }).start();
 
         app.get("/", ctx -> ctx.redirect("/context-path/route-overview"))

@@ -50,7 +50,7 @@ class TestStaticFiles {
     private val customHeaderApp: Javalin by lazy { Javalin.create { it.staticFiles.add { it.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400") } } }
     private val devLoggingApp: Javalin by lazy {
         Javalin.create {
-            it.enableDevLogging()
+            it.defaultPlugins.enableDevLogging()
             it.staticFiles.add("/public", Location.CLASSPATH)
         }
     }

@@ -16,20 +16,14 @@ import io.javalin.core.plugin.PluginUtil;
 import io.javalin.core.security.AccessManager;
 import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.ConcurrencyUtil;
-import io.javalin.core.util.CorsPlugin;
-import io.javalin.core.util.Headers;
-import io.javalin.core.util.HeadersPlugin;
-import io.javalin.core.util.HttpAllowedMethodsOnRoutesUtil;
 import io.javalin.core.validation.JavalinValidation;
 import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
 import io.javalin.http.RequestLogger;
-import io.javalin.plugin.DevLoggingPlugin;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import static io.javalin.http.ContextKt.ASYNC_EXECUTOR_KEY;
 import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
@@ -50,6 +44,7 @@ public class JavalinConfig {
     public JettyConfig jetty = new JettyConfig(inner);
     public StaticFilesConfig staticFiles = new StaticFilesConfig(inner);
     public SinglePageConfig singlePage = new SinglePageConfig(inner);
+    public DefaultPluginConfig defaultPlugins = new DefaultPluginConfig(this);
 
     public void registerPlugin(@NotNull Plugin plugin) {
         if (inner.plugins.containsKey(plugin.getClass())) {
@@ -62,26 +57,6 @@ public class JavalinConfig {
         ContextResolver finalResolver = new ContextResolver();
         userResolver.accept(finalResolver);
         inner.appAttributes.put(CONTEXT_RESOLVER_KEY, finalResolver);
-    }
-
-    public void enableCorsForAllOrigins() {
-        registerPlugin(CorsPlugin.forAllOrigins());
-    }
-
-    public void enableCorsForOrigin(@NotNull String... origins) {
-        registerPlugin(CorsPlugin.forOrigins(origins));
-    }
-
-    public void enableHttpAllowedMethodsOnRoutes() {
-        registerPlugin(new HttpAllowedMethodsOnRoutesUtil());
-    }
-
-    public void enableDevLogging() {
-        registerPlugin(new DevLoggingPlugin());
-    }
-
-    public void globalHeaders(Supplier<Headers> headers) {
-        registerPlugin(new HeadersPlugin(headers.get()));
     }
 
     public void accessManager(@NotNull AccessManager accessManager) {

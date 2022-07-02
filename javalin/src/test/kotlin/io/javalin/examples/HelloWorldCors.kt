@@ -13,7 +13,7 @@ import io.javalin.apibuilder.ApiBuilder.post
 
 fun main() {
 
-    val corsApp = Javalin.create { it.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002") }.start(7070)
+    val corsApp = Javalin.create { it.defaultPlugins.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002") }.start(7070)
 
     corsApp.routes {
         get { it.json("Hello Get") }
