@@ -15,9 +15,9 @@
  */
 package io.javalin.javalinvue;
 
+import io.javalin.testing.TestUtil;
 import io.javalin.vue.JavalinVue;
 import io.javalin.vue.VueComponent;
-import io.javalin.testing.TestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;

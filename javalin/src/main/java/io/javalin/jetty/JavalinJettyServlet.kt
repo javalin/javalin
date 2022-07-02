@@ -18,7 +18,6 @@ import io.javalin.websocket.WsEntry
 import io.javalin.websocket.WsExceptionMapper
 import io.javalin.websocket.WsHandlerType
 import io.javalin.websocket.WsPathMatcher
-import java.util.function.Consumer
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.session.Session
@@ -26,6 +25,7 @@ import org.eclipse.jetty.websocket.api.util.WebSocketConstants
 import org.eclipse.jetty.websocket.server.JettyWebSocketCreator
 import org.eclipse.jetty.websocket.server.JettyWebSocketServlet
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
+import java.util.function.Consumer
 
 internal const val upgradeContextKey = "javalin-ws-upgrade-context"
 internal const val upgradeSessionAttrsKey = "javalin-ws-upgrade-http-session"

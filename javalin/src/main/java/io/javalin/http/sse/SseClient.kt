@@ -22,7 +22,7 @@ class SseClient internal constructor(
     fun keepAlive() {
         this.blockingFuture = ctx.future(
             future = CompletableFuture<Nothing?>(),
-            callback = { /* noop */}
+            callback = { /* noop */ }
         ).resultFuture()
     }
 

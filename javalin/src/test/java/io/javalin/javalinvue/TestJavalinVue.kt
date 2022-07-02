@@ -9,11 +9,10 @@ package io.javalin.javalinvue
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
+import io.javalin.testing.TestUtil
 import io.javalin.vue.JavalinVue
 import io.javalin.vue.VueComponent
 import io.javalin.vue.VueRenderer
-import io.javalin.testing.TestUtil
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

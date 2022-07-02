@@ -10,6 +10,7 @@ import io.javalin.http.ContentType
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
 import io.javalin.testing.fasterJacksonMapper
+import jakarta.servlet.MultipartConfigElement
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -18,9 +19,6 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File
-import java.lang.IllegalStateException
-import java.nio.charset.StandardCharsets
-import jakarta.servlet.MultipartConfigElement
 
 class TestMultipartForms {
 
@@ -130,9 +128,9 @@ class TestMultipartForms {
         }
 
         val response = http.post("/test-upload")
-                .field("upload", File("src/test/resources/upload-test/image.png"))
-                .field("text-field", "text")
-                .asString()
+            .field("upload", File("src/test/resources/upload-test/image.png"))
+            .field("text-field", "text")
+            .asString()
         assertThat(response.body).isEqualTo("java.lang.IllegalStateException Request exceeds maxRequestSize (10)")
     }
 

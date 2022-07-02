@@ -41,9 +41,9 @@ public class TestValidation_Java {
     public void get_or_throw_works_from_java() {
         TestUtil.test((app, http) -> {
             app.get("/", ctx -> {
-               Integer myInt = ctx.queryParamAsClass("my-qp", Integer.class)
-                   .getOrThrow(e -> new CustomException("'my-qp' is not a number"));
-               ctx.result(myInt.toString());
+                Integer myInt = ctx.queryParamAsClass("my-qp", Integer.class)
+                    .getOrThrow(e -> new CustomException("'my-qp' is not a number"));
+                ctx.result(myInt.toString());
             });
             app.exception(CustomException.class, (e, ctx) -> ctx.result(e.getMessage()));
             assertThat(http.getBody("/")).isEqualTo("'my-qp' is not a number");

@@ -3,9 +3,9 @@ package io.javalin.javalinvue
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.testing.TestUtil
 import io.javalin.vue.JavalinVue
 import io.javalin.vue.VueComponent
-import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assumptions.assumeTrue

@@ -32,7 +32,7 @@ class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
     }
 
     //compute matchRegex suffix :
-    private val regexSuffix = if(routingConfig.treatMultipleSlashesAsSingleSlash) {
+    private val regexSuffix = if (routingConfig.treatMultipleSlashesAsSingleSlash) {
         // when multiple slashes are accepted we have to allow 0-n slashes when using ignoreTrailingSlashes
         // otherwise we also have to allow multiple slashes when only one slash is specified
         when {

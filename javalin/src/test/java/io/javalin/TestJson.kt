@@ -156,7 +156,7 @@ class TestJson {
     fun `user can use GSON`() {
         val gson = GsonBuilder().create()
         val gsonMapper = object : JsonMapper {
-            override fun <T: Any> fromJsonString(json: String, targetClass: Class<T>): T = gson.fromJson(json, targetClass)
+            override fun <T : Any> fromJsonString(json: String, targetClass: Class<T>): T = gson.fromJson(json, targetClass)
             override fun toJsonString(obj: Any) = gson.toJson(obj)
         }
         TestUtil.test(Javalin.create { it.jsonMapper(gsonMapper) }) { app, http ->

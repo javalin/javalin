@@ -17,17 +17,17 @@ import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Consumer
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.Consumer
 
 /** Defines default [ExecutorService] used by [Context.future] */
 const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"

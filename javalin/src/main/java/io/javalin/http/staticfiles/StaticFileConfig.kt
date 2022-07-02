@@ -1,8 +1,8 @@
 package io.javalin.http.staticfiles
 
 import io.javalin.core.util.Header
-import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 import jakarta.servlet.http.HttpServletRequest
+import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 
 enum class Location { CLASSPATH, EXTERNAL; }
 

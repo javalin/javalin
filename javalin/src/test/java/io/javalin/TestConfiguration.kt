@@ -9,18 +9,18 @@ package io.javalin
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
-import io.javalin.plugin.RouteOverviewPlugin
 import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
+import io.javalin.plugin.RouteOverviewPlugin
 import io.javalin.plugin.metrics.MicrometerPlugin
 import io.javalin.testing.TestUtil
+import jakarta.servlet.http.HttpSessionEvent
+import jakarta.servlet.http.HttpSessionListener
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.junit.jupiter.api.Test
-import jakarta.servlet.http.HttpSessionEvent
-import jakarta.servlet.http.HttpSessionListener
 
 class TestConfiguration {
 
@@ -35,7 +35,7 @@ class TestConfiguration {
             it.staticFiles.add("/public", Location.CLASSPATH)
             it.staticFiles.add("src/test/resources/public", Location.EXTERNAL)
             it.staticFiles.enableWebjars()
-            it.registerPlugin {  }
+            it.registerPlugin { }
             it.asyncRequestTimeout = 10_000L
             it.autogenerateEtags = true
             it.defaultContentType = ContentType.PLAIN

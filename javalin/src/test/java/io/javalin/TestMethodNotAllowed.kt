@@ -1,9 +1,9 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
+import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import jakarta.servlet.http.HttpServletResponse
 
 class TestMethodNotAllowed {
 

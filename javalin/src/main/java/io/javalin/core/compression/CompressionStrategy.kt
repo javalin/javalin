@@ -1,9 +1,9 @@
 package io.javalin.core.compression
 
 import com.nixxcode.jvmbrotli.common.BrotliLoader
-import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.CoreDependency
 import io.javalin.core.util.DependencyUtil
+import io.javalin.core.util.JavalinLogger
 
 /**
  * This class is a settings container for Javalin's content compression.
@@ -36,6 +36,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
 
     /** 1500 is the size of a packet, compressing responses smaller than this serves no purpose */
     var minSizeForCompression = 1500
+
     /** Those mime types will be processed using NONE compression strategy */
     var excludedMimeTypesFromCompression = listOf(
         "image/",
@@ -59,16 +60,17 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         return if (BrotliLoader.isBrotliAvailable()) {
             brotli
         } else {
-            JavalinLogger.warn("""${"\n"}
-                    Failed to enable Brotli compression, because the jvm-brotli native library couldn't be loaded.
-                    jvm-brotli is currently only supported on Windows, Linux and Mac OSX.
-                    If you are running Javalin on a supported system, but are still getting this error,
-                    try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
-                    please create an issue at https://github.com/tipsy/javalin/
-                    ---------------------------------------------------------------
-                    If you still want compression, please ensure GZIP is enabled!
-                    ---------------------------------------------------------------
-                """.trimIndent())
+            JavalinLogger.warn(
+                """|
+                   |Failed to enable Brotli compression, because the jvm-brotli native library couldn't be loaded.
+                   |jvm-brotli is currently only supported on Windows, Linux and Mac OSX.
+                   |If you are running Javalin on a supported system, but are still getting this error,
+                   |try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
+                   |please create an issue at https://github.com/tipsy/javalin/
+                   |---------------------------------------------------------------
+                   |If you still want compression, please ensure GZIP is enabled!
+                   |---------------------------------------------------------------""".trimIndent()
+            )
             null
         }
     }

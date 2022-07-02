@@ -2,15 +2,15 @@ package io.javalin.http
 
 import io.javalin.core.config.JavalinConfig
 import io.javalin.core.util.LogUtil
+import jakarta.servlet.AsyncContext
+import jakarta.servlet.AsyncEvent
+import jakarta.servlet.AsyncListener
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
-import jakarta.servlet.AsyncContext
-import jakarta.servlet.AsyncEvent
-import jakarta.servlet.AsyncListener
 
 interface StageName
 enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
@@ -147,7 +147,7 @@ internal fun AsyncContext.addListener(
     onError: (AsyncEvent) -> Unit = {},
     onStartAsync: (AsyncEvent) -> Unit = {},
     onTimeout: (AsyncEvent) -> Unit = {},
-) : AsyncContext = apply {
+): AsyncContext = apply {
     addListener(object : AsyncListener {
         override fun onComplete(event: AsyncEvent) = onComplete(event)
         override fun onError(event: AsyncEvent) = onError(event)

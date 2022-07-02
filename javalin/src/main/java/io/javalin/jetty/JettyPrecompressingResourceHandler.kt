@@ -4,14 +4,17 @@ import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.CompressionType
 import io.javalin.core.compression.LeveledBrotliStream
 import io.javalin.core.compression.LeveledGzipStream
-import io.javalin.core.util.*
+import io.javalin.core.util.CoreDependency
+import io.javalin.core.util.DependencyUtil
+import io.javalin.core.util.Header
+import io.javalin.core.util.JavalinLogger
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.util.resource.Resource
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 
 object JettyPrecompressingResourceHandler {
 

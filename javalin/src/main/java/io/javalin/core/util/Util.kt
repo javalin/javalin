@@ -56,15 +56,17 @@ object Util {
 
     @JvmStatic
     fun logJavalinBanner(showBanner: Boolean) {
-        if (showBanner) JavalinLogger.info("\n" + """
-          |       __                  ___          ______
-          |      / /___ __   ______ _/ (_)___     / ____/
-          | __  / / __ `/ | / / __ `/ / / __ \   /___ \
-          |/ /_/ / /_/ /| |/ / /_/ / / / / / /  ____/ /
-          |\____/\__,_/ |___/\__,_/_/_/_/ /_/  /_____/
-          |
-          |       https://javalin.io/documentation
-          |""".trimMargin())
+        if (showBanner) JavalinLogger.info(
+            """|
+               |       __                  ___          ______
+               |      / /___ __   ______ _/ (_)___     / ____/
+               | __  / / __ `/ | / / __ `/ / / __ \   /___ \
+               |/ /_/ / /_/ /| |/ / /_/ / / / / / /  ____/ /
+               |\____/\__,_/ |___/\__,_/_/_/_/ /_/  /_____/
+               |
+               |       https://javalin.io/documentation
+               |""".trimMargin()
+        )
     }
 
     @JvmStatic

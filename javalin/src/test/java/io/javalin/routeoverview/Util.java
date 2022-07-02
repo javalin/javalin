@@ -6,8 +6,8 @@
 
 package io.javalin.routeoverview;
 
-import io.javalin.plugin.RouteOverviewUtil;
 import io.javalin.http.Handler;
+import io.javalin.plugin.RouteOverviewUtil;
 
 public class Util {
     static String getMetaInfo(Handler handler) {

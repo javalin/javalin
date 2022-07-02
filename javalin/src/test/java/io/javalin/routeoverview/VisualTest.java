@@ -7,7 +7,6 @@
 package io.javalin.routeoverview;
 
 import io.javalin.Javalin;
-import io.javalin.plugin.RouteOverviewPlugin;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;

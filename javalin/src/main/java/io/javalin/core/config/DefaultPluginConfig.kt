@@ -1,15 +1,15 @@
 package io.javalin.core.config
 
 import io.javalin.core.security.RouteRole
-import io.javalin.plugin.CorsPlugin
 import io.javalin.core.util.Headers
 import io.javalin.plugin.BasicAuthFilter
+import io.javalin.plugin.CorsPlugin
+import io.javalin.plugin.DevLoggingPlugin
 import io.javalin.plugin.HeadersPlugin
 import io.javalin.plugin.HttpAllowedMethodsOnRoutesUtil
+import io.javalin.plugin.RedirectToLowercasePathPlugin
 import io.javalin.plugin.RouteOverviewConfig
 import io.javalin.plugin.RouteOverviewPlugin
-import io.javalin.plugin.DevLoggingPlugin
-import io.javalin.plugin.RedirectToLowercasePathPlugin
 import java.util.function.Supplier
 
 class DefaultPluginConfig(private val c: JavalinConfig) {

@@ -8,7 +8,6 @@ package io.javalin.core.util
 
 import io.javalin.http.InternalServerErrorResponse
 import java.net.URLEncoder
-import java.util.HashMap
 
 object DependencyUtil {
 
@@ -57,7 +56,7 @@ object DependencyUtil {
 
 }
 
-interface OptionalDependency{
+interface OptionalDependency {
     val displayName: String
     val testClass: String
     val groupId: String
@@ -77,7 +76,7 @@ enum class CoreDependency(
     JACKSON("Jackson", "com.fasterxml.jackson.databind.ObjectMapper", "com.fasterxml.jackson.core", "jackson-databind", "2.13.3"),
     JACKSON_KT("JacksonKt", "com.fasterxml.jackson.module.kotlin.KotlinModule", "com.fasterxml.jackson.module", "jackson-module-kotlin", "2.13.3"),
     JACKSON_JSR_310("JacksonJsr310", "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", "com.fasterxml.jackson.datatype", "jackson-datatype-jsr310", "2.13.3"),
-    JACKSON_KTORM("Jackson Ktorm", "org.ktorm.jackson.KtormModule", "org.ktorm","ktorm-jackson", "3.4.1"),
+    JACKSON_KTORM("Jackson Ktorm", "org.ktorm.jackson.KtormModule", "org.ktorm", "ktorm-jackson", "3.4.1"),
 
     // Logging
     SLF4JSIMPLE("Slf4j simple", "org.slf4j.impl.StaticLoggerBinder", "org.slf4j", "slf4j-simple", "1.7.36"),

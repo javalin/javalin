@@ -7,9 +7,6 @@
 package io.javalin.core.config;
 
 import io.javalin.Javalin;
-import io.javalin.core.compression.Brotli;
-import io.javalin.core.compression.CompressionStrategy;
-import io.javalin.core.compression.Gzip;
 import io.javalin.core.plugin.Plugin;
 import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginUtil;
@@ -24,7 +21,6 @@ import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
 import io.javalin.websocket.WsConfig;
 import java.util.function.Consumer;
-import javax.print.attribute.standard.Compression;
 import org.jetbrains.annotations.NotNull;
 import static io.javalin.http.ContextKt.ASYNC_EXECUTOR_KEY;
 import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;

@@ -33,7 +33,7 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
         }
     }
 
-    override fun <T: Any> fromJsonString(json: String, targetClass: Class<T>): T {
+    override fun <T : Any> fromJsonString(json: String, targetClass: Class<T>): T {
         ensureDependenciesPresent(targetClass)
         return objectMapper!!.readValue(json, targetClass)
     }
@@ -53,9 +53,9 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
 
     companion object {
         fun defaultMapper(): ObjectMapper = ObjectMapper()
-                .registerOptionalModule(CoreDependency.JACKSON_KT.testClass)
-                .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass)
-                .registerOptionalModule(CoreDependency.JACKSON_KTORM.testClass) // very optional module for ktorm (a kotlin orm)
+            .registerOptionalModule(CoreDependency.JACKSON_KT.testClass)
+            .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass)
+            .registerOptionalModule(CoreDependency.JACKSON_KTORM.testClass) // very optional module for ktorm (a kotlin orm)
     }
 }
 

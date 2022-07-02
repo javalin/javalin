@@ -6,10 +6,10 @@
 
 package io.javalin
 
-import io.javalin.plugin.BasicAuthFilter
 import io.javalin.core.util.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil
+import io.javalin.plugin.BasicAuthFilter
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat

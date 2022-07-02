@@ -1,19 +1,19 @@
 package io.javalin.http
 
-import io.javalin.core.config.JavalinConfig
 import io.javalin.core.compression.CompressedStream
+import io.javalin.core.config.JavalinConfig
 import io.javalin.core.util.Header.CONTENT_ENCODING
 import io.javalin.core.util.Header.ETAG
 import io.javalin.core.util.Header.IF_NONE_MATCH
 import io.javalin.core.util.Util
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HttpCode.NOT_MODIFIED
-import java.io.InputStream
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.HttpServletResponseWrapper
 import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 class JavalinResponseWrapper(private val ctx: Context, private val config: JavalinConfig, private val requestType: HandlerType) : HttpServletResponseWrapper(ctx.res) {
 

@@ -6,9 +6,9 @@
 
 package io.javalin.routeoverview;
 
-import io.javalin.plugin.RouteOverviewUtil;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
+import io.javalin.plugin.RouteOverviewUtil;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
