@@ -7,6 +7,7 @@
 package io.javalin.vue
 
 import io.javalin.http.Context
+import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil.isLocalhost
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -16,17 +17,30 @@ import java.util.function.Consumer
 import java.util.stream.Collectors
 import io.javalin.vue.JavalinVue.resourcesJarClass as jarClass
 
-enum class VueVersion { VUE_2, VUE_3 }
-
 object JavalinVue {
     // @formatter:off
     internal var resourcesJarClass: Class<*> = PathMaster::class.java // can be any class in the jar to look for resources in
     internal var rootDirectory: Path? = null // is set on first request (if not configured)
-    @JvmStatic fun rootDirectory(config: Consumer<VueDirConfig>) = config.accept(VueDirConfig()) // configures the two internal variables above
+    @JvmStatic fun rootDirectory(path: Path) {
+        this.rootDirectory = path
+    }
+    @JvmStatic
+    fun rootDirectory(path: String, location: Location = Location.CLASSPATH, resourcesJarClass: Class<*> = PathMaster::class.java) {
+        if (location == Location.CLASSPATH) {
+            this.resourcesJarClass = resourcesJarClass // used by line below (global import...)
+            this.rootDirectory = PathMaster.classpathPath(path)
+        } else {
+            this.rootDirectory = Paths.get(path)
+        }
+    }
 
-    internal var vueVersion = VueVersion.VUE_2
+    internal var vueVersion = 2
     internal var vueAppName = "Vue" // only relevant for Vue 3 apps
-    @JvmStatic fun vueVersion(config: Consumer<VueVersionConfig>) = config.accept(VueVersionConfig()) // configures the two internal variables above
+    @JvmStatic @JvmOverloads fun vueVersion(version: Int, appName: String = "vue3App") {
+        require(version in (2..3)) { "Version must be 2 or 3"}
+        this.vueVersion = version
+        this.vueAppName = if (version == 3) appName else "Vue"
+    }
 
     internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
     @JvmField var isDevFunction: (Context) -> Boolean = { it.isLocalhost() } // used to set isDev, will be called once

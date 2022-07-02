@@ -93,6 +93,6 @@ internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
 // Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".
 // All other encodings are implemented correctly, therefore we can simply replace the character in the encoded String.
 private fun urlEncodeForJavascript(string: String) = URLEncoder.encode(string, Charsets.UTF_8.name()).replace("+", "%20")
-private fun prototypeOrGlobalConfig() = if (JavalinVue.vueVersion == VueVersion.VUE_3) "${JavalinVue.vueAppName}.config.globalProperties" else "${JavalinVue.vueAppName}.prototype"
+private fun prototypeOrGlobalConfig() = if (JavalinVue.vueVersion == 3) "${JavalinVue.vueAppName}.config.globalProperties" else "Vue.prototype"
 internal fun Path.readText() = String(Files.readAllBytes(this))
 internal fun Path.isVueFile() = this.toString().endsWith(".vue")
