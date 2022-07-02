@@ -28,7 +28,7 @@ abstract class VueHandler(private val componentId: String) : Handler {
 
     override fun handle(ctx: Context) {
         isDev = isDev ?: isDevFunction(ctx)
-        rootDirectory = rootDirectory ?: PathMaster.defaultLocation(isDev)
+        rootDirectory = rootDirectory ?: PathMaster.defaultLocation(isDev!!)
         val routeComponent = if (componentId.startsWith("<")) componentId else "<$componentId></$componentId>"
         val allFiles = if (isDev == true) walkPaths() else cachedPaths
         val resolver by lazy { if (isDev == true) VueDependencyResolver(allFiles, JavalinVue.vueAppName) else cachedDependencyResolver }
