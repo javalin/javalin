@@ -29,8 +29,8 @@ public class VisualTest {
     public static void main(String[] args) {
         Javalin app = Javalin.create((config) -> {
             config.jetty.contextPath = "/context-path";
-            config.defaultPlugins.enableCorsForAllOrigins();
-            config.defaultPlugins.enableRouteOverview("/route-overview");
+            config.plugins.enableCorsForAllOrigins();
+            config.plugins.enableRouteOverview("/route-overview");
         }).start();
 
         app.get("/", ctx -> ctx.redirect("/context-path/route-overview"))

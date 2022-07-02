@@ -293,7 +293,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.defaultPlugins.enableDevLogging() }) { app, _ ->
+    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.plugins.enableDevLogging() }) { app, _ ->
         app.ws("/path/{param}") {}
         TestClient(app, "/path/0").connectAndDisconnect()
         TestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()

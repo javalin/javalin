@@ -16,7 +16,7 @@ class TestRedirectToLowercasePathPlugin {
 
     private val testApp by lazy {
         Javalin.create {
-            it.registerPlugin(RedirectToLowercasePathPlugin())
+            it.plugins.register(RedirectToLowercasePathPlugin())
         }
     }
 

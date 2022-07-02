@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 class TestHttpAllowedMethodsOnRoutesUtil {
     @Test
     fun `enableHttpOptionsForRoutes allows possible methods on routes`() {
-        val javalin = Javalin.create { it.defaultPlugins.enableHttpAllowedMethodsOnRoutes() }
+        val javalin = Javalin.create { it.plugins.enableHttpAllowedMethodsOnRoutes() }
         javalin.get("/") { it.result("Hello") }
         javalin.delete("/") { it.status(200) }
 

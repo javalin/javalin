@@ -33,18 +33,18 @@ class TestConfiguration {
             it.staticFiles.add("/public", Location.CLASSPATH)
             it.staticFiles.add("src/test/resources/public", Location.EXTERNAL)
             it.staticFiles.enableWebjars()
-            it.registerPlugin { }
+            it.plugins.register { }
             it.asyncRequestTimeout = 10_000L
             it.autogenerateEtags = true
             it.defaultContentType = ContentType.PLAIN
-            it.defaultPlugins.enableCorsForAllOrigins()
-            it.defaultPlugins.enableDevLogging()
-            it.registerPlugin(RouteOverviewPlugin("/test"))
-            it.enforceSsl = true
+            it.plugins.enableCorsForAllOrigins()
+            it.plugins.enableDevLogging()
+            it.plugins.register(RouteOverviewPlugin("/test"))
+            it.plugins.enableSslRedirects()
             it.prefer405over404 = false
             it.requestLoggers.http { ctx, timeInMs -> }
             it.requestLoggers.webSocket { ws -> }
-            it.registerPlugin(MicrometerPlugin())
+            it.plugins.register(MicrometerPlugin())
             it.accessManager { _, _, _ -> }
             it.showJavalinBanner = false
             it.jetty.contextPath = "/"

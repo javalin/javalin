@@ -42,8 +42,8 @@ class TestPlugins {
         val plugin2 = TestPlugin2()
 
         Javalin.create {
-            it.registerPlugin(plugin1)
-            it.registerPlugin(plugin2)
+            it.plugins.register(plugin1)
+            it.plugins.register(plugin2)
         }
 
         assertThat(calls).containsExactly(
@@ -59,7 +59,7 @@ class TestPlugins {
         var called = false
 
         Javalin.create {
-            it.registerPlugin {
+            it.plugins.register {
                 called = true
             }
         }
@@ -70,10 +70,10 @@ class TestPlugins {
     @Test
     fun `registerPlugin should throw error if plugin is already registered`() {
         Javalin.create {
-            it.registerPlugin(TestPlugin())
+            it.plugins.register(TestPlugin())
 
             assertThatThrownBy {
-                it.registerPlugin(TestPlugin())
+                it.plugins.register(TestPlugin())
             }.isEqualTo(PluginAlreadyRegisteredException(TestPlugin::class.java))
         }
     }
@@ -90,7 +90,7 @@ class TestPlugins {
         }
 
         assertThatThrownBy {
-            Javalin.create { it.registerPlugin(BadPlugin()) }
+            Javalin.create { it.plugins.register(BadPlugin()) }
         }.isEqualTo(PluginInitLifecycleViolationException(BadPlugin::class.java))
     }
 

@@ -28,7 +28,6 @@ import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 public class JavalinConfig {
     public boolean autogenerateEtags = false;
     public boolean prefer405over404 = false;
-    public boolean enforceSsl = false;
     public boolean showJavalinBanner = true;
     public Long maxRequestSize = 1_000_000L; // increase this or use inputstream to handle large requests
     @NotNull public String defaultContentType = ContentType.PLAIN;
@@ -40,14 +39,7 @@ public class JavalinConfig {
     public SinglePageConfig singlePage = new SinglePageConfig(inner);
     public CompressionConfig compression = new CompressionConfig(inner);
     public LoggingConfig requestLoggers = new LoggingConfig(inner);
-    public DefaultPluginConfig defaultPlugins = new DefaultPluginConfig(this);
-
-    public void registerPlugin(@NotNull Plugin plugin) {
-        if (inner.plugins.containsKey(plugin.getClass())) {
-            throw new PluginAlreadyRegisteredException(plugin.getClass());
-        }
-        inner.plugins.put(plugin.getClass(), plugin);
-    }
+    public PluginConfig plugins = new PluginConfig(inner);
 
     public void contextResolvers(@NotNull Consumer<ContextResolver> userResolver) {
         ContextResolver finalResolver = new ContextResolver();
@@ -66,9 +58,6 @@ public class JavalinConfig {
     public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
         JavalinValidation.addValidationExceptionMapper(app); // add default mapper for validation
         userConfig.accept(config); // apply user config to the default config
-        if (config.enforceSsl) {
-            app.before(SecurityUtil::sslRedirect); // needs to be the first handler
-        }
         PluginUtil.attachPlugins(app, config.inner.plugins.values());
         config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());

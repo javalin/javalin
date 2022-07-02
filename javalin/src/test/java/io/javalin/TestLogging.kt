@@ -26,7 +26,7 @@ class TestLogging {
 
     @Test
     fun `dev logging works`() {
-        val log = captureStdOut { runTest(Javalin.create { it.defaultPlugins.enableDevLogging() }) }
+        val log = captureStdOut { runTest(Javalin.create { it.plugins.enableDevLogging() }) }
         assertThat(log).contains("JAVALIN REQUEST DEBUG LOG")
         assertThat(log).contains("Hello Blocking World!")
         assertThat(log).contains("Hello Async World!")
@@ -35,7 +35,7 @@ class TestLogging {
     }
 
     @Test
-    fun `dev logging works with inputstreams`() = TestUtil.test(Javalin.create { it.defaultPlugins.enableDevLogging() }) { app, http ->
+    fun `dev logging works with inputstreams`() = TestUtil.test(Javalin.create { it.plugins.enableDevLogging() }) { app, http ->
         val fileStream = TestLogging::class.java.getResourceAsStream("/public/file")
         app.get("/") { it.result(fileStream) }
         val log = captureStdOut { http.getBody("/") }
@@ -85,7 +85,7 @@ class TestLogging {
     }
 
     @Test
-    fun `debug logging works with binary stream`() = TestUtil.test(Javalin.create { it.defaultPlugins.enableDevLogging() }) { app, http ->
+    fun `debug logging works with binary stream`() = TestUtil.test(Javalin.create { it.plugins.enableDevLogging() }) { app, http ->
         app.get("/") {
             val imagePath = this::class.java.classLoader.getResource("upload-test/image.png")
             val stream = File(imagePath.toURI()).inputStream()

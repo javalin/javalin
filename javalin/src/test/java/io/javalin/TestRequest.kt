@@ -275,7 +275,7 @@ class TestRequest {
     @Test
     fun `basic auth filter plugin works`() {
         val basicauthApp = Javalin.create {
-            it.registerPlugin(BasicAuthFilter("u", "p"))
+            it.plugins.register(BasicAuthFilter("u", "p"))
             it.staticFiles.add("/public", Location.CLASSPATH)
         }.get("/hellopath") { it.result("Hello") }
         TestUtil.test(basicauthApp) { _, http ->
