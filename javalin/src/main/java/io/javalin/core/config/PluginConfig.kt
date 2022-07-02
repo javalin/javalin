@@ -15,13 +15,13 @@ import io.javalin.plugin.RouteOverviewPlugin
 import io.javalin.plugin.SslRedirectPlugin
 import java.util.function.Supplier
 
-class PluginConfig(private val inner: InnerConfig) {
+class PluginConfig(private val pvt: PrivateConfig) {
 
     fun register(plugin: Plugin) {
-        if (inner.plugins.containsKey(plugin.javaClass)) {
+        if (pvt.plugins.containsKey(plugin.javaClass)) {
             throw PluginAlreadyRegisteredException(plugin.javaClass)
         }
-        inner.plugins[plugin.javaClass] = plugin
+        pvt.plugins[plugin.javaClass] = plugin
     }
 
     fun enableCorsForAllOrigins() = register(CorsPlugin.forAllOrigins())

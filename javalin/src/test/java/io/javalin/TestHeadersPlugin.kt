@@ -127,7 +127,7 @@ class TestHeadersPlugin {
         headers.xContentTypeOptionsNoSniff()
         headers.clearSiteData(ClearSiteData.ANY)
 
-        val testApp = Javalin.create { config: JavalinConfig -> config.plugins.enableGlobalHeaders { headers } }
+        val testApp = Javalin.create { it.plugins.enableGlobalHeaders { headers } }
         TestUtil.test(testApp) { app, http ->
             app.get("/") { it.status(200) }
             val returnedHeaders = http.get("/").headers

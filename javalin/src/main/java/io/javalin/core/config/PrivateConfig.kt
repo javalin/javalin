@@ -14,8 +14,8 @@ import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 import java.util.function.Consumer
 
-class InnerConfig {
-    // @formatter:off
+// @formatter:off
+class PrivateConfig {
     @JvmField var plugins: MutableMap<Class<out Plugin>, Plugin> = LinkedHashMap()
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
@@ -28,5 +28,5 @@ class InnerConfig {
     @JvmField var server: Server? = null
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
-    // @formatter:on
 }
+// @formatter:on

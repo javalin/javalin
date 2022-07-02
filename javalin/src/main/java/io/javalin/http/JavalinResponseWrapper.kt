@@ -15,9 +15,9 @@ import jakarta.servlet.http.HttpServletResponseWrapper
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
-class JavalinResponseWrapper(private val ctx: Context, private val config: JavalinConfig, private val requestType: HandlerType) : HttpServletResponseWrapper(ctx.res) {
+class JavalinResponseWrapper(private val ctx: Context, private val cfg: JavalinConfig, private val requestType: HandlerType) : HttpServletResponseWrapper(ctx.res) {
 
-    private val outputStreamWrapper by lazy { OutputStreamWrapper(config, ctx) }
+    private val outputStreamWrapper by lazy { OutputStreamWrapper(cfg, ctx) }
     override fun getOutputStream() = outputStreamWrapper
 
     private val serverEtag by lazy { getHeader(ETAG) }
@@ -26,7 +26,7 @@ class JavalinResponseWrapper(private val ctx: Context, private val config: Javal
     fun write(resultStream: InputStream?) = when {
         resultStream == null -> {} // nothing to write (and nothing to close)
         serverEtag != null && serverEtag == clientEtag -> closeWith304(resultStream) // client etag matches, nothing to write
-        serverEtag == null && config.http.generateEtags && requestType == GET && resultStream is ByteArrayInputStream -> generateEtagWriteAndClose(resultStream)
+        serverEtag == null && cfg.http.generateEtags && requestType == GET && resultStream is ByteArrayInputStream -> generateEtagWriteAndClose(resultStream)
         else -> writeToWrapperAndClose(resultStream)
     }
 
@@ -53,8 +53,8 @@ class JavalinResponseWrapper(private val ctx: Context, private val config: Javal
 
 }
 
-class OutputStreamWrapper(val config: JavalinConfig, val ctx: Context, val response: HttpServletResponse = ctx.res) : ServletOutputStream() {
-    private val compression = config.inner.compressionStrategy
+class OutputStreamWrapper(val cfg: JavalinConfig, val ctx: Context, val response: HttpServletResponse = ctx.res) : ServletOutputStream() {
+    private val compression = cfg.pvt.compressionStrategy
     private var compressedStream: CompressedStream? = null
 
     override fun write(bytes: ByteArray, offset: Int, length: Int) {

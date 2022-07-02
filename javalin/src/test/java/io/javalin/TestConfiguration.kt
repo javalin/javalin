@@ -67,7 +67,7 @@ class TestConfiguration {
     @Test
     fun `compression strategy is set to gzip by default`() {
         val app = Javalin.create()
-        assertThat(app.cfg.inner.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
+        assertThat(app.cfg.pvt.compressionStrategy).isEqualTo(CompressionStrategy.GZIP)
     }
 
     @Test
@@ -75,8 +75,8 @@ class TestConfiguration {
         val app = Javalin.create {
             it.compression.custom(CompressionStrategy(null, Gzip(2)))
         }
-        assertThat(app.cfg.inner.compressionStrategy.gzip?.level).isEqualTo(2)
-        assertThat(app.cfg.inner.compressionStrategy.brotli).isNull()
+        assertThat(app.cfg.pvt.compressionStrategy.gzip?.level).isEqualTo(2)
+        assertThat(app.cfg.pvt.compressionStrategy.brotli).isNull()
     }
 
     @Test

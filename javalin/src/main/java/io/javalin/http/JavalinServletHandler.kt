@@ -44,7 +44,7 @@ typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> U
  */
 class JavalinServletHandler(
     private val stages: ArrayDeque<Stage>,
-    private val config: JavalinConfig,
+    private val cfg: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
     val ctx: Context,
@@ -122,14 +122,14 @@ class JavalinServletHandler(
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
             finishResponse() // write response
         })
-        .also { asyncCtx -> asyncCtx.timeout = config.http.asyncTimeout }
+        .also { asyncCtx -> asyncCtx.timeout = cfg.http.asyncTimeout }
 
     /** Writes response to the client and frees resources */
     private fun finishResponse() {
         if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         try {
-            JavalinResponseWrapper(ctx, config, requestType).write(ctx.resultStream())
-            config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
+            JavalinResponseWrapper(ctx, cfg, requestType).write(ctx.resultStream())
+            cfg.pvt.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) // handle any unexpected error, e.g. write failure
         } finally {

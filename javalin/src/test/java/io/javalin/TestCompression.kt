@@ -36,7 +36,7 @@ class TestCompression {
     private val testDocument = FileUtil.readResource("/public/html.html")
 
     private fun customCompressionApp(limit: Int): Javalin = Javalin.create {
-        it.inner.compressionStrategy.minSizeForCompression = limit
+        it.pvt.compressionStrategy.minSizeForCompression = limit
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
@@ -51,7 +51,7 @@ class TestCompression {
     }.addTestEndpoints()
 
     private fun etagApp() = Javalin.create {
-        it.inner.compressionStrategy.minSizeForCompression = testDocument.length
+        it.pvt.compressionStrategy.minSizeForCompression = testDocument.length
         it.staticFiles.add("/public", Location.CLASSPATH)
         it.http.generateEtags = true
     }.addTestEndpoints()

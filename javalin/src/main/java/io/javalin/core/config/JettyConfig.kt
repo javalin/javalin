@@ -7,25 +7,25 @@ import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 import java.util.function.Consumer
 import java.util.function.Supplier
 
-class JettyConfig(private val inner: InnerConfig) {
+class JettyConfig(private val pvt: PrivateConfig) {
 
     @JvmField
     var contextPath = "/"
 
     fun server(server: Supplier<Server?>) {
-        inner.server = server.get()
+        pvt.server = server.get()
     }
 
     fun contextHandlerConfig(consumer: Consumer<ServletContextHandler>) {
-        inner.servletContextHandlerConsumer = consumer
+        pvt.servletContextHandlerConsumer = consumer
     }
 
     fun sessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>) {
-        inner.sessionHandler = sessionHandlerSupplier.get()
+        pvt.sessionHandler = sessionHandlerSupplier.get()
     }
 
     fun wsFactoryConfig(wsFactoryConfig: Consumer<JettyWebSocketServletFactory>) {
-        inner.wsFactoryConfig = wsFactoryConfig
+        pvt.wsFactoryConfig = wsFactoryConfig
     }
 
 }

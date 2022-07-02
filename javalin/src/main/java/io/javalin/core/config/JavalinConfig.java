@@ -7,14 +7,10 @@
 package io.javalin.core.config;
 
 import io.javalin.Javalin;
-import io.javalin.core.plugin.Plugin;
-import io.javalin.core.plugin.PluginAlreadyRegisteredException;
 import io.javalin.core.plugin.PluginUtil;
 import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.SecurityUtil;
 import io.javalin.core.util.ConcurrencyUtil;
 import io.javalin.core.validation.JavalinValidation;
-import io.javalin.http.ContentType;
 import io.javalin.http.ContextResolver;
 import io.javalin.plugin.json.JavalinJackson;
 import io.javalin.plugin.json.JsonMapper;
@@ -25,40 +21,40 @@ import static io.javalin.http.ContextResolverKt.CONTEXT_RESOLVER_KEY;
 import static io.javalin.http.util.ContextUtil.MAX_REQUEST_SIZE_KEY;
 import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
-public class JavalinConfig {
+public class JavalinConfig { // abbreviated `cfg` in source
     public boolean showJavalinBanner = true;
-    public InnerConfig inner = new InnerConfig();
     public HttpConfig http = new HttpConfig();
     public RoutingConfig routing = new RoutingConfig();
-    public JettyConfig jetty = new JettyConfig(inner);
-    public StaticFilesConfig staticFiles = new StaticFilesConfig(inner);
-    public SinglePageConfig singlePage = new SinglePageConfig(inner);
-    public CompressionConfig compression = new CompressionConfig(inner);
-    public LoggingConfig requestLoggers = new LoggingConfig(inner);
-    public PluginConfig plugins = new PluginConfig(inner);
+    public PrivateConfig pvt = new PrivateConfig(); // this is "private", only use it if you know what you're doing
+    public JettyConfig jetty = new JettyConfig(pvt);
+    public StaticFilesConfig staticFiles = new StaticFilesConfig(pvt);
+    public SinglePageConfig singlePage = new SinglePageConfig(pvt);
+    public CompressionConfig compression = new CompressionConfig(pvt);
+    public LoggingConfig requestLoggers = new LoggingConfig(pvt);
+    public PluginConfig plugins = new PluginConfig(pvt);
 
     public void contextResolvers(@NotNull Consumer<ContextResolver> userResolver) {
         ContextResolver finalResolver = new ContextResolver();
         userResolver.accept(finalResolver);
-        inner.appAttributes.put(CONTEXT_RESOLVER_KEY, finalResolver);
+        pvt.appAttributes.put(CONTEXT_RESOLVER_KEY, finalResolver);
     }
 
     public void accessManager(@NotNull AccessManager accessManager) {
-        inner.accessManager = accessManager;
+        pvt.accessManager = accessManager;
     }
 
     public void jsonMapper(@NotNull JsonMapper jsonMapper) {
-        inner.appAttributes.put(JSON_MAPPER_KEY, jsonMapper);
+        pvt.appAttributes.put(JSON_MAPPER_KEY, jsonMapper);
     }
 
-    public static void applyUserConfig(Javalin app, JavalinConfig config, Consumer<JavalinConfig> userConfig) {
+    public static void applyUserConfig(Javalin app, JavalinConfig cfg, Consumer<JavalinConfig> userConfig) {
         JavalinValidation.addValidationExceptionMapper(app); // add default mapper for validation
-        userConfig.accept(config); // apply user config to the default config
-        PluginUtil.attachPlugins(app, config.inner.plugins.values());
-        config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
-        config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
-        config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool"));
-        config.inner.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, config.http.maxRequestSize);
+        userConfig.accept(cfg); // apply user config to the default config
+        PluginUtil.attachPlugins(app, cfg.pvt.plugins.values());
+        cfg.pvt.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
+        cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
+        cfg.pvt.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool"));
+        cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize);
     }
 
 }
