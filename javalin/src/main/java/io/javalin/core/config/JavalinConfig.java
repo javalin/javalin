@@ -26,13 +26,9 @@ import static io.javalin.http.util.ContextUtil.MAX_REQUEST_SIZE_KEY;
 import static io.javalin.plugin.json.JsonMapperKt.JSON_MAPPER_KEY;
 
 public class JavalinConfig {
-    public boolean autogenerateEtags = false;
-    public boolean prefer405over404 = false;
     public boolean showJavalinBanner = true;
-    public Long maxRequestSize = 1_000_000L; // increase this or use inputstream to handle large requests
-    @NotNull public String defaultContentType = ContentType.PLAIN;
-    @NotNull public Long asyncRequestTimeout = 0L;
     public InnerConfig inner = new InnerConfig();
+    public HttpConfig http = new HttpConfig();
     public RoutingConfig routing = new RoutingConfig();
     public JettyConfig jetty = new JettyConfig(inner);
     public StaticFilesConfig staticFiles = new StaticFilesConfig(inner);
@@ -51,7 +47,7 @@ public class JavalinConfig {
         inner.accessManager = accessManager;
     }
 
-    public void jsonMapper(JsonMapper jsonMapper) {
+    public void jsonMapper(@NotNull JsonMapper jsonMapper) {
         inner.appAttributes.put(JSON_MAPPER_KEY, jsonMapper);
     }
 
@@ -62,7 +58,7 @@ public class JavalinConfig {
         config.inner.appAttributes.putIfAbsent(JSON_MAPPER_KEY, new JavalinJackson());
         config.inner.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, new ContextResolver());
         config.inner.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool"));
-        config.inner.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, config.maxRequestSize);
+        config.inner.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, config.http.maxRequestSize);
     }
 
 }

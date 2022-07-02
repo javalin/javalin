@@ -53,7 +53,7 @@ class TestCompression {
     private fun etagApp() = Javalin.create {
         it.inner.compressionStrategy.minSizeForCompression = testDocument.length
         it.staticFiles.add("/public", Location.CLASSPATH)
-        it.autogenerateEtags = true
+        it.http.generateEtags = true
     }.addTestEndpoints()
 
     private fun Javalin.addTestEndpoints() = this.apply {

@@ -34,14 +34,14 @@ class TestConfiguration {
             it.staticFiles.add("src/test/resources/public", Location.EXTERNAL)
             it.staticFiles.enableWebjars()
             it.plugins.register { }
-            it.asyncRequestTimeout = 10_000L
-            it.autogenerateEtags = true
-            it.defaultContentType = ContentType.PLAIN
+            it.http.asyncTimeout = 10_000L
+            it.http.generateEtags = true
+            it.http.defaultContentType = ContentType.PLAIN
             it.plugins.enableCorsForAllOrigins()
             it.plugins.enableDevLogging()
             it.plugins.register(RouteOverviewPlugin("/test"))
             it.plugins.enableSslRedirects()
-            it.prefer405over404 = false
+            it.http.prefer405over404 = false
             it.requestLoggers.http { ctx, timeInMs -> }
             it.requestLoggers.webSocket { ws -> }
             it.plugins.register(MicrometerPlugin())

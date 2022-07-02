@@ -86,7 +86,7 @@ class TestResponse {
         val javalin = Javalin.create { javalinConfig ->
             javalinConfig.plugins.enableCorsForAllOrigins()
             javalinConfig.showJavalinBanner = false
-            javalinConfig.maxRequestSize = 5_000_000
+            javalinConfig.http.maxRequestSize = 5_000_000
         }.start(9005)
 
         val longString = Array(Short.MAX_VALUE.toInt()) { "0" }.joinToString()

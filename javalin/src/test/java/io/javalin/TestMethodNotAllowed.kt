@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 
 class TestMethodNotAllowed {
 
-    private val preferring405Javalin = Javalin.create { it.prefer405over404 = true }.apply {
+    private val preferring405Javalin = Javalin.create { it.http.prefer405over404 = true }.apply {
         post("/test") { it.result("Hello world") }
         put("/test") { it.result("Hello world") }
         delete("/test") { it.result("Hello world") }

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 
 class TestEtags {
 
-    private val etagsEnabledApp = Javalin.create { it.autogenerateEtags = true }
+    private val etagsEnabledApp = Javalin.create { it.http.generateEtags = true }
 
     @Test
     fun `default app does not set etags for GET`() = TestUtil.test { app, http ->

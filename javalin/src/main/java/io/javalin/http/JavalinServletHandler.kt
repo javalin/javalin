@@ -122,7 +122,7 @@ class JavalinServletHandler(
             errorMapper.handle(ctx.status(), ctx) // user defined error handling
             finishResponse() // write response
         })
-        .also { asyncCtx -> asyncCtx.timeout = config.asyncRequestTimeout }
+        .also { asyncCtx -> asyncCtx.timeout = config.http.asyncTimeout }
 
     /** Writes response to the client and frees resources */
     private fun finishResponse() {

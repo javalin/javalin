@@ -58,7 +58,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
                     ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
                 }
                 val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
-                if (config.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
+                if (config.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
                     throw MethodNotAllowedResponse(details = MethodNotAllowedUtil.getAvailableHandlerTypes(ctx, availableHandlerTypes))
                 }
                 throw NotFoundResponse()
@@ -78,7 +78,7 @@ class JavalinServlet(val config: JavalinConfig) : HttpServlet() {
         try {
             val ctx = Context(request, response, config.inner.appAttributes)
             LogUtil.setup(ctx, matcher, config.inner.requestLogger != null)
-            ctx.contentType(config.defaultContentType)
+            ctx.contentType(config.http.defaultContentType)
 
             JavalinServletHandler(
                 stages = ArrayDeque(lifecycle),

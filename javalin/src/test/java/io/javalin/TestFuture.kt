@@ -140,7 +140,7 @@ class TestFuture {
         assertThat(http.get("/").body).isEqualTo("Wee")
     }
 
-    private val impatientServer: Javalin by lazy { Javalin.create { it.asyncRequestTimeout = 5 } }
+    private val impatientServer: Javalin by lazy { Javalin.create { it.http.asyncTimeout = 5 } }
 
     @Test
     fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->

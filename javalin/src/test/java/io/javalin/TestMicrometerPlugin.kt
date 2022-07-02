@@ -244,7 +244,7 @@ class TestMicrometerPlugin {
                 tagNotFoundMappedPaths = tagNotFoundMappedPaths
             )
         )
-        if (autoGenerateEtags != null) config.autogenerateEtags = autoGenerateEtags
+        if (autoGenerateEtags != null) config.http.generateEtags = autoGenerateEtags
 
         // must manually delegate to Micrometer exception handler for exception tags to be correct
     }.exception(IllegalArgumentException::class.java) { e, ctx ->
