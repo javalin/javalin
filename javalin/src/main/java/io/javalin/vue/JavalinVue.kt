@@ -26,13 +26,7 @@ object JavalinVue {
         this.rootDirectory = if (location == Location.CLASSPATH) PathMaster.classpathPath(path, resourcesJarClass) else Paths.get(path)
     }
 
-    internal var vueVersion = 2
-    internal var vueAppName = "Vue" // only relevant for Vue 3 apps
-    @JvmStatic @JvmOverloads fun vueVersion(version: Int, appName: String = "vue3App") {
-        require(version in (2..3)) { "Version must be 2 or 3"}
-        this.vueVersion = version
-        this.vueAppName = if (version == 3) appName else "Vue"
-    }
+    @JvmField var vueAppName: String? = null // only relevant for Vue 3 apps
 
     internal var isDev: Boolean? = null // cached and easily accessible, is set on first request (can't be configured directly by end user)
     @JvmField var isDevFunction: (Context) -> Boolean = { it.isLocalhost() } // used to set isDev, will be called once

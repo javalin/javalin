@@ -30,7 +30,7 @@ class TestJavalinVue {
     companion object {
         fun before() {
             with(JavalinVue) {
-                vueVersion(2)
+                vueAppName = null // rest
                 isDev = null // reset
                 stateFunction = { mapOf<String, String>() } // reset
                 rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main ->
@@ -137,7 +137,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component without state`() = TestUtil.test { app, http ->
-        JavalinVue.vueVersion(3, "app")
+        JavalinVue.vueAppName = "app"
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
         app.get("/no-state", VueComponent("test-component-3"))
         val res = http.getBody("/no-state")
@@ -149,7 +149,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component with state`() = TestUtil.test { app, http ->
-        JavalinVue.vueVersion(3, "app")
+        JavalinVue.vueAppName = "app"
         val encodedState =
             """{"pathParams":{"my-param":"test-path-param"},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { state }
@@ -305,13 +305,6 @@ class TestJavalinVue {
         app.get("/shorthand", VueComponent("test-component"))
         val response = http.getBody("/shorthand")
         assertThat(response).contains("LoadableData")
-    }
-
-    @Test
-    fun `vue version is validated`() {
-        Assertions.assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { JavalinVue.vueVersion(4) }
-            .withMessageStartingWith("Version must be 2 or 3")
     }
 
 }

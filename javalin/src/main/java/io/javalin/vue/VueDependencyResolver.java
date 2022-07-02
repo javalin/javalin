@@ -35,10 +35,10 @@ public class VueDependencyResolver {
     private final String appName;
 
     public VueDependencyResolver(final Set<Path> paths, String appVarName) {
-        appName = appVarName;
+        appName = appVarName != null ? appVarName : "Vue"; // appname should be "Vue" for vue2 apps
         componentIdToOwnContent = new HashMap<>();
         componentIdToDependencyContent = new HashMap<>();
-        componentRegex = Pattern.compile(appVarName + ".component\\s*\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
+        componentRegex = Pattern.compile(appName + ".component\\s*\\(\\s*[\"|'](.*)[\"|']\\s*,.*");
         paths.stream().filter(VueHandlerKt::isVueFile).forEach(path -> {
             String fileContent = VueHandlerKt.readText(path);
             Matcher matcher = componentRegex.matcher(fileContent); // check for a vue component
