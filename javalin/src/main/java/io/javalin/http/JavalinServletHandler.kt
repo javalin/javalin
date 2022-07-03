@@ -111,16 +111,13 @@ class JavalinServletHandler(
             ?.thenAccept { if (it.result.future != null) tasks.offerFirst(createFutureCallbackTask(it)) } // add future callback add the beginning of queue
             ?: completedFuture(null) // stub future if task was skipped
 
+    @Suppress("UNCHECKED_CAST")
     private fun createFutureCallbackTask(executionResult: ExecutionResult): Task =
         Task(
             stage = FutureCallbackStage.stage,
             handler = {
                 executionResult.result.callback
-                    ?.let {
-                        @Suppress("UNCHECKED_CAST")
-                        (it as Consumer<Any?>)
-                    }
-                    ?.accept(executionResult.value)
+                    ?.let { (it as Consumer<Any?>).accept(executionResult.value) }
                     ?: ctx.contextResolver().defaultFutureCallback(ctx, executionResult.value)
             }
         )
