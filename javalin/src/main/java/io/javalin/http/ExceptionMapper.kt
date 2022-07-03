@@ -32,7 +32,7 @@ class ExceptionMapper {
 
     internal fun handleFutureException(ctx: Context, throwable: Throwable): Nothing? {
         if (throwable is CompletionException && throwable.cause is Exception) {
-            handle(throwable.cause as Exception, ctx)
+            handleFutureException(ctx, throwable.cause as Exception)
         } else if (throwable is Exception) {
             handle(throwable, ctx)
         }

@@ -5,7 +5,6 @@ import io.javalin.core.util.LogUtil
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
-import io.javalin.http.InternalStage.FUTURE_CALLBACK
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -13,15 +12,13 @@ import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.failedFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.BiFunction
 import java.util.function.Consumer
-import java.util.function.Function
 
 interface StageName
 enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
 
-private enum class InternalStage(val stage: Lazy<Stage>) : StageName {
-    FUTURE_CALLBACK(lazy { Stage(FUTURE_CALLBACK, haltsOnError = false) })
+private object FutureCallbackStage : StageName {
+    val stage = Stage(this, haltsOnError = false)
 }
 
 data class Stage(
@@ -58,7 +55,7 @@ typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> U
  */
 class JavalinServletHandler(
     private val stages: ArrayDeque<Stage>,
-    private val config: JavalinConfig,
+    private val cfg: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
     val ctx: Context,
@@ -93,69 +90,64 @@ class JavalinServletHandler(
         else
             currentTaskFuture = currentTaskFuture
                 .thenCompose { executeNextTask() } // chain next task into current future
-                .exceptionally { throwable -> exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
+                .thenApply { queueNextTaskOrFinish() } // continue standard execution of queue
+                .exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
-    /** Executes the given task with proper error handling and returns next task to execute as future */
-    @Suppress("UNCHECKED_CAST")
-    private fun executeNextTask(): CompletableFuture<*> {
-        val task = tasks.poll()
-        if (errored && task.stage.haltsOnError) {
-            queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
-            return completedFuture(null)
-        }
-
-        return handleFutureResultReference { task.handler(this) }
-            .exceptionallyComposeFallback { throwable ->
+    /**
+     * Executes current task from queue.
+     * Each phase (user's handlers) of task execution supports proper result handling by chaining it with [handleFutureResultReference].
+     */
+    private fun executeNextTask(): CompletableFuture<*> =
+        tasks.poll()
+            .takeUnless { errored && it.stage.haltsOnError } // each subsequent task for this stage will be queued and skipped
+            ?.let { handleFutureResultReference { it.handler(this) } } // execute main task
+            ?.exceptionallyComposeFallback { throwable -> // handle exception from task with exception mapper
                 handleFutureResultReference {
                     errored = true
-                    exceptionMapper.handleFutureException(ctx, throwable) // standard exception handler
+                    exceptionMapper.handleFutureException(ctx, throwable)
                 }
             }
-            .thenApply { (result, value) ->
-                if (result.future != null) {
-                    tasks.offer(Task(
-                        stage = FUTURE_CALLBACK.stage.value,
-                        handler = {
-                            // callback after any kind of future - can mutate context
-                            result.callback
-                                ?.also { (it as Consumer<Any?>).accept(value) }
-                                ?: ctx.contextResolver().defaultFutureCallback(ctx, value)
-                        }
-                    ))
-                }
-                queueNextTaskOrFinish()
-            }
-    }
+            ?.thenAccept { if (it.result.future != null) tasks.offerFirst(createFutureCallbackTask(it)) } // add future callback add the beginning of queue
+            ?: completedFuture(null) // stub future if task was skipped
 
-    /** Handles futures provided by user through ctx.future() */
-    private fun handleFutureResultReference(action: () -> Unit): CompletableFuture<ExecutionResult> {
-        val executedTask = runCatching { action() }
-        val result = ctx.resultReference.getAndUpdate { Result(ctx.resultStream() ?: it.previous) }
+    private fun createFutureCallbackTask(executionResult: ExecutionResult): Task =
+        Task(
+            stage = FutureCallbackStage.stage,
+            handler = {
+                executionResult.result.callback
+                    ?.let {
+                        @Suppress("UNCHECKED_CAST")
+                        (it as Consumer<Any?>)
+                    }
+                    ?.accept(executionResult.value)
+                    ?: ctx.contextResolver().defaultFutureCallback(ctx, executionResult.value)
+            }
+        )
+
+    /** Handles futures provided by user through ctx.future() in various handlers */
+    private fun handleFutureResultReference(handler: () -> Unit): CompletableFuture<ExecutionResult> {
+        val executedTask = runCatching { handler() }
+        val result = ctx.resultReference.getAndUpdate { Result(ctx.resultStream() ?: it.previous) } // remove result to process from context
 
         if (!ctx.isAsync() && result.future?.isDone == false) {
-            startAsyncAndAddDefaultTimeoutListeners() // start async context only if the future is not already completed
+            startAsyncAndAddDefaultTimeoutListeners() // starts async context only if future is not already completed
         }
         if (ctx.isAsync() && result.future?.isDone == false) {
-            ctx.req.asyncContext.addListener(onTimeout = { result.future.cancel(true) })
+            ctx.req.asyncContext.addListener(onTimeout = { result.future.cancel(true) }) // registers timeout listener only if future is not already completed
         }
 
         return executedTask
             .fold(
-                onSuccess = { completedFuture(null) },
-                onFailure = { exception -> failedFuture<Any?>(exception) }
+                onSuccess = { result.future?.thenApply { ExecutionResult(result, it) } }, // map result to ExecutionResult for further consumers
+                onFailure = { failedFuture(it) } // or wrap exception with future
             )
-            .thenCompose {
-                result.future
-                    ?.thenApply { ExecutionResult(result, it) }
-                    ?: completedFuture(ExecutionResult(Result(ctx.resultStream()), null))
+            ?.exceptionally {
+                result.future?.cancel(true) // cancel user's future in case of exception
+                throw it // rethrow origin exception
             }
-            .exceptionally {
-                result.future?.cancel(true)
-                throw it
-            }
+            ?: completedFuture(ExecutionResult(Result(ctx.resultStream()), null)) // default result in case of lack of user's future
     }
-
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
         .addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
@@ -169,14 +161,14 @@ class JavalinServletHandler(
             if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
             finishResponse() // write response
         })
-        .also { asyncCtx -> asyncCtx.timeout = config.asyncRequestTimeout }
+        .also { asyncCtx -> asyncCtx.timeout = cfg.http.asyncTimeout }
 
     /** Writes response to the client and frees resources */
     private fun finishResponse() {
         if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         try {
-            JavalinResponseWrapper(ctx, config, requestType).write(ctx.resultStream())
-            config.inner.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
+            JavalinResponseWrapper(ctx, cfg, requestType).write(ctx.resultStream())
+            cfg.pvt.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) // handle any unexpected error, e.g. write failure
         } finally {
