@@ -360,7 +360,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         SeekableWriter.write(this, inputStream, contentType, size)
 
     fun resultStream(): InputStream? = resultReference.get().let { result ->
-        result.future?.takeIf { it.isDone }?.get() as InputStream? ?: result.previous
+        result.future
+            ?.takeIf { it.isDone && !it.isCompletedExceptionally && !it.isCancelled }
+            ?.get() as InputStream?
+            ?: result.previous
     }
 
     /**
