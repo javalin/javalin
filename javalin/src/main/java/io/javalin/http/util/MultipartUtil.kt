@@ -7,10 +7,10 @@
 package io.javalin.http.util
 
 import io.javalin.http.UploadedFile
-import java.nio.charset.Charset
 import jakarta.servlet.MultipartConfigElement
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
+import java.nio.charset.Charset
 
 object MultipartUtil {
     private const val MULTIPART_CONFIG_ATTRIBUTE = "org.eclipse.jetty.multipartConfig"
@@ -18,8 +18,10 @@ object MultipartUtil {
     var preUploadFunction: (HttpServletRequest) -> Unit = { req ->
         val existingConfig = req.getAttribute(MULTIPART_CONFIG_ATTRIBUTE)
         if (existingConfig == null) {
-            req.setAttribute(MULTIPART_CONFIG_ATTRIBUTE,
-                    MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1))
+            req.setAttribute(
+                MULTIPART_CONFIG_ATTRIBUTE,
+                MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1)
+            )
         }
     }
 

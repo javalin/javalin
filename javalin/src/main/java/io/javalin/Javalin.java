@@ -247,7 +247,7 @@ public class Javalin implements AutoCloseable {
      * The method must be called before {@link Javalin#start()}.
      */
     public Javalin attribute(String key, Object value) {
-        cfg.inner.appAttributes.put(key, value);
+        cfg.pvt.appAttributes.put(key, value);
         return this;
     }
 
@@ -258,7 +258,7 @@ public class Javalin implements AutoCloseable {
      * Ex: ctx.appAttribute(MyExt.class).myMethod()
      */
     public <T> T attribute(String key) {
-        return (T) cfg.inner.appAttributes.get(key);
+        return (T) cfg.pvt.appAttributes.get(key);
     }
 
     /**
@@ -324,7 +324,7 @@ public class Javalin implements AutoCloseable {
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
         javalinServlet.addHandler(handlerType, path, handler, roleSet);
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().jetty.contextPath, path), handler, roleSet));
+        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getCfg().jetty.contextPath, path), handler, roleSet));
         return this;
     }
 
@@ -569,7 +569,7 @@ public class Javalin implements AutoCloseable {
     private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
         javalinJettyServlet.addHandler(handlerType, path, wsConfig, roleSet);
-        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getConfig().jetty.contextPath, path), wsConfig, roleSet));
+        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(javalinServlet.getCfg().jetty.contextPath, path), wsConfig, roleSet));
         return this;
     }
 

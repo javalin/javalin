@@ -1,15 +1,14 @@
 package io.javalin.javalinvue;
 
 import io.javalin.http.Context;
+import io.javalin.testing.TestUtil;
 import io.javalin.vue.JavalinVue;
 import io.javalin.vue.VueComponent;
 import io.javalin.vue.VueHandler;
 import io.javalin.vue.VueRenderer;
-import io.javalin.testing.TestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestJavalinVueHandler {

@@ -8,10 +8,11 @@ package io.javalin.javalinvue
 
 import io.javalin.Javalin
 import io.javalin.http.Context
+import io.javalin.http.staticfiles.Location
+import io.javalin.testing.TestUtil
 import io.javalin.vue.JavalinVue
 import io.javalin.vue.VueComponent
 import io.javalin.vue.VueRenderer
-import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,10 +29,10 @@ class TestJavalinVue {
     companion object {
         fun before() {
             with(JavalinVue) {
-                vueVersion { it.vue2() }
+                vueAppName = null // rest
                 isDev = null // reset
                 stateFunction = { mapOf<String, String>() } // reset
-                rootDirectory { it.externalPath("src/test/resources/vue") } // src/main ->
+                rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main ->
                 optimizeDependencies = false
             }
         }
@@ -135,7 +136,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component without state`() = TestUtil.test { app, http ->
-        JavalinVue.vueVersion { it.vue3("app") }
+        JavalinVue.vueAppName = "app"
         val encodedEmptyState = """{"pathParams":{},"state":{}}""".uriEncodeForJavascript()
         app.get("/no-state", VueComponent("test-component-3"))
         val res = http.getBody("/no-state")
@@ -147,7 +148,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue3 component with state`() = TestUtil.test { app, http ->
-        JavalinVue.vueVersion { it.vue3("app") }
+        JavalinVue.vueAppName = "app"
         val encodedState =
             """{"pathParams":{"my-param":"test-path-param"},"state":{"user":{"name":"tipsy","email":"tipsy@tipsy.tipsy"},"role":{"name":"Maintainer"}}}""".uriEncodeForJavascript()
         JavalinVue.stateFunction = { state }
@@ -212,14 +213,14 @@ class TestJavalinVue {
 
     @Test
     fun `classpath rootDirectory works`() = TestUtil.test { app, http ->
-        JavalinVue.rootDirectory { it.classpathPath("/vue") }
+        JavalinVue.rootDirectory("/vue")
         app.get("/classpath", VueComponent("test-component"))
         assertThat(http.getBody("/classpath")).contains("<test-component></test-component>")
     }
 
     @Test
     fun `setting rootDirectory with Path works`() = TestUtil.test { app, http ->
-        JavalinVue.rootDirectory { it.explicitPath(Paths.get("src/test/resources/vue")) }
+        JavalinVue.rootDirectory(Paths.get("src/test/resources/vue"))
         app.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("<test-component></test-component>")
     }
@@ -227,7 +228,7 @@ class TestJavalinVue {
     @Test
     fun `non-existent folder fails`() = TestUtil.test { app, http ->
         JavalinVue.isDev = true // reset
-        JavalinVue.rootDirectory { it.externalPath("/vue") }
+        JavalinVue.rootDirectory("/vue", Location.EXTERNAL)
         app.get("/fail", VueComponent("test-component"))
         assertThat(http.get("/fail").status).isEqualTo(500)
     }

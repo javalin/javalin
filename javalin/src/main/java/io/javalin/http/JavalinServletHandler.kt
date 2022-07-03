@@ -2,10 +2,10 @@ package io.javalin.http
 
 import io.javalin.core.config.JavalinConfig
 import io.javalin.core.util.LogUtil
-import io.javalin.http.InternalStage.FUTURE_CALLBACK
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
+import io.javalin.http.InternalStage.FUTURE_CALLBACK
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -200,7 +200,7 @@ internal fun AsyncContext.addListener(
     onError: (AsyncEvent) -> Unit = {},
     onStartAsync: (AsyncEvent) -> Unit = {},
     onTimeout: (AsyncEvent) -> Unit = {},
-) : AsyncContext = apply {
+): AsyncContext = apply {
     addListener(object : AsyncListener {
         override fun onComplete(event: AsyncEvent) = onComplete(event)
         override fun onError(event: AsyncEvent) = onError(event)

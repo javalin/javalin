@@ -2,7 +2,6 @@ package io.javalin.core.util
 
 import io.javalin.Javalin
 import org.slf4j.LoggerFactory
-import java.util.*
 
 // @formatter:off
 object JavalinLogger {

@@ -11,6 +11,7 @@ import io.javalin.core.util.Header
 class ErrorMapper {
 
     data class MapperEntry(val statusCode: Int, val contentType: String, val handler: Handler)
+
     private val errorHandlers = mutableSetOf<MapperEntry>()
 
     fun addHandler(statusCode: Int, contentType: String, handler: Handler) =

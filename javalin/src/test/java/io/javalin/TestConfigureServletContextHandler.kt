@@ -9,10 +9,6 @@ package io.javalin
 
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
-import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.servlet.FilterHolder
-import org.junit.jupiter.api.Test
-import java.util.*
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -21,6 +17,10 @@ import jakarta.servlet.ServletContextEvent
 import jakarta.servlet.ServletContextListener
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
+import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.servlet.FilterHolder
+import org.junit.jupiter.api.Test
+import java.util.*
 
 class TestConfigureServletContextHandler {
 

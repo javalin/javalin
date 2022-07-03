@@ -9,8 +9,8 @@ package io.javalin.http
 import io.javalin.core.util.JavalinLogger
 import io.javalin.core.util.Util
 import io.javalin.jetty.JettyUtil
-import java.util.concurrent.CompletionException
 import jakarta.servlet.http.HttpServletResponse
+import java.util.concurrent.CompletionException
 
 class ExceptionMapper {
 

@@ -84,9 +84,9 @@ class TestResponse {
     @Test
     fun `gh-1409 entrypoint to analyze compression strategy lifecycle`() {
         val javalin = Javalin.create { javalinConfig ->
-            javalinConfig.defaultPlugins.enableCorsForAllOrigins()
+            javalinConfig.plugins.enableCorsForAllOrigins()
             javalinConfig.showJavalinBanner = false
-            javalinConfig.maxRequestSize = 5_000_000
+            javalinConfig.http.maxRequestSize = 5_000_000
         }.start(9005)
 
         val longString = Array(Short.MAX_VALUE.toInt()) { "0" }.joinToString()
@@ -95,7 +95,9 @@ class TestResponse {
             ctx.result(longString)
         }
 
-        while (true) {} // should be requested by external tool
+        while (true) {
+            // should be requested by external tool
+        }
     }
 
     @Test
@@ -197,8 +199,8 @@ class TestResponse {
         val contentSize = 100L
         app.get("/seekable-5") { it.seekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
         val response = Unirest.get(http.origin + "/seekable-5")
-                .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
-                .asString()
+            .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
+            .asString()
 
         assertThat(response.headers[Header.CONTENT_RANGE]?.get(0)).isEqualTo("bytes ${prefixSize}-${prefixSize + contentSize - 1}/${prefixSize + contentSize}")
         val responseBody = response.body

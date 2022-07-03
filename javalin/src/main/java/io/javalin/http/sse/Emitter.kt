@@ -1,8 +1,8 @@
 package io.javalin.http.sse
 
+import jakarta.servlet.http.HttpServletResponse
 import java.io.IOException
 import java.io.InputStream
-import jakarta.servlet.http.HttpServletResponse
 
 const val COMMENT_PREFIX = ":"
 const val NEW_LINE = "\n"

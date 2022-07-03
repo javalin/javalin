@@ -7,6 +7,7 @@
  */
 
 package io.javalin;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import kong.unirest.HttpResponse;

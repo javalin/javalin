@@ -14,6 +14,12 @@ import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
+import jakarta.servlet.DispatcherType
+import jakarta.servlet.Filter
+import jakarta.servlet.FilterChain
+import jakarta.servlet.FilterConfig
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.ServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
 import org.eclipse.jetty.server.handler.ContextHandler
@@ -25,12 +31,6 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
-import jakarta.servlet.DispatcherType
-import jakarta.servlet.Filter
-import jakarta.servlet.FilterChain
-import jakarta.servlet.FilterConfig
-import jakarta.servlet.ServletRequest
-import jakarta.servlet.ServletResponse
 
 class TestStaticFiles {
 
@@ -50,7 +50,7 @@ class TestStaticFiles {
     private val customHeaderApp: Javalin by lazy { Javalin.create { it.staticFiles.add { it.headers = mapOf(Header.CACHE_CONTROL to "max-age=31622400") } } }
     private val devLoggingApp: Javalin by lazy {
         Javalin.create {
-            it.defaultPlugins.enableDevLogging()
+            it.plugins.enableDevLogging()
             it.staticFiles.add("/public", Location.CLASSPATH)
         }
     }

@@ -11,6 +11,15 @@ import io.javalin.core.util.LoomUtil
 import io.javalin.http.HttpCode
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
+import jakarta.servlet.DispatcherType
+import jakarta.servlet.Filter
+import jakarta.servlet.FilterChain
+import jakarta.servlet.FilterConfig
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.ServletResponse
+import jakarta.servlet.http.HttpServlet
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
@@ -35,15 +44,6 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
-import jakarta.servlet.DispatcherType
-import jakarta.servlet.Filter
-import jakarta.servlet.FilterChain
-import jakarta.servlet.FilterConfig
-import jakarta.servlet.ServletRequest
-import jakarta.servlet.ServletResponse
-import jakarta.servlet.http.HttpServlet
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 
 class TestCustomJetty {
 

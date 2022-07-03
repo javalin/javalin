@@ -1,13 +1,13 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
+import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import jakarta.servlet.http.HttpServletResponse
 
 class TestMethodNotAllowed {
 
-    private val preferring405Javalin = Javalin.create { it.prefer405over404 = true }.apply {
+    private val preferring405Javalin = Javalin.create { it.http.prefer405over404 = true }.apply {
         post("/test") { it.result("Hello world") }
         put("/test") { it.result("Hello world") }
         delete("/test") { it.result("Hello world") }

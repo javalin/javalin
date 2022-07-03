@@ -6,7 +6,7 @@ import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.jetty.JettyResourceHandler
 import java.util.function.Consumer
 
-class StaticFilesConfig(private val inner: InnerConfig) {
+class StaticFilesConfig(private val pvt: PrivateConfig) {
 
     fun enableWebjars() = add { staticFiles ->
         staticFiles.directory = "META-INF/resources/webjars"
@@ -20,12 +20,12 @@ class StaticFilesConfig(private val inner: InnerConfig) {
     }
 
     fun add(userConfig: Consumer<StaticFileConfig>) {
-        if (inner.resourceHandler == null) {
-            inner.resourceHandler = JettyResourceHandler()
+        if (pvt.resourceHandler == null) {
+            pvt.resourceHandler = JettyResourceHandler()
         }
         val finalConfig = StaticFileConfig()
         userConfig.accept(finalConfig)
-        inner.resourceHandler!!.addStaticFileConfig(finalConfig)
+        pvt.resourceHandler!!.addStaticFileConfig(finalConfig)
     }
 
 }

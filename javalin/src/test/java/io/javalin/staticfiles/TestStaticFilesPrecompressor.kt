@@ -7,8 +7,6 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.core.compression.Brotli
-import io.javalin.core.compression.Gzip
 import io.javalin.core.util.Header
 import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
@@ -26,7 +24,7 @@ class TestStaticFilesPrecompressor {
 
     private val configPrecompressionStaticResourceApp: Javalin by lazy {
         Javalin.create { javalin ->
-            javalin.compressionStrategy(Brotli(), Gzip())
+            javalin.compression.brotliAndGzip()
             javalin.staticFiles.add { staticFiles ->
                 staticFiles.directory = "META-INF/resources/webjars"
                 staticFiles.precompress = true

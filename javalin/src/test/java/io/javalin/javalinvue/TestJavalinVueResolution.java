@@ -15,9 +15,9 @@
  */
 package io.javalin.javalinvue;
 
+import io.javalin.testing.TestUtil;
 import io.javalin.vue.JavalinVue;
 import io.javalin.vue.VueComponent;
-import io.javalin.testing.TestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,7 +73,7 @@ public class TestJavalinVueResolution {
     @Test
     public void resolveVue3DependencyTest() {
         TestUtil.test((server, httpUtil) -> {
-            JavalinVue.vueVersion(vueVersion -> vueVersion.vue3("app"));
+            JavalinVue.vueAppName = "app";
             server.get("/single-view", new VueComponent("<view-one-3></view-one-3>"));
             String body = httpUtil.getBody("/single-view");
             assertThat(body).contains("<body><view-one-3></view-one-3></body>");

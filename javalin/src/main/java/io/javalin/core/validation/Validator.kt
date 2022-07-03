@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull
 open class Validator<T>(fieldName: String, typedValue: T? = null, stringSource: StringSource<T>? = null) : BaseValidator<T>(fieldName, typedValue, stringSource) {
 
     constructor(stringValue: String?, clazz: Class<T>, fieldName: String) :
-        this(fieldName, null, StringSource<T>(stringValue, clazz))
+            this(fieldName, null, StringSource<T>(stringValue, clazz))
 
     fun allowNullable(): NullableValidator<T> {
         if (this.rules.isEmpty()) return NullableValidator(fieldName, typedValue, stringSource)

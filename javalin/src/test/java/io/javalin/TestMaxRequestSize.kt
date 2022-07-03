@@ -14,7 +14,7 @@ class TestMaxRequestSize {
     }
 
     @Test
-    fun `user can configure max request size`() = TestUtil.test(Javalin.create { it.maxRequestSize = 4L }) { app, http ->
+    fun `user can configure max request size`() = TestUtil.test(Javalin.create { it.http.maxRequestSize = 4L }) { app, http ->
         app.post("/") { it.result(it.body()) }
         assertThat(http.post("/").body(ByteArray(4)).asString().status).isEqualTo(200)
         assertThat(http.post("").body(ByteArray(5)).asString().status).isEqualTo(413)
@@ -27,7 +27,7 @@ class TestMaxRequestSize {
     }
 
     @Test
-    fun `can read payloads larger than max size by using inputstream`() = TestUtil.test(Javalin.create { it.maxRequestSize = 4L }) { app, http ->
+    fun `can read payloads larger than max size by using inputstream`() = TestUtil.test(Javalin.create { it.http.maxRequestSize = 4L }) { app, http ->
         app.post("/body") { it.result(it.body()) }
         assertThat(http.post("/body").body("123456").asString().body).isEqualTo("Payload Too Large")
         app.post("/stream") { it.result(it.req.inputStream.readBytes()) }

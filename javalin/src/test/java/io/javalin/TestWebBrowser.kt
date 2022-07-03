@@ -7,7 +7,6 @@
 package io.javalin
 
 import io.github.bonigarcia.wdm.WebDriverManager
-import io.javalin.core.compression.Brotli
 import io.javalin.core.util.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
 import io.javalin.testing.TestLoggingUtil.captureStdOut
@@ -64,8 +63,8 @@ class TestWebBrowser {
         TestUtil.runAndCaptureLogs {
             val payload = "Hello, Selenium!".repeat(150)
             val app = Javalin.create {
-                it.compressionStrategy(Brotli(4), null)
-                it.defaultPlugins.enableDevLogging()
+                it.compression.brotliOnly()
+                it.plugins.enableDevLogging()
             }.start(0)
             app.get("/hello") { it.result(payload) }
             val logResult = captureStdOut {
@@ -85,8 +84,8 @@ class TestWebBrowser {
         val expectedChunkCount = ceil(file.inputStream().available() / chunkSize.toDouble()).toInt()
         var chunkCount = 0
         val requestLoggerApp = Javalin.create {
-            it.requestLogger { ctx, ms ->
-                if (ctx.req.getHeader(Header.RANGE) == null) return@requestLogger
+            it.requestLoggers.http { ctx, ms ->
+                if (ctx.req.getHeader(Header.RANGE) == null) return@http
                 chunkCount++
                 // println("Req: " + ctx.req.getHeader(Header.RANGE))
                 // println("Res: " + ctx.res.getHeader(Header.CONTENT_RANGE))

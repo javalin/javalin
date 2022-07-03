@@ -25,13 +25,13 @@ class TestCors {
     @Test
     fun `enableCorsForOrigin throws for empty varargs`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { Javalin.create { it.defaultPlugins.enableCorsForOrigin() } }
+            .isThrownBy { Javalin.create { it.plugins.enableCorsForOrigin() } }
             .withMessageStartingWith("Origins cannot be empty.")
     }
 
     @Test
     fun `enableCorsForOrigin enables cors for specific origins`() {
-        val javalin = Javalin.create { it.defaultPlugins.enableCorsForOrigin("origin-1", "referer-1") }
+        val javalin = Javalin.create { it.plugins.enableCorsForOrigin("origin-1", "referer-1") }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { it.result("Hello") }
             assertThat(Unirest.get(http.origin).asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isEmpty()
@@ -42,7 +42,7 @@ class TestCors {
 
     @Test
     fun `rejectCorsForInvalidOrigin reject where origin doesn't match`() {
-        val javalin = Javalin.create { it.defaultPlugins.enableCorsForOrigin("origin-1.com") }
+        val javalin = Javalin.create { it.plugins.enableCorsForOrigin("origin-1.com") }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { it.result("Hello") }
             assertThat(Unirest.get(http.origin).header(ORIGIN, "origin-2.com").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]).isEmpty()
@@ -52,7 +52,7 @@ class TestCors {
 
     @Test
     fun `enableCorsForAllOrigins enables cors for all origins`() {
-        val javalin = Javalin.create { it.defaultPlugins.enableCorsForAllOrigins() }
+        val javalin = Javalin.create { it.plugins.enableCorsForAllOrigins() }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { it.result("Hello") }
             assertThat(Unirest.get(http.origin).header("Origin", "some-origin").asString().headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("some-origin")
@@ -63,7 +63,7 @@ class TestCors {
     }
 
     @Test
-    fun `enableCorsForAllOrigins works for 404s`() = TestUtil.test(Javalin.create { it.defaultPlugins.enableCorsForAllOrigins() }) { app, http ->
+    fun `enableCorsForAllOrigins works for 404s`() = TestUtil.test(Javalin.create { it.plugins.enableCorsForAllOrigins() }) { app, http ->
         val response = Unirest.get(http.origin + "/not-found").header("Origin", "some-origin").asString()
         assertThat(response.headers[ACCESS_CONTROL_ALLOW_ORIGIN]!![0]).isEqualTo("some-origin")
     }
@@ -71,7 +71,7 @@ class TestCors {
     @Test
     fun `enableCorsForAllOrigins enables cors for all origins with AccessManager`() {
         val accessManagedCorsApp = Javalin.create {
-            it.defaultPlugins.enableCorsForAllOrigins()
+            it.plugins.enableCorsForAllOrigins()
             it.accessManager { _, ctx, _ ->
                 ctx.status(401).result("Unauthorized")
             }
@@ -91,7 +91,7 @@ class TestCors {
 
     @Test
     fun `enableCorsForAllOrigins allows options endpoint mapping`() {
-        val javalin = Javalin.create { it.defaultPlugins.enableCorsForAllOrigins() }
+        val javalin = Javalin.create { it.plugins.enableCorsForAllOrigins() }
         TestUtil.test(javalin) { app, http ->
             app.options("/") { it.result("Hello") }
             val response = Unirest.options(http.origin)
