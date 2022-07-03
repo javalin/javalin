@@ -28,7 +28,7 @@ public class JavalinConfig { // abbreviated `cfg` in source
     public PrivateConfig pvt = new PrivateConfig(); // this is "private", only use it if you know what you're doing
     public JettyConfig jetty = new JettyConfig(pvt);
     public StaticFilesConfig staticFiles = new StaticFilesConfig(pvt);
-    public SinglePageConfig singlePage = new SinglePageConfig(pvt);
+    public SpaRootConfig spaRoot = new SpaRootConfig(pvt);
     public CompressionConfig compression = new CompressionConfig(pvt);
     public LoggingConfig requestLoggers = new LoggingConfig(pvt);
     public PluginConfig plugins = new PluginConfig(pvt);

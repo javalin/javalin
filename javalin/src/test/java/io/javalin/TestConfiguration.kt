@@ -27,9 +27,9 @@ class TestConfiguration {
     @Test
     fun `test all config options`() = TestUtil.runLogLess {
         val app = Javalin.create {
-            it.singlePage.addRootFile("/", "/public/html.html")
-            it.singlePage.addRootFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)
-            it.singlePage.addRootHandler("/", {})
+            it.spaRoot.addFile("/", "/public/html.html")
+            it.spaRoot.addFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)
+            it.spaRoot.addHandler("/", {})
             it.staticFiles.add("/public", Location.CLASSPATH)
             it.staticFiles.add("src/test/resources/public", Location.EXTERNAL)
             it.staticFiles.enableWebjars()

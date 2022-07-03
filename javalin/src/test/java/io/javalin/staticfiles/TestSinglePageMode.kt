@@ -28,7 +28,7 @@ class TestSinglePageMode {
     private val rootSinglePageApp_classPath: Javalin by lazy {
         Javalin.create {
             it.staticFiles.add("/public", Location.CLASSPATH)
-            it.singlePage.addRootFile("/", "/public/html.html")
+            it.spaRoot.addFile("/", "/public/html.html")
             it.staticFiles.enableWebjars()
         }
     }
@@ -36,20 +36,20 @@ class TestSinglePageMode {
     private val dualSinglePageApp_classPath: Javalin by lazy {
         Javalin.create {
             it.staticFiles.add("/public", Location.CLASSPATH)
-            it.singlePage.addRootFile("/admin", "/public/protected/secret.html")
-            it.singlePage.addRootFile("/public", "/public/html.html")
+            it.spaRoot.addFile("/admin", "/public/protected/secret.html")
+            it.spaRoot.addFile("/public", "/public/html.html")
         }
 
     }
     private val rootSinglePageApp_external: Javalin by lazy {
         Javalin.create {
-            it.singlePage.addRootFile("/", "src/test/external/html.html", Location.EXTERNAL)
+            it.spaRoot.addFile("/", "src/test/external/html.html", Location.EXTERNAL)
         }
     }
 
     private val rootSinglePageCustomHandlerApp: Javalin by lazy {
         Javalin.create {
-            it.singlePage.addRootHandler("/") { ctx: Context ->
+            it.spaRoot.addHandler("/") { ctx: Context ->
                 ctx.result("Custom handler works")
                 ctx.status(418)
             }
@@ -59,9 +59,9 @@ class TestSinglePageMode {
     private val mixedSinglePageHandlerApp: Javalin by lazy {
         Javalin.create {
             it.staticFiles.add("/public", Location.CLASSPATH)
-            it.singlePage.addRootFile("/public", "/public/html.html")
-            it.singlePage.addRootHandler("/public") { ctx: Context -> ctx.result("Will never be seen") }
-            it.singlePage.addRootHandler("/special") { ctx: Context ->
+            it.spaRoot.addFile("/public", "/public/html.html")
+            it.spaRoot.addHandler("/public") { ctx: Context -> ctx.result("Will never be seen") }
+            it.spaRoot.addHandler("/special") { ctx: Context ->
                 ctx.result("Special custom handler works")
                 ctx.status(418)
             }
@@ -118,14 +118,14 @@ class TestSinglePageMode {
     @Test
     fun `SinglePageHandler throws for non-existent file - classpath`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { Javalin.create { it.singlePage.addRootFile("/", "/not-a-file.html") }.start().stop() }
+            .isThrownBy { Javalin.create { it.spaRoot.addFile("/", "/not-a-file.html") }.start().stop() }
             .withMessageStartingWith("File at '/not-a-file.html' not found. Path should be relative to resource folder.")
     }
 
     @Test
     fun `SinglePageHandler throws for non-existent file - external`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { Javalin.create { it.singlePage.addRootFile("/", "/not-a-file.html", Location.EXTERNAL) }.start().stop() }
+            .isThrownBy { Javalin.create { it.spaRoot.addFile("/", "/not-a-file.html", Location.EXTERNAL) }.start().stop() }
             .withMessageStartingWith("External file at '/not-a-file.html' not found.")
     }
 
@@ -139,7 +139,7 @@ class TestSinglePageMode {
     @Test
     fun `SinglePageHandler doesn't cache on localhost`() {
         val file = File(workingDirectory, "my-special-file.html").also { it.writeText("old file") }
-        TestUtil.test(Javalin.create { it.singlePage.addRootFile("/", file.absolutePath, Location.EXTERNAL) }) { app, http ->
+        TestUtil.test(Javalin.create { it.spaRoot.addFile("/", file.absolutePath, Location.EXTERNAL) }) { app, http ->
             fun getSpaPage() = http.getBody("/")
             assertThat(getSpaPage()).contains("old file")
             file.writeText("new file")
