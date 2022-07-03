@@ -168,7 +168,7 @@ class TestFuture {
     @Test
     fun `can use future in exception mapper`() = TestUtil.test { app, http ->
         app.get("/") { throw Exception("Oh no!") }
-        app.exception(Exception::class.java) { _, ctx -> ctx.future(CompletableFuture.completedFuture("Wee")) }
+        app.exception(Exception::class.java) { _, ctx -> ctx.future(getFuture("Wee")) }
         assertThat(http.get("/").body).isEqualTo("Wee")
     }
 
