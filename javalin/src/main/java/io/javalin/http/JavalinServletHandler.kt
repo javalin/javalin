@@ -3,16 +3,19 @@ package io.javalin.http
 import io.javalin.core.config.JavalinConfig
 import io.javalin.core.util.LogUtil
 import io.javalin.http.InternalStage.FUTURE_CALLBACK
+import jakarta.servlet.AsyncContext
+import jakarta.servlet.AsyncEvent
+import jakarta.servlet.AsyncListener
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Consumer
-import jakarta.servlet.AsyncContext
-import jakarta.servlet.AsyncEvent
-import jakarta.servlet.AsyncListener
 import java.util.concurrent.CompletableFuture.failedFuture
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.BiFunction
+import java.util.function.Consumer
+import java.util.function.Function
 
 interface StageName
 enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
@@ -103,7 +106,7 @@ class JavalinServletHandler(
         }
 
         return handleFutureResultReference { task.handler(this) }
-            .exceptionallyCompose { throwable ->
+            .exceptionallyComposeFallback { throwable ->
                 handleFutureResultReference {
                     errored = true
                     exceptionMapper.handleFutureException(ctx, throwable) // standard exception handler
@@ -182,6 +185,12 @@ class JavalinServletHandler(
     }
 
 }
+
+/** [CompletableFuture.exceptionallyCompose] method is available since JDK12+, so we need a fallback for JDK11 */
+fun <T> CompletableFuture<T>.exceptionallyComposeFallback(mapping: (Throwable) -> CompletionStage<T>): CompletableFuture<T> =
+    thenApply { completedFuture(it) as CompletionStage<T> }
+        .exceptionally { mapping(it) }
+        .thenCompose { it }
 
 /** Checks if request is executed asynchronously */
 private fun Context.isAsync(): Boolean = req.isAsyncStarted
