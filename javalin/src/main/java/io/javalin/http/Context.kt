@@ -356,8 +356,12 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
 
     /** Writes the specified inputStream as a seekable stream */
     @JvmOverloads
-    fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) =
+    fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) {
+        if (resultReference.get().future != null) {
+            throw IllegalStateException("Cannot override result")
+        }
         SeekableWriter.write(this, inputStream, contentType, size)
+    }
 
     fun resultStream(): InputStream? = resultReference.get().let { result ->
         result.future
@@ -411,13 +415,15 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         return await
     }
 
-    /** The default callback (used if no callback is provided) can be configured through [ContextResolver.defaultFutureCallback] */
+    /**
+     * The default callback (used if no callback is provided) can be configured through [ContextResolver.defaultFutureCallback]
+     * @throws IllegalStateException if result was already set
+     * */
     @JvmOverloads
     fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>? = null): Context {
         if (resultReference.get().future != null) {
             throw IllegalStateException("Cannot override result")
         }
-
         resultReference.updateAndGet { oldResult ->
             oldResult.future?.cancel(true)
             Result(oldResult.previous, future, callback)
