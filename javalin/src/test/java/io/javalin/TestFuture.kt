@@ -6,7 +6,6 @@ import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import java.io.IOException
@@ -95,28 +94,6 @@ class TestFuture {
 
         app.get("/out-of-memory-future") { it.future(getFailingFuture(OutOfMemoryError())) }
         assertThat(http.getStatus("/out-of-memory-future")).isEqualTo(INTERNAL_SERVER_ERROR)
-    }
-
-    @Test
-    @Disabled("Not allowed")
-    fun `future is overwritten if String result is set`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.future(getFuture("Result"))
-            ctx.result("Overridden")
-        }
-        assertThat(http.getBody("/test-future")).isEqualTo("Overridden")
-    }
-
-    @Test
-    @Disabled("Not allowed")
-    fun `calling future twice cancels first future`() = TestUtil.test { app, http ->
-        val firstFuture = getFuture("Result", delay = 5000)
-        app.get("/test-future") { ctx ->
-            ctx.future(firstFuture)
-            ctx.future(CompletableFuture.completedFuture("Second future"))
-        }
-        assertThat(http.getBody("/test-future")).isEqualTo("Second future")
-        assertThat(firstFuture.isCancelled).isTrue()
     }
 
     @Test
