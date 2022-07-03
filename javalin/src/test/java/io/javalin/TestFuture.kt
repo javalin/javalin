@@ -243,11 +243,13 @@ class TestFuture {
     fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             ctx.future(getFuture("A")) {
-                ctx.future(getFuture("B"))
+                ctx.future(getFuture("B")) {
+                    ctx.future(getFuture("C"))
+                }
             }
         }
 
-        assertThat(http.getBody("/")).isEqualTo("B")
+        assertThat(http.getBody("/")).isEqualTo("C")
     }
 
     private fun getFuture(result: String?, delay: Long = 10): CompletableFuture<String> {
