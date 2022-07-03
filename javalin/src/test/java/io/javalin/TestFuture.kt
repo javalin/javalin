@@ -7,6 +7,7 @@ import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.CancellationException
@@ -20,6 +21,28 @@ class TestFuture {
     fun `hello future world`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.future(getFuture("Result")) }
         assertThat(http.getBody("/test-future")).isEqualTo("Result")
+    }
+
+    @Test
+    fun `result-stream fetches valid value from future`() = TestUtil.test { app, http ->
+        app.get("/works") {
+            val stream = "Works".byteInputStream()
+            it.future(CompletableFuture.completedFuture(stream))
+            assertThat(it.resultStream()).isEqualTo(stream)
+        }
+        assertThat(http.getBody("/works")).isEqualTo("Works")
+
+        app.get("/cancelled") {
+            it.future(CompletableFuture<Any?>().also { future -> future.cancel(true) })
+            assertDoesNotThrow { assertThat(it.resultStream()).isNull() }
+        }
+        assertThat(http.getBody("/cancelled")).isEqualTo("Internal server error")
+
+        app.get("/errored") {
+            it.future(CompletableFuture.failedFuture<Any?>(UnsupportedOperationException()))
+            assertDoesNotThrow { assertThat(it.resultStream()).isNull() }
+        }
+        assertThat(http.getBody("/errored")).isEqualTo("Internal server error")
     }
 
     @Test
