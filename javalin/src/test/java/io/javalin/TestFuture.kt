@@ -6,6 +6,7 @@ import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.io.InputStream
@@ -20,6 +21,12 @@ class TestFuture {
     fun `hello future world`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.future(getFuture("Result")) }
         assertThat(http.getBody("/test-future")).isEqualTo("Result")
+    }
+
+    @Test
+    fun `should respond with specified input-stream `() = TestUtil.test { app, http ->
+        app.get("/") { it.future(CompletableFuture.completedFuture("Response".byteInputStream()), callback = {}) }
+        assertThat(http.getBody("/")).isEqualTo("Response")
     }
 
     @Test
@@ -205,6 +212,17 @@ class TestFuture {
         }
 
         assertThat(http.get("/").body).isEqualTo("Processed value")
+    }
+
+    @Test
+    fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.future(getFuture("A")) {
+                ctx.future(getFuture("B"))
+            }
+        }
+
+        assertThat(http.getBody("/")).isEqualTo("B")
     }
 
     private fun getFuture(result: String?, delay: Long = 10): CompletableFuture<String> {
