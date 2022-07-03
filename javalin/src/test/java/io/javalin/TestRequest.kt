@@ -373,7 +373,7 @@ class TestRequest {
     }
 
     @Test
-    fun `contextPath with value works`() = TestUtil.test(Javalin.create { it.jetty.contextPath = "/ctx" }) { app, http ->
+    fun `contextPath with value works`() = TestUtil.test(Javalin.create { it.routing.contextPath = "/ctx" }) { app, http ->
         app.get("/") { it.result(it.contextPath()) }
         assertThat(http.getBody("/ctx/")).isEqualTo("/ctx")
     }

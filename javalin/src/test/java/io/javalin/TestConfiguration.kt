@@ -47,7 +47,7 @@ class TestConfiguration {
             it.plugins.register(MicrometerPlugin())
             it.accessManager { _, _, _ -> }
             it.showJavalinBanner = false
-            it.jetty.contextPath = "/"
+            it.routing.contextPath = "/"
             it.jetty.sessionHandler { SessionHandler() }
             it.jetty.wsFactoryConfig { factory -> }
             it.jetty.server {

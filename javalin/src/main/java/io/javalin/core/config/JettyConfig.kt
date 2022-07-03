@@ -9,9 +9,6 @@ import java.util.function.Supplier
 
 class JettyConfig(private val pvt: PrivateConfig) {
 
-    @JvmField
-    var contextPath = "/"
-
     fun server(server: Supplier<Server?>) {
         pvt.server = server.get()
     }
