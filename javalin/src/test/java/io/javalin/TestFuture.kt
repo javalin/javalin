@@ -75,6 +75,7 @@ class TestFuture {
     }
 
     @Test
+    @Disabled("Not allowed")
     fun `future is overwritten if String result is set`() = TestUtil.test { app, http ->
         app.get("/test-future") { ctx ->
             ctx.future(getFuture("Result"))
@@ -84,6 +85,7 @@ class TestFuture {
     }
 
     @Test
+    @Disabled("Not allowed")
     fun `calling future twice cancels first future`() = TestUtil.test { app, http ->
         val firstFuture = getFuture("Result", delay = 5000)
         app.get("/test-future") { ctx ->

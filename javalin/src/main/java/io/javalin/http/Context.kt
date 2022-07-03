@@ -351,7 +351,7 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
      */
     fun result(resultStream: InputStream): Context {
         runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
-        return this.future(CompletableFuture.completedFuture(resultStream))
+        return this.future(CompletableFuture.completedFuture(resultStream), callback = { /* noop */ })
     }
 
     /** Writes the specified inputStream as a seekable stream */
@@ -360,7 +360,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
         SeekableWriter.write(this, inputStream, contentType, size)
 
     fun resultStream(): InputStream? = resultReference.get().let { result ->
-        result.future?.takeIf { it.isDone }?.get() as InputStream? ?: result.previous
+        result.future
+            ?.takeIf { it.isDone && !it.isCancelled && !it.isCompletedExceptionally }
+            ?.get() as? InputStream?
+            ?: result.previous
     }
 
     /**
@@ -411,6 +414,10 @@ open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: Htt
     /** The default callback (used if no callback is provided) can be configured through [ContextResolver.defaultFutureCallback] */
     @JvmOverloads
     fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>? = null): Context {
+        if (resultReference.get().future != null) {
+            throw IllegalStateException("Cannot override result")
+        }
+
         resultReference.updateAndGet { oldResult ->
             oldResult.future?.cancel(true)
             Result(oldResult.previous, future, callback)
