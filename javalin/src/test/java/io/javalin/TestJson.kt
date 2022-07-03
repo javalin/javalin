@@ -86,9 +86,9 @@ class TestJson {
     }
 
     @Test
-    fun `empty mapper throws exception`() = TestUtil.test(Javalin.create { it.jsonMapper(object : JsonMapper {}) }) { app, http ->
+    fun `empty mapper throws error`() = TestUtil.test(Javalin.create { it.jsonMapper(object : JsonMapper {}) }) { app, http ->
         app.get("/") { it.json("Test") }
-        assertThat(http.getBody("/")).isEqualTo("")
+        assertThat(http.getBody("/")).contains("Internal server error")
         assertThat(http.get("/").status).isEqualTo(500)
     }
 

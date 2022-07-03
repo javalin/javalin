@@ -22,8 +22,10 @@ class TestCustomRequestLifecycle {
     @Test
     fun `can add custom lifecycle stage`() = TestUtil.test { app, http ->
         app.javalinServlet().lifecycle.removeIf { it.name == DefaultName.AFTER }
-        app.javalinServlet().lifecycle.add(Stage(CustomName.CustomAfter) {
-            ctx.result("Static after!")
+        app.javalinServlet().lifecycle.add(Stage(CustomName.CustomAfter) { submitTask ->
+            submitTask {
+                ctx.result("Static after!")
+            }
         })
         app.get("/") { it.result("Hello!") }
         assertThat(http.getBody("/")).isEqualTo("Static after!")

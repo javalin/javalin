@@ -7,7 +7,6 @@ import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.CancellationException
@@ -21,28 +20,6 @@ class TestFuture {
     fun `hello future world`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.future(getFuture("Result")) }
         assertThat(http.getBody("/test-future")).isEqualTo("Result")
-    }
-
-    @Test
-    fun `result-stream fetches valid value from future`() = TestUtil.test { app, http ->
-        app.get("/works") {
-            val stream = "Works".byteInputStream()
-            it.future(CompletableFuture.completedFuture(stream))
-            assertThat(it.resultStream()).isEqualTo(stream)
-        }
-        assertThat(http.getBody("/works")).isEqualTo("Works")
-
-        app.get("/cancelled") {
-            it.future(CompletableFuture<Any?>().also { future -> future.cancel(true) })
-            assertDoesNotThrow { assertThat(it.resultStream()).isNull() }
-        }
-        assertThat(http.getBody("/cancelled")).isEqualTo("Internal server error")
-
-        app.get("/errored") {
-            it.future(CompletableFuture.failedFuture<Any?>(UnsupportedOperationException()))
-            assertDoesNotThrow { assertThat(it.resultStream()).isNull() }
-        }
-        assertThat(http.getBody("/errored")).isEqualTo("Internal server error")
     }
 
     @Test
@@ -88,26 +65,6 @@ class TestFuture {
 
         app.get("/out-of-memory-future") { it.future(getFailingFuture(OutOfMemoryError())) }
         assertThat(http.getStatus("/out-of-memory-future")).isEqualTo(INTERNAL_SERVER_ERROR)
-    }
-
-    @Test
-    fun `future is overwritten if String result is set`() = TestUtil.test { app, http ->
-        app.get("/test-future") { ctx ->
-            ctx.future(getFuture("Result"))
-            ctx.result("Overridden")
-        }
-        assertThat(http.getBody("/test-future")).isEqualTo("Overridden")
-    }
-
-    @Test
-    fun `calling future twice cancels first future`() = TestUtil.test { app, http ->
-        val firstFuture = getFuture("Result", delay = 5000)
-        app.get("/test-future") { ctx ->
-            ctx.future(firstFuture)
-            ctx.future(CompletableFuture.completedFuture("Second future"))
-        }
-        assertThat(http.getBody("/test-future")).isEqualTo("Second future")
-        assertThat(firstFuture.isCancelled).isTrue()
     }
 
     @Test
@@ -159,7 +116,7 @@ class TestFuture {
     @Test
     fun `can use future in exception mapper`() = TestUtil.test { app, http ->
         app.get("/") { throw Exception("Oh no!") }
-        app.exception(Exception::class.java) { _, ctx -> ctx.future(CompletableFuture.completedFuture("Wee")) }
+        app.exception(Exception::class.java) { _, ctx -> ctx.future(getFuture("Wee")) }
         assertThat(http.get("/").body).isEqualTo("Wee")
     }
 
@@ -218,7 +175,7 @@ class TestFuture {
     }
 
     @Test
-    fun `can set custom callback`() = TestUtil.test(impatientServer) { app, http ->
+    fun `can set custom callback`() = TestUtil.test { app, http ->
         val futureWithNullableValue: CompletableFuture<String?> = CompletableFuture.completedFuture("value")
 
         app.get("/") { ctx ->
@@ -228,6 +185,19 @@ class TestFuture {
         }
 
         assertThat(http.get("/").body).isEqualTo("Processed value")
+    }
+
+    @Test
+    fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.future(getFuture("A")) {
+                ctx.future(getFuture("B")) {
+                    ctx.future(getFuture("C"))
+                }
+            }
+        }
+
+        assertThat(http.getBody("/")).isEqualTo("C")
     }
 
     private fun getFuture(result: String?, delay: Long = 10): CompletableFuture<String> {
