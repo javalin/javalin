@@ -10,7 +10,7 @@ import io.javalin.plugin.DevLoggingPlugin
 import io.javalin.plugin.HeadersPlugin
 import io.javalin.plugin.HttpAllowedMethodsOnRoutesUtil
 import io.javalin.plugin.RedirectToLowercasePathPlugin
-import io.javalin.plugin.route.RouteOverviewPlugin
+import io.javalin.plugin.routeoverview.RouteOverviewPlugin
 import io.javalin.plugin.SslRedirectPlugin
 import java.util.function.Supplier
 

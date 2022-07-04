@@ -2,7 +2,7 @@ package io.javalin.routeoverview
 
 import io.javalin.Javalin
 import io.javalin.http.HandlerType
-import io.javalin.plugin.route.RouteOverviewPlugin
+import io.javalin.plugin.routeoverview.RouteOverviewPlugin
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

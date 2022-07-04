@@ -1,4 +1,4 @@
-package io.javalin.plugin.route
+package io.javalin.plugin.routeoverview
 
 import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
