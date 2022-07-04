@@ -2,7 +2,18 @@ package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
-import io.javalin.http.util.CorsBeforeHandler
+import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
+import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_HEADERS
+import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_METHODS
+import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_ORIGIN
+import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_HEADERS
+import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_METHOD
+import io.javalin.core.util.Header.ORIGIN
+import io.javalin.core.util.Header.REFERER
+import io.javalin.core.util.Header.VARY
+import io.javalin.http.Context
+import io.javalin.http.Handler
+import io.javalin.http.HandlerType.OPTIONS
 
 class CorsPlugin(private val origins: List<String>) : Plugin {
 
@@ -10,15 +21,45 @@ class CorsPlugin(private val origins: List<String>) : Plugin {
         if (origins.isEmpty()) {
             throw IllegalArgumentException("Origins cannot be empty.")
         }
+
         app.before(CorsBeforeHandler(origins))
     }
 
     companion object {
         @JvmStatic
-        fun forOrigins(vararg origins: String) = CorsPlugin(origins.toList())
+        fun forOrigins(vararg origins: String): CorsPlugin = CorsPlugin(origins.toList())
 
         @JvmStatic
-        fun forAllOrigins() = CorsPlugin(listOf("*"))
+        fun forAllOrigins(): CorsPlugin = CorsPlugin(listOf("*"))
+    }
+
+}
+
+class CorsBeforeHandler(origins: List<String>) : Handler {
+
+    private val origins: List<String> = origins.map { it.removeSuffix("/") }
+
+    override fun handle(ctx: Context) {
+        val originHeader = ctx.header(ORIGIN) ?: ctx.header(REFERER)
+
+        if (originHeader != null) {
+            origins
+                .firstOrNull { it == "*" || originHeader == it }
+                ?.run {
+                    ctx.header(ACCESS_CONTROL_ALLOW_ORIGIN, originHeader)
+                    ctx.header(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
+                    ctx.header(VARY, ORIGIN)
+                }
+        }
+
+        if (ctx.method() == OPTIONS.name) {
+            ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also {
+                ctx.header(ACCESS_CONTROL_ALLOW_HEADERS, it)
+            }
+            ctx.header(ACCESS_CONTROL_REQUEST_METHOD)?.also {
+                ctx.header(ACCESS_CONTROL_ALLOW_METHODS, it)
+            }
+        }
     }
 
 }
