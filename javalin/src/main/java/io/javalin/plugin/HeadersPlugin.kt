@@ -9,11 +9,15 @@ package io.javalin.plugin
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.util.Headers
-import io.javalin.http.Context
 
 class HeadersPlugin(private val headers: Headers) : Plugin {
 
     override fun apply(app: Javalin) {
-        app.before { ctx: Context -> headers.headers.forEach { (t, u) -> ctx.header(t, u) } }
+        app.before { ctx ->
+            headers.headers.forEach { (name, value) ->
+                ctx.header(name, value)
+            }
+        }
     }
+
 }

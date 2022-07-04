@@ -13,6 +13,7 @@ import io.javalin.core.plugin.PluginLifecycleInit
 import io.javalin.core.util.Header
 
 class HttpAllowedMethodsOnRoutesUtil : Plugin, PluginLifecycleInit {
+
     private val endpoints = mutableMapOf<String, MutableSet<HandlerMetaInfo>>()
 
     override fun init(app: Javalin) {
@@ -38,14 +39,13 @@ class HttpAllowedMethodsOnRoutesUtil : Plugin, PluginLifecycleInit {
 
     private fun createOptionsEndPoint(app: Javalin) {
         endpoints.forEach { endpoint ->
-            app.options(
-                endpoint.key
-            ) { context ->
-                context.header(
+            app.options(endpoint.key) { ctx ->
+                ctx.header(
                     Header.ACCESS_CONTROL_ALLOW_METHODS,
                     endpoint.value.joinToString(",") { it.httpMethod.toString() }
                 )
             }
         }
     }
+
 }

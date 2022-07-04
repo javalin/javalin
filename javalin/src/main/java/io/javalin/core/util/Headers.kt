@@ -65,17 +65,12 @@ class Headers {
     }
 
     // Clear-Site-Data: "cache" | "cookies" | "storage" | "executionContexts" | "*"
-    enum class ClearSiteData {
-        CACHE, COOKIES, STORAGE, EXECUTION_CONTEXTS, ANY;
-
-        fun headerValue(): String {
-            if (this == ANY) {
-                return "\"*\""
-            } else if (this == EXECUTION_CONTEXTS) {
-                return "\"executionContexts\""
-            }
-            return "\"" + name.lowercase(Locale.ROOT) + "\""
-        }
+    enum class ClearSiteData(name: String, val headerValue: String = '"' + name + '"') {
+        CACHE("cache"),
+        COOKIES("cookies"),
+        STORAGE("storage"),
+        EXECUTION_CONTEXTS("executionContexts"),
+        ANY("*");
     }
 
     fun clearSiteData(vararg data: ClearSiteData) {
@@ -109,7 +104,7 @@ class Headers {
         headers[Header.CROSS_ORIGIN_RESOURCE_POLICY] = policy.name.toHttpHeaderValue()
     }
 
-    private fun String.toHttpHeaderValue(): String {
-        return this.lowercase(Locale.ROOT).replace("_", "-")
-    }
+    private fun String.toHttpHeaderValue(): String =
+        this.lowercase(Locale.ROOT).replace("_", "-")
+
 }
