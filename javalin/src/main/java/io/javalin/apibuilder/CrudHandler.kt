@@ -42,5 +42,4 @@ class CrudFunctionHandler(
 ) : Handler by handler
 
 internal fun CrudHandler.getCrudFunctions(resourceId: String): Map<CrudFunction, Handler> = CrudFunction.values()
-    .map { it to CrudFunctionHandler(it, this, resourceId) }
-    .toMap()
+    .associateWith { CrudFunctionHandler(it, this, resourceId) }
