@@ -4,15 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.plugin
+package io.javalin.plugin.route
 
-import io.javalin.Javalin
 import io.javalin.apibuilder.CrudFunctionHandler
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.event.WsHandlerMetaInfo
-import io.javalin.core.security.RouteRole
-import io.javalin.core.util.Header
-import io.javalin.core.util.hasMethodName
 import io.javalin.core.util.implementingClassName
 import io.javalin.core.util.isClass
 import io.javalin.core.util.isCrudFunction
@@ -23,35 +19,8 @@ import io.javalin.core.util.isKotlinField
 import io.javalin.core.util.isKotlinMethodReference
 import io.javalin.core.util.javaFieldName
 import io.javalin.core.util.kotlinFieldName
-import io.javalin.core.util.methodName
 import io.javalin.core.util.parentClass
 import io.javalin.core.util.runMethod
-import io.javalin.http.ContentType
-import io.javalin.http.Context
-import io.javalin.http.Handler
-import java.util.*
-
-data class RouteOverviewConfig(val path: String, val roles: Set<RouteRole>)
-
-class RouteOverviewRenderer(val app: Javalin) : Handler {
-
-    val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
-    val wsHandlerMetaInfoList = mutableListOf<WsHandlerMetaInfo>()
-
-    init {
-        app.events { it.handlerAdded { handlerInfo -> handlerMetaInfoList.add(handlerInfo) } }
-        app.events { it.wsHandlerAdded { handlerInfo -> wsHandlerMetaInfoList.add(handlerInfo) } }
-    }
-
-    override fun handle(ctx: Context) {
-        if (ctx.header(Header.ACCEPT)?.lowercase(Locale.ROOT)?.contains(ContentType.JSON) == true) {
-            ctx.header("Content-Type", ContentType.JSON)
-            ctx.result(RouteOverviewUtil.createJsonOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
-        } else {
-            ctx.html(RouteOverviewUtil.createHtmlOverview(handlerMetaInfoList, wsHandlerMetaInfoList))
-        }
-    }
-}
 
 object RouteOverviewUtil {
 
@@ -250,15 +219,12 @@ object RouteOverviewUtil {
                 }
                 isKotlinAnonymousLambda -> parentClass.name + "::" + lambdaSign
                 isKotlinField -> parentClass.name + "." + kotlinFieldName
-
-                hasMethodName -> parentClass.name + "::" + methodName
                 isJavaField -> parentClass.name + "." + javaFieldName
                 isJavaAnonymousLambda -> parentClass.name + "::" + lambdaSign
-
-                else -> implementingClassName + ".class"
+                else -> "$implementingClassName.class"
             }
         }
+
 }
 
 private const val lambdaSign = "??? (anonymous lambda)"
-
