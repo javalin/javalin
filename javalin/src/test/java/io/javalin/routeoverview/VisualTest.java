@@ -98,27 +98,21 @@ public class VisualTest {
     }
 
     static class CrudHandlerImpl implements CrudHandler {
-
         @Override
         public void getAll(@NotNull Context ctx) {
         }
-
         @Override
         public void getOne(@NotNull Context ctx, @NotNull String resourceId) {
         }
-
         @Override
         public void create(@NotNull Context ctx) {
         }
-
         @Override
         public void update(@NotNull Context ctx, @NotNull String resourceId) {
         }
-
         @Override
         public void delete(@NotNull Context ctx, @NotNull String resourceId) {
         }
-
     }
 
 }
