@@ -11,7 +11,6 @@ import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
-import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Test
 
 class TestRedirectToLowercasePathPlugin {
