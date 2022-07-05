@@ -53,6 +53,7 @@ class TestRedirectToLowercasePathPlugin {
         app.get("/my-{endpoint}") { it.status(418).result(it.pathParam("endpoint")) }
         http.disableUnirestRedirects()
         http.get("/my-endpoint").assertStatusAndBodyMatch(418, "endpoint")
+        http.get("/my-ENDPOINT").assertStatusAndBodyMatch(418, "ENDPOINT")
         http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(301, "Redirected")
         http.enableUnirestRedirects()
         http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(418, "eNdPOinT")
