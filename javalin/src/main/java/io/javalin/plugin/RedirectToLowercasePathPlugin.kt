@@ -75,7 +75,7 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
 
                 // replace the non lowercased part of the segment with the lowercased version
                 if (serverSegment is PathSegment.MultipleSegments) {
-                    serverSegments
+                    serverSegment.innerSegments
                         .filterIsInstance<PathSegment.Normal>()
                         .forEach { innerServerSegment ->
                             clientSegments[index] = clientSegments[index].replace(

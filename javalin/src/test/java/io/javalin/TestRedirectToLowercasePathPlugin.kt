@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.plugin.RedirectToLowercasePathPlugin
 import io.javalin.testing.TestUtil
+import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Test
@@ -25,6 +26,11 @@ class TestRedirectToLowercasePathPlugin {
         assertThatIllegalArgumentException()
             .isThrownBy { app.get("/TEST") { } }
             .withMessage("Paths must be lowercase when using RedirectToLowercasePathPlugin")
+
+        // complex segments are handled differently internally
+        assertThatIllegalArgumentException()
+            .isThrownBy { app.get("/HI-{world}") { } }
+            .withMessage("Paths must be lowercase when using RedirectToLowercasePathPlugin")
     }
 
     @Test
@@ -40,6 +46,17 @@ class TestRedirectToLowercasePathPlugin {
         assertThat(http.get("/my-eNdPOinT").status).isEqualTo(301)
         http.enableUnirestRedirects()
         assertThat(http.get("/my-eNdPOinT").status).isEqualTo(418)
+    }
+
+    @Test
+    fun `only wrong cased requests are redirected complex segments edition`() = TestUtil.test(testApp) { app, http ->
+        app.get("/my-{endpoint}") { it.status(418).result(it.pathParam("endpoint")) }
+        http.disableUnirestRedirects()
+        http.get("/my-endpoint").assertStatusAndBodyMatch(418, "endpoint")
+        http.get("/my-ENDPOINT").assertStatusAndBodyMatch(418, "ENDPOINT")
+        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(301, "Redirected")
+        http.enableUnirestRedirects()
+        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(418, "eNdPOinT")
     }
 
     @Test
@@ -66,6 +83,11 @@ class TestRedirectToLowercasePathPlugin {
     fun `path params follow by splat works`() = TestUtil.test(testApp) { app, http ->
         app.get("/{param}/*") { it.result(it.path()) }
         assertThat(http.getBody("/PaRaM/sPlAt")).isEqualTo("/PaRaM/sPlAt")
+    }
+
+    private fun HttpResponse<String?>.assertStatusAndBodyMatch(status: Int, body: String) {
+        assertThat(this.status).isEqualTo(status)
+        assertThat(this.body).isNotNull.isEqualTo(body)
     }
 
 }
