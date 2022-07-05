@@ -2,7 +2,6 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.core.util.Header;
-import io.javalin.testtools.JavalinTest.TestConfig;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -139,6 +138,16 @@ public class JavaTest {
 
         JavalinTest.test(app, config, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, Javalin!");
+        });
+    }
+
+    JavalinTestTool javalinTest = new JavalinTestTool(new TestConfig(false));
+
+    @Test
+    void instantiate_JavalinTestTool() {
+        javalinTest.test((server, client) -> {
+            server.get("/hello", ctx -> ctx.result("Hello world"));
+            assertThat(client.get("/hello").body().string()).isEqualTo("Hello world");
         });
     }
 

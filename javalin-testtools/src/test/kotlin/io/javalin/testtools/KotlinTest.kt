@@ -2,7 +2,6 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.core.util.Header
-import io.javalin.testtools.JavalinTest.TestConfig
 import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -94,6 +93,14 @@ class KotlinTest {
     fun `testing full app works`() = JavalinTest.test(KotlinApp.app) { server, client ->
         assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, app!");
         assertThat(client.get("/hello/").body?.string()).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
+    }
+
+    val javalinTest = JavalinTestTool(TestConfig(false))
+
+    @Test
+    fun `instantiate JavalinTest`() = javalinTest.test { server, client ->
+        server.get("/hello") { ctx -> ctx.result("Hello world")}
+        assertThat(client.get("/hello").body?.string()).isEqualTo("Hello world")
     }
 
     @Test
