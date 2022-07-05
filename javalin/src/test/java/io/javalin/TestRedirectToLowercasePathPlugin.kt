@@ -8,8 +8,10 @@ package io.javalin
 
 import io.javalin.plugin.RedirectToLowercasePathPlugin
 import io.javalin.testing.TestUtil
+import kong.unirest.HttpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
+import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Test
 
 class TestRedirectToLowercasePathPlugin {
@@ -24,6 +26,11 @@ class TestRedirectToLowercasePathPlugin {
     fun `exception is thrown when using non-lowercase paths with TestRedirectToLowercasePathPlugin`() = TestUtil.test(testApp) { app, _ ->
         assertThatIllegalArgumentException()
             .isThrownBy { app.get("/TEST") { } }
+            .withMessage("Paths must be lowercase when using RedirectToLowercasePathPlugin")
+
+        // complex segments are handled differently internally
+        assertThatIllegalArgumentException()
+            .isThrownBy { app.get("/HI-{world}") { } }
             .withMessage("Paths must be lowercase when using RedirectToLowercasePathPlugin")
     }
 
@@ -40,6 +47,16 @@ class TestRedirectToLowercasePathPlugin {
         assertThat(http.get("/my-eNdPOinT").status).isEqualTo(301)
         http.enableUnirestRedirects()
         assertThat(http.get("/my-eNdPOinT").status).isEqualTo(418)
+    }
+
+    @Test
+    fun `only wrong cased requests are redirected complex segments edition`() = TestUtil.test(testApp) { app, http ->
+        app.get("/my-{endpoint}") { it.status(418).result(it.pathParam("endpoint")) }
+        http.disableUnirestRedirects()
+        http.get("/my-endpoint").assertStatusAndBodyMatch(418, "endpoint")
+        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(301, "Redirected")
+        http.enableUnirestRedirects()
+        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(418, "eNdPOinT")
     }
 
     @Test
@@ -66,6 +83,11 @@ class TestRedirectToLowercasePathPlugin {
     fun `path params follow by splat works`() = TestUtil.test(testApp) { app, http ->
         app.get("/{param}/*") { it.result(it.path()) }
         assertThat(http.getBody("/PaRaM/sPlAt")).isEqualTo("/PaRaM/sPlAt")
+    }
+
+    private fun HttpResponse<String?>.assertStatusAndBodyMatch(status: Int, body: String) {
+        assertThat(this.status).isEqualTo(status)
+        assertThat(this.body).isNotNull.isEqualTo(body)
     }
 
 }
