@@ -9,7 +9,6 @@ import java.util.function.Consumer
 
 class CoreConfig(private val pvt: PrivateConfig) {
 
-    // abbreviated `cfg` in source
     var showJavalinBanner = true
 
     fun contextResolvers(userResolver: Consumer<ContextResolver>) {

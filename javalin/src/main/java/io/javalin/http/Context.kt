@@ -38,7 +38,11 @@ const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
  * @see <a href="https://javalin.io/documentation#context">Context in docs</a>
  */
 // don't suppress warnings, since annotated classes are ignored by dokka (yeah...)
-open class Context(@JvmField val req: HttpServletRequest, @JvmField val res: HttpServletResponse, internal val appAttributes: Map<String, Any> = mapOf()) {
+open class Context(
+    @JvmField val req: HttpServletRequest,
+    @JvmField val res: HttpServletResponse,
+    @get:JvmSynthetic internal val appAttributes: Map<String, Any> = mapOf()
+) {
 
     // @formatter:off
     @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
