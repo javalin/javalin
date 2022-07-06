@@ -17,8 +17,8 @@ import io.javalin.plugin.json.JSON_MAPPER_KEY
 import io.javalin.plugin.json.JavalinJackson
 import java.util.function.Consumer
 
-// this class should be abbreviated `cfg` in source.
-// `cfg.pvt` should be accessible, but usage should be discouraged
+// this class should be abbreviated `cfg` in the source code.
+// `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
 class JavalinConfig {
     //@formatter:off
     @JvmField val pvt = PrivateConfig() // this is "private", only use it if you know what you're doing
@@ -32,11 +32,10 @@ class JavalinConfig {
     @JvmField val requestLoggers = LoggingConfig(pvt)
     @JvmField val plugins = PluginConfig(pvt)
     //@formatter:on
-
     companion object {
         @JvmStatic
-        fun applyUserConfig(app: Javalin?, cfg: JavalinConfig, userConfig: Consumer<JavalinConfig?>) {
-            addValidationExceptionMapper(app!!) // add default mapper for validation
+        fun applyUserConfig(app: Javalin, cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
+            addValidationExceptionMapper(app) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             attachPlugins(app, cfg.pvt.plugins.values)
             cfg.pvt.appAttributes.putIfAbsent(JSON_MAPPER_KEY, JavalinJackson())

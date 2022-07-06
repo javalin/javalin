@@ -4,8 +4,6 @@ import io.javalin.Javalin
 import java.util.function.Consumer
 
 object PluginUtil {
-
-    @JvmStatic
     fun attachPlugins(app: Javalin, plugins: Collection<Plugin>) {
         var anyHandlerAdded = false
         app.events { event ->
@@ -20,5 +18,4 @@ object PluginUtil {
         })
         plugins.forEach { plugin -> plugin.apply(app) }
     }
-
 }

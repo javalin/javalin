@@ -106,19 +106,19 @@ object ContextUtil {
 
     const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"
 
-    const val sessionCacheKeyPrefix = "javalin-session-attribute-cache-"
+    const val SESSION_CACHE_KEY_PREFIX = "javalin-session-attribute-cache-"
 
     fun cacheAndSetSessionAttribute(key: String, value: Any?, req: HttpServletRequest) {
-        req.setAttribute("$sessionCacheKeyPrefix$key", value)
+        req.setAttribute("$SESSION_CACHE_KEY_PREFIX$key", value)
         req.session.setAttribute(key, value)
     }
 
     fun <T> getCachedRequestAttributeOrSessionAttribute(key: String, req: HttpServletRequest): T? {
-        val cachedAttribute = req.getAttribute("$sessionCacheKeyPrefix$key")
+        val cachedAttribute = req.getAttribute("$SESSION_CACHE_KEY_PREFIX$key")
         if (cachedAttribute == null) {
-            req.setAttribute("$sessionCacheKeyPrefix$key", req.session.getAttribute(key))
+            req.setAttribute("$SESSION_CACHE_KEY_PREFIX$key", req.session.getAttribute(key))
         }
-        return req.getAttribute("$sessionCacheKeyPrefix$key") as T?
+        return req.getAttribute("$SESSION_CACHE_KEY_PREFIX$key") as T?
     }
 
     fun <T> cachedSessionAttributeOrCompute(callback: (Context) -> T, key: String, ctx: Context): T? {

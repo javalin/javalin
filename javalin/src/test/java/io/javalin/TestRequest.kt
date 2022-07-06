@@ -74,7 +74,7 @@ class TestRequest {
     fun `cached session attributes are cached when set`() = TestUtil.test { app, http ->
         app.get("/cached-session-attr") { ctx ->
             ctx.cachedSessionAttribute("test", "tast")
-            ctx.result(ctx.attribute<String>("${ContextUtil.sessionCacheKeyPrefix}test")!!) // should be cached as a normal attribute
+            ctx.result(ctx.attribute<String>("${ContextUtil.SESSION_CACHE_KEY_PREFIX}test")!!) // should be cached as a normal attribute
         }
         assertThat(http.getBody("/cached-session-attr")).contains("tast")
     }
@@ -89,7 +89,7 @@ class TestRequest {
         app.get("/attr-map") { it.result(it.attributeMap().toString()) }
         http.getBody("/set-cached-session-attr") // first we set the cached session variable
         assertThat(http.getBody("/attr-map")).doesNotContain("test=tast") // we inspect the "cache", our key/value pair should not be here
-        assertThat(http.getBody("/get-cached-session-attr")).contains("${ContextUtil.sessionCacheKeyPrefix}test=tast") // since we've accessed the variable, cache should now contain key/value pair
+        assertThat(http.getBody("/get-cached-session-attr")).contains("${ContextUtil.SESSION_CACHE_KEY_PREFIX}test=tast") // since we've accessed the variable, cache should now contain key/value pair
     }
 
     @Test
