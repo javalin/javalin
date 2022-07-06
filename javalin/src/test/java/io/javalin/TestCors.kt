@@ -72,7 +72,7 @@ class TestCors {
     fun `enableCorsForAllOrigins enables cors for all origins with AccessManager`() {
         val accessManagedCorsApp = Javalin.create {
             it.plugins.enableCorsForAllOrigins()
-            it.accessManager { _, ctx, _ ->
+            it.core.accessManager { _, ctx, _ ->
                 ctx.status(401).result("Unauthorized")
             }
         }

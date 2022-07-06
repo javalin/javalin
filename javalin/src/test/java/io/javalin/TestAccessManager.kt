@@ -22,7 +22,7 @@ class TestAccessManager {
     enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp() = Javalin.create { config ->
-        config.accessManager { handler, ctx, routeRoles ->
+        config.core.accessManager { handler, ctx, routeRoles ->
             val userRole = ctx.queryParam("role")
             if (userRole != null && MyRoles.valueOf(userRole) in routeRoles) {
                 handler.handle(ctx)

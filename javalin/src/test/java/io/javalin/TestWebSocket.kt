@@ -48,7 +48,7 @@ class TestWebSocket {
     fun contextPathJavalin() = Javalin.create { it.routing.contextPath = "/websocket" }
 
     fun accessManagedJavalin() = Javalin.create().apply {
-        this.cfg.accessManager { handler, ctx, roles ->
+        this.cfg.core.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("allowed") == "true" -> {
@@ -134,7 +134,7 @@ class TestWebSocket {
 
     @Test
     fun `receive and send json messages`() = TestUtil.test(Javalin.create {
-        it.jsonMapper(fasterJacksonMapper)
+        it.core.jsonMapper(fasterJacksonMapper)
     }) { app, _ ->
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->

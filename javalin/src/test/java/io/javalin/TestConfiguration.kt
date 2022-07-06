@@ -45,8 +45,8 @@ class TestConfiguration {
             it.requestLoggers.http { ctx, timeInMs -> }
             it.requestLoggers.webSocket { ws -> }
             it.plugins.register(MicrometerPlugin())
-            it.accessManager { _, _, _ -> }
-            it.showJavalinBanner = false
+            it.core.accessManager { _, _, _ -> }
+            it.core.showJavalinBanner = false
             it.routing.contextPath = "/"
             it.jetty.sessionHandler { SessionHandler() }
             it.jetty.wsFactoryConfig { factory -> }
@@ -90,7 +90,7 @@ class TestConfiguration {
     fun `test contextResolvers config with custom settings`() {
         TestUtil.test(
             Javalin.create {
-                it.contextResolvers { resolvers ->
+                it.core.contextResolvers { resolvers ->
                     resolvers.ip = { "CUSTOM IP" }
                     resolvers.host = { "CUSTOM HOST" }
                 }

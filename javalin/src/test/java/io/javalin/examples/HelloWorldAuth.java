@@ -19,7 +19,7 @@ public class HelloWorldAuth {
 
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.accessManager((handler, ctx, routeRoles) -> {
+            config.core.accessManager((handler, ctx, routeRoles) -> {
                 String userRole = ctx.queryParam("role");
                 if (userRole != null && routeRoles.contains(MyRoles.valueOf(userRole))) {
                     handler.handle(ctx);

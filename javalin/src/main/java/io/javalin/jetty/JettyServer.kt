@@ -72,7 +72,7 @@ class JettyServer(val cfg: JavalinConfig) {
             }
         }.start()
 
-        logJavalinBanner(cfg.showJavalinBanner)
+        logJavalinBanner(cfg.core.showJavalinBanner)
 
         cfg.pvt.resourceHandler?.init(mapOf("server" to server()))
 

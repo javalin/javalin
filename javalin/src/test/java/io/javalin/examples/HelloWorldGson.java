@@ -32,7 +32,7 @@ public class HelloWorldGson {
             }
         };
 
-        Javalin app = Javalin.create(config -> config.jsonMapper(gsonMapper)).start(7070);
+        Javalin app = Javalin.create(config -> config.core.jsonMapper(gsonMapper)).start(7070);
         app.get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")));
 
     }

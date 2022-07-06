@@ -85,7 +85,7 @@ class TestResponse {
     fun `gh-1409 entrypoint to analyze compression strategy lifecycle`() {
         val javalin = Javalin.create { javalinConfig ->
             javalinConfig.plugins.enableCorsForAllOrigins()
-            javalinConfig.showJavalinBanner = false
+            javalinConfig.core.showJavalinBanner = false
             javalinConfig.http.maxRequestSize = 5_000_000
         }.start(9005)
 

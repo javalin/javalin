@@ -237,7 +237,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to webjar on localhost`() {
         val localhostApp = Javalin.create {
-            it.contextResolvers { it.url = { "http://localhost:1234/" } }
+            it.core.contextResolvers { it.url = { "http://localhost:1234/" } }
         }
         TestUtil.test(localhostApp) { app, http ->
             app.get("/path", VueComponent("test-component"))
@@ -248,7 +248,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to cdn on non-localhost`() {
         val nonLocalhostApp = Javalin.create {
-            it.contextResolvers { it.url = { "https://example.com" } }
+            it.core.contextResolvers { it.url = { "https://example.com" } }
         }
         TestUtil.test(nonLocalhostApp) { app, http ->
             app.get("/path", VueComponent("test-component"))
@@ -259,7 +259,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to https even on non https hosts`() {
         val nonLocalhostApp = Javalin.create {
-            it.contextResolvers { it.url = { "http://123.123.123.123:1234/" } }
+            it.core.contextResolvers { it.url = { "http://123.123.123.123:1234/" } }
         }
         TestUtil.test(nonLocalhostApp) { app, http ->
             app.get("/path", VueComponent("test-component"))
@@ -270,7 +270,7 @@ class TestJavalinVue {
     @Test
     fun `@inlineFile functionality works as expected if not-dev`() {
         val nonLocalhostApp = Javalin.create {
-            it.contextResolvers { it.url = { "http://123.123.123.123:1234/" } }
+            it.core.contextResolvers { it.url = { "http://123.123.123.123:1234/" } }
         }
         TestUtil.test(nonLocalhostApp) { app, http ->
             app.get("/path", VueComponent("test-component"))
@@ -286,7 +286,7 @@ class TestJavalinVue {
     @Test
     fun `@inlineFile functionality works as expected if dev`() {
         val localhostApp = Javalin.create {
-            it.contextResolvers { it.url = { "http://localhost:1234/" } }
+            it.core.contextResolvers { it.url = { "http://localhost:1234/" } }
         }
         TestUtil.test(localhostApp) { app, http ->
             app.get("/path", VueComponent("test-component"))

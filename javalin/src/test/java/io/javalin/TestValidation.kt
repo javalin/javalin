@@ -112,7 +112,7 @@ class TestValidation {
     val timeModuleMapper by lazy { JavalinJackson(ObjectMapper().apply { registerModule(JavaTimeModule()) }) }
 
     @Test
-    fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper(timeModuleMapper) }) { app, http ->
+    fun `custom converter works`() = TestUtil.test(Javalin.create { it.core.jsonMapper(timeModuleMapper) }) { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()
