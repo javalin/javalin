@@ -6,30 +6,52 @@
 
 package io.javalin.http.util
 
+import io.javalin.http.Context
 import io.javalin.http.Cookie
-import io.javalin.plugin.json.JsonMapper
+import io.javalin.plugin.json.jsonMapper
 import java.util.*
 
 @Suppress("UNCHECKED_CAST")
-class CookieStore(val jsonMapper: JsonMapper, cookie: String?) {
+class CookieStore(val ctx: Context) {
+
+    private val encoder = Base64.getEncoder()
+    private val decoder = Base64.getDecoder()
+    private val cookieMap = deserialize(ctx.cookie(COOKIE_NAME))
+
+    /**
+     * Gets cookie store value for specified key.
+     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
+     */
+    operator fun <T> get(key: String) = cookieMap[key] as T
+
+    /**
+     * Sets cookie store value for specified key.
+     * Values are made available for other handlers, requests, and servers.
+     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
+     */
+    operator fun set(key: String, value: Any) {
+        cookieMap[key] = value
+        ctx.cookie(Cookie(COOKIE_NAME, serialize(cookieMap)))
+    }
+
+    /**
+     * Clears cookie store in the context and from the response.
+     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
+     */
+    fun clear() {
+        cookieMap.clear()
+        ctx.removeCookie(COOKIE_NAME)
+    }
+
+    private fun deserialize(cookie: String?) = if (!cookie.isNullOrEmpty()) {
+        ctx.jsonMapper().fromJsonString(String(decoder.decode(cookie)), Map::class.java) as MutableMap<String, Any>
+    } else mutableMapOf()
+
+    private fun serialize(map: MutableMap<String, Any>) =
+        encoder.encodeToString(ctx.jsonMapper().toJsonString(map).toByteArray())
 
     companion object {
         var COOKIE_NAME = "javalin-cookie-store"
     }
 
-    private val cookieMap = deserialize(cookie)
-
-    fun serializeToCookie() = Cookie(COOKIE_NAME, serialize(cookieMap))
-
-    operator fun <T> get(key: String) = cookieMap[key] as T
-
-    operator fun set(key: String, value: Any) = cookieMap.put(key, value)
-
-    fun clear() = cookieMap.clear()
-
-    private fun deserialize(cookie: String?) = if (!cookie.isNullOrEmpty()) {
-        jsonMapper.fromJsonString(String(Base64.getDecoder().decode(cookie)), Map::class.java) as MutableMap<String, Any>
-    } else mutableMapOf()
-
-    private fun serialize(map: MutableMap<String, Any>) = Base64.getEncoder().encodeToString(jsonMapper.toJsonString(map).toByteArray())
 }

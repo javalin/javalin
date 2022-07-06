@@ -52,7 +52,6 @@ open class Context(
     @get:JvmSynthetic @set:JvmSynthetic internal var resultReference = AtomicReference<Result<out Any?>>(Result())
     // @formatter:on
 
-    private val cookieStore by lazy { CookieStore(this.jsonMapper(), cookie(CookieStore.COOKIE_NAME)) }
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
 
     private val body by lazy {
@@ -66,30 +65,8 @@ open class Context(
     /** Gets an attribute from the Javalin instance serving the request */
     fun <T> appAttribute(key: String): T = appAttributes[key] as T
 
-    /**
-     * Gets cookie store value for specified key.
-     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
-     */
-    fun <T> cookieStore(key: String): T = cookieStore[key]
-
-    /**
-     * Sets cookie store value for specified key.
-     * Values are made available for other handlers, requests, and servers.
-     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
-     */
-    fun cookieStore(key: String, value: Any) {
-        cookieStore[key] = value
-        cookie(cookieStore.serializeToCookie())
-    }
-
-    /**
-     * Clears cookie store in the context and from the response.
-     * @see <a href="https://javalin.io/documentation#cookie-store">Cookie store in docs</a>
-     */
-    fun clearCookieStore() {
-        cookieStore.clear()
-        removeCookie(CookieStore.COOKIE_NAME)
-    }
+    fun cookieStore() = cookieStore
+    private val cookieStore by lazy { CookieStore(this) }
 
     /**
      * Gets the path that was used to match request (also includes before/after paths)
