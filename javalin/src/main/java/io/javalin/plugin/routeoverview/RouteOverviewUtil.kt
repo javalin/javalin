@@ -6,12 +6,10 @@
 
 package io.javalin.plugin.routeoverview
 
-import io.javalin.apibuilder.CrudFunctionHandler
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.util.implementingClassName
 import io.javalin.core.util.isClass
-import io.javalin.core.util.isCrudFunction
 import io.javalin.core.util.isJavaAnonymousLambda
 import io.javalin.core.util.isJavaField
 import io.javalin.core.util.isKotlinAnonymousLambda
@@ -207,7 +205,6 @@ object RouteOverviewUtil {
             // every new version of Java or Kotlin seems to break something here
             return when {
                 isClass -> (this as Class<*>).name + ".class"
-                isCrudFunction -> "ApiBuilder#crud::${(this as CrudFunctionHandler).function.value}"
                 isKotlinMethodReference -> {
                     val fieldName = this.javaClass.declaredFields.find { it.name == "function" || it.name == "\$tmp0" }!!.name
                     val field = this.javaClass.getDeclaredField(fieldName).apply { isAccessible = true }.get(this)

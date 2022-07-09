@@ -512,11 +512,10 @@ public class ApiBuilder {
         if (resourceBase.startsWith("{") || resourceBase.startsWith("<") || resourceBase.endsWith("}") || resourceBase.endsWith(">")) {
             throw new IllegalArgumentException("CrudHandler requires a resource base at the beginning of the provided path, e.g. '/users/{user-id}'");
         }
-        Map<CrudFunction, Handler> crudFunctions = CrudHandlerKt.getCrudFunctions(crudHandler, resourceId);
-        staticInstance().get(fullPath, crudFunctions.get(CrudFunction.GET_ONE), roles);
-        staticInstance().get(fullPath.replace(resourceId, ""), crudFunctions.get(CrudFunction.GET_ALL), roles);
-        staticInstance().post(fullPath.replace(resourceId, ""), crudFunctions.get(CrudFunction.CREATE), roles);
-        staticInstance().patch(fullPath, crudFunctions.get(CrudFunction.UPDATE), roles);
-        staticInstance().delete(fullPath, crudFunctions.get(CrudFunction.DELETE), roles);
+        staticInstance().get(fullPath, ctx -> crudHandler.getOne(ctx, ctx.pathParam(resourceId)), roles);
+        staticInstance().get(fullPath.replace(resourceId, ""), crudHandler::getAll, roles);
+        staticInstance().post(fullPath.replace(resourceId, ""), crudHandler::create, roles);
+        staticInstance().patch(fullPath, ctx -> crudHandler.update(ctx, ctx.pathParam(resourceId)), roles);
+        staticInstance().delete(fullPath, ctx -> crudHandler.delete(ctx, ctx.pathParam(resourceId)), roles);
     }
 }

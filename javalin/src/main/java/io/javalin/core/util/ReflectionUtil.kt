@@ -1,7 +1,5 @@
 package io.javalin.core.util
 
-import io.javalin.apibuilder.CrudFunctionHandler
-
 internal val Any.kotlinFieldName // this is most likely a very stupid solution
     get() = this.javaClass.toString().removePrefix(this.parentClass.toString() + "$").takeWhile { it != '$' }
 
@@ -20,8 +18,6 @@ internal val Any.isClass: Boolean get() = this is Class<*>
 
 internal val Any.isKotlinAnonymousLambda: Boolean get() = this.javaClass.enclosingMethod != null
 
-internal val Any.isCrudFunction: Boolean get() = (this is CrudFunctionHandler)
-
 internal val Any.isKotlinMethodReference: Boolean get() = this.javaClass.declaredFields.count { it.name == "function" || it.name == "\$tmp0" } == 1
 
 internal val Any.isKotlinField: Boolean get() = this.javaClass.fields.any { it.name == "INSTANCE" }
@@ -31,9 +27,3 @@ internal val Any.isJavaAnonymousLambda: Boolean get() = this.javaClass.isSynthet
 internal val Any.isJavaField: Boolean get() = this.javaFieldName != null
 
 internal fun Any.runMethod(name: String): Any = this.javaClass.getMethod(name).apply { isAccessible = true }.invoke(this)
-
-internal fun Any.getFieldValue(fieldName: String): Any {
-    val field = this::class.java.getDeclaredField(fieldName)
-    field.isAccessible = true
-    return field.get(this)
-}
