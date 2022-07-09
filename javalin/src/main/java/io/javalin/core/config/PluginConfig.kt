@@ -3,7 +3,7 @@ package io.javalin.core.config
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginAlreadyRegisteredException
 import io.javalin.core.security.RouteRole
-import io.javalin.core.util.Headers
+import io.javalin.plugin.Headers
 import io.javalin.plugin.BasicAuthFilter
 import io.javalin.plugin.CorsPlugin
 import io.javalin.plugin.DevLoggingPlugin

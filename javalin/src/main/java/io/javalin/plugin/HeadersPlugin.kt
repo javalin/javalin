@@ -8,7 +8,6 @@ package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
-import io.javalin.core.util.Headers
 
 class HeadersPlugin(private val headers: Headers) : Plugin {
 

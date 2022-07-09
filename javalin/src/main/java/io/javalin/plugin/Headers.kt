@@ -4,8 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.core.util
+package io.javalin.plugin
 
+import io.javalin.core.util.Header
 import java.time.Duration
 import java.util.*
 

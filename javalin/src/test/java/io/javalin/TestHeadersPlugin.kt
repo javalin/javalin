@@ -6,16 +6,15 @@
 
 package io.javalin
 
-import io.javalin.core.config.JavalinConfig
 import io.javalin.core.util.Header
-import io.javalin.core.util.Headers
-import io.javalin.core.util.Headers.ClearSiteData
-import io.javalin.core.util.Headers.CrossDomainPolicy
-import io.javalin.core.util.Headers.CrossOriginEmbedderPolicy
-import io.javalin.core.util.Headers.CrossOriginOpenerPolicy
-import io.javalin.core.util.Headers.CrossOriginResourcePolicy
-import io.javalin.core.util.Headers.ReferrerPolicy
-import io.javalin.core.util.Headers.XFrameOptions
+import io.javalin.plugin.Headers
+import io.javalin.plugin.Headers.ClearSiteData
+import io.javalin.plugin.Headers.CrossDomainPolicy
+import io.javalin.plugin.Headers.CrossOriginEmbedderPolicy
+import io.javalin.plugin.Headers.CrossOriginOpenerPolicy
+import io.javalin.plugin.Headers.CrossOriginResourcePolicy
+import io.javalin.plugin.Headers.ReferrerPolicy
+import io.javalin.plugin.Headers.XFrameOptions
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
