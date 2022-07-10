@@ -1,8 +1,6 @@
 package io.javalin.core.config
 
 import io.javalin.core.security.AccessManager
-import io.javalin.http.CONTEXT_RESOLVER_KEY
-import io.javalin.http.ContextResolver
 import io.javalin.plugin.json.JSON_MAPPER_KEY
 import io.javalin.plugin.json.JsonMapper
 import java.util.function.Consumer

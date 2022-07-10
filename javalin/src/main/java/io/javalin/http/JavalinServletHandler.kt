@@ -1,6 +1,7 @@
 package io.javalin.http
 
 import io.javalin.core.config.JavalinConfig
+import io.javalin.core.config.contextResolver
 import io.javalin.core.util.LogUtil
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent

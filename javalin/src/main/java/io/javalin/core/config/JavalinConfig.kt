@@ -10,8 +10,6 @@ import io.javalin.core.plugin.PluginUtil.attachPlugins
 import io.javalin.core.util.ConcurrencyUtil.executorService
 import io.javalin.core.validation.JavalinValidation.addValidationExceptionMapper
 import io.javalin.http.ASYNC_EXECUTOR_KEY
-import io.javalin.http.CONTEXT_RESOLVER_KEY
-import io.javalin.http.ContextResolver
 import io.javalin.http.util.ContextUtil.MAX_REQUEST_SIZE_KEY
 import io.javalin.plugin.json.JSON_MAPPER_KEY
 import io.javalin.plugin.json.JavalinJackson
