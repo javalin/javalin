@@ -1,13 +1,11 @@
 package io.javalin.jetty
 
-import io.javalin.core.compression.CompressionStrategy
-import io.javalin.core.compression.CompressionType
-import io.javalin.core.compression.LeveledBrotliStream
-import io.javalin.core.compression.LeveledGzipStream
-import io.javalin.core.util.CoreDependency
-import io.javalin.core.util.DependencyUtil
+import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.CompressionType
 import io.javalin.http.Header
-import io.javalin.core.util.JavalinLogger
+import io.javalin.util.CoreDependency
+import io.javalin.util.DependencyUtil
+import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
@@ -71,10 +69,10 @@ object JettyPrecompressingResourceHandler {
         val byteArrayOutputStream = ByteArrayOutputStream()
         val outputStream: OutputStream = when {
             type == CompressionType.GZIP -> {
-                LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
+                io.javalin.compression.LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
             }
             type == CompressionType.BR && DependencyUtil.isPresent(CoreDependency.JVMBROTLI) -> {
-                LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
+                io.javalin.compression.LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
             }
             else -> byteArrayOutputStream
         }

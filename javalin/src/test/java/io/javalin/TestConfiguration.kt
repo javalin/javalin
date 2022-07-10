@@ -6,8 +6,8 @@
 
 package io.javalin
 
-import io.javalin.core.compression.CompressionStrategy
-import io.javalin.core.compression.Gzip
+import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.Gzip
 import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location

@@ -7,7 +7,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.core.util.FileUtil;
+import io.javalin.util.FileUtil;
 
 public class FileUploadExample {
 

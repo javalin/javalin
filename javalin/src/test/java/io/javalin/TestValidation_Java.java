@@ -6,8 +6,8 @@
 
 package io.javalin;
 
-import io.javalin.core.validation.JavalinValidation;
-import io.javalin.core.validation.Validator;
+import io.javalin.validation.JavalinValidation;
+import io.javalin.validation.Validator;
 import io.javalin.testing.TestUtil;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;

@@ -8,9 +8,9 @@ package io.javalin.plugin.json
 
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.javalin.core.util.CoreDependency
-import io.javalin.core.util.DependencyUtil
-import io.javalin.core.util.Util
+import io.javalin.util.CoreDependency
+import io.javalin.util.DependencyUtil
+import io.javalin.util.Util
 import java.io.InputStream
 
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {

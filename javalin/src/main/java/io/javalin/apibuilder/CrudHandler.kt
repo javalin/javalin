@@ -7,7 +7,6 @@
 package io.javalin.apibuilder
 
 import io.javalin.http.Context
-import io.javalin.http.Handler
 
 /**
  * The CrudHandler is an interface for handling the five most

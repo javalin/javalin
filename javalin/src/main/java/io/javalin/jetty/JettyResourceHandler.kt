@@ -6,10 +6,10 @@
 
 package io.javalin.jetty
 
-import io.javalin.core.util.JavalinException
-import io.javalin.core.util.JavalinLogger
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
+import io.javalin.util.JavalinException
+import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.Request

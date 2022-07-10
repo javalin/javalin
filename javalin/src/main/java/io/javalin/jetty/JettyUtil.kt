@@ -1,7 +1,7 @@
 package io.javalin.jetty
 
-import io.javalin.core.util.ConcurrencyUtil
-import io.javalin.core.util.JavalinLogger
+import io.javalin.util.ConcurrencyUtil
+import io.javalin.util.JavalinLogger
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.StatisticsHandler

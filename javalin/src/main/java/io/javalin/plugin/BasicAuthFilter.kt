@@ -7,7 +7,6 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
-import io.javalin.core.plugin.Plugin
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
 

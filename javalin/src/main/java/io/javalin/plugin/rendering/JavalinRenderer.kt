@@ -6,8 +6,8 @@
 
 package io.javalin.plugin.rendering
 
-import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
+import io.javalin.util.JavalinLogger
 
 object JavalinRenderer {
 

@@ -1,6 +1,6 @@
 package io.javalin.plugin.json
 
-import io.javalin.core.util.ConcurrencyUtil
+import io.javalin.util.ConcurrencyUtil
 import java.io.InputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream

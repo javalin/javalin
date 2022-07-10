@@ -7,7 +7,7 @@
 package io.javalin.testing;
 
 import io.javalin.Javalin;
-import io.javalin.core.util.JavalinLogger;
+import io.javalin.util.JavalinLogger;
 import io.javalin.http.Handler;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;

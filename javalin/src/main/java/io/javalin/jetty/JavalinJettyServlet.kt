@@ -6,18 +6,12 @@
 
 package io.javalin.jetty
 
-import io.javalin.core.config.JavalinConfig
-import io.javalin.core.security.RouteRole
-import io.javalin.http.Header
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
+import io.javalin.http.Header
 import io.javalin.http.JavalinServlet
 import io.javalin.http.util.ContextUtil
-import io.javalin.websocket.WsConfig
-import io.javalin.websocket.WsConnection
-import io.javalin.websocket.WsEntry
-import io.javalin.websocket.WsExceptionMapper
-import io.javalin.websocket.WsHandlerType
-import io.javalin.websocket.WsPathMatcher
+import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.session.Session
@@ -40,7 +34,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
     val wsExceptionMapper = WsExceptionMapper()
     val wsPathMatcher = WsPathMatcher()
 
-    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<RouteRole>) {
+    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<io.javalin.security.RouteRole>) {
         wsPathMatcher.add(WsEntry(handlerType, path, cfg.routing, WsConfig().apply { ws.accept(this) }, roles))
     }
 

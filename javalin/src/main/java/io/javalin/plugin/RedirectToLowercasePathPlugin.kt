@@ -7,12 +7,10 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
-import io.javalin.core.routing.PathParser
-import io.javalin.core.plugin.Plugin
-import io.javalin.core.plugin.PluginLifecycleInit
-import io.javalin.core.routing.PathSegment
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpCode.MOVED_PERMANENTLY
+import io.javalin.routing.PathParser
+import io.javalin.routing.PathSegment
 import java.util.*
 
 /**

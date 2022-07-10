@@ -6,10 +6,7 @@
 
 package io.javalin.http
 
-import io.javalin.core.config.contextResolver
-import io.javalin.core.security.BasicAuthCredentials
-import io.javalin.core.validation.BodyValidator
-import io.javalin.core.validation.Validator
+import io.javalin.config.contextResolver
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
 import io.javalin.http.util.CookieStore
@@ -17,6 +14,9 @@ import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
+import io.javalin.security.BasicAuthCredentials
+import io.javalin.validation.BodyValidator
+import io.javalin.validation.Validator
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
@@ -90,7 +90,7 @@ open class Context(
     fun body(): String = bodyAsBytes().toString(Charset.forName(characterEncoding))
 
     /** Gets the request body as a [ByteArray].
-     * Calling this method returns the body as a [ByteArray]. If [io.javalin.core.JavalinConfig.maxRequestSize]
+     * Calling this method returns the body as a [ByteArray]. If [io.javalin.JavalinConfig.maxRequestSize]
      * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
      * with status 413 PAYLOAD_TOO_LARGE.
      */
@@ -357,7 +357,7 @@ open class Context(
      *
      * @param executor Thread-pool used to execute the given task,
      * by default this method will use global predefined executor service stored in [appAttributes] as [ASYNC_EXECUTOR_KEY].
-     * You can change this default in [io.javalin.core.JavalinConfig].
+     * You can change this default in [io.javalin.JavalinConfig].
      *
      * @param timeout Timeout in milliseconds,
      * by default it's 0 which means timeout watcher is disabled.

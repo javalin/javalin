@@ -7,11 +7,11 @@
 package io.javalin.plugin.metrics
 
 import io.javalin.Javalin
-import io.javalin.core.plugin.Plugin
-import io.javalin.core.util.CoreDependency
-import io.javalin.core.util.DependencyUtil
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
+import io.javalin.plugin.Plugin
+import io.javalin.util.CoreDependency
+import io.javalin.util.DependencyUtil
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag

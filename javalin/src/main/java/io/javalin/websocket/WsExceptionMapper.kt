@@ -6,8 +6,8 @@
 
 package io.javalin.websocket
 
-import io.javalin.core.util.JavalinLogger
-import io.javalin.core.util.Util
+import io.javalin.util.JavalinLogger
+import io.javalin.util.Util
 import org.eclipse.jetty.websocket.api.StatusCode
 
 /**

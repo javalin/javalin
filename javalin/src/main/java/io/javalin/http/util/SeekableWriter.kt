@@ -1,7 +1,7 @@
 package io.javalin.http.util
 
-import io.javalin.http.Header
 import io.javalin.http.Context
+import io.javalin.http.Header
 import java.io.InputStream
 import java.io.OutputStream
 import kotlin.math.min

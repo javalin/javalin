@@ -6,10 +6,10 @@
 
 package io.javalin.jetty
 
-import io.javalin.core.config.JavalinConfig
-import io.javalin.core.util.JavalinLogger
-import io.javalin.core.util.Util
-import io.javalin.core.util.Util.logJavalinBanner
+import io.javalin.config.JavalinConfig
+import io.javalin.util.JavalinLogger
+import io.javalin.util.Util
+import io.javalin.util.Util.logJavalinBanner
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.UriCompliance

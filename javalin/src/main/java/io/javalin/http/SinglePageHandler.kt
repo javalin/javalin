@@ -6,9 +6,9 @@
 
 package io.javalin.http
 
-import io.javalin.core.util.Util
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil.isLocalhost
+import io.javalin.util.Util
 import java.net.URL
 
 /**

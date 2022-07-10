@@ -1,8 +1,9 @@
 package io.javalin.plugin.json;
 
-import java.io.InputStream;
 import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.InputStream;
 
 public interface JsonMapper {
 

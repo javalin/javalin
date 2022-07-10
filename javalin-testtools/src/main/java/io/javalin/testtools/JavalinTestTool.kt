@@ -1,7 +1,7 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
-import io.javalin.core.util.JavalinLogger
+import io.javalin.util.JavalinLogger
 import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream

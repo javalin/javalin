@@ -7,7 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.core.util.JavalinLogger
+import io.javalin.util.JavalinLogger
 import io.javalin.http.ContentType
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream

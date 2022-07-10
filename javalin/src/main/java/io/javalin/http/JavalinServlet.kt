@@ -6,11 +6,7 @@
 
 package io.javalin.http
 
-import io.javalin.core.config.JavalinConfig
-import io.javalin.core.routing.HandlerEntry
-import io.javalin.core.routing.PathMatcher
-import io.javalin.core.security.RouteRole
-import io.javalin.core.util.LogUtil
+import io.javalin.config.JavalinConfig
 import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.HandlerType.BEFORE
 import io.javalin.http.HandlerType.GET
@@ -19,6 +15,9 @@ import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.plugin.CorsPlugin
+import io.javalin.routing.HandlerEntry
+import io.javalin.routing.PathMatcher
+import io.javalin.util.LogUtil
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -94,7 +93,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         }
     }
 
-    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<RouteRole>) {
+    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<io.javalin.security.RouteRole>) {
         val protectedHandler = if (handlerType.isHttpMethod()) Handler { ctx -> cfg.pvt.accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, cfg.routing, protectedHandler, handler))
     }

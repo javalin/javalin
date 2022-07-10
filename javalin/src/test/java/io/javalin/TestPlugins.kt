@@ -1,9 +1,9 @@
 package io.javalin
 
-import io.javalin.core.plugin.Plugin
-import io.javalin.core.plugin.PluginAlreadyRegisteredException
-import io.javalin.core.plugin.PluginInitLifecycleViolationException
-import io.javalin.core.plugin.PluginLifecycleInit
+import io.javalin.plugin.Plugin
+import io.javalin.plugin.PluginAlreadyRegisteredException
+import io.javalin.plugin.PluginInitLifecycleViolationException
+import io.javalin.plugin.PluginLifecycleInit
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach

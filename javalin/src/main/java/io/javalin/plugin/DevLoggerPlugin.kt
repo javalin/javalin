@@ -1,13 +1,11 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
-import io.javalin.core.plugin.Plugin
-import io.javalin.core.plugin.PluginLifecycleInit
-import io.javalin.core.routing.PathMatcher
-import io.javalin.http.Header
-import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
+import io.javalin.http.Header
+import io.javalin.routing.PathMatcher
+import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import java.util.*

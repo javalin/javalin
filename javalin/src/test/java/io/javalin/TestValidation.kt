@@ -8,12 +8,12 @@ package io.javalin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.javalin.core.validation.JavalinValidation
-import io.javalin.core.validation.NullableValidator
-import io.javalin.core.validation.ValidationError
-import io.javalin.core.validation.ValidationException
-import io.javalin.core.validation.Validator
-import io.javalin.core.validation.collectErrors
+import io.javalin.validation.JavalinValidation
+import io.javalin.validation.NullableValidator
+import io.javalin.validation.ValidationError
+import io.javalin.validation.ValidationException
+import io.javalin.validation.Validator
+import io.javalin.validation.collectErrors
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil

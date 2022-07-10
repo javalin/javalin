@@ -14,7 +14,7 @@ import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
 import java.nio.ByteBuffer
-import java.util.concurrent.*
+import java.util.concurrent.TimeUnit
 
 /**
  * The [WsContext] class holds Jetty's [Session] and provides (convenient) delegate methods.

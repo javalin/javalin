@@ -1,8 +1,8 @@
 package io.javalin.http.sse
 
-import io.javalin.http.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import io.javalin.http.Header
 import java.util.function.Consumer
 
 class SseHandler @JvmOverloads constructor(

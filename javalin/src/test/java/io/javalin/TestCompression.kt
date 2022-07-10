@@ -8,10 +8,10 @@ package io.javalin
 
 import com.nixxcode.jvmbrotli.common.BrotliLoader
 import com.nixxcode.jvmbrotli.dec.BrotliInputStream
-import io.javalin.core.compression.Brotli
-import io.javalin.core.compression.CompressionStrategy
-import io.javalin.core.compression.Gzip
-import io.javalin.core.util.FileUtil
+import io.javalin.compression.Brotli
+import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.Gzip
+import io.javalin.util.FileUtil
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
@@ -41,7 +41,7 @@ class TestCompression {
     }.addTestEndpoints()
 
     private fun superCompressingApp() = Javalin.create {
-        it.compression.custom(CompressionStrategy(Brotli(), Gzip()).apply { minSizeForCompression = 1 })
+        it.compression.custom(CompressionStrategy(io.javalin.compression.Brotli(), Gzip()).apply { minSizeForCompression = 1 })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 

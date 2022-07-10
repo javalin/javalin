@@ -9,18 +9,12 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
-import io.javalin.core.config.JavalinConfig;
-import io.javalin.core.event.EventListener;
-import io.javalin.core.event.EventManager;
-import io.javalin.core.event.HandlerMetaInfo;
-import io.javalin.core.event.JavalinEvent;
-import io.javalin.core.event.WsHandlerMetaInfo;
-import io.javalin.core.security.AccessManager;
-import io.javalin.core.security.RouteRole;
-import io.javalin.core.util.JavalinBindException;
-import io.javalin.core.util.JavalinException;
-import io.javalin.core.util.JavalinLogger;
-import io.javalin.core.util.Util;
+import io.javalin.config.JavalinConfig;
+import io.javalin.event.EventListener;
+import io.javalin.event.EventManager;
+import io.javalin.event.HandlerMetaInfo;
+import io.javalin.event.JavalinEvent;
+import io.javalin.event.WsHandlerMetaInfo;
 import io.javalin.http.Context;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
@@ -31,16 +25,23 @@ import io.javalin.http.sse.SseHandler;
 import io.javalin.jetty.JavalinJettyServlet;
 import io.javalin.jetty.JettyServer;
 import io.javalin.jetty.JettyUtil;
+import io.javalin.security.AccessManager;
+import io.javalin.security.RouteRole;
+import io.javalin.util.JavalinBindException;
+import io.javalin.util.JavalinException;
+import io.javalin.util.JavalinLogger;
+import io.javalin.util.Util;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
+import org.eclipse.jetty.server.Server;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import org.eclipse.jetty.server.Server;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unchecked")
 public class Javalin implements AutoCloseable {

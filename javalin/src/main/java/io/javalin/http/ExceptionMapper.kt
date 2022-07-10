@@ -6,9 +6,9 @@
 
 package io.javalin.http
 
-import io.javalin.core.util.JavalinLogger
-import io.javalin.core.util.Util
 import io.javalin.jetty.JettyUtil
+import io.javalin.util.JavalinLogger
+import io.javalin.util.Util
 import jakarta.servlet.http.HttpServletResponse
 import java.util.concurrent.CompletionException
 

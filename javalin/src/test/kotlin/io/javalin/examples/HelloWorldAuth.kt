@@ -9,14 +9,14 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE
 import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE
 import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO
 import io.javalin.http.Context
 import io.javalin.http.Handler
 
-enum class MyRoles : RouteRole {
+enum class MyRoles : io.javalin.security.RouteRole {
     ROLE_ONE, ROLE_TWO, ROLE_THREE
 }
 
@@ -36,7 +36,7 @@ fun main() {
 
 }
 
-private fun accessManager(handler: Handler, ctx: Context, routeRoles: Set<RouteRole>) {
+private fun accessManager(handler: Handler, ctx: Context, routeRoles: Set<io.javalin.security.RouteRole>) {
     val userRole = ctx.queryParam("role")
     if (userRole != null && routeRoles.contains(MyRoles.valueOf(userRole))) {
         handler.handle(ctx)

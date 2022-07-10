@@ -1,7 +1,9 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
-import io.javalin.core.plugin.Plugin
+import io.javalin.http.Context
+import io.javalin.http.Handler
+import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
@@ -11,9 +13,6 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
 import io.javalin.http.Header.VARY
-import io.javalin.http.Context
-import io.javalin.http.Handler
-import io.javalin.http.HandlerType.OPTIONS
 
 class CorsPlugin(private val origins: List<String>) : Plugin {
 

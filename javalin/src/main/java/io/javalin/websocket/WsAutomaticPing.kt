@@ -1,6 +1,6 @@
 package io.javalin.websocket
 
-import io.javalin.core.util.ConcurrencyUtil
+import io.javalin.util.ConcurrencyUtil
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledExecutorService

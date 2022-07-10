@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.core.util.Util
+import io.javalin.util.Util
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
