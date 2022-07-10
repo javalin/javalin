@@ -1,12 +1,6 @@
-package io.javalin.core
+package io.javalin.core.routing
 
 import io.javalin.core.config.RoutingConfig
-import io.javalin.core.routing.ParameterNamesNotUniqueException
-import io.javalin.core.routing.PathSegment
-import io.javalin.core.routing.constructRegexList
-import io.javalin.core.routing.convertSegment
-import io.javalin.core.routing.pathParamNames
-import io.javalin.core.routing.values
 import io.javalin.http.util.ContextUtil
 
 class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
@@ -49,7 +43,8 @@ class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
         }
     }
 
-    private val matchRegex = constructRegexList(routingConfig, matchPathAndEverySubPath, segments, regexSuffix) { it.asRegexString() }
+    private val matchRegex =
+        constructRegexList(routingConfig, matchPathAndEverySubPath, segments, regexSuffix) { it.asRegexString() }
     private val pathParamRegex =
         constructRegexList(routingConfig, matchPathAndEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
 

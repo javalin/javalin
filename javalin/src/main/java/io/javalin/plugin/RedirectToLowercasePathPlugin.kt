@@ -7,7 +7,7 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
-import io.javalin.core.PathParser
+import io.javalin.core.routing.PathParser
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
 import io.javalin.core.routing.PathSegment

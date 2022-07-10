@@ -6,7 +6,7 @@
 
 package io.javalin.http
 
-import io.javalin.core.PathParser
+import io.javalin.core.routing.PathParser
 import io.javalin.core.config.RoutingConfig
 import java.util.*
 

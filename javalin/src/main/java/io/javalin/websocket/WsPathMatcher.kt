@@ -6,7 +6,7 @@
 
 package io.javalin.websocket
 
-import io.javalin.core.PathParser
+import io.javalin.core.routing.PathParser
 import io.javalin.core.config.RoutingConfig
 import io.javalin.core.security.RouteRole
 import java.util.*
