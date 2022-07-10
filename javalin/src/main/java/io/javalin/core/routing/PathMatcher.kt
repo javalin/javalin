@@ -4,10 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http
+package io.javalin.core.routing
 
-import io.javalin.core.routing.PathParser
 import io.javalin.core.config.RoutingConfig
+import io.javalin.http.Handler
+import io.javalin.http.HandlerType
 import java.util.*
 
 data class HandlerEntry(

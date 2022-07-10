@@ -6,12 +6,12 @@
 
 package io.javalin.http.util
 
+import io.javalin.core.routing.HandlerEntry
 import io.javalin.core.security.BasicAuthCredentials
 import io.javalin.http.Header
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.ContentType
 import io.javalin.http.Context
-import io.javalin.http.HandlerEntry
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpResponseException

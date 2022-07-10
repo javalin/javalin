@@ -6,9 +6,9 @@
 
 package io.javalin.http.util
 
+import io.javalin.core.routing.PathMatcher
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
-import io.javalin.http.PathMatcher
 
 object MethodNotAllowedUtil {
 
