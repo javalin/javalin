@@ -1,7 +1,6 @@
 package io.javalin.http
 
 import io.javalin.Javalin
-import io.javalin.core.util.Header
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

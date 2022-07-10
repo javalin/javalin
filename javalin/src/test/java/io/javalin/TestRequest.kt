@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil
 import io.javalin.plugin.BasicAuthFilter

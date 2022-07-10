@@ -10,7 +10,7 @@ import io.javalin.Javalin
 import io.javalin.core.event.HandlerMetaInfo
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 
 class HttpAllowedMethodsOnRoutesUtil : Plugin, PluginLifecycleInit {
 

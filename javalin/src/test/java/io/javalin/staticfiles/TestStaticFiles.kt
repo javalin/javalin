@@ -8,7 +8,7 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
@@ -210,8 +210,10 @@ class TestStaticFiles {
     @Test
     fun `WebJars available if enabled`() = TestUtil.test(Javalin.create { it.staticFiles.enableWebjars() }) { _, http ->
         assertThat(http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").status).isEqualTo(200)
-        assertThat(http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
-        assertThat(http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(Header.CACHE_CONTROL)).isEqualTo("max-age=31622400")
+        assertThat(http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
+            Header.CONTENT_TYPE)).contains(ContentType.CSS)
+        assertThat(http.get("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
+            Header.CACHE_CONTROL)).isEqualTo("max-age=31622400")
     }
 
     @Test

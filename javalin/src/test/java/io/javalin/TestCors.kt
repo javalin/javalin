@@ -6,14 +6,14 @@
 
 package io.javalin
 
-import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
-import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_HEADERS
-import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_METHODS
-import io.javalin.core.util.Header.ACCESS_CONTROL_ALLOW_ORIGIN
-import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_HEADERS
-import io.javalin.core.util.Header.ACCESS_CONTROL_REQUEST_METHOD
-import io.javalin.core.util.Header.ORIGIN
-import io.javalin.core.util.Header.REFERER
+import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
+import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
+import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
+import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_ORIGIN
+import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
+import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
+import io.javalin.http.Header.ORIGIN
+import io.javalin.http.Header.REFERER
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat

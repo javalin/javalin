@@ -6,7 +6,6 @@
 
 package io.javalin.http
 
-import io.javalin.core.util.Header
 import io.javalin.http.util.JsonEscapeUtil
 import java.util.*
 import java.util.concurrent.CompletionException

@@ -6,7 +6,6 @@
 
 package io.javalin.http
 
-import io.javalin.core.util.Header
 import io.javalin.core.util.Util
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil.isLocalhost

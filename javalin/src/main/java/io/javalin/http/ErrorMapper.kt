@@ -6,8 +6,6 @@
 
 package io.javalin.http
 
-import io.javalin.core.util.Header
-
 class ErrorMapper {
 
     data class MapperEntry(val statusCode: Int, val contentType: String, val handler: Handler)

@@ -1,6 +1,6 @@
 package io.javalin.vue
 
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.InternalServerErrorResponse

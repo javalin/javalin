@@ -4,7 +4,7 @@ import com.nixxcode.jvmbrotli.enc.BrotliOutputStream
 import com.nixxcode.jvmbrotli.enc.Encoder
 import io.javalin.core.compression.CompressionType.BR
 import io.javalin.core.compression.CompressionType.GZIP
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.Context
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream

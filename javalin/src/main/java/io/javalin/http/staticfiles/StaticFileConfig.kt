@@ -1,6 +1,6 @@
 package io.javalin.http.staticfiles
 
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import jakarta.servlet.http.HttpServletRequest
 import org.eclipse.jetty.server.handler.ContextHandler.AliasCheck
 

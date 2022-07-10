@@ -6,7 +6,7 @@
 
 package io.javalin.plugin
 
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import java.time.Duration
 import java.util.*
 

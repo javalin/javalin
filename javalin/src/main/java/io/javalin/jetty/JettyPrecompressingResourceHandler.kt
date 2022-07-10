@@ -6,7 +6,7 @@ import io.javalin.core.compression.LeveledBrotliStream
 import io.javalin.core.compression.LeveledGzipStream
 import io.javalin.core.util.CoreDependency
 import io.javalin.core.util.DependencyUtil
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.core.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

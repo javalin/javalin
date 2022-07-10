@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat

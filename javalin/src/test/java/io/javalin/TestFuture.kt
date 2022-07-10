@@ -1,6 +1,6 @@
 package io.javalin
 
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.NotFoundResponse

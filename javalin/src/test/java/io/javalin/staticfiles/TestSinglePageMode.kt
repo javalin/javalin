@@ -7,7 +7,7 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.staticfiles.Location
@@ -78,7 +78,8 @@ class TestSinglePageMode {
     @Test
     fun `SinglePageHandler doesn't affect static files - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
         assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains("application/javascript")
-        assertThat(http.htmlGet("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
+        assertThat(http.htmlGet("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
+            Header.CONTENT_TYPE)).contains(ContentType.CSS)
         assertThat(http.htmlGet("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").status).isEqualTo(200)
     }
 

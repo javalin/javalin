@@ -6,7 +6,7 @@ import io.javalin.core.event.WsHandlerMetaInfo
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
 import io.javalin.core.security.RouteRole
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Handler

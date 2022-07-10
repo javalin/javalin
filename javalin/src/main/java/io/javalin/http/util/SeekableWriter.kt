@@ -1,6 +1,6 @@
 package io.javalin.http.util
 
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.Context
 import java.io.InputStream
 import java.io.OutputStream

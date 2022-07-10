@@ -6,7 +6,6 @@
 
 package io.javalin.http
 
-import io.javalin.core.util.Header
 import jakarta.servlet.http.HttpServletRequest
 
 enum class HandlerType {

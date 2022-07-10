@@ -7,7 +7,7 @@
 package io.javalin
 
 import com.google.gson.GsonBuilder
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JsonMapper
 import io.javalin.testing.NonSerializableObject

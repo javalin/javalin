@@ -2,9 +2,9 @@ package io.javalin.http
 
 import io.javalin.core.compression.CompressedStream
 import io.javalin.core.config.JavalinConfig
-import io.javalin.core.util.Header.CONTENT_ENCODING
-import io.javalin.core.util.Header.ETAG
-import io.javalin.core.util.Header.IF_NONE_MATCH
+import io.javalin.http.Header.CONTENT_ENCODING
+import io.javalin.http.Header.ETAG
+import io.javalin.http.Header.IF_NONE_MATCH
 import io.javalin.core.util.Util
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HttpCode.NOT_MODIFIED

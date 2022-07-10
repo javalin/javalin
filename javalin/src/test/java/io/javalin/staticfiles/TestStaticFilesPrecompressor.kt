@@ -7,7 +7,7 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestDependency

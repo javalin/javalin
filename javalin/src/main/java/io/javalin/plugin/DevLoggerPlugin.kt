@@ -3,7 +3,7 @@ package io.javalin.plugin
 import io.javalin.Javalin
 import io.javalin.core.plugin.Plugin
 import io.javalin.core.plugin.PluginLifecycleInit
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.core.util.JavalinLogger
 import io.javalin.http.Context
 import io.javalin.http.HandlerType

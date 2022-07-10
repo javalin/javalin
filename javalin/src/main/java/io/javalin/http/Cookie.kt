@@ -1,6 +1,5 @@
 package io.javalin.http
 
-import io.javalin.core.util.Header
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.Cookie as ServletCookie
 

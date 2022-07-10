@@ -7,7 +7,7 @@
 package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.ws
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil

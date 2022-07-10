@@ -1,7 +1,7 @@
 package io.javalin.testtools;
 
 import io.javalin.Javalin;
-import io.javalin.core.util.Header;
+import io.javalin.http.Header;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

@@ -12,7 +12,7 @@ import io.javalin.core.compression.Brotli
 import io.javalin.core.compression.CompressionStrategy
 import io.javalin.core.compression.Gzip
 import io.javalin.core.util.FileUtil
-import io.javalin.core.util.Header
+import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil

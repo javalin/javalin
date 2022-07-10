@@ -8,7 +8,6 @@ package io.javalin.http
 
 import io.javalin.core.config.contextResolver
 import io.javalin.core.security.BasicAuthCredentials
-import io.javalin.core.util.Header
 import io.javalin.core.validation.BodyValidator
 import io.javalin.core.validation.Validator
 import io.javalin.http.util.ContextUtil
