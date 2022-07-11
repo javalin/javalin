@@ -143,7 +143,7 @@ public class JavaTest {
         });
     }
 
-    JavalinTestTool javalinTest = new JavalinTestTool(new TestConfig(false));
+    TestTool javalinTest = new TestTool(new TestConfig(false));
 
     @Test
     void instantiate_JavalinTestTool() {
@@ -164,7 +164,7 @@ public class JavaTest {
     @Test
     public void exceptions_in_handler_code_are_caught_by_exception_handler_and_not_thrown() {
         assertThatNoException().isThrownBy(() ->
-            JavalinTest.test( (server, client) -> {
+            JavalinTest.test((server, client) -> {
                 server.get("/hello", ctx -> {
                     throw new Exception("Error in handler code");
                 });

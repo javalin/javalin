@@ -5,7 +5,7 @@ import io.javalin.Javalin
 object JavalinTest {
 
     private val testConfig = TestConfig()
-    private val testTool = JavalinTestTool(testConfig)
+    private val testTool = TestTool(testConfig)
 
     @JvmStatic
     @JvmOverloads

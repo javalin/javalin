@@ -13,7 +13,7 @@ data class TestConfig @JvmOverloads constructor(
     val okHttpClient: OkHttpClient = OkHttpClient()
 )
 
-class JavalinTestTool(private val testConfig: TestConfig = TestConfig()) {
+class TestTool(private val testConfig: TestConfig = TestConfig()) {
 
     class RunResult(val logs: String?, val exception: Exception?)
 

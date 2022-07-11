@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory
 class KotlinTest {
 
     class MyKotlinClass(
-            val field1: String,
-            val field2: String
+        val field1: String,
+        val field2: String
     )
 
     @Test
@@ -73,7 +73,7 @@ class KotlinTest {
     @Test
     fun `custom javalin works`() {
         val app = Javalin.create()
-                .get("/hello") { it.result("Hello, World!") }
+            .get("/hello") { it.result("Hello, World!") }
         JavalinTest.test(app) { server, client ->
             assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, World!")
         }
@@ -99,11 +99,11 @@ class KotlinTest {
         assertThat(client.get("/hello/").body?.string()).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
     }
 
-    val javalinTest = JavalinTestTool(TestConfig(false))
+    val javalinTest = TestTool(TestConfig(false))
 
     @Test
     fun `instantiate JavalinTest`() = javalinTest.test { server, client ->
-        server.get("/hello") { ctx -> ctx.result("Hello world")}
+        server.get("/hello") { ctx -> ctx.result("Hello world") }
         assertThat(client.get("/hello").body?.string()).isEqualTo("Hello world")
     }
 
@@ -130,7 +130,7 @@ class KotlinTest {
 
     @Test
     fun `exceptions in test code get re-thrown`() {
-        assertThrows<Exception>("Error in test code"){
+        assertThrows<Exception>("Error in test code") {
             JavalinTest.test { server, client ->
                 throw Exception("Error in test code")
             }
