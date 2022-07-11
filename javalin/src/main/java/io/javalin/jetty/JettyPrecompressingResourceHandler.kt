@@ -2,6 +2,8 @@ package io.javalin.jetty
 
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.CompressionType
+import io.javalin.compression.LeveledBrotliStream
+import io.javalin.compression.LeveledGzipStream
 import io.javalin.http.Header
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
@@ -69,10 +71,10 @@ object JettyPrecompressingResourceHandler {
         val byteArrayOutputStream = ByteArrayOutputStream()
         val outputStream: OutputStream = when {
             type == CompressionType.GZIP -> {
-                io.javalin.compression.LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
+                LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
             }
             type == CompressionType.BR && DependencyUtil.isPresent(CoreDependency.JVMBROTLI) -> {
-                io.javalin.compression.LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
+                LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
             }
             else -> byteArrayOutputStream
         }

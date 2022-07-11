@@ -1,5 +1,6 @@
 package io.javalin.http
 
+import io.javalin.compression.CompressedStream
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.Header.CONTENT_ENCODING
@@ -14,7 +15,11 @@ import jakarta.servlet.http.HttpServletResponseWrapper
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
-class JavalinResponseWrapper(private val ctx: Context, private val cfg: JavalinConfig, private val requestType: HandlerType) : HttpServletResponseWrapper(ctx.res) {
+class JavalinResponseWrapper(
+    private val ctx: Context,
+    private val cfg: JavalinConfig,
+    private val requestType: HandlerType
+) : HttpServletResponseWrapper(ctx.res) {
 
     private val outputStreamWrapper by lazy { OutputStreamWrapper(cfg, ctx) }
     override fun getOutputStream() = outputStreamWrapper
@@ -54,11 +59,11 @@ class JavalinResponseWrapper(private val ctx: Context, private val cfg: JavalinC
 
 class OutputStreamWrapper(val cfg: JavalinConfig, val ctx: Context, val response: HttpServletResponse = ctx.res) : ServletOutputStream() {
     private val compression = cfg.pvt.compressionStrategy
-    private var compressedStream: io.javalin.compression.CompressedStream? = null
+    private var compressedStream: CompressedStream? = null
 
     override fun write(bytes: ByteArray, offset: Int, length: Int) {
         if (compressedStream == null && length >= compression.minSizeForCompression && response.contentType.allowsForCompression()) {
-            compressedStream = io.javalin.compression.CompressedStream.tryBrotli(compression, ctx) ?: io.javalin.compression.CompressedStream.tryGzip(compression, ctx)
+            compressedStream = CompressedStream.tryBrotli(compression, ctx) ?: CompressedStream.tryGzip(compression, ctx)
             compressedStream?.let { response.setHeader(CONTENT_ENCODING, it.type.typeName) }
         }
         (compressedStream?.outputStream ?: response.outputStream).write(bytes, offset, length) // fall back to default stream if no compression

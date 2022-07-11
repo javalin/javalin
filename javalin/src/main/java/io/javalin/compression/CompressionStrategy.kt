@@ -25,7 +25,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         val GZIP = CompressionStrategy(null, Gzip())
     }
 
-    val brotli: io.javalin.compression.Brotli?
+    val brotli: Brotli?
     val gzip: Gzip?
 
     init {
@@ -55,7 +55,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * When enabling Brotli, we try loading the jvm-brotli native library first.
      * If this fails, we keep Brotli disabled and warn the user.
      */
-    private fun tryLoadBrotli(brotli: io.javalin.compression.Brotli): io.javalin.compression.Brotli? {
+    private fun tryLoadBrotli(brotli: Brotli): Brotli? {
         DependencyUtil.ensurePresence(CoreDependency.JVMBROTLI, startupCheck = true)
         return if (BrotliLoader.isBrotliAvailable()) {
             brotli

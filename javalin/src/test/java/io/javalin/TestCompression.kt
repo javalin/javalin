@@ -41,7 +41,7 @@ class TestCompression {
     }.addTestEndpoints()
 
     private fun superCompressingApp() = Javalin.create {
-        it.compression.custom(CompressionStrategy(io.javalin.compression.Brotli(), Gzip()).apply { minSizeForCompression = 1 })
+        it.compression.custom(CompressionStrategy(Brotli(), Gzip()).apply { minSizeForCompression = 1 })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
