@@ -7,6 +7,8 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 
 class KotlinTest {
@@ -83,10 +85,12 @@ class KotlinTest {
         server.get("/hello") { ctx ->
             println("sout was called")
             logger.info("logger was called")
+            throw Exception("an error occurred")
         }
         val stdOut = JavalinTest.captureStdOut { client.get("/hello") }
         assertThat(stdOut).contains("sout was called")
         assertThat(stdOut).contains("logger was called")
+        assertThat(stdOut).contains("an error occurred")
     }
 
     @Test
@@ -122,6 +126,46 @@ class KotlinTest {
         JavalinTest.test(app, TestConfig(okHttpClient = okHttpClientAddingHeader)) { server, client ->
             assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, Javalin!")
         }
+    }
+
+    @Test
+    fun `exceptions in test code get re-thrown`() {
+        assertThrows<Exception>("Error in test code"){
+            JavalinTest.test { server, client ->
+                throw Exception("Error in test code")
+            }
+        }
+    }
+
+    @Test
+    fun `exceptions in handler code are caught by exception handler and not thrown`() {
+        assertDoesNotThrow {
+            JavalinTest.test { server, client ->
+                server.get("/hello") {
+                    throw Exception("Error in handler code")
+                }
+                assertThat(client.get("/hello").code).isEqualTo(500)
+            }
+        }
+    }
+
+    @Test
+    fun `exceptions in handler code is included in test logs`() {
+        val app = Javalin.create()
+
+        try {
+            JavalinTest.test(app) { server, client ->
+                server.get("/hello") {
+                    throw Exception("Error in handler code")
+                }
+
+                assertThat(client.get("/hello").code).isEqualTo(200)
+            }
+        } catch (t: Throwable) {
+            // Ignore
+        }
+
+        assertThat(app.attribute("testlogs") as String).contains("Error in handler code")
     }
 
 }
