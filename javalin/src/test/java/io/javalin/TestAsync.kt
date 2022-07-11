@@ -1,6 +1,11 @@
 package io.javalin
 
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.IM_A_TEAPOT
+import io.javalin.http.HttpCode.OK
+import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.testing.TestUtil
+import io.javalin.testing.status
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -17,6 +22,19 @@ internal class TestAsync {
         }
 
         assertThat(http.get("/").body).isEqualTo("true")
+    }
+
+    @Test
+    fun `async request should not be overridden asynchronously`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.async {
+                ctx.status(OK)
+            }
+            Thread.sleep(500)
+            ctx.status(IM_A_TEAPOT)
+        }
+
+        assertThat(http.get("/").status()).isEqualTo(OK)
     }
 
     @Test
