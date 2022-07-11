@@ -1,9 +1,7 @@
 package io.javalin
 
-import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.IM_A_TEAPOT
 import io.javalin.http.HttpCode.OK
-import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.testing.TestUtil
 import io.javalin.testing.status
 import org.assertj.core.api.Assertions.assertThat

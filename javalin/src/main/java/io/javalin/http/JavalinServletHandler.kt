@@ -31,6 +31,7 @@ data class Stage(
 internal data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
     val future: CompletableFuture<VALUE>? = null,
+    val launch: Runnable? = null,
     val callback: Consumer<VALUE>? = null,
 )
 
@@ -126,7 +127,9 @@ class JavalinServletHandler(
     /** Handles futures provided by user through ctx.future() in various handlers */
     private fun handleFutureResultReference(handler: () -> Unit): CompletableFuture<ExecutionResult> {
         val executedTask = runCatching { handler() }
+
         val result = ctx.resultReference.getAndUpdate { Result(ctx.resultStream() ?: it.previous) } // remove result to process from context
+        result.launch?.run()
 
         if (!ctx.isAsync() && result.future?.isDone == false) {
             startAsyncAndAddDefaultTimeoutListeners() // starts async context only if future is not already completed

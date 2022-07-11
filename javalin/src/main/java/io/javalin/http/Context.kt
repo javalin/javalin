@@ -377,37 +377,53 @@ open class Context(
         onTimeout: (() -> Unit)? = null,
         task: Runnable
     ): CompletableFuture<*> {
-        var await = CompletableFuture.runAsync(task, executor)
+        val await = CompletableFuture<Any?>()
 
-        if (timeout > 0) {
-            await = await.orTimeout(timeout, MILLISECONDS)
-        }
+        future(
+            future = await,
+            launch = {
+                CompletableFuture.runAsync(task, executor)
+                    .thenAccept { await.complete(null) }
+                    .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
+                    .exceptionally {
+                        if (onTimeout != null && it is TimeoutException) {
+                            onTimeout.invoke()
+                            await.complete(null)
+                            return@exceptionally null
+                        }
+                        throw it
+                    }
+                    .exceptionally {
+                        await.completeExceptionally(it)
+                        null
+                    }
+            },
+            callback = { /* noop */ }
+        )
 
-        if (onTimeout != null) {
-            await = await.exceptionally {
-                when (it) {
-                    is TimeoutException -> onTimeout().let { null }
-                    else -> throw it
-                }
-            }
-        }
-
-        future(await, callback = { /* noop */ })
         return await
     }
+
+    @JvmOverloads
+    fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>? = null): Context =
+        future(future = future, launch = null, callback = callback)
 
     /**
      * The default callback (used if no callback is provided) can be configured through [ContextResolver.defaultFutureCallback]
      * @throws IllegalStateException if result was already set
      * */
-    @JvmOverloads
-    fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>? = null): Context {
+    fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context {
         if (resultReference.get().future != null) {
             throw IllegalStateException("Cannot override result")
         }
         resultReference.updateAndGet { oldResult ->
             oldResult.future?.cancel(true)
-            Result(oldResult.previous, future, callback)
+            Result(
+                previous = oldResult.previous,
+                future = future,
+                launch = launch,
+                callback = callback
+            )
         }
         return this
     }
