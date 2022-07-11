@@ -175,15 +175,21 @@ public class JavaTest {
     }
 
     @Test
-    public void exception_in_handler_code_is_printed_to_std_out() {
-        JavalinTest.test( (server, client) -> {
-            server.get("/hello", ctx -> {
-                throw new Exception("Error in handler code");
+    public void exception_in_handler_code_is_included_in_test_logs() {
+        Javalin app = Javalin.create();
+
+        try {
+            JavalinTest.test(app, (server, client) -> {
+                server.get("/hello", ctx -> {
+                    throw new Exception("Error in handler code");
+                });
+
+                assertThat(client.get("/hello").code()).isEqualTo(200);
             });
+        } catch (Throwable t) {
+            // Ignore
+        }
 
-            client.get("/hello");
-
-            // TODO: Test that log contains "JavalinTest#test failed - full log output below"
-        });
+        assertThat((String) app.attribute("testlogs")).contains("Error in handler code");
     }
 }

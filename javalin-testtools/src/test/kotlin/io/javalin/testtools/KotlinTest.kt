@@ -85,10 +85,12 @@ class KotlinTest {
         server.get("/hello") { ctx ->
             println("sout was called")
             logger.info("logger was called")
+            throw Exception("an error occurred")
         }
         val stdOut = JavalinTest.captureStdOut { client.get("/hello") }
         assertThat(stdOut).contains("sout was called")
         assertThat(stdOut).contains("logger was called")
+        assertThat(stdOut).contains("an error occurred")
     }
 
     @Test
@@ -148,14 +150,22 @@ class KotlinTest {
     }
 
     @Test
-    fun `exception in handler code is printed to std out`() = JavalinTest.test { server, client ->
-        server.get("/hello") {
-            throw Exception("Error in handler code")
+    fun `exceptions in handler code is included in test logs`() {
+        val app = Javalin.create()
+
+        try {
+            JavalinTest.test(app) { server, client ->
+                server.get("/hello") {
+                    throw Exception("Error in handler code")
+                }
+
+                assertThat(client.get("/hello").code).isEqualTo(200)
+            }
+        } catch (t: Throwable) {
+            // Ignore
         }
 
-        client.get("/hello")
-
-        // TODO: Test that log contains "JavalinTest#test failed - full log output below"
+        assertThat(app.attribute("testlogs") as String).contains("Error in handler code")
     }
 
 }
