@@ -9,25 +9,22 @@ import io.javalin.http.Header
 import java.io.OutputStream
 import java.util.zip.GZIPOutputStream
 
-data class CompressedStream(val type: io.javalin.compression.CompressionType, val outputStream: OutputStream) {
+data class CompressedStream(val type: CompressionType, val outputStream: OutputStream) {
     companion object {
-        fun tryBrotli(compression: io.javalin.compression.CompressionStrategy, ctx: Context): io.javalin.compression.CompressedStream? =
-            if (compression.brotli != null && ctx.header(Header.ACCEPT_ENCODING)?.contains(BR.typeName, ignoreCase = true) == true)
-                io.javalin.compression.CompressedStream(
-                    BR,
-                    io.javalin.compression.LeveledBrotliStream(ctx.res.outputStream, compression.brotli.level)
-                )
-            else null
-
-        fun tryGzip(compression: io.javalin.compression.CompressionStrategy, ctx: Context): io.javalin.compression.CompressedStream? =
-            if (compression.gzip != null && ctx.header(Header.ACCEPT_ENCODING)?.contains(GZIP.typeName, ignoreCase = true) == true)
-                io.javalin.compression.CompressedStream(
-                    GZIP,
-                    io.javalin.compression.LeveledGzipStream(ctx.res.outputStream, compression.gzip.level)
-                )
-            else null
+        fun tryBrotli(compression: CompressionStrategy, ctx: Context): CompressedStream? = when {
+            compression.brotli == null -> null
+            ctx.acceptsHeader?.contains(BR.typeName, ignoreCase = true) != true -> null
+            else -> CompressedStream(BR, LeveledBrotliStream(ctx.res.outputStream, compression.brotli.level))
+        }
+        fun tryGzip(compression: CompressionStrategy, ctx: Context): CompressedStream? = when {
+            compression.gzip == null -> null
+            ctx.acceptsHeader?.contains(GZIP.typeName, ignoreCase = true) != true -> null
+            else -> CompressedStream(GZIP, LeveledGzipStream(ctx.res.outputStream, compression.gzip.level))
+        }
     }
 }
+
+private val Context.acceptsHeader: String? get() = this.header(Header.ACCEPT_ENCODING)
 
 class LeveledGzipStream(out: OutputStream, level: Int) : GZIPOutputStream(out) {
     init {
@@ -35,4 +32,5 @@ class LeveledGzipStream(out: OutputStream, level: Int) : GZIPOutputStream(out) {
     }
 }
 
-class LeveledBrotliStream(out: OutputStream, level: Int) : BrotliOutputStream(out, Encoder.Parameters().setQuality(level))
+class LeveledBrotliStream(out: OutputStream, level: Int) :
+    BrotliOutputStream(out, Encoder.Parameters().setQuality(level))
