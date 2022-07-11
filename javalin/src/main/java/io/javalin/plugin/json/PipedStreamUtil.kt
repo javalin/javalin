@@ -7,7 +7,7 @@ import java.io.PipedOutputStream
 
 object PipedStreamUtil {
 
-    val executorService = ConcurrencyUtil.executorService("JavalinPipedStreamingThreadPool")
+    private val executorService by lazy { ConcurrencyUtil.executorService("JavalinPipedStreamingThreadPool") }
 
     fun getInputStream(userCallback: (PipedOutputStream) -> Unit): InputStream {
         val pipedOutputStream = PipedOutputStream()
