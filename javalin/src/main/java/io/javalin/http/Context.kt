@@ -16,6 +16,7 @@ import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.exceptionallyAccept
+import io.javalin.util.isCompletedSuccessfully
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
 import jakarta.servlet.http.HttpServletRequest
@@ -340,14 +341,14 @@ open class Context(
     @JvmOverloads
     fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) {
         if (resultReference.get().future != null) {
-            throw IllegalStateException("Cannot override result")
+            throw IllegalStateException("Cannot call Context#seekableStream after Context#future")
         }
         SeekableWriter.write(this, inputStream, contentType, size)
     }
 
     fun resultStream(): InputStream? = resultReference.get().let { result ->
         result.future
-            ?.takeIf { it.isDone && !it.isCompletedExceptionally && !it.isCancelled }
+            ?.takeIf { it.isCompletedSuccessfully() }
             ?.get() as? InputStream?
             ?: result.previous
     }
@@ -358,7 +359,7 @@ open class Context(
      *
      * @param executor Thread-pool used to execute the given task,
      * by default this method will use global predefined executor service stored in [appAttributes] as [ASYNC_EXECUTOR_KEY].
-     * You can change this default in [io.javalin.JavalinConfig].
+     * You can change this default in [io.javalin.config.JavalinConfig].
      *
      * @param timeout Timeout in milliseconds,
      * by default it's 0 which means timeout watcher is disabled.

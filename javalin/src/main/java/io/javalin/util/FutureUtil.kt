@@ -16,3 +16,5 @@ fun <T> CompletableFuture<T>.exceptionallyComposeFallback(mapping: (Throwable) -
     thenApply { CompletableFuture.completedFuture(it) as CompletionStage<T> }
         .exceptionally { mapping(it) }
         .thenCompose { it }
+
+fun <T> CompletableFuture<T>.isCompletedSuccessfully() = this.isDone && !this.isCompletedExceptionally && !this.isCancelled
