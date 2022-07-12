@@ -15,6 +15,7 @@ import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.json.jsonMapper
 import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
+import io.javalin.util.exceptionallyAccept
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
 import jakarta.servlet.http.HttpServletRequest
@@ -377,39 +378,61 @@ open class Context(
         onTimeout: (() -> Unit)? = null,
         task: Runnable
     ): CompletableFuture<*> {
-        var await = CompletableFuture.runAsync(task, executor)
+        val await = CompletableFuture<Any?>()
 
-        if (timeout > 0) {
-            await = await.orTimeout(timeout, MILLISECONDS)
-        }
+        future(
+            future = await,
+            launch = {
+                CompletableFuture.runAsync(task, executor)
+                    .thenAccept { await.complete(null) }
+                    .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
+                    .exceptionallyAccept {
+                        when {
+                            onTimeout != null && it is TimeoutException -> onTimeout.invoke().run { await.complete(null) }
+                            else -> await.completeExceptionally(it) // catch standard exception
+                        }
+                    }
+                    .exceptionallyAccept { await.completeExceptionally(it) } // catch exception from timeout listener
+            },
+            callback = { /* noop */ }
+        )
 
-        if (onTimeout != null) {
-            await = await.exceptionally {
-                when (it) {
-                    is TimeoutException -> onTimeout().let { null }
-                    else -> throw it
-                }
-            }
-        }
-
-        future(await, callback = { /* noop */ })
         return await
     }
 
     /**
-     * The default callback (used if no callback is provided) can be configured through [ContextResolver.defaultFutureCallback]
-     * @throws IllegalStateException if result was already set
-     * */
+     * See the main `future(CompletableFuture<T>, Runnable, Consumer<T>)` method for details.
+     */
     @JvmOverloads
-    fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>? = null): Context {
+    fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>? = null): Context =
+        future(future = future, launch = null, callback = callback)
+
+    /**
+     * The main entrypoint for all async related functionalities exposed by [Context].
+     *
+     * @param future Future represents any delayed in time result.
+     *  Upon this value Javalin will schedule further execution of this request.
+     *  When servlet will detect that the given future is completed, request will be executed synchronously,
+     *  otherwise request will be executed asynchronously by a thread which will complete the future.
+     * @param launch Optional callback that provides a possibility to launch any kind of async execution in a thread-safe way.
+     *  Any async task that will mutate [Context] should be submitted to the executor in this scope to eliminate race-conditions between threads.
+     * @param callback Optional callback used to process result from the specified future.
+     *  The default callback (used if no callback is provided) can be configured through [io.javalin.config.ContextResolver.defaultFutureCallback]
+     * @throws IllegalStateException if result was already set
+     */
+    fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>? = null): Context = also {
         if (resultReference.get().future != null) {
             throw IllegalStateException("Cannot override result")
         }
         resultReference.updateAndGet { oldResult ->
             oldResult.future?.cancel(true)
-            Result(oldResult.previous, future, callback)
+            Result(
+                previous = oldResult.previous,
+                future = future,
+                launch = launch,
+                callback = callback
+            )
         }
-        return this
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
