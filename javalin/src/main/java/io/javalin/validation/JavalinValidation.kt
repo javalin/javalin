@@ -12,19 +12,19 @@ class MissingConverterException(val className: String) : RuntimeException()
 
 object JavalinValidation {
 
-    val converters = mutableMapOf<Class<*>, (String) -> Any?>(
-        java.lang.Boolean::class.java to { s -> s.toBoolean() },
-        java.lang.Double::class.java to { s -> s.toDouble() },
-        java.lang.Float::class.java to { s -> s.toFloat() },
-        java.lang.Integer::class.java to { s -> s.toInt() },
-        java.lang.Long::class.java to { s -> s.toLong() },
-        java.lang.String::class.java to { s -> s },
-        Boolean::class.java to { s -> s.toBoolean() },
-        Double::class.java to { s -> s.toDouble() },
-        Float::class.java to { s -> s.toFloat() },
-        Int::class.java to { s -> s.toInt() },
-        Long::class.java to { s -> s.toLong() },
-        String::class.java to { s -> s }
+    private val converters = mutableMapOf<Class<*>, (String) -> Any?>(
+        java.lang.Boolean::class.java to { it.toBoolean() },
+        java.lang.Double::class.java to { it.toDouble() },
+        java.lang.Float::class.java to { it.toFloat() },
+        java.lang.Integer::class.java to { it.toInt() },
+        java.lang.Long::class.java to { it.toLong() },
+        java.lang.String::class.java to { it },
+        Boolean::class.java to { it.toBoolean() },
+        Double::class.java to { it.toDouble() },
+        Float::class.java to { it.toFloat() },
+        Int::class.java to { it.toInt() },
+        Long::class.java to { it.toLong() },
+        String::class.java to { it }
     )
 
     fun <T> convertValue(clazz: Class<T>, value: String?): T {
