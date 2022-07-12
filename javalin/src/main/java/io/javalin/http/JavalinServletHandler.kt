@@ -3,6 +3,7 @@ package io.javalin.http
 import io.javalin.config.JavalinConfig
 import io.javalin.config.contextResolver
 import io.javalin.util.LogUtil
+import io.javalin.util.exceptionallyComposeFallback
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -129,7 +130,7 @@ class JavalinServletHandler(
         val executedTask = runCatching { handler() }
 
         val result = ctx.resultReference.getAndUpdate { Result(ctx.resultStream() ?: it.previous) } // remove result to process from context
-        result.launch?.run()
+        result.launch?.run() // notify user that handler finished execution and result was properly handled by servlet, so new async task can be launched
 
         if (!ctx.isAsync() && result.future?.isDone == false) {
             startAsyncAndAddDefaultTimeoutListeners() // starts async context only if future is not already completed
@@ -178,12 +179,6 @@ class JavalinServletHandler(
     }
 
 }
-
-/** [CompletableFuture.exceptionallyCompose] method is available since JDK12+, so we need a fallback for JDK11 */
-fun <T> CompletableFuture<T>.exceptionallyComposeFallback(mapping: (Throwable) -> CompletionStage<T>): CompletableFuture<T> =
-    thenApply { completedFuture(it) as CompletionStage<T> }
-        .exceptionally { mapping(it) }
-        .thenCompose { it }
 
 /** Checks if request is executed asynchronously */
 private fun Context.isAsync(): Boolean = req.isAsyncStarted

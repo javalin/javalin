@@ -34,6 +34,3 @@ class HttpUtil(port: Int) {
     fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
 
 }
-
-fun HttpResponse<*>.status(): HttpCode? =
-    HttpCode.forStatus(this.status)
