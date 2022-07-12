@@ -161,7 +161,7 @@ class TestResponse {
 
     @Test
     fun `seekable - range works`() = TestUtil.test { app, http ->
-        app.get("/seekable") { it.seekableStream(getSeekableInput(), ContentType.PLAIN) }
+        app.get("/seekable") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable")
             .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
             .asString().body
@@ -170,14 +170,14 @@ class TestResponse {
 
     @Test
     fun `seekable - no-range works`() = TestUtil.test { app, http ->
-        app.get("/seekable-2") { it.seekableStream(getSeekableInput(), ContentType.PLAIN) }
+        app.get("/seekable-2") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-2").asString().body
         assertThat(response.length).isEqualTo(getSeekableInput().available())
     }
 
     @Test
     fun `seekable - overreaching range works`() = TestUtil.test { app, http ->
-        app.get("/seekable-3") { it.seekableStream(getSeekableInput(), ContentType.PLAIN) }
+        app.get("/seekable-3") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-3")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
             .asBytes()
@@ -186,7 +186,7 @@ class TestResponse {
 
     @Test
     fun `seekable - file smaller than chunksize works`() = TestUtil.test { app, http ->
-        app.get("/seekable-4") { it.seekableStream(getSeekableInput(repeats = 50), ContentType.PLAIN) }
+        app.get("/seekable-4") { it.writeSeekableStream(getSeekableInput(repeats = 50), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-4")
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
             .asString().body
@@ -197,7 +197,7 @@ class TestResponse {
     fun `seekable - large file works`() = TestUtil.test { app, http ->
         val prefixSize = 1L shl 31 //2GB
         val contentSize = 100L
-        app.get("/seekable-5") { it.seekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
+        app.get("/seekable-5") { it.writeSeekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
         val response = Unirest.get(http.origin + "/seekable-5")
             .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
             .asString()

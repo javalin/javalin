@@ -66,7 +66,7 @@ internal class TestResult {
             assertThrows<IllegalStateException> { it.result("Text") }
             assertThrows<IllegalStateException> { it.result("Text".toByteArray()) }
             assertThrows<IllegalStateException> { it.result("Text".byteInputStream()) }
-            assertThrows<IllegalStateException> { it.seekableStream("Text".byteInputStream(), ContentType.OCTET_STREAM) }
+            assertThrows<IllegalStateException> { it.writeSeekableStream("Text".byteInputStream(), ContentType.OCTET_STREAM) }
             assertThrows<IllegalStateException> { it.future(completedFuture("Future")) }
             assertThrows<IllegalStateException> { it.async {} }
         }

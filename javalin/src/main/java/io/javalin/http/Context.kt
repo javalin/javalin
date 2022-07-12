@@ -339,7 +339,7 @@ open class Context(
 
     /** Writes the specified inputStream as a seekable stream */
     @JvmOverloads
-    fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) {
+    fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) {
         if (resultReference.get().future != null) {
             throw IllegalStateException("Cannot call Context#seekableStream after Context#future")
         }

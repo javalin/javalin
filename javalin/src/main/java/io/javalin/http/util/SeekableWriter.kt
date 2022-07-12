@@ -8,11 +8,11 @@ import kotlin.math.min
 
 object SeekableWriter {
     var chunkSize = 128000
-    fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long) {
+    fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long) = ctx.async {
         if (ctx.header(Header.RANGE) == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)
-            ctx.result(inputStream)
-            return
+            inputStream.transferTo(ctx.res.outputStream)
+            return@async
         }
         val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
         val from = requestedRange[0].toLong()

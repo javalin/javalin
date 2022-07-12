@@ -92,7 +92,7 @@ class TestWebBrowser {
             }
         }
         TestUtil.test(requestLoggerApp) { app, http ->
-            app.get("/file") { it.seekableStream(file.inputStream(), "audio/mpeg") }
+            app.get("/file") { it.writeSeekableStream(file.inputStream(), "audio/mpeg") }
             app.get("/audio-player") { it.html("""<audio src="/file"></audio>""") }
             driver.get(http.origin + "/audio-player")
             Thread.sleep(100) // so the logger has a chance to run
