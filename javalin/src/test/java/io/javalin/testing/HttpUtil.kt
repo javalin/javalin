@@ -9,7 +9,6 @@ package io.javalin.testing
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode
 import kong.unirest.HttpMethod
-import kong.unirest.HttpResponse
 import kong.unirest.Unirest
 
 class HttpUtil(port: Int) {
