@@ -69,17 +69,17 @@
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
 
         <!-- PLUGINS -->
-        <compiler.plugin.version>3.8.1</compiler.plugin.version>
-        <dokka.plugin.version>1.4.32</dokka.plugin.version>
-        <gpg.plugin.version>1.6</gpg.plugin.version>
-        <jar.plugin.version>3.2.0</jar.plugin.version>
-        <surefire.plugin.version>3.0.0-M5</surefire.plugin.version>
-        <antrun.plugin.version>3.0.0</antrun.plugin.version>
-        <shade.plugin.version>3.2.4</shade.plugin.version>
-        <javadoc.plugin.version>3.3.0</javadoc.plugin.version>
-        <build-helper.plugin.version>3.2.0</build-helper.plugin.version>
-        <enforcer.plugin.version>3.0.0</enforcer.plugin.version>
-        <clean.plugin.version>3.1.0</clean.plugin.version>
+        <compiler.plugin.version>3.10.1</compiler.plugin.version>
+        <dokka.plugin.version>1.7.0</dokka.plugin.version>
+        <gpg.plugin.version>3.0.1</gpg.plugin.version>
+        <jar.plugin.version>3.2.2</jar.plugin.version>
+        <surefire.plugin.version>3.0.0-M7</surefire.plugin.version>
+        <antrun.plugin.version>3.1.0</antrun.plugin.version>
+        <shade.plugin.version>3.3.0</shade.plugin.version>
+        <javadoc.plugin.version>3.4.0</javadoc.plugin.version>
+        <build-helper.plugin.version>3.3.0</build-helper.plugin.version>
+        <enforcer.plugin.version>3.1.0</enforcer.plugin.version>
+        <clean.plugin.version>3.2.0</clean.plugin.version>
         <install.plugin.version>3.0.0-M1</install.plugin.version>
         <resources.plugin.version>3.2.0</resources.plugin.version>
         <source.plugin.version>3.2.1</source.plugin.version>
@@ -567,6 +567,51 @@
         </profile>
         <profile>
             <id>sonatype-oss-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${source.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jetbrains.dokka</groupId>
+                        <artifactId>dokka-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>attach-javadocs-dokka</id>
+                                <goals>
+                                    <goal>javadocJar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${javadoc.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>attach-javadocs-javadoc</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>publish-snapshot</id>
             <build>
                 <plugins>
                     <plugin>
