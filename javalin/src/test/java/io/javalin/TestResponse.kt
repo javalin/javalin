@@ -7,8 +7,8 @@
 
 package io.javalin
 
-import io.javalin.http.Header
 import io.javalin.http.ContentType
+import io.javalin.http.Header
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
@@ -191,6 +191,18 @@ class TestResponse {
             .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
             .asString().body
         assertThat(response.length).isEqualTo(150)
+    }
+
+    @Test
+    fun `seekable - can listen to future`() = TestUtil.test { app, http ->
+        var response: String? = null
+        app.get("/seekable-5") {
+            it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN).thenAccept {
+                assertThat(response!!.length).isEqualTo(getSeekableInput().available())
+            }
+            assertThat(response).isNull()
+        }
+        response = Unirest.get(http.origin + "/seekable-5").asString().body
     }
 
     @Test
