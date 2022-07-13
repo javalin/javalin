@@ -337,14 +337,17 @@ open class Context(
         return this.future(CompletableFuture.completedFuture(resultStream), callback = { /* noop */ })
     }
 
-    /** Writes the specified inputStream as a seekable stream */
+    /**
+     * Writes the specified inputStream as a seekable stream.
+     * This method is asynchronous and uses the global predefined executor
+     * service stored in [appAttributes] as [ASYNC_EXECUTOR_KEY].
+     * You can change this default in [io.javalin.config.JavalinConfig].
+     *
+     * @return the [CompletableFuture] used to write the seekable stream
+     */
     @JvmOverloads
-    fun seekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) {
-        if (resultReference.get().future != null) {
-            throw IllegalStateException("Cannot call Context#seekableStream after Context#future")
-        }
+    fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) =
         SeekableWriter.write(this, inputStream, contentType, size)
-    }
 
     fun resultStream(): InputStream? = resultReference.get().let { result ->
         result.future
