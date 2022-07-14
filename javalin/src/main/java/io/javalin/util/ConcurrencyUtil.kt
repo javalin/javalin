@@ -58,7 +58,7 @@ internal object LoomUtil {
 
     fun getExecutorService(name: String): ExecutorService {
         require(loomAvailable) { "Your Java version (${System.getProperty("java.version")}) doesn't support Loom" }
-        val factoryMethod = Executors::class.java.getMethod("newVirtualThreadPerTaskExecutor")
+        val factoryMethod = Executors::class.java.getMethod("newThreadPerTaskExecutor")
         return factoryMethod.invoke(Executors::class.java, NamedThreadFactory(name)) as ExecutorService
     }
 
