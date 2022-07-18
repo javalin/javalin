@@ -14,6 +14,7 @@ enum class HttpCode(val status: Int, val message: String) {
     PARTIAL_CONTENT(206, "Partial Content"),
     MULTI_STATUS(207, "Multi-Status"),
     ALREADY_REPORTED(208, "Already Reported"),
+    IM_USED(226, "IM Used"),
     MULTIPLE_CHOICES(300, "Multiple Choices"),
     MOVED_PERMANENTLY(301, "Moved Permanently"),
     FOUND(302, "Found"),
@@ -35,7 +36,7 @@ enum class HttpCode(val status: Int, val message: String) {
     GONE(410, "Gone"),
     LENGTH_REQUIRED(411, "Length Required"),
     PRECONDITION_FAILED(412, "Precondition Failed"),
-    PAYLOAD_TOO_LARGE(413, "Payload Too Large"),
+    CONTENT_TOO_LARGE(413, "Content Too Large"),
     URI_TOO_LONG(414, "URI Too Long"),
     UNSUPPORTED_MEDIA_TYPE(415, "Unsupported Media Type"),
     RANGE_NOT_SATISFIABLE(416, "Range Not Satisfiable"),
@@ -43,7 +44,7 @@ enum class HttpCode(val status: Int, val message: String) {
     IM_A_TEAPOT(418, "I'm a Teapot"),
     ENHANCE_YOUR_CALM(420, "Enhance your Calm"),
     MISDIRECTED_REQUEST(421, "Misdirected Request"),
-    UNPROCESSABLE_ENTITY(422, "Unprocessable Entity"),
+    UNPROCESSABLE_CONTENT(422, "Unprocessable Content"),
     LOCKED(423, "Locked"),
     FAILED_DEPENDENCY(424, "Failed Dependency"),
     TOO_EARLY(425, "Too Early"),
@@ -60,6 +61,7 @@ enum class HttpCode(val status: Int, val message: String) {
     HTTP_VERSION_NOT_SUPPORTED(505, "HTTP Version Not Supported"),
     INSUFFICIENT_STORAGE(507, "Insufficient Storage"),
     LOOP_DETECTED(508, "Loop Detected"),
+    @Deprecated("Obsoleted by https://datatracker.ietf.org/doc/status-change-http-experiments-to-historic/")
     NOT_EXTENDED(510, "Not Extended"),
     NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required");
 

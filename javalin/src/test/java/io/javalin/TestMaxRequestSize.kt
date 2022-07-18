@@ -29,7 +29,7 @@ class TestMaxRequestSize {
     @Test
     fun `can read payloads larger than max size by using inputstream`() = TestUtil.test(Javalin.create { it.http.maxRequestSize = 4L }) { app, http ->
         app.post("/body") { it.result(it.body()) }
-        assertThat(http.post("/body").body("123456").asString().body).isEqualTo("Payload Too Large")
+        assertThat(http.post("/body").body("123456").asString().body).isEqualTo("Content Too Large")
         app.post("/stream") { it.result(it.req.inputStream.readBytes()) }
         assertThat(http.post("/stream").body("123456").asString().body).isEqualTo("123456")
     }
