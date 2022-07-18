@@ -96,11 +96,11 @@ object ContextUtil {
         this.matchedPath = ctx.matchedPath
     }
 
-    fun Context.throwPayloadTooLargeIfPayloadTooLarge() {
+    fun Context.throwContentTooLargeIfContentTooLarge() {
         val maxRequestSize = this.appAttribute<Long>(MAX_REQUEST_SIZE_KEY)
         if (this.req.contentLength > maxRequestSize) {
             JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
-            throw HttpResponseException(HttpCode.PAYLOAD_TOO_LARGE.status, HttpCode.PAYLOAD_TOO_LARGE.message)
+            throw HttpResponseException(HttpCode.CONTENT_TOO_LARGE.status, HttpCode.CONTENT_TOO_LARGE.message)
         }
     }
 

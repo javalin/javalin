@@ -8,7 +8,7 @@ package io.javalin.http
 
 import io.javalin.config.contextResolver
 import io.javalin.http.util.ContextUtil
-import io.javalin.http.util.ContextUtil.throwPayloadTooLargeIfPayloadTooLarge
+import io.javalin.http.util.ContextUtil.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
@@ -57,7 +57,7 @@ open class Context(
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
 
     private val body by lazy {
-        this.throwPayloadTooLargeIfPayloadTooLarge()
+        this.throwContentTooLargeIfContentTooLarge()
         req.inputStream.readBytes()
     }
 
@@ -94,7 +94,7 @@ open class Context(
     /** Gets the request body as a [ByteArray].
      * Calling this method returns the body as a [ByteArray]. If [io.javalin.JavalinConfig.maxRequestSize]
      * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
-     * with status 413 PAYLOAD_TOO_LARGE.
+     * with status 413 CONTENT_TOO_LARGE.
      */
     fun bodyAsBytes(): ByteArray = body
 
