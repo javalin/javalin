@@ -8,13 +8,17 @@ package io.javalin.http
 
 import io.javalin.http.HttpCode.*
 
-open class HttpResponseException @JvmOverloads constructor(val status: HttpCode, message: String = status.message, val details: Map<String, String> = mapOf()) : RuntimeException(message)
+open class HttpResponseException @JvmOverloads constructor(
+    val code: HttpCode,
+    message: String = code.message,
+    val details: Map<String, String> = mapOf()
+) : RuntimeException(message)
 
 class RedirectResponse @JvmOverloads constructor(
-    status: HttpCode = FOUND,
-    message: String = status.message,
+    code: HttpCode = FOUND,
+    message: String = code.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(status, message, details)
+) : HttpResponseException(code, message, details)
 
 
 class BadRequestResponse @JvmOverloads constructor(
