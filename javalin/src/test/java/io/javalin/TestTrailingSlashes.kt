@@ -9,6 +9,8 @@ package io.javalin
 
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.testing.TestUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -88,10 +90,10 @@ class TestTrailingSlashes {
     @Test
     fun `case sensitive urls work`() = TestUtil.test(javalin) { app, http ->
         app.get("/My-Url") { it.result("OK") }
-        assertThat(http.getBody("/MY-URL")).isEqualTo("Not found")
+        assertThat(http.getBody("/MY-URL")).isEqualTo(NOT_FOUND.message)
         assertThat(http.getBody("/My-Url")).isEqualTo("OK")
         app.get("/My-Url/") { it.result("OK/") }
-        assertThat(http.getBody("/MY-URL/")).isEqualTo("Not found")
+        assertThat(http.getBody("/MY-URL/")).isEqualTo(NOT_FOUND.message)
         assertThat(http.getBody("/My-Url/")).isEqualTo("OK/")
     }
 
@@ -147,7 +149,7 @@ class TestTrailingSlashes {
         }
         assertThat(http.getBody("/test/path-param")).isEqualTo("path-param")
         assertThat(http.getBody("/test/path-param/")).isEqualTo("path-param/")
-        assertThat(http.getBody("/test/")).isEqualTo("Not found")
+        assertThat(http.getBody("/test/")).isEqualTo(NOT_FOUND.message)
         assertThat(http.getBody("/test")).isEqualTo("test")
     }
 

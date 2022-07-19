@@ -1,5 +1,7 @@
 package io.javalin
 
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.testing.TestUtil
 import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -16,24 +18,24 @@ class TestMethodNotAllowed {
     @Test
     fun `405 response for HTML works`() = TestUtil.test(preferring405Javalin) { _, http ->
         val expectedHtml = """
-            |Method not allowed
+            |Method Not Allowed
             |
             |Available methods:
             |POST, PUT, DELETE
             |""".trimMargin()
-        assertThat(http.htmlGet("/test").status).isEqualTo(HttpServletResponse.SC_METHOD_NOT_ALLOWED)
+        assertThat(http.htmlGet("/test").status).isEqualTo(METHOD_NOT_ALLOWED.status)
         assertThat(http.htmlGet("/test").body).isEqualTo(expectedHtml)
     }
 
     @Test
     fun `405 response for JSON works`() = TestUtil.test(preferring405Javalin) { _, http ->
         val expectedJson = """{
-            |    "title": "Method not allowed",
+            |    "title": "Method Not Allowed",
             |    "status": 405,
             |    "type": "https://javalin.io/documentation#methodnotallowedresponse",
             |    "details": {"availableMethods":"POST, PUT, DELETE"}
             |}""".trimMargin()
-        assertThat(http.jsonGet("/test").status).isEqualTo(HttpServletResponse.SC_METHOD_NOT_ALLOWED)
+        assertThat(http.jsonGet("/test").status).isEqualTo(METHOD_NOT_ALLOWED.status)
         assertThat(http.jsonGet("/test").body).isEqualTo(expectedJson)
     }
 

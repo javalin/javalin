@@ -6,6 +6,8 @@
 
 package io.javalin
 
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.plugin.RedirectToLowercasePathPlugin
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
@@ -40,30 +42,30 @@ class TestRedirectToLowercasePathPlugin {
 
     @Test
     fun `only wrong cased requests are redirected`() = TestUtil.test(testApp) { app, http ->
-        app.get("/my-endpoint") { it.status(418) }
+        app.get("/my-endpoint") { it.status(IM_A_TEAPOT) }
         http.disableUnirestRedirects()
-        assertThat(http.get("/my-endpoint").status).isEqualTo(418)
-        assertThat(http.get("/my-eNdPOinT").status).isEqualTo(301)
+        assertThat(http.get("/my-endpoint").status).isEqualTo(IM_A_TEAPOT.status)
+        assertThat(http.get("/my-eNdPOinT").status).isEqualTo(MOVED_PERMANENTLY.status)
         http.enableUnirestRedirects()
-        assertThat(http.get("/my-eNdPOinT").status).isEqualTo(418)
+        assertThat(http.get("/my-eNdPOinT").status).isEqualTo(IM_A_TEAPOT.status)
     }
 
     @Test
     fun `only wrong cased requests are redirected complex segments edition`() = TestUtil.test(testApp) { app, http ->
-        app.get("/my-{endpoint}") { it.status(418).result(it.pathParam("endpoint")) }
+        app.get("/my-{endpoint}") { it.status(IM_A_TEAPOT).result(it.pathParam("endpoint")) }
         http.disableUnirestRedirects()
-        http.get("/my-endpoint").assertStatusAndBodyMatch(418, "endpoint")
-        http.get("/my-ENDPOINT").assertStatusAndBodyMatch(418, "ENDPOINT")
-        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(301, "Redirected")
+        http.get("/my-endpoint").assertStatusAndBodyMatch(IM_A_TEAPOT.status, "endpoint")
+        http.get("/my-ENDPOINT").assertStatusAndBodyMatch(IM_A_TEAPOT.status, "ENDPOINT")
+        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(MOVED_PERMANENTLY.status, MOVED_PERMANENTLY.message)
         http.enableUnirestRedirects()
-        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(418, "eNdPOinT")
+        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(IM_A_TEAPOT.status, "eNdPOinT")
     }
 
     @Test
     fun `non-lowercase path-params are not redirected`() = TestUtil.test(testApp) { app, http ->
-        app.get("/path/{param}") { it.status(418) }
+        app.get("/path/{param}") { it.status(IM_A_TEAPOT) }
         http.disableUnirestRedirects()
-        assertThat(http.get("/path/OnE").status).isEqualTo(418)
+        assertThat(http.get("/path/OnE").status).isEqualTo(IM_A_TEAPOT.status)
         http.enableUnirestRedirects()
     }
 

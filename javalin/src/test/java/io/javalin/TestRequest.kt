@@ -7,6 +7,8 @@
 package io.javalin
 
 import io.javalin.http.Header
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.util.ContextUtil
 import io.javalin.plugin.BasicAuthFilter
@@ -138,7 +140,7 @@ class TestRequest {
     @Test
     fun `pathParam throws for invalid param`() = TestUtil.test { app, http ->
         app.get("/{my}/{path}") { it.result(it.pathParam("path-param")) }
-        assertThat(http.getBody("/my/path")).isEqualTo("Internal server error")
+        assertThat(http.getBody("/my/path")).isEqualTo(INTERNAL_SERVER_ERROR.message)
     }
 
     @Test

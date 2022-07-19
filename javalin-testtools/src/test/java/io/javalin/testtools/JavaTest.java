@@ -2,6 +2,7 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.http.Header;
+import io.javalin.http.HttpCode;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static io.javalin.http.HttpCode.*;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -34,7 +36,7 @@ public class JavaTest {
         JavalinTest.test((server, client) -> {
             server.get("/hello", ctx -> ctx.result("Hello, World!"));
             Response response = client.get("/hello");
-            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.code()).isEqualTo(OK.getStatus());
             assertThat(response.body().string()).isEqualTo("Hello, World!");
         });
     }
@@ -169,7 +171,7 @@ public class JavaTest {
                     throw new Exception("Error in handler code");
                 });
 
-                assertThat(client.get("/hello").code()).isEqualTo(500);
+                assertThat(client.get("/hello").code()).isEqualTo(INTERNAL_SERVER_ERROR.getStatus());
             })
         );
     }
@@ -184,7 +186,7 @@ public class JavaTest {
                     throw new Exception("Error in handler code");
                 });
 
-                assertThat(client.get("/hello").code()).isEqualTo(200);
+                assertThat(client.get("/hello").code()).isEqualTo(OK.getStatus());
             });
         } catch (Throwable t) {
             // Ignore

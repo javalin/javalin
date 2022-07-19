@@ -9,6 +9,8 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -27,7 +29,7 @@ class TestStaticDirectorySlash {
     @Test
     fun `normal Javalin serves files but serves directory if it is a directory`() = TestUtil.test(normalJavalin) { _, http ->
         assertThat(http.getBody("/file")).isEqualTo("TESTFILE") // ok, is file = no slash
-        assertThat(http.getBody("/file/")).isEqualTo("Not found") // nope, has slash must be directory
+        assertThat(http.getBody("/file/")).isEqualTo(NOT_FOUND.message) // nope, has slash must be directory
     }
 
 }

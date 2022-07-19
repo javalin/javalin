@@ -9,6 +9,8 @@ package io.javalin.examples
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.http.HttpCode
+
 
 fun main() {
 
@@ -18,9 +20,9 @@ fun main() {
         get("/hello") { it.result("Hello World") }
         path("/api") {
             get("/test") { it.result("Hello World") }
-            get("/tast") { it.status(200).result("Hello world") }
-            get("/hest") { it.status(200).result("Hello World") }
-            get("/hast") { it.status(200).result("Hello World").header("test", "tast") }
+            get("/tast") { it.status(HttpCode.OK).result("Hello world") }
+            get("/hest") { it.status(HttpCode.OK).result("Hello World") }
+            get("/hast") { it.status(HttpCode.OK).result("Hello World").header("test", "tast") }
         }
     }
 

@@ -87,7 +87,7 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
 
             ctx.redirect(
                 location = "/" + clientSegments.joinToString("/") + (ctx.queryString()?.let { "?$it" } ?: ""), // lowercase path
-                httpStatusCode = MOVED_PERMANENTLY.status
+                httpStatusCode = MOVED_PERMANENTLY
             )
         }
     }

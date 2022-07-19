@@ -7,6 +7,7 @@
 package io.javalin.http.util
 
 import io.javalin.http.Context
+import io.javalin.http.HttpCode
 import io.javalin.http.HttpResponseException
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -33,7 +34,7 @@ class RateLimiter(val timeUnit: TimeUnit) {
             when {
                 count == null -> 1
                 count < requestLimit -> count + 1
-                else -> throw HttpResponseException(429, "Rate limit exceeded - Server allows $requestLimit requests per $timeUnitString.")
+                else -> throw HttpResponseException(HttpCode.TOO_MANY_REQUESTS, "Rate limit exceeded - Server allows $requestLimit requests per $timeUnitString.")
             }
         }
     }

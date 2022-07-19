@@ -7,6 +7,7 @@
 package io.javalin.validation
 
 import io.javalin.Javalin
+import io.javalin.http.HttpCode
 
 class MissingConverterException(val className: String) : RuntimeException()
 
@@ -47,7 +48,7 @@ object JavalinValidation {
     @JvmStatic
     fun addValidationExceptionMapper(app: Javalin) {
         app.exception(ValidationException::class.java) { e, ctx ->
-            ctx.json(e.errors).status(400)
+            ctx.json(e.errors).status(HttpCode.BAD_REQUEST)
         }
     }
 }

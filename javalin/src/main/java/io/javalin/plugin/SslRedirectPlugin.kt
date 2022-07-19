@@ -19,7 +19,7 @@ class SslRedirectPlugin : Plugin {
             val xForwardedProto = ctx.header(X_FORWARDED_PROTO)
 
             if (xForwardedProto == "http" || (xForwardedProto == null && ctx.scheme() == "http")) {
-                ctx.redirect(ctx.fullUrl().replace("http", "https"), MOVED_PERMANENTLY.status)
+                ctx.redirect(ctx.fullUrl().replace("http", "https"), MOVED_PERMANENTLY)
             }
         }
     }

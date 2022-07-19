@@ -6,6 +6,8 @@
 
 package io.javalin
 
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.http.NotFoundResponse
 import io.javalin.plugin.metrics.MicrometerPlugin
 import io.javalin.testing.TestUtil
@@ -64,7 +66,7 @@ class TestMicrometerPlugin {
     @Test
     fun `successful request with context path`() = TestUtil.test(setupApp(contextPath = "/api")) { app, http ->
         val requestCount = (2..9).random()
-        app.get("/hello") { it.status(200) }
+        app.get("/hello") { it.status(OK) }
         repeat(requestCount) { http.get("/api/hello") }
         val timerCount = meterRegistry.get("jetty.server.requests")
             .tag("uri", "/hello")
@@ -151,7 +153,7 @@ class TestMicrometerPlugin {
             val response = http.get("/hello")
             val etag = response.headers["ETag"]?.first() ?: ""
             val response2 = http.get("/hello", mapOf("If-None-Match" to etag))
-            assertThat(response2.status).isEqualTo(304)
+            assertThat(response2.status).isEqualTo(NOT_MODIFIED.status)
         }
         val redirCount = meterRegistry.get("jetty.server.requests")
             .tag("uri", "/hello")
@@ -191,7 +193,7 @@ class TestMicrometerPlugin {
     fun `not found tagged`() = TestUtil.test(setupApp(tagNotFoundMappedPaths = true)) { app, http ->
         val requestCount = (2..9).random()
         app.get("/hello/{name}") { ctx ->
-            if (ctx.pathParam("name") == "jon") ctx.status(200)
+            if (ctx.pathParam("name") == "jon") ctx.status(OK)
             else throw NotFoundResponse()
         }
         repeat(requestCount) {

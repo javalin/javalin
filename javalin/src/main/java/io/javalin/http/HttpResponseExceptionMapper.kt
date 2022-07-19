@@ -20,7 +20,7 @@ object HttpResponseExceptionMapper {
             ctx.status(e.status).result(
                 """|{
                    |    "title": "${e.message?.jsonEscape()}",
-                   |    "status": ${e.status},
+                   |    "status": ${e.status.status},
                    |    "type": "${getTypeUrl(e).lowercase(Locale.ROOT)}",
                    |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
                    |}""".trimMargin()

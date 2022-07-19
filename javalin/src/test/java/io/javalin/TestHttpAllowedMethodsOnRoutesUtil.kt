@@ -7,6 +7,8 @@
 package io.javalin
 
 import io.javalin.http.Header
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions
@@ -17,11 +19,11 @@ class TestHttpAllowedMethodsOnRoutesUtil {
     fun `enableHttpOptionsForRoutes allows possible methods on routes`() {
         val javalin = Javalin.create { it.plugins.enableHttpAllowedMethodsOnRoutes() }
         javalin.get("/") { it.result("Hello") }
-        javalin.delete("/") { it.status(200) }
+        javalin.delete("/") { it.status(OK) }
 
         javalin.get("/users") { it.result("Users") }
-        javalin.post("/users") { it.status(201) }
-        javalin.patch("/users") { it.status(204) }
+        javalin.post("/users") { it.status(CREATED) }
+        javalin.patch("/users") { it.status(NOT_MODIFIED) }
 
         TestUtil.test(javalin) { app, http ->
             val response = Unirest.options(http.origin)

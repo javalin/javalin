@@ -2,7 +2,7 @@ package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.ContentType
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpCode.*
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -39,7 +39,7 @@ class TestFuture {
     @Test
     fun `unresolved future throws`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.future(getFuture(null)) }
-        assertThat(http.getBody("/test-future")).isEqualTo("Internal server error")
+        assertThat(http.getBody("/test-future")).isEqualTo(INTERNAL_SERVER_ERROR.message)
     }
 
     @Test
@@ -79,7 +79,7 @@ class TestFuture {
     fun `exceptions that occur during response writing are handled`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.future(getFutureFailingStream()) }
         assertThat(http.get("/test-future").body).isEqualTo("")
-        assertThat(http.get("/test-future").status).isEqualTo(500)
+        assertThat(http.get("/test-future").status).isEqualTo(INTERNAL_SERVER_ERROR.status)
     }
 
     @Test
@@ -88,19 +88,19 @@ class TestFuture {
             val hasContent = ctx.queryParam("has-content") != null
             ctx.future(getFuture("some-future-result")) { result: String ->
                 if (hasContent) {
-                    ctx.status(200)
+                    ctx.status(OK)
                     ctx.json(result)
                 } else {
-                    ctx.status(204)
+                    ctx.status(NO_CONTENT)
                 }
             }
         }
         val contentResponse = http.get("/?has-content")
-        assertThat(contentResponse.status).isEqualTo(200)
+        assertThat(contentResponse.status).isEqualTo(OK.status)
         assertThat(contentResponse.body).isEqualTo("""some-future-result""")
         assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
         val noContentResponse = http.get("/?no-content")
-        assertThat(noContentResponse.status).isEqualTo(204)
+        assertThat(noContentResponse.status).isEqualTo(NO_CONTENT.status)
         assertThat(noContentResponse.body).isEqualTo("")
         assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
     }
@@ -110,7 +110,7 @@ class TestFuture {
         app.get("/") { ctx ->
             ctx.future(getFuture("result")) { throw NotFoundResponse() }
         }
-        assertThat(http.get("/").status).isEqualTo(404)
+        assertThat(http.get("/").status).isEqualTo(NOT_FOUND.status)
     }
 
     @Test
@@ -150,7 +150,7 @@ class TestFuture {
             it.future(future)
             throw RuntimeException()
         }
-        assertThat(http.get("/").body).isEqualTo("Internal server error")
+        assertThat(http.get("/").body).isEqualTo(INTERNAL_SERVER_ERROR.message)
         assertThat(future.isCancelled).isTrue()
     }
 

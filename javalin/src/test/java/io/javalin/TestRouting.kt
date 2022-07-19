@@ -14,6 +14,8 @@ import io.javalin.routing.MissingBracketsException
 import io.javalin.routing.ParameterNamesNotUniqueException
 import io.javalin.routing.WildcardBracketAdjacentException
 import io.javalin.http.HandlerType.TRACE
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
 import okhttp3.OkHttpClient
@@ -48,29 +50,29 @@ class TestRouting {
         app.addHandler(TRACE, "/mapped", TestUtil.okHandler)
 
         for (httpMethod in HttpMethod.all()) {
-            assertThat(http.call(httpMethod, "/mapped").status).isEqualTo(200)
+            assertThat(http.call(httpMethod, "/mapped").status).isEqualTo(OK.status)
         }
     }
 
     @Test
     fun `all unmapped verbs return 404`() = TestUtil.test { _, http ->
         for (httpMethod in HttpMethod.all()) {
-            assertThat(http.call(httpMethod, "/unmapped").status).isEqualTo(404)
+            assertThat(http.call(httpMethod, "/unmapped").status).isEqualTo(NOT_FOUND.status)
         }
     }
 
     @Test
     fun `HEAD returns 200 if GET is mapped`() = TestUtil.test { app, http ->
         app.get("/mapped", TestUtil.okHandler)
-        assertThat(http.call(HttpMethod.HEAD, "/mapped").status).isEqualTo(200)
+        assertThat(http.call(HttpMethod.HEAD, "/mapped").status).isEqualTo(OK.status)
     }
 
     @Test
     fun `urls are case sensitive`() = TestUtil.test { app, http ->
         app.get("/My-Url") { it.result("OK") }
-        assertThat(http.get("/My-Url").status).isEqualTo(200)
-        assertThat(http.get("/MY-URL").status).isEqualTo(404)
-        assertThat(http.get("/my-url").status).isEqualTo(404)
+        assertThat(http.get("/My-Url").status).isEqualTo(OK.status)
+        assertThat(http.get("/MY-URL").status).isEqualTo(NOT_FOUND.status)
+        assertThat(http.get("/my-url").status).isEqualTo(NOT_FOUND.status)
     }
 
     @Test
@@ -104,7 +106,7 @@ class TestRouting {
     @Test
     fun `wildcard last works`() = TestUtil.test { app, http ->
         app.get("/test/*") { it.result("!") }
-        assertThat(http.getBody("/test")).isEqualTo("Not found")
+        assertThat(http.getBody("/test")).isEqualTo(NOT_FOUND.message)
         assertThat(http.getBody("/test/1")).isEqualTo("!")
         assertThat(http.getBody("/test/tast")).isEqualTo("!")
     }
@@ -156,9 +158,9 @@ class TestRouting {
     @Test
     fun `path-params can be combined with wildcards`() = TestUtil.test { app, http ->
         app.get("/hi-{name}-*") { it.result(it.pathParam("name")) }
-        assertThat(http.get("/hi-world").status).isEqualTo(404)
+        assertThat(http.get("/hi-world").status).isEqualTo(NOT_FOUND.status)
         val response = http.get("/hi-world-not-included")
-        assertThat(response.status).isEqualTo(200)
+        assertThat(response.status).isEqualTo(OK.status)
         assertThat(response.body).isEqualTo("world")
     }
 
@@ -197,9 +199,9 @@ class TestRouting {
     @Test
     fun `angle-bracket path-params can be combined with wildcards`() = TestUtil.test { app, http ->
         app.get("/hi-<name>-*") { it.result(it.pathParam("name")) }
-        assertThat(http.get("/hi-world").status).isEqualTo(404)
+        assertThat(http.get("/hi-world").status).isEqualTo(NOT_FOUND.status)
         val response = http.get("/hi-world/hi-not-included")
-        assertThat(response.status).isEqualTo(200)
+        assertThat(response.status).isEqualTo(OK.status)
         assertThat(response.body).isEqualTo("world/hi")
     }
 
@@ -208,7 +210,7 @@ class TestRouting {
     @Test
     fun `path regex works`() = TestUtil.test { app, http ->
         app.get("/{path-param}/[0-9]+/") { it.result(it.pathParam("path-param")) }
-        assertThat(http.get("/test/pathParam").status).isEqualTo(404)
+        assertThat(http.get("/test/pathParam").status).isEqualTo(NOT_FOUND.status)
         assertThat(http.get("/test/21").body).isEqualTo("test")
     }
 

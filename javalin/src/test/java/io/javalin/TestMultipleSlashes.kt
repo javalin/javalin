@@ -1,6 +1,7 @@
 package io.javalin
 
 import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ class TestMultipleSlashes {
         TestUtil.test(multipleSlashesApp) { app, http ->
             app.get("/hello") { it.result("ok") }
             val res = http.get("//hello")
-            assertThat(res.status).isEqualTo(200)
+            assertThat(res.status).isEqualTo(OK.status)
             assertThat(res.body).isEqualTo("ok")
         }
 
@@ -37,7 +38,7 @@ class TestMultipleSlashes {
         TestUtil.test(multipleSlashesApp) { app, http ->
             app.get("/hello/world") { it.result("ok") }
             val res = http.get("/hello//world")
-            assertThat(res.status).isEqualTo(200)
+            assertThat(res.status).isEqualTo(OK.status)
             assertThat(res.body).isEqualTo("ok")
         }
 
@@ -46,7 +47,7 @@ class TestMultipleSlashes {
         TestUtil.test(multipleSlashesApp) { app, http ->
             app.get("/hello") { it.result("ok") }
             val res = http.get("/hello//")
-            assertThat(res.status).isEqualTo(200)
+            assertThat(res.status).isEqualTo(OK.status)
             assertThat(res.body).isEqualTo("ok")
         }
 
@@ -87,7 +88,7 @@ class TestMultipleSlashes {
             "/hello//world",
             "/hello/world//"
         ).forEach {
-            assertThat(http.getStatus(it)).isNotNull.isEqualTo(HttpCode.NOT_FOUND)
+            assertThat(http.getStatus(it)).isNotNull.isEqualTo(NOT_FOUND)
         }
     }
 }

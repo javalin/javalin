@@ -8,6 +8,8 @@ package io.javalin
 
 import com.google.gson.GsonBuilder
 import io.javalin.http.Header
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JsonMapper
 import io.javalin.testing.NonSerializableObject
@@ -56,13 +58,13 @@ class TestJson {
     fun `default mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
         app.get("/streaming") { it.jsonStream(NonSerializableObject()) }
         http.get("/streaming").let {
-            assertThat(it.status).isEqualTo(500)
+            assertThat(it.status).isEqualTo(INTERNAL_SERVER_ERROR.status)
             assertThat(it.body).isEqualTo("") // error happens when writing the response, can't recover
         }
         app.get("/string") { it.json(NonSerializableObject()) }
         http.get("/string").let {
-            assertThat(it.status).isEqualTo(500)
-            assertThat(it.body).contains("Internal server error") // error happens when serializing, can recover
+            assertThat(it.status).isEqualTo(INTERNAL_SERVER_ERROR.status)
+            assertThat(it.body).contains(INTERNAL_SERVER_ERROR.message) // error happens when serializing, can recover
         }
     }
 
@@ -75,21 +77,21 @@ class TestJson {
     @Test
     fun `default mapper throws when mapping invalid json to class`() = TestUtil.test { app, http ->
         app.get("/") { it.bodyAsClass<NonSerializableObject>() }
-        assertThat(http.get("/").status).isEqualTo(500)
+        assertThat(http.get("/").status).isEqualTo(INTERNAL_SERVER_ERROR.status)
     }
 
     @Test
     fun `mapping invalid json to class can be handle by validator`() = TestUtil.test { app, http ->
         app.get("/") { it.bodyValidator<NonSerializableObject>().get() }
-        assertThat(http.get("/").status).isEqualTo(400)
+        assertThat(http.get("/").status).isEqualTo(BAD_REQUEST.status)
         assertThat(http.getBody("/")).isEqualTo("""{"REQUEST_BODY":[{"message":"DESERIALIZATION_FAILED","args":{},"value":""}]}""")
     }
 
     @Test
     fun `empty mapper throws error`() = TestUtil.test(Javalin.create { it.core.jsonMapper(object : JsonMapper {}) }) { app, http ->
         app.get("/") { it.json("Test") }
-        assertThat(http.getBody("/")).contains("Internal server error")
-        assertThat(http.get("/").status).isEqualTo(500)
+        assertThat(http.getBody("/")).contains(INTERNAL_SERVER_ERROR.message)
+        assertThat(http.get("/").status).isEqualTo(INTERNAL_SERVER_ERROR.status)
     }
 
     @Test

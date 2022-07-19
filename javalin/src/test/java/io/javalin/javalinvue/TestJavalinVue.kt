@@ -8,6 +8,7 @@ package io.javalin.javalinvue
 
 import io.javalin.Javalin
 import io.javalin.http.Context
+import io.javalin.http.HttpCode
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import io.javalin.vue.JavalinVue
@@ -174,7 +175,7 @@ class TestJavalinVue {
 
     @Test
     fun `vue component works Javalin#error`() = TestUtil.test { app, http ->
-        app.get("/") { it.status(404) }
+        app.get("/") { it.status(HttpCode.NOT_FOUND) }
         app.error(404, "html", VueComponent("test-component"))
         assertThat(http.htmlGet("/").body).contains("<body><test-component></test-component></body>")
     }

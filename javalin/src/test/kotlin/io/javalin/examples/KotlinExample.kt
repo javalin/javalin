@@ -7,6 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
+import io.javalin.http.HttpCode
 import io.javalin.testing.TypedException
 
 fun main() {
@@ -18,15 +19,15 @@ fun main() {
         }
 
         post("/users/create") { ctx ->
-            ctx.status(201)
+            ctx.status(HttpCode.CREATED)
         }
 
         patch("/users/update/:id") { ctx ->
-            ctx.status(204)
+            ctx.status(HttpCode.NO_CONTENT)
         }
 
         delete("/users/delete/:id") { ctx ->
-            ctx.status(204)
+            ctx.status(HttpCode.NO_CONTENT)
         }
 
         exception(Exception::class.java) { e, ctx ->

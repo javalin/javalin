@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.util.LoomUtil
 import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
 import jakarta.servlet.DispatcherType
@@ -74,7 +75,7 @@ class TestCustomJetty {
         val requests = 5
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
+            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(NOT_FOUND.status)
         }
         app.stop()
         assertThat(statisticsHandler.dispatched).isEqualTo(requests * 2)
@@ -92,7 +93,7 @@ class TestCustomJetty {
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
+            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(NOT_FOUND.status)
         }
         app.stop()
         assertThat(handlerChain.dispatched).`as`("dispatched").isEqualTo(requests * 2)
@@ -110,7 +111,7 @@ class TestCustomJetty {
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
+            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(NOT_FOUND.status)
         }
         app.stop()
         assertThat(handlerChain.dispatched).isEqualTo(requests * 2)
@@ -161,7 +162,7 @@ class TestCustomJetty {
         TestUtil.test(javalin) { app, http ->
             app.get("/bar") { it.result("Hello") }
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
-            assertThat(http.get("/foo/baz").status).isEqualTo(404)
+            assertThat(http.get("/foo/baz").status).isEqualTo(NOT_FOUND.status)
             assertThat(http.getBody("/bar")).isEqualTo("Hello")
         }
     }

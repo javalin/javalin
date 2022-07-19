@@ -460,7 +460,7 @@ open class Context(
 
     /** Sets the response status code and redirects to the specified location. */
     @JvmOverloads
-    fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
+    fun redirect(location: String, httpStatusCode: HttpCode = HttpCode.FOUND) {
         res.setHeader(Header.LOCATION, location)
         status(httpStatusCode)
         if (handlerType == HandlerType.BEFORE) {
@@ -479,7 +479,10 @@ open class Context(
     }
 
     /** Gets the response status. */
-    fun status(): Int = res.status
+    fun status(): HttpCode = HttpCode.forStatus(res.status)!!
+
+    /** Gets the response status as an Int */
+    fun statusCode(): Int = res.status
 
     /** Sets a cookie with name, value, and (overloaded) max-age. */
     @JvmOverloads

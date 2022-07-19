@@ -1,5 +1,7 @@
 package io.javalin
 
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.OK
 import io.javalin.testing.TestUtil
 import jnr.unixsocket.UnixSocketAddress
 import jnr.unixsocket.UnixSocketChannel
@@ -40,7 +42,7 @@ class TestUnixSocketConnector {
             }
         }
 
-        unixSocketJavalin.get(testPath) { it.status(200).result(expectedResultString) }
+        unixSocketJavalin.get(testPath) { it.status(OK).result(expectedResultString) }
 
         TestUtil.test(unixSocketJavalin) { _, _ ->
 

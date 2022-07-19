@@ -1,5 +1,7 @@
 package io.javalin
 
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.http.sse.SseClient
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
@@ -74,7 +76,7 @@ class TestSse {
     fun `default http status is 200`() = TestUtil.test { app, http ->
         app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
         val status = http.sse("/sse").get().status
-        assertThat(status).isEqualTo(200)
+        assertThat(status).isEqualTo(OK.status)
     }
 
     @Test

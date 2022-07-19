@@ -6,6 +6,8 @@
 
 package io.javalin
 
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.*
 import io.javalin.util.Util
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
@@ -44,7 +46,7 @@ class TestContextPath {
         val javalin = Javalin.create { it.routing.contextPath = "/context-path" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { it.result("Hello World") }
-            assertThat(http.get("/hello").status).isEqualTo(404)
+            assertThat(http.get("/hello").status).isEqualTo(NOT_FOUND.status)
             assertThat(http.getBody("/context-path/hello")).isEqualTo("Hello World")
         }
     }
@@ -54,7 +56,7 @@ class TestContextPath {
         val javalin = Javalin.create { it.routing.contextPath = "/context-path/path-context" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { it.result("Hello World") }
-            assertThat(http.get("/context-path/").status).isEqualTo(404)
+            assertThat(http.get("/context-path/").status).isEqualTo(NOT_FOUND.status)
             assertThat(http.getBody("/context-path/path-context/hello")).isEqualTo("Hello World")
         }
     }
@@ -66,7 +68,7 @@ class TestContextPath {
             servlet.routing.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->
-            assertThat(http.get("/script.js").status).isEqualTo(404)
+            assertThat(http.get("/script.js").status).isEqualTo(NOT_FOUND.status)
             assertThat(http.getBody("/context-path/script.js")).contains("JavaScript works")
         }
     }

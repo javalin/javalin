@@ -7,6 +7,8 @@
 package io.javalin
 
 import io.javalin.http.Header
+import io.javalin.http.HttpCode
+import io.javalin.http.HttpCode.OK
 import io.javalin.plugin.Headers
 import io.javalin.plugin.Headers.ClearSiteData
 import io.javalin.plugin.Headers.CrossDomainPolicy
@@ -128,7 +130,7 @@ class TestHeadersPlugin {
 
         val testApp = Javalin.create { it.plugins.enableGlobalHeaders { headers } }
         TestUtil.test(testApp) { app, http ->
-            app.get("/") { it.status(200) }
+            app.get("/") { it.status(OK) }
             val returnedHeaders = http.get("/").headers
             assertThat(returnedHeaders.getFirst(Header.X_CONTENT_TYPE_OPTIONS)).isEqualTo("nosniff")
             assertThat(returnedHeaders.getFirst(Header.CLEAR_SITE_DATA)).isEqualTo("\"*\"")

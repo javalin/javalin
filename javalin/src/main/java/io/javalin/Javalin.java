@@ -15,11 +15,7 @@ import io.javalin.event.EventManager;
 import io.javalin.event.HandlerMetaInfo;
 import io.javalin.event.JavalinEvent;
 import io.javalin.event.WsHandlerMetaInfo;
-import io.javalin.http.Context;
-import io.javalin.http.ExceptionHandler;
-import io.javalin.http.Handler;
-import io.javalin.http.HandlerType;
-import io.javalin.http.JavalinServlet;
+import io.javalin.http.*;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.jetty.JavalinJettyServlet;
@@ -304,6 +300,16 @@ public class Javalin implements AutoCloseable {
     }
 
     /**
+     * Adds an error mapper to the instance.
+     * Useful for turning error-codes (404, 500) into standardized messages/pages
+     *
+     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
+     */
+    public Javalin error(HttpCode statusCode, @NotNull Handler handler) {
+        return error(statusCode, "*", handler);
+    }
+
+    /**
      * Adds an error mapper for the specified content-type to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      *
@@ -313,6 +319,17 @@ public class Javalin implements AutoCloseable {
         javalinServlet.getErrorMapper().addHandler(statusCode, contentType, handler);
         return this;
     }
+
+    /**
+     * Adds an error mapper for the specified content-type to the instance.
+     * Useful for turning error-codes (404, 500) into standardized messages/pages
+     *
+     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
+     */
+    public Javalin error(HttpCode statusCode, @NotNull String contentType, @NotNull Handler handler) {
+        return error(statusCode.getStatus(), contentType, handler);
+    }
+
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.

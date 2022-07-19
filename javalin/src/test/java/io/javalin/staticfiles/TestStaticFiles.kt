@@ -10,6 +10,7 @@ package io.javalin.staticfiles
 import io.javalin.Javalin
 import io.javalin.http.Header
 import io.javalin.http.ContentType
+import io.javalin.http.HttpCode.*
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
@@ -131,21 +132,21 @@ class TestStaticFiles {
 
     @Test
     fun `serving HTML from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/html.html").status).isEqualTo(200)
+        assertThat(http.get("/html.html").status).isEqualTo(OK.status)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
         assertThat(http.getBody("/html.html")).contains("HTML works")
     }
 
     @Test
     fun `serving JS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/script.js").status).isEqualTo(200)
+        assertThat(http.get("/script.js").status).isEqualTo(OK.status)
         assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
         assertThat(http.getBody("/script.js")).contains("JavaScript works")
     }
 
     @Test
     fun `serving CSS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/styles.css").status).isEqualTo(200)
+        assertThat(http.get("/styles.css").status).isEqualTo(OK.status)
         assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
         assertThat(http.getBody("/styles.css")).contains("CSS works")
     }
@@ -159,15 +160,15 @@ class TestStaticFiles {
 
     @Test
     fun `directory root returns simple 404 if there is no welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/").status).isEqualTo(404)
-        assertThat(http.getBody("/")).isEqualTo("Not found")
+        assertThat(http.get("/").status).isEqualTo(NOT_FOUND.status)
+        assertThat(http.getBody("/")).isEqualTo(NOT_FOUND.message)
     }
 
     @Test
     fun `directory root return welcome file if there is a welcome file`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
-        assertThat(http.get("/subdir/").status).isEqualTo(200)
+        assertThat(http.get("/subdir/").status).isEqualTo(OK.status)
         assertThat(http.getBody("/subdir/")).isEqualTo("<h1>Welcome file</h1>")
-        assertThat(http.get("/subdir").status).isEqualTo(200)
+        assertThat(http.get("/subdir").status).isEqualTo(OK.status)
         assertThat(http.getBody("/subdir")).isEqualTo("<h1>Welcome file</h1>")
     }
 
