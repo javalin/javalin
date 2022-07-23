@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.CookieStore
@@ -115,7 +116,7 @@ open class ServletContext(
     }
 
     override fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> =
-        createAsyncTask(executor, timeout, onTimeout, task)
+        AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
 
     override fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context = also {
         if (resultReference.get().future != null) {

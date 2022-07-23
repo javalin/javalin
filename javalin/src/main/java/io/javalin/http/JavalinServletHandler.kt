@@ -198,26 +198,3 @@ internal fun AsyncContext.addListener(
         override fun onTimeout(event: AsyncEvent) = onTimeout(event)
     })
 }
-
-internal fun Context.createAsyncTask(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> {
-    val await = CompletableFuture<Any?>()
-
-    future(
-        future = await,
-        launch = {
-            CompletableFuture.runAsync(task, executor)
-                .thenAccept { await.complete(null) }
-                .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
-                .exceptionallyAccept {
-                    when {
-                        onTimeout != null && it is TimeoutException -> onTimeout.invoke().run { await.complete(null) }
-                        else -> await.completeExceptionally(it) // catch standard exception
-                    }
-                }
-                .exceptionallyAccept { await.completeExceptionally(it) } // catch exception from timeout listener
-        },
-        callback = { /* noop */ }
-    )
-
-    return await
-}
