@@ -13,7 +13,6 @@ import io.javalin.http.Header
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpResponseException
 import io.javalin.http.ServletContext
-import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
@@ -25,15 +24,6 @@ import java.nio.charset.Charset
 import java.util.*
 
 object ContextUtil {
-
-    fun update(ctx: ServletContext, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
-        matchedPath = handlerEntry.path
-        pathParamMap = handlerEntry.extractPathParams(requestUri)
-        handlerType = handlerEntry.type
-        if (handlerType != HandlerType.AFTER) {
-            endpointHandlerPath = handlerEntry.path
-        }
-    }
 
     // this header is semi-colon separated, like: "text/html; charset=UTF-8"
     fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.let { value ->
@@ -90,11 +80,6 @@ object ContextUtil {
         URL(this.url()).host.let { it == "localhost" || it == "127.0.0.1" }
     } catch (e: Exception) {
         false
-    }
-
-    fun changeBaseRequest(ctx: ServletContext, req: HttpServletRequest) = ServletContext(req, ctx.res(), ctx.appAttributes).apply {
-        this.pathParamMap = ctx.pathParamMap
-        this.matchedPath = ctx.matchedPath
     }
 
     const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"

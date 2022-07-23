@@ -36,12 +36,12 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     val lifecycle = mutableListOf(
         Stage(DefaultName.BEFORE) { submitTask ->
             matcher.findEntries(BEFORE, requestUri).forEach { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+                submitTask { entry.handler.handle(update(ctx, entry, requestUri)) }
             }
         },
         Stage(DefaultName.HTTP) { submitTask ->
             matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+                submitTask { entry.handler.handle(update(ctx, entry, requestUri)) }
                 return@Stage // return after first match
             }
             submitTask {
@@ -71,7 +71,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         },
         Stage(DefaultName.AFTER, haltsOnError = false) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+                submitTask { entry.handler.handle(update(ctx, entry, requestUri)) }
             }
         }
     )
@@ -100,5 +100,14 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     }
 
     private fun JavalinConfig.isCorsEnabled() = this.pvt.plugins[CorsPlugin::class.java] != null
+
+    private fun update(ctx: ServletContext, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
+        matchedPath = handlerEntry.path
+        pathParamMap = handlerEntry.extractPathParams(requestUri)
+        handlerType = handlerEntry.type
+        if (handlerType != AFTER) {
+            endpointHandlerPath = handlerEntry.path
+        }
+    }
 
 }
