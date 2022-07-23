@@ -14,12 +14,12 @@ data class CompressedStream(val type: CompressionType, val outputStream: OutputS
         fun tryBrotli(compression: CompressionStrategy, ctx: Context): CompressedStream? = when {
             compression.brotli == null -> null
             ctx.acceptsHeader?.contains(BR.typeName, ignoreCase = true) != true -> null
-            else -> CompressedStream(BR, LeveledBrotliStream(ctx.response().outputStream, compression.brotli.level))
+            else -> CompressedStream(BR, LeveledBrotliStream(ctx.res().outputStream, compression.brotli.level))
         }
         fun tryGzip(compression: CompressionStrategy, ctx: Context): CompressedStream? = when {
             compression.gzip == null -> null
             ctx.acceptsHeader?.contains(GZIP.typeName, ignoreCase = true) != true -> null
-            else -> CompressedStream(GZIP, LeveledGzipStream(ctx.response().outputStream, compression.gzip.level))
+            else -> CompressedStream(GZIP, LeveledGzipStream(ctx.res().outputStream, compression.gzip.level))
         }
     }
 }

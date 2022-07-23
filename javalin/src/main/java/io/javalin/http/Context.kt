@@ -35,9 +35,9 @@ import java.util.function.Consumer
 interface Context {
 
     /** Servlet request */
-    fun request(): HttpServletRequest
+    fun req(): HttpServletRequest
     /** Servlet response */
-    fun response(): HttpServletResponse
+    fun res(): HttpServletResponse
 
     /** Gets an attribute from the Javalin instance serving the request */
     fun <T> appAttribute(key: String): T
@@ -53,21 +53,21 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Gets the request content length. */
-    fun contentLength(): Int = request().contentLength
+    fun contentLength(): Int = req().contentLength
     /** Gets the request content type, or null. */
-    fun contentType(): String? = request().contentType
+    fun contentType(): String? = req().contentType
     /** Gets the request method. */
     fun method(): HandlerType
     /** Gets the request path. */
-    fun path(): String = request().requestURI
+    fun path(): String = req().requestURI
     /** Gets the request port. */
-    fun port(): Int = request().serverPort
+    fun port(): Int = req().serverPort
     /** Gets the request protocol. */
-    fun protocol(): String = request().protocol
+    fun protocol(): String = req().protocol
     /** Gets the request context path. */
-    fun contextPath(): String = request().contextPath
+    fun contextPath(): String = req().contextPath
     /** Gets the request user agent, or null. */
-    fun userAgent(): String? = request().getHeader(Header.USER_AGENT)
+    fun userAgent(): String? = req().getHeader(Header.USER_AGENT)
     /** Try to obtain request encoding from [Header.CONTENT_TYPE] header */
     fun characterEncoding(): String?
 
@@ -94,9 +94,9 @@ interface Context {
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
     fun <T> bodyAsClass(clazz: Class<T>): T = jsonMapper().fromJsonString(body(), clazz)
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
-    fun <T> bodyStreamAsClass(clazz: Class<T>): T = jsonMapper().fromJsonStream(request().inputStream, clazz)
+    fun <T> bodyStreamAsClass(clazz: Class<T>): T = jsonMapper().fromJsonStream(req().inputStream, clazz)
     /** Gets the request body as a [InputStream] */
-    fun bodyAsInputStream(): InputStream = request().inputStream
+    fun bodyAsInputStream(): InputStream = req().inputStream
     /** Creates a typed [BodyValidator] for the body() value */
     fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, this.jsonMapper())
 
@@ -131,45 +131,45 @@ interface Context {
     /** Gets a map with all the query param keys and values. */
     fun queryParamMap(): Map<String, List<String>>
     /** Gets the request query string, or null. */
-    fun queryString(): String? = request().queryString
+    fun queryString(): String? = req().queryString
 
     /** Sets an attribute for the user session. */
-    fun sessionAttribute(key: String, value: Any?) = request().session.setAttribute(key, value)
+    fun sessionAttribute(key: String, value: Any?) = req().session.setAttribute(key, value)
     /** Gets specified attribute from the user session, or null. */
     @Suppress("UNCHECKED_CAST")
-    fun <T> sessionAttribute(key: String): T? = request().getSession(false)?.getAttribute(key) as? T
+    fun <T> sessionAttribute(key: String): T? = req().getSession(false)?.getAttribute(key) as? T
     /** */
     fun <T> consumeSessionAttribute(key: String) = sessionAttribute<T?>(key).also { this.sessionAttribute(key, null) }
     /** Sets an attribute for the user session, and caches it on the request */
-    fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, request())
+    fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, req())
     /** Gets specified attribute from the request attribute cache, or the user session, or null. */
-    fun <T> cachedSessionAttribute(key: String): T? = ContextUtil.getCachedRequestAttributeOrSessionAttribute(key, request())
+    fun <T> cachedSessionAttribute(key: String): T? = ContextUtil.getCachedRequestAttributeOrSessionAttribute(key, req())
     /** Gets specified attribute from the request attribute cache, or the user session, or computes the value from callback. */
     fun <T> cachedSessionAttributeOrCompute(key: String, callback: (Context) -> T): T? = ContextUtil.cachedSessionAttributeOrCompute(callback, key, this)
     /** Gets a map of all the attributes in the user session. */
-    fun sessionAttributeMap(): Map<String, Any?> = request().session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
+    fun sessionAttributeMap(): Map<String, Any?> = req().session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
 
     /** Sets an attribute on the request(). Attributes are available to other handlers in the request lifecycle */
-    fun attribute(key: String, value: Any?) = request().setAttribute(key, value)
+    fun attribute(key: String, value: Any?) = req().setAttribute(key, value)
     /** Gets the specified attribute from the request(). */
     @Suppress("UNCHECKED_CAST")
-    fun <T> attribute(key: String): T? = request().getAttribute(key) as? T
+    fun <T> attribute(key: String): T? = req().getAttribute(key) as? T
     /** Gets a map with all the attribute keys and values on the request(). */
-    fun attributeMap(): Map<String, Any?> = request().attributeNames.asSequence().associateWith { attribute(it) as Any? }
+    fun attributeMap(): Map<String, Any?> = req().attributeNames.asSequence().associateWith { attribute(it) as Any? }
 
     /** Gets cookie store used by this request */
     fun cookieStore(): CookieStore
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String): String? = request().cookies?.find { name == it.name }?.value
+    fun cookie(name: String): String? = req().cookies?.find { name == it.name }?.value
     /** Gets a map with all the cookie keys and values on the request(). */
-    fun cookieMap(): Map<String, String> = request().cookies?.associate { it.name to it.value } ?: emptyMap()
+    fun cookieMap(): Map<String, String> = req().cookies?.associate { it.name to it.value } ?: emptyMap()
 
     /** Gets a request header by name, or null. */
-    fun header(header: String): String? = request().getHeader(header)
+    fun header(header: String): String? = req().getHeader(header)
     /** Creates a typed [Validator] for the header() value */
     fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header)
     /** Gets a map with all the header keys and values on the request(). */
-    fun headerMap(): Map<String, String> = request().headerNames.asSequence().associateWith { header(it)!! }
+    fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { header(it)!! }
 
     /**
      * Checks whether basic-auth credentials from the request exists.
@@ -195,12 +195,12 @@ interface Context {
     fun uploadedFile(fileName: String): UploadedFile? = uploadedFiles(fileName).firstOrNull()
     /** Gets a list of [UploadedFile]s for the specified name, or empty list. */
     fun uploadedFiles(fileName: String): List<UploadedFile> = when {
-        isMultipartFormData() -> MultipartUtil.getUploadedFiles(request(), fileName)
+        isMultipartFormData() -> MultipartUtil.getUploadedFiles(req(), fileName)
         else -> listOf()
     }
     /** Gets a list of [UploadedFile]s, or empty list. */
     fun uploadedFiles(): List<UploadedFile> = when {
-        isMultipartFormData() -> MultipartUtil.getUploadedFiles(request())
+        isMultipartFormData() -> MultipartUtil.getUploadedFiles(req())
         else -> listOf()
     }
 
@@ -209,7 +209,7 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Gets the current response [Charset]. */
-    private fun responseCharset() = runCatching { Charset.forName(response().characterEncoding) }.getOrElse { Charset.defaultCharset() }
+    private fun responseCharset() = runCatching { Charset.forName(res().characterEncoding) }.getOrElse { Charset.defaultCharset() }
 
     /**
      * Writes the specified inputStream as a seekable stream.
@@ -294,12 +294,12 @@ interface Context {
     fun resultFuture(): CompletableFuture<*>?
 
     /** Sets response content type to specified [String] value. */
-    fun contentType(contentType: String): Context = also { response().contentType = contentType }
+    fun contentType(contentType: String): Context = also { res().contentType = contentType }
     /** Sets response content type to specified [ContentType] value. */
     fun contentType(contentType: ContentType): Context = contentType(contentType.mimeType)
 
     /** Sets response header by name and value. */
-    fun header(name: String, value: String): Context = also { response().setHeader(name, value) }
+    fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
     /** Sets the response status code and redirects to the specified location. */
     fun redirect(location: String) = redirect(location = location, httpStatusCode = HttpServletResponse.SC_MOVED_TEMPORARILY)
@@ -309,16 +309,16 @@ interface Context {
     /** Sets the response status. */
     fun status(httpCode: HttpCode): Context = status(httpCode.status)
     /** Sets the response status. */
-    fun status(statusCode: Int): Context = also { response().status = statusCode }
+    fun status(statusCode: Int): Context = also { res().status = statusCode }
     /** Gets the response status. */
-    fun status(): Int = response().status
+    fun status(): Int = res().status
 
     /** Sets a cookie with name, value, and (overloaded) max-age. */
     fun cookie(name: String, value: String): Context = cookie(name, value, -1)
     /** */
     fun cookie(name: String, value: String, maxAge: Int): Context = cookie(Cookie(name = name, value = value, maxAge = maxAge))
     /** Sets a Cookie. */
-    fun cookie(cookie: Cookie): Context = also { response().setJavalinCookie(cookie) }
+    fun cookie(cookie: Cookie): Context = also { res().setJavalinCookie(cookie) }
 
     /** Removes cookie specified by name and path (optional). */
     fun removeCookie(name: String, path: String?): Context

@@ -10,7 +10,7 @@ class SseClient internal constructor(
     @JvmField val ctx: Context
 ) : Closeable {
 
-    private val emitter = Emitter(ctx.response())
+    private val emitter = Emitter(ctx.res())
     private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
 

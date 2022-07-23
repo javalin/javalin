@@ -11,7 +11,6 @@ import io.javalin.http.util.ContextUtil.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
-import io.javalin.util.exceptionallyAccept
 import io.javalin.util.isCompletedSuccessfully
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -20,8 +19,6 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import jakarta.servlet.http.Cookie as JakartaCookie
@@ -41,8 +38,8 @@ open class ServletContext(
     internal var endpointHandlerPath = ""
     internal var handlerType = HandlerType.BEFORE
 
-    override fun request(): HttpServletRequest = request
-    override fun response(): HttpServletResponse = response
+    override fun req(): HttpServletRequest = request
+    override fun res(): HttpServletResponse = response
 
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     override fun characterEncoding(): String? = characterEncoding
@@ -53,7 +50,7 @@ open class ServletContext(
     @Suppress("UNCHECKED_CAST")
     override fun <T> appAttribute(key: String): T = appAttributes[key] as T
 
-    private val method by lazy { HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: request().method) }
+    private val method by lazy { HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method) }
     override fun method(): HandlerType = method
 
     override fun handlerType(): HandlerType = handlerType
@@ -92,7 +89,7 @@ open class ServletContext(
     }
 
     override fun removeCookie(name: String, path: String?): Context = also {
-        response().addCookie(JakartaCookie(name, "").apply {
+        res().addCookie(JakartaCookie(name, "").apply {
             this.path = path
             this.maxAge = 0
         })

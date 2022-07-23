@@ -108,7 +108,7 @@ class TestConfiguration {
         TestUtil.test(
             Javalin.create {}
                 .get("/ip") { it.result(it.ip()) }
-                .get("/remote-ip") { it.result(it.request().remoteAddr) }
+                .get("/remote-ip") { it.result(it.req().remoteAddr) }
                 .get("/host") { it.result("${it.host()}") }
                 .get("/remote-host") { it.result("${it.header(Header.HOST)}") }
         ) { _, http ->
