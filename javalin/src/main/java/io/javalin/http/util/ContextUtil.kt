@@ -12,6 +12,7 @@ import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpResponseException
+import io.javalin.http.ServletContext
 import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
@@ -25,7 +26,7 @@ import java.util.*
 
 object ContextUtil {
 
-    fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
+    fun update(ctx: ServletContext, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
         matchedPath = handlerEntry.path
         pathParamMap = handlerEntry.extractPathParams(requestUri)
         handlerType = handlerEntry.type
@@ -35,7 +36,7 @@ object ContextUtil {
     }
 
     // this header is semi-colon separated, like: "text/html; charset=UTF-8"
-    fun getRequestCharset(ctx: Context) = ctx.req.getHeader(Header.CONTENT_TYPE)?.let { value ->
+    fun getRequestCharset(ctx: Context) = ctx.request().getHeader(Header.CONTENT_TYPE)?.let { value ->
         value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
     }
 
@@ -79,7 +80,7 @@ object ContextUtil {
         pathParamMap: Map<String, String> = mapOf(),
         handlerType: HandlerType = HandlerType.INVALID,
         appAttributes: Map<String, Any> = mapOf()
-    ) = Context(request, response, appAttributes).apply {
+    ) = ServletContext(request, response, appAttributes).apply {
         this.matchedPath = matchedPath
         this.pathParamMap = pathParamMap
         this.handlerType = handlerType
@@ -91,20 +92,20 @@ object ContextUtil {
         false
     }
 
-    fun changeBaseRequest(ctx: Context, req: HttpServletRequest) = Context(req, ctx.res, ctx.appAttributes).apply {
+    fun changeBaseRequest(ctx: ServletContext, req: HttpServletRequest) = ServletContext(req, ctx.response(), ctx.appAttributes).apply {
         this.pathParamMap = ctx.pathParamMap
         this.matchedPath = ctx.matchedPath
     }
 
+    const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"
+
     fun Context.throwContentTooLargeIfContentTooLarge() {
         val maxRequestSize = this.appAttribute<Long>(MAX_REQUEST_SIZE_KEY)
-        if (this.req.contentLength > maxRequestSize) {
+        if (this.request().contentLength > maxRequestSize) {
             JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
             throw HttpResponseException(HttpCode.CONTENT_TOO_LARGE.status, HttpCode.CONTENT_TOO_LARGE.message)
         }
     }
-
-    const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"
 
     const val SESSION_CACHE_KEY_PREFIX = "javalin-session-attribute-cache-"
 
@@ -118,14 +119,15 @@ object ContextUtil {
         if (cachedAttribute == null) {
             req.setAttribute("$SESSION_CACHE_KEY_PREFIX$key", req.session.getAttribute(key))
         }
+        @Suppress("UNCHECKED_CAST")
         return req.getAttribute("$SESSION_CACHE_KEY_PREFIX$key") as T?
     }
 
     fun <T> cachedSessionAttributeOrCompute(callback: (Context) -> T, key: String, ctx: Context): T? {
-        if (getCachedRequestAttributeOrSessionAttribute<T?>(key, ctx.req) == null) {
-            cacheAndSetSessionAttribute(key, callback(ctx), ctx.req) // set new value from callback
+        if (getCachedRequestAttributeOrSessionAttribute<T?>(key, ctx.request()) == null) {
+            cacheAndSetSessionAttribute(key, callback(ctx), ctx.request()) // set new value from callback
         }
-        return getCachedRequestAttributeOrSessionAttribute(key, ctx.req) // existing or computed (or null)
+        return getCachedRequestAttributeOrSessionAttribute(key, ctx.request()) // existing or computed (or null)
     }
 
     fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {

@@ -7,6 +7,7 @@
 package io.javalin
 
 import io.javalin.http.ContentType
+import io.javalin.http.formParamAsClass
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
 import io.javalin.testing.fasterJacksonMapper

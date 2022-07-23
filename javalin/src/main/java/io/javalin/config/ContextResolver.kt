@@ -11,10 +11,10 @@ fun Context.contextResolver() = this.appAttribute<ContextResolver>(CONTEXT_RESOL
 
 class ContextResolver {
     // @formatter:off
-    @JvmField var ip: (Context) -> String = { it.req.remoteAddr }
+    @JvmField var ip: (Context) -> String = { it.request().remoteAddr }
     @JvmField var host: (Context) -> String? = { it.header(Header.HOST) }
-    @JvmField var scheme: (Context) -> String = { it.req.scheme }
-    @JvmField var url: (Context) -> String = { it.req.requestURL.toString() }
+    @JvmField var scheme: (Context) -> String = { it.request().scheme }
+    @JvmField var url: (Context) -> String = { it.request().requestURL.toString() }
     @JvmField var fullUrl: (Context) -> String = { it.url() + if (it.queryString() != null) "?" + it.queryString() else "" }
     @JvmField var defaultFutureCallback: (ctx: Context, result: Any?) -> Unit = { ctx, result ->
         when (result) {

@@ -40,16 +40,17 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             }
         },
         Stage(DefaultName.HTTP) { submitTask ->
-            matcher.findEntries(requestType, requestUri).firstOrNull()?.let { entry ->
+            matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
                 submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
                 return@Stage // return after first match
             }
             submitTask {
+                val requestType = ctx.method()
                 if (requestType == HEAD && matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
                     return@submitTask
                 }
                 if (requestType == HEAD || requestType == GET) { // check for static resources (will write response if found)
-                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx, cfg, requestType)) == true) return@submitTask
+                    if (cfg.pvt.resourceHandler?.handle(it.ctx.request(), JavalinResponseWrapper(it.ctx, cfg)) == true) return@submitTask
                     if (cfg.pvt.singlePageHandler.handle(ctx)) return@submitTask
                 }
                 if (requestType == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
@@ -77,7 +78,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
-            val ctx = Context(request, response, cfg.pvt.appAttributes)
+            val ctx = ServletContext(request, response, cfg.pvt.appAttributes)
             LogUtil.setup(ctx, matcher, cfg.pvt.requestLogger != null)
             ctx.contentType(cfg.http.defaultContentType)
 

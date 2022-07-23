@@ -18,19 +18,18 @@ import java.io.InputStream
 class JavalinResponseWrapper(
     private val ctx: Context,
     private val cfg: JavalinConfig,
-    private val requestType: HandlerType
-) : HttpServletResponseWrapper(ctx.res) {
+) : HttpServletResponseWrapper(ctx.response()) {
 
     private val outputStreamWrapper by lazy { OutputStreamWrapper(cfg, ctx) }
     override fun getOutputStream() = outputStreamWrapper
 
     private val serverEtag by lazy { getHeader(ETAG) }
-    private val clientEtag by lazy { ctx.req.getHeader(IF_NONE_MATCH) }
+    private val clientEtag by lazy { ctx.request().getHeader(IF_NONE_MATCH) }
 
     fun write(resultStream: InputStream?) = when {
         resultStream == null -> {} // nothing to write (and nothing to close)
         serverEtag != null && serverEtag == clientEtag -> closeWith304(resultStream) // client etag matches, nothing to write
-        serverEtag == null && cfg.http.generateEtags && requestType == GET && resultStream is ByteArrayInputStream -> generateEtagWriteAndClose(resultStream)
+        serverEtag == null && cfg.http.generateEtags && ctx.method() == GET && resultStream is ByteArrayInputStream -> generateEtagWriteAndClose(resultStream)
         else -> writeToWrapperAndClose(resultStream)
     }
 
@@ -57,7 +56,7 @@ class JavalinResponseWrapper(
 
 }
 
-class OutputStreamWrapper(val cfg: JavalinConfig, val ctx: Context, val response: HttpServletResponse = ctx.res) : ServletOutputStream() {
+class OutputStreamWrapper(val cfg: JavalinConfig, val ctx: Context, val response: HttpServletResponse = ctx.response()) : ServletOutputStream() {
     private val compression = cfg.pvt.compressionStrategy
     private var compressedStream: CompressedStream? = null
 

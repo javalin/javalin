@@ -12,7 +12,7 @@ class SseHandler @JvmOverloads constructor(
 
     override fun handle(ctx: Context) {
         if (ctx.header(Header.ACCEPT) == "text/event-stream") {
-            ctx.res.apply {
+            ctx.response().apply {
                 status = 200
                 characterEncoding = "UTF-8"
                 contentType = "text/event-stream"

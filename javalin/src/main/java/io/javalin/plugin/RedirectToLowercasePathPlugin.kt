@@ -46,15 +46,14 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
 
     override fun apply(app: Javalin) {
         app.before { ctx ->
-            val type = HandlerType.fromServletRequest(ctx.req)
-            val requestUri = ctx.req.requestURI.removePrefix(ctx.req.contextPath)
+            val requestUri = ctx.path().removePrefix(ctx.contextPath())
             val matcher = app.javalinServlet().matcher
 
-            if (matcher.findEntries(type, requestUri).firstOrNull() != null) {
+            if (matcher.findEntries(ctx.method(), requestUri).firstOrNull() != null) {
                 return@before // we found a route for this case, no need to redirect
             }
 
-            val lowercaseRoute = matcher.findEntries(type, requestUri.lowercase(Locale.ROOT))
+            val lowercaseRoute = matcher.findEntries(ctx.method(), requestUri.lowercase(Locale.ROOT))
                 .firstOrNull()
                 ?: return@before // lowercase route not found
 
