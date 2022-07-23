@@ -32,14 +32,14 @@ const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
 open class ServletContext(
     private val request: HttpServletRequest,
     private val response: HttpServletResponse,
-    @JvmSynthetic internal val appAttributes: Map<String, Any> = mapOf()
+    internal val appAttributes: Map<String, Any> = mapOf(),
+    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result())
 ) : Context {
 
+    internal var pathParamMap = mapOf<String, String>()
     internal var matchedPath = ""
     internal var endpointHandlerPath = ""
-    internal var pathParamMap = mapOf<String, String>()
     internal var handlerType = HandlerType.BEFORE
-    internal val resultReference = AtomicReference<Result<out Any?>>(Result())
 
     override fun request(): HttpServletRequest = request
     override fun response(): HttpServletResponse = response
@@ -75,8 +75,8 @@ open class ServletContext(
         if (isMultipartFormData()) MultipartUtil.getFieldMap(request)
         else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
     }
-
     override fun formParamMap(): Map<String, List<String>> = formParams
+
     override fun pathParamMap(): Map<String, String> =Collections.unmodifiableMap(pathParamMap)
     override fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
 
@@ -98,38 +98,27 @@ open class ServletContext(
         })
     }
 
+    override fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long) =
+        SeekableWriter.write(this, inputStream, contentType, size)
+
     override fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
     override fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
+    override fun resultString(): String? = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
 
     override fun result(resultStream: InputStream): Context {
         runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
         return this.future(CompletableFuture.completedFuture(resultStream), callback = { /* noop */ })
     }
-    override fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long) =
-        SeekableWriter.write(this, inputStream, contentType, size)
 
-    override fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> {
-        val await = CompletableFuture<Any?>()
-
-        future(
-            future = await,
-            launch = {
-                CompletableFuture.runAsync(task, executor)
-                    .thenAccept { await.complete(null) }
-                    .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
-                    .exceptionallyAccept {
-                        when {
-                            onTimeout != null && it is TimeoutException -> onTimeout.invoke().run { await.complete(null) }
-                            else -> await.completeExceptionally(it) // catch standard exception
-                        }
-                    }
-                    .exceptionallyAccept { await.completeExceptionally(it) } // catch exception from timeout listener
-            },
-            callback = { /* noop */ }
-        )
-
-        return await
+    override fun resultStream(): InputStream? = resultReference.get().let { result ->
+        result.future
+            ?.takeIf { it.isCompletedSuccessfully() }
+            ?.get() as? InputStream?
+            ?: result.previous
     }
+
+    override fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> =
+        createAsyncTask(executor, timeout, onTimeout, task)
 
     override fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context = also {
         if (resultReference.get().future != null) {
@@ -146,15 +135,7 @@ open class ServletContext(
         }
     }
 
-    override fun resultStream(): InputStream? = resultReference.get().let { result ->
-        result.future
-            ?.takeIf { it.isCompletedSuccessfully() }
-            ?.get() as? InputStream?
-            ?: result.previous
-    }
-
     override fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
-    override fun resultString(): String? = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
 
     private fun responseCharset(): Charset =
         runCatching { Charset.forName(response.characterEncoding) }

@@ -3,6 +3,7 @@ package io.javalin.http
 import io.javalin.config.JavalinConfig
 import io.javalin.config.contextResolver
 import io.javalin.util.LogUtil
+import io.javalin.util.exceptionallyAccept
 import io.javalin.util.exceptionallyComposeFallback
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
@@ -12,6 +13,9 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.failedFuture
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
@@ -28,7 +32,7 @@ data class Stage(
     val initializer: StageInitializer = {} // DSL method to add task to the stage's queue
 )
 
-internal data class Result<VALUE : Any?>(
+data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
     val future: CompletableFuture<VALUE>? = null,
     val launch: Runnable? = null,
@@ -193,4 +197,27 @@ internal fun AsyncContext.addListener(
         override fun onStartAsync(event: AsyncEvent) = onStartAsync(event)
         override fun onTimeout(event: AsyncEvent) = onTimeout(event)
     })
+}
+
+internal fun Context.createAsyncTask(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> {
+    val await = CompletableFuture<Any?>()
+
+    future(
+        future = await,
+        launch = {
+            CompletableFuture.runAsync(task, executor)
+                .thenAccept { await.complete(null) }
+                .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
+                .exceptionallyAccept {
+                    when {
+                        onTimeout != null && it is TimeoutException -> onTimeout.invoke().run { await.complete(null) }
+                        else -> await.completeExceptionally(it) // catch standard exception
+                    }
+                }
+                .exceptionallyAccept { await.completeExceptionally(it) } // catch exception from timeout listener
+        },
+        callback = { /* noop */ }
+    )
+
+    return await
 }

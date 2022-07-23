@@ -25,8 +25,9 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     internal val upgradeReq by lazy { session.jettyUpgradeRequest() }
     internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
-    internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
+    @Suppress("UNCHECKED_CAST")
+    internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
     fun matchedPath() = upgradeCtx.matchedPath()
 
@@ -54,7 +55,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun <T> pathParamAsClass(key: String, clazz: Class<T>) = upgradeCtx.pathParamAsClass(key, clazz)
     inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
-    fun host() = upgradeReq.host // why can't we get this from upgradeCtx?
+    fun host(): String = upgradeReq.host // why can't we get this from upgradeCtx?
 
     fun header(header: String): String? = upgradeCtx.header(header)
     fun headerMap(): Map<String, String> = upgradeCtx.headerMap()
@@ -66,6 +67,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun <T> attribute(key: String): T? = upgradeCtx.attribute(key)
     fun attributeMap(): Map<String, Any?> = upgradeCtx.attributeMap()
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> sessionAttribute(key: String): T? = sessionAttributeMap()[key] as T
     fun sessionAttributeMap(): Map<String, Any?> = sessionAttributes ?: mapOf()
 
