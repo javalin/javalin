@@ -28,8 +28,8 @@ import jakarta.servlet.http.Cookie as JakartaCookie
 const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
 
 open class ServletContext(
-    private val request: HttpServletRequest,
-    private val response: HttpServletResponse,
+    override val req: HttpServletRequest,
+    override val res: HttpServletResponse,
     internal val appAttributes: Map<String, Any> = mapOf(),
     internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result())
 ) : Context {
@@ -38,9 +38,6 @@ open class ServletContext(
     internal var matchedPath = ""
     internal var endpointHandlerPath = ""
     internal var handlerType = HandlerType.BEFORE
-
-    override fun req(): HttpServletRequest = request
-    override fun res(): HttpServletResponse = response
 
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     override fun characterEncoding(): String? = characterEncoding
@@ -51,7 +48,7 @@ open class ServletContext(
     @Suppress("UNCHECKED_CAST")
     override fun <T> appAttribute(key: String): T = appAttributes[key] as T
 
-    private val method by lazy { HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method) }
+    private val method by lazy { HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req.method) }
     override fun method(): HandlerType = method
 
     override fun handlerType(): HandlerType = handlerType
@@ -64,13 +61,13 @@ open class ServletContext(
 
     private val body by lazy {
         this.throwContentTooLargeIfContentTooLarge()
-        request.inputStream.readBytes()
+        req.inputStream.readBytes()
     }
     override fun bodyAsBytes(): ByteArray = body
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
     private val formParams by lazy {
-        if (isMultipartFormData()) MultipartUtil.getFieldMap(request)
+        if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
         else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
     }
     override fun formParamMap(): Map<String, List<String>> = formParams
@@ -90,7 +87,7 @@ open class ServletContext(
     }
 
     override fun removeCookie(name: String, path: String?): Context = also {
-        res().addCookie(JakartaCookie(name, "").apply {
+        res.addCookie(JakartaCookie(name, "").apply {
             this.path = path
             this.maxAge = 0
         })
@@ -136,7 +133,7 @@ open class ServletContext(
     override fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
 
     private fun responseCharset(): Charset =
-        runCatching { Charset.forName(response.characterEncoding) }
+        runCatching { Charset.forName(res.characterEncoding) }
             .getOrNull()
             ?: Charset.defaultCharset()
 

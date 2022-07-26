@@ -33,7 +33,7 @@ fun requestDevLogger(ctx: Context, time: Float) = try {
                 matcher.findEntries(ctx.method(), requestUri) +
                 matcher.findEntries(HandlerType.AFTER, requestUri))
             .map { it.type.name + "=" + it.path }
-        val resHeaders = res().headerNames.asSequence().map { it to res().getHeader(it) }.toMap()
+        val resHeaders = res.headerNames.asSequence().map { it to res.getHeader(it) }.toMap()
         JavalinLogger.info(
             """|JAVALIN REQUEST DEBUG LOG:
                |Request: ${method()} [${path()}]
@@ -57,7 +57,7 @@ fun requestDevLogger(ctx: Context, time: Float) = try {
 private fun String.probablyFormData() = this.trim().firstOrNull()?.isLetter() == true && this.split("=").size >= 2
 
 private fun resBody(ctx: Context): String {
-    val staticFile = ctx.req().getAttribute("handled-as-static-file") == true
+    val staticFile = ctx.req.getAttribute("handled-as-static-file") == true
     if (staticFile) {
         return "Body is a static file (not logged)"
     }
@@ -67,8 +67,8 @@ private fun resBody(ctx: Context): String {
         return "Body is binary (not logged)"
     }
 
-    val gzipped = ctx.res().getHeader(Header.CONTENT_ENCODING) == "gzip"
-    val brotlied = ctx.res().getHeader(Header.CONTENT_ENCODING) == "br"
+    val gzipped = ctx.res.getHeader(Header.CONTENT_ENCODING) == "gzip"
+    val brotlied = ctx.res.getHeader(Header.CONTENT_ENCODING) == "br"
     val resBody = ctx.resultString()!!
     return when {
         gzipped -> "Body is gzipped (${resBody.length} bytes, not logged)"

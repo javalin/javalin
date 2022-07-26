@@ -79,7 +79,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         res.setHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, firstProtocol)
     }
 
-    private fun changeBaseRequest(ctx: ServletContext, req: HttpServletRequest) = ServletContext(req, ctx.res(), ctx.appAttributes).apply {
+    private fun changeBaseRequest(ctx: ServletContext, req: HttpServletRequest) = ServletContext(req, ctx.res, ctx.appAttributes).apply {
         this.pathParamMap = ctx.pathParamMap
         this.matchedPath = ctx.matchedPath
     }

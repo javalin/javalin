@@ -50,7 +50,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                     return@submitTask
                 }
                 if (requestType == HEAD || requestType == GET) { // check for static resources (will write response if found)
-                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req(), JavalinResponseWrapper(it.ctx, cfg)) == true) return@submitTask
+                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx, cfg)) == true) return@submitTask
                     if (cfg.pvt.singlePageHandler.handle(ctx)) return@submitTask
                 }
                 if (requestType == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
