@@ -93,6 +93,11 @@ object ContextUtil {
         false
     }
 
+    fun changeBaseRequest(ctx: ServletContext, req: HttpServletRequest) = ServletContext(req, ctx.res, ctx.appAttributes).apply {
+        this.pathParamMap = ctx.pathParamMap
+        this.matchedPath = ctx.matchedPath
+    }
+
     const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"
 
     fun Context.throwContentTooLargeIfContentTooLarge() {
