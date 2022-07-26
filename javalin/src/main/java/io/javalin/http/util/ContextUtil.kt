@@ -9,10 +9,12 @@ package io.javalin.http.util
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
+import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpResponseException
 import io.javalin.http.ServletContext
+import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
@@ -24,6 +26,15 @@ import java.nio.charset.Charset
 import java.util.*
 
 object ContextUtil {
+
+    fun update(ctx: ServletContext, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
+        matchedPath = handlerEntry.path
+        pathParamMap = handlerEntry.extractPathParams(requestUri)
+        handlerType = handlerEntry.type
+        if (handlerType != AFTER) {
+            endpointHandlerPath = handlerEntry.path
+        }
+    }
 
     // this header is semi-colon separated, like: "text/html; charset=UTF-8"
     fun getRequestCharset(ctx: Context) = ctx.req.getHeader(Header.CONTENT_TYPE)?.let { value ->
