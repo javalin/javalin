@@ -78,7 +78,7 @@ open class Context(
     /**
      * Gets the endpoint path that was used to match request (null in before, available in endpoint/after)
      */
-    fun endpointHandlerPath() = if (handlerType != HandlerType.BEFORE) {
+    fun endpointHandlerPath() = if (handlerType() != HandlerType.BEFORE) {
         endpointHandlerPath
     } else {
         throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
@@ -464,7 +464,7 @@ open class Context(
     fun redirect(location: String, httpStatusCode: Int = HttpServletResponse.SC_MOVED_TEMPORARILY) {
         res.setHeader(Header.LOCATION, location)
         status(httpStatusCode)
-        if (handlerType == HandlerType.BEFORE) {
+        if (handlerType() == HandlerType.BEFORE) {
             throw RedirectResponse(httpStatusCode)
         }
     }
