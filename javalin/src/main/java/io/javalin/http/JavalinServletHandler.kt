@@ -29,7 +29,7 @@ data class Stage(
     val initializer: StageInitializer = {} // DSL method to add task to the stage's queue
 )
 
-internal data class Result<VALUE : Any?>(
+data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
     val future: CompletableFuture<VALUE>? = null,
     val launch: Runnable? = null,
@@ -61,7 +61,7 @@ class JavalinServletHandler(
     private val cfg: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
-    val ctx: Context,
+    val ctx: ServletContext,
     val requestUri: String = ctx.req.requestURI.removePrefix(ctx.req.contextPath),
 ) {
 

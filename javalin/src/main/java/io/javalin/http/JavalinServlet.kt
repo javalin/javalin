@@ -40,7 +40,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             }
         },
         Stage(DefaultName.HTTP) { submitTask ->
-            matcher.findEntries(requestType, requestUri).firstOrNull()?.let { entry ->
+            matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
                 submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
                 return@Stage // return after first match
             }
