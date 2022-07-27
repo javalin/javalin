@@ -7,6 +7,7 @@
 package io.javalin.http
 
 import io.javalin.config.contextResolver
+import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
@@ -242,7 +243,7 @@ interface Context {
         return this.future(CompletableFuture.completedFuture(resultStream), callback = { /* noop */ })
     }
 
-    /** Gets the current [resultReference] as a [String] (if possible), and reset the underlying stream */
+    /** Gets the current [resultStream] as a [String] (if possible), and reset the underlying stream */
     fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
     /** */
     fun resultStream(): InputStream?
@@ -252,7 +253,7 @@ interface Context {
      * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
      *
      * @param executor Thread-pool used to execute the given task,
-     * by default this method will use global predefined executor service stored in [appAttributes] as [ASYNC_EXECUTOR_KEY].
+     * by default this method will use global predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
      * You can change this default in [io.javalin.config.JavalinConfig].
      *
      * @param timeout Timeout in milliseconds,
@@ -266,7 +267,7 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*>
+    fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> = AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
     /** */
     fun async(timeout: Long = 0L, onTimeout: (() -> Unit)? = null, task: Runnable): CompletableFuture<*> = async(appAttribute(ASYNC_EXECUTOR_KEY), timeout, onTimeout, task)
     /** */

@@ -31,13 +31,12 @@ open class ServletContext(
     override val req: HttpServletRequest,
     override val res: HttpServletResponse,
     internal val appAttributes: Map<String, Any> = mapOf(),
-    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result())
+    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result()),
+    internal var pathParamMap: Map<String, String> = mapOf(),
+    internal var matchedPath: String = "",
+    internal var endpointHandlerPath: String = "",
+    internal var handlerType: HandlerType = HandlerType.BEFORE,
 ) : Context {
-
-    internal var pathParamMap = mapOf<String, String>()
-    internal var matchedPath = ""
-    internal var endpointHandlerPath = ""
-    internal var handlerType = HandlerType.BEFORE
 
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     override fun characterEncoding(): String? = characterEncoding
@@ -72,7 +71,7 @@ open class ServletContext(
     }
     override fun formParamMap(): Map<String, List<String>> = formParams
 
-    override fun pathParamMap(): Map<String, String> =Collections.unmodifiableMap(pathParamMap)
+    override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
     override fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
@@ -93,27 +92,12 @@ open class ServletContext(
         })
     }
 
-    override fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long) =
-        SeekableWriter.write(this, inputStream, contentType, size)
-
-    override fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
-    override fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
-    override fun resultString(): String? = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
-
-    override fun result(resultStream: InputStream): Context {
-        runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
-        return this.future(CompletableFuture.completedFuture(resultStream), callback = { /* noop */ })
-    }
-
     override fun resultStream(): InputStream? = resultReference.get().let { result ->
         result.future
             ?.takeIf { it.isCompletedSuccessfully() }
             ?.get() as? InputStream?
             ?: result.previous
     }
-
-    override fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> =
-        AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
 
     override fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context = also {
         if (resultReference.get().future != null) {
@@ -131,10 +115,5 @@ open class ServletContext(
     }
 
     override fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
-
-    private fun responseCharset(): Charset =
-        runCatching { Charset.forName(res.characterEncoding) }
-            .getOrNull()
-            ?: Charset.defaultCharset()
 
 }

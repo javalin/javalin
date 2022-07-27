@@ -56,10 +56,13 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         }
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val entry = wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
-        val upgradeContext = ServletContext(req, res, cfg.pvt.appAttributes).apply {
-            pathParamMap = entry.extractPathParams(requestUri)
+        val upgradeContext = ServletContext(
+            req = req,
+            res = res,
+            appAttributes = cfg.pvt.appAttributes,
+            pathParamMap = entry.extractPathParams(requestUri),
             matchedPath = entry.path
-        }
+        )
         if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(401, "Unauthorized")
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)

@@ -81,11 +81,14 @@ object ContextUtil {
         pathParamMap: Map<String, String> = mapOf(),
         handlerType: HandlerType = HandlerType.INVALID,
         appAttributes: Map<String, Any> = mapOf()
-    ) = ServletContext(request, response, appAttributes).apply {
-        this.matchedPath = matchedPath
-        this.pathParamMap = pathParamMap
-        this.handlerType = handlerType
-    }
+    ) = ServletContext(
+        req = request,
+        res = response,
+        appAttributes = appAttributes,
+        matchedPath = matchedPath,
+        pathParamMap = pathParamMap,
+        handlerType = handlerType
+    )
 
     fun Context.isLocalhost() = try {
         URL(this.url()).host.let { it == "localhost" || it == "127.0.0.1" }
@@ -93,10 +96,14 @@ object ContextUtil {
         false
     }
 
-    fun changeBaseRequest(ctx: ServletContext, req: HttpServletRequest) = ServletContext(req, ctx.res, ctx.appAttributes).apply {
-        this.pathParamMap = ctx.pathParamMap
-        this.matchedPath = ctx.matchedPath
-    }
+    fun changeBaseRequest(ctx: ServletContext, req: HttpServletRequest) =
+        ServletContext(
+            req = req,
+            res = ctx.res,
+            appAttributes = ctx.appAttributes,
+            pathParamMap = ctx.pathParamMap,
+            matchedPath = ctx.matchedPath
+        )
 
     const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"
 
