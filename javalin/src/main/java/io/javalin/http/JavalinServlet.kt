@@ -40,19 +40,19 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             }
         },
         Stage(DefaultName.HTTP) { submitTask ->
-            matcher.findEntries(requestType, requestUri).firstOrNull()?.let { entry ->
+            matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
                 submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
                 return@Stage // return after first match
             }
             submitTask {
-                if (requestType == HEAD && matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
+                if (ctx.method() == HEAD && matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
                     return@submitTask
                 }
-                if (requestType == HEAD || requestType == GET) { // check for static resources (will write response if found)
-                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx, cfg, requestType)) == true) return@submitTask
+                if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
+                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx, cfg)) == true) return@submitTask
                     if (cfg.pvt.singlePageHandler.handle(ctx)) return@submitTask
                 }
-                if (requestType == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
+                if (ctx.method() == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
                     return@submitTask
                 }
                 if (ctx.handlerType == BEFORE) { // no match, status will be 404 or 405 after this point

@@ -26,12 +26,11 @@ internal class DevLoggingPlugin : Plugin, PluginLifecycleInit {
 }
 
 fun requestDevLogger(ctx: Context, time: Float) = try {
-    val type = HandlerType.fromServletRequest(ctx.req)
-    val requestUri = ctx.req.requestURI
+    val requestUri = ctx.path()
     with(ctx) {
         val matcher = ctx.attribute<PathMatcher>("javalin-request-log-matcher")!!
         val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) +
-                matcher.findEntries(type, requestUri) +
+                matcher.findEntries(ctx.method(), requestUri) +
                 matcher.findEntries(HandlerType.AFTER, requestUri))
             .map { it.type.name + "=" + it.path }
         val resHeaders = res.headerNames.asSequence().map { it to res.getHeader(it) }.toMap()
