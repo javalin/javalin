@@ -17,8 +17,7 @@ import java.io.InputStream
 
 class JavalinResponseWrapper(
     private val ctx: Context,
-    private val cfg: JavalinConfig,
-    private val requestType: HandlerType
+    private val cfg: JavalinConfig
 ) : HttpServletResponseWrapper(ctx.res) {
 
     private val outputStreamWrapper by lazy { OutputStreamWrapper(cfg, ctx) }
@@ -30,7 +29,7 @@ class JavalinResponseWrapper(
     fun write(resultStream: InputStream?) = when {
         resultStream == null -> {} // nothing to write (and nothing to close)
         serverEtag != null && serverEtag == clientEtag -> closeWith304(resultStream) // client etag matches, nothing to write
-        serverEtag == null && cfg.http.generateEtags && requestType == GET && resultStream is ByteArrayInputStream -> generateEtagWriteAndClose(resultStream)
+        serverEtag == null && cfg.http.generateEtags && ctx.method() == GET && resultStream is ByteArrayInputStream -> generateEtagWriteAndClose(resultStream)
         else -> writeToWrapperAndClose(resultStream)
     }
 

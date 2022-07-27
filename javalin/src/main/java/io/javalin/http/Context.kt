@@ -232,8 +232,9 @@ open class Context(
     /** Returns true if request is multipart/form-data. */
     fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/form-data") == true
 
+    private val method by lazy { HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req.method) }
     /** Gets the request method. */
-    fun method(): String = req.method
+    fun method(): HandlerType = method
 
     /** Gets the request path. */
     fun path(): String = req.requestURI

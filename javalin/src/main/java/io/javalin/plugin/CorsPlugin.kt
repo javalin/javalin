@@ -51,7 +51,7 @@ class CorsBeforeHandler(origins: List<String>) : Handler {
                 }
         }
 
-        if (ctx.method() == OPTIONS.name) {
+        if (ctx.method() == OPTIONS) {
             ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also {
                 ctx.header(ACCESS_CONTROL_ALLOW_HEADERS, it)
             }
