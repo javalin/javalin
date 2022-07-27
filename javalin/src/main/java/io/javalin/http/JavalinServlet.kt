@@ -55,7 +55,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                 if (ctx.method() == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
                     return@submitTask
                 }
-                if (ctx.handlerType == BEFORE) { // no match, status will be 404 or 405 after this point
+                if (ctx.handlerType() == BEFORE) { // no match, status will be 404 or 405 after this point
                     ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
                 }
                 val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
