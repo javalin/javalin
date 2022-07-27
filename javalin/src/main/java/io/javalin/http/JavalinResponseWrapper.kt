@@ -17,7 +17,7 @@ import java.io.InputStream
 
 class JavalinResponseWrapper(
     private val ctx: Context,
-    private val cfg: JavalinConfig,
+    private val cfg: JavalinConfig
 ) : HttpServletResponseWrapper(ctx.res) {
 
     private val outputStreamWrapper by lazy { OutputStreamWrapper(cfg, ctx) }

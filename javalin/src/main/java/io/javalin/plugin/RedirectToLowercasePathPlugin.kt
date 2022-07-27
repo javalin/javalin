@@ -46,7 +46,7 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
 
     override fun apply(app: Javalin) {
         app.before { ctx ->
-            val requestUri = ctx.path().removePrefix(ctx.contextPath())
+            val requestUri = ctx.path().removePrefix(ctx.req.contextPath)
             val matcher = app.javalinServlet().matcher
 
             if (matcher.findEntries(ctx.method(), requestUri).firstOrNull() != null) {

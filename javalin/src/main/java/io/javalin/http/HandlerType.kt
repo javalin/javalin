@@ -16,8 +16,12 @@ enum class HandlerType {
     }
 
     companion object {
+
         private val methodMap = values().associateBy { it.toString() }
-        fun findByName(name: String): HandlerType = methodMap[name.uppercase()] ?: INVALID
+
+        fun findByName(name: String): HandlerType =
+            methodMap[name.uppercase()] ?: INVALID
+
     }
 
 }

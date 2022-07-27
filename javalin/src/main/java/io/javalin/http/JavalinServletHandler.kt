@@ -3,7 +3,6 @@ package io.javalin.http
 import io.javalin.config.JavalinConfig
 import io.javalin.config.contextResolver
 import io.javalin.util.LogUtil
-import io.javalin.util.exceptionallyAccept
 import io.javalin.util.exceptionallyComposeFallback
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
@@ -13,9 +12,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.failedFuture
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.CompletionStage
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
@@ -32,7 +29,7 @@ data class Stage(
     val initializer: StageInitializer = {} // DSL method to add task to the stage's queue
 )
 
-data class Result<VALUE : Any?>(
+internal data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
     val future: CompletableFuture<VALUE>? = null,
     val launch: Runnable? = null,
@@ -64,7 +61,7 @@ class JavalinServletHandler(
     private val cfg: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
-    val ctx: ServletContext,
+    val ctx: Context,
     val requestUri: String = ctx.req.requestURI.removePrefix(ctx.req.contextPath),
 ) {
 
