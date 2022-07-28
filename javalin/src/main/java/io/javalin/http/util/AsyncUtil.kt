@@ -9,6 +9,9 @@ import java.util.concurrent.TimeoutException
 
 object AsyncUtil {
 
+    /** Defines default [ExecutorService] used by [Context.future] */
+    const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
+
     fun submitAsyncTask(context: Context, executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> {
         val await = CompletableFuture<Any?>()
 

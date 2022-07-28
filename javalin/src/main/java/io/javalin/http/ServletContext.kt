@@ -11,21 +11,15 @@ import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
-import io.javalin.http.util.SeekableWriter
 import io.javalin.util.isCompletedSuccessfully
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
-import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import jakarta.servlet.http.Cookie as JakartaCookie
-
-/** Defines default [ExecutorService] used by [Context.future] */
-const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
 
 open class ServletContext(
     override val req: HttpServletRequest,

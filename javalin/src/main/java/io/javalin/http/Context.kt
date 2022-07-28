@@ -8,6 +8,7 @@ package io.javalin.http
 
 import io.javalin.config.contextResolver
 import io.javalin.http.util.AsyncUtil
+import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
