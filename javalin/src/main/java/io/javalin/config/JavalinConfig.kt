@@ -6,7 +6,7 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.http.ASYNC_EXECUTOR_KEY
+import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.ContextUtil.MAX_REQUEST_SIZE_KEY
 import io.javalin.plugin.PluginUtil.attachPlugins
 import io.javalin.plugin.json.JSON_MAPPER_KEY
