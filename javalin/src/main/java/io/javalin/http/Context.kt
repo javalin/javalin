@@ -9,8 +9,6 @@ package io.javalin.http
 import io.javalin.config.contextResolver
 import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
-import io.javalin.http.util.ContextUtil
-import io.javalin.http.util.ContextUtil.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
@@ -72,7 +70,7 @@ interface Context {
     /** Gets the request user agent, or null. */
     fun userAgent(): String? = req().getHeader(Header.USER_AGENT)
     /** Try to obtain request encoding from [Header.CONTENT_TYPE] header */
-    fun characterEncoding(): String = ContextUtil.getRequestCharset(this) ?: "UTF-8"
+    fun characterEncoding(): String = getRequestCharset(this) ?: "UTF-8"
 
     /** Gets the request url. */
     fun url(): String = contextResolver().url.invoke(this)
@@ -115,7 +113,7 @@ interface Context {
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> = when {
         isMultipartFormData() -> MultipartUtil.getFieldMap(req())
-        else -> ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding())
+        else -> splitKeyValueStringAndGroupByKey(body(), characterEncoding())
     }
 
     /**
@@ -138,7 +136,7 @@ interface Context {
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
     /** Gets a map with all the query param keys and values. */
-    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding())
+    fun queryParamMap(): Map<String, List<String>> = splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding())
     /** Gets the request query string, or null. */
     fun queryString(): String? = req().queryString
 
@@ -150,11 +148,11 @@ interface Context {
     /** Get session attribute, and set value to null */
     fun <T> consumeSessionAttribute(key: String) = sessionAttribute<T?>(key).also { this.sessionAttribute(key, null) }
     /** Sets an attribute for the user session, and caches it on the request */
-    fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, req())
+    fun cachedSessionAttribute(key: String, value: Any?) = cacheAndSetSessionAttribute(key, value, req())
     /** Gets specified attribute from the request attribute cache, or the user session, or null. */
-    fun <T> cachedSessionAttribute(key: String): T? = ContextUtil.getCachedRequestAttributeOrSessionAttribute(key, req())
+    fun <T> cachedSessionAttribute(key: String): T? = getCachedRequestAttributeOrSessionAttribute(key, req())
     /** Gets specified attribute from the request attribute cache, or the user session, or computes the value from callback. */
-    fun <T> cachedSessionAttributeOrCompute(key: String, callback: (Context) -> T): T? = ContextUtil.cachedSessionAttributeOrCompute(callback, key, this)
+    fun <T> cachedSessionAttributeOrCompute(key: String, callback: (Context) -> T): T? = cachedSessionAttributeOrCompute(callback, key, this)
     /** Gets a map of all the attributes in the user session. */
     fun sessionAttributeMap(): Map<String, Any?> = req().session.attributeNames.asSequence().associateWith { sessionAttribute(it) }
 
@@ -186,14 +184,14 @@ interface Context {
      * Returns a Boolean which is true if there is an Authorization header with
      * Basic auth credentials. Returns false otherwise.
      */
-    fun basicAuthCredentialsExist(): Boolean = ContextUtil.hasBasicAuthCredentials(header(Header.AUTHORIZATION))
+    fun basicAuthCredentialsExist(): Boolean = hasBasicAuthCredentials(header(Header.AUTHORIZATION))
     /**
      * Gets basic-auth credentials from the request, or throws.
      *
      * Returns a wrapper object [BasicAuthCredentials] which contains the
      * Base64 decoded username and password from the Authorization header.
      */
-    fun basicAuthCredentials(): BasicAuthCredentials = ContextUtil.getBasicAuthCredentials(header(Header.AUTHORIZATION))
+    fun basicAuthCredentials(): BasicAuthCredentials = getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
     /** Returns true if request is multipart. */
     fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/") == true
@@ -255,7 +253,7 @@ interface Context {
     }
 
     /** Gets the current [resultStream] as a [String] (if possible), and reset the underlying stream */
-    fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
+    fun resultString() = readAndResetStreamIfPossible(resultStream(), responseCharset())
     /** Extracts input stream from latest result if possible */
     fun resultStream(): InputStream?
 

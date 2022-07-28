@@ -1,7 +1,7 @@
 package io.javalin.routing
 
 import io.javalin.config.RoutingConfig
-import io.javalin.http.util.ContextUtil
+import io.javalin.http.urlDecode
 
 class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
 
@@ -53,7 +53,7 @@ class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
     fun extractPathParams(url: String): Map<String, String> {
         val index = matchRegex.indexOfFirst { url matches it }
         return pathParamNames.zip(values(pathParamRegex[index], url)) { name, value ->
-            name to ContextUtil.urlDecode(value)
+            name to urlDecode(value)
         }.toMap()
     }
 }
