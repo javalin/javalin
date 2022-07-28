@@ -62,7 +62,7 @@ class JavalinServletHandler(
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
     val ctx: Context,
-    val requestUri: String = ctx.req.requestURI.removePrefix(ctx.req.contextPath),
+    val requestUri: String = ctx.req().requestURI.removePrefix(ctx.req().contextPath),
 ) {
 
     /** Queue of tasks to execute within the current [Stage] */
@@ -93,7 +93,7 @@ class JavalinServletHandler(
             currentTaskFuture = currentTaskFuture
                 .thenCompose { executeNextTask() } // chain next task into current future
                 .thenApply { queueNextTaskOrFinish() } // continue standard execution of queue
-                .exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res, it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
+                .exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res(), it) } // default catch-all for whole scope, might occur when e.g. finishResponse() will fail
     }
 
     /**
@@ -135,7 +135,7 @@ class JavalinServletHandler(
             startAsyncAndAddDefaultTimeoutListeners() // starts async context only if future is not already completed
         }
         if (ctx.isAsync() && result.future?.isDone == false) {
-            ctx.req.asyncContext.addListener(onTimeout = { result.future.cancel(true) }) // registers timeout listener only if future is not already completed
+            ctx.req().asyncContext.addListener(onTimeout = { result.future.cancel(true) }) // registers timeout listener only if future is not already completed
         }
 
         return executedTask
@@ -150,7 +150,7 @@ class JavalinServletHandler(
             ?: completedFuture(ExecutionResult(Result(ctx.resultStream()), null)) // default result in case of lack of user's future
     }
 
-    private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
+    private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req().startAsync()
         .addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
             ctx.state.resultReference.getAndSet(Result()).also { // cleanup current state of ctx, timeout listener will override it
                 it.future?.cancel(true)
@@ -171,16 +171,16 @@ class JavalinServletHandler(
             JavalinResponseWrapper(ctx, cfg).write(ctx.resultStream())
             cfg.pvt.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
-            exceptionMapper.handleUnexpectedThrowable(ctx.res, throwable) // handle any unexpected error, e.g. write failure
+            exceptionMapper.handleUnexpectedThrowable(ctx.res(), throwable) // handle any unexpected error, e.g. write failure
         } finally {
-            if (ctx.isAsync()) ctx.req.asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
+            if (ctx.isAsync()) ctx.req().asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
         }
     }
 
 }
 
 /** Checks if request is executed asynchronously */
-private fun Context.isAsync(): Boolean = req.isAsyncStarted
+private fun Context.isAsync(): Boolean = req().isAsyncStarted
 
 internal fun AsyncContext.addListener(
     onComplete: (AsyncEvent) -> Unit = {},

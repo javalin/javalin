@@ -26,7 +26,7 @@ import java.util.*
 object ContextUtil {
 
     // this header is semi-colon separated, like: "text/html; charset=UTF-8"
-    fun getRequestCharset(ctx: Context) = ctx.req.getHeader(Header.CONTENT_TYPE)?.let { value ->
+    fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.let { value ->
         value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
     }
 
@@ -85,10 +85,10 @@ object ContextUtil {
     }
 
     fun <T> cachedSessionAttributeOrCompute(callback: (Context) -> T, key: String, ctx: Context): T? {
-        if (getCachedRequestAttributeOrSessionAttribute<T?>(key, ctx.req) == null) {
-            cacheAndSetSessionAttribute(key, callback(ctx), ctx.req) // set new value from callback
+        if (getCachedRequestAttributeOrSessionAttribute<T?>(key, ctx.req()) == null) {
+            cacheAndSetSessionAttribute(key, callback(ctx), ctx.req()) // set new value from callback
         }
-        return getCachedRequestAttributeOrSessionAttribute(key, ctx.req) // existing or computed (or null)
+        return getCachedRequestAttributeOrSessionAttribute(key, ctx.req()) // existing or computed (or null)
     }
 
     fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {

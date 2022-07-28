@@ -13,8 +13,8 @@ import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicReference
 
 class ContextState(
-    internal var req: HttpServletRequest,
-    internal var res: HttpServletResponse,
+    var req: HttpServletRequest,
+    var res: HttpServletResponse,
     var appAttributes: Map<String, Any> = mapOf(),
     var resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result()),
     var pathParamMap: Map<String, String> = mapOf(),

@@ -22,8 +22,8 @@ class TestRequest {
      */
     @Test
     fun `session-attributes work`() = TestUtil.test { app, http ->
-        app.get("/store-session") { it.req.session.setAttribute("test", "tast") }
-        app.get("/read-session") { it.result(it.req.session.getAttribute("test") as String) }
+        app.get("/store-session") { it.req().session.setAttribute("test", "tast") }
+        app.get("/read-session") { it.result(it.req().session.getAttribute("test") as String) }
         http.getBody("/store-session")
         assertThat(http.getBody("/read-session")).isEqualTo("tast")
     }
@@ -45,7 +45,7 @@ class TestRequest {
     @Test
     fun `session-attribute retrieval does not create session`() = TestUtil.test { app, http ->
         app.get("/read-session") { it.result("" + it.sessionAttribute<String>("nonexisting")) }
-        app.get("/has-session") { it.result("" + (it.req.getSession(false) != null)) }
+        app.get("/has-session") { it.result("" + (it.req().getSession(false) != null)) }
         assertThat(http.getBody("/read-session")).isEqualTo("null")
         assertThat(http.getBody("/has-session")).isEqualTo("false")
     }
@@ -314,7 +314,7 @@ class TestRequest {
 
     @Test
     fun `servlet-context is not null`() = TestUtil.test { app, http ->
-        app.get("/") { it.result(if (it.req.servletContext != null) "not-null" else "null") }
+        app.get("/") { it.result(if (it.req().servletContext != null) "not-null" else "null") }
         assertThat(http.getBody("/")).isEqualTo("not-null")
     }
 

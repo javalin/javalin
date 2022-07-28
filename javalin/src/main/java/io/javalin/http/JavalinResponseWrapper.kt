@@ -18,13 +18,13 @@ import java.io.InputStream
 class JavalinResponseWrapper(
     private val ctx: Context,
     private val cfg: JavalinConfig
-) : HttpServletResponseWrapper(ctx.res) {
+) : HttpServletResponseWrapper(ctx.res()) {
 
     private val outputStreamWrapper by lazy { OutputStreamWrapper(cfg, ctx) }
     override fun getOutputStream() = outputStreamWrapper
 
     private val serverEtag by lazy { getHeader(ETAG) }
-    private val clientEtag by lazy { ctx.req.getHeader(IF_NONE_MATCH) }
+    private val clientEtag by lazy { ctx.req().getHeader(IF_NONE_MATCH) }
 
     fun write(resultStream: InputStream?) = when {
         resultStream == null -> {} // nothing to write (and nothing to close)
@@ -56,7 +56,7 @@ class JavalinResponseWrapper(
 
 }
 
-class OutputStreamWrapper(val cfg: JavalinConfig, val ctx: Context, val response: HttpServletResponse = ctx.res) : ServletOutputStream() {
+class OutputStreamWrapper(val cfg: JavalinConfig, val ctx: Context, val response: HttpServletResponse = ctx.res()) : ServletOutputStream() {
     private val compression = cfg.pvt.compressionStrategy
     private var compressedStream: CompressedStream? = null
 

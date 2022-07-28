@@ -42,7 +42,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         cfg.pvt.wsFactoryConfig?.accept(factory)
         factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as Context
-            preUpgradeContext.req = req.httpServletRequest // change base request
+            preUpgradeContext.state.changeBaseRequest(req.httpServletRequest)
             req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext)
             val session = req.session as? Session?
             req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
