@@ -54,7 +54,7 @@ open class ServletContext(
     override fun matchedPath(): String = matchedPath
 
     override fun endpointHandlerPath() = when {
-        handlerType != HandlerType.BEFORE -> endpointHandlerPath
+        handlerType() != HandlerType.BEFORE -> endpointHandlerPath
         else -> throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
     }
 
