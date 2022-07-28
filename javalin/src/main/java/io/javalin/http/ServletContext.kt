@@ -6,11 +6,12 @@
 
 package io.javalin.http
 
-import io.javalin.http.util.AsyncUtil
+import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.ContextUtil.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
+import io.javalin.routing.HandlerEntry
 import io.javalin.util.isCompletedSuccessfully
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -22,15 +23,28 @@ import java.util.function.Consumer
 import jakarta.servlet.http.Cookie as JakartaCookie
 
 class ServletContext(
-    override val req: HttpServletRequest,
-    override val res: HttpServletResponse,
-    internal val appAttributes: Map<String, Any> = mapOf(),
-    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result()),
-    internal var pathParamMap: Map<String, String> = mapOf(),
-    internal var matchedPath: String = "",
+    override var req: HttpServletRequest,
+    override var res: HttpServletResponse,
+    private val appAttributes: Map<String, Any> = mapOf(),
+    private var handlerType: HandlerType = HandlerType.BEFORE,
+    private var matchedPath: String = "",
+    private var pathParamMap: Map<String, String> = mapOf(),
     internal var endpointHandlerPath: String = "",
-    internal var handlerType: HandlerType = HandlerType.BEFORE,
+    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result()),
 ) : Context {
+
+    fun changeBaseRequest(req: HttpServletRequest) = also {
+        this.req = req
+    }
+
+    fun update(handlerEntry: HandlerEntry, requestUri: String) = also {
+        matchedPath = handlerEntry.path
+        pathParamMap = handlerEntry.extractPathParams(requestUri)
+        handlerType = handlerEntry.type
+        if (handlerType != AFTER) {
+            endpointHandlerPath = handlerEntry.path
+        }
+    }
 
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
     override fun characterEncoding(): String? = characterEncoding

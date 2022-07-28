@@ -8,17 +8,12 @@ package io.javalin.http.util
 
 import io.javalin.http.ContentType
 import io.javalin.http.Context
-import io.javalin.http.HandlerType
-import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpResponseException
-import io.javalin.http.ServletContext
-import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
 import java.net.URL
 import java.net.URLDecoder
@@ -26,15 +21,6 @@ import java.nio.charset.Charset
 import java.util.*
 
 object ContextUtil {
-
-    fun update(ctx: ServletContext, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
-        matchedPath = handlerEntry.path
-        pathParamMap = handlerEntry.extractPathParams(requestUri)
-        handlerType = handlerEntry.type
-        if (handlerType != AFTER) {
-            endpointHandlerPath = handlerEntry.path
-        }
-    }
 
     // this header is semi-colon separated, like: "text/html; charset=UTF-8"
     fun getRequestCharset(ctx: Context) = ctx.req.getHeader(Header.CONTENT_TYPE)?.let { value ->
@@ -72,38 +58,11 @@ object ContextUtil {
     fun acceptsHtml(ctx: Context) =
         ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true
 
-    @JvmStatic
-    @JvmOverloads
-    fun init(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        matchedPath: String = "*",
-        pathParamMap: Map<String, String> = mapOf(),
-        handlerType: HandlerType = HandlerType.INVALID,
-        appAttributes: Map<String, Any> = mapOf()
-    ) = ServletContext(
-        req = request,
-        res = response,
-        appAttributes = appAttributes,
-        matchedPath = matchedPath,
-        pathParamMap = pathParamMap,
-        handlerType = handlerType
-    )
-
     fun Context.isLocalhost() = try {
         URL(this.url()).host.let { it == "localhost" || it == "127.0.0.1" }
     } catch (e: Exception) {
         false
     }
-
-    fun changeBaseRequest(ctx: ServletContext, req: HttpServletRequest) =
-        ServletContext(
-            req = req,
-            res = ctx.res,
-            appAttributes = ctx.appAttributes,
-            pathParamMap = ctx.pathParamMap,
-            matchedPath = ctx.matchedPath
-        )
 
     const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"
 
