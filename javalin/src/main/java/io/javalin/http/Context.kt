@@ -147,7 +147,7 @@ interface Context {
     /** Gets specified attribute from the user session, or null. */
     @Suppress("UNCHECKED_CAST")
     fun <T> sessionAttribute(key: String): T? = req().getSession(false)?.getAttribute(key) as? T
-    /** */
+    /** Get session attribute, and set value to null */
     fun <T> consumeSessionAttribute(key: String) = sessionAttribute<T?>(key).also { this.sessionAttribute(key, null) }
     /** Sets an attribute for the user session, and caches it on the request */
     fun cachedSessionAttribute(key: String, value: Any?) = ContextUtil.cacheAndSetSessionAttribute(key, value, req())
@@ -223,13 +223,16 @@ interface Context {
     /**
      * Writes the specified inputStream as a seekable stream.
      * This method is asynchronous and uses the global predefined executor
-     * service stored in [appAttributes] as [ASYNC_EXECUTOR_KEY].
+     * service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
      * You can change this default in [io.javalin.config.JavalinConfig].
      *
      * @return the [CompletableFuture] used to write the seekable stream
      */
     fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long) = SeekableWriter.write(this, inputStream, contentType, size)
-    /** */
+    /**
+     * Writes input stream to [writeSeekableStream] with currently available data ([InputStream.available])
+     * @see writeSeekableStream]
+     */
     fun writeSeekableStream(inputStream: InputStream, contentType: String) = writeSeekableStream(inputStream, contentType, inputStream.available().toLong())
 
     /**
@@ -253,16 +256,14 @@ interface Context {
 
     /** Gets the current [resultStream] as a [String] (if possible), and reset the underlying stream */
     fun resultString() = ContextUtil.readAndResetStreamIfPossible(resultStream(), responseCharset())
-    /** */
+    /** Extracts input stream from latest result if possible */
     fun resultStream(): InputStream?
 
     /**
      * Utility function that allows to run async task on top of the [Context.future] method.
      * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
      *
-     * @param executor Thread-pool used to execute the given task,
-     * by default this method will use global predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
-     * You can change this default in [io.javalin.config.JavalinConfig].
+     * @param executor Thread-pool used to execute the given task
      *
      * @param timeout Timeout in milliseconds,
      * by default it's 0 which means timeout watcher is disabled.
@@ -276,9 +277,16 @@ interface Context {
      * so it's just not thread-safe.
      */
     fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> = AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
-    /** */
+    /**
+     * Launch async task with default, globally predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
+     * You can change this default in [io.javalin.config.JavalinConfig].
+     * @see [async]
+     */
     fun async(timeout: Long = 0L, onTimeout: (() -> Unit)? = null, task: Runnable): CompletableFuture<*> = async(appAttribute(ASYNC_EXECUTOR_KEY), timeout, onTimeout, task)
-    /** */
+    /**
+     * Launch async task with default async executor and without custom timeout
+     * @see [async]
+     */
     fun async(task: Runnable): CompletableFuture<*> = async(task = task, timeout = 0L, onTimeout = null)
 
     /**
@@ -311,9 +319,12 @@ interface Context {
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
     /** Sets the response status code and redirects to the specified location. */
-    fun redirect(location: String) = redirect(location = location, httpStatusCode = HttpServletResponse.SC_MOVED_TEMPORARILY)
-    /** */
     fun redirect(location: String, httpStatusCode: Int)
+    /**
+     * Sets redirect to location with [HttpCode.MOVED_PERMANENTLY] status code
+     * @see redirect()
+     */
+    fun redirect(location: String) = redirect(location = location, httpStatusCode = HttpServletResponse.SC_MOVED_TEMPORARILY)
 
     /** Sets the response status. */
     fun status(httpCode: HttpCode): Context = status(httpCode.status)
@@ -322,16 +333,16 @@ interface Context {
     /** Gets the response status. */
     fun status(): Int = res().status
 
-    /** Sets a cookie with name, value, and (overloaded) max-age. */
+    /** Sets a cookie with name, value, and max-age = -1. */
     fun cookie(name: String, value: String): Context = cookie(name, value, -1)
-    /** */
+    /** Sets a cookie with name, value and max-age property*/
     fun cookie(name: String, value: String, maxAge: Int): Context = cookie(Cookie(name = name, value = value, maxAge = maxAge))
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context = also { res().setJavalinCookie(cookie) }
 
     /** Removes cookie specified by name and path (optional). */
     fun removeCookie(name: String, path: String?): Context = also { res().removeCookie(name, path) }
-    /** */
+    /** Removes cookie specified by name */
     fun removeCookie(name: String): Context = removeCookie(name, "/")
 
     /**
@@ -354,7 +365,7 @@ interface Context {
      * Determines the correct rendering-function based on the file extension.
      */
     fun render(filePath: String, model: Map<String, Any?>): Context = html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
-    /** @see `render(String, Map<String, Any?>)` */
+    /** @see render() */
     fun render(filePath: String): Context = render(filePath, mutableMapOf())
 
 }
