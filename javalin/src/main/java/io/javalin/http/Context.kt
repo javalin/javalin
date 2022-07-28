@@ -162,7 +162,7 @@ interface Context {
     /** Gets cookie store used by this request */
     fun cookieStore(): CookieStore
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String): String? = req().cookies?.find { name == it.name }?.value
+    fun cookie(name: String): String? = req().getCookie(name)
     /** Gets a map with all the cookie keys and values on the request(). */
     fun cookieMap(): Map<String, String> = req().cookies?.associate { it.name to it.value } ?: emptyMap()
 
@@ -323,7 +323,7 @@ interface Context {
     fun cookie(cookie: Cookie): Context = also { res().setJavalinCookie(cookie) }
 
     /** Removes cookie specified by name and path (optional). */
-    fun removeCookie(name: String, path: String?): Context
+    fun removeCookie(name: String, path: String?): Context = also { res().removeCookie(name, path) }
     /** */
     fun removeCookie(name: String): Context = removeCookie(name, "/")
 

@@ -20,7 +20,6 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
-import jakarta.servlet.http.Cookie as JakartaCookie
 
 class DefaultContext(
     private var req: HttpServletRequest,
@@ -94,13 +93,6 @@ class DefaultContext(
         if (handlerType() == HandlerType.BEFORE) {
             throw RedirectResponse(httpStatusCode)
         }
-    }
-
-    override fun removeCookie(name: String, path: String?): Context = also {
-        res.addCookie(JakartaCookie(name, "").apply {
-            this.path = path
-            this.maxAge = 0
-        })
     }
 
     override fun resultStream(): InputStream? = resultReference.get().let { result ->
