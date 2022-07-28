@@ -23,8 +23,8 @@ import java.util.function.Consumer
 import jakarta.servlet.http.Cookie as JakartaCookie
 
 class DefaultContext(
-    override var req: HttpServletRequest,
-    override var res: HttpServletResponse,
+    private var req: HttpServletRequest,
+    private val res: HttpServletResponse,
     private val appAttributes: Map<String, Any> = mapOf(),
     private var handlerType: HandlerType = HandlerType.BEFORE,
     private var matchedPath: String = "",
@@ -46,8 +46,11 @@ class DefaultContext(
         }
     }
 
+    override fun req(): HttpServletRequest = req
+    override fun res(): HttpServletResponse = res
+
     private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
-    override fun characterEncoding(): String? = characterEncoding
+    override fun characterEncoding(): String = characterEncoding
 
     private val cookieStore by lazy { CookieStore(this) }
     override fun cookieStore() = cookieStore
