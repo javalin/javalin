@@ -48,44 +48,39 @@ class DefaultContext(
     override fun req(): HttpServletRequest = req
     override fun res(): HttpServletResponse = res
 
-    private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
-    override fun characterEncoding(): String = characterEncoding
-
-    private val cookieStore by lazy { CookieStore(this) }
-    override fun cookieStore() = cookieStore
-
     @Suppress("UNCHECKED_CAST")
     override fun <T> appAttribute(key: String): T = appAttributes[key] as T
-
-    private val method by lazy { HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req.method) }
-    override fun method(): HandlerType = method
-
-    override fun handlerType(): HandlerType = handlerType
-    override fun matchedPath(): String = matchedPath
 
     override fun endpointHandlerPath() = when {
         handlerType() != HandlerType.BEFORE -> endpointHandlerPath
         else -> throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
     }
 
-    private val body by lazy {
-        this.throwContentTooLargeIfContentTooLarge()
-        req.inputStream.readBytes()
-    }
+    private val characterEncoding by lazy { super.characterEncoding() }
+    override fun characterEncoding(): String = characterEncoding
+
+    private val cookieStore by lazy { super.cookieStore() }
+    override fun cookieStore() = cookieStore
+
+    private val method by lazy { super.method() }
+    override fun method(): HandlerType = method
+
+    override fun handlerType(): HandlerType = handlerType
+    override fun matchedPath(): String = matchedPath
+
+    /** has to be cached, because we can read input stream only once */
+    private val body by lazy { super.bodyAsBytes() }
     override fun bodyAsBytes(): ByteArray = body
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
-    private val formParams by lazy {
-        if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
-        else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
-    }
+    private val formParams by lazy { super.formParamMap() }
     override fun formParamMap(): Map<String, List<String>> = formParams
 
     override fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
     override fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
 
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
-    private val queryParams by lazy { ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding) }
+    private val queryParams by lazy { super.queryParamMap() }
     override fun queryParamMap(): Map<String, List<String>> = queryParams
 
     override fun redirect(location: String, httpStatusCode: Int) {

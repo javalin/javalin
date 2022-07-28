@@ -10,6 +10,7 @@ import io.javalin.config.contextResolver
 import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.ContextUtil
+import io.javalin.http.util.ContextUtil.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
@@ -59,7 +60,7 @@ interface Context {
     /** Gets the request content type, or null. */
     fun contentType(): String? = req().contentType
     /** Gets the request method. */
-    fun method(): HandlerType
+    fun method(): HandlerType = HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req().method)
     /** Gets the request path. */
     fun path(): String = req().requestURI
     /** Gets the request port. */
@@ -71,7 +72,7 @@ interface Context {
     /** Gets the request user agent, or null. */
     fun userAgent(): String? = req().getHeader(Header.USER_AGENT)
     /** Try to obtain request encoding from [Header.CONTENT_TYPE] header */
-    fun characterEncoding(): String
+    fun characterEncoding(): String = ContextUtil.getRequestCharset(this) ?: "UTF-8"
 
     /** Gets the request url. */
     fun url(): String = contextResolver().url.invoke(this)
@@ -92,7 +93,10 @@ interface Context {
      * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
      * with status 413 CONTENT_TOO_LARGE.
      */
-    fun bodyAsBytes(): ByteArray
+    fun bodyAsBytes(): ByteArray {
+        this.throwContentTooLargeIfContentTooLarge()
+        return req().inputStream.readBytes()
+    }
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
     fun <T> bodyAsClass(clazz: Class<T>): T = jsonMapper().fromJsonString(body(), clazz)
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
@@ -109,7 +113,10 @@ interface Context {
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
     /** Gets a map with all the form param keys and values. */
-    fun formParamMap(): Map<String, List<String>>
+    fun formParamMap(): Map<String, List<String>> = when {
+        isMultipartFormData() -> MultipartUtil.getFieldMap(req())
+        else -> ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding())
+    }
 
     /**
      * Gets a path param by name (ex: pathParam("param").
@@ -131,7 +138,7 @@ interface Context {
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
     /** Gets a map with all the query param keys and values. */
-    fun queryParamMap(): Map<String, List<String>>
+    fun queryParamMap(): Map<String, List<String>> = ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding())
     /** Gets the request query string, or null. */
     fun queryString(): String? = req().queryString
 
@@ -160,7 +167,7 @@ interface Context {
     fun attributeMap(): Map<String, Any?> = req().attributeNames.asSequence().associateWith { attribute(it) as Any? }
 
     /** Gets cookie store used by this request */
-    fun cookieStore(): CookieStore
+    fun cookieStore(): CookieStore = CookieStore(this)
     /** Gets a request cookie by name, or null. */
     fun cookie(name: String): String? = req().getCookie(name)
     /** Gets a map with all the cookie keys and values on the request(). */
