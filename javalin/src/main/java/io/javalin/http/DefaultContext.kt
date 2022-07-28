@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import jakarta.servlet.http.Cookie as JakartaCookie
 
-class ServletContext(
+class DefaultContext(
     override var req: HttpServletRequest,
     override var res: HttpServletResponse,
     private val appAttributes: Map<String, Any> = mapOf(),

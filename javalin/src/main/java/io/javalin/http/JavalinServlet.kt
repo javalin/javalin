@@ -12,7 +12,6 @@ import io.javalin.http.HandlerType.BEFORE
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HandlerType.OPTIONS
-import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.plugin.CorsPlugin
 import io.javalin.routing.HandlerEntry
@@ -77,7 +76,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
-            val ctx = ServletContext(request, response, cfg.pvt.appAttributes)
+            val ctx = DefaultContext(request, response, cfg.pvt.appAttributes)
             LogUtil.setup(ctx, matcher, cfg.pvt.requestLogger != null)
             ctx.contentType(cfg.http.defaultContentType)
 
