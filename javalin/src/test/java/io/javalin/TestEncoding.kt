@@ -81,8 +81,8 @@ class TestEncoding {
     @Test
     fun `content-type can be overridden in handler`() = TestUtil.test(Javalin.create { it.http.defaultContentType = ContentType.JSON }) { app, http ->
         app.get("/override") { ctx ->
-            ctx.res.characterEncoding = "utf-8"
-            ctx.res.contentType = ContentType.HTML
+            ctx.res().characterEncoding = "utf-8"
+            ctx.res().contentType = ContentType.HTML
         }
         assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("utf-8")
         assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)

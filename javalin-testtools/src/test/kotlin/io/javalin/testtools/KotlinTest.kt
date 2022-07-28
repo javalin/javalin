@@ -2,6 +2,7 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.http.Header
+import io.javalin.http.bodyAsClass
 import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient

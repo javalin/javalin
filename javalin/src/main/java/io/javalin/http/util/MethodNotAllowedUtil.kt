@@ -8,6 +8,7 @@ package io.javalin.http.util
 
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
+import io.javalin.http.acceptsHtml
 import io.javalin.routing.PathMatcher
 
 object MethodNotAllowedUtil {
@@ -16,6 +17,6 @@ object MethodNotAllowedUtil {
         enumValues<HandlerType>().filter { it.isHttpMethod() && matcher.findEntries(it, requestUri).isNotEmpty() }
 
     fun getAvailableHandlerTypes(ctx: Context, availableHandlerTypes: List<HandlerType>): Map<String, String> = mapOf(
-        (if (ContextUtil.acceptsHtml(ctx)) "Available methods" else "availableMethods") to availableHandlerTypes.joinToString(", ")
+        (if (acceptsHtml(ctx)) "Available methods" else "availableMethods") to availableHandlerTypes.joinToString(", ")
     )
 }

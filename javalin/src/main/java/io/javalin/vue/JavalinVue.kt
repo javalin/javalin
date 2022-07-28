@@ -7,8 +7,8 @@
 package io.javalin.vue
 
 import io.javalin.http.Context
+import io.javalin.http.isLocalhost
 import io.javalin.http.staticfiles.Location
-import io.javalin.http.util.ContextUtil.isLocalhost
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Files
