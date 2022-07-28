@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 import jakarta.servlet.http.Cookie as JakartaCookie
 
-open class ServletContext(
+class ServletContext(
     override val req: HttpServletRequest,
     override val res: HttpServletResponse,
     internal val appAttributes: Map<String, Any> = mapOf(),
