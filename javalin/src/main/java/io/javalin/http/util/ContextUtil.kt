@@ -25,15 +25,6 @@ import java.util.*
 
 object ContextUtil {
 
-    fun update(ctx: Context, handlerEntry: HandlerEntry, requestUri: String) = ctx.apply {
-        matchedPath = handlerEntry.path
-        pathParamMap = handlerEntry.extractPathParams(requestUri)
-        handlerType = handlerEntry.type
-        if (handlerType != HandlerType.AFTER) {
-            endpointHandlerPath = handlerEntry.path
-        }
-    }
-
     // this header is semi-colon separated, like: "text/html; charset=UTF-8"
     fun getRequestCharset(ctx: Context) = ctx.req.getHeader(Header.CONTENT_TYPE)?.let { value ->
         value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
@@ -70,38 +61,10 @@ object ContextUtil {
     fun acceptsHtml(ctx: Context) =
         ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true
 
-    @JvmStatic
-    @JvmOverloads
-    fun init(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        matchedPath: String = "*",
-        pathParamMap: Map<String, String> = mapOf(),
-        handlerType: HandlerType = HandlerType.INVALID,
-        appAttributes: Map<String, Any> = mapOf()
-    ) = Context(request, response, appAttributes).apply {
-        this.matchedPath = matchedPath
-        this.pathParamMap = pathParamMap
-        this.handlerType = handlerType
-    }
-
     fun Context.isLocalhost() = try {
         URL(this.url()).host.let { it == "localhost" || it == "127.0.0.1" }
     } catch (e: Exception) {
         false
-    }
-
-    fun changeBaseRequest(ctx: Context, req: HttpServletRequest) = Context(req, ctx.res, ctx.appAttributes).apply {
-        this.pathParamMap = ctx.pathParamMap
-        this.matchedPath = ctx.matchedPath
-    }
-
-    fun Context.throwContentTooLargeIfContentTooLarge() {
-        val maxRequestSize = this.appAttribute<Long>(MAX_REQUEST_SIZE_KEY)
-        if (this.req.contentLength > maxRequestSize) {
-            JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
-            throw HttpResponseException(HttpCode.CONTENT_TOO_LARGE.status, HttpCode.CONTENT_TOO_LARGE.message)
-        }
     }
 
     const val MAX_REQUEST_SIZE_KEY = "javalin-max-request-size"

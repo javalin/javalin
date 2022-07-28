@@ -6,11 +6,13 @@
 
 package io.javalin.http.util
 
+import io.javalin.http.Header
 import io.javalin.http.UploadedFile
 import jakarta.servlet.MultipartConfigElement
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
 import java.nio.charset.Charset
+import java.util.*
 
 object MultipartUtil {
     private const val MULTIPART_CONFIG_ATTRIBUTE = "org.eclipse.jetty.multipartConfig"
@@ -39,6 +41,9 @@ object MultipartUtil {
         preUploadFunction(req)
         return req.parts.associate { part -> part.name to getPartValue(req, part.name) }
     }
+
+    fun isMultipart(contentType: String?) = contentType?.lowercase(Locale.ROOT)?.contains("multipart/") == true
+    fun isMultipartFormData(contentType: String?) = contentType?.lowercase(Locale.ROOT)?.contains("multipart/form-data") == true
 
     private fun getPartValue(req: HttpServletRequest, partName: String): List<String> {
         return req.parts.filter { isField(it) && it.name == partName }.map { filePart ->

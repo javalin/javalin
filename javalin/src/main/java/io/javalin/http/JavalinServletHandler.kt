@@ -29,7 +29,7 @@ data class Stage(
     val initializer: StageInitializer = {} // DSL method to add task to the stage's queue
 )
 
-internal data class Result<VALUE : Any?>(
+data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
     val future: CompletableFuture<VALUE>? = null,
     val launch: Runnable? = null,
@@ -128,7 +128,7 @@ class JavalinServletHandler(
     private fun handleFutureResultReference(handler: () -> Unit): CompletableFuture<ExecutionResult> {
         val executedTask = runCatching { handler() }
 
-        val result = ctx.resultReference.getAndUpdate { Result(ctx.resultStream() ?: it.previous) } // remove result to process from context
+        val result = ctx.state.resultReference.getAndUpdate { Result(ctx.resultStream() ?: it.previous) } // remove result to process from context
         result.launch?.run() // notify user that handler finished execution and result was properly handled by servlet, so new async task can be launched
 
         if (!ctx.isAsync() && result.future?.isDone == false) {
@@ -152,7 +152,7 @@ class JavalinServletHandler(
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req.startAsync()
         .addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
-            ctx.resultReference.getAndSet(Result()).also { // cleanup current state of ctx, timeout listener will override it
+            ctx.state.resultReference.getAndSet(Result()).also { // cleanup current state of ctx, timeout listener will override it
                 it.future?.cancel(true)
                 it.previous?.close()
             }

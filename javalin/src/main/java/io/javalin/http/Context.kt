@@ -8,8 +8,6 @@ package io.javalin.http
 
 import io.javalin.config.contextResolver
 import io.javalin.http.util.ContextUtil
-import io.javalin.http.util.ContextUtil.throwContentTooLargeIfContentTooLarge
-import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.plugin.json.jsonMapper
@@ -28,7 +26,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 /** Defines default [ExecutorService] used by [Context.future] */
@@ -41,45 +38,31 @@ const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
  */
 // don't suppress warnings, since annotated classes are ignored by dokka (yeah...)
 open class Context(
-    @JvmField val req: HttpServletRequest,
-    @JvmField val res: HttpServletResponse,
-    @get:JvmSynthetic internal val appAttributes: Map<String, Any> = mapOf()
+    var req: HttpServletRequest,
+    var res: HttpServletResponse,
+    appAttributes: Map<String, Any> = mapOf(),
 ) {
 
-    // @formatter:off
-    @get:JvmSynthetic @set:JvmSynthetic internal var matchedPath = ""
-    @get:JvmSynthetic @set:JvmSynthetic internal var endpointHandlerPath = ""
-    @get:JvmSynthetic @set:JvmSynthetic internal var pathParamMap = mapOf<String, String>()
-    @get:JvmSynthetic @set:JvmSynthetic internal var handlerType = HandlerType.BEFORE
-    @get:JvmSynthetic @set:JvmSynthetic internal var resultReference = AtomicReference<Result<out Any?>>(Result())
-    // @formatter:on
-
-    private val characterEncoding by lazy { ContextUtil.getRequestCharset(this) ?: "UTF-8" }
-
-    private val body by lazy {
-        this.throwContentTooLargeIfContentTooLarge()
-        req.inputStream.readBytes()
-    }
+    val state: ContextState = ContextState(req, res, appAttributes)
 
     /** Gets the handler type of the current handler */
-    fun handlerType(): HandlerType = handlerType
+    fun handlerType(): HandlerType = state.handlerType
 
     /** Gets an attribute from the Javalin instance serving the request */
-    fun <T> appAttribute(key: String): T = appAttributes[key] as T
+    fun <T> appAttribute(key: String): T = state.appAttributes[key] as T
 
-    fun cookieStore() = cookieStore
-    private val cookieStore by lazy { CookieStore(this) }
+    fun cookieStore() = state.cookieStore
 
     /**
      * Gets the path that was used to match request (also includes before/after paths)
      */
-    fun matchedPath() = matchedPath
+    fun matchedPath() = state.matchedPath
 
     /**
      * Gets the endpoint path that was used to match request (null in before, available in endpoint/after)
      */
     fun endpointHandlerPath() = if (handlerType() != HandlerType.BEFORE) {
-        endpointHandlerPath
+        state.endpointHandlerPath
     } else {
         throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
     }
@@ -89,14 +72,14 @@ open class Context(
     ///////////////////////////////////////////////////////////////
 
     /** Gets the request body as a [String]. */
-    fun body(): String = bodyAsBytes().toString(Charset.forName(characterEncoding))
+    fun body(): String = bodyAsBytes().toString(Charset.forName(state.characterEncoding))
 
     /** Gets the request body as a [ByteArray].
      * Calling this method returns the body as a [ByteArray]. If [io.javalin.JavalinConfig.maxRequestSize]
      * is set and body is bigger than its value, a [io.javalin.http.HttpResponseException] is throw,
      * with status 413 CONTENT_TOO_LARGE.
      */
-    fun bodyAsBytes(): ByteArray = body
+    fun bodyAsBytes(): ByteArray = state.body
 
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
     fun <T> bodyAsClass(clazz: Class<T>): T = jsonMapper().fromJsonString(body(), clazz)
@@ -144,14 +127,8 @@ open class Context(
     /** Gets a list of form params for the specified key, or empty list. */
     fun formParams(key: String): List<String> = formParamMap()[key] ?: emptyList()
 
-    /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
-    private val formParams by lazy {
-        if (isMultipartFormData()) MultipartUtil.getFieldMap(req)
-        else ContextUtil.splitKeyValueStringAndGroupByKey(body(), characterEncoding)
-    }
-
     /** Gets a map with all the form param keys and values. */
-    fun formParamMap(): Map<String, List<String>> = formParams
+    fun formParamMap(): Map<String, List<String>> = state.formParams
 
     /**
      * Gets a path param by name (ex: pathParam("param").
@@ -160,7 +137,7 @@ open class Context(
      * and a browser GETs /users/123,
      * pathParam("user-id") will return "123"
      */
-    fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(pathParamMap, key, matchedPath)
+    fun pathParam(key: String): String = ContextUtil.pathParamOrThrow(state.pathParamMap, key, state.matchedPath)
 
     /** Creates a typed [Validator] for the pathParam() value */
     fun <T> pathParamAsClass(key: String, clazz: Class<T>) = Validator.create(clazz, pathParam(key), key)
@@ -169,7 +146,7 @@ open class Context(
     inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
     /** Gets a map of all the [pathParamAsClass] keys and values. */
-    fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(pathParamMap)
+    fun pathParamMap(): Map<String, String> = Collections.unmodifiableMap(state.pathParamMap)
 
     /**
      * Checks whether or not basic-auth credentials from the request exists.
@@ -203,7 +180,7 @@ open class Context(
     fun contentType(): String? = req.contentType
 
     /** Gets a request cookie by name, or null. */
-    fun cookie(name: String): String? = req.cookies?.find { name == it.name }?.value
+    fun cookie(name: String): String? = req.getCookie(name)
 
     /** Gets a map with all the cookie keys and values on the request. */
     fun cookieMap(): Map<String, String> = req.cookies?.associate { it.name to it.value } ?: emptyMap()
@@ -227,14 +204,13 @@ open class Context(
     fun ip(): String = contextResolver().ip.invoke(this)
 
     /** Returns true if request is multipart. */
-    fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/") == true
+    fun isMultipart(): Boolean = MultipartUtil.isMultipart(header(Header.CONTENT_TYPE))
 
     /** Returns true if request is multipart/form-data. */
-    fun isMultipartFormData(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/form-data") == true
+    fun isMultipartFormData(): Boolean = MultipartUtil.isMultipartFormData(header(Header.CONTENT_TYPE))
 
-    private val method by lazy { HandlerType.findByName(header(Header.X_HTTP_METHOD_OVERRIDE) ?: req.method) }
     /** Gets the request method. */
-    fun method(): HandlerType = method
+    fun method(): HandlerType = state.method
 
     /** Gets the request path. */
     fun path(): String = req.requestURI
@@ -257,13 +233,8 @@ open class Context(
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
 
-    /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
-    private val queryParams by lazy {
-        ContextUtil.splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding)
-    }
-
     /** Gets a map with all the query param keys and values. */
-    fun queryParamMap(): Map<String, List<String>> = queryParams
+    fun queryParamMap(): Map<String, List<String>> = state.queryParams
 
     /** Gets the request query string, or null. */
     fun queryString(): String? = req.queryString
@@ -341,7 +312,7 @@ open class Context(
     /**
      * Writes the specified inputStream as a seekable stream.
      * This method is asynchronous and uses the global predefined executor
-     * service stored in [appAttributes] as [ASYNC_EXECUTOR_KEY].
+     * service stored in [ContextState.appAttributes] as [ASYNC_EXECUTOR_KEY].
      * You can change this default in [io.javalin.config.JavalinConfig].
      *
      * @return the [CompletableFuture] used to write the seekable stream
@@ -350,7 +321,7 @@ open class Context(
     fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long = inputStream.available().toLong()) =
         SeekableWriter.write(this, inputStream, contentType, size)
 
-    fun resultStream(): InputStream? = resultReference.get().let { result ->
+    fun resultStream(): InputStream? = state.resultReference.get().let { result ->
         result.future
             ?.takeIf { it.isCompletedSuccessfully() }
             ?.get() as? InputStream?
@@ -362,7 +333,7 @@ open class Context(
      * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
      *
      * @param executor Thread-pool used to execute the given task,
-     * by default this method will use global predefined executor service stored in [appAttributes] as [ASYNC_EXECUTOR_KEY].
+     * by default this method will use global predefined executor service stored in [ContextState.appAttributes] as [ASYNC_EXECUTOR_KEY].
      * You can change this default in [io.javalin.config.JavalinConfig].
      *
      * @param timeout Timeout in milliseconds,
@@ -426,10 +397,10 @@ open class Context(
      * @throws IllegalStateException if result was already set
      */
     fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>? = null): Context = also {
-        if (resultReference.get().future != null) {
+        if (state.resultReference.get().future != null) {
             throw IllegalStateException("Cannot override result")
         }
-        resultReference.updateAndGet { oldResult ->
+        state.resultReference.updateAndGet { oldResult ->
             oldResult.future?.cancel(true)
             Result(
                 previous = oldResult.previous,
@@ -441,7 +412,7 @@ open class Context(
     }
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
+    fun resultFuture(): CompletableFuture<*>? = state.resultReference.get().future
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context {
@@ -494,11 +465,8 @@ open class Context(
 
     /** Removes cookie specified by name and path (optional). */
     @JvmOverloads
-    fun removeCookie(name: String, path: String? = "/"): Context {
-        res.addCookie(jakarta.servlet.http.Cookie(name, "").apply {
-            this.path = path
-            this.maxAge = 0
-        })
+    fun removeCookie(name: String, path: String = "/"): Context {
+        res.removeCookie(name, path)
         return this
     }
 

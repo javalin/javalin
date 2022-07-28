@@ -1,5 +1,7 @@
 package io.javalin.http
 
+import io.javalin.http.util.CookieStore
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.Cookie as ServletCookie
 
@@ -48,6 +50,14 @@ fun HttpServletResponse.setJavalinCookie(javalinCookie: Cookie) {
     }
 
 }
+
+fun HttpServletResponse.removeCookie(name: String, path: String) =
+    this.addCookie(jakarta.servlet.http.Cookie(name, "").apply {
+        this.path = path
+        this.maxAge = 0
+    })
+
+fun HttpServletRequest.getCookie(name: String) = this.cookies?.find { it.name == name }?.value
 
 fun String.addSameSite(cookie: Cookie): String {
     if (cookie.sameSite == null || this.contains(SAME_SITE)) return this

@@ -28,7 +28,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
 
-    fun matchedPath() = upgradeCtx.matchedPath
+    fun matchedPath() = upgradeCtx.state.matchedPath
 
     fun send(message: Any) = send(upgradeCtx.jsonMapper().toJsonString(message))
     fun send(message: String) = session.remote.sendString(message)

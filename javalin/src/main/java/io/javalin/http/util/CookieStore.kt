@@ -6,17 +6,21 @@
 
 package io.javalin.http.util
 
-import io.javalin.http.Context
 import io.javalin.http.Cookie
-import io.javalin.plugin.json.jsonMapper
+import io.javalin.http.getCookie
+import io.javalin.http.removeCookie
+import io.javalin.http.setJavalinCookie
+import io.javalin.plugin.json.JsonMapper
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import java.util.*
 
 @Suppress("UNCHECKED_CAST")
-class CookieStore(val ctx: Context) {
+class CookieStore(var req: HttpServletRequest, var res: HttpServletResponse, val jsonMapper: JsonMapper) {
 
     private val encoder = Base64.getEncoder()
     private val decoder = Base64.getDecoder()
-    private val cookieMap = deserialize(ctx.cookie(COOKIE_NAME))
+    private val cookieMap = deserialize(req.getCookie(COOKIE_NAME))
 
     /**
      * Gets cookie store value for specified key.
@@ -31,7 +35,7 @@ class CookieStore(val ctx: Context) {
      */
     operator fun set(key: String, value: Any) {
         cookieMap[key] = value
-        ctx.cookie(Cookie(COOKIE_NAME, serialize(cookieMap)))
+        res.setJavalinCookie(Cookie(COOKIE_NAME, serialize(cookieMap)))
     }
 
     /**
@@ -40,15 +44,15 @@ class CookieStore(val ctx: Context) {
      */
     fun clear() {
         cookieMap.clear()
-        ctx.removeCookie(COOKIE_NAME)
+        res.removeCookie(COOKIE_NAME, "/")
     }
 
     private fun deserialize(cookie: String?) = if (!cookie.isNullOrEmpty()) {
-        ctx.jsonMapper().fromJsonString(String(decoder.decode(cookie)), Map::class.java) as MutableMap<String, Any>
+        jsonMapper.fromJsonString(String(decoder.decode(cookie)), Map::class.java) as MutableMap<String, Any>
     } else mutableMapOf()
 
     private fun serialize(map: MutableMap<String, Any>) =
-        encoder.encodeToString(ctx.jsonMapper().toJsonString(map).toByteArray())
+        encoder.encodeToString(jsonMapper.toJsonString(map).toByteArray())
 
     companion object {
         var COOKIE_NAME = "javalin-cookie-store"

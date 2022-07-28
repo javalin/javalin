@@ -36,12 +36,14 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     val lifecycle = mutableListOf(
         Stage(DefaultName.BEFORE) { submitTask ->
             matcher.findEntries(BEFORE, requestUri).forEach { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+                ctx.state.update(entry, requestUri)
+                submitTask { entry.handler.handle(ctx) }
             }
         },
         Stage(DefaultName.HTTP) { submitTask ->
             matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+                ctx.state.update(entry, requestUri)
+                submitTask { entry.handler.handle(ctx) }
                 return@Stage // return after first match
             }
             submitTask {
@@ -56,7 +58,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                     return@submitTask
                 }
                 if (ctx.handlerType() == BEFORE) { // no match, status will be 404 or 405 after this point
-                    ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
+                    ctx.state.endpointHandlerPath = "No handler matched request path/method (404/405)"
                 }
                 val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
                 if (cfg.http.prefer405over404 && availableHandlerTypes.isNotEmpty()) {
@@ -70,7 +72,8 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         },
         Stage(DefaultName.AFTER, haltsOnError = false) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+                ctx.state.update(entry, requestUri)
+                submitTask { entry.handler.handle(ctx) }
             }
         }
     )
