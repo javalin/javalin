@@ -539,7 +539,7 @@ class TestWebSocket {
         }, null)
         val pingsToWaitFor = (2..4).shuffled()[0] // randomization is good, wait for 2-4 pings
         client.connectBlocking()
-        doBlocking({ /* wait for pings */ }, conditionFunction = { app.logger().log.size < pingsToWaitFor})
+        doBlocking({ /* wait for pings */ }, conditionFunction = { app.logger().log.size < pingsToWaitFor })
         assertThat(app.logger().log).contains("0")
         doBlocking({ client.send("DISABLE_PINGS") }, { pingFutures.size > 0 }) // check that this map clears
         app.logger().log.clear()
