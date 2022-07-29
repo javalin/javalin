@@ -84,13 +84,6 @@ class DefaultContext(
     private val queryParams by lazy { super.queryParamMap() }
     override fun queryParamMap(): Map<String, List<String>> = queryParams
 
-    override fun redirect(location: String, httpStatusCode: Int) {
-        header(Header.LOCATION, location).status(httpStatusCode)
-        if (handlerType() == HandlerType.BEFORE) {
-            throw RedirectResponse(httpStatusCode)
-        }
-    }
-
     override fun resultStream(): InputStream? = resultReference.get().let { result ->
         result.future
             ?.takeIf { it.isCompletedSuccessfully() }

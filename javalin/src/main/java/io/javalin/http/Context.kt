@@ -316,13 +316,16 @@ interface Context {
     /** Sets response header by name and value. */
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
-    /** Sets the response status code and redirects to the specified location. */
-    fun redirect(location: String, httpStatusCode: Int)
-    /**
-     * Sets redirect to location with [HttpCode.MOVED_PERMANENTLY] status code
-     * @see redirect()
-     */
-    fun redirect(location: String) = redirect(location = location, httpStatusCode = HttpServletResponse.SC_MOVED_TEMPORARILY)
+    /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
+    fun redirect(location: String, httpCode: HttpCode) {
+        header(Header.LOCATION, location).status(httpCode.status).result("Redirected")
+        if (handlerType() == HandlerType.BEFORE) {
+            throw SkipHttpHandlerException()
+        }
+    }
+
+    /** Redirects to location with status [HttpCode.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
+    fun redirect(location: String) = redirect(location, HttpCode.MOVED_PERMANENTLY)
 
     /** Sets the response status. */
     fun status(httpCode: HttpCode): Context = status(httpCode.status)
