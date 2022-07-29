@@ -324,7 +324,7 @@ interface Context {
         }
     }
 
-    /** Ends request lifecycle and redirects to location with status [HttpCode.MOVED_PERMANENTLY] */
+    /** Redirects to location with status [HttpCode.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
     fun redirect(location: String) = redirect(location, HttpCode.MOVED_PERMANENTLY)
 
     /** Sets the response status. */
