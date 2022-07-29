@@ -14,6 +14,7 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.testing.fasterJacksonMapper
 import io.javalin.websocket.WsContext
+import io.javalin.websocket.pingFutures
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.websocket.api.CloseStatus
@@ -26,7 +27,6 @@ import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.framing.Framedata
 import org.java_websocket.handshake.ServerHandshake
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Timeout
 import java.net.URI
 import java.nio.ByteBuffer
 import java.time.Duration
@@ -518,44 +518,38 @@ class TestWebSocket {
             }
         }
     }
+
     @Test
-    @Timeout(value = 500, unit = TimeUnit.MILLISECONDS)
     fun `websocket enableAutomaticPings() works`() = TestUtil.test { app, _ ->
-        app.wsBefore("/ws") { it.onConnect { ctx ->
-            // send [0, 1, 2]
-            ctx.enableAutomaticPings(10, TimeUnit.MILLISECONDS, ByteBuffer.wrap(ByteArray(3) { i -> i.toByte() }))
-        } }
+        app.wsBefore("/ws") {
+            it.onConnect { ctx ->
+                ctx.enableAutomaticPings(5, TimeUnit.MILLISECONDS, ByteBuffer.wrap(byteArrayOf(0, 0, 0)))
+            }
+        }
         app.ws("/ws") { ws ->
             ws.onMessage { ctx ->
                 when (ctx.message()) {
-                    "ENABLE_PINGS" ->
-                        // now send [0, 2, 4]
-                        ctx.enableAutomaticPings(30, TimeUnit.MILLISECONDS, ByteBuffer.wrap(ByteArray(3) { i -> (i * 2).toByte() }))
-                    "DISABLE_PINGS" ->
-                        ctx.disableAutomaticPings()
+                    "ENABLE_PINGS" -> ctx.enableAutomaticPings(5, TimeUnit.MILLISECONDS, ByteBuffer.wrap(byteArrayOf(1, 1, 1)))
+                    "DISABLE_PINGS" -> ctx.disableAutomaticPings()
                 }
             }
         }
-        val client = TestClient(app, "/ws", emptyMap(), {}, null, { frame : Framedata? ->
-            app.logger().log.add(frame!!.payloadData!!.get(2).toString())
+        val client = TestClient(app, "/ws", emptyMap(), {}, null, { frame: Framedata? ->
+            app.logger().log.add(frame!!.payloadData.get(2).toString())
         }, null)
+        val pingsToWaitFor = (2..4).shuffled()[0] // randomization is good, wait for 2-4 pings
         client.connectBlocking()
-        // first, let the server send us the default pings
-        Thread.sleep(100)
-        client.send("DISABLE_PINGS")
-        Thread.sleep(100)
-        val pingsA = app.logger().log.size;
-        Thread.sleep(100)
-        val pingsB = app.logger().log.size;
-        assertThat(pingsA).isEqualTo(pingsB);
-        assertThat(pingsA).isGreaterThan(0);
-        assertThat(app.logger().log).contains("2")
+        doBlocking({ /* wait for pings */ }, conditionFunction = { app.logger().log.size < pingsToWaitFor})
+        assertThat(app.logger().log).contains("0")
+        doBlocking({ client.send("DISABLE_PINGS") }, { pingFutures.size > 0 }) // check that this map clears
         app.logger().log.clear()
-        // reenable pings, now we get the new payload
+        Thread.sleep(50)
+        assertThat(app.logger().log.size).isEqualTo(0) // no pings sent during sleep after disabling pings
+        // re-enable pings, now we get the new payload [1, 1, 1]
         client.send("ENABLE_PINGS")
-        Thread.sleep(100)
-        assertThat(app.logger().log).contains("4")
-        client.disconnectBlocking();
+        doBlocking({ /* wait for pings */ }, conditionFunction = { app.logger().log.size < pingsToWaitFor })
+        assertThat(app.logger().log).contains("1")
+        client.disconnectBlocking()
     }
 
     // ********************************************************************************************
