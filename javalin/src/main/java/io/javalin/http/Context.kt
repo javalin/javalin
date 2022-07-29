@@ -70,7 +70,7 @@ interface Context {
     /** Gets the request user agent, or null. */
     fun userAgent(): String? = req().getHeader(Header.USER_AGENT)
     /** Try to obtain request encoding from [Header.CONTENT_TYPE] header */
-    fun characterEncoding(): String = getRequestCharset(this) ?: "UTF-8"
+    fun characterEncoding(): String? = getRequestCharset(this)
 
     /** Gets the request url. */
     fun url(): String = contextResolver().url.invoke(this)
@@ -113,7 +113,7 @@ interface Context {
     /** Gets a map with all the form param keys and values. */
     fun formParamMap(): Map<String, List<String>> = when {
         isMultipartFormData() -> MultipartUtil.getFieldMap(req())
-        else -> splitKeyValueStringAndGroupByKey(body(), characterEncoding())
+        else -> splitKeyValueStringAndGroupByKey(body(), characterEncoding() ?: "UTF-8")
     }
 
     /**
@@ -136,7 +136,7 @@ interface Context {
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
     /** Gets a map with all the query param keys and values. */
-    fun queryParamMap(): Map<String, List<String>> = splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding())
+    fun queryParamMap(): Map<String, List<String>> = splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding() ?: "UTF-8")
     /** Gets the request query string, or null. */
     fun queryString(): String? = req().queryString
 

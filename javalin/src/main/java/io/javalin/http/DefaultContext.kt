@@ -57,7 +57,7 @@ class DefaultContext(
         else -> throw IllegalStateException("Cannot access the endpoint handler path in a 'BEFORE' handler")
     }
 
-    private val characterEncoding by lazy { super.characterEncoding() }
+    private val characterEncoding by lazy { super.characterEncoding() ?: "UTF-8" }
     override fun characterEncoding(): String = characterEncoding
 
     private val cookieStore by lazy { super.cookieStore() }
