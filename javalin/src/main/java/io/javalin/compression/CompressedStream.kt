@@ -18,7 +18,7 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
 
     override fun write(bytes: ByteArray, offset: Int, length: Int) {
         if (compressedStream == null && length >= compression.minSizeForCompression && compression.allowsForCompression(ctx.res().contentType)) {
-            ctx.acceptedEncoding()
+            ctx.header(Header.ACCEPT_ENCODING)
                 ?.let { tryBrotli(compression, originStream, it) ?: tryGzip(compression, originStream, it) }
                 ?.also { (type, stream) ->
                     this.compressedStream = stream
@@ -57,7 +57,3 @@ class LeveledBrotliStream(out: OutputStream, level: Int) :
 
 private fun CompressionStrategy.allowsForCompression(contentType: String?): Boolean =
     contentType == null || excludedMimeTypesFromCompression.none { excluded -> contentType.contains(excluded, ignoreCase = true) }
-
-private fun Context.acceptedEncoding(): String? =
-    header(Header.ACCEPT_ENCODING)
-
