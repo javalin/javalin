@@ -8,8 +8,8 @@
 package io.javalin
 
 import io.javalin.util.LoomUtil
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.NOT_FOUND
+import io.javalin.http.HttpCodes
+import io.javalin.http.HttpCodes.NOT_FOUND
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
 import jakarta.servlet.DispatcherType
@@ -224,13 +224,13 @@ class TestCustomJetty {
                     override fun init(config: FilterConfig?) {}
                     override fun destroy() {}
                     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-                        (response as HttpServletResponse).status = HttpCode.IM_A_TEAPOT.status
+                        (response as HttpServletResponse).status = HttpCodes.IM_A_TEAPOT.status
                     }
                 }), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
         }
         TestUtil.test(filterJavalin) { _, http ->
-            assertThat(http.get("/test").status).isEqualTo(HttpCode.IM_A_TEAPOT.status)
+            assertThat(http.get("/test").status).isEqualTo(HttpCodes.IM_A_TEAPOT.status)
             assertThat(http.get("/test").body).isNotEqualTo("Test")
         }
     }

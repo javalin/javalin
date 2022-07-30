@@ -20,8 +20,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import java.util.concurrent.ExecutionException;
-import static io.javalin.http.HttpCode.OK;
+import static io.javalin.http.HttpCodes.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

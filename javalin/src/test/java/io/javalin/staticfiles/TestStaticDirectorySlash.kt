@@ -9,7 +9,7 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.http.HttpCode.NOT_FOUND
+import io.javalin.http.HttpCodes.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat

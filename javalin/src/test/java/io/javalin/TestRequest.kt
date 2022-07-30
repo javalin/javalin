@@ -8,7 +8,7 @@ package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.SESSION_CACHE_KEY_PREFIX
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
 import io.javalin.http.formParamAsClass
 import io.javalin.http.headerAsClass
 import io.javalin.http.queryParamAsClass

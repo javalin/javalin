@@ -6,8 +6,8 @@
 
 package io.javalin
 
-import io.javalin.http.HttpCode.NOT_MODIFIED
-import io.javalin.http.HttpCode.OK
+import io.javalin.http.HttpCodes.NOT_MODIFIED
+import io.javalin.http.HttpCodes.OK
 import io.javalin.http.NotFoundResponse
 import io.javalin.plugin.metrics.MicrometerPlugin
 import io.javalin.testing.TestUtil

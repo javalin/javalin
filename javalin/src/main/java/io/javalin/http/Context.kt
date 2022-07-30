@@ -324,14 +324,14 @@ interface Context {
         }
     }
 
-    /** Redirects to location with status [HttpCode.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String) = redirect(location, HttpCode.MOVED_PERMANENTLY)
+    /** Redirects to location with status [HttpCodes.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
+    fun redirect(location: String) = redirect(location, HttpCodes.MOVED_PERMANENTLY)
 
     /** Sets the response status. */
     fun status(httpCode: HttpCode):  Context = also { res().status = httpCode.status }
 
     /** Gets the response status. */
-    fun status(): HttpCode = HttpCode.forStatus(res().status)!!
+    fun status(): HttpCode = HttpCodes.forStatus(res().status)
 
     /** Sets a cookie with name, value, and max-age = -1. */
     fun cookie(name: String, value: String): Context = cookie(name, value, -1)

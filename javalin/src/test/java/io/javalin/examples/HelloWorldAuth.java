@@ -14,8 +14,8 @@ import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO;
-import static io.javalin.http.HttpCode.OK;
-import static io.javalin.http.HttpCode.UNAUTHORIZED;
+import static io.javalin.http.HttpCodes.OK;
+import static io.javalin.http.HttpCodes.UNAUTHORIZED;
 
 public class HelloWorldAuth {
 

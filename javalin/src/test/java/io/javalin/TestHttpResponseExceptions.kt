@@ -12,10 +12,10 @@ import io.javalin.http.ContentType
 import io.javalin.http.ForbiddenResponse
 import io.javalin.http.HttpResponseException
 import io.javalin.http.UnauthorizedResponse
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.FORBIDDEN
-import io.javalin.http.HttpCode.IM_A_TEAPOT
-import io.javalin.http.HttpCode.UNAUTHORIZED
+import io.javalin.http.HttpCodes.BAD_REQUEST
+import io.javalin.http.HttpCodes.FORBIDDEN
+import io.javalin.http.HttpCodes.IM_A_TEAPOT
+import io.javalin.http.HttpCodes.UNAUTHORIZED
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat

@@ -8,14 +8,15 @@
 package io.javalin
 
 import io.javalin.http.BadRequestResponse
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCode.NOT_FOUND
-import io.javalin.http.HttpCode.OK
+import io.javalin.http.HttpCodes.BAD_REQUEST
+import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpCodes.NOT_FOUND
+import io.javalin.http.HttpCodes.OK
 import io.javalin.http.HttpResponseException
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
+import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import kotlin.reflect.full.allSuperclasses
@@ -25,7 +26,7 @@ class TestExceptionMapper {
     @Test
     fun `unmapped exceptions are caught by default handler`() = TestUtil.test { app, http ->
         app.get("/unmapped-exception") { throw Exception() }
-        assertThat(http.get("/unmapped-exception").status).isEqualTo(INTERNAL_SERVER_ERROR.status)
+        assertThat(http.get("/unmapped-exception").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
         assertThat(http.getBody("/unmapped-exception")).isEqualTo(INTERNAL_SERVER_ERROR.message)
     }
 
@@ -33,7 +34,7 @@ class TestExceptionMapper {
     fun `mapped exceptions are handled`() = TestUtil.test { app, http ->
         app.get("/mapped-exception") { throw Exception() }
             .exception(Exception::class.java) { _, ctx -> ctx.result("It's been handled.") }
-        assertThat(http.get("/mapped-exception").status).isEqualTo(OK.status)
+        assertThat(http.get("/mapped-exception").httpCode()).isEqualTo(OK)
         assertThat(http.getBody("/mapped-exception")).isEqualTo("It's been handled.")
     }
 
@@ -41,7 +42,7 @@ class TestExceptionMapper {
     fun `HttpResponseException subclass handler is used`() = TestUtil.test { app, http ->
         app.get("/mapped-http-response-exception") { throw NotFoundResponse() }
             .exception(NotFoundResponse::class.java) { _, ctx -> ctx.result("It's been handled.") }
-        assertThat(http.get("/mapped-http-response-exception").status).isEqualTo(OK.status)
+        assertThat(http.get("/mapped-http-response-exception").httpCode()).isEqualTo(OK)
         assertThat(http.getBody("/mapped-exception")).isEqualTo("It's been handled.")
     }
 
@@ -49,7 +50,7 @@ class TestExceptionMapper {
     fun `HttpResponseException handler is used for subclasses`() = TestUtil.test { app, http ->
         app.get("/mapped-http-response-exception") { throw NotFoundResponse() }
             .exception(HttpResponseException::class.java) { _, ctx -> ctx.result("It's been handled.") }
-        assertThat(http.get("/mapped-http-response-exception").status).isEqualTo(OK.status)
+        assertThat(http.get("/mapped-http-response-exception").httpCode()).isEqualTo(OK)
         assertThat(http.getBody("/mapped-exception")).isEqualTo("It's been handled.")
     }
 
@@ -57,7 +58,7 @@ class TestExceptionMapper {
     fun `type information of exception is not lost`() = TestUtil.test { app, http ->
         app.get("/typed-exception") { throw TypedException() }
             .exception(TypedException::class.java) { e, ctx -> ctx.result(e.proofOfType()) }
-        assertThat(http.get("/typed-exception").status).isEqualTo(OK.status)
+        assertThat(http.get("/typed-exception").httpCode()).isEqualTo(OK)
         assertThat(http.getBody("/typed-exception")).isEqualTo("I'm so typed")
     }
 
@@ -66,21 +67,21 @@ class TestExceptionMapper {
         app.get("/exception-priority") { throw TypedException() }
             .exception(Exception::class.java) { _, ctx -> ctx.result("This shouldn't run") }
             .exception(TypedException::class.java) { _, ctx -> ctx.result("Typed!") }
-        assertThat(http.get("/exception-priority").status).isEqualTo(OK.status)
+        assertThat(http.get("/exception-priority").httpCode()).isEqualTo(OK)
         assertThat(http.getBody("/exception-priority")).isEqualTo("Typed!")
     }
 
     @Test
     fun `catch-all Exception mapper doesn't override 404`() = TestUtil.test { app, http ->
         app.exception(Exception::class.java) { _, ctx -> ctx.status(INTERNAL_SERVER_ERROR) }
-        assertThat(http.get("/not-found").status).isEqualTo(NOT_FOUND.status)
+        assertThat(http.get("/not-found").httpCode()).isEqualTo(NOT_FOUND)
     }
 
     @Test
     fun `catch-all Exception mapper doesn't override HttpResponseExceptions`() = TestUtil.test { app, http ->
         app.exception(Exception::class.java) { _, ctx -> ctx.status(INTERNAL_SERVER_ERROR) }
         app.get("/") { throw BadRequestResponse() }
-        assertThat(http.get("/").status).isEqualTo(BAD_REQUEST.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(BAD_REQUEST)
     }
 
     @Test

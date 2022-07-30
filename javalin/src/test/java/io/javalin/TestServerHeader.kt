@@ -1,6 +1,6 @@
 package io.javalin
 
-import io.javalin.http.HttpCode.OK
+import io.javalin.http.HttpCodes.OK
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat

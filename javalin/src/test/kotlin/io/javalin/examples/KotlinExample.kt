@@ -7,7 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import io.javalin.http.HttpCode
+import io.javalin.http.HttpCodes
 import io.javalin.testing.TypedException
 
 fun main() {
@@ -19,15 +19,15 @@ fun main() {
         }
 
         post("/users/create") { ctx ->
-            ctx.status(HttpCode.CREATED)
+            ctx.status(HttpCodes.CREATED)
         }
 
         patch("/users/update/:id") { ctx ->
-            ctx.status(HttpCode.NO_CONTENT)
+            ctx.status(HttpCodes.NO_CONTENT)
         }
 
         delete("/users/delete/:id") { ctx ->
-            ctx.status(HttpCode.NO_CONTENT)
+            ctx.status(HttpCodes.NO_CONTENT)
         }
 
         exception(Exception::class.java) { e, ctx ->
@@ -38,7 +38,7 @@ fun main() {
             e.proofOfType()
         }
 
-        error(HttpCode.NOT_FOUND) { ctx ->
+        error(HttpCodes.NOT_FOUND) { ctx ->
             ctx.result("not found")
         }
 

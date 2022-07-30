@@ -8,7 +8,7 @@ package io.javalin.javalinvue
 
 import io.javalin.Javalin
 import io.javalin.http.Context
-import io.javalin.http.HttpCode.NOT_FOUND
+import io.javalin.http.HttpCodes.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import io.javalin.vue.JavalinVue

@@ -158,7 +158,7 @@ fun Context.throwContentTooLargeIfContentTooLarge() {
     val maxRequestSize = this.appAttribute<Long>(MAX_REQUEST_SIZE_KEY)
     if (this.req().contentLength > maxRequestSize) {
         JavalinLogger.warn("Body greater than max size ($maxRequestSize bytes)")
-        throw HttpResponseException(HttpCode.CONTENT_TOO_LARGE, HttpCode.CONTENT_TOO_LARGE.message)
+        throw HttpResponseException(HttpCodes.CONTENT_TOO_LARGE, HttpCodes.CONTENT_TOO_LARGE.message)
     }
 }
 

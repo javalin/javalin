@@ -6,7 +6,7 @@ import io.javalin.http.HandlerType.GET
 import io.javalin.http.Header.CONTENT_ENCODING
 import io.javalin.http.Header.ETAG
 import io.javalin.http.Header.IF_NONE_MATCH
-import io.javalin.http.HttpCode.NOT_MODIFIED
+import io.javalin.http.HttpCodes.NOT_MODIFIED
 import io.javalin.util.Util
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener

@@ -8,11 +8,10 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.http.HttpCode;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
-import static io.javalin.http.HttpCode.OK;
+import static io.javalin.http.HttpCodes.OK;
 
 public class HelloWorldApi {
 

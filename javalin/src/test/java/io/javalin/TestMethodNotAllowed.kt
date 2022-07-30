@@ -1,6 +1,6 @@
 package io.javalin
 
-import io.javalin.http.HttpCode.METHOD_NOT_ALLOWED
+import io.javalin.http.HttpCodes.METHOD_NOT_ALLOWED
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

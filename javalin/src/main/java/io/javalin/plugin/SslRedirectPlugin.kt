@@ -2,7 +2,7 @@ package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.http.Header.X_FORWARDED_PROTO
-import io.javalin.http.HttpCode.MOVED_PERMANENTLY
+import io.javalin.http.HttpCodes.MOVED_PERMANENTLY
 import io.javalin.http.isLocalhost
 
 /**

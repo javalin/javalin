@@ -7,7 +7,7 @@
 
 package io.javalin
 
-import io.javalin.http.HttpCode.NOT_FOUND
+import io.javalin.http.HttpCodes.NOT_FOUND
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat

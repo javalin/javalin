@@ -9,7 +9,7 @@ package io.javalin.plugin.metrics
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
-import io.javalin.http.HttpCode
+import io.javalin.http.HttpCodes
 import io.javalin.plugin.Plugin
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
@@ -78,7 +78,7 @@ class MicrometerPlugin @JvmOverloads constructor(
         var EXCEPTION_HANDLER = ExceptionHandler { e: Exception, ctx: Context ->
             val simpleName = e.javaClass.simpleName
             ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
-            ctx.status(HttpCode.INTERNAL_SERVER_ERROR)
+            ctx.status(HttpCodes.INTERNAL_SERVER_ERROR)
         }
     }
 

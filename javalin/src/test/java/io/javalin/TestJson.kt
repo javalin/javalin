@@ -8,8 +8,8 @@ package io.javalin
 
 import com.google.gson.GsonBuilder
 import io.javalin.http.Header
-import io.javalin.http.HttpCode.BAD_REQUEST
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpCodes.BAD_REQUEST
+import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
 import io.javalin.http.bodyAsClass
 import io.javalin.http.bodyStreamAsClass
 import io.javalin.http.bodyValidator
