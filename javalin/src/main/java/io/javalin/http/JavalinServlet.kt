@@ -76,7 +76,13 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
-            val ctx = DefaultContext(request, response, cfg.pvt.appAttributes)
+            val ctx = DefaultContext(
+                req = request,
+                res = response,
+                appAttributes = cfg.pvt.appAttributes,
+                compressionStrategy = cfg.pvt.compressionStrategy
+            )
+
             LogUtil.setup(ctx, matcher, cfg.pvt.requestLogger != null)
             ctx.contentType(cfg.http.defaultContentType)
 

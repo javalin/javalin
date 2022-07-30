@@ -17,6 +17,7 @@ import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
+import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
@@ -217,6 +218,9 @@ interface Context {
 
     /** Gets the current response [Charset]. */
     private fun responseCharset() = runCatching { Charset.forName(res().characterEncoding) }.getOrElse { Charset.defaultCharset() }
+
+    /** Gets raw output stream you can write to */
+    fun outputStream(): ServletOutputStream
 
     /**
      * Writes the specified inputStream as a seekable stream.
