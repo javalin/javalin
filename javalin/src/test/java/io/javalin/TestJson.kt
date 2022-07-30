@@ -8,6 +8,9 @@ package io.javalin
 
 import com.google.gson.GsonBuilder
 import io.javalin.http.Header
+import io.javalin.http.bodyAsClass
+import io.javalin.http.bodyStreamAsClass
+import io.javalin.http.bodyValidator
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.*
 import io.javalin.plugin.json.JavalinJackson

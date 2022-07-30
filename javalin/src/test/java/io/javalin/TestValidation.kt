@@ -10,6 +10,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.*
+import io.javalin.http.bodyValidator
+import io.javalin.http.formParamAsClass
+import io.javalin.http.pathParamAsClass
+import io.javalin.http.queryParamAsClass
 import io.javalin.validation.JavalinValidation
 import io.javalin.validation.NullableValidator
 import io.javalin.validation.ValidationError

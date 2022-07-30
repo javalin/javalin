@@ -10,7 +10,6 @@ package io.javalin
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
@@ -126,20 +125,20 @@ class TestResponse {
 
     @Test
     fun `redirect with status works`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.redirect("/hello-2", MOVED_PERMANENTLY) }
+        app.get("/hello") { it.redirect("/hello-2", HttpCode.MOVED_PERMANENTLY) }
         app.get("/hello-2") { it.result("Redirected") }
         http.disableUnirestRedirects()
-        assertThat(http.call(HttpMethod.GET, "/hello").status).isEqualTo(MOVED_PERMANENTLY.status)
+        assertThat(http.call(HttpMethod.GET, "/hello").status).isEqualTo(HttpCode.MOVED_PERMANENTLY.status)
         http.enableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello").body).isEqualTo("Redirected")
     }
 
     @Test
     fun `redirect to absolute path works`() = TestUtil.test { app, http ->
-        app.get("/hello-abs") { it.redirect("${http.origin}/hello-abs-2", SEE_OTHER) }
+        app.get("/hello-abs") { it.redirect("${http.origin}/hello-abs-2", HttpCode.SEE_OTHER) }
         app.get("/hello-abs-2") { it.result("Redirected") }
         http.disableUnirestRedirects()
-        assertThat(http.call(HttpMethod.GET, "/hello-abs").status).isEqualTo(SEE_OTHER.status)
+        assertThat(http.call(HttpMethod.GET, "/hello-abs").status).isEqualTo(HttpCode.SEE_OTHER.status)
         http.enableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello-abs").body).isEqualTo("Redirected")
     }

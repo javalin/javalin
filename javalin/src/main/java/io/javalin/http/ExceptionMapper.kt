@@ -12,12 +12,16 @@ import io.javalin.util.Util
 import jakarta.servlet.http.HttpServletResponse
 import java.util.concurrent.CompletionException
 
+class SkipHttpHandlerException : RuntimeException()
+
 class ExceptionMapper {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
-        if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
+        if (exception is SkipHttpHandlerException) {
+            // do nothing
+        } else if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
             HttpResponseExceptionMapper.handle(exception, ctx)
         } else {
             val exceptionHandler = Util.findByClass(handlers, exception.javaClass)

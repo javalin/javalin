@@ -9,6 +9,7 @@ package io.javalin.testing
 import io.javalin.http.ContentType
 import io.javalin.http.HttpCode
 import kong.unirest.HttpMethod
+import kong.unirest.HttpResponse
 import kong.unirest.Unirest
 
 class HttpUtil(port: Int) {
@@ -33,3 +34,6 @@ class HttpUtil(port: Int) {
     fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
 
 }
+
+fun HttpResponse<*>.httpCode(): HttpCode? =
+    HttpCode.forStatus(this.status)

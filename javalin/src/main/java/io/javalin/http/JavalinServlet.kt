@@ -12,7 +12,6 @@ import io.javalin.http.HandlerType.BEFORE
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HandlerType.OPTIONS
-import io.javalin.http.util.ContextUtil
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.plugin.CorsPlugin
 import io.javalin.routing.HandlerEntry
@@ -36,26 +35,26 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     val lifecycle = mutableListOf(
         Stage(DefaultName.BEFORE) { submitTask ->
             matcher.findEntries(BEFORE, requestUri).forEach { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+                submitTask { entry.handler.handle(ctx.update(entry, requestUri)) }
             }
         },
         Stage(DefaultName.HTTP) { submitTask ->
-            matcher.findEntries(requestType, requestUri).firstOrNull()?.let { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+            matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
+                submitTask { entry.handler.handle(ctx.update(entry, requestUri)) }
                 return@Stage // return after first match
             }
             submitTask {
-                if (requestType == HEAD && matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
+                if (ctx.method() == HEAD && matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
                     return@submitTask
                 }
-                if (requestType == HEAD || requestType == GET) { // check for static resources (will write response if found)
-                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req, JavalinResponseWrapper(it.ctx, cfg, requestType)) == true) return@submitTask
+                if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
+                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req(), JavalinResponseWrapper(it.ctx, cfg)) == true) return@submitTask
                     if (cfg.pvt.singlePageHandler.handle(ctx)) return@submitTask
                 }
-                if (requestType == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
+                if (ctx.method() == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
                     return@submitTask
                 }
-                if (ctx.handlerType == BEFORE) { // no match, status will be 404 or 405 after this point
+                if (ctx.handlerType() == BEFORE) { // no match, status will be 404 or 405 after this point
                     ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
                 }
                 val availableHandlerTypes = MethodNotAllowedUtil.findAvailableHttpHandlerTypes(matcher, requestUri)
@@ -70,14 +69,14 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         },
         Stage(DefaultName.AFTER, haltsOnError = false) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
-                submitTask { entry.handler.handle(ContextUtil.update(ctx, entry, requestUri)) }
+                submitTask { entry.handler.handle(ctx.update(entry, requestUri)) }
             }
         }
     )
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
-            val ctx = Context(request, response, cfg.pvt.appAttributes)
+            val ctx = DefaultContext(request, response, cfg.pvt.appAttributes)
             LogUtil.setup(ctx, matcher, cfg.pvt.requestLogger != null)
             ctx.contentType(cfg.http.defaultContentType)
 

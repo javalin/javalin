@@ -3,7 +3,7 @@ package io.javalin.plugin
 import io.javalin.Javalin
 import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpCode.MOVED_PERMANENTLY
-import io.javalin.http.util.ContextUtil.isLocalhost
+import io.javalin.http.isLocalhost
 
 /**
  * [SslRedirectPlugin] has to be the first registered plugin to properly handle all requests in 'before' handler.
