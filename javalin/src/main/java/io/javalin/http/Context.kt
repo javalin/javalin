@@ -332,13 +332,13 @@ interface Context {
     /** Sets the response status. */
     fun status(statusCode: Int): Context = also { res().status = statusCode }
     /** Gets the response status. */
-    fun status(): HttpCode = HttpCode.forStatus(res.status)!!
+    fun status(): HttpCode = HttpCode.forStatus(res().status)!!
 
     /** Sets a cookie with name, value, and max-age = -1. */
     fun cookie(name: String, value: String): Context = cookie(name, value, -1)
     /** Sets a cookie with name, value and max-age property*/
     fun cookie(name: String, value: String, maxAge: Int): Context = cookie(Cookie(name = name, value = value, maxAge = maxAge))
-    fun statusCode(): Int = res.status
+    fun statusCode(): Int = res().status
     /** Gets the response status as an Int */
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context = also { res().setJavalinCookie(cookie) }

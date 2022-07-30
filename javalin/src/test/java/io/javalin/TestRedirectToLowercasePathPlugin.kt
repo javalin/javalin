@@ -56,7 +56,7 @@ class TestRedirectToLowercasePathPlugin {
         http.disableUnirestRedirects()
         http.get("/my-endpoint").assertStatusAndBodyMatch(IM_A_TEAPOT.status, "endpoint")
         http.get("/my-ENDPOINT").assertStatusAndBodyMatch(IM_A_TEAPOT.status, "ENDPOINT")
-        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(MOVED_PERMANENTLY.status, MOVED_PERMANENTLY.message)
+        http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(MOVED_PERMANENTLY.status, "Redirected")
         http.enableUnirestRedirects()
         http.get("/MY-eNdPOinT").assertStatusAndBodyMatch(IM_A_TEAPOT.status, "eNdPOinT")
     }

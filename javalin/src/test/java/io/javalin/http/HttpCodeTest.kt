@@ -14,14 +14,8 @@ class HttpCodeTest {
 
     @Test
     fun `fetching http codes by code outside of range should not throw errors`() {
-        assertThat(HttpCode.forStatus(-1)).isNull()
-        assertThat(HttpCode.forStatus(542345)).isNull()
-    }
-
-    @Test
-    fun `fetching custom http codes should work`(){
-        assertThat(HttpCode.forStatus(512)?.status).isEqualTo(512) // should work, allowed values are 100-599
-        assertThat(HttpCode.forStatus(512)).isEqualTo(HttpCode.CUSTOM_HTTP_CODE) // should work, allowed values are 100-599
+        assertThat(HttpCode.forStatus(-1)).isEqualTo(HttpCode.UNKNOWN)
+        assertThat(HttpCode.forStatus(542345)).isEqualTo(HttpCode.UNKNOWN)
     }
 
     @Test

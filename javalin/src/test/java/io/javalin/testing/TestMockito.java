@@ -29,11 +29,11 @@ public class TestMockito {
             status.set(value.getArgument(0, Integer.class));
             return context;
         });
-        when(context.status()).then((invocationOnMock) -> status.get());
+        when(context.statusCode()).then((invocationOnMock) -> status.get());
 
-        assertThat(context.status()).isEqualTo(HttpCode.OK.getStatus());
+        assertThat(context.statusCode()).isEqualTo(HttpCode.OK.getStatus());
         context.status(HttpCode.IM_A_TEAPOT.getStatus());
-        assertThat(context.status()).isEqualTo(HttpCode.IM_A_TEAPOT.getStatus());
+        assertThat(context.statusCode()).isEqualTo(HttpCode.IM_A_TEAPOT.getStatus());
     }
 
 }

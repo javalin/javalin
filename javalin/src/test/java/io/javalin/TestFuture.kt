@@ -3,6 +3,7 @@ package io.javalin
 import io.javalin.http.Header
 import io.javalin.http.ContentType.Companion.JSON
 import io.javalin.http.ContentType.Companion.PLAIN
+import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.ENHANCE_YOUR_CALM
 import io.javalin.http.HttpCode.IM_A_TEAPOT
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
@@ -53,8 +54,8 @@ internal class TestFuture {
 
         @Test
         fun `error-handlers run after future is resolved`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.status(555).future(getFuture("Not result")) }
-            app.error(555) { it.result("Overwritten by error-handler") }
+            app.get("/test-future") { it.status(500).future(getFuture("Not result")) }
+            app.error(500) { it.result("Overwritten by error-handler") }
             assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by error-handler")
         }
 
@@ -117,7 +118,7 @@ internal class TestFuture {
                 it.future(future)
                 throw RuntimeException()
             }
-            assertThat(http.get("/").body).isEqualTo("Internal server error")
+            assertThat(http.get("/").body).isEqualTo(INTERNAL_SERVER_ERROR.message)
             assertThat(future.isCancelled).isTrue()
         }
 
