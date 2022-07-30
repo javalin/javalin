@@ -7,6 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.http.Context
+import io.javalin.http.HttpCode
 import io.javalin.jetty.upgradeContextKey
 import io.javalin.jetty.upgradeSessionAttrsKey
 import io.javalin.plugin.json.jsonMapper
@@ -85,7 +86,7 @@ class WsErrorContext(sessionId: String, session: Session, private val error: Thr
     fun error() = error
 }
 
-class WsCloseContext(sessionId: String, session: Session, private val statusCode: Int, private val reason: String?) : WsContext(sessionId, session) {
+class WsCloseContext(sessionId: String, session: Session, private val statusCode: HttpCode, private val reason: String?) : WsContext(sessionId, session) {
     fun status() = statusCode
     fun reason() = reason
 }
