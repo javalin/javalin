@@ -6,7 +6,7 @@
 package io.javalin;
 
 import io.javalin.http.HandlerType;
-import io.javalin.http.HttpCodes;
+import io.javalin.http.HttpStatus;
 import io.javalin.testing.TestUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class TestContextHandlerType {
             app.after(ctx -> handlerTypes.add(ctx.handlerType()));
             app.get("/", ctx -> handlerTypes.add(ctx.handlerType()));
 
-            Assertions.assertThat(http.get("/").getStatus()).isEqualTo(HttpCodes.OK.getStatus());
+            Assertions.assertThat(http.get("/").getStatus()).isEqualTo(HttpStatus.OK.getStatus());
             Assertions.assertThat(handlerTypes).containsExactly(HandlerType.BEFORE, HandlerType.GET, HandlerType.AFTER);
         });
     }

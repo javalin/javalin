@@ -10,8 +10,8 @@ package io.javalin.staticfiles
 import io.javalin.Javalin
 import io.javalin.http.Header
 import io.javalin.http.ContentType
-import io.javalin.http.HttpCodes.NOT_FOUND
-import io.javalin.http.HttpCodes.OK
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency

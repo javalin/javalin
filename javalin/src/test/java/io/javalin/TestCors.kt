@@ -14,7 +14,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
-import io.javalin.http.HttpCodes.UNAUTHORIZED
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat

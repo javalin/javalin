@@ -6,8 +6,8 @@
 
 package io.javalin
 
-import io.javalin.http.HttpCodes.OK
-import io.javalin.http.HttpCodes.TOO_MANY_REQUESTS
+import io.javalin.http.HttpStatus.OK
+import io.javalin.http.HttpStatus.TOO_MANY_REQUESTS
 import io.javalin.http.util.NaiveRateLimit
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat

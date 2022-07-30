@@ -1,11 +1,11 @@
 package io.javalin.http
 
-interface HttpCode {
+interface HttpStatusCode {
     val status: Int
     val message: String
 }
 
-enum class HttpCodes(override val status: Int, override val message: String) : HttpCode {
+enum class HttpStatus(override val status: Int, override val message: String) : HttpStatusCode {
     CONTINUE(100, "Continue"),
     SWITCHING_PROTOCOLS(101, "Switching Protocols"),
     PROCESSING(102, "Processing"),
@@ -76,7 +76,7 @@ enum class HttpCodes(override val status: Int, override val message: String) : H
 
 
     companion object {
-        private val cachedValues: Array<HttpCodes> = HttpCodes.values()
+        private val cachedValues: Array<HttpStatus> = HttpStatus.values()
 
         fun forStatus(status: Int) = cachedValues.find { it.status == status } ?: UNKNOWN
     }

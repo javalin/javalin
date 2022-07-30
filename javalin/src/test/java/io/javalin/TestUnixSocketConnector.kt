@@ -1,6 +1,6 @@
 package io.javalin
 
-import io.javalin.http.HttpCodes.OK
+import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
 import jnr.unixsocket.UnixSocketAddress
 import jnr.unixsocket.UnixSocketChannel

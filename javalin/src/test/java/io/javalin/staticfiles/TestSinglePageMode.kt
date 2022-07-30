@@ -10,9 +10,9 @@ import io.javalin.Javalin
 import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.Context
-import io.javalin.http.HttpCodes.IM_A_TEAPOT
-import io.javalin.http.HttpCodes.NOT_FOUND
-import io.javalin.http.HttpCodes.OK
+import io.javalin.http.HttpStatus.IM_A_TEAPOT
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil

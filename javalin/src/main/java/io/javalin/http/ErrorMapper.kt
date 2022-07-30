@@ -12,7 +12,7 @@ class ErrorMapper {
 
     private val errorHandlers = mutableSetOf<MapperEntry>()
 
-    fun addHandler(statusCode: HttpCode, contentType: String, handler: Handler) =
+    fun addHandler(statusCode: HttpStatusCode, contentType: String, handler: Handler) =
         errorHandlers.add(MapperEntry(statusCode.status, contentType, handler))
 
     fun handle(statusCode: Int, ctx: Context) = errorHandlers.filter { it.statusCode == statusCode }.forEach {

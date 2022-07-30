@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.http.HttpCodes.NOT_FOUND
+import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode

@@ -7,10 +7,9 @@
 
 package io.javalin
 
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCodes
-import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCodes.NOT_FOUND
+import io.javalin.http.HttpStatusCode
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpResponseException
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -32,7 +31,7 @@ class TestErrorMapper {
         assertThat(http.getBody("/exception")).isEqualTo("Custom 500 page")
     }
 
-    enum class CustomError(override val status: Int, override val message: String) : HttpCode{
+    enum class CustomError(override val status: Int, override val message: String) : HttpStatusCode{
         CUSTOM_ERROR(555, "Custom error");
     }
     @Test

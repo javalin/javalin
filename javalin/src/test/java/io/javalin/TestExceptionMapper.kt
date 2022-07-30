@@ -8,10 +8,10 @@
 package io.javalin
 
 import io.javalin.http.BadRequestResponse
-import io.javalin.http.HttpCodes.BAD_REQUEST
-import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCodes.NOT_FOUND
-import io.javalin.http.HttpCodes.OK
+import io.javalin.http.HttpStatus.BAD_REQUEST
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpResponseException
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil

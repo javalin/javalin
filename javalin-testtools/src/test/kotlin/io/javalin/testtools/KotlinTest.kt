@@ -2,9 +2,9 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.http.Header
-import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCodes.NOT_FOUND
-import io.javalin.http.HttpCodes.OK
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
 import okhttp3.FormBody
 import okhttp3.Interceptor

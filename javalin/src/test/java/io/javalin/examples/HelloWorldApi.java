@@ -11,7 +11,7 @@ import io.javalin.Javalin;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
-import static io.javalin.http.HttpCodes.OK;
+import static io.javalin.http.HttpStatus.OK;
 
 public class HelloWorldApi {
 

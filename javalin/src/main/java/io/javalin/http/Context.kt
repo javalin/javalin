@@ -326,21 +326,21 @@ interface Context {
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String, httpCode: HttpCode) {
+    fun redirect(location: String, httpCode: HttpStatusCode) {
         header(Header.LOCATION, location).status(httpCode).result("Redirected")
         if (handlerType() == HandlerType.BEFORE) {
             throw SkipHttpHandlerException()
         }
     }
 
-    /** Redirects to location with status [HttpCodes.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String) = redirect(location, HttpCodes.MOVED_PERMANENTLY)
+    /** Redirects to location with status [HttpStatus.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
+    fun redirect(location: String) = redirect(location, HttpStatus.MOVED_PERMANENTLY)
 
     /** Sets the response status. */
-    fun status(httpCode: HttpCode):  Context = also { res().status = httpCode.status }
+    fun status(httpCode: HttpStatusCode):  Context = also { res().status = httpCode.status }
 
     /** Gets the response status. */
-    fun status(): HttpCode = HttpCodes.forStatus(res().status)
+    fun status(): HttpStatusCode = HttpStatus.forStatus(res().status)
 
     /** Sets a cookie with name, value, and max-age = -1. */
     fun cookie(name: String, value: String): Context = cookie(name, value, -1)

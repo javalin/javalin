@@ -9,10 +9,10 @@ package io.javalin
 
 import io.javalin.http.ContentType
 import io.javalin.http.Header
-import io.javalin.http.HttpCodes
-import io.javalin.http.HttpCodes.IM_A_TEAPOT
-import io.javalin.http.HttpCodes.MOVED_PERMANENTLY
-import io.javalin.http.HttpCodes.SEE_OTHER
+import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.IM_A_TEAPOT
+import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
+import io.javalin.http.HttpStatus.SEE_OTHER
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
@@ -139,7 +139,7 @@ class TestResponse {
 
     @Test
     fun `redirect to absolute path works`() = TestUtil.test { app, http ->
-        app.get("/hello-abs") { it.redirect("${http.origin}/hello-abs-2", HttpCodes.SEE_OTHER) }
+        app.get("/hello-abs") { it.redirect("${http.origin}/hello-abs-2", HttpStatus.SEE_OTHER) }
         app.get("/hello-abs-2") { it.result("Redirected") }
         http.disableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello-abs").httpCode()).isEqualTo(SEE_OTHER)

@@ -3,29 +3,29 @@ package io.javalin.http
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class HttpCodeTest {
+class HttpStatusCodeTest {
 
     @Test
     fun `fetching http codes by code should get the right code`() {
-        HttpCodes.values().forEach {
-            assertThat(HttpCodes.forStatus(it.status)).isEqualTo(it)
+        HttpStatus.values().forEach {
+            assertThat(HttpStatus.forStatus(it.status)).isEqualTo(it)
         }
     }
 
     @Test
     fun `fetching http codes by code outside of range should not throw errors`() {
-        assertThat(HttpCodes.forStatus(-1)).isEqualTo(HttpCodes.UNKNOWN)
-        assertThat(HttpCodes.forStatus(542345)).isEqualTo(HttpCodes.UNKNOWN)
+        assertThat(HttpStatus.forStatus(-1)).isEqualTo(HttpStatus.UNKNOWN)
+        assertThat(HttpStatus.forStatus(542345)).isEqualTo(HttpStatus.UNKNOWN)
     }
 
     @Test
     fun `http code provides formatted implementation of toString() method`() {
-        HttpCodes.values().forEach {
+        HttpStatus.values().forEach {
             assertThat("${it.status} ${it.message}").isEqualTo(it.toString())
         }
     }
 
-    enum class CustomHttpCode(override val status: Int, override val message: String) : HttpCode {
+    enum class CustomHttpCode(override val status: Int, override val message: String) : HttpStatusCode {
         CUSTOM(123, "Custom message")
     }
 

@@ -6,27 +6,27 @@
 
 package io.javalin.http
 
-import io.javalin.http.HttpCodes.BAD_GATEWAY
-import io.javalin.http.HttpCodes.BAD_REQUEST
-import io.javalin.http.HttpCodes.CONFLICT
-import io.javalin.http.HttpCodes.FORBIDDEN
-import io.javalin.http.HttpCodes.FOUND
-import io.javalin.http.HttpCodes.GATEWAY_TIMEOUT
-import io.javalin.http.HttpCodes.GONE
-import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCodes.METHOD_NOT_ALLOWED
-import io.javalin.http.HttpCodes.NOT_FOUND
-import io.javalin.http.HttpCodes.SERVICE_UNAVAILABLE
-import io.javalin.http.HttpCodes.UNAUTHORIZED
+import io.javalin.http.HttpStatus.BAD_GATEWAY
+import io.javalin.http.HttpStatus.BAD_REQUEST
+import io.javalin.http.HttpStatus.CONFLICT
+import io.javalin.http.HttpStatus.FORBIDDEN
+import io.javalin.http.HttpStatus.FOUND
+import io.javalin.http.HttpStatus.GATEWAY_TIMEOUT
+import io.javalin.http.HttpStatus.GONE
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.SERVICE_UNAVAILABLE
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 
 open class HttpResponseException @JvmOverloads constructor(
-    val code: HttpCode,
+    val code: HttpStatusCode,
     message: String = code.message,
     val details: Map<String, String> = mapOf()
 ) : RuntimeException(message)
 
 class RedirectResponse @JvmOverloads constructor(
-    code: HttpCode = FOUND,
+    code: HttpStatusCode = FOUND,
     message: String = code.message,
     details: Map<String, String> = mapOf()
 ) : HttpResponseException(code, message, details)

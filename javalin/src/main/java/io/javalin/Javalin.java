@@ -19,7 +19,7 @@ import io.javalin.http.Context;
 import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
-import io.javalin.http.HttpCode;
+import io.javalin.http.HttpStatusCode;
 import io.javalin.http.JavalinServlet;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
@@ -300,7 +300,7 @@ public class Javalin implements AutoCloseable {
      *
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
-    public Javalin error(HttpCode statusCode, @NotNull Handler handler) {
+    public Javalin error(HttpStatusCode statusCode, @NotNull Handler handler) {
         return error(statusCode, "*", handler);
     }
 
@@ -310,7 +310,7 @@ public class Javalin implements AutoCloseable {
      *
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
-    public Javalin error(HttpCode statusCode, @NotNull String contentType, @NotNull Handler handler) {
+    public Javalin error(HttpStatusCode statusCode, @NotNull String contentType, @NotNull Handler handler) {
         javalinServlet.getErrorMapper().addHandler(statusCode, contentType, handler);
         return this;
     }

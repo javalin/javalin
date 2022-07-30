@@ -1,7 +1,7 @@
 package io.javalin.testing;
 
 import io.javalin.http.Context;
-import io.javalin.http.HttpCodes;
+import io.javalin.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,16 +24,16 @@ public class TestMockito {
     public void shouldMockRequestAndResponseBasedMethods() {
         Context context = mock(Context.class);
 
-        AtomicReference<HttpCodes> status = new AtomicReference<>(HttpCodes.OK);
-        when(context.status(any(HttpCodes.class))).then(value -> {
-            status.set(value.getArgument(0, HttpCodes.class));
+        AtomicReference<HttpStatus> status = new AtomicReference<>(HttpStatus.OK);
+        when(context.status(any(HttpStatus.class))).then(value -> {
+            status.set(value.getArgument(0, HttpStatus.class));
             return context;
         });
         when(context.status()).then((invocationOnMock) -> status.get());
 
-        assertThat(context.status()).isEqualTo(HttpCodes.OK);
-        context.status(HttpCodes.IM_A_TEAPOT);
-        assertThat(context.status()).isEqualTo(HttpCodes.IM_A_TEAPOT);
+        assertThat(context.status()).isEqualTo(HttpStatus.OK);
+        context.status(HttpStatus.IM_A_TEAPOT);
+        assertThat(context.status()).isEqualTo(HttpStatus.IM_A_TEAPOT);
     }
 
 }

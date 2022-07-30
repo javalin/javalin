@@ -8,10 +8,10 @@ package io.javalin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.javalin.http.HttpCodes.BAD_REQUEST
-import io.javalin.http.HttpCodes.EXPECTATION_FAILED
-import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCodes.OK
+import io.javalin.http.HttpStatus.BAD_REQUEST
+import io.javalin.http.HttpStatus.EXPECTATION_FAILED
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyValidator
 import io.javalin.http.formParamAsClass
 import io.javalin.http.pathParamAsClass

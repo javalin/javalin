@@ -2,7 +2,7 @@ package io.javalin.http.util
 
 import io.javalin.http.Context
 import io.javalin.http.Header
-import io.javalin.http.HttpCodes
+import io.javalin.http.HttpStatus
 import java.io.InputStream
 import java.io.OutputStream
 import kotlin.math.min
@@ -23,7 +23,7 @@ object SeekableWriter {
             requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
             else -> from + chunkSize - 1 // chunk smaller than file, to/from not specified
         }
-        ctx.status(HttpCodes.PARTIAL_CONTENT)
+        ctx.status(HttpStatus.PARTIAL_CONTENT)
         ctx.header(Header.CONTENT_TYPE, contentType)
         ctx.header(Header.ACCEPT_RANGES, "bytes")
         ctx.header(Header.CONTENT_RANGE, "bytes $from-$to/$totalBytes")

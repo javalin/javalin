@@ -11,8 +11,8 @@ import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.http.HttpCodes.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCodes.UNAUTHORIZED
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest

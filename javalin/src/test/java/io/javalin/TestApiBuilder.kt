@@ -20,9 +20,9 @@ import io.javalin.apibuilder.ApiBuilder.put
 import io.javalin.apibuilder.CrudHandler
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import io.javalin.http.HttpCodes.CREATED
-import io.javalin.http.HttpCodes.NO_CONTENT
-import io.javalin.http.HttpCodes.OK
+import io.javalin.http.HttpStatus.CREATED
+import io.javalin.http.HttpStatus.NO_CONTENT
+import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.okHandler
 import kong.unirest.HttpMethod

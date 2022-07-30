@@ -7,9 +7,9 @@
 package io.javalin
 
 import io.javalin.http.Header
-import io.javalin.http.HttpCodes.CREATED
-import io.javalin.http.HttpCodes.NOT_MODIFIED
-import io.javalin.http.HttpCodes.OK
+import io.javalin.http.HttpStatus.CREATED
+import io.javalin.http.HttpStatus.NOT_MODIFIED
+import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions
