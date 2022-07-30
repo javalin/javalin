@@ -9,7 +9,6 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil

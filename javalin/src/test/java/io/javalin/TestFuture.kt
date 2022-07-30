@@ -1,9 +1,8 @@
 package io.javalin
 
-import io.javalin.http.Header
 import io.javalin.http.ContentType.Companion.JSON
 import io.javalin.http.ContentType.Companion.PLAIN
-import io.javalin.http.HttpCode
+import io.javalin.http.Header
 import io.javalin.http.HttpCode.ENHANCE_YOUR_CALM
 import io.javalin.http.HttpCode.IM_A_TEAPOT
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR

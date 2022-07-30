@@ -7,9 +7,8 @@
 
 package io.javalin
 
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
-import io.javalin.http.HttpResponseException
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

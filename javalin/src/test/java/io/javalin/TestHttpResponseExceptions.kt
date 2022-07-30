@@ -7,10 +7,12 @@
 package io.javalin
 
 import io.javalin.http.*
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.BAD_REQUEST
+import io.javalin.http.HttpCode.FORBIDDEN
+import io.javalin.http.HttpCode.IM_A_TEAPOT
+import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.http.HttpStatus
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors

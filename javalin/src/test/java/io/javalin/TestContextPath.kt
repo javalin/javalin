@@ -6,11 +6,10 @@
 
 package io.javalin
 
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
-import io.javalin.util.Util
+import io.javalin.http.HttpCode.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import io.javalin.util.Util
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.function.BiFunction

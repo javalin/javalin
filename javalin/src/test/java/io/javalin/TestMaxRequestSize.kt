@@ -1,7 +1,7 @@
 package io.javalin
 
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.CONTENT_TOO_LARGE
+import io.javalin.http.HttpCode.OK
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

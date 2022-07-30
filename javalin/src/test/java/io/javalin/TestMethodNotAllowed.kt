@@ -1,9 +1,7 @@
 package io.javalin
 
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.METHOD_NOT_ALLOWED
 import io.javalin.testing.TestUtil
-import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

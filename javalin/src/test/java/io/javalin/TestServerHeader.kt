@@ -1,6 +1,5 @@
 package io.javalin
 
-import io.javalin.http.HttpCode
 import io.javalin.http.HttpCode.OK
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod

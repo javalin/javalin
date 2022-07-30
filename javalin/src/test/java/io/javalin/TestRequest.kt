@@ -8,11 +8,10 @@ package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.SESSION_CACHE_KEY_PREFIX
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.http.formParamAsClass
 import io.javalin.http.headerAsClass
 import io.javalin.http.queryParamAsClass
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.BasicAuthFilter
 import io.javalin.testing.TestUtil

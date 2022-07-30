@@ -11,7 +11,8 @@ import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
@@ -20,7 +21,7 @@ import org.junit.jupiter.api.Test
 
 class TestAccessManager {
 
-    enum class MyRoles : io.javalin.security.RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
+    enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp() = Javalin.create { config ->
         config.core.accessManager { handler, ctx, routeRoles ->

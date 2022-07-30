@@ -1,8 +1,7 @@
 package io.javalin
 
 import io.javalin.http.ContentType
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

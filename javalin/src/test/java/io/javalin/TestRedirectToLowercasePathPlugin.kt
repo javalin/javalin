@@ -6,8 +6,8 @@
 
 package io.javalin
 
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.IM_A_TEAPOT
+import io.javalin.http.HttpCode.MOVED_PERMANENTLY
 import io.javalin.plugin.RedirectToLowercasePathPlugin
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse

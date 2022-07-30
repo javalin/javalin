@@ -7,8 +7,8 @@
 package io.javalin
 
 import io.javalin.http.Header
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.NOT_MODIFIED
+import io.javalin.http.HttpCode.OK
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat

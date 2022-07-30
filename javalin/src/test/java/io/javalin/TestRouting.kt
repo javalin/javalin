@@ -10,12 +10,12 @@ package io.javalin
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.http.HttpCode.NOT_FOUND
+import io.javalin.http.HttpCode.OK
 import io.javalin.routing.MissingBracketsException
 import io.javalin.routing.ParameterNamesNotUniqueException
 import io.javalin.routing.WildcardBracketAdjacentException
 import io.javalin.http.HandlerType.TRACE
-import io.javalin.http.HttpCode
-import io.javalin.http.HttpCode.*
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
 import okhttp3.OkHttpClient
