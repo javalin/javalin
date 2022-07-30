@@ -20,6 +20,7 @@ import io.javalin.util.LogUtil
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponseWrapper
 import java.util.*
 
 class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
@@ -48,7 +49,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                     return@submitTask
                 }
                 if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
-                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req(), JavalinResponseWrapper(it.ctx, cfg)) == true) return@submitTask
+                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req(), JavalinResourceResponseWrapper(it.ctx)) == true) return@submitTask
                     if (cfg.pvt.singlePageHandler.handle(ctx)) return@submitTask
                 }
                 if (ctx.method() == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
@@ -104,5 +105,9 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     }
 
     private fun JavalinConfig.isCorsEnabled() = this.pvt.plugins[CorsPlugin::class.java] != null
+
+    private class JavalinResourceResponseWrapper(private val ctx: Context) : HttpServletResponseWrapper(ctx.res()) {
+        override fun getOutputStream() = ctx.outputStream()
+    }
 
 }
