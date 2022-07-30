@@ -18,12 +18,10 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
 
     override fun write(bytes: ByteArray, offset: Int, length: Int) {
         if (compressedStream == null && length >= compression.minSizeForCompression && compression.allowsForCompression(ctx.res().contentType)) {
-            ctx.header(Header.ACCEPT_ENCODING)
-                ?.let { tryBrotli(compression, originStream, it) ?: tryGzip(compression, originStream, it) }
-                ?.also { (type, stream) ->
-                    this.compressedStream = stream
-                    ctx.header(Header.CONTENT_ENCODING, type.typeName)
-                }
+            tryMatchCompression(compression, ctx, originStream)?.also { (type, stream) ->
+                this.compressedStream = stream
+                ctx.header(Header.CONTENT_ENCODING, type.typeName)
+            }
         }
         (compressedStream ?: originStream).write(bytes, offset, length) // fall back to default stream if no compression
     }
@@ -34,6 +32,11 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
     override fun close() { compressedStream?.close() }
 
 }
+
+private fun tryMatchCompression(compression: CompressionStrategy, ctx: Context, originStream: OutputStream): Pair<CompressionType, OutputStream>? =
+    ctx.header(Header.ACCEPT_ENCODING)?.let { acceptedEncoding ->
+        tryBrotli(compression, originStream, acceptedEncoding) ?: tryGzip(compression, originStream, acceptedEncoding)
+    }
 
 private fun tryBrotli(compression: CompressionStrategy, originStream: OutputStream, acceptedEncoding: String): Pair<CompressionType, OutputStream>? = when {
     compression.brotli == null -> null
