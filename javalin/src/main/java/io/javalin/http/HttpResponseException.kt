@@ -6,7 +6,18 @@
 
 package io.javalin.http
 
-import io.javalin.http.HttpCode.*
+import io.javalin.http.HttpCode.BAD_GATEWAY
+import io.javalin.http.HttpCode.BAD_REQUEST
+import io.javalin.http.HttpCode.CONFLICT
+import io.javalin.http.HttpCode.FORBIDDEN
+import io.javalin.http.HttpCode.FOUND
+import io.javalin.http.HttpCode.GATEWAY_TIMEOUT
+import io.javalin.http.HttpCode.GONE
+import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpCode.METHOD_NOT_ALLOWED
+import io.javalin.http.HttpCode.NOT_FOUND
+import io.javalin.http.HttpCode.SERVICE_UNAVAILABLE
+import io.javalin.http.HttpCode.UNAUTHORIZED
 
 open class HttpResponseException @JvmOverloads constructor(
     val code: HttpCode,

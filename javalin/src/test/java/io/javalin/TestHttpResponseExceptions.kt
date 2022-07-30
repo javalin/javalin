@@ -6,7 +6,12 @@
 
 package io.javalin
 
-import io.javalin.http.*
+import io.javalin.http.Header
+import io.javalin.http.BadRequestResponse
+import io.javalin.http.ContentType
+import io.javalin.http.ForbiddenResponse
+import io.javalin.http.HttpResponseException
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.HttpCode.BAD_REQUEST
 import io.javalin.http.HttpCode.FORBIDDEN
 import io.javalin.http.HttpCode.IM_A_TEAPOT
