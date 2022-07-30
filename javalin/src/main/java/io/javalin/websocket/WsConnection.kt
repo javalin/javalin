@@ -6,7 +6,6 @@
 
 package io.javalin.websocket
 
-import io.javalin.http.HttpCode
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
@@ -50,7 +49,7 @@ class WsConnection(val matcher: WsPathMatcher, val exceptionMapper: WsExceptionM
     }
 
     @OnWebSocketClose
-    fun onClose(session: Session, statusCode: HttpCode, reason: String?) {
+    fun onClose(session: Session, statusCode: Int, reason: String?) {
         val ctx = WsCloseContext(sessionId, session, statusCode, reason)
         tryBeforeAndEndpointHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
         tryAfterHandlers(ctx) { it.wsConfig.wsCloseHandler?.handleClose(ctx) }
