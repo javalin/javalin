@@ -14,6 +14,8 @@ import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE;
 import static io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO;
+import static io.javalin.http.HttpCode.OK;
+import static io.javalin.http.HttpCode.UNAUTHORIZED;
 
 public class HelloWorldAuth {
 
@@ -24,16 +26,16 @@ public class HelloWorldAuth {
                 if (userRole != null && routeRoles.contains(MyRoles.valueOf(userRole))) {
                     handler.handle(ctx);
                 } else {
-                    ctx.status(401).result("Unauthorized");
+                    ctx.status(UNAUTHORIZED).result("Unauthorized");
                 }
             });
         }).routes(() -> {
             get("/hello", ctx -> ctx.result("Hello World 1"), ROLE_ONE);
             path("/api", () -> {
                 get("/test", ctx -> ctx.result("Hello World 2"), ROLE_TWO);
-                get("/tast", ctx -> ctx.status(200).result("Hello world 3"), ROLE_THREE);
-                get("/hest", ctx -> ctx.status(200).result("Hello World 4"), ROLE_ONE, ROLE_TWO);
-                get("/hast", ctx -> ctx.status(200).result("Hello World 5").header("test", "tast"), ROLE_ONE, ROLE_THREE);
+                get("/tast", ctx -> ctx.status(OK).result("Hello world 3"), ROLE_THREE);
+                get("/hest", ctx -> ctx.status(OK).result("Hello World 4"), ROLE_ONE, ROLE_TWO);
+                get("/hast", ctx -> ctx.status(OK).result("Hello World 5").header("test", "tast"), ROLE_ONE, ROLE_THREE);
             });
         }).start(7070);
     }

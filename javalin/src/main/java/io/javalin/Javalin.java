@@ -295,16 +295,6 @@ public class Javalin implements AutoCloseable {
      *
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
-    public Javalin error(int statusCode, @NotNull Handler handler) {
-        return error(statusCode, "*", handler);
-    }
-
-    /**
-     * Adds an error mapper to the instance.
-     * Useful for turning error-codes (404, 500) into standardized messages/pages
-     *
-     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
-     */
     public Javalin error(HttpCode statusCode, @NotNull Handler handler) {
         return error(statusCode, "*", handler);
     }
@@ -315,19 +305,9 @@ public class Javalin implements AutoCloseable {
      *
      * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
      */
-    public Javalin error(int statusCode, @NotNull String contentType, @NotNull Handler handler) {
+    public Javalin error(HttpCode statusCode, @NotNull String contentType, @NotNull Handler handler) {
         javalinServlet.getErrorMapper().addHandler(statusCode, contentType, handler);
         return this;
-    }
-
-    /**
-     * Adds an error mapper for the specified content-type to the instance.
-     * Useful for turning error-codes (404, 500) into standardized messages/pages
-     *
-     * @see <a href="https://javalin.io/documentation#error-mapping">Error mapping in docs</a>
-     */
-    public Javalin error(HttpCode statusCode, @NotNull String contentType, @NotNull Handler handler) {
-        return error(statusCode.getStatus(), contentType, handler);
     }
 
 

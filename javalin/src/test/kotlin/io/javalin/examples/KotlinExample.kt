@@ -38,7 +38,7 @@ fun main() {
             e.proofOfType()
         }
 
-        error(404) { ctx ->
+        error(HttpCode.NOT_FOUND) { ctx ->
             ctx.result("not found")
         }
 

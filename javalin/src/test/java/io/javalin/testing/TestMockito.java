@@ -5,10 +5,11 @@ import io.javalin.http.HttpCode;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,16 +25,16 @@ public class TestMockito {
     public void shouldMockRequestAndResponseBasedMethods() {
         Context context = mock(Context.class);
 
-        AtomicInteger status = new AtomicInteger(HttpCode.OK.getStatus());
-        when(context.status(anyInt())).then(value -> {
-            status.set(value.getArgument(0, Integer.class));
+        AtomicReference<HttpCode> status = new AtomicReference<>(HttpCode.OK);
+        when(context.status(any(HttpCode.class))).then(value -> {
+            status.set(value.getArgument(0, HttpCode.class));
             return context;
         });
-        when(context.statusCode()).then((invocationOnMock) -> status.get());
+        when(context.status()).then((invocationOnMock) -> status.get());
 
-        assertThat(context.statusCode()).isEqualTo(HttpCode.OK.getStatus());
-        context.status(HttpCode.IM_A_TEAPOT.getStatus());
-        assertThat(context.statusCode()).isEqualTo(HttpCode.IM_A_TEAPOT.getStatus());
+        assertThat(context.status()).isEqualTo(HttpCode.OK);
+        context.status(HttpCode.IM_A_TEAPOT);
+        assertThat(context.status()).isEqualTo(HttpCode.IM_A_TEAPOT);
     }
 
 }

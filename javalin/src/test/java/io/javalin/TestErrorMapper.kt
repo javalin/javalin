@@ -21,11 +21,6 @@ class TestErrorMapper {
         assertThat(http.getBody("/unmapped")).isEqualTo("Custom 404 page")
     }
 
-    @Test
-    fun `error-mapper works for 404 int`() = TestUtil.test { app, http ->
-        app.error(404) { it.result("Custom 404 page") }
-        assertThat(http.getBody("/unmapped")).isEqualTo("Custom 404 page")
-    }
 
     @Test
     fun `error-mapper works for 500`() = TestUtil.test { app, http ->
@@ -34,12 +29,6 @@ class TestErrorMapper {
         assertThat(http.getBody("/exception")).isEqualTo("Custom 500 page")
     }
 
-    @Test
-    fun `error-mapper works for 500 int`() = TestUtil.test { app, http ->
-        app.get("/exception") { throw RuntimeException() }
-            .error(500) { it.result("Custom 500 page") }
-        assertThat(http.getBody("/exception")).isEqualTo("Custom 500 page")
-    }
 
 
     @Test

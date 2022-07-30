@@ -53,8 +53,8 @@ internal class TestFuture {
 
         @Test
         fun `error-handlers run after future is resolved`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.status(500).future(getFuture("Not result")) }
-            app.error(500) { it.result("Overwritten by error-handler") }
+            app.get("/test-future") { it.status(INTERNAL_SERVER_ERROR).future(getFuture("Not result")) }
+            app.error(INTERNAL_SERVER_ERROR) { it.result("Overwritten by error-handler") }
             assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by error-handler")
         }
 
@@ -137,7 +137,7 @@ internal class TestFuture {
         @Test
         fun `can override timeout with custom error message`() = TestUtil.test(impatientServer) { app, http ->
             app.get("/") { it.future(getFuture("Test", delay = 5000)) }
-            app.error(500) { it.result("My own simple error message") }
+            app.error(INTERNAL_SERVER_ERROR) { it.result("My own simple error message") }
             assertThat(http.get("/").body).isEqualTo("My own simple error message")
         }
 

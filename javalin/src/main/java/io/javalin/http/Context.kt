@@ -318,7 +318,7 @@ interface Context {
 
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
     fun redirect(location: String, httpCode: HttpCode) {
-        header(Header.LOCATION, location).status(httpCode.status).result("Redirected")
+        header(Header.LOCATION, location).status(httpCode).result("Redirected")
         if (handlerType() == HandlerType.BEFORE) {
             throw SkipHttpHandlerException()
         }
@@ -328,9 +328,8 @@ interface Context {
     fun redirect(location: String) = redirect(location, HttpCode.MOVED_PERMANENTLY)
 
     /** Sets the response status. */
-    fun status(httpCode: HttpCode): Context = status(httpCode.status)
-    /** Sets the response status. */
-    fun status(statusCode: Int): Context = also { res().status = statusCode }
+    fun status(httpCode: HttpCode):  Context = also { res().status = httpCode.status }
+
     /** Gets the response status. */
     fun status(): HttpCode = HttpCode.forStatus(res().status)!!
 
@@ -338,8 +337,8 @@ interface Context {
     fun cookie(name: String, value: String): Context = cookie(name, value, -1)
     /** Sets a cookie with name, value and max-age property*/
     fun cookie(name: String, value: String, maxAge: Int): Context = cookie(Cookie(name = name, value = value, maxAge = maxAge))
-    fun statusCode(): Int = res().status
     /** Gets the response status as an Int */
+    fun statusCode(): Int = res().status
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context = also { res().setJavalinCookie(cookie) }
 

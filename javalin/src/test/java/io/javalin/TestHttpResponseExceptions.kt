@@ -12,6 +12,7 @@ import io.javalin.http.HttpCode.FORBIDDEN
 import io.javalin.http.HttpCode.IM_A_TEAPOT
 import io.javalin.http.HttpCode.UNAUTHORIZED
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CompletableFuture
@@ -24,14 +25,14 @@ class TestHttpResponseExceptions {
     fun `default values work`() = TestUtil.test { app, http ->
         app.get("/") { throw BadRequestResponse() }
         assertThat(http.getBody("/")).isEqualTo(BAD_REQUEST.message)
-        assertThat(http.get("/").status).isEqualTo(BAD_REQUEST.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(BAD_REQUEST)
     }
 
     @Test
     fun `custom message works`() = TestUtil.test { app, http ->
         app.get("/") { throw BadRequestResponse("Really bad request") }
         assertThat(http.getBody("/")).isEqualTo("Really bad request")
-        assertThat(http.get("/").status).isEqualTo(BAD_REQUEST.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(BAD_REQUEST)
     }
 
     @Test
@@ -39,7 +40,7 @@ class TestHttpResponseExceptions {
         app.post("/") { throw ForbiddenResponse() }
         val response = http.post("/").header(Header.ACCEPT, ContentType.PLAIN).asString()
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
-        assertThat(response.status).isEqualTo(FORBIDDEN.status)
+        assertThat(response.httpCode()).isEqualTo(FORBIDDEN)
         assertThat(response.body).isEqualTo("Forbidden")
     }
 
@@ -48,7 +49,7 @@ class TestHttpResponseExceptions {
         app.post("/") { throw ForbiddenResponse("Off limits!") }
         val response = http.post("/").header(Header.ACCEPT, ContentType.JSON).asString()
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
-        assertThat(response.status).isEqualTo(FORBIDDEN.status)
+        assertThat(response.httpCode()).isEqualTo(FORBIDDEN)
         assertThat(response.body).isEqualTo(
             """{
             |    "title": "Off limits!",
@@ -65,7 +66,7 @@ class TestHttpResponseExceptions {
     fun `custom response has default type`() = TestUtil.test { app, http ->
         app.post("/") { throw CustomResponse() }
         val response = http.post("/").header(Header.ACCEPT, ContentType.JSON).asString()
-        assertThat(response.status).isEqualTo(IM_A_TEAPOT.status)
+        assertThat(response.httpCode()).isEqualTo(IM_A_TEAPOT)
         assertThat(response.body).isEqualTo(
             """{
                 |    "title": "",
@@ -80,22 +81,22 @@ class TestHttpResponseExceptions {
     fun `throwing HttpResponseExceptions in before-handler works`() = TestUtil.test { app, http ->
         app.before("/admin/*") { throw UnauthorizedResponse() }
         app.get("/admin/protected") { it.result("Protected resource") }
-        assertThat(http.get("/admin/protected").status).isEqualTo(UNAUTHORIZED.status)
+        assertThat(http.get("/admin/protected").httpCode()).isEqualTo(UNAUTHORIZED)
         assertThat(http.getBody("/admin/protected")).isNotEqualTo("Protected resource")
     }
 
     @Test
     fun `throwing HttpResponseExceptions in endpoint-handler works`() = TestUtil.test { app, http ->
         app.get("/some-route") { throw UnauthorizedResponse("Stop!") }
-        assertThat(http.get("/some-route").status).isEqualTo(401)
+        assertThat(http.get("/some-route").httpCode()).isEqualTo(UNAUTHORIZED)
         assertThat(http.getBody("/some-route")).isEqualTo("Stop!")
     }
 
     @Test
     fun `after-handlers execute after HttpResponseExceptions`() = TestUtil.test { app, http ->
         app.get("/some-route") { throw UnauthorizedResponse("Stop!") }
-        app.after { it.status(418) }
-        assertThat(http.get("/some-route").status).isEqualTo(418)
+        app.after { it.status(IM_A_TEAPOT) }
+        assertThat(http.get("/some-route").httpCode()).isEqualTo(IM_A_TEAPOT)
         assertThat(http.getBody("/some-route")).isEqualTo("Stop!")
     }
 
@@ -110,7 +111,7 @@ class TestHttpResponseExceptions {
         }
         app.get("/completed-future-route") { it.future(getExceptionallyCompletingFuture()) }
         assertThat(http.get("/completed-future-route").body).isEqualTo("Unauthorized")
-        assertThat(http.get("/completed-future-route").status).isEqualTo(UNAUTHORIZED.status)
+        assertThat(http.get("/completed-future-route").httpCode()).isEqualTo(UNAUTHORIZED)
     }
 
     @Test
@@ -123,7 +124,7 @@ class TestHttpResponseExceptions {
         }
         app.get("/throwing-future-route") { it.future(getThrowingFuture()) }
         assertThat(http.get("/throwing-future-route").body).isEqualTo("Unauthorized")
-        assertThat(http.get("/throwing-future-route").status).isEqualTo(UNAUTHORIZED.status)
+        assertThat(http.get("/throwing-future-route").httpCode()).isEqualTo(UNAUTHORIZED)
     }
 
     @Test
@@ -144,7 +145,7 @@ class TestHttpResponseExceptions {
     fun `default content type affects http response errors`() = TestUtil.test(Javalin.create { it.http.defaultContentType = ContentType.JSON }) { app, http ->
         app.get("/content-type") { throw ForbiddenResponse() }
         val response = http.get("/content-type")
-        assertThat(response.status).isEqualTo(FORBIDDEN.status)
+        assertThat(response.httpCode()).isEqualTo(FORBIDDEN)
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
         assertThat(response.body).isEqualTo(
             """{
@@ -159,7 +160,7 @@ class TestHttpResponseExceptions {
     @Test
     fun `default exceptions work well with custom content-typed errors`() = TestUtil.test { app, http ->
         app.get("/") { throw ForbiddenResponse("Off limits!") }
-        app.error(403, "html") { it.result("Only mapped for HTML") }
+        app.error(FORBIDDEN, "html") { it.result("Only mapped for HTML") }
         assertThat(http.jsonGet("/").body).isEqualTo(
             """{
             |    "title": "Off limits!",
