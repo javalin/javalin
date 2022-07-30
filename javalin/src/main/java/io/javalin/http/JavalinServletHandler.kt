@@ -2,6 +2,7 @@ package io.javalin.http
 
 import io.javalin.config.JavalinConfig
 import io.javalin.config.contextResolver
+import io.javalin.http.util.ETagGenerator
 import io.javalin.util.LogUtil
 import io.javalin.util.exceptionallyComposeFallback
 import jakarta.servlet.AsyncContext
@@ -167,7 +168,12 @@ class JavalinServletHandler(
     private fun finishResponse() {
         if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
         try {
-            JavalinResponseWrapper(ctx, cfg).write(ctx.resultStream())
+            ctx.outputStream().use { outputStream ->
+                ctx.resultStream()?.use { resultStream ->
+                    val etagWritten = ETagGenerator.tryWriteEtagAndClose(cfg.http.generateEtags, ctx, resultStream)
+                    if (!etagWritten) resultStream.copyTo(outputStream)
+                }
+            }
             cfg.pvt.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(ctx.res(), throwable) // handle any unexpected error, e.g. write failure

@@ -59,6 +59,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             req = req,
             res = res,
             appAttributes = cfg.pvt.appAttributes,
+            compressionStrategy = cfg.pvt.compressionStrategy,
             pathParamMap = entry.extractPathParams(requestUri),
             matchedPath = entry.path
         )
