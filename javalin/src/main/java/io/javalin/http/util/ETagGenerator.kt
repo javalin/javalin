@@ -11,7 +11,7 @@ import java.io.InputStream
 object ETagGenerator {
 
     /** Generates & writes etag if possible, returns true if [resultStream] has been processed, otherwise false */
-    fun writeEtagIfPossible(generatorEnabled: Boolean, ctx: Context, resultStream: InputStream): Boolean {
+    fun tryWriteEtagAndClose(generatorEnabled: Boolean, ctx: Context, resultStream: InputStream): Boolean {
         val serverEtag = ctx.res().getHeader(Header.ETAG)
         val clientEtag = ctx.req().getHeader(Header.IF_NONE_MATCH)
 

@@ -170,7 +170,7 @@ class JavalinServletHandler(
         try {
             ctx.outputStream().use { outputStream ->
                 ctx.resultStream()?.use { resultStream ->
-                    val etagWritten = ETagGenerator.writeEtagIfPossible(cfg.http.generateEtags, ctx, resultStream)
+                    val etagWritten = ETagGenerator.tryWriteEtagAndClose(cfg.http.generateEtags, ctx, resultStream)
                     if (!etagWritten) resultStream.copyTo(outputStream)
                 }
             }
