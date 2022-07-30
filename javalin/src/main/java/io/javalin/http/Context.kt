@@ -219,7 +219,12 @@ interface Context {
     /** Gets the current response [Charset]. */
     private fun responseCharset() = runCatching { Charset.forName(res().characterEncoding) }.getOrElse { Charset.defaultCharset() }
 
-    /** Gets raw output stream you can write to */
+    /**
+     * Gets output-stream you can write to.
+     * This stream by default uses compression specified in Javalin configuration,
+     * if you're looking for raw, uncompressed servlet's output-stream, use `ctx.res().outputStream`.
+     * @see [HttpServletResponse.getOutputStream]
+     */
     fun outputStream(): ServletOutputStream
 
     /**
