@@ -118,7 +118,7 @@ public class JavaTest {
 
     @Test
     public void testing_full_app_works() {
-        JavalinTest.test(JavaApp.app, (server, client) -> {
+        JavalinTest.test(new JavaApp().app, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, app!");
             assertThat(client.get("/hello/").body().string()).isEqualTo("Not found"); // JavaApp.app won't ignore trailing slashes
         });
