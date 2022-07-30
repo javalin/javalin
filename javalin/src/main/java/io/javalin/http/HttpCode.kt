@@ -1,6 +1,6 @@
 package io.javalin.http
 
-enum class HttpCode(var status: Int, val message: String) {
+enum class HttpCode(val status: Int, val message: String) {
     CONTINUE(100, "Continue"),
     SWITCHING_PROTOCOLS(101, "Switching Protocols"),
     PROCESSING(102, "Processing"),
@@ -64,27 +64,16 @@ enum class HttpCode(var status: Int, val message: String) {
     @Deprecated("Obsoleted by https://datatracker.ietf.org/doc/status-change-http-experiments-to-historic/")
     NOT_EXTENDED(510, "Not Extended"),
     NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required"),
-    CUSTOM_HTTP_CODE(599, "Non-standard HTTP code");
+    UNKNOWN(-1, "Unknown HTTP code");
 
     override fun toString(): String =
         "$status $message"
 
+
     companion object {
+        private val cachedValues: Array<HttpCode> = HttpCode.values()
 
-        /** Returns the HttpCode for the given status code. Works for all status codes between 100 and 599. */
-        fun forStatus(status: Int): HttpCode? {
-
-            if (status !in 100..599) return null //Values between 100 and 599 are valid HTTP codes.
-
-            val find = values().find { it.status == status }
-
-            if (find == null) {
-                CUSTOM_HTTP_CODE.status = status; //Allow for custom codes
-                return CUSTOM_HTTP_CODE
-            }
-            return find
-        }
-
+        fun forStatus(status: Int) = cachedValues.find { it.status == status } ?: UNKNOWN
     }
 
 }
