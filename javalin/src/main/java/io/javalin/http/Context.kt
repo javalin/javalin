@@ -17,6 +17,7 @@ import io.javalin.plugin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
+import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
@@ -217,6 +218,14 @@ interface Context {
 
     /** Gets the current response [Charset]. */
     private fun responseCharset() = runCatching { Charset.forName(res().characterEncoding) }.getOrElse { Charset.defaultCharset() }
+
+    /**
+     * Gets output-stream you can write to.
+     * This stream by default uses compression specified in Javalin configuration,
+     * if you're looking for raw, uncompressed servlet's output-stream, use `ctx.res().outputStream`.
+     * @see [HttpServletResponse.getOutputStream]
+     */
+    fun outputStream(): ServletOutputStream
 
     /**
      * Writes the specified inputStream as a seekable stream.

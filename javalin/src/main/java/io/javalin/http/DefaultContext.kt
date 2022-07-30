@@ -6,11 +6,14 @@
 
 package io.javalin.http
 
+import io.javalin.compression.CompressedOutputStream
+import io.javalin.compression.CompressionStrategy
 import io.javalin.http.HandlerType.AFTER
 import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
 import io.javalin.util.isCompletedSuccessfully
+import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
@@ -26,6 +29,7 @@ class DefaultContext(
     private var req: HttpServletRequest,
     private val res: HttpServletResponse,
     private val appAttributes: Map<String, Any> = mapOf(),
+    private val compressionStrategy: CompressionStrategy = CompressionStrategy.NONE,
     private var handlerType: HandlerType = HandlerType.BEFORE,
     private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = mapOf(),
@@ -83,6 +87,9 @@ class DefaultContext(
     /** using an additional map lazily so no new objects are created whenever ctx.formParam*() is called */
     private val queryParams by lazy { super.queryParamMap() }
     override fun queryParamMap(): Map<String, List<String>> = queryParams
+
+    private val outputStreamWrapper by lazy { CompressedOutputStream(compressionStrategy, this) }
+    override fun outputStream(): ServletOutputStream = outputStreamWrapper
 
     override fun resultStream(): InputStream? = resultReference.get().let { result ->
         result.future

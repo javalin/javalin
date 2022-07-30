@@ -10,9 +10,10 @@ import kotlin.math.min
 object SeekableWriter {
     var chunkSize = 128000
     fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long) = ctx.async {
+        val uncompressedStream = ctx.res().outputStream
         if (ctx.header(Header.RANGE) == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)
-            inputStream.transferTo(ctx.res().outputStream)
+            inputStream.transferTo(uncompressedStream)
             return@async
         }
         val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
@@ -27,7 +28,7 @@ object SeekableWriter {
         ctx.header(Header.ACCEPT_RANGES, "bytes")
         ctx.header(Header.CONTENT_RANGE, "bytes $from-$to/$totalBytes")
         ctx.header(Header.CONTENT_LENGTH, "${min(to - from + 1, totalBytes)}")
-        ctx.res().outputStream.write(inputStream, from, to)
+        uncompressedStream.write(inputStream, from, to)
     }
 
     private fun OutputStream.write(inputStream: InputStream, from: Long, to: Long, buffer: ByteArray = ByteArray(1024)) = inputStream.use {
