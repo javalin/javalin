@@ -5,6 +5,11 @@ import org.jetbrains.annotations.NotNull;
 public class Header {
 
     @NotNull
+    public static Header from(String name) {
+        return new Header(name);
+    }
+
+    @NotNull
     public final String name;
 
     private Header(@NotNull String name) {
@@ -104,7 +109,4 @@ public class Header {
     @NotNull public static final Header X_PERMITTED_CROSS_DOMAIN_POLICIES = new Header("X-Permitted-Cross-Domain-Policies");
     @NotNull public static final Header X_ACCEL_BUFFERING = new Header("X-Accel-Buffering");
     //@formatter:on
-    public static Header from(String name) {
-        return new Header(name);
-    }
 }
