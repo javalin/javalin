@@ -34,7 +34,7 @@ public class HelloWorldAuth {
                 get("/test", ctx -> ctx.result("Hello World 2"), ROLE_TWO);
                 get("/tast", ctx -> ctx.status(200).result("Hello world 3"), ROLE_THREE);
                 get("/hest", ctx -> ctx.status(200).result("Hello World 4"), ROLE_ONE, ROLE_TWO);
-                get("/hast", ctx -> ctx.status(200).result("Hello World 5").header(new Header("test"), "tast"), ROLE_ONE, ROLE_THREE);
+                get("/hast", ctx -> ctx.status(200).result("Hello World 5").header(Header.from("test"), "tast"), ROLE_ONE, ROLE_THREE);
             });
         }).start(7070);
     }

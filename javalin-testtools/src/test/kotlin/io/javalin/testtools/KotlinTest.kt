@@ -111,7 +111,7 @@ class KotlinTest {
     @Test
     fun `custom OkHttpClient is used`() {
         val app = Javalin.create()
-            .get("/hello") { ctx -> ctx.result("Hello, ${ctx.header(Header("X-Welcome"))}!") }
+            .get("/hello") { ctx -> ctx.result("Hello, ${ctx.header(Header.from("X-Welcome"))}!") }
 
         val okHttpClientAddingHeader = OkHttpClient.Builder()
             .addInterceptor(Interceptor { chain: Interceptor.Chain ->

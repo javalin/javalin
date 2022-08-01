@@ -73,7 +73,7 @@ class MicrometerPlugin @JvmOverloads constructor(
     }
 
     companion object {
-        private val EXCEPTION_HEADER = Header("__micrometer_exception_name")
+        private val EXCEPTION_HEADER = Header.from("__micrometer_exception_name")
 
         var EXCEPTION_HANDLER = ExceptionHandler { e: Exception, ctx: Context ->
             val simpleName = e.javaClass.simpleName

@@ -31,7 +31,7 @@ fun main() {
             get("/test", { it.result("Hello World 2") }, ROLE_TWO)
             get("/tast", { it.status(200).result("Hello world 3") }, ROLE_THREE)
             get("/hest", { it.status(200).result("Hello World 4") }, ROLE_ONE, ROLE_TWO)
-            get("/hast", { it.status(200).result("Hello World 5").header(Header("test"), "tast") }, ROLE_ONE, ROLE_THREE)
+            get("/hast", { it.status(200).result("Hello World 5").header(Header.from("test"), "tast") }, ROLE_ONE, ROLE_THREE)
         }
     }
 

@@ -21,7 +21,7 @@ fun main() {
             get("/test") { it.result("Hello World") }
             get("/tast") { it.status(200).result("Hello world") }
             get("/hest") { it.status(200).result("Hello World") }
-            get("/hast") { it.status(200).result("Hello World").header(Header("test"), "tast") }
+            get("/hast") { it.status(200).result("Hello World").header(Header.from("test"), "tast") }
         }
     }
 

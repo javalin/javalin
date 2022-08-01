@@ -125,7 +125,7 @@ public class JavaTest {
     @Test
     void custom_okHttpClient_is_used() {
         Javalin app = Javalin.create()
-            .get("/hello", ctx -> ctx.result("Hello, " + ctx.header(new Header("X-Welcome")) + "!"));
+            .get("/hello", ctx -> ctx.result("Hello, " + ctx.header(Header.from("X-Welcome")) + "!"));
 
         OkHttpClient okHttpClientAddingHeader = new OkHttpClient.Builder()
             .addInterceptor(chain -> {

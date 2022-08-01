@@ -8,7 +8,7 @@ public class Header {
     @NotNull
     public final String name;
 
-    public Header(@NotNull String name) {
+    private Header(@NotNull String name) {
         this.name = name;
     }
 
@@ -187,7 +187,7 @@ public class Header {
         return values;
     }
 
-    public static Header of(String name) {
-        return values.stream().filter(it -> it.name.equals(name)).findFirst().orElse(new Header(name));
+    public static Header from(String name) {
+        return new Header(name);
     }
 }

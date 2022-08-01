@@ -35,7 +35,7 @@ class TestResponse {
             I often try to fill if up with wine. - Tim Minchin
         """
         app.get("/hello") { ctx ->
-            ctx.status(418).result(myBody).header(Header("X-HEADER-1"), "my-header-1").header(Header("X-HEADER-2"), "my-header-2")
+            ctx.status(418).result(myBody).header(Header.from("X-HEADER-1"), "my-header-1").header(Header.from("X-HEADER-2"), "my-header-2")
         }
         val response = http.call(HttpMethod.GET, "/hello")
         assertThat(response.status).isEqualTo(418)
