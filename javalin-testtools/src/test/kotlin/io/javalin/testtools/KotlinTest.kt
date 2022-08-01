@@ -1,6 +1,7 @@
 package io.javalin.testtools
 
 import io.javalin.Javalin
+import io.javalin.http.Header
 import io.javalin.http.bodyAsClass
 import okhttp3.FormBody
 import okhttp3.Interceptor
@@ -32,7 +33,7 @@ class KotlinTest {
             val response = "${it.queryParam("from")} ${it.header(Header.FROM)}"
             it.result(response)
         }
-        val response = client.get("/hello?from=From") { it.header(Header.FROM, "Russia With Love") }
+        val response = client.get("/hello?from=From") { it.header(Header.FROM.name, "Russia With Love") }
         assertThat(response.body?.string()).isEqualTo("From Russia With Love")
     }
 
@@ -110,7 +111,7 @@ class KotlinTest {
     @Test
     fun `custom OkHttpClient is used`() {
         val app = Javalin.create()
-            .get("/hello") { ctx -> ctx.result("Hello, ${ctx.header("X-Welcome")}!") }
+            .get("/hello") { ctx -> ctx.result("Hello, ${ctx.header(Header("X-Welcome"))}!") }
 
         val okHttpClientAddingHeader = OkHttpClient.Builder()
             .addInterceptor(Interceptor { chain: Interceptor.Chain ->

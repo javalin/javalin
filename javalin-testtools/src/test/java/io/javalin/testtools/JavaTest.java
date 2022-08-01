@@ -46,7 +46,7 @@ public class JavaTest {
                 String response = ctx.queryParam("from") + " " + ctx.header(Header.FROM);
                 ctx.result(response);
             });
-            Response response = client.get("/hello?from=From", req -> req.header(Header.FROM, "Russia With Love"));
+            Response response = client.get("/hello?from=From", req -> req.header(Header.FROM.name, "Russia With Love"));
             assertThat(response.body().string()).isEqualTo("From Russia With Love");
         });
     }
@@ -125,7 +125,7 @@ public class JavaTest {
     @Test
     void custom_okHttpClient_is_used() {
         Javalin app = Javalin.create()
-            .get("/hello", ctx -> ctx.result("Hello, " + ctx.header("X-Welcome") + "!"));
+            .get("/hello", ctx -> ctx.result("Hello, " + ctx.header(new Header("X-Welcome")) + "!"));
 
         OkHttpClient okHttpClientAddingHeader = new OkHttpClient.Builder()
             .addInterceptor(chain -> {
