@@ -7,7 +7,11 @@
 package io.javalin.testing
 
 import io.javalin.http.ContentType
+import io.javalin.http.Header
 import io.javalin.http.HttpCode
+import kong.unirest.GetRequest
+import kong.unirest.Headers
+import okhttp3.Headers as OkHeaders
 import kong.unirest.HttpMethod
 import kong.unirest.HttpResponse
 import kong.unirest.Unirest
@@ -32,7 +36,6 @@ class HttpUtil(port: Int) {
     fun htmlGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.HTML).asString()
     fun jsonGet(path: String) = Unirest.get(origin + path).header("Accept", ContentType.JSON).asString()
     fun sse(path: String) = Unirest.get(origin + path).header("Accept", "text/event-stream").header("Connection", "keep-alive").header("Cache-Control", "no-cache").asStringAsync()
-
 }
 
 fun HttpResponse<*>.httpCode(): HttpCode? =

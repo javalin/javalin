@@ -206,7 +206,7 @@ class TestWebSocket {
     @Test
     fun `headers and host are available in session`() = TestUtil.test { app, _ ->
         app.ws("/websocket") { ws ->
-            ws.onConnect { ctx -> app.logger().log.add("Header: " + ctx.header("Test")!!) }
+            ws.onConnect { ctx -> app.logger().log.add("Header: " + ctx.header(Header("Test"))!!) }
             ws.onClose { ctx -> app.logger().log.add("Closed connection from: " + ctx.host()!!) }
         }
         TestClient(app, "/websocket", mapOf("Test" to "HeaderParameter")).connectAndDisconnect()
@@ -483,7 +483,7 @@ class TestWebSocket {
     fun `websocket subprotocol is set if included`() = TestUtil.test { app, http ->
         app.ws("/ws") {}
         val response = Unirest.get("http://localhost:${app.port()}/ws")
-            .header(Header.SEC_WEBSOCKET_KEY, "not-null")
+            .header(Header.SEC_WEBSOCKET_KEY.name, "not-null")
             .header(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, "mqtt")
             .asString()
         assertThat(response.headers.getFirst(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL)).isEqualTo("mqtt")

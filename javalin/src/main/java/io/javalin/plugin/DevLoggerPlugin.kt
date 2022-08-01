@@ -67,8 +67,8 @@ private fun resBody(ctx: Context): String {
         return "Body is binary (not logged)"
     }
 
-    val gzipped = ctx.res().getHeader(Header.CONTENT_ENCODING) == "gzip"
-    val brotlied = ctx.res().getHeader(Header.CONTENT_ENCODING) == "br"
+    val gzipped = ctx.res().getHeader(Header.CONTENT_ENCODING.name) == "gzip"
+    val brotlied = ctx.res().getHeader(Header.CONTENT_ENCODING.name) == "br"
     val resBody = ctx.resultString()!!
     return when {
         gzipped -> "Body is gzipped (${resBody.length} bytes, not logged)"

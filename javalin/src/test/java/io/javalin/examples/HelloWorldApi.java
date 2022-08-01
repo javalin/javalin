@@ -8,6 +8,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+import io.javalin.http.Header;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 
@@ -22,7 +23,7 @@ public class HelloWorldApi {
                     get("/test", ctx -> ctx.result("Hello World"));
                     get("/tast", ctx -> ctx.status(200).result("Hello world"));
                     get("/hest", ctx -> ctx.status(200).result("Hello World"));
-                    get("/hast", ctx -> ctx.status(200).result("Hello World").header("test", "tast"));
+                    get("/hast", ctx -> ctx.status(200).result("Hello World").header(new Header("test"), "tast"));
                 });
             });
     }

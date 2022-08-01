@@ -42,10 +42,10 @@ fun HttpServletResponse.setJavalinCookie(javalinCookie: Cookie) {
         }
     }
     this.addCookie(cookie) // we rely on this method for formatting the cookie header
-    (this.getHeaders(Header.SET_COOKIE) ?: listOf()).toMutableList().let { cookies -> // mutable list of all cookies
+    (this.getHeaders(Header.SET_COOKIE.name) ?: listOf()).toMutableList().let { cookies -> // mutable list of all cookies
         cookies.removeIf { it.startsWith("${cookie.name}=") && !it.contains(cookie.value) } // remove old cookie if duplicate name
-        cookies.removeFirst()?.let { first -> this.setHeader(Header.SET_COOKIE, first.addSameSite(javalinCookie)) } // remove first cookie and use it to clear the header
-        cookies.forEach { remaining -> this.addHeader(Header.SET_COOKIE, remaining.addSameSite(javalinCookie)) } // add all remaining cookies
+        cookies.removeFirst()?.let { first -> this.setHeader(Header.SET_COOKIE.name, first.addSameSite(javalinCookie)) } // remove first cookie and use it to clear the header
+        cookies.forEach { remaining -> this.addHeader(Header.SET_COOKIE.name, remaining.addSameSite(javalinCookie)) } // add all remaining cookies
     }
 
 }

@@ -7,8 +7,8 @@
 
 package io.javalin
 
-import io.javalin.http.Header
 import io.javalin.http.ContentType
+import io.javalin.http.Header
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -64,9 +64,9 @@ class TestEncoding {
         app.get("/text") { it.result("суп из капусты") }
         app.get("/json") { it.json("白菜湯") }
         app.get("/html") { it.html("kålsuppe") }
-        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
-        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
-        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.HTML)
+        assertThat(http.get("/text").headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo(ContentType.PLAIN)
+        assertThat(http.get("/json").headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo(ContentType.JSON)
+        assertThat(http.get("/html").headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo(ContentType.HTML)
         assertThat(http.getBody("/text")).isEqualTo("суп из капусты")
         assertThat(http.getBody("/json")).isEqualTo("白菜湯")
         assertThat(http.getBody("/html")).isEqualTo("kålsuppe")
@@ -75,7 +75,7 @@ class TestEncoding {
     @Test
     fun `setting a default content-type works`() = TestUtil.test(Javalin.create { it.http.defaultContentType = ContentType.JSON }) { app, http ->
         app.get("/default") { it.result("not json") }
-        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JSON)
+        assertThat(http.get("/default").headers.getFirst(Header.CONTENT_TYPE.name)).contains(ContentType.JSON)
     }
 
     @Test
@@ -84,15 +84,15 @@ class TestEncoding {
             ctx.res().characterEncoding = "utf-8"
             ctx.res().contentType = ContentType.HTML
         }
-        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains("utf-8")
-        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE.name)).contains("utf-8")
+        assertThat(http.get("/override").headers.getFirst(Header.CONTENT_TYPE.name)).contains(ContentType.HTML)
     }
 
     @Test
     fun `URLEncoded form-params work Windows-1252`() = TestUtil.test { app, http ->
         app.post("/") { it.result(it.formParam("fp")!!) }
         val response = Unirest.post(http.origin)
-            .header(Header.CONTENT_TYPE, "text/plain; charset=Windows-1252")
+            .header(Header.CONTENT_TYPE.name, "text/plain; charset=Windows-1252")
             .body("fp=${URLEncoder.encode("æøå", "Windows-1252")}")
             .asString()
         assertThat(response.body).isEqualTo("æøå")
@@ -102,7 +102,7 @@ class TestEncoding {
     fun `URLEncoded form-params work Windows-1252 alt`() = TestUtil.test { app, http ->
         app.post("/") { it.result(it.formParam("fp")!!) }
         val response = Unirest.post(http.origin)
-            .header(Header.CONTENT_ENCODING, "text/plain; charset=Windows-1252")
+            .header(Header.CONTENT_ENCODING.name, "text/plain; charset=Windows-1252")
             .field("fp", "æøå")
             .asString()
         assertThat(response.body).isEqualTo("æøå")

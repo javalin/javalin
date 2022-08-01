@@ -47,7 +47,7 @@ class CorsBeforeHandler(origins: List<String>) : Handler {
                 ?.run {
                     ctx.header(ACCESS_CONTROL_ALLOW_ORIGIN, originHeader)
                     ctx.header(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
-                    ctx.header(VARY, ORIGIN)
+                    ctx.header(VARY, ORIGIN.name)
                 }
         }
 

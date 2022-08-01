@@ -28,26 +28,26 @@ object JettyPrecompressingResourceHandler {
     fun handle(resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
         if (resource.exists() && !resource.isDirectory) {
             val target = req.getAttribute("jetty-target") as String
-            var acceptCompressType = CompressionType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
+            var acceptCompressType = CompressionType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING.name) ?: "")
             val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
             if (contentType == null || excludedMimeType(contentType)) {
                 acceptCompressType = CompressionType.NONE
             }
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
             res.setContentLength(resultByteArray.size)
-            res.setHeader(Header.CONTENT_TYPE, contentType)
+            res.setHeader(Header.CONTENT_TYPE.name, contentType)
 
             if (acceptCompressType != CompressionType.NONE)
-                res.setHeader(Header.CONTENT_ENCODING, acceptCompressType.typeName)
+                res.setHeader(Header.CONTENT_ENCODING.name, acceptCompressType.typeName)
 
             val weakETag = resource.weakETag // jetty resource use weakETag too
-            req.getHeader(Header.IF_NONE_MATCH)?.let { etag ->
+            req.getHeader(Header.IF_NONE_MATCH.name)?.let { etag ->
                 if (etag == weakETag) {
                     res.status = 304
                     return true
                 }
             }
-            res.setHeader(Header.ETAG, weakETag)
+            res.setHeader(Header.ETAG.name, weakETag)
             resultByteArray.inputStream().copyTo(res.outputStream)
             res.outputStream.close()
             return true

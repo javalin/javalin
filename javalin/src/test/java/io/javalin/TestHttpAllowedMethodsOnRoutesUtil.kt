@@ -25,15 +25,15 @@ class TestHttpAllowedMethodsOnRoutesUtil {
 
         TestUtil.test(javalin) { app, http ->
             val response = Unirest.options(http.origin)
-                .header(Header.ACCESS_CONTROL_REQUEST_HEADERS, "123")
-                .header(Header.ACCESS_CONTROL_REQUEST_METHOD, "TEST")
+                .header(Header.ACCESS_CONTROL_REQUEST_HEADERS.name, "123")
+                .header(Header.ACCESS_CONTROL_REQUEST_METHOD.name, "TEST")
                 .asString()
 
-            Assertions.assertThat(response.headers[Header.ACCESS_CONTROL_ALLOW_METHODS]!![0])
+            Assertions.assertThat(response.headers[Header.ACCESS_CONTROL_ALLOW_METHODS.name]!![0])
                 .isEqualTo("GET,DELETE,OPTIONS")
 
             val usersResponse = Unirest.options(http.origin + "/users").asString()
-            Assertions.assertThat(usersResponse.headers[Header.ACCESS_CONTROL_ALLOW_METHODS]!![0])
+            Assertions.assertThat(usersResponse.headers[Header.ACCESS_CONTROL_ALLOW_METHODS.name]!![0])
                 .isEqualTo("GET,POST,PATCH,OPTIONS")
         }
     }

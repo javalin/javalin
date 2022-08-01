@@ -7,6 +7,7 @@
 package io.javalin.http.util
 
 import io.javalin.http.Context
+import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -18,7 +19,7 @@ object RateLimitUtil {
     val limiters = ConcurrentHashMap<TimeUnit, RateLimiter>()
     var keyFunction: (Context) -> String = { ip(it) + it.method() + it.matchedPath() }
     val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
-    private fun ip(ctx: Context) = ctx.header("X-Forwarded-For")?.split(",")?.get(0) ?: ctx.ip()
+    private fun ip(ctx: Context) = ctx.header(Header.X_FORWARDED_FOR)?.split(",")?.get(0) ?: ctx.ip()
 }
 
 class RateLimiter(val timeUnit: TimeUnit) {

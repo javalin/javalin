@@ -12,8 +12,8 @@ object ETagGenerator {
 
     /** Generates & writes etag if possible, returns true if [resultStream] has been processed, otherwise false */
     fun tryWriteEtagAndClose(generatorEnabled: Boolean, ctx: Context, resultStream: InputStream): Boolean {
-        val serverEtag = ctx.res().getHeader(Header.ETAG)
-        val clientEtag = ctx.req().getHeader(Header.IF_NONE_MATCH)
+        val serverEtag = ctx.res().getHeader(Header.ETAG.name)
+        val clientEtag = ctx.req().getHeader(Header.IF_NONE_MATCH.name)
 
         if (serverEtag != null && serverEtag == clientEtag) {
             ctx.closeWith304(resultStream) // client etag matches, nothing to write)

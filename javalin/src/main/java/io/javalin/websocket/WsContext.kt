@@ -7,6 +7,7 @@
 package io.javalin.websocket
 
 import io.javalin.http.Context
+import io.javalin.http.Header
 import io.javalin.jetty.upgradeContextKey
 import io.javalin.jetty.upgradeSessionAttrsKey
 import io.javalin.plugin.json.jsonMapper
@@ -57,7 +58,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     fun host(): String = upgradeReq.host // why can't we get this from upgradeCtx?
 
-    fun header(header: String): String? = upgradeCtx.header(header)
+    fun header(header: Header): String? = upgradeCtx.header(header)
     fun headerMap(): Map<String, String> = upgradeCtx.headerMap()
 
     fun cookie(name: String) = upgradeCtx.cookie(name)

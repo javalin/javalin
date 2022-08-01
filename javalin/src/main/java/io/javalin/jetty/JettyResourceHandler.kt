@@ -40,7 +40,7 @@ class JettyResourceHandler : JavalinResourceHandler {
             try {
                 val resource = handler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
-                    handler.config.headers.forEach { httpResponse.setHeader(it.key, it.value) }
+                    handler.config.headers.forEach { httpResponse.setHeader(it.key.name, it.value) }
                     if (handler.config.precompress && JettyPrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
                         return true
                     }

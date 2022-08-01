@@ -4,7 +4,6 @@ import io.javalin.http.Context
 import io.javalin.http.Header
 import java.io.InputStream
 
-
 const val CONTEXT_RESOLVER_KEY = "javalin-context-resolver"
 
 fun Context.contextResolver() = this.appAttribute<ContextResolver>(CONTEXT_RESOLVER_KEY)

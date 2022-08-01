@@ -1,7 +1,7 @@
 package io.javalin
 
-import io.javalin.http.Header
 import io.javalin.http.Cookie
+import io.javalin.http.Header
 import io.javalin.http.SameSite
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
@@ -15,7 +15,7 @@ class TestCookie {
         app.get("/cookie") { it.cookie(Cookie("key", "value")) }
 
         val setCookieResponse = http.get("/cookie")
-        val cookiePath = setCookieResponse.headers.getFirst(Header.SET_COOKIE).split(";")[1].replaceFirst(" ", "")
+        val cookiePath = setCookieResponse.headers.getFirst(Header.SET_COOKIE.name).split(";")[1].replaceFirst(" ", "")
 
         assertThat(cookiePath).isEqualTo("Path=/")
     }
@@ -26,11 +26,11 @@ class TestCookie {
         app.get("/cookie") { it.cookie(cookie) }
         app.get("/cookie-remove") { it.removeCookie(cookie.name) }
         val setCookieResponse = http.get("/cookie")
-        assertThat(setCookieResponse.headers.getFirst(Header.SET_COOKIE)).isEqualTo("key=value; Path=/")
+        assertThat(setCookieResponse.headers.getFirst(Header.SET_COOKIE.name)).isEqualTo("key=value; Path=/")
 
         val removeCookieResponse = http.get("/cookie-remove")
 
-        assertThat(cookieIsEffectivelyRemoved(removeCookieResponse.headers.getFirst(Header.SET_COOKIE), "/")).isTrue
+        assertThat(cookieIsEffectivelyRemoved(removeCookieResponse.headers.getFirst(Header.SET_COOKIE.name), "/")).isTrue
     }
 
     @Test
@@ -39,11 +39,11 @@ class TestCookie {
         app.get("/cookie") { it.cookie(cookie) }
         app.get("/cookie-remove") { it.removeCookie(cookie.name) }
         val setCookieResponse = http.get("/cookie")
-        assertThat(setCookieResponse.headers.getFirst(Header.SET_COOKIE)).isEqualTo("key=value; Path=/some-path")
+        assertThat(setCookieResponse.headers.getFirst(Header.SET_COOKIE.name)).isEqualTo("key=value; Path=/some-path")
 
         val removeCookieResponse = http.get("/cookie-remove")
 
-        assertThat(cookieIsEffectivelyRemoved(removeCookieResponse.headers.getFirst(Header.SET_COOKIE), "/some-path")).isFalse
+        assertThat(cookieIsEffectivelyRemoved(removeCookieResponse.headers.getFirst(Header.SET_COOKIE.name), "/some-path")).isFalse
     }
 
     /*
@@ -58,7 +58,7 @@ class TestCookie {
     @Test
     fun `single cookie works`() = TestUtil.test { app, http ->
         app.get("/read-cookie-2") { it.result(it.cookie("my-cookie")!!) }
-        val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE, "my-cookie=my-cookie-value").asString()
+        val response = Unirest.get("${http.origin}/read-cookie-2").header(Header.COOKIE.name, "my-cookie=my-cookie-value").asString()
         assertThat(response.body).isEqualTo("my-cookie-value")
     }
 
@@ -71,7 +71,7 @@ class TestCookie {
     @Test
     fun `cookie-map returns all cookies if cookies are set`() = TestUtil.test { app, http ->
         app.get("/read-cookie-4") { it.result(it.cookieMap().toString()) }
-        val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE, "k1=v1;k2=v2;k3=v3").asString()
+        val response = Unirest.get("${http.origin}/read-cookie-4").header(Header.COOKIE.name, "k1=v1;k2=v2;k3=v3").asString()
         assertThat(response.body).isEqualTo("{k1=v1, k2=v2, k3=v3}")
     }
 
@@ -82,15 +82,15 @@ class TestCookie {
     fun `setting a cookie works`() = TestUtil.test { app, http ->
         app.get("/create-cookie") { it.cookie("Test", "Tast") }
         app.get("/get-cookie") { it.result(it.cookie("Test")!!) }
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).isEqualTo("Test=Tast; Path=/")
+        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE.name)).isEqualTo("Test=Tast; Path=/")
         assertThat(http.getBody("/get-cookie")).isEqualTo("Tast")
     }
 
     @Test
     fun `setting a Cookie object works`() = TestUtil.test { app, http ->
         app.get("/create-cookie") { it.cookie(Cookie("Hest", "Hast", maxAge = 7)) }
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Hest=Hast")
-        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)).contains("Max-Age=7")
+        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE.name)).contains("Hest=Hast")
+        assertThat(http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE.name)).contains("Max-Age=7")
     }
 
     @Test
@@ -102,10 +102,10 @@ class TestCookie {
             it.cookie("Test-3", "4")  // duplicate
         }
         val response = http.get("/create-cookies")
-        assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-1=1; Path=/")
-        assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-2=2; Path=/")
-        assertThat(response.headers[Header.SET_COOKIE]!!).contains("Test-3=4; Path=/")
-        assertThat(response.headers[Header.SET_COOKIE]!!.size).isEqualTo(3)
+        assertThat(response.headers[Header.SET_COOKIE.name]!!).contains("Test-1=1; Path=/")
+        assertThat(response.headers[Header.SET_COOKIE.name]!!).contains("Test-2=2; Path=/")
+        assertThat(response.headers[Header.SET_COOKIE.name]!!).contains("Test-3=4; Path=/")
+        assertThat(response.headers[Header.SET_COOKIE.name]!!.size).isEqualTo(3)
     }
 
     @Test
@@ -115,21 +115,21 @@ class TestCookie {
             it.cookie("MyCookie", "B")  // duplicate
         }
         val response = http.get("/create-cookies")
-        assertThat(response.headers[Header.SET_COOKIE]!!).contains("MyCookie=B; Path=/")
-        assertThat(response.headers[Header.SET_COOKIE]!!.size).isEqualTo(1)
+        assertThat(response.headers[Header.SET_COOKIE.name]!!).contains("MyCookie=B; Path=/")
+        assertThat(response.headers[Header.SET_COOKIE.name]!!.size).isEqualTo(1)
     }
 
     @Test
     fun `can set samesite easily`() = TestUtil.test { app, http ->
         app.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.STRICT)) }
-        val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
+        val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE.name)
         assertThat(cookie).isEqualTo("Test=Tast; Path=/; SameSite=Strict")
     }
 
     @Test
     fun `can set samesite and other properties`() = TestUtil.test { app, http ->
         app.get("/create-cookie") { it.cookie(Cookie("Test", "Tast", sameSite = SameSite.NONE, isHttpOnly = true, domain = "localhost")) }
-        val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE)
+        val cookie = http.get("/create-cookie").headers.getFirst(Header.SET_COOKIE.name)
         assertThat(cookie).isEqualTo("Test=Tast; Path=/; Domain=localhost; HttpOnly; SameSite=None")
     }
 

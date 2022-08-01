@@ -69,7 +69,7 @@ interface Context {
     /** Gets the request context path. */
     fun contextPath(): String = req().contextPath
     /** Gets the request user agent, or null. */
-    fun userAgent(): String? = req().getHeader(Header.USER_AGENT)
+    fun userAgent(): String? = header(Header.USER_AGENT)
     /** Try to obtain request encoding from [Header.CONTENT_TYPE] header */
     fun characterEncoding(): String? = getRequestCharset(this)
 
@@ -173,11 +173,11 @@ interface Context {
     fun cookieMap(): Map<String, String> = req().cookies?.associate { it.name to it.value } ?: emptyMap()
 
     /** Gets a request header by name, or null. */
-    fun header(header: String): String? = req().getHeader(header)
+    fun header(header: Header): String? = req().getHeader(header.name)
     /** Creates a typed [Validator] for the header() value */
-    fun <T> headerAsClass(header: String, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header)
+    fun <T> headerAsClass(header: Header, clazz: Class<T>): Validator<T> = Validator.create(clazz, header(header), header.name)
     /** Gets a map with all the header keys and values on the request(). */
-    fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { header(it)!! }
+    fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { req().getHeader(it)!! }
 
     /**
      * Checks whether basic-auth credentials from the request exists.
@@ -323,7 +323,7 @@ interface Context {
     fun contentType(contentType: ContentType): Context = contentType(contentType.mimeType)
 
     /** Sets response header by name and value. */
-    fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
+    fun header(header: Header, value: String): Context = also { res().setHeader(header.name, value) }
 
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
     fun redirect(location: String, httpCode: HttpCode) {
@@ -396,7 +396,7 @@ inline fun <reified T : Any> Context.bodyValidator() = bodyValidator(T::class.ja
 inline fun <reified T : Any> Context.pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
 /** Reified version of [headerAsClass] (Kotlin only) */
-inline fun <reified T : Any> Context.headerAsClass(header: String) = headerAsClass(header, T::class.java)
+inline fun <reified T : Any> Context.headerAsClass(header: Header) = headerAsClass(header, T::class.java)
 
 /** Reified version of [queryParamAsClass] (Kotlin only) */
 inline fun <reified T : Any> Context.queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)

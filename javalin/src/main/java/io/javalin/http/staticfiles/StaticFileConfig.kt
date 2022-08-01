@@ -12,7 +12,7 @@ data class StaticFileConfig(
     @JvmField var location: Location = Location.CLASSPATH,
     @JvmField var precompress: Boolean = false,
     @JvmField var aliasCheck: AliasCheck? = null,
-    @JvmField var headers: Map<String, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
+    @JvmField var headers: Map<Header, String> = mutableMapOf(Header.CACHE_CONTROL to "max-age=0"),
     @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
 ) {
     internal fun refinedToString(): String {

@@ -16,7 +16,7 @@ import java.util.*
  */
 class Headers {
 
-    val headers = mutableMapOf<String, String>()
+    val headers = mutableMapOf<Header, String>()
 
     // Strict-Transport-Security: max-age=31536000 ; includeSubDomains
     fun strictTransportSecurity(duration: Duration, includeSubdomains: Boolean) {

@@ -30,7 +30,7 @@ class TestJson {
     fun `default mapper maps object to json`() = TestUtil.test { app, http ->
         app.get("/") { it.json(SerializableObject()) }
         val response = http.get("/")
-        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo("application/json")
         assertThat(response.body).isEqualTo(serializableObjectString)
     }
 
@@ -38,7 +38,7 @@ class TestJson {
     fun `default mapper can serialize instant`() = TestUtil.test { app, http ->
         app.get("/") { it.json(Instant.EPOCH) }
         val response = http.get("/")
-        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("application/json")
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo("application/json")
         assertThat(response.body).isEqualTo("0.0")
     }
 

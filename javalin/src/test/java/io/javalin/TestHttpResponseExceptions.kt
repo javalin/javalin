@@ -6,10 +6,10 @@
 
 package io.javalin
 
-import io.javalin.http.Header
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.ContentType
 import io.javalin.http.ForbiddenResponse
+import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.testing.TestUtil
@@ -39,8 +39,8 @@ class TestHttpResponseExceptions {
     @Test
     fun `response is formatted as text if client wants text`() = TestUtil.test { app, http ->
         app.post("/") { throw ForbiddenResponse() }
-        val response = http.post("/").header(Header.ACCEPT, ContentType.PLAIN).asString()
-        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
+        val response = http.post("/").header(Header.ACCEPT.name, ContentType.PLAIN).asString()
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo(ContentType.PLAIN)
         assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN_403)
         assertThat(response.body).isEqualTo("Forbidden")
     }
@@ -48,8 +48,8 @@ class TestHttpResponseExceptions {
     @Test
     fun `response is formatted as json if client wants json`() = TestUtil.test { app, http ->
         app.post("/") { throw ForbiddenResponse("Off limits!") }
-        val response = http.post("/").header(Header.ACCEPT, ContentType.JSON).asString()
-        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
+        val response = http.post("/").header(Header.ACCEPT.name, ContentType.JSON).asString()
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo(ContentType.JSON)
         assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN_403)
         assertThat(response.body).isEqualTo(
             """{
@@ -66,7 +66,7 @@ class TestHttpResponseExceptions {
     @Test
     fun `custom response has default type`() = TestUtil.test { app, http ->
         app.post("/") { throw CustomResponse() }
-        val response = http.post("/").header(Header.ACCEPT, ContentType.JSON).asString()
+        val response = http.post("/").header(Header.ACCEPT.name, ContentType.JSON).asString()
         assertThat(response.status).isEqualTo(418)
         assertThat(response.body).isEqualTo(
             """{
@@ -147,7 +147,7 @@ class TestHttpResponseExceptions {
         app.get("/content-type") { throw ForbiddenResponse() }
         val response = http.get("/content-type")
         assertThat(response.status).isEqualTo(HttpStatus.FORBIDDEN_403)
-        assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.JSON)
+        assertThat(response.headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo(ContentType.JSON)
         assertThat(response.body).isEqualTo(
             """{
             |    "title": "Forbidden",

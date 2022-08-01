@@ -9,6 +9,7 @@ package io.javalin.plugin.metrics
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
+import io.javalin.http.Header
 import io.javalin.plugin.Plugin
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
@@ -72,7 +73,7 @@ class MicrometerPlugin @JvmOverloads constructor(
     }
 
     companion object {
-        private const val EXCEPTION_HEADER = "__micrometer_exception_name"
+        private val EXCEPTION_HEADER = Header("__micrometer_exception_name")
 
         var EXCEPTION_HANDLER = ExceptionHandler { e: Exception, ctx: Context ->
             val simpleName = e.javaClass.simpleName

@@ -86,15 +86,15 @@ class TestCookieStore {
     @Test
     fun `cookieStore cookie path is root`() = TestUtil.test { app, http ->
         app.get("/") { it.cookieStore().set("s", "Hello world!") }
-        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).endsWith("; Path=/")
+        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE.name)).endsWith("; Path=/")
     }
 
     @Test
     fun `renaming cookieStore cookie works`() = TestUtil.test { app, http ->
         app.get("/") { it.cookieStore().set("s", "Hello world!") }
-        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).startsWith(CookieStore.COOKIE_NAME)
+        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE.name)).startsWith(CookieStore.COOKIE_NAME)
         CookieStore.COOKIE_NAME = "another-name"
-        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).startsWith(CookieStore.COOKIE_NAME)
+        assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE.name)).startsWith(CookieStore.COOKIE_NAME)
     }
 
     @Test

@@ -8,9 +8,9 @@ package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
-import io.javalin.http.Header
 import io.javalin.http.JavalinServlet
 import io.javalin.http.DefaultContext
+import io.javalin.http.Header
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -50,7 +50,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
     }
 
     override fun service(req: HttpServletRequest, res: HttpServletResponse) { // this handles both http and websocket
-        if (req.getHeader(Header.SEC_WEBSOCKET_KEY) == null) { // this isn't a websocket request
+        if (req.getHeader(Header.SEC_WEBSOCKET_KEY.name) == null) { // this isn't a websocket request
             return httpServlet.service(req, res) // treat as normal HTTP request
         }
         val requestUri = req.requestURI.removePrefix(req.contextPath)

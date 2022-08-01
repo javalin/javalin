@@ -7,9 +7,9 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.Context
+import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
@@ -77,9 +77,9 @@ class TestSinglePageMode {
 
     @Test
     fun `SinglePageHandler doesn't affect static files - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
-        assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains("application/javascript")
+        assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE.name)).contains("application/javascript")
         assertThat(http.htmlGet("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
-            Header.CONTENT_TYPE)).contains(ContentType.CSS)
+            Header.CONTENT_TYPE.name)).contains(ContentType.CSS)
         assertThat(http.htmlGet("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").status).isEqualTo(200)
     }
 
@@ -92,16 +92,16 @@ class TestSinglePageMode {
 
     @Test
     fun `SinglePageHandler works when accepts is blank or star-slash-star`() = TestUtil.test(rootSinglePageApp_classPath) { app, http ->
-        val blankAcceptsResponseBody = Unirest.get("http://localhost:${app.port()}/not-a-file").header(Header.ACCEPT, "").asString().body
+        val blankAcceptsResponseBody = Unirest.get("http://localhost:${app.port()}/not-a-file").header(Header.ACCEPT.name, "").asString().body
         assertThat(blankAcceptsResponseBody).contains("HTML works")
-        val starSlashStarAcceptsResponseBody = Unirest.get("http://localhost:${app.port()}/not-a-file").header(Header.ACCEPT, "*/*").asString().body
+        val starSlashStarAcceptsResponseBody = Unirest.get("http://localhost:${app.port()}/not-a-file").header(Header.ACCEPT.name, "*/*").asString().body
         assertThat(starSlashStarAcceptsResponseBody).contains("HTML works")
     }
 
     @Test
     fun `SinglePageHandler works when accepts contains star-slash-star`() = TestUtil.test(rootSinglePageApp_classPath) { app, http ->
         val ieAcceptHeader = "image/jpeg, application/x-ms-application, image/gif, application/xaml+xml, image/pjpeg, application/x-ms-xbap, application/x-shockwave-flash, application/msword, */*"
-        val starSlashStarAcceptsResponseBody = Unirest.get("http://localhost:${app.port()}/not-a-file").header(Header.ACCEPT, ieAcceptHeader).asString().body
+        val starSlashStarAcceptsResponseBody = Unirest.get("http://localhost:${app.port()}/not-a-file").header(Header.ACCEPT.name, ieAcceptHeader).asString().body
         assertThat(starSlashStarAcceptsResponseBody).contains("HTML works")
     }
 

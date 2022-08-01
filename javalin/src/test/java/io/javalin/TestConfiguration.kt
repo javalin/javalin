@@ -8,8 +8,8 @@ package io.javalin
 
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Gzip
-import io.javalin.http.Header
 import io.javalin.http.ContentType
+import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.routeoverview.RouteOverviewPlugin
 import io.javalin.plugin.metrics.MicrometerPlugin

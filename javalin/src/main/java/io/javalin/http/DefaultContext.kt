@@ -118,7 +118,7 @@ class DefaultContext(
 }
 
 // this header is semi-colon separated, like: "text/html; charset=UTF-8"
-fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.let { value ->
+fun getRequestCharset(ctx: Context) = ctx.header(Header.CONTENT_TYPE)?.let { value ->
     value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
 }
 

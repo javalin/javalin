@@ -16,9 +16,9 @@ class SseHandler @JvmOverloads constructor(
                 status = 200
                 characterEncoding = "UTF-8"
                 contentType = "text/event-stream"
-                addHeader(Header.CONNECTION, "close")
-                addHeader(Header.CACHE_CONTROL, "no-cache")
-                addHeader(Header.X_ACCEL_BUFFERING, "no") // See https://serverfault.com/a/801629
+                addHeader(Header.CONNECTION.name, "close")
+                addHeader(Header.CACHE_CONTROL.name, "no-cache")
+                addHeader(Header.X_ACCEL_BUFFERING.name, "no") // See https://serverfault.com/a/801629
                 flushBuffer()
             }
             ctx.async(timeout = timeout) {

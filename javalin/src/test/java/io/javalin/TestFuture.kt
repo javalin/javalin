@@ -1,8 +1,8 @@
 package io.javalin
 
-import io.javalin.http.Header
 import io.javalin.http.ContentType.Companion.JSON
 import io.javalin.http.ContentType.Companion.PLAIN
+import io.javalin.http.Header
 import io.javalin.http.HttpCode.ENHANCE_YOUR_CALM
 import io.javalin.http.HttpCode.IM_A_TEAPOT
 import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
@@ -194,12 +194,12 @@ internal class TestFuture {
             val contentResponse = http.get("/?with-content")
             assertThat(contentResponse.httpCode()).isEqualTo(OK)
             assertThat(contentResponse.body).isEqualTo("Result")
-            assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(JSON)
+            assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo(JSON)
 
             val noContentResponse = http.get("/?no-content")
             assertThat(noContentResponse.httpCode()).isEqualTo(NO_CONTENT)
             assertThat(noContentResponse.body).isEmpty()
-            assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(PLAIN)
+            assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE.name)).isEqualTo(PLAIN)
         }
 
         @Test

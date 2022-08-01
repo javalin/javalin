@@ -35,7 +35,7 @@ class TestResponse {
             I often try to fill if up with wine. - Tim Minchin
         """
         app.get("/hello") { ctx ->
-            ctx.status(418).result(myBody).header("X-HEADER-1", "my-header-1").header("X-HEADER-2", "my-header-2")
+            ctx.status(418).result(myBody).header(Header("X-HEADER-1"), "my-header-1").header(Header("X-HEADER-2"), "my-header-2")
         }
         val response = http.call(HttpMethod.GET, "/hello")
         assertThat(response.status).isEqualTo(418)
@@ -164,7 +164,7 @@ class TestResponse {
     fun `seekable - range works`() = TestUtil.test { app, http ->
         app.get("/seekable") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable")
-            .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
+            .headers(mapOf(Header.RANGE.name to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
             .asString().body
         assertThat(response).doesNotContain("a").contains("b").doesNotContain("c")
     }
@@ -180,7 +180,7 @@ class TestResponse {
     fun `seekable - overreaching range works`() = TestUtil.test { app, http ->
         app.get("/seekable-3") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-3")
-            .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize * 4}"))
+            .headers(mapOf(Header.RANGE.name to "bytes=0-${SeekableWriter.chunkSize * 4}"))
             .asBytes()
         assertThat(response.body.size).isEqualTo(SeekableWriter.chunkSize * 3)
     }
@@ -189,7 +189,7 @@ class TestResponse {
     fun `seekable - file smaller than chunksize works`() = TestUtil.test { app, http ->
         app.get("/seekable-4") { it.writeSeekableStream(getSeekableInput(repeats = 50), ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-4")
-            .headers(mapOf(Header.RANGE to "bytes=0-${SeekableWriter.chunkSize}"))
+            .headers(mapOf(Header.RANGE.name to "bytes=0-${SeekableWriter.chunkSize}"))
             .asString().body
         assertThat(response.length).isEqualTo(150)
     }
@@ -212,10 +212,10 @@ class TestResponse {
         val contentSize = 100L
         app.get("/seekable-5") { it.writeSeekableStream(LargeSeekableInput(prefixSize, contentSize), ContentType.PLAIN, prefixSize + contentSize) }
         val response = Unirest.get(http.origin + "/seekable-5")
-            .headers(mapOf(Header.RANGE to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
+            .headers(mapOf(Header.RANGE.name to "bytes=${prefixSize}-${prefixSize + contentSize - 1}"))
             .asString()
 
-        assertThat(response.headers[Header.CONTENT_RANGE]?.get(0)).isEqualTo("bytes ${prefixSize}-${prefixSize + contentSize - 1}/${prefixSize + contentSize}")
+        assertThat(response.headers[Header.CONTENT_RANGE.name]?.get(0)).isEqualTo("bytes ${prefixSize}-${prefixSize + contentSize - 1}/${prefixSize + contentSize}")
         val responseBody = response.body
         assertThat(responseBody.length).isEqualTo(contentSize)
         assertThat(responseBody).doesNotContain(" ")

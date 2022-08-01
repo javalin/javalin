@@ -11,8 +11,8 @@ import com.nixxcode.jvmbrotli.dec.BrotliInputStream
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Gzip
-import io.javalin.util.FileUtil
 import io.javalin.http.Header
+import io.javalin.util.FileUtil
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
@@ -61,27 +61,28 @@ class TestCompression {
         get("/tiny") { it.result(getSomeObjects(10).toString()) }
     }
 
+
     @Test
     fun `doesn't compress when Accept-Encoding is not set`() = TestUtil.test(superCompressingApp()) { _, http ->
-        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "null").asString().let { response -> // dynamic
+        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING.name, "null").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(hugeLength)
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEmpty()
         }
-        Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "null").asString().let { response -> // static
+        Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING.name, "null").asString().let { response -> // static
             assertThat(response.body.length).isEqualTo(testDocument.length)
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEmpty()
         }
     }
 
     @Test
     fun `doesn't compress when response is too small`() = TestUtil.test(customCompressionApp(tinyLength + 1)) { _, http ->
-        Unirest.get(http.origin + "/tiny").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // dynamic
+        Unirest.get(http.origin + "/tiny").header(Header.ACCEPT_ENCODING.name, "br, gzip").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(tinyLength)
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEmpty()
         }
-        Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // static
+        Unirest.get(http.origin + "/html.html").header(Header.ACCEPT_ENCODING.name, "br, gzip").asString().let { response -> // static
             assertThat(response.body.length).isEqualTo(testDocument.length)
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEmpty()
         }
     }
 
@@ -89,20 +90,20 @@ class TestCompression {
     fun `doesn't compress when compression is disabled`() = TestUtil.test(
         Javalin.create { it.compression.none() }.addTestEndpoints()
     ) { _, http ->
-        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "br, gzip").asString().let { response -> // dynamic
+        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING.name, "br, gzip").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(hugeLength)
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEmpty()
         }
     }
 
     @Test
     fun `does gzip when Accept-Encoding header is set and size is big enough`() = TestUtil.test(superCompressingApp()) { _, http ->
         getResponse(http.origin, "/huge", "gzip").let { response -> // dynamic
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("gzip")
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEqualTo("gzip")
             assertThat(response.body!!.contentLength()).isEqualTo(7740L) // hardcoded because lazy
         }
         getResponse(http.origin, "/html.html", "gzip").let { response -> // static
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("gzip")
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEqualTo("gzip")
             assertThat(response.body!!.contentLength()).isBetween(170L, 180L) // hardcoded because lazy
         }
     }
@@ -111,11 +112,11 @@ class TestCompression {
     fun `does brotli when Accept-Encoding header is set and size is big enough`() = TestUtil.test(superCompressingApp()) { _, http ->
         assumeTrue(BrotliLoader.isBrotliAvailable())
         getResponse(http.origin, "/huge", "br").let { response -> // dynamic
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("br")
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEqualTo("br")
             assertThat(response.body!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
         }
         getResponse(http.origin, "/html.html", "br").let { response -> // static
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("br")
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEqualTo("br")
             assertThat(response.body!!.contentLength()).isBetween(130L, 150L) // hardcoded because lazy
         }
     }
@@ -127,18 +128,18 @@ class TestCompression {
             it.staticFiles.add("/public", Location.CLASSPATH)
         }.addTestEndpoints()
         TestUtil.test(gzipDisabledApp) { _, http ->
-            Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "gzip").asString().let { response -> // dynamic
+            Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING.name, "gzip").asString().let { response -> // dynamic
                 assertThat(response.body.length).isEqualTo(hugeLength)
-                assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
+                assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEmpty()
             }
         }
     }
 
     @Test
     fun `doesn't brotli when brotli is disabled`() = TestUtil.test(brotliDisabledApp()) { _, http ->
-        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING, "bz").asString().let { response -> // dynamic
+        Unirest.get(http.origin + "/huge").header(Header.ACCEPT_ENCODING.name, "bz").asString().let { response -> // dynamic
             assertThat(response.body.length).isEqualTo(hugeLength)
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEmpty()
+            assertThat(response.headers.get(Header.CONTENT_ENCODING.name)).isEmpty()
         }
     }
 
@@ -146,7 +147,7 @@ class TestCompression {
     fun `chooses brotli when both enabled and supported`() = TestUtil.test(superCompressingApp()) { _, http ->
         assumeTrue(BrotliLoader.isBrotliAvailable())
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("br")
+            assertThat(response.headers[Header.CONTENT_ENCODING.name]).isEqualTo("br")
             assertThat(response.body!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
         }
     }
@@ -154,7 +155,7 @@ class TestCompression {
     @Test
     fun `does gzip when brotli disabled, but both requested`() = TestUtil.test(brotliDisabledApp()) { _, http ->
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("gzip")
+            assertThat(response.headers[Header.CONTENT_ENCODING.name]).isEqualTo("gzip")
             assertThat(response.body!!.contentLength()).isEqualTo(7740L) // hardcoded because lazy
         }
     }
@@ -162,7 +163,7 @@ class TestCompression {
     @Test
     fun `does gzip when CompressionStrategy not set`() = TestUtil.test(Javalin.create().addTestEndpoints()) { _, http ->
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("gzip")
+            assertThat(response.headers[Header.CONTENT_ENCODING.name]).isEqualTo("gzip")
             assertThat(response.body!!.contentLength()).isEqualTo(7740L) // hardcoded because lazy
         }
     }
@@ -170,31 +171,31 @@ class TestCompression {
     @Test
     fun `writes ETag when uncompressed`() = TestUtil.test(etagApp()) { _, http ->
         getResponse(http.origin, "/huge", "null").let { response -> // dynamic
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isNull()
-            assertThat(response.headers[Header.ETAG]).isNotNull()
+            assertThat(response.headers[Header.CONTENT_ENCODING.name]).isNull()
+            assertThat(response.headers[Header.ETAG.name]).isNotNull()
         }
         getResponse(http.origin, "/html.html", "null").let { response -> // static
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isNull()
-            assertThat(response.headers[Header.ETAG]).isNotNull()
+            assertThat(response.headers[Header.CONTENT_ENCODING.name]).isNull()
+            assertThat(response.headers[Header.ETAG.name]).isNotNull()
         }
     }
 
     @Test
     fun `writes ETag when compressed`() = TestUtil.test(etagApp()) { _, http ->
         getResponse(http.origin, "/huge", "gzip").let { response -> // dynamic
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("gzip")
-            assertThat(response.headers[Header.ETAG]).isNotNull()
+            assertThat(response.headers[Header.CONTENT_ENCODING.name]).isEqualTo("gzip")
+            assertThat(response.headers[Header.ETAG.name]).isNotNull()
         }
         getResponse(http.origin, "/html.html", "gzip").let { response -> // static
-            assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("gzip")
-            assertThat(response.headers[Header.ETAG]).isNotNull()
+            assertThat(response.headers[Header.CONTENT_ENCODING.name]).isEqualTo("gzip")
+            assertThat(response.headers[Header.ETAG.name]).isNotNull()
         }
     }
 
     @Test
     fun `dynamic handler responds with 304 when ETag is set`() = TestUtil.test(etagApp()) { _, http ->
         val firstRes = getResponse(http.origin, "/huge", "br, gzip")
-        val etag = firstRes.headers[Header.ETAG] ?: ""
+        val etag = firstRes.headers.get(Header.ETAG.name) ?: ""
         val secondRes = getResponseWithEtag(http.origin, "/huge", "gzip", etag)
         assertThat(secondRes.code).isEqualTo(304)
     }
@@ -202,7 +203,7 @@ class TestCompression {
     @Test
     fun `static handler responds with 304 when ETag is set`() = TestUtil.test(etagApp()) { _, http ->
         val firstRes = getResponse(http.origin, "/html.html", "br, gzip")
-        val etag = firstRes.headers[Header.ETAG] ?: ""
+        val etag = firstRes.headers.get(Header.ETAG.name) ?: ""
         val secondRes = getResponseWithEtag(http.origin, "/html.html", "gzip", etag)
         assertThat(secondRes.code).isEqualTo(304)
     }
@@ -275,14 +276,14 @@ class TestCompression {
     private fun assertUncompressedResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br, gzip")
         assertThat(response.code).isLessThan(400)
-        assertThat(response.header(Header.CONTENT_ENCODING)).isNull()
+        assertThat(response.header(Header.CONTENT_ENCODING.name)).isNull()
         val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
         assertThat(response.body!!.string()).isEqualTo(uncompressedResponse)
     }
 
     private fun assertValidBrotliResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br")
-        assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
+        assertThat(response.header(Header.CONTENT_ENCODING.name)).isEqualTo("br")
         val brotliInputStream = BrotliInputStream(response.body!!.byteStream())
         val decompressed = String(brotliInputStream.readBytes())
         val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
@@ -291,7 +292,7 @@ class TestCompression {
 
     private fun assertValidGzipResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "gzip")
-        assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        assertThat(response.header(Header.CONTENT_ENCODING.name)).isEqualTo("gzip")
         val gzipInputStream = GZIPInputStream(response.body!!.byteStream())
         val decompressed = String(gzipInputStream.readBytes())
         val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
@@ -303,7 +304,7 @@ class TestCompression {
         .newCall(
             Request.Builder()
                 .url(origin + url)
-                .header(Header.ACCEPT_ENCODING, encoding)
+                .header(Header.ACCEPT_ENCODING.name, encoding)
                 .build()
         ).execute()
 
@@ -311,8 +312,8 @@ class TestCompression {
     private fun getResponseWithEtag(origin: String, url: String, encoding: String, etag: String): Response = OkHttpClient().newCall(
         Request.Builder()
             .url(origin + url)
-            .header(Header.ACCEPT_ENCODING, encoding)
-            .header(Header.IF_NONE_MATCH, etag)
+            .header(Header.ACCEPT_ENCODING.name, encoding)
+            .header(Header.IF_NONE_MATCH.name, etag)
             .build()
     ).execute()
 
