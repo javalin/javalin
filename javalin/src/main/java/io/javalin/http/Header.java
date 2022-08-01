@@ -1,5 +1,6 @@
 package io.javalin.http;
 
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 public class Header {
@@ -14,6 +15,18 @@ public class Header {
     @Override
     public String toString() {
         return name;
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(@NotNull Object o) {
+        if (this == o) return true;
+        if (this.getClass() != o.getClass()) return false;
+        return this.name.equals(((Header) o).name);
     }
 
     //@formatter:off
@@ -92,4 +105,89 @@ public class Header {
     @NotNull public static final Header X_PERMITTED_CROSS_DOMAIN_POLICIES = new Header("X-Permitted-Cross-Domain-Policies");
     @NotNull public static final Header X_ACCEL_BUFFERING = new Header("X-Accel-Buffering");
     //@formatter:on
+
+    private static final Set<Header> values = Set.of(
+        ACCEPT,
+        ACCEPT_CHARSET,
+        ACCEPT_ENCODING,
+        ACCEPT_LANGUAGE,
+        ACCEPT_RANGES,
+        ACCESS_CONTROL_ALLOW_CREDENTIALS,
+        ACCESS_CONTROL_ALLOW_HEADERS,
+        ACCESS_CONTROL_ALLOW_METHODS,
+        ACCESS_CONTROL_ALLOW_ORIGIN,
+        ACCESS_CONTROL_EXPOSE_HEADERS,
+        ACCESS_CONTROL_MAX_AGE,
+        ACCESS_CONTROL_REQUEST_HEADERS,
+        ACCESS_CONTROL_REQUEST_METHOD,
+        AGE,
+        ALLOW,
+        AUTHORIZATION,
+        CACHE_CONTROL,
+        CLEAR_SITE_DATA,
+        CONNECTION,
+        CONTENT_ENCODING,
+        CONTENT_DISPOSITION,
+        CONTENT_LANGUAGE,
+        CONTENT_LENGTH,
+        CONTENT_LOCATION,
+        CONTENT_RANGE,
+        CONTENT_SECURITY_POLICY,
+        CONTENT_TYPE,
+        COOKIE,
+        CROSS_ORIGIN_EMBEDDER_POLICY,
+        CROSS_ORIGIN_OPENER_POLICY,
+        CROSS_ORIGIN_RESOURCE_POLICY,
+        DATE,
+        ETAG,
+        EXPECT,
+        EXPIRES,
+        FROM,
+        HOST,
+        IF_MATCH,
+        IF_MODIFIED_SINCE,
+        IF_NONE_MATCH,
+        IF_RANGE,
+        IF_UNMODIFIED_SINCE,
+        LAST_MODIFIED,
+        LINK,
+        LOCATION,
+        MAX_FORWARDS,
+        ORIGIN,
+        PRAGMA,
+        PROXY_AUTHENTICATE,
+        PROXY_AUTHORIZATION,
+        RANGE,
+        REFERER,
+        REFERRER_POLICY,
+        RETRY_AFTER,
+        SERVER,
+        SET_COOKIE,
+        SEC_WEBSOCKET_KEY,
+        STRICT_TRANSPORT_SECURITY,
+        TE,
+        TRAILER,
+        TRANSFER_ENCODING,
+        UPGRADE,
+        USER_AGENT,
+        VARY,
+        VIA,
+        WARNING,
+        WWW_AUTHENTICATE,
+        X_FORWARDED_FOR,
+        X_FORWARDED_PROTO,
+        X_FRAME_OPTIONS,
+        X_CONTENT_TYPE_OPTIONS,
+        X_HTTP_METHOD_OVERRIDE,
+        X_PERMITTED_CROSS_DOMAIN_POLICIES,
+        X_ACCEL_BUFFERING
+    );
+
+    public static Set<Header> values() {
+        return values;
+    }
+
+    public static Header of(String name) {
+        return values.stream().filter(it -> it.name.equals(name)).findFirst().orElse(new Header(name));
+    }
 }
