@@ -521,7 +521,7 @@ class TestWebSocket {
     }
 
     @Test
-    @Timeout(value = 1, unit = TimeUnit.SECONDS)
+    @Timeout(value = 3, unit = TimeUnit.SECONDS)
     fun `websocket enableAutomaticPings() works`() = TestUtil.test { app, _ ->
         app.wsBefore("/ws") {
             it.onConnect { ctx ->
