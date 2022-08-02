@@ -12,8 +12,8 @@ class ErrorMapper {
 
     private val errorHandlers = mutableSetOf<MapperEntry>()
 
-    fun addHandler(statusCode: HttpStatusCode, contentType: String, handler: Handler) =
-        errorHandlers.add(MapperEntry(statusCode.status, contentType, handler))
+    fun addHandler(statusCode: Int, contentType: String, handler: Handler) =
+        errorHandlers.add(MapperEntry(statusCode, contentType, handler))
 
     fun handle(statusCode: Int, ctx: Context) = errorHandlers.filter { it.statusCode == statusCode }.forEach {
         val contentTypeMatches by lazy { ctx.header(Header.ACCEPT)?.contains(it.contentType, ignoreCase = true) == true }

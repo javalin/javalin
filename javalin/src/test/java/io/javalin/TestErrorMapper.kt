@@ -7,7 +7,6 @@
 
 package io.javalin
 
-import io.javalin.http.HttpStatusCode
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpResponseException
@@ -31,15 +30,13 @@ class TestErrorMapper {
         assertThat(http.getBody("/exception")).isEqualTo("Custom 500 page")
     }
 
-    enum class CustomError(override val status: Int, override val message: String) : HttpStatusCode{
-        CUSTOM_ERROR(555, "Custom error");
-    }
     @Test
     fun `error-mapper works for custom code 555`() = TestUtil.test { app, http ->
-        app.get("/exception") { throw HttpResponseException(CustomError.CUSTOM_ERROR, "Error 555") }
-            .error(CustomError.CUSTOM_ERROR) { it.result("Custom 555 page") }
+        app.get("/exception") { throw HttpResponseException(555, "Error 555") }
+            .error(555) { it.result("Custom 555 page") }
         assertThat(http.getBody("/exception")).isEqualTo("Custom 555 page")
     }
+
     @Test
     fun `error-mapper runs after exception-mapper`() = TestUtil.test { app, http ->
         app.get("/exception") { throw RuntimeException() }

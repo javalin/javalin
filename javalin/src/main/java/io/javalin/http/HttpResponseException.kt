@@ -20,16 +20,22 @@ import io.javalin.http.HttpStatus.SERVICE_UNAVAILABLE
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 
 open class HttpResponseException @JvmOverloads constructor(
-    val code: HttpStatusCode,
-    message: String = code.message,
+    val status: Int,
+    message: String = "",
     val details: Map<String, String> = mapOf()
-) : RuntimeException(message)
+) : RuntimeException(message){
+    constructor(
+        status: HttpStatus,
+        message: String = status.message,
+        details: Map<String, String> = mapOf()
+    ) : this(status.code, message, details)
+}
 
 class RedirectResponse @JvmOverloads constructor(
-    code: HttpStatusCode = FOUND,
-    message: String = code.message,
+    status: HttpStatus = FOUND,
+    message: String = status.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(code, message, details)
+) : HttpResponseException(status, message, details)
 
 
 class BadRequestResponse @JvmOverloads constructor(

@@ -26,7 +26,7 @@ class KotlinTest {
     fun `get method works`() = JavalinTest.test { server, client ->
         server.get("/hello") { it.result("Hello, World!") }
         val response = client.get("/hello")
-        assertThat(response.code).isEqualTo(OK.status)
+        assertThat(response.code).isEqualTo(OK.code)
         assertThat(response.body!!.string()).isEqualTo("Hello, World!")
     }
 
@@ -148,7 +148,7 @@ class KotlinTest {
                 server.get("/hello") {
                     throw Exception("Error in handler code")
                 }
-                assertThat(client.get("/hello").code).isEqualTo(INTERNAL_SERVER_ERROR.status)
+                assertThat(client.get("/hello").code).isEqualTo(INTERNAL_SERVER_ERROR.code)
             }
         }
     }
@@ -163,7 +163,7 @@ class KotlinTest {
                     throw Exception("Error in handler code")
                 }
 
-                assertThat(client.get("/hello").code).isEqualTo(OK.status)
+                assertThat(client.get("/hello").code).isEqualTo(OK.code)
             }
         } catch (t: Throwable) {
             // Ignore

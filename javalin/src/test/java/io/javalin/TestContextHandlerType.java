@@ -6,12 +6,13 @@
 package io.javalin;
 
 import io.javalin.http.HandlerType;
-import io.javalin.http.HttpStatus;
 import io.javalin.testing.TestUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static io.javalin.http.HttpStatus.OK;
 
 public class TestContextHandlerType {
 
@@ -23,7 +24,7 @@ public class TestContextHandlerType {
             app.after(ctx -> handlerTypes.add(ctx.handlerType()));
             app.get("/", ctx -> handlerTypes.add(ctx.handlerType()));
 
-            Assertions.assertThat(http.get("/").getStatus()).isEqualTo(HttpStatus.OK.getStatus());
+            Assertions.assertThat(http.get("/").getStatus()).isEqualTo(OK.getCode());
             Assertions.assertThat(handlerTypes).containsExactly(HandlerType.BEFORE, HandlerType.GET, HandlerType.AFTER);
         });
     }

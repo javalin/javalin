@@ -326,8 +326,8 @@ interface Context {
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String, httpCode: HttpStatusCode) {
-        header(Header.LOCATION, location).status(httpCode).result("Redirected")
+    fun redirect(location: String, status: HttpStatus) {
+        header(Header.LOCATION, location).status(status).result("Redirected")
         if (handlerType() == HandlerType.BEFORE) {
             throw SkipHttpHandlerException()
         }
@@ -337,17 +337,21 @@ interface Context {
     fun redirect(location: String) = redirect(location, HttpStatus.MOVED_PERMANENTLY)
 
     /** Sets the response status. */
-    fun status(httpCode: HttpStatusCode):  Context = also { res().status = httpCode.status }
+    fun status(status: HttpStatus):  Context = also { res().status = status.code }
 
-    /** Gets the response status. */
-    fun status(): HttpStatusCode = HttpStatus.forStatus(res().status)
+    /** Sets the response status. */
+    fun status(status: Int):  Context = also { res().status = status }
+
+    /** Gets the response status. For non-standard codes, [HttpStatus.UNKNOWN] is returned, the specific code can be obtained using [statusCode]  */
+    fun status(): HttpStatus = HttpStatus.forStatus(res().status)
+
+    /** Gets the response status code */
+    fun statusCode(): Int = res().status
 
     /** Sets a cookie with name, value, and max-age = -1. */
     fun cookie(name: String, value: String): Context = cookie(name, value, -1)
     /** Sets a cookie with name, value and max-age property*/
     fun cookie(name: String, value: String, maxAge: Int): Context = cookie(Cookie(name = name, value = value, maxAge = maxAge))
-    /** Gets the response status as an Int */
-    fun statusCode(): Int = res().status
     /** Sets a Cookie. */
     fun cookie(cookie: Cookie): Context = also { res().setJavalinCookie(cookie) }
 

@@ -15,10 +15,7 @@ import io.javalin.http.bodyStreamAsClass
 import io.javalin.http.bodyValidator
 import io.javalin.plugin.json.JavalinJackson
 import io.javalin.plugin.json.JsonMapper
-import io.javalin.testing.NonSerializableObject
-import io.javalin.testing.SerializableObject
-import io.javalin.testing.TestUtil
-import io.javalin.testing.fasterJacksonMapper
+import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.InputStream
@@ -61,12 +58,12 @@ class TestJson {
     fun `default mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
         app.get("/streaming") { it.jsonStream(NonSerializableObject()) }
         http.get("/streaming").let {
-            assertThat(it.status).isEqualTo(INTERNAL_SERVER_ERROR.status)
+            assertThat(it.httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
             assertThat(it.body).isEqualTo("") // error happens when writing the response, can't recover
         }
         app.get("/string") { it.json(NonSerializableObject()) }
         http.get("/string").let {
-            assertThat(it.status).isEqualTo(INTERNAL_SERVER_ERROR.status)
+            assertThat(it.httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
             assertThat(it.body).contains(INTERNAL_SERVER_ERROR.message) // error happens when serializing, can recover
         }
     }
@@ -80,13 +77,13 @@ class TestJson {
     @Test
     fun `default mapper throws when mapping invalid json to class`() = TestUtil.test { app, http ->
         app.get("/") { it.bodyAsClass<NonSerializableObject>() }
-        assertThat(http.get("/").status).isEqualTo(INTERNAL_SERVER_ERROR.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
     }
 
     @Test
     fun `mapping invalid json to class can be handle by validator`() = TestUtil.test { app, http ->
         app.get("/") { it.bodyValidator<NonSerializableObject>().get() }
-        assertThat(http.get("/").status).isEqualTo(BAD_REQUEST.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(BAD_REQUEST)
         assertThat(http.getBody("/")).isEqualTo("""{"REQUEST_BODY":[{"message":"DESERIALIZATION_FAILED","args":{},"value":""}]}""")
     }
 
@@ -94,7 +91,7 @@ class TestJson {
     fun `empty mapper throws error`() = TestUtil.test(Javalin.create { it.core.jsonMapper(object : JsonMapper {}) }) { app, http ->
         app.get("/") { it.json("Test") }
         assertThat(http.getBody("/")).contains(INTERNAL_SERVER_ERROR.message)
-        assertThat(http.get("/").status).isEqualTo(INTERNAL_SERVER_ERROR.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
     }
 
     @Test

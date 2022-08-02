@@ -16,6 +16,7 @@ import io.javalin.http.HttpStatus.OK
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -75,7 +76,7 @@ class TestSinglePageMode {
     fun `SinglePageHandler works for HTML requests - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
         assertThat(http.htmlGet("/not-a-path").body).contains("HTML works")
         assertThat(http.htmlGet("/not-a-file.html").body).contains("HTML works")
-        assertThat(http.htmlGet("/not-a-file.html").status).isEqualTo(OK.status)
+        assertThat(http.htmlGet("/not-a-file.html").httpCode()).isEqualTo(OK)
     }
 
     @Test
@@ -83,14 +84,14 @@ class TestSinglePageMode {
         assertThat(http.htmlGet("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains("application/javascript")
         assertThat(http.htmlGet("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").headers.getFirst(
             Header.CONTENT_TYPE)).contains(ContentType.CSS)
-        assertThat(http.htmlGet("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").status).isEqualTo(200)
+        assertThat(http.htmlGet("/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui.css").httpCode()).isEqualTo(OK)
     }
 
     @Test
     fun `SinglePageHandler doesn't affect JSON requests - classpath`() = TestUtil.test(rootSinglePageApp_classPath) { _, http ->
         assertThat(http.jsonGet("/").body).contains(NOT_FOUND.message)
         assertThat(http.jsonGet("/not-a-file.html").body).contains(NOT_FOUND.message)
-        assertThat(http.jsonGet("/not-a-file.html").status).isEqualTo(NOT_FOUND.status)
+        assertThat(http.jsonGet("/not-a-file.html").httpCode()).isEqualTo(NOT_FOUND)
     }
 
     @Test
@@ -111,12 +112,12 @@ class TestSinglePageMode {
     @Test
     fun `SinglePageHandler works for just subpaths - classpath`() = TestUtil.test(dualSinglePageApp_classPath) { _, http ->
         assertThat(http.htmlGet("/").body).contains(NOT_FOUND.message)
-        assertThat(http.htmlGet("/").status).isEqualTo(404)
+        assertThat(http.htmlGet("/").httpCode()).isEqualTo(NOT_FOUND)
         assertThat(http.htmlGet("/admin").body).contains("Secret file")
         assertThat(http.htmlGet("/admin/not-a-path").body).contains("Secret file")
         assertThat(http.htmlGet("/public").body).contains("HTML works")
         assertThat(http.htmlGet("/public/not-a-file.html").body).contains("HTML works")
-        assertThat(http.htmlGet("/public/not-a-file.html").status).isEqualTo(OK.status)
+        assertThat(http.htmlGet("/public/not-a-file.html").httpCode()).isEqualTo(OK)
     }
 
     @Test
@@ -137,7 +138,7 @@ class TestSinglePageMode {
     fun `SinglePageHandler works for HTML requests - external`() = TestUtil.test(rootSinglePageApp_external) { _, http ->
         assertThat(http.htmlGet("/not-a-path").body).contains("HTML works")
         assertThat(http.htmlGet("/not-a-file.html").body).contains("HTML works")
-        assertThat(http.htmlGet("/not-a-file.html").status).isEqualTo(OK.status)
+        assertThat(http.htmlGet("/not-a-file.html").httpCode()).isEqualTo(OK)
     }
 
     @Test
@@ -155,16 +156,16 @@ class TestSinglePageMode {
     fun `SinglePageHandler supports custom handler`() = TestUtil.test(rootSinglePageCustomHandlerApp) { _, http ->
         assertThat(http.htmlGet("/not-a-path").body).contains("Custom handler works")
         assertThat(http.htmlGet("/not-a-file.html").body).contains("Custom handler works")
-        assertThat(http.htmlGet("/not-a-file.html").status).isEqualTo(IM_A_TEAPOT.status)
+        assertThat(http.htmlGet("/not-a-file.html").httpCode()).isEqualTo(IM_A_TEAPOT)
     }
 
     @Test
     fun `SinglePageHandler prefers filePath over customHandler`() = TestUtil.test(mixedSinglePageHandlerApp) { _, http ->
         assertThat(http.htmlGet("/public").body).contains("HTML works")
         assertThat(http.htmlGet("/public/not-a-path").body).contains("HTML works")
-        assertThat(http.htmlGet("/public/not-a-path").status).isEqualTo(OK.status)
+        assertThat(http.htmlGet("/public/not-a-path").httpCode()).isEqualTo(OK)
         assertThat(http.htmlGet("/special").body).contains("Special custom handler works")
         assertThat(http.htmlGet("/special/not-a-file.html").body).contains("Special custom handler works")
-        assertThat(http.htmlGet("/special/not-a-file.html").status).isEqualTo(IM_A_TEAPOT.status)
+        assertThat(http.htmlGet("/special/not-a-file.html").httpCode()).isEqualTo(IM_A_TEAPOT)
     }
 }

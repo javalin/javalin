@@ -255,7 +255,7 @@ internal class TestFuture {
                 ctx.status(IM_A_TEAPOT)
             }
 
-            assertThat(http.get("/").status).isEqualTo(OK.status)
+            assertThat(http.get("/").httpCode()).isEqualTo(OK)
         }
 
         @Test

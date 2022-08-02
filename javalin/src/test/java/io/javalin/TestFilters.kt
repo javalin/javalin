@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ class TestFilters {
     fun `app returns 404 for GET if only before-handler present`() = TestUtil.test { app, http ->
         app.before(TestUtil.okHandler)
         val response = http.call(HttpMethod.GET, "/hello")
-        assertThat(response.status).isEqualTo(NOT_FOUND.status)
+        assertThat(response.httpCode()).isEqualTo(NOT_FOUND)
         assertThat(response.body).isEqualTo(NOT_FOUND.message)
     }
 
@@ -36,7 +37,7 @@ class TestFilters {
     fun `app returns 404 for POST if only before-handler present`() = TestUtil.test { app, http ->
         app.before(TestUtil.okHandler)
         val response = http.call(HttpMethod.POST, "/hello")
-        assertThat(response.status).isEqualTo(NOT_FOUND.status)
+        assertThat(response.httpCode()).isEqualTo(NOT_FOUND)
         assertThat(response.body).isEqualTo(NOT_FOUND.message)
     }
 

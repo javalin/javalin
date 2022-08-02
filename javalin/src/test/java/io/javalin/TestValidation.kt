@@ -26,6 +26,7 @@ import io.javalin.plugin.json.JavalinJackson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.fasterJacksonMapper
+import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.text.MessageFormat
@@ -59,14 +60,14 @@ class TestValidation {
     fun `notNullOrEmpty works for Validator`() = TestUtil.test { app, http ->
         app.get("/") { it.queryParamAsClass<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
-        assertThat(http.get("/").status).isEqualTo(BAD_REQUEST.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(BAD_REQUEST)
     }
 
     @Test
     fun `notNullOrEmpty works for NullableValidator`() = TestUtil.test { app, http ->
         app.get("/") { it.queryParamAsClass<String>("my-qp").allowNullable().get() }
         assertThat(http.get("/").body).isEqualTo("")
-        assertThat(http.get("/").status).isEqualTo(OK.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(OK)
     }
 
     @Test
@@ -151,7 +152,7 @@ class TestValidation {
     fun `custom converter returns null`() = TestUtil.test { app, http ->
         JavalinValidation.register(Instant::class.java) { null }
         app.get("/instant") { it.queryParamAsClass<Instant>("from").get() }
-        assertThat(http.get("/instant?from=1262347200000").status).isEqualTo(BAD_REQUEST.status)
+        assertThat(http.get("/instant?from=1262347200000").httpCode()).isEqualTo(BAD_REQUEST)
     }
 
     @Test
@@ -213,13 +214,13 @@ class TestValidation {
             ctx.result("Error Expected!")
         }
         assertThat(http.get("/").body).isEqualTo("Error Expected!")
-        assertThat(http.get("/").status).isEqualTo(EXPECTATION_FAILED.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(EXPECTATION_FAILED)
     }
 
     @Test
     fun `allowNullable throws if called after check`() = TestUtil.test { app, http ->
         app.get("/") { it.queryParamAsClass<Int>("my-qp").check({ false }, "Irrelevant").allowNullable() }
-        assertThat(http.get("/").status).isEqualTo(INTERNAL_SERVER_ERROR.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
     }
 
     @Test
@@ -228,7 +229,7 @@ class TestValidation {
             val myInt: Int? = ctx.queryParamAsClass<Int>("my-qp").allowNullable().get()
             assertThat(myInt).isEqualTo(null)
         }
-        assertThat(http.get("/").status).isEqualTo(OK.status)
+        assertThat(http.get("/").httpCode()).isEqualTo(OK)
     }
 
     @Test
@@ -247,19 +248,19 @@ class TestValidation {
         // Test valid param
         http.get("/?id=20").apply {
             assertThat(body).isEqualTo("20")
-            assertThat(status).isEqualTo(OK.status)
+            assertThat(httpCode()).isEqualTo(OK)
         }
 
         // Test invalid param
         http.get("/?id=4").apply {
             assertThat(body).isEqualTo("""{"id":[{"message":"id was not greater than 10","args":{},"value":4}]}""")
-            assertThat(status).isEqualTo(BAD_REQUEST.status)
+            assertThat(httpCode()).isEqualTo(BAD_REQUEST)
         }
 
         // test valid missing param
         http.get("/").apply {
             assertThat(body).isEqualTo("")
-            assertThat(status).isEqualTo(OK.status)
+            assertThat(httpCode()).isEqualTo(OK)
         }
     }
 
@@ -290,14 +291,14 @@ class TestValidation {
         }
 
         http.get("/?number=7&first_name=my-overly-long-first-name&username=admin").apply {
-            assertThat(status).isEqualTo(OK.status)
+            assertThat(httpCode()).isEqualTo(OK)
             assertThat(body).contains("number", "first_name", "username")
             assertThat(body).contains("must be greater than 12.", "must be even.", "cannot be admin user.")
             assertThat(body).contains("cannot contain hyphens.", "cannot be longer than 10 characters.")
         }
 
         http.post("/").body("{\"number\":7}").asString().apply {
-            assertThat(status).isEqualTo(OK.status)
+            assertThat(httpCode()).isEqualTo(OK)
             assertThat(body).isEqualTo("""{"first_name":[{"message":"This field is mandatory","args":{},"value":{"number":7}}]}""")
         }
     }
@@ -315,7 +316,7 @@ class TestValidation {
 
         // Test valid param
         http.post("/").body("{\"first_name\":\"John\"}").asString().apply {
-            assertThat(status).isEqualTo(OK.status)
+            assertThat(httpCode()).isEqualTo(OK)
             assertThat(body).isEqualTo("{}")
         }
 

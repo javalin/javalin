@@ -2,6 +2,7 @@ package io.javalin
 
 import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -21,7 +22,7 @@ class TestMethodNotAllowed {
             |Available methods:
             |POST, PUT, DELETE
             |""".trimMargin()
-        assertThat(http.htmlGet("/test").status).isEqualTo(METHOD_NOT_ALLOWED.status)
+        assertThat(http.htmlGet("/test").httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
         assertThat(http.htmlGet("/test").body).isEqualTo(expectedHtml)
     }
 
@@ -33,7 +34,7 @@ class TestMethodNotAllowed {
             |    "type": "https://javalin.io/documentation#methodnotallowedresponse",
             |    "details": {"availableMethods":"POST, PUT, DELETE"}
             |}""".trimMargin()
-        assertThat(http.jsonGet("/test").status).isEqualTo(METHOD_NOT_ALLOWED.status)
+        assertThat(http.jsonGet("/test").httpCode()).isEqualTo(METHOD_NOT_ALLOWED)
         assertThat(http.jsonGet("/test").body).isEqualTo(expectedJson)
     }
 

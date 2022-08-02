@@ -11,6 +11,7 @@ import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
 import io.javalin.plugin.metrics.MicrometerPlugin
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -153,7 +154,7 @@ class TestMicrometerPlugin {
             val response = http.get("/hello")
             val etag = response.headers["ETag"]?.first() ?: ""
             val response2 = http.get("/hello", mapOf("If-None-Match" to etag))
-            assertThat(response2.status).isEqualTo(NOT_MODIFIED.status)
+            assertThat(response2.httpCode()).isEqualTo(NOT_MODIFIED)
         }
         val redirCount = meterRegistry.get("jetty.server.requests")
             .tag("uri", "/hello")

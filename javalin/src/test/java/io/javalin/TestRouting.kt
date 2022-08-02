@@ -161,7 +161,7 @@ class TestRouting {
         app.get("/hi-{name}-*") { it.result(it.pathParam("name")) }
         assertThat(http.get("/hi-world").httpCode()).isEqualTo(NOT_FOUND)
         val response = http.get("/hi-world-not-included")
-        assertThat(response.status).isEqualTo(OK.status)
+        assertThat(response.httpCode()).isEqualTo(OK)
         assertThat(response.body).isEqualTo("world")
     }
 

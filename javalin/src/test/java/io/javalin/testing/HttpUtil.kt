@@ -7,7 +7,6 @@
 package io.javalin.testing
 
 import io.javalin.http.ContentType
-import io.javalin.http.HttpStatusCode
 import io.javalin.http.HttpStatus
 import kong.unirest.HttpMethod
 import kong.unirest.HttpResponse
@@ -36,5 +35,5 @@ class HttpUtil(port: Int) {
 
 }
 
-fun HttpResponse<*>.httpCode(): HttpStatusCode =
+fun HttpResponse<*>.httpCode(): HttpStatus =
     HttpStatus.forStatus(this.status)

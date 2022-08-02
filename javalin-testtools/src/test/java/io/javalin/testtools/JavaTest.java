@@ -36,7 +36,7 @@ public class JavaTest {
         JavalinTest.test((server, client) -> {
             server.get("/hello", ctx -> ctx.result("Hello, World!"));
             Response response = client.get("/hello");
-            assertThat(response.code()).isEqualTo(OK.getStatus());
+            assertThat(response.code()).isEqualTo(OK.getCode());
             assertThat(response.body().string()).isEqualTo("Hello, World!");
         });
     }
@@ -171,7 +171,7 @@ public class JavaTest {
                     throw new Exception("Error in handler code");
                 });
 
-                assertThat(client.get("/hello").code()).isEqualTo(INTERNAL_SERVER_ERROR.getStatus());
+                assertThat(client.get("/hello").code()).isEqualTo(INTERNAL_SERVER_ERROR.getCode());
             })
         );
     }
@@ -186,7 +186,7 @@ public class JavaTest {
                     throw new Exception("Error in handler code");
                 });
 
-                assertThat(client.get("/hello").code()).isEqualTo(OK.getStatus());
+                assertThat(client.get("/hello").code()).isEqualTo(OK.getCode());
             });
         } catch (Throwable t) {
             // Ignore

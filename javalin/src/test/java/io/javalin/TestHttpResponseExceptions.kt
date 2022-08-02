@@ -82,6 +82,23 @@ class TestHttpResponseExceptions {
         )
     }
 
+    class CustomIntResponse : HttpResponseException(555, "Error 555", mapOf())
+
+    @Test
+    fun `custom int response has default type`() = TestUtil.test { app, http ->
+        app.post("/") { throw CustomIntResponse() }
+        val response = http.post("/").header(Header.ACCEPT, ContentType.JSON).asString()
+        assertThat(response.status).isEqualTo(555)
+        assertThat(response.body).isEqualTo(
+            """{
+                |    "title": "Error 555",
+                |    "status": 555,
+                |    "type": "https://javalin.io/documentation#error-responses",
+                |    "details": {}
+                |}""".trimMargin()
+        )
+    }
+
     @Test
     fun `throwing HttpResponseExceptions in before-handler works`() = TestUtil.test { app, http ->
         app.before("/admin/*") { throw UnauthorizedResponse() }

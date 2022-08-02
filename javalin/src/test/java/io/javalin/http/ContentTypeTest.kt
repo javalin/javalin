@@ -3,6 +3,7 @@ package io.javalin.http
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -40,7 +41,7 @@ class ContentTypeTest {
         }
         TestUtil.test(precompressingApp) { _, http ->
             val response = http.get("/test.md")
-            assertThat(response.status).isEqualTo(OK.status)
+            assertThat(response.httpCode()).isEqualTo(OK)
             assertThat(response.body).contains("# Hello Markdown!")
             assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo("")
         }

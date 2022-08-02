@@ -61,7 +61,7 @@ public class TestGracefulShutdown {
         performBlockingRequest(app);
         Future<HttpResponse<String>> asyncResponse = performAsyncRequest(app);
         app.stop(); // request has not completed yet
-        assertEquals(asyncResponse.get().getStatus(), OK.getStatus());
+        assertEquals(asyncResponse.get().getStatus(), OK.getCode());
     }
 
     private void addEndpoints(Javalin app) {
