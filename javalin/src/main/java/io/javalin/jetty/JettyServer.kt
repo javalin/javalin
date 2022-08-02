@@ -12,6 +12,7 @@ import io.javalin.util.Util
 import io.javalin.util.Util.logJavalinBanner
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.http.UriCompliance
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConfiguration
@@ -103,7 +104,10 @@ class JettyServer(val cfg: JavalinConfig) {
         }
     }
 
-    private fun defaultSessionHandler() = SessionHandler().apply { httpOnly = true }
+    private fun defaultSessionHandler() = SessionHandler().apply {
+        httpOnly = true
+        sameSite = HttpCookie.SameSite.LAX
+    }
 
     private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
 

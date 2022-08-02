@@ -27,6 +27,7 @@ import org.java_websocket.drafts.Draft_6455
 import org.java_websocket.framing.Framedata
 import org.java_websocket.handshake.ServerHandshake
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import java.net.URI
 import java.nio.ByteBuffer
 import java.time.Duration
@@ -520,6 +521,7 @@ class TestWebSocket {
     }
 
     @Test
+    @Timeout(value = 1, unit = TimeUnit.SECONDS)
     fun `websocket enableAutomaticPings() works`() = TestUtil.test { app, _ ->
         app.wsBefore("/ws") {
             it.onConnect { ctx ->
