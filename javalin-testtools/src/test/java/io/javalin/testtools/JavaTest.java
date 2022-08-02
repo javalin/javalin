@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import static io.javalin.http.HttpStatus.OK;
 import static io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static io.javalin.http.HttpStatus.NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -120,7 +121,7 @@ public class JavaTest {
     public void testing_full_app_works() {
         JavalinTest.test(new JavaApp().app, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, app!");
-            assertThat(client.get("/hello/").body().string()).isEqualTo("Not Found"); // JavaApp.app won't ignore trailing slashes
+            assertThat(client.get("/hello/").body().string()).isEqualTo(NOT_FOUND.message); // JavaApp.app won't ignore trailing slashes
         });
     }
 
