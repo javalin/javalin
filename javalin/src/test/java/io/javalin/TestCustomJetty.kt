@@ -7,10 +7,13 @@
 
 package io.javalin
 
+import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.util.LoomUtil
-import io.javalin.http.HttpCode
+import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -74,7 +77,7 @@ class TestCustomJetty {
         val requests = 5
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
+            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(statisticsHandler.dispatched).isEqualTo(requests * 2)
@@ -92,7 +95,7 @@ class TestCustomJetty {
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
+            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(handlerChain.dispatched).`as`("dispatched").isEqualTo(requests * 2)
@@ -110,7 +113,7 @@ class TestCustomJetty {
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
-            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().status).isEqualTo(404)
+            assertThat(Unirest.get("http://localhost:" + app.port() + "/not-there").asString().httpCode()).isEqualTo(NOT_FOUND)
         }
         app.stop()
         assertThat(handlerChain.dispatched).isEqualTo(requests * 2)
@@ -161,7 +164,7 @@ class TestCustomJetty {
         TestUtil.test(javalin) { app, http ->
             app.get("/bar") { it.result("Hello") }
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
-            assertThat(http.get("/foo/baz").status).isEqualTo(404)
+            assertThat(http.get("/foo/baz").httpCode()).isEqualTo(NOT_FOUND)
             assertThat(http.getBody("/bar")).isEqualTo("Hello")
         }
     }
@@ -223,13 +226,13 @@ class TestCustomJetty {
                     override fun init(config: FilterConfig?) {}
                     override fun destroy() {}
                     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-                        (response as HttpServletResponse).status = HttpCode.IM_A_TEAPOT.status
+                        (response as HttpServletResponse).status = IM_A_TEAPOT.code
                     }
                 }), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
         }
         TestUtil.test(filterJavalin) { _, http ->
-            assertThat(http.get("/test").status).isEqualTo(HttpCode.IM_A_TEAPOT.status)
+            assertThat(http.get("/test").httpCode()).isEqualTo(IM_A_TEAPOT)
             assertThat(http.get("/test").body).isNotEqualTo("Test")
         }
     }

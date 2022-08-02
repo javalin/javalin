@@ -8,6 +8,7 @@ package io.javalin.javalinvue
 
 import io.javalin.Javalin
 import io.javalin.http.Context
+import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import io.javalin.vue.JavalinVue
@@ -174,8 +175,8 @@ class TestJavalinVue {
 
     @Test
     fun `vue component works Javalin#error`() = TestUtil.test { app, http ->
-        app.get("/") { it.status(404) }
-        app.error(404, "html", VueComponent("test-component"))
+        app.get("/") { it.status(NOT_FOUND) }
+        app.error(NOT_FOUND, "html", VueComponent("test-component"))
         assertThat(http.htmlGet("/").body).contains("<body><test-component></test-component></body>")
     }
 

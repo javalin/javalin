@@ -8,8 +8,10 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.http.HttpStatus.OK;
 
 public class HelloWorldApi {
 
@@ -20,9 +22,9 @@ public class HelloWorldApi {
                 get("/hello", ctx -> ctx.result("Hello World"));
                 path("/api", () -> {
                     get("/test", ctx -> ctx.result("Hello World"));
-                    get("/tast", ctx -> ctx.status(200).result("Hello world"));
-                    get("/hest", ctx -> ctx.status(200).result("Hello World"));
-                    get("/hast", ctx -> ctx.status(200).result("Hello World").header("test", "tast"));
+                    get("/tast", ctx -> ctx.status(OK).result("Hello world"));
+                    get("/hest", ctx -> ctx.status(OK).result("Hello World"));
+                    get("/hast", ctx -> ctx.status(OK).result("Hello World").header("test", "tast"));
                 });
             });
     }

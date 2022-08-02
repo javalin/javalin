@@ -66,7 +66,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             }
         },
         Stage(DefaultName.ERROR, haltsOnError = false) { submitTask ->
-            submitTask { errorMapper.handle(ctx.status(), ctx) }
+            submitTask { errorMapper.handle(ctx.statusCode(), ctx) }
         },
         Stage(DefaultName.AFTER, haltsOnError = false) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->

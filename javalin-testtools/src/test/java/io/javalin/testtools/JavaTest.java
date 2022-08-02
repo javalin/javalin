@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static io.javalin.http.HttpStatus.OK;
+import static io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static io.javalin.http.HttpStatus.NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -34,7 +37,7 @@ public class JavaTest {
         JavalinTest.test((server, client) -> {
             server.get("/hello", ctx -> ctx.result("Hello, World!"));
             Response response = client.get("/hello");
-            assertThat(response.code()).isEqualTo(200);
+            assertThat(response.code()).isEqualTo(OK.getCode());
             assertThat(response.body().string()).isEqualTo("Hello, World!");
         });
     }
@@ -118,7 +121,7 @@ public class JavaTest {
     public void testing_full_app_works() {
         JavalinTest.test(new JavaApp().app, (server, client) -> {
             assertThat(client.get("/hello").body().string()).isEqualTo("Hello, app!");
-            assertThat(client.get("/hello/").body().string()).isEqualTo("Not found"); // JavaApp.app won't ignore trailing slashes
+            assertThat(client.get("/hello/").body().string()).isEqualTo(NOT_FOUND.getMessage()); // JavaApp.app won't ignore trailing slashes
         });
     }
 
@@ -169,7 +172,7 @@ public class JavaTest {
                     throw new Exception("Error in handler code");
                 });
 
-                assertThat(client.get("/hello").code()).isEqualTo(500);
+                assertThat(client.get("/hello").code()).isEqualTo(INTERNAL_SERVER_ERROR.getCode());
             })
         );
     }
@@ -184,7 +187,7 @@ public class JavaTest {
                     throw new Exception("Error in handler code");
                 });
 
-                assertThat(client.get("/hello").code()).isEqualTo(200);
+                assertThat(client.get("/hello").code()).isEqualTo(OK.getCode());
             });
         } catch (Throwable t) {
             // Ignore

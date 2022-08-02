@@ -157,8 +157,8 @@ class JavalinServletHandler(
                 it.previous?.close()
             }
             currentTaskFuture.cancel(true) // cancel current task
-            ctx.status(500) // default error handling
-            errorMapper.handle(ctx.status(), ctx) // user defined error handling
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
+            errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
             if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
             finishResponse() // write response
         })

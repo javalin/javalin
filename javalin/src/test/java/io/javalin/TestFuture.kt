@@ -1,14 +1,14 @@
 package io.javalin
 
-import io.javalin.http.Header
 import io.javalin.http.ContentType.Companion.JSON
 import io.javalin.http.ContentType.Companion.PLAIN
-import io.javalin.http.HttpCode.ENHANCE_YOUR_CALM
-import io.javalin.http.HttpCode.IM_A_TEAPOT
-import io.javalin.http.HttpCode.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpCode.NOT_FOUND
-import io.javalin.http.HttpCode.NO_CONTENT
-import io.javalin.http.HttpCode.OK
+import io.javalin.http.Header
+import io.javalin.http.HttpStatus.ENHANCE_YOUR_CALM
+import io.javalin.http.HttpStatus.IM_A_TEAPOT
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.NO_CONTENT
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
@@ -38,7 +38,7 @@ internal class TestFuture {
     @Test
     fun `unresolved future throws`() = TestUtil.test { app, http ->
         app.get("/test-future") { it.future(getFuture(null)) }
-        assertThat(http.getBody("/test-future")).isEqualTo("Internal server error")
+        assertThat(http.getBody("/test-future")).isEqualTo(INTERNAL_SERVER_ERROR.message)
     }
 
     @Nested
@@ -53,8 +53,8 @@ internal class TestFuture {
 
         @Test
         fun `error-handlers run after future is resolved`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.status(555).future(getFuture("Not result")) }
-            app.error(555) { it.result("Overwritten by error-handler") }
+            app.get("/test-future") { it.status(INTERNAL_SERVER_ERROR).future(getFuture("Not result")) }
+            app.error(INTERNAL_SERVER_ERROR) { it.result("Overwritten by error-handler") }
             assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by error-handler")
         }
 
@@ -117,7 +117,7 @@ internal class TestFuture {
                 it.future(future)
                 throw RuntimeException()
             }
-            assertThat(http.get("/").body).isEqualTo("Internal server error")
+            assertThat(http.get("/").body).isEqualTo(INTERNAL_SERVER_ERROR.message)
             assertThat(future.isCancelled).isTrue()
         }
 
@@ -137,7 +137,7 @@ internal class TestFuture {
         @Test
         fun `can override timeout with custom error message`() = TestUtil.test(impatientServer) { app, http ->
             app.get("/") { it.future(getFuture("Test", delay = 5000)) }
-            app.error(500) { it.result("My own simple error message") }
+            app.error(INTERNAL_SERVER_ERROR) { it.result("My own simple error message") }
             assertThat(http.get("/").body).isEqualTo("My own simple error message")
         }
 
@@ -255,7 +255,7 @@ internal class TestFuture {
                 ctx.status(IM_A_TEAPOT)
             }
 
-            assertThat(http.get("/").status).isEqualTo(OK.status)
+            assertThat(http.get("/").httpCode()).isEqualTo(OK)
         }
 
         @Test

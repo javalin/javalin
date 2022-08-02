@@ -3,7 +3,7 @@ package io.javalin.http.util
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.Header
-import io.javalin.http.HttpCode.NOT_MODIFIED
+import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.util.Util
 import java.io.ByteArrayInputStream
 import java.io.InputStream

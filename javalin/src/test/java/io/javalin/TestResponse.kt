@@ -9,9 +9,12 @@ package io.javalin
 
 import io.javalin.http.ContentType
 import io.javalin.http.Header
-import io.javalin.http.HttpCode
+import io.javalin.http.HttpStatus.IM_A_TEAPOT
+import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
+import io.javalin.http.HttpStatus.SEE_OTHER
 import io.javalin.http.util.SeekableWriter
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -35,10 +38,10 @@ class TestResponse {
             I often try to fill if up with wine. - Tim Minchin
         """
         app.get("/hello") { ctx ->
-            ctx.status(418).result(myBody).header("X-HEADER-1", "my-header-1").header("X-HEADER-2", "my-header-2")
+            ctx.status(IM_A_TEAPOT).result(myBody).header("X-HEADER-1", "my-header-1").header("X-HEADER-2", "my-header-2")
         }
         val response = http.call(HttpMethod.GET, "/hello")
-        assertThat(response.status).isEqualTo(418)
+        assertThat(response.httpCode()).isEqualTo(IM_A_TEAPOT)
         assertThat(response.body).isEqualTo(myBody)
         assertThat(response.headers.getFirst("X-HEADER-1")).isEqualTo("my-header-1")
         assertThat(response.headers.getFirst("X-HEADER-2")).isEqualTo("my-header-2")
@@ -125,20 +128,20 @@ class TestResponse {
 
     @Test
     fun `redirect with status works`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.redirect("/hello-2", HttpCode.MOVED_PERMANENTLY) }
+        app.get("/hello") { it.redirect("/hello-2", MOVED_PERMANENTLY) }
         app.get("/hello-2") { it.result("Redirected") }
         http.disableUnirestRedirects()
-        assertThat(http.call(HttpMethod.GET, "/hello").status).isEqualTo(HttpCode.MOVED_PERMANENTLY.status)
+        assertThat(http.call(HttpMethod.GET, "/hello").httpCode()).isEqualTo(MOVED_PERMANENTLY)
         http.enableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello").body).isEqualTo("Redirected")
     }
 
     @Test
     fun `redirect to absolute path works`() = TestUtil.test { app, http ->
-        app.get("/hello-abs") { it.redirect("${http.origin}/hello-abs-2", HttpCode.SEE_OTHER) }
+        app.get("/hello-abs") { it.redirect("${http.origin}/hello-abs-2", SEE_OTHER) }
         app.get("/hello-abs-2") { it.result("Redirected") }
         http.disableUnirestRedirects()
-        assertThat(http.call(HttpMethod.GET, "/hello-abs").status).isEqualTo(HttpCode.SEE_OTHER.status)
+        assertThat(http.call(HttpMethod.GET, "/hello-abs").httpCode()).isEqualTo(SEE_OTHER)
         http.enableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello-abs").body).isEqualTo("Redirected")
     }

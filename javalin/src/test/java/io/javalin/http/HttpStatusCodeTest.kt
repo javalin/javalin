@@ -3,26 +3,25 @@ package io.javalin.http
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class HttpCodeTest {
+class HttpStatusCodeTest {
 
     @Test
     fun `fetching http codes by code should get the right code`() {
-        HttpCode.values().forEach {
-            assertThat(HttpCode.forStatus(it.status)).isEqualTo(it)
+        HttpStatus.values().forEach {
+            assertThat(HttpStatus.forStatus(it.code)).isEqualTo(it)
         }
     }
 
     @Test
     fun `fetching http codes by code outside of range should not throw errors`() {
-        assertThat(HttpCode.forStatus(512)).isNull()
-        assertThat(HttpCode.forStatus(-1)).isNull()
-        assertThat(HttpCode.forStatus(542345)).isNull()
+        assertThat(HttpStatus.forStatus(-1)).isEqualTo(HttpStatus.UNKNOWN)
+        assertThat(HttpStatus.forStatus(542345)).isEqualTo(HttpStatus.UNKNOWN)
     }
 
     @Test
     fun `http code provides formatted implementation of toString() method`() {
-        HttpCode.values().forEach {
-            assertThat("${it.status} ${it.message}").isEqualTo(it.toString())
+        HttpStatus.values().forEach {
+            assertThat("${it.code} ${it.message}").isEqualTo(it.toString())
         }
     }
 

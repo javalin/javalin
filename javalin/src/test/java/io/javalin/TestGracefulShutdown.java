@@ -10,6 +10,7 @@ package io.javalin;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.eclipse.jetty.server.Server;
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+
+import static io.javalin.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -58,11 +61,11 @@ public class TestGracefulShutdown {
         performBlockingRequest(app);
         Future<HttpResponse<String>> asyncResponse = performAsyncRequest(app);
         app.stop(); // request has not completed yet
-        assertEquals(asyncResponse.get().getStatus(), 200);
+        assertEquals(asyncResponse.get().getStatus(), OK.getCode());
     }
 
     private void addEndpoints(Javalin app) {
-        app.get("/immediate-response", context -> context.status(200));
+        app.get("/immediate-response", context -> context.status(OK));
         app.get("/delayed-response", context -> Thread.sleep(LONG_WAIT_TIME_IN_MSECS));
     }
 

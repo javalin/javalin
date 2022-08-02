@@ -1,6 +1,7 @@
 package io.javalin.http
 
-enum class HttpCode(val status: Int, val message: String) {
+
+enum class HttpStatus(val code: Int, val message: String){
     CONTINUE(100, "Continue"),
     SWITCHING_PROTOCOLS(101, "Switching Protocols"),
     PROCESSING(102, "Processing"),
@@ -63,13 +64,17 @@ enum class HttpCode(val status: Int, val message: String) {
     LOOP_DETECTED(508, "Loop Detected"),
     @Deprecated("Obsoleted by https://datatracker.ietf.org/doc/status-change-http-experiments-to-historic/")
     NOT_EXTENDED(510, "Not Extended"),
-    NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required");
+    NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required"),
+    UNKNOWN(-1, "Unknown HTTP code");
 
     override fun toString(): String =
-        "$status $message"
+        "$code $message"
+
 
     companion object {
-        fun forStatus(status: Int) = values().find { it.status == status }
+        private val cachedValues: Array<HttpStatus> = HttpStatus.values()
+
+        fun forStatus(status: Int) = cachedValues.find { it.code == status } ?: UNKNOWN
     }
 
 }

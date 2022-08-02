@@ -326,22 +326,27 @@ interface Context {
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String, httpCode: HttpCode) {
-        header(Header.LOCATION, location).status(httpCode.status).result("Redirected")
+    fun redirect(location: String, status: HttpStatus) {
+        header(Header.LOCATION, location).status(status).result("Redirected")
         if (handlerType() == HandlerType.BEFORE) {
             throw SkipHttpHandlerException()
         }
     }
 
-    /** Redirects to location with status [HttpCode.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String) = redirect(location, HttpCode.MOVED_PERMANENTLY)
+    /** Redirects to location with status [HttpStatus.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
+    fun redirect(location: String) = redirect(location, HttpStatus.MOVED_PERMANENTLY)
 
     /** Sets the response status. */
-    fun status(httpCode: HttpCode): Context = status(httpCode.status)
+    fun status(status: HttpStatus):  Context = also { res().status = status.code }
+
     /** Sets the response status. */
-    fun status(statusCode: Int): Context = also { res().status = statusCode }
-    /** Gets the response status. */
-    fun status(): Int = res().status
+    fun status(status: Int):  Context = also { res().status = status }
+
+    /** Gets the response status. For non-standard codes, [HttpStatus.UNKNOWN] is returned, the specific code can be obtained using [statusCode]  */
+    fun status(): HttpStatus = HttpStatus.forStatus(res().status)
+
+    /** Gets the response status code */
+    fun statusCode(): Int = res().status
 
     /** Sets a cookie with name, value, and max-age = -1. */
     fun cookie(name: String, value: String): Context = cookie(name, value, -1)

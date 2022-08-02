@@ -11,6 +11,8 @@ import io.javalin.TestAccessManager.MyRoles.ROLE_ONE
 import io.javalin.TestAccessManager.MyRoles.ROLE_TWO
 import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
@@ -19,7 +21,7 @@ import org.junit.jupiter.api.Test
 
 class TestAccessManager {
 
-    enum class MyRoles : io.javalin.security.RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
+    enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp() = Javalin.create { config ->
         config.core.accessManager { handler, ctx, routeRoles ->
@@ -27,7 +29,7 @@ class TestAccessManager {
             if (userRole != null && MyRoles.valueOf(userRole) in routeRoles) {
                 handler.handle(ctx)
             } else {
-                ctx.status(401).result("Unauthorized")
+                ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
             }
         }
     }
@@ -35,7 +37,7 @@ class TestAccessManager {
     @Test
     fun `default AccessManager throws if roles are present`() = TestUtil.test { app, http ->
         app.get("/secured", { it.result("Hello") }, ROLE_ONE)
-        assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Internal server error")
+        assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo(INTERNAL_SERVER_ERROR.message)
     }
 
     @Test
@@ -43,7 +45,7 @@ class TestAccessManager {
         app.get("/secured", { it.result("Hello") }, ROLE_ONE, ROLE_TWO)
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/secured", "ROLE_TWO")).isEqualTo("Hello")
-        assertThat(callWithRole(http.origin, "/secured", "ROLE_THREE")).isEqualTo("Unauthorized")
+        assertThat(callWithRole(http.origin, "/secured", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)
     }
 
     @Test
@@ -53,7 +55,7 @@ class TestAccessManager {
         }
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_ONE")).isEqualTo("Hello")
         assertThat(callWithRole(http.origin, "/static-secured", "ROLE_TWO")).isEqualTo("Hello")
-        assertThat(callWithRole(http.origin, "/static-secured", "ROLE_THREE")).isEqualTo("Unauthorized")
+        assertThat(callWithRole(http.origin, "/static-secured", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)
     }
 
     @Test
@@ -63,7 +65,7 @@ class TestAccessManager {
         }
         assertThat(callWithRole(http.origin, "/users/1", "ROLE_ONE")).isEqualTo("My single user: 1")
         assertThat(callWithRole(http.origin, "/users/2", "ROLE_TWO")).isEqualTo("My single user: 2")
-        assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo("Unauthorized")
+        assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)
     }
 
     private fun callWithRole(origin: String, path: String, role: String) =

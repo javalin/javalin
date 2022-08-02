@@ -6,66 +6,89 @@
 
 package io.javalin.http
 
-open class HttpResponseException @JvmOverloads constructor(val status: Int, message: String, val details: Map<String, String> = mapOf()) : RuntimeException(message)
+import io.javalin.http.HttpStatus.BAD_GATEWAY
+import io.javalin.http.HttpStatus.BAD_REQUEST
+import io.javalin.http.HttpStatus.CONFLICT
+import io.javalin.http.HttpStatus.FORBIDDEN
+import io.javalin.http.HttpStatus.FOUND
+import io.javalin.http.HttpStatus.GATEWAY_TIMEOUT
+import io.javalin.http.HttpStatus.GONE
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.METHOD_NOT_ALLOWED
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.SERVICE_UNAVAILABLE
+import io.javalin.http.HttpStatus.UNAUTHORIZED
+
+open class HttpResponseException @JvmOverloads constructor(
+    val status: Int,
+    message: String = "",
+    val details: Map<String, String> = mapOf()
+) : RuntimeException(message){
+    constructor(
+        status: HttpStatus,
+        message: String = status.message,
+        details: Map<String, String> = mapOf()
+    ) : this(status.code, message, details)
+}
 
 class RedirectResponse @JvmOverloads constructor(
-    status: Int = HttpCode.FOUND.status,
-    message: String = "Redirected",
+    status: HttpStatus = FOUND,
+    message: String = status.message,
     details: Map<String, String> = mapOf()
 ) : HttpResponseException(status, message, details)
 
 
 class BadRequestResponse @JvmOverloads constructor(
-    message: String = "Bad request",
+    message: String = BAD_REQUEST.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.BAD_REQUEST.status, message, details)
+) : HttpResponseException(BAD_REQUEST, message, details)
 
 class UnauthorizedResponse @JvmOverloads constructor(
-    message: String = "Unauthorized",
+    message: String = UNAUTHORIZED.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.UNAUTHORIZED.status, message, details)
+) : HttpResponseException(UNAUTHORIZED, message, details)
 
 class ForbiddenResponse @JvmOverloads constructor(
-    message: String = "Forbidden",
+    message: String = FORBIDDEN.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.FORBIDDEN.status, message, details)
+) : HttpResponseException(FORBIDDEN, message, details)
 
 class NotFoundResponse @JvmOverloads constructor(
-    message: String = "Not found",
+    message: String = NOT_FOUND.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.NOT_FOUND.status, message, details)
+) : HttpResponseException(NOT_FOUND, message, details)
 
 class MethodNotAllowedResponse @JvmOverloads constructor(
-    message: String = "Method not allowed",
+    message: String = METHOD_NOT_ALLOWED.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.METHOD_NOT_ALLOWED.status, message, details)
+) : HttpResponseException(METHOD_NOT_ALLOWED, message, details)
 
 class ConflictResponse @JvmOverloads constructor(
-    message: String = "Conflict",
+    message: String = CONFLICT.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.CONFLICT.status, message, details)
+) : HttpResponseException(CONFLICT, message, details)
 
 class GoneResponse @JvmOverloads constructor(
-    message: String = "Gone",
+    message: String = GONE.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.GONE.status, message, details)
+) : HttpResponseException(GONE, message, details)
 
 class InternalServerErrorResponse @JvmOverloads constructor(
-    message: String = "Internal server error",
+    message: String = INTERNAL_SERVER_ERROR.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.INTERNAL_SERVER_ERROR.status, message, details)
+) : HttpResponseException(INTERNAL_SERVER_ERROR, message, details)
 
 class BadGatewayResponse @JvmOverloads constructor(
-    message: String = "Bad gateway",
+    message: String = BAD_GATEWAY.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.BAD_GATEWAY.status, message, details)
+) : HttpResponseException(BAD_GATEWAY, message, details)
 
 class ServiceUnavailableResponse @JvmOverloads constructor(
-    message: String = "Service unavailable",
+    message: String = SERVICE_UNAVAILABLE.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.SERVICE_UNAVAILABLE.status, message, details)
+) : HttpResponseException(SERVICE_UNAVAILABLE, message, details)
 
 class GatewayTimeoutResponse @JvmOverloads constructor(
-    message: String = "Gateway timeout",
+    message: String = GATEWAY_TIMEOUT.message,
     details: Map<String, String> = mapOf()
-) : HttpResponseException(HttpCode.GATEWAY_TIMEOUT.status, message, details)
+) : HttpResponseException(GATEWAY_TIMEOUT, message, details)

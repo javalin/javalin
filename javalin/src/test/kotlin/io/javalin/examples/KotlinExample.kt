@@ -7,6 +7,7 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
+import io.javalin.http.HttpStatus
 import io.javalin.testing.TypedException
 
 fun main() {
@@ -18,15 +19,15 @@ fun main() {
         }
 
         post("/users/create") { ctx ->
-            ctx.status(201)
+            ctx.status(HttpStatus.CREATED)
         }
 
         patch("/users/update/:id") { ctx ->
-            ctx.status(204)
+            ctx.status(HttpStatus.NO_CONTENT)
         }
 
         delete("/users/delete/:id") { ctx ->
-            ctx.status(204)
+            ctx.status(HttpStatus.NO_CONTENT)
         }
 
         exception(Exception::class.java) { e, ctx ->
@@ -37,7 +38,7 @@ fun main() {
             e.proofOfType()
         }
 
-        error(404) { ctx ->
+        error(HttpStatus.NOT_FOUND) { ctx ->
             ctx.result("not found")
         }
 

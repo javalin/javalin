@@ -1,8 +1,10 @@
 package io.javalin
 
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.sse.SseClient
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.concurrent.Executors
@@ -73,8 +75,8 @@ class TestSse {
     @Test
     fun `default http status is 200`() = TestUtil.test { app, http ->
         app.sse("/sse") { it.doAndClose { it.sendEvent(event, data) } }
-        val status = http.sse("/sse").get().status
-        assertThat(status).isEqualTo(200)
+        val status = http.sse("/sse").get().httpCode()
+        assertThat(status).isEqualTo(OK)
     }
 
     @Test

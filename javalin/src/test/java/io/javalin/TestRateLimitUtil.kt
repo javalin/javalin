@@ -6,8 +6,11 @@
 
 package io.javalin
 
+import io.javalin.http.HttpStatus.OK
+import io.javalin.http.HttpStatus.TOO_MANY_REQUESTS
 import io.javalin.http.util.NaiveRateLimit
 import io.javalin.testing.TestUtil
+import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.concurrent.TimeUnit
@@ -25,16 +28,16 @@ class TestRateLimitUtil {
     @Test
     fun `rate limiting kicks in if number of requests exceeds rate limit`() = TestUtil.test(testApp) { _, http ->
         repeat(50) { http.get("/") }
-        assertThat(http.get("/").status).isEqualTo(429)
+        assertThat(http.get("/").httpCode()).isEqualTo(TOO_MANY_REQUESTS)
         assertThat(http.get("/").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per hour.")
     }
 
     @Test
     fun `both path and HTTP method must match for rate limiting to kick in`() = TestUtil.test(testApp) { _, http ->
         repeat(50) { http.get("/") }
-        assertThat(http.get("/").status).isEqualTo(429)
-        assertThat(http.get("/test").status).isNotEqualTo(429)
-        assertThat(http.post("/").asString().status).isNotEqualTo(429)
+        assertThat(http.get("/").httpCode()).isEqualTo(TOO_MANY_REQUESTS)
+        assertThat(http.get("/test").httpCode()).isNotEqualTo(TOO_MANY_REQUESTS)
+        assertThat(http.post("/").asString().httpCode()).isNotEqualTo(TOO_MANY_REQUESTS)
     }
 
     @Test
@@ -42,7 +45,7 @@ class TestRateLimitUtil {
         repeat(50) { http.get("/dynamic/1") }
         repeat(50) { http.get("/dynamic/2") }
         repeat(50) { http.get("/dynamic/3") }
-        assertThat(http.get("/dynamic/4").status).isEqualTo(429)
+        assertThat(http.get("/dynamic/4").httpCode()).isEqualTo(TOO_MANY_REQUESTS)
         assertThat(http.get("/dynamic/5").body).isEqualTo("Rate limit exceeded - Server allows 5 requests per minute.")
     }
 
@@ -50,7 +53,7 @@ class TestRateLimitUtil {
     fun `millisecond rate-limiting works`() = TestUtil.test(testApp) { app, http ->
         repeat(3) {
             Thread.sleep(10)
-            assertThat(http.get("/ms").status).isEqualTo(200)
+            assertThat(http.get("/ms").httpCode()).isEqualTo(OK)
         }
     }
 

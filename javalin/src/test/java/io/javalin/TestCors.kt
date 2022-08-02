@@ -14,6 +14,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
+import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -73,12 +74,12 @@ class TestCors {
         val accessManagedCorsApp = Javalin.create {
             it.plugins.enableCorsForAllOrigins()
             it.core.accessManager { _, ctx, _ ->
-                ctx.status(401).result("Unauthorized")
+                ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
             }
         }
         TestUtil.test(accessManagedCorsApp) { app, http ->
             app.get("/", { it.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
-            assertThat(http.get("/").body).isEqualTo("Unauthorized")
+            assertThat(http.get("/").body).isEqualTo(UNAUTHORIZED.message)
             val response = Unirest.options(http.origin)
                 .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
                 .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")

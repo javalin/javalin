@@ -7,8 +7,7 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
-import io.javalin.http.HandlerType
-import io.javalin.http.HttpCode.MOVED_PERMANENTLY
+import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.routing.PathParser
 import io.javalin.routing.PathSegment
 import java.util.*
@@ -86,7 +85,7 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
 
             ctx.redirect(
                 location = "/" + clientSegments.joinToString("/") + (ctx.queryString()?.let { "?$it" } ?: ""), // lowercase path
-                httpCode = MOVED_PERMANENTLY
+                status = MOVED_PERMANENTLY
             )
         }
     }

@@ -8,6 +8,7 @@ package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.SESSION_CACHE_KEY_PREFIX
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.formParamAsClass
 import io.javalin.http.headerAsClass
 import io.javalin.http.queryParamAsClass
@@ -141,7 +142,7 @@ class TestRequest {
     @Test
     fun `pathParam throws for invalid param`() = TestUtil.test { app, http ->
         app.get("/{my}/{path}") { it.result(it.pathParam("path-param")) }
-        assertThat(http.getBody("/my/path")).isEqualTo("Internal server error")
+        assertThat(http.getBody("/my/path")).isEqualTo(INTERNAL_SERVER_ERROR.message)
     }
 
     @Test

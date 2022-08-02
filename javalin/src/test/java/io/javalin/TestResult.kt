@@ -1,6 +1,7 @@
 package io.javalin
 
 import io.javalin.http.ContentType
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -30,13 +31,13 @@ internal class TestResult {
             it.future(CompletableFuture<Any?>().also { future -> future.cancel(true) })
             assertDoesNotThrow { assertThat(it.resultStream()).isNull() }
         }
-        assertThat(http.getBody("/cancelled")).isEqualTo("Internal server error")
+        assertThat(http.getBody("/cancelled")).isEqualTo(INTERNAL_SERVER_ERROR.message)
 
         app.get("/errored") {
             it.future(CompletableFuture.failedFuture<Any?>(UnsupportedOperationException()))
             assertDoesNotThrow { assertThat(it.resultStream()).isNull() }
         }
-        assertThat(http.getBody("/errored")).isEqualTo("Internal server error")
+        assertThat(http.getBody("/errored")).isEqualTo(INTERNAL_SERVER_ERROR.message)
     }
 
     @Test

@@ -1,5 +1,6 @@
 package io.javalin
 
+import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpMethod
 import org.assertj.core.api.Assertions.assertThat
@@ -9,7 +10,7 @@ class TestServerHeader {
 
     @Test
     fun `server header is not set by default`() = TestUtil.test { app, http ->
-        app.get("/hello") { it.status(200).result("Hello world") }
+        app.get("/hello") { it.status(OK).result("Hello world") }
         val response = http.call(HttpMethod.GET, "/hello")
         assertThat(response.headers.getFirst("Server")).isEqualTo("")
     }

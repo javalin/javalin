@@ -2,6 +2,9 @@ package io.javalin.testtools
 
 import io.javalin.Javalin
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.NOT_FOUND
+import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
 import okhttp3.FormBody
 import okhttp3.Interceptor
@@ -23,7 +26,7 @@ class KotlinTest {
     fun `get method works`() = JavalinTest.test { server, client ->
         server.get("/hello") { it.result("Hello, World!") }
         val response = client.get("/hello")
-        assertThat(response.code).isEqualTo(200)
+        assertThat(response.code).isEqualTo(OK.code)
         assertThat(response.body!!.string()).isEqualTo("Hello, World!")
     }
 
@@ -97,7 +100,7 @@ class KotlinTest {
     @Test
     fun `testing full app works`() = JavalinTest.test(KotlinApp.app) { server, client ->
         assertThat(client.get("/hello").body?.string()).isEqualTo("Hello, app!");
-        assertThat(client.get("/hello/").body?.string()).isEqualTo("Not found"); // KotlinApp.app won't ignore trailing slashes
+        assertThat(client.get("/hello/").body?.string()).isEqualTo(NOT_FOUND.message); // KotlinApp.app won't ignore trailing slashes
     }
 
     val javalinTest = TestTool(TestConfig(false))
@@ -145,7 +148,7 @@ class KotlinTest {
                 server.get("/hello") {
                     throw Exception("Error in handler code")
                 }
-                assertThat(client.get("/hello").code).isEqualTo(500)
+                assertThat(client.get("/hello").code).isEqualTo(INTERNAL_SERVER_ERROR.code)
             }
         }
     }
@@ -160,7 +163,7 @@ class KotlinTest {
                     throw Exception("Error in handler code")
                 }
 
-                assertThat(client.get("/hello").code).isEqualTo(200)
+                assertThat(client.get("/hello").code).isEqualTo(OK.code)
             }
         } catch (t: Throwable) {
             // Ignore
