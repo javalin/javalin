@@ -29,7 +29,9 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
     override fun write(byte: Int) = originStream.write(byte)
     override fun setWriteListener(writeListener: WriteListener?) = originStream.setWriteListener(writeListener)
     override fun isReady(): Boolean = originStream.isReady
-    override fun close() { compressedStream?.close() }
+    override fun close() {
+        compressedStream?.close()
+    }
 
 }
 
@@ -43,6 +45,7 @@ private fun tryBrotli(compression: CompressionStrategy, originStream: OutputStre
     !acceptedEncoding.contains(BR.typeName, ignoreCase = true) -> null
     else -> BR to LeveledBrotliStream(originStream, compression.brotli.level)
 }
+
 private fun tryGzip(compression: CompressionStrategy, originStream: OutputStream, acceptedEncoding: String): Pair<CompressionType, OutputStream>? = when {
     compression.gzip == null -> null
     !acceptedEncoding.contains(GZIP.typeName, ignoreCase = true) -> null

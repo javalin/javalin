@@ -7,8 +7,8 @@
 package io.javalin.http.util
 
 import io.javalin.http.Context
-import io.javalin.http.HttpStatus
 import io.javalin.http.HttpResponseException
+import io.javalin.http.HttpStatus
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors

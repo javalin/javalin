@@ -35,10 +35,13 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun send(message: String) = session.remote.sendString(message)
     fun send(message: ByteBuffer) = session.remote.sendBytes(message)
 
-    @JvmOverloads fun sendPing(applicationData: ByteBuffer? = null) = session.remote.sendPing(applicationData ?: ByteBuffer.allocate(0))
-    @JvmOverloads fun enableAutomaticPings(interval: Long = 1, unit: TimeUnit = TimeUnit.MINUTES, applicationData: ByteBuffer? = null) {
+    @JvmOverloads
+    fun sendPing(applicationData: ByteBuffer? = null) = session.remote.sendPing(applicationData ?: ByteBuffer.allocate(0))
+    @JvmOverloads
+    fun enableAutomaticPings(interval: Long = 1, unit: TimeUnit = TimeUnit.MINUTES, applicationData: ByteBuffer? = null) {
         enableAutomaticPings(this, interval, unit, applicationData)
     }
+
     fun disableAutomaticPings() {
         disableAutomaticPings(this)
     }

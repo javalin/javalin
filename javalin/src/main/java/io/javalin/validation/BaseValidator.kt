@@ -25,7 +25,7 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
     internal val rules = mutableListOf<Rule<T>>()
 
     constructor(stringValue: String?, clazz: Class<T>, fieldName: String, jsonMapper: JsonMapper? = null) :
-            this(fieldName, null, StringSource<T>(stringValue, clazz, jsonMapper))
+        this(fieldName, null, StringSource<T>(stringValue, clazz, jsonMapper))
 
     private val errors by lazy {
         if (stringSource != null) {

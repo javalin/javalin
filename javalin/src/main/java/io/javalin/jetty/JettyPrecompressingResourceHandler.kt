@@ -59,7 +59,7 @@ object JettyPrecompressingResourceHandler {
         if (resource.length() > resourceMaxSize) {
             JavalinLogger.warn(
                 "Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
-                        "You can configure the max size with `JettyPrecompressingResourceHandler.resourceMaxSize = newMaxSize`."
+                    "You can configure the max size with `JettyPrecompressingResourceHandler.resourceMaxSize = newMaxSize`."
             )
             return null
         }

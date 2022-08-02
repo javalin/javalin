@@ -77,17 +77,17 @@ object FileInliner {
     }
 }
 
-internal fun getState(ctx: Context, state: Any?) = "\n<script>\n" +
-        "${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent(\"${
-            urlEncodeForJavascript(
-                ctx.jsonMapper().toJsonString(
-                    mapOf(
-                        "pathParams" to ctx.pathParamMap(),
-                        "state" to (state ?: stateFunction(ctx))
-                    )
-                )
-            )
-        }\"))\n</script>\n"
+internal fun getState(ctx: Context, state: Any?) =
+    "\n<script>\n${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent('${urlEncodedState(ctx, state)}'))\n</script>\n"
+
+private fun urlEncodedState(ctx: Context, state: Any?) = urlEncodeForJavascript(
+    ctx.jsonMapper().toJsonString(
+        mapOf(
+            "pathParams" to ctx.pathParamMap(),
+            "state" to (state ?: stateFunction(ctx))
+        )
+    )
+)
 
 // Unfortunately, Java's URLEncoder does not encode the space character in the same way as Javascript.
 // Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".

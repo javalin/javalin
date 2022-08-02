@@ -12,12 +12,11 @@ import io.javalin.http.sse.SseClient;
 import io.javalin.security.AccessManager;
 import io.javalin.security.RouteRole;
 import io.javalin.websocket.WsConfig;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Static methods for route declarations in Javalin

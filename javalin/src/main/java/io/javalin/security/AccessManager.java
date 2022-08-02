@@ -9,9 +9,8 @@ package io.javalin.security;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The access manager is a way of implementing per-endpoint security management.

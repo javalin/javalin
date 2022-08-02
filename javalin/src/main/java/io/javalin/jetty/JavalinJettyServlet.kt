@@ -8,9 +8,9 @@ package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
+import io.javalin.http.DefaultContext
 import io.javalin.http.Header
 import io.javalin.http.JavalinServlet
-import io.javalin.http.DefaultContext
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

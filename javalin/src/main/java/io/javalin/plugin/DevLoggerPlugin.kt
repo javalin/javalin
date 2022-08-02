@@ -30,8 +30,8 @@ fun requestDevLogger(ctx: Context, time: Float) = try {
     with(ctx) {
         val matcher = ctx.attribute<PathMatcher>("javalin-request-log-matcher")!!
         val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) +
-                matcher.findEntries(ctx.method(), requestUri) +
-                matcher.findEntries(HandlerType.AFTER, requestUri))
+            matcher.findEntries(ctx.method(), requestUri) +
+            matcher.findEntries(HandlerType.AFTER, requestUri))
             .map { it.type.name + "=" + it.path }
         val resHeaders = res().headerNames.asSequence().map { it to res().getHeader(it) }.toMap()
         JavalinLogger.info(

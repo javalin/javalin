@@ -15,7 +15,12 @@ import io.javalin.event.EventManager;
 import io.javalin.event.HandlerMetaInfo;
 import io.javalin.event.JavalinEvent;
 import io.javalin.event.WsHandlerMetaInfo;
-import io.javalin.http.*;
+import io.javalin.http.Context;
+import io.javalin.http.ExceptionHandler;
+import io.javalin.http.Handler;
+import io.javalin.http.HandlerType;
+import io.javalin.http.HttpStatus;
+import io.javalin.http.JavalinServlet;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.jetty.JavalinJettyServlet;
@@ -30,14 +35,13 @@ import io.javalin.util.Util;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
 import io.javalin.websocket.WsHandlerType;
-import org.eclipse.jetty.server.Server;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.eclipse.jetty.server.Server;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unchecked")
 public class Javalin implements AutoCloseable {

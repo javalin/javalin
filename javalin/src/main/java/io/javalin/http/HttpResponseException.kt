@@ -23,7 +23,7 @@ open class HttpResponseException @JvmOverloads constructor(
     val status: Int,
     message: String = "",
     val details: Map<String, String> = mapOf()
-) : RuntimeException(message){
+) : RuntimeException(message) {
     constructor(
         status: HttpStatus,
         message: String = status.message,

@@ -6,9 +6,8 @@
 
 package io.javalin.event;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 public class EventListener {
 
