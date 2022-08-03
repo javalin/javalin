@@ -15,7 +15,7 @@ import java.util.function.Consumer
 
 data class CorsPluginConfig(
     @JvmField var allowCredentials: Boolean = false,
-    @JvmField var allowAllOrigins: Boolean = false,
+    @JvmField var reflectClientOrigin: Boolean = false,
     @JvmField var allowedOrigins: Collection<String> = listOf(),
 )
 
@@ -26,8 +26,8 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
     private val origins: List<String> = cfg.allowedOrigins.map { it.removeSuffix("/") }
 
     override fun apply(app: Javalin) {
-        require(origins.isNotEmpty() || cfg.allowAllOrigins) { "Origins cannot be empty if `allowAllOrigins` is false." }
-        require(origins.isEmpty() || !cfg.allowAllOrigins) { "Cannot set `allowedOrigins` if `allowAllOrigins` is true" }
+        require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
+        require(origins.isEmpty() || !cfg.reflectClientOrigin) { "Cannot set `allowedOrigins` if `reflectClientOrigin` is true" }
         app.before { ctx ->
             if (ctx.method() == OPTIONS) {
                 ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also { headerValue ->
@@ -37,9 +37,14 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
                     ctx.header(ACCESS_CONTROL_ALLOW_METHODS, headerValue)
                 }
             }
-            val requestOrigin = ctx.header(ORIGIN) ?: ctx.header(REFERER) ?: return@before
-            if (!cfg.allowAllOrigins && requestOrigin !in origins) return@before
-            ctx.header(ACCESS_CONTROL_ALLOW_ORIGIN, requestOrigin)
+            val clientOrigin = ctx.header(ORIGIN) ?: ctx.header(REFERER) ?: return@before
+            val allowOriginValue = when {
+                "*" in origins -> "*"
+                cfg.reflectClientOrigin -> clientOrigin
+                clientOrigin in origins -> clientOrigin
+                else -> null
+            } ?: return@before
+            ctx.header(ACCESS_CONTROL_ALLOW_ORIGIN, allowOriginValue)
             ctx.header(VARY, ORIGIN)
             if (cfg.allowCredentials) {
                 ctx.header(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true") // should never be set to "false", but rather omitted
