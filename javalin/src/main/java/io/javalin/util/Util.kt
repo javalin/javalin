@@ -20,7 +20,10 @@ import java.util.zip.CheckedInputStream
 object Util {
 
     @JvmStatic
-    fun normalizeContextPath(contextPath: String) = ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
+    fun normalizeContextPath(contextPath: String) = when {
+        contextPath == "/" -> "/"
+        else -> ("/$contextPath").replace("/{2,}".toRegex(), "/").removeSuffix("/")
+    }
 
     @JvmStatic
     fun prefixContextPath(contextPath: String, path: String) = if (path == "*") path else ("$contextPath/$path").replace("/{2,}".toRegex(), "/")
