@@ -16,6 +16,6 @@ data class StaticFileConfig(
     @JvmField var skipFileFunction: (HttpServletRequest) -> Boolean = { false },
 ) {
     internal fun refinedToString(): String {
-        return this.toString().replace(", skipFileFunction=(javax.servlet.http.HttpServletRequest) -> kotlin.Boolean", "")
+        return this.toString().replace(", skipFileFunction=(jakarta.servlet.http.HttpServletRequest) -> kotlin.Boolean", "")
     }
 }
