@@ -20,7 +20,7 @@ class BasicAuthFilter(private val username: String, private val password: String
         app.before { ctx ->
             val matched = runCatching { ctx.basicAuthCredentials() }
                 .fold(
-                    onSuccess = { it.username == username && it.password == password },
+                    onSuccess = { it?.username == username && it.password == password },
                     onFailure = { false }
                 )
 

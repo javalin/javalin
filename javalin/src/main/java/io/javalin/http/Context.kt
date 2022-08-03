@@ -222,20 +222,13 @@ interface Context {
     fun headerMap(): Map<String, String> = req().headerNames.asSequence().associateWith { header(it)!! }
 
     /**
-     * Checks whether basic-auth credentials from the request exists.
-     *
-     * Returns a Boolean which is true if there is an Authorization header with
-     * Basic auth credentials. Returns false otherwise.
-     */
-    fun basicAuthCredentialsExist(): Boolean = hasBasicAuthCredentials(header(Header.AUTHORIZATION))
-
-    /**
      * Gets basic-auth credentials from the request, or throws.
      *
      * Returns a wrapper object [BasicAuthCredentials] which contains the
-     * Base64 decoded username and password from the Authorization header.
+     * Base64 decoded username and password from the Authorization header,
+     * or null if basic-auth is not properly configured
      */
-    fun basicAuthCredentials(): BasicAuthCredentials = getBasicAuthCredentials(header(Header.AUTHORIZATION))
+    fun basicAuthCredentials(): BasicAuthCredentials? = getBasicAuthCredentials(header(Header.AUTHORIZATION))
 
     /** Returns true if request is multipart. */
     fun isMultipart(): Boolean = header(Header.CONTENT_TYPE)?.lowercase(Locale.ROOT)?.contains("multipart/") == true

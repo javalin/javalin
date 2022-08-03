@@ -134,21 +134,16 @@ fun pathParamOrThrow(pathParams: Map<String, String?>, key: String, url: String)
 
 fun urlDecode(s: String): String = URLDecoder.decode(s.replace("+", "%2B"), "UTF-8").replace("%2B", "+")
 
-fun hasBasicAuthCredentials(authorizationHeader: String?) =
-    runCatching { getBasicAuthCredentials(authorizationHeader) }.isSuccess
-
 /**
  * @throws IllegalStateException if specified string is not valid Basic auth header
  */
-fun getBasicAuthCredentials(authorizationHeader: String?): BasicAuthCredentials =
+fun getBasicAuthCredentials(authorizationHeader: String?): BasicAuthCredentials? =
     authorizationHeader
         ?.takeIf { authorizationHeader.startsWith("Basic ") }
         ?.removePrefix("Basic ")
-        ?.let { Base64.getDecoder().decode(it) }
-        ?.decodeToString()
+        ?.let { Base64.getDecoder().decode(it).decodeToString() }
         ?.split(':', limit = 2)
         ?.let { (username, password) -> BasicAuthCredentials(username, password) }
-        ?: throw IllegalArgumentException("Invalid Basic auth header. Value was '$authorizationHeader'.")
 
 fun acceptsHtml(ctx: Context) =
     ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true

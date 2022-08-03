@@ -224,56 +224,33 @@ class TestRequest {
     }
 
     @Test
-    fun `hasBasicAuthCredentials with Authorization header`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
-            val basicAuthCredentialsExist = ctx.basicAuthCredentialsExist()
-            ctx.result(basicAuthCredentialsExist.toString())
-        }
-        val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
-        assertThat(response.body).isEqualTo("true")
-    }
-
-    @Test
-    fun `hasBasicAuthCredentials without Authorization header`() = TestUtil.test { app, http ->
-        app.get("/") { ctx ->
-            val basicAuthCredentialsExist = ctx.basicAuthCredentialsExist()
-            ctx.result(basicAuthCredentialsExist.toString())
-        }
-        val response = Unirest.get("${http.origin}/").asString()
-        assertThat(response.body).isEqualTo("false")
-    }
-
-    @Test
-    fun `basicAuthCredentials extracts username and password`() = TestUtil.test { app, http ->
+    fun `basicAuthCredentials extracts username and password when header properly configured`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
-            ctx.result(basicAuthCredentials.username + "|" + basicAuthCredentials.password)
+            ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
         val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-password").asString()
         assertThat(response.body).isEqualTo("some-username|some-password")
     }
 
     @Test
-    fun `basicAuthCredentials extracts username and password with colon`() = TestUtil.test { app, http ->
+    fun `basicAuthCredentials returns null when header not properly configured`() = TestUtil.test { app, http ->
         app.get("/") { ctx ->
             val basicAuthCredentials = ctx.basicAuthCredentials()
-            ctx.result(basicAuthCredentials.username + "|" + basicAuthCredentials.password)
+            ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
-        val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
-        assertThat(response.body).isEqualTo("some-username|some-pass:::word")
+        val response = Unirest.get("${http.origin}/").header(Header.AUTHORIZATION, "BAZIK 123").asString()
+        assertThat(response.body).isEqualTo("null|null")
     }
 
     @Test
-    fun `basic authentication requires Basic prefix to header`() = TestUtil.test { app, http ->
-        app.get("/") {
-            try {
-                it.basicAuthCredentials()
-            } catch (e: IllegalArgumentException) {
-                it.result(e.message!!)
-            }
+    fun `basicAuthCredentials extracts username and password with colon`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            val basicAuthCredentials = ctx.basicAuthCredentials()
+            ctx.result(basicAuthCredentials?.username + "|" + basicAuthCredentials?.password)
         }
-        val response = Unirest.get("${http.origin}/").header(Header.AUTHORIZATION, "user:pass").asString()
-        assertThat(response.body).isEqualTo("Invalid Basic auth header. Value was 'user:pass'.")
+        val response = Unirest.get("${http.origin}/").basicAuth("some-username", "some-pass:::word").asString()
+        assertThat(response.body).isEqualTo("some-username|some-pass:::word")
     }
 
     @Test
