@@ -382,8 +382,8 @@ interface Context {
         }
     }
 
-    /** Redirects to location with status [HttpStatus.MOVED_PERMANENTLY]. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String) = redirect(location, HttpStatus.MOVED_PERMANENTLY)
+    /** Redirects to location with status [HttpStatus.FOUND]. Skips HTTP handler if called in before-handler */
+    fun redirect(location: String) = redirect(location, HttpStatus.FOUND)
 
     /** Sets the response status. */
     fun status(status: HttpStatus): Context = also { res().status = status.code }

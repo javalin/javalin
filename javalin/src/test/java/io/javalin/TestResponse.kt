@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.http.ContentType
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.HttpStatus.SEE_OTHER
@@ -121,19 +122,23 @@ class TestResponse {
 
     @Test
     fun `redirect in normal handler works`() = TestUtil.test { app, http ->
+        http.disableUnirestRedirects()
         app.get("/hello") { it.redirect("/hello-2") }
-        app.get("/hello-2") { it.result("Redirected") }
-        assertThat(http.getBody("/hello")).isEqualTo("Redirected")
+        app.get("/hello-2") { it.result("Woop!") }
+        val response = http.get("/hello")
+        assertThat(response.body).isEqualTo("Redirected")
+        assertThat(response.status).isEqualTo(HttpStatus.FOUND.code)
+        http.enableUnirestRedirects()
     }
 
     @Test
     fun `redirect with status works`() = TestUtil.test { app, http ->
+        http.disableUnirestRedirects()
         app.get("/hello") { it.redirect("/hello-2", MOVED_PERMANENTLY) }
         app.get("/hello-2") { it.result("Redirected") }
-        http.disableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello").httpCode()).isEqualTo(MOVED_PERMANENTLY)
-        http.enableUnirestRedirects()
         assertThat(http.call(HttpMethod.GET, "/hello").body).isEqualTo("Redirected")
+        http.enableUnirestRedirects()
     }
 
     @Test
