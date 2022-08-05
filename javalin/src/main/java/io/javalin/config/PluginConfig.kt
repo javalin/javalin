@@ -1,7 +1,9 @@
 package io.javalin.config
 
+import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.plugin.BasicAuthFilter
 import io.javalin.plugin.CorsPlugin
+import io.javalin.plugin.CorsPluginConfig
 import io.javalin.plugin.DevLoggingPlugin
 import io.javalin.plugin.Headers
 import io.javalin.plugin.HeadersPlugin
@@ -11,6 +13,7 @@ import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.RedirectToLowercasePathPlugin
 import io.javalin.plugin.SslRedirectPlugin
 import io.javalin.plugin.routeoverview.RouteOverviewPlugin
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 class PluginConfig(private val pvt: PrivateConfig) {
@@ -22,8 +25,6 @@ class PluginConfig(private val pvt: PrivateConfig) {
         pvt.plugins[plugin.javaClass] = plugin
     }
 
-    fun enableCorsForAllOrigins() = register(CorsPlugin.forAllOrigins())
-    fun enableCorsForOrigin(vararg origins: String) = register(CorsPlugin.forOrigins(*origins))
     fun enableHttpAllowedMethodsOnRoutes() = register(HttpAllowedMethodsOnRoutesUtil())
     fun enableDevLogging() = register(DevLoggingPlugin())
     fun enableGlobalHeaders(headers: Supplier<Headers?>) = register(HeadersPlugin(headers.get()!!))
@@ -31,5 +32,6 @@ class PluginConfig(private val pvt: PrivateConfig) {
     fun enableRedirectToLowercasePaths() = register(RedirectToLowercasePathPlugin())
     fun enableBasicAuth(username: String, password: String) = register(BasicAuthFilter(username, password))
     fun enableSslRedirects() = register(SslRedirectPlugin())
+    fun enableCors(userConfig: Consumer<CorsPluginConfig>) = register(CorsPlugin(userConfig))
 
 }

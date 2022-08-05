@@ -7,6 +7,7 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
+import java.util.Set;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.patch;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -16,7 +17,9 @@ public class HelloWorldCors {
     public static void main(String[] args) {
 
         Javalin corsApp = Javalin.create(config -> {
-            config.plugins.enableCorsForOrigin("http://localhost:7001/", "http://localhost:7002");
+            config.plugins.enableCors(corsConfig -> {
+                corsConfig.allowedOrigins = Set.of("http://localhost:7001/", "http://localhost:7002");
+            });
         }).start(7070);
 
         corsApp.routes(() -> {
