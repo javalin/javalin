@@ -68,6 +68,17 @@ class TestAccessManager {
         assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)
     }
 
+    @Test
+    fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
+        it.core.accessManager { handler, ctx, _ ->
+            ctx.result("Test")
+            handler.handle(ctx)
+        }}
+    ) { app, http ->
+        app.get("/secured", { it.result(it.resultString() ?: "") }, ROLE_ONE)
+        assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Test")
+    }
+
     private fun callWithRole(origin: String, path: String, role: String) =
         Unirest.get(origin + path).queryString("role", role).asString().body
 
