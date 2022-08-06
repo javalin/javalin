@@ -13,6 +13,7 @@ import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.routeoverview.RouteOverviewPlugin
 import io.javalin.plugin.metrics.MicrometerPlugin
+import io.javalin.security.AccessManager.AuthenticationStatus
 import io.javalin.testing.TestUtil
 import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener
@@ -45,7 +46,6 @@ class TestConfiguration {
             it.requestLoggers.http { ctx, timeInMs -> }
             it.requestLoggers.webSocket { ws -> }
             it.plugins.register(MicrometerPlugin())
-            it.core.accessManager { _, _, _ -> }
             it.core.showJavalinBanner = false
             it.routing.contextPath = "/"
             it.jetty.sessionHandler { SessionHandler() }

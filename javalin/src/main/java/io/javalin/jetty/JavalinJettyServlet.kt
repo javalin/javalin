@@ -12,6 +12,7 @@ import io.javalin.http.DefaultContext
 import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.http.JavalinServlet
+import io.javalin.security.AccessManager.AuthenticationStatus.AUTHORIZED
 import io.javalin.security.SecurityUtil
 import io.javalin.security.RouteRole
 import io.javalin.websocket.*
@@ -76,7 +77,8 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
 
     private fun allowedByAccessManager(entry: WsEntry, ctx: Context): Boolean = try {
         cfg.pvt.accessManager
-            ?.manage({ accessManagerHandler.handle(ctx) }, ctx, entry.roles) // run custom access manager
+            ?.manage(ctx, entry.roles) // run custom access manager
+            ?.run { if (this == AUTHORIZED) accessManagerHandler.handle(ctx) }
             ?: SecurityUtil.noopAccessManager(accessManagerHandler, ctx, entry.roles)
         ctx.attribute<Boolean>("javalin-ws-upgrade-allowed") == true // attribute is true if access manger allowed the request
     } catch (e: Exception) {

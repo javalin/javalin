@@ -15,6 +15,8 @@ import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.plugin.CorsPlugin
 import io.javalin.routing.PathMatcher
+import io.javalin.security.AccessManager.AuthenticationStatus.AUTHORIZED
+import io.javalin.security.AccessManager.AuthenticationStatus.UNAUTHORIZED
 import io.javalin.security.SecurityUtil
 import io.javalin.util.LogUtil
 import jakarta.servlet.http.HttpServlet
@@ -43,7 +45,8 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
                 submitTask {
                     cfg.pvt.accessManager
-                        ?.manage({ submitTask { entry.handle(ctx, requestUri) } }, ctx, entry.roles)
+                        ?.manage(ctx, entry.roles)
+                        ?.run { if (this == AUTHORIZED) submitTask { entry.handle(ctx, requestUri) } }
                         ?: SecurityUtil.noopAccessManager({ entry.handle(ctx, requestUri) }, ctx, entry.roles)
                 }
                 return@Stage // return after first match
