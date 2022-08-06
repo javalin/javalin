@@ -9,11 +9,12 @@ import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginLifecycleInit
+import io.javalin.security.RouteRole
 import java.util.*
 
 class RouteOverviewPlugin(
     val path: String,
-    vararg val roles: io.javalin.security.RouteRole = arrayOf()
+    vararg val roles: RouteRole = arrayOf()
 ) : Plugin, PluginLifecycleInit {
 
     private lateinit var renderer: RouteOverviewRenderer

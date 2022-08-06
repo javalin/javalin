@@ -15,8 +15,9 @@ import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.HttpStatus
+import io.javalin.security.RouteRole
 
-enum class MyRoles : io.javalin.security.RouteRole {
+enum class MyRoles : RouteRole {
     ROLE_ONE, ROLE_TWO, ROLE_THREE
 }
 
@@ -36,7 +37,7 @@ fun main() {
 
 }
 
-private fun accessManager(handler: Handler, ctx: Context, routeRoles: Set<io.javalin.security.RouteRole>) {
+private fun accessManager(handler: Handler, ctx: Context, routeRoles: Set<RouteRole>) {
     val userRole = ctx.queryParam("role")
     if (userRole != null && routeRoles.contains(MyRoles.valueOf(userRole))) {
         handler.handle(ctx)
