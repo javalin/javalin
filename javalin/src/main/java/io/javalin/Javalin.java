@@ -26,6 +26,7 @@ import io.javalin.http.sse.SseHandler;
 import io.javalin.jetty.JavalinJettyServlet;
 import io.javalin.jetty.JettyServer;
 import io.javalin.jetty.JettyUtil;
+import io.javalin.routing.HandlerEntry;
 import io.javalin.security.AccessManager;
 import io.javalin.security.RouteRole;
 import io.javalin.util.JavalinBindException;
@@ -345,7 +346,7 @@ public class Javalin implements AutoCloseable {
      */
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
-        javalinServlet.addHandler(handlerType, path, handler, roleSet);
+        javalinServlet.getMatcher().add(new HandlerEntry(handlerType, path, cfg.routing, roleSet, handler));
         eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(cfg.routing.contextPath, path), handler, roleSet));
         return this;
     }

@@ -9,8 +9,10 @@ package io.javalin.jetty
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.DefaultContext
+import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.http.JavalinServlet
+import io.javalin.security.SecurityUtil
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -69,8 +71,12 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         super.service(req, res) // everything is okay, perform websocket upgrade
     }
 
+    private val accessManagerHandler = Handler { it.attribute("javalin-ws-upgrade-allowed", true)}
+
     private fun allowedByAccessManager(entry: WsEntry, ctx: Context): Boolean = try {
-        cfg.pvt.accessManager.manage({ it.attribute("javalin-ws-upgrade-allowed", true) }, ctx, entry.roles) // run access manager
+        cfg.pvt.accessManager
+            ?.manage(accessManagerHandler, ctx, entry.roles) // run custom access manager
+            ?: SecurityUtil.noopAccessManager(accessManagerHandler, ctx, entry.roles)
         ctx.attribute<Boolean>("javalin-ws-upgrade-allowed") == true // attribute is true if access manger allowed the request
     } catch (e: Exception) {
         false
