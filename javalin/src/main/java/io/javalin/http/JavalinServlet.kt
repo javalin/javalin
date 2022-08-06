@@ -16,6 +16,7 @@ import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.plugin.CorsPlugin
 import io.javalin.routing.HandlerEntry
 import io.javalin.routing.PathMatcher
+import io.javalin.security.RouteRole
 import io.javalin.util.LogUtil
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
@@ -99,7 +100,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         }
     }
 
-    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<io.javalin.security.RouteRole>) {
+    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<RouteRole>) {
         val protectedHandler = if (handlerType.isHttpMethod()) Handler { ctx -> cfg.pvt.accessManager.manage(handler, ctx, roles) } else handler
         matcher.add(HandlerEntry(handlerType, path, cfg.routing, protectedHandler, handler))
     }

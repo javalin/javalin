@@ -1,6 +1,5 @@
 package io.javalin.config
 
-import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.plugin.BasicAuthFilter
 import io.javalin.plugin.CorsPlugin
 import io.javalin.plugin.CorsPluginConfig
@@ -13,6 +12,7 @@ import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.RedirectToLowercasePathPlugin
 import io.javalin.plugin.SslRedirectPlugin
 import io.javalin.plugin.routeoverview.RouteOverviewPlugin
+import io.javalin.security.RouteRole
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -28,7 +28,8 @@ class PluginConfig(private val pvt: PrivateConfig) {
     fun enableHttpAllowedMethodsOnRoutes() = register(HttpAllowedMethodsOnRoutesUtil())
     fun enableDevLogging() = register(DevLoggingPlugin())
     fun enableGlobalHeaders(headers: Supplier<Headers?>) = register(HeadersPlugin(headers.get()!!))
-    fun enableRouteOverview(path: String, vararg roles: io.javalin.security.RouteRole = arrayOf()) = register(RouteOverviewPlugin(path, *roles))
+    fun enableRouteOverview(path: String, vararg roles: RouteRole = arrayOf()) = register(RouteOverviewPlugin(path, *roles))
+
     fun enableRedirectToLowercasePaths() = register(RedirectToLowercasePathPlugin())
     fun enableBasicAuth(username: String, password: String) = register(BasicAuthFilter(username, password))
     fun enableSslRedirects() = register(SslRedirectPlugin())

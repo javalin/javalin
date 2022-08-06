@@ -8,6 +8,7 @@ package io.javalin.websocket
 
 import io.javalin.config.RoutingConfig
 import io.javalin.routing.PathParser
+import io.javalin.security.RouteRole
 import java.util.*
 
 data class WsEntry(
@@ -15,7 +16,7 @@ data class WsEntry(
     val path: String,
     val routingConfig: RoutingConfig,
     val wsConfig: WsConfig,
-    val roles: Set<io.javalin.security.RouteRole>
+    val roles: Set<RouteRole>
 ) {
     private val pathParser = PathParser(path, routingConfig)
     fun matches(path: String) = pathParser.matches(path)
