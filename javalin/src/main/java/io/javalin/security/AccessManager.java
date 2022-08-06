@@ -23,5 +23,10 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface AccessManager {
-    void manage(@NotNull Handler handler, @NotNull Context ctx, @NotNull Set<RouteRole> routeRoles) throws Exception;
+    /**
+     * @param proceed callback you should call if given request has been authenticated properly, and you want to execute HTTP handler
+     * @param ctx current context
+     * @param routeRoles configured roles for this route
+     */
+    void manage(@NotNull Runnable proceed, @NotNull Context ctx, @NotNull Set<RouteRole> routeRoles) throws Exception;
 }

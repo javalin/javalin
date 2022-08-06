@@ -24,10 +24,10 @@ class TestAccessManager {
     enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp() = Javalin.create { config ->
-        config.core.accessManager { handler, ctx, routeRoles ->
+        config.core.accessManager { proceed, ctx, routeRoles ->
             val userRole = ctx.queryParam("role")
             if (userRole != null && MyRoles.valueOf(userRole) in routeRoles) {
-                handler.handle(ctx)
+                proceed.run()
             } else {
                 ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
             }
@@ -70,9 +70,9 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
-        it.core.accessManager { handler, ctx, _ ->
+        it.core.accessManager { proceed, ctx, _ ->
             ctx.result("Test")
-            handler.handle(ctx)
+            proceed.run()
         }}
     ) { app, http ->
         app.get("/secured", { it.result(it.resultString() ?: "") }, ROLE_ONE)

@@ -76,7 +76,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
 
     private fun allowedByAccessManager(entry: WsEntry, ctx: Context): Boolean = try {
         cfg.pvt.accessManager
-            ?.manage(accessManagerHandler, ctx, entry.roles) // run custom access manager
+            ?.manage({ accessManagerHandler.handle(ctx) }, ctx, entry.roles) // run custom access manager
             ?: SecurityUtil.noopAccessManager(accessManagerHandler, ctx, entry.roles)
         ctx.attribute<Boolean>("javalin-ws-upgrade-allowed") == true // attribute is true if access manger allowed the request
     } catch (e: Exception) {
