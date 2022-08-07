@@ -15,7 +15,7 @@ fun main() {
 
     val corsApp = Javalin.create {
         it.plugins.enableCors {
-            it.allowedOrigins = setOf("http://localhost:7001/", "http://localhost:7002")
+            it.allowHost("http://localhost:7001/", "http://localhost:7002")
         }
     }.start(7070)
 

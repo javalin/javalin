@@ -6,6 +6,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_ORIGIN
+import io.javalin.http.Header.ACCESS_CONTROL_EXPOSE_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
@@ -13,19 +14,45 @@ import io.javalin.http.Header.REFERER
 import io.javalin.http.Header.VARY
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.Plugin
+import java.util.*
 import java.util.function.Consumer
 
 data class CorsPluginConfig(
     @JvmField var allowCredentials: Boolean = false,
     @JvmField var reflectClientOrigin: Boolean = false,
-    @JvmField var allowedOrigins: Collection<String> = listOf(),
-)
+    private val allowedOrigins: MutableList<String> = mutableListOf(),
+    private val headersToExpose: MutableList<String> = mutableListOf()
+) {
+    fun allowedOrigins(): List<String> = Collections.unmodifiableList(allowedOrigins)
+    fun headersToExpose(): List<String> = Collections.unmodifiableList(headersToExpose)
+
+    fun anyHost() {
+        allowedOrigins.add("*")
+    }
+
+    fun allowHost(origin: String) {
+        allowedOrigins.add(origin.removeSuffix("/"))
+    }
+
+    // TODO: unsure if that is the desired api. Maybe just accept a collection instead?
+    fun allowHost(origin: String, vararg others: String) {
+        allowHost(origin)
+        others.forEach {
+            allowHost(it)
+        }
+    }
+
+    fun exposeHeader(header: String) {
+        headersToExpose.add(header)
+    }
+}
 
 class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
 
     val cfg = CorsPluginConfig().also { userConfig.accept(it) }
 
-    private val origins: List<String> = cfg.allowedOrigins.map { it.removeSuffix("/") }
+    private val origins: List<String> = cfg.allowedOrigins()
+    private val headersToExpose: List<String> = cfg.headersToExpose()
 
     override fun apply(app: Javalin) {
         require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
@@ -50,6 +77,10 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
             ctx.header(VARY, ORIGIN)
             if (cfg.allowCredentials) {
                 ctx.header(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true") // should never be set to "false", but rather omitted
+            }
+
+            if (headersToExpose.isNotEmpty()) {
+                ctx.header(ACCESS_CONTROL_EXPOSE_HEADERS, headersToExpose.joinToString(separator = ","))
             }
         }
         app.after { ctx ->

@@ -10,6 +10,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_ORIGIN
+import io.javalin.http.Header.ACCESS_CONTROL_EXPOSE_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
@@ -37,7 +38,7 @@ class TestCors {
             Javalin.create {
                 it.plugins.enableCors {
                     it.reflectClientOrigin = true
-                    it.allowedOrigins = setOf("A", "B")
+                    it.allowHost("A", "B")
                 }
             }
         }.withMessageStartingWith("Cannot set `allowedOrigins` if `reflectClientOrigin` is true")
@@ -45,7 +46,7 @@ class TestCors {
 
     @Test
     fun `can enable cors for specific origins`() = TestUtil.test(Javalin.create {
-        it.plugins.enableCors { it.allowedOrigins = setOf("origin-1", "referer-1") }
+        it.plugins.enableCors { it.allowHost("origin-1", "referer-1") }
     }) { app, http ->
         app.get("/") { it.result("Hello") }
         assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
@@ -55,7 +56,7 @@ class TestCors {
 
     @Test
     fun `can enable cors for star origins`() = TestUtil.test(Javalin.create {
-        it.plugins.enableCors { it.allowedOrigins = setOf("*") }
+        it.plugins.enableCors { it.anyHost() }
     }) { app, http ->
         app.get("/") { it.result("Hello") }
         assertThat(http.get("/", mapOf(ORIGIN to "A")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*")
@@ -64,7 +65,7 @@ class TestCors {
 
     @Test
     fun `headers are not set when origin doesn't match`() = TestUtil.test(Javalin.create {
-        it.plugins.enableCors { it.allowedOrigins = setOf("origin-1.com") }
+        it.plugins.enableCors { it.allowHost("origin-1.com") }
     }) { app, http ->
         app.get("/") { it.result("Hello") }
         assertThat(http.get("/", mapOf(ORIGIN to "origin-2.com")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
@@ -129,6 +130,37 @@ class TestCors {
             .asString()
         assertThat(response.header(ACCESS_CONTROL_ALLOW_HEADERS)).isEqualTo("123")
         assertThat(response.header(ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("TEST")
+        assertThat(response.body).isEqualTo("Hello")
+    }
+
+    @Test
+    fun `allows exposing a single header`() = TestUtil.test(Javalin.create { cfg ->
+        cfg.plugins.enableCors {
+            it.reflectClientOrigin = true
+            it.exposeHeader("x-test")
+        }
+    }) { app, http ->
+        app.get("/") { it.result("Hello") }
+        val response = Unirest.get(http.origin)
+            .header(ORIGIN, "example.com")
+            .asString()
+        assertThat(response.header(ACCESS_CONTROL_EXPOSE_HEADERS)).isEqualTo("x-test")
+        assertThat(response.body).isEqualTo("Hello")
+    }
+
+    @Test
+    fun `allows exposing multiple headers`() = TestUtil.test(Javalin.create { cfg ->
+        cfg.plugins.enableCors {
+            it.reflectClientOrigin = true
+            it.exposeHeader("x-test")
+            it.exposeHeader("x-world")
+        }
+    }) { app, http ->
+        app.get("/") { it.result("Hello") }
+        val response = Unirest.get(http.origin)
+            .header(ORIGIN, "example.com")
+            .asString()
+        assertThat(response.header(ACCESS_CONTROL_EXPOSE_HEADERS)).isEqualTo("x-test,x-world")
         assertThat(response.body).isEqualTo("Hello")
     }
 
