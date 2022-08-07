@@ -22,9 +22,9 @@ import java.lang.Exception
 fun interface AccessManager {
 
     /**
+     * @param handler http handler to call as follows `handler.handle(ctx)` if request is authenticated
      * @param ctx current context
      * @param routeRoles configured roles for this route
-     * @return [AuthenticationStatus.AUTHORIZED] if Javalin should execute HTTP handler, [AuthenticationStatus.UNAUTHORIZED] otherwise
      */
     @Throws(Exception::class)
     fun manage(handler: Handler, ctx: Context, routeRoles: Set<RouteRole>)
