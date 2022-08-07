@@ -13,8 +13,8 @@ import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_ONE
 import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_THREE
 import io.javalin.examples.HelloWorldAuth.MyRoles.ROLE_TWO
 import io.javalin.http.Context
+import io.javalin.http.Handler
 import io.javalin.http.HttpStatus
-import io.javalin.security.AccessManager.AuthenticationStatus
 import io.javalin.security.RouteRole
 
 enum class MyRoles : RouteRole {
@@ -36,14 +36,12 @@ fun main() {
 
 }
 
-private fun accessManager(ctx: Context, routeRoles: Set<RouteRole>): AuthenticationStatus {
+private fun accessManager(handler: Handler, ctx: Context, routeRoles: Set<RouteRole>) {
     val userRole = ctx.queryParam("role")
 
-    return if (userRole != null && routeRoles.contains(MyRoles.valueOf(userRole))) {
-        AuthenticationStatus.AUTHORIZED
-    } else {
-        ctx.status(HttpStatus.UNAUTHORIZED).result("Unauthorized")
-        AuthenticationStatus.UNAUTHORIZED
+    when {
+        userRole != null && routeRoles.contains(MyRoles.valueOf(userRole)) -> handler.handle(ctx)
+        else -> ctx.status(HttpStatus.UNAUTHORIZED).result("Unauthorized")
     }
 }
 

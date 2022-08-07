@@ -13,7 +13,6 @@ import io.javalin.apibuilder.ApiBuilder.crud
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.UNAUTHORIZED
-import io.javalin.security.AccessManager.AuthenticationStatus
 import io.javalin.security.RouteRole
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
@@ -25,14 +24,12 @@ class TestAccessManager {
     enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp() = Javalin.create { config ->
-        config.core.accessManager { ctx, routeRoles ->
+        config.core.accessManager { handler, ctx, routeRoles ->
             val role: RouteRole? = ctx.queryParam("role")?.let { MyRoles.valueOf(it) }
 
-            if (role in routeRoles) {
-                AuthenticationStatus.AUTHORIZED
-            } else {
-                ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
-                AuthenticationStatus.UNAUTHORIZED
+            when (role) {
+                in routeRoles -> handler.handle(ctx)
+                else -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
             }
         }
     }
@@ -73,9 +70,9 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
-        it.core.accessManager { ctx, _ ->
+        it.core.accessManager { handler, ctx, _ ->
             ctx.result("Test")
-            AuthenticationStatus.AUTHORIZED
+            handler.handle(ctx)
         }
     }) { app, http ->
         app.get("/secured", { it.result(it.resultString() ?: "") }, ROLE_ONE)

@@ -15,7 +15,6 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
 import io.javalin.http.HttpStatus.UNAUTHORIZED
-import io.javalin.security.AccessManager.AuthenticationStatus
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
 import kong.unirest.Unirest
@@ -105,10 +104,7 @@ class TestCors {
     @Test
     fun `works with AccessManager`() = TestUtil.test(Javalin.create {
         it.plugins.enableCors { it.reflectClientOrigin = true }
-        it.core.accessManager { ctx, _ ->
-            ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
-            AuthenticationStatus.UNAUTHORIZED
-        }
+        it.core.accessManager { _, ctx, _ -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message) }
     }) { app, http ->
         app.get("/", { it.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
         assertThat(http.get("/").body).isEqualTo(UNAUTHORIZED.message)

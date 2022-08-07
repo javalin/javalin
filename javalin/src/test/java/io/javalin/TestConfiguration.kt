@@ -13,7 +13,6 @@ import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.routeoverview.RouteOverviewPlugin
 import io.javalin.plugin.metrics.MicrometerPlugin
-import io.javalin.security.AccessManager.AuthenticationStatus
 import io.javalin.testing.TestUtil
 import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener

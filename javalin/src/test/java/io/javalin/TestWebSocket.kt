@@ -9,7 +9,6 @@ package io.javalin
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.http.Header
 import io.javalin.http.UnauthorizedResponse
-import io.javalin.security.AccessManager.AuthenticationStatus
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
@@ -55,19 +54,15 @@ class TestWebSocket {
     fun contextPathJavalin(): Javalin = Javalin.create { it.routing.contextPath = "/websocket" }
 
     fun accessManagedJavalin(): Javalin = Javalin.create().apply {
-        this.cfg.core.accessManager { ctx, roles ->
+        this.cfg.core.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
-                ctx.queryParam("exception") == "true" ->
-                    throw UnauthorizedResponse()
+                ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
                 ctx.queryParam("allowed") == "true" -> {
                     this.logger().log.add("upgrade request valid!")
-                    AuthenticationStatus.AUTHORIZED
+                    handler.handle(ctx)
                 }
-                else -> {
-                    this.logger().log.add("upgrade request invalid!")
-                    AuthenticationStatus.UNAUTHORIZED
-                }
+                else -> this.logger().log.add("upgrade request invalid!")
             }
         }
         this.ws("/*") { ws ->

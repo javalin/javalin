@@ -6,6 +6,7 @@
 package io.javalin.security
 
 import io.javalin.http.Context
+import io.javalin.http.Handler
 import kotlin.Throws
 import java.lang.Exception
 
@@ -20,16 +21,12 @@ import java.lang.Exception
  */
 fun interface AccessManager {
 
-    enum class AuthenticationStatus {
-        AUTHORIZED, UNAUTHORIZED
-    }
-
     /**
      * @param ctx current context
      * @param routeRoles configured roles for this route
      * @return [AuthenticationStatus.AUTHORIZED] if Javalin should execute HTTP handler, [AuthenticationStatus.UNAUTHORIZED] otherwise
      */
     @Throws(Exception::class)
-    fun manage(ctx: Context, routeRoles: Set<RouteRole>): AuthenticationStatus
+    fun manage(handler: Handler, ctx: Context, routeRoles: Set<RouteRole>)
 
 }
