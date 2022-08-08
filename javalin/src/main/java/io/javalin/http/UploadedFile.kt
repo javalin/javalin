@@ -20,10 +20,10 @@ import java.io.InputStream
  * @see <a href="https://javalin.io/documentation#faq">Uploads in FAQ</a>
  */
 class UploadedFile(private val part: Part) {
-    fun content() : InputStream = part.inputStream
+    fun content(): InputStream = part.inputStream
     fun <T> contentAndClose(callback: (InputStream) -> T) = content().use { callback(it) }
-    @JvmField val contentType: String? = part.contentType
-    @JvmField val filename: String = part.submittedFileName
-    @JvmField val extension: String = part.submittedFileName.replaceBeforeLast(".", "")
-    @JvmField val size: Long = part.size
+    fun contentType(): String? = part.contentType
+    fun filename(): String = part.submittedFileName
+    fun extension(): String = part.submittedFileName.replaceBeforeLast(".", "")
+    fun size(): Long = part.size
 }

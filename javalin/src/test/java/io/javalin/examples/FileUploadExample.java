@@ -27,7 +27,7 @@ public class FileUploadExample {
 
         app.post("/", ctx -> {
             ctx.uploadedFiles("files").forEach(file -> {
-                FileUtil.streamToFile(file.content(), "upload/" + file.filename);
+                FileUtil.streamToFile(file.content(), "upload/" + file.filename());
             });
         });
 

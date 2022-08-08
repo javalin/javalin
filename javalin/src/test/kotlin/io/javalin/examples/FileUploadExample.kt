@@ -24,7 +24,7 @@ fun main() {
         }
         post("/") { ctx ->
             ctx.uploadedFiles("files").forEach {
-                FileUtil.streamToFile(it.content(), "upload/${it.filename}")
+                FileUtil.streamToFile(it.content(), "upload/${it.filename()}")
             }
         }
     }.start(7070)
