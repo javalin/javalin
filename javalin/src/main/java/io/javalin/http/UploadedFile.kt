@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import jakarta.servlet.http.Part
 import java.io.InputStream
 
 /**
@@ -18,4 +19,11 @@ import java.io.InputStream
  * @see Context.uploadedFile
  * @see <a href="https://javalin.io/documentation#faq">Uploads in FAQ</a>
  */
-data class UploadedFile(val content: InputStream, val contentType: String?, val filename: String, val extension: String, val size: Long)
+class UploadedFile(private val part: Part) {
+    fun content(): InputStream = part.inputStream
+    fun <T> contentAndClose(callback: (InputStream) -> T) = content().use { callback(it) }
+    fun contentType(): String? = part.contentType
+    fun filename(): String = part.submittedFileName
+    fun extension(): String = part.submittedFileName.replaceBeforeLast(".", "")
+    fun size(): Long = part.size
+}

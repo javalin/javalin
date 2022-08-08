@@ -18,7 +18,10 @@ object FileUtil {
         val newFile = File(path)
         newFile.parentFile.mkdirs() // create parent dirs if necessary
         newFile.createNewFile() // create file if necessary
-        Files.copy(inputStream, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        inputStream.use { input ->
+            Files.copy(input, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+
     }
 
     @JvmStatic
