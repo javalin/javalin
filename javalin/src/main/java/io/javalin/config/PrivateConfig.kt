@@ -5,7 +5,7 @@ import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.plugin.Plugin
-import io.javalin.security.SecurityUtil.noopAccessManager
+import io.javalin.security.AccessManager
 import io.javalin.websocket.WsConfig
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
@@ -19,8 +19,7 @@ class PrivateConfig {
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
     @JvmField var resourceHandler: ResourceHandler? = null
-    @JvmField var accessManager: io.javalin.security.AccessManager =
-        io.javalin.security.AccessManager { handler, ctx, roles -> noopAccessManager(handler, ctx, roles) }
+    @JvmField var accessManager: AccessManager? = null
     @JvmField var singlePageHandler = SinglePageHandler()
     @JvmField var sessionHandler: SessionHandler? = null
     @JvmField var wsFactoryConfig: Consumer<JettyWebSocketServletFactory>? = null

@@ -25,11 +25,11 @@ class TestAccessManager {
 
     private fun managedApp() = Javalin.create { config ->
         config.core.accessManager { handler, ctx, routeRoles ->
-            val userRole = ctx.queryParam("role")
-            if (userRole != null && MyRoles.valueOf(userRole) in routeRoles) {
-                handler.handle(ctx)
-            } else {
-                ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
+            val role: RouteRole? = ctx.queryParam("role")?.let { MyRoles.valueOf(it) }
+
+            when (role) {
+                in routeRoles -> handler.handle(ctx)
+                else -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message)
             }
         }
     }
@@ -66,6 +66,17 @@ class TestAccessManager {
         assertThat(callWithRole(http.origin, "/users/1", "ROLE_ONE")).isEqualTo("My single user: 1")
         assertThat(callWithRole(http.origin, "/users/2", "ROLE_TWO")).isEqualTo("My single user: 2")
         assertThat(callWithRole(http.origin, "/users/3", "ROLE_THREE")).isEqualTo(UNAUTHORIZED.message)
+    }
+
+    @Test
+    fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
+        it.core.accessManager { handler, ctx, _ ->
+            ctx.result("Test")
+            handler.handle(ctx)
+        }
+    }) { app, http ->
+        app.get("/secured", { it.result(it.resultString() ?: "") }, ROLE_ONE)
+        assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Test")
     }
 
     private fun callWithRole(origin: String, path: String, role: String) =

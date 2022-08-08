@@ -45,7 +45,6 @@ class TestConfiguration {
             it.requestLoggers.http { ctx, timeInMs -> }
             it.requestLoggers.webSocket { ws -> }
             it.plugins.register(MicrometerPlugin())
-            it.core.accessManager { _, _, _ -> }
             it.core.showJavalinBanner = false
             it.routing.contextPath = "/"
             it.jetty.sessionHandler { SessionHandler() }

@@ -14,9 +14,8 @@ import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.plugin.CorsPlugin
-import io.javalin.routing.HandlerEntry
 import io.javalin.routing.PathMatcher
-import io.javalin.security.RouteRole
+import io.javalin.security.SecurityUtil
 import io.javalin.util.LogUtil
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
@@ -37,12 +36,16 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     val lifecycle = mutableListOf(
         Stage(DefaultName.BEFORE) { submitTask ->
             matcher.findEntries(BEFORE, requestUri).forEach { entry ->
-                submitTask { entry.handler.handle(ctx.update(entry, requestUri)) }
+                submitTask { entry.handle(ctx, requestUri) }
             }
         },
         Stage(DefaultName.HTTP) { submitTask ->
             matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
-                submitTask { entry.handler.handle(ctx.update(entry, requestUri)) }
+                submitTask {
+                    cfg.pvt.accessManager
+                        ?.manage({ submitTask { entry.handle(ctx, requestUri) } }, ctx, entry.roles)
+                        ?: SecurityUtil.noopAccessManager({ entry.handle(ctx, requestUri) }, ctx, entry.roles)
+                }
                 return@Stage // return after first match
             }
             submitTask {
@@ -71,7 +74,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         },
         Stage(DefaultName.AFTER, haltsOnError = false) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
-                submitTask { entry.handler.handle(ctx.update(entry, requestUri)) }
+                submitTask { entry.handle(ctx, requestUri) }
             }
         }
     )
@@ -98,11 +101,6 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)
         }
-    }
-
-    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, roles: Set<RouteRole>) {
-        val protectedHandler = if (handlerType.isHttpMethod()) Handler { ctx -> cfg.pvt.accessManager.manage(handler, ctx, roles) } else handler
-        matcher.add(HandlerEntry(handlerType, path, cfg.routing, protectedHandler, handler))
     }
 
     private fun JavalinConfig.isCorsEnabled() = this.pvt.plugins[CorsPlugin::class.java] != null

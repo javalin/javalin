@@ -51,17 +51,17 @@ class TestWebSocket {
         return this.attribute(TestLogger::class.java.name)
     }
 
-    fun contextPathJavalin() = Javalin.create { it.routing.contextPath = "/websocket" }
+    fun contextPathJavalin(): Javalin = Javalin.create { it.routing.contextPath = "/websocket" }
 
-    fun accessManagedJavalin() = Javalin.create().apply {
+    fun accessManagedJavalin(): Javalin = Javalin.create().apply {
         this.cfg.core.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
+                ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
                 ctx.queryParam("allowed") == "true" -> {
                     this.logger().log.add("upgrade request valid!")
                     handler.handle(ctx)
                 }
-                ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
                 else -> this.logger().log.add("upgrade request invalid!")
             }
         }

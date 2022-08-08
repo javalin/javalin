@@ -7,27 +7,29 @@
 package io.javalin.routing
 
 import io.javalin.config.RoutingConfig
+import io.javalin.http.DefaultContext
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
+import io.javalin.security.RouteRole
 import java.util.*
 
 data class HandlerEntry(
     val type: HandlerType,
     val path: String,
     val routingConfig: RoutingConfig,
+    val roles: Set<RouteRole>,
     val handler: Handler,
-    val rawHandler: Handler
 ) {
     private val pathParser = PathParser(path, routingConfig)
-    fun matches(requestUri: String) = pathParser.matches(requestUri)
-    fun extractPathParams(requestUri: String) = pathParser.extractPathParams(requestUri)
+    fun matches(requestUri: String): Boolean = pathParser.matches(requestUri)
+    fun extractPathParams(requestUri: String): Map<String, String> = pathParser.extractPathParams(requestUri)
+    fun handle(ctx: DefaultContext, requestUri: String) = handler.handle(ctx.update(this, requestUri))
 }
 
 class PathMatcher {
 
-    private val handlerEntries = HandlerType.values().associateTo(EnumMap<HandlerType, ArrayList<HandlerEntry>>(HandlerType::class.java)) {
-        it to arrayListOf()
-    }
+    private val handlerEntries: Map<HandlerType, MutableList<HandlerEntry>> =
+        HandlerType.values().associateWithTo(EnumMap(HandlerType::class.java)) { arrayListOf() }
 
     fun add(entry: HandlerEntry) {
         if (entry.type.isHttpMethod() && handlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
@@ -42,9 +44,9 @@ class PathMatcher {
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
         handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
 
-    private fun match(entry: HandlerEntry, requestPath: String): Boolean = when {
-        entry.path == "*" -> true
-        entry.path == requestPath -> true
+    private fun match(entry: HandlerEntry, requestPath: String): Boolean = when (entry.path) {
+        "*" -> true
+        requestPath -> true
         else -> entry.matches(requestPath)
     }
 

@@ -22,7 +22,6 @@ enum class MyRoles : RouteRole {
 }
 
 fun main() {
-
     val app = Javalin.create { it.core.accessManager(::accessManager) }.start(7070)
 
     app.routes {
@@ -39,10 +38,10 @@ fun main() {
 
 private fun accessManager(handler: Handler, ctx: Context, routeRoles: Set<RouteRole>) {
     val userRole = ctx.queryParam("role")
-    if (userRole != null && routeRoles.contains(MyRoles.valueOf(userRole))) {
-        handler.handle(ctx)
-    } else {
-        ctx.status(HttpStatus.UNAUTHORIZED).result("Unauthorized")
+
+    when {
+        userRole != null && routeRoles.contains(MyRoles.valueOf(userRole)) -> handler.handle(ctx)
+        else -> ctx.status(HttpStatus.UNAUTHORIZED).result("Unauthorized")
     }
 }
 
