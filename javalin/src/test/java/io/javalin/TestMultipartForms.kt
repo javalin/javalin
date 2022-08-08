@@ -33,7 +33,9 @@ class TestMultipartForms {
 
     @Test
     fun `text is uploaded correctly`() = TestUtil.test { app, http ->
-        app.post("/test-upload") { it.result(it.uploadedFile("upload")!!.content.readBytes().toString(Charsets.UTF_8)) }
+        app.post("/test-upload") {
+            it.result(it.uploadedFile("upload")!!.contentAndClose { it.readBytes().toString(Charsets.UTF_8) })
+        }
         val response = http.post("/test-upload")
             .field("upload", File("src/test/resources/upload-test/text.txt"))
             .asString()
@@ -187,9 +189,9 @@ class TestMultipartForms {
             val baz = ctx.formParamAsClass<String>("baz").getOrDefault("default")
             ctx.result(
                 "foos match: " + (foos == foosExtractedManually) + "\n"
-                        + "foo: " + foos.joinToString(", ") + "\n"
-                        + "bar: " + bar + "\n"
-                        + "baz: " + baz
+                    + "foo: " + foos.joinToString(", ") + "\n"
+                    + "bar: " + bar + "\n"
+                    + "baz: " + baz
             )
         }
         val responseAsString = okHttp.newCall(
@@ -203,9 +205,9 @@ class TestMultipartForms {
             ).build()
         ).execute().body!!.string()
         val expectedContent = ("foos match: true" + "\n"
-                + "foo: foo-1, foo-2" + "\n"
-                + "bar: bar-1" + "\n"
-                + "baz: default")
+            + "foo: foo-1, foo-2" + "\n"
+            + "bar: bar-1" + "\n"
+            + "baz: default")
         assertThat(responseAsString).isEqualTo(expectedContent)
     }
 
@@ -214,7 +216,7 @@ class TestMultipartForms {
         val prefix = "PREFIX: "
         val tempFile = File("src/test/resources/upload-test/text.txt")
         app.post("/test-multipart-file-and-text") { ctx ->
-            val fileContent = ctx.uploadedFile("upload")!!.content.readBytes().toString(Charsets.UTF_8)
+            val fileContent = ctx.uploadedFile("upload")!!.contentAndClose { it.readBytes().toString(Charsets.UTF_8) }
             ctx.result(ctx.formParam("prefix")!! + fileContent)
         }
         val responseAsString = okHttp.newCall(
