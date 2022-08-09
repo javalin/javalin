@@ -15,7 +15,7 @@ import kong.unirest.Unirest
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
-class TestHttpAllowedMethodsOnRoutesUtil {
+class TestHttpAllowedMethodsPlugin {
     @Test
     fun `enableHttpOptionsForRoutes allows possible methods on routes`() {
         val javalin = Javalin.create { it.plugins.enableHttpAllowedMethodsOnRoutes() }

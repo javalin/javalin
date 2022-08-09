@@ -14,7 +14,7 @@ import io.javalin.http.UnauthorizedResponse
  * Adds a filter that runs before every http request.
  * Note: It does not apply to websocket upgrade requests
  */
-class BasicAuthFilter(private val username: String, private val password: String) : Plugin {
+class BasicAuthPlugin(private val username: String, private val password: String) : Plugin {
 
     override fun apply(app: Javalin) {
         app.before { ctx ->

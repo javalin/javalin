@@ -14,7 +14,7 @@ import java.util.*
  * A plugin to configure arbitrary headers, with a focus on the OWASP secure headers project
  * https://owasp.org/www-project-secure-headers/
  */
-class Headers {
+class GlobalHeaderConfig {
 
     val headers = mutableMapOf<String, String>()
 

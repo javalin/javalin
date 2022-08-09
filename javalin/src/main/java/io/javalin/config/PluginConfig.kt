@@ -1,12 +1,12 @@
 package io.javalin.config
 
-import io.javalin.plugin.BasicAuthFilter
+import io.javalin.plugin.BasicAuthPlugin
 import io.javalin.plugin.CorsPlugin
 import io.javalin.plugin.CorsPluginConfig
 import io.javalin.plugin.DevLoggingPlugin
-import io.javalin.plugin.Headers
-import io.javalin.plugin.HeadersPlugin
-import io.javalin.plugin.HttpAllowedMethodsOnRoutesUtil
+import io.javalin.plugin.GlobalHeaderConfig
+import io.javalin.plugin.GlobalHeadersPlugin
+import io.javalin.plugin.HttpAllowedMethodsPlugin
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.RedirectToLowercasePathPlugin
@@ -25,13 +25,13 @@ class PluginConfig(private val pvt: PrivateConfig) {
         pvt.plugins[plugin.javaClass] = plugin
     }
 
-    fun enableHttpAllowedMethodsOnRoutes() = register(HttpAllowedMethodsOnRoutesUtil())
+    fun enableHttpAllowedMethodsOnRoutes() = register(HttpAllowedMethodsPlugin())
     fun enableDevLogging() = register(DevLoggingPlugin())
-    fun enableGlobalHeaders(headers: Supplier<Headers?>) = register(HeadersPlugin(headers.get()!!))
+    fun enableGlobalHeaders(globalHeaderConfig: Supplier<GlobalHeaderConfig?>) = register(GlobalHeadersPlugin(globalHeaderConfig.get()!!))
     fun enableRouteOverview(path: String, vararg roles: RouteRole = arrayOf()) = register(RouteOverviewPlugin(path, *roles))
 
     fun enableRedirectToLowercasePaths() = register(RedirectToLowercasePathPlugin())
-    fun enableBasicAuth(username: String, password: String) = register(BasicAuthFilter(username, password))
+    fun enableBasicAuth(username: String, password: String) = register(BasicAuthPlugin(username, password))
     fun enableSslRedirects() = register(SslRedirectPlugin())
     fun enableCors(userConfig: Consumer<CorsPluginConfig>) = register(CorsPlugin(userConfig))
 

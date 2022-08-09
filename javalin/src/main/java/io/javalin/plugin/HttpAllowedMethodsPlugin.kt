@@ -10,7 +10,7 @@ import io.javalin.Javalin
 import io.javalin.event.HandlerMetaInfo
 import io.javalin.http.Header
 
-class HttpAllowedMethodsOnRoutesUtil : Plugin, PluginLifecycleInit {
+class HttpAllowedMethodsPlugin : Plugin, PluginLifecycleInit {
 
     private val endpoints = mutableMapOf<String, MutableSet<HandlerMetaInfo>>()
 

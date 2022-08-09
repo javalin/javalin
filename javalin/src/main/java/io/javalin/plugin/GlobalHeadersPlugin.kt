@@ -8,11 +8,11 @@ package io.javalin.plugin
 
 import io.javalin.Javalin
 
-class HeadersPlugin(private val headers: Headers) : Plugin {
+class GlobalHeadersPlugin(private val globalHeaderConfig: GlobalHeaderConfig) : Plugin {
 
     override fun apply(app: Javalin) {
         app.before { ctx ->
-            headers.headers.forEach { (name, value) ->
+            globalHeaderConfig.headers.forEach { (name, value) ->
                 ctx.header(name, value)
             }
         }

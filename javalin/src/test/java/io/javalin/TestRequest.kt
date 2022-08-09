@@ -13,7 +13,7 @@ import io.javalin.http.formParamAsClass
 import io.javalin.http.headerAsClass
 import io.javalin.http.queryParamAsClass
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.BasicAuthFilter
+import io.javalin.plugin.BasicAuthPlugin
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -256,7 +256,7 @@ class TestRequest {
     @Test
     fun `basic auth filter plugin works`() {
         val basicauthApp = Javalin.create {
-            it.plugins.register(BasicAuthFilter("u", "p"))
+            it.plugins.register(BasicAuthPlugin("u", "p"))
             it.staticFiles.add("/public", Location.CLASSPATH)
         }.get("/hellopath") { it.result("Hello") }
         TestUtil.test(basicauthApp) { _, http ->
