@@ -30,15 +30,10 @@ data class CorsPluginConfig(
         allowedOrigins.add("*")
     }
 
-    fun allowHost(origin: String) {
-        allowedOrigins.add(origin.removeSuffix("/"))
-    }
-
-    // TODO: unsure if that is the desired api. Maybe just accept a collection instead?
     fun allowHost(origin: String, vararg others: String) {
-        allowHost(origin)
-        others.forEach {
-            allowHost(it)
+        val origins = listOf(origin) + others.toList()
+        origins.forEach {
+            allowedOrigins.add(it.removeSuffix("/"))
         }
     }
 
@@ -76,7 +71,10 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
             ctx.header(ACCESS_CONTROL_ALLOW_ORIGIN, allowOriginValue)
             ctx.header(VARY, ORIGIN)
             if (cfg.allowCredentials) {
-                ctx.header(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true") // should never be set to "false", but rather omitted
+                ctx.header(
+                    ACCESS_CONTROL_ALLOW_CREDENTIALS,
+                    "true"
+                ) // should never be set to "false", but rather omitted
             }
 
             if (headersToExpose.isNotEmpty()) {
