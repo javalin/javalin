@@ -1,9 +1,11 @@
-package io.javalin.plugin
+package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
+import io.javalin.plugin.Plugin
+import io.javalin.plugin.PluginLifecycleInit
 import io.javalin.routing.PathMatcher
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig

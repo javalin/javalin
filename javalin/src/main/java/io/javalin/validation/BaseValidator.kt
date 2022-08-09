@@ -6,7 +6,7 @@
 
 package io.javalin.validation
 
-import io.javalin.plugin.json.JsonMapper
+import io.javalin.json.JsonMapper
 import io.javalin.util.JavalinLogger
 
 typealias Check<T> = (T) -> Boolean

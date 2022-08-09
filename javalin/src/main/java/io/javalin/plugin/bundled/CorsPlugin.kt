@@ -1,4 +1,4 @@
-package io.javalin.plugin
+package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
 import io.javalin.http.HandlerType.OPTIONS
@@ -11,6 +11,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
 import io.javalin.http.Header.VARY
+import io.javalin.plugin.Plugin
 import java.util.function.Consumer
 
 data class CorsPluginConfig(

@@ -11,8 +11,8 @@ import io.javalin.compression.Gzip
 import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.routeoverview.RouteOverviewPlugin
-import io.javalin.plugin.metrics.MicrometerPlugin
+import io.javalin.plugin.bundled.RouteOverviewPlugin
+import io.javalin.plugin.bundled.MicrometerPlugin
 import io.javalin.testing.TestUtil
 import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener

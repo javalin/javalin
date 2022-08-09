@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.plugin.rendering;
+package io.javalin.rendering;
 
 import io.javalin.http.Context;
 import java.util.Map;

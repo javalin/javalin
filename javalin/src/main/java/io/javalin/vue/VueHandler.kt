@@ -4,7 +4,7 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.http.InternalServerErrorResponse
-import io.javalin.plugin.json.jsonMapper
+import io.javalin.json.jsonMapper
 import io.javalin.vue.FileInliner.inlineFiles
 import io.javalin.vue.JavalinVue.cacheControl
 import io.javalin.vue.JavalinVue.cachedDependencyResolver

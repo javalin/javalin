@@ -9,7 +9,7 @@ package io.javalin.examples;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.javalin.Javalin;
-import io.javalin.plugin.json.JsonMapper;
+import io.javalin.json.JsonMapper;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 

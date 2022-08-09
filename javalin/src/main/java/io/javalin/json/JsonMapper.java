@@ -1,4 +1,4 @@
-package io.javalin.plugin.json;
+package io.javalin.json;
 
 import java.io.InputStream;
 import kotlin.NotImplementedError;

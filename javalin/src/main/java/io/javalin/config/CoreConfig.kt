@@ -1,7 +1,7 @@
 package io.javalin.config
 
-import io.javalin.plugin.json.JSON_MAPPER_KEY
-import io.javalin.plugin.json.JsonMapper
+import io.javalin.json.JSON_MAPPER_KEY
+import io.javalin.json.JsonMapper
 import io.javalin.security.AccessManager
 import java.util.function.Consumer
 

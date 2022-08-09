@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.plugin
+package io.javalin.plugin.bundled
 
 import io.javalin.http.Header
 import java.time.Duration

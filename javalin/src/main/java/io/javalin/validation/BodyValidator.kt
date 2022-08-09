@@ -6,7 +6,7 @@
 
 package io.javalin.validation
 
-import io.javalin.plugin.json.JsonMapper
+import io.javalin.json.JsonMapper
 import org.jetbrains.annotations.NotNull
 
 const val REQUEST_BODY = "REQUEST_BODY"

@@ -8,7 +8,7 @@ package io.javalin.routeoverview
 
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import io.javalin.plugin.routeoverview.RouteOverviewUtil.metaInfo
+import io.javalin.plugin.bundled.RouteOverviewUtil.metaInfo
 import io.javalin.routeoverview.VisualTest.HandlerImplementation
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

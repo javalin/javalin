@@ -12,8 +12,8 @@ import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
-import io.javalin.plugin.json.jsonMapper
-import io.javalin.plugin.rendering.JavalinRenderer
+import io.javalin.json.jsonMapper
+import io.javalin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator

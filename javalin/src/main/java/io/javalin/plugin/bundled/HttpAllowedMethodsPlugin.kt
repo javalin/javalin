@@ -4,11 +4,13 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.plugin
+package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
 import io.javalin.event.HandlerMetaInfo
 import io.javalin.http.Header
+import io.javalin.plugin.Plugin
+import io.javalin.plugin.PluginLifecycleInit
 
 class HttpAllowedMethodsPlugin : Plugin, PluginLifecycleInit {
 

@@ -9,8 +9,8 @@ import io.javalin.Javalin
 import io.javalin.http.MAX_REQUEST_SIZE_KEY
 import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.plugin.PluginUtil.attachPlugins
-import io.javalin.plugin.json.JSON_MAPPER_KEY
-import io.javalin.plugin.json.JavalinJackson
+import io.javalin.json.JSON_MAPPER_KEY
+import io.javalin.json.JavalinJackson
 import io.javalin.util.ConcurrencyUtil.executorService
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
 import java.util.function.Consumer

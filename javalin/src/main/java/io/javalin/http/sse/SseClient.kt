@@ -1,7 +1,7 @@
 package io.javalin.http.sse
 
 import io.javalin.http.Context
-import io.javalin.plugin.json.jsonMapper
+import io.javalin.json.jsonMapper
 import java.io.Closeable
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture

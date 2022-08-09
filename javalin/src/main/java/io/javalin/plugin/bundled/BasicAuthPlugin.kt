@@ -4,11 +4,12 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.plugin
+package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
 import io.javalin.http.Header.WWW_AUTHENTICATE
 import io.javalin.http.UnauthorizedResponse
+import io.javalin.plugin.Plugin
 
 /**
  * Adds a filter that runs before every http request.

@@ -13,7 +13,7 @@ import io.javalin.http.formParamAsClass
 import io.javalin.http.headerAsClass
 import io.javalin.http.queryParamAsClass
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.BasicAuthPlugin
+import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat

@@ -13,8 +13,8 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.bodyAsClass
 import io.javalin.http.bodyStreamAsClass
 import io.javalin.http.bodyValidator
-import io.javalin.plugin.json.JavalinJackson
-import io.javalin.plugin.json.JsonMapper
+import io.javalin.json.JavalinJackson
+import io.javalin.json.JsonMapper
 import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

@@ -8,14 +8,14 @@ package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.OK
-import io.javalin.plugin.GlobalHeaderConfig
-import io.javalin.plugin.GlobalHeaderConfig.ClearSiteData
-import io.javalin.plugin.GlobalHeaderConfig.CrossDomainPolicy
-import io.javalin.plugin.GlobalHeaderConfig.CrossOriginEmbedderPolicy
-import io.javalin.plugin.GlobalHeaderConfig.CrossOriginOpenerPolicy
-import io.javalin.plugin.GlobalHeaderConfig.CrossOriginResourcePolicy
-import io.javalin.plugin.GlobalHeaderConfig.ReferrerPolicy
-import io.javalin.plugin.GlobalHeaderConfig.XFrameOptions
+import io.javalin.plugin.bundled.GlobalHeaderConfig
+import io.javalin.plugin.bundled.GlobalHeaderConfig.ClearSiteData
+import io.javalin.plugin.bundled.GlobalHeaderConfig.CrossDomainPolicy
+import io.javalin.plugin.bundled.GlobalHeaderConfig.CrossOriginEmbedderPolicy
+import io.javalin.plugin.bundled.GlobalHeaderConfig.CrossOriginOpenerPolicy
+import io.javalin.plugin.bundled.GlobalHeaderConfig.CrossOriginResourcePolicy
+import io.javalin.plugin.bundled.GlobalHeaderConfig.ReferrerPolicy
+import io.javalin.plugin.bundled.GlobalHeaderConfig.XFrameOptions
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

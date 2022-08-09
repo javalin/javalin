@@ -9,7 +9,7 @@ package io.javalin
 import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
-import io.javalin.plugin.metrics.MicrometerPlugin
+import io.javalin.plugin.bundled.MicrometerPlugin
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import io.micrometer.core.instrument.MeterRegistry

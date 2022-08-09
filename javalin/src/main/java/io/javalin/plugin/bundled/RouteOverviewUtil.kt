@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.plugin.routeoverview
+package io.javalin.plugin.bundled
 
 import io.javalin.event.HandlerMetaInfo
 import io.javalin.event.WsHandlerMetaInfo

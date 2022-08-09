@@ -1,4 +1,4 @@
-package io.javalin.plugin.json
+package io.javalin.json
 
 import io.javalin.util.ConcurrencyUtil
 import java.io.InputStream

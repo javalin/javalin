@@ -4,10 +4,12 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.plugin
+package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
+import io.javalin.plugin.Plugin
+import io.javalin.plugin.PluginLifecycleInit
 import io.javalin.routing.PathParser
 import io.javalin.routing.PathSegment
 import java.util.*
