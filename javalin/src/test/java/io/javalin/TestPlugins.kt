@@ -2,7 +2,7 @@ package io.javalin
 
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
-import io.javalin.plugin.PluginInitLifecycleViolationException
+import io.javalin.plugin.PluginInitException
 import io.javalin.plugin.PluginLifecycleInit
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -91,7 +91,7 @@ class TestPlugins {
 
         assertThatThrownBy {
             Javalin.create { it.plugins.register(BadPlugin()) }
-        }.isEqualTo(PluginInitLifecycleViolationException(BadPlugin::class.java))
+        }.isEqualTo(PluginInitException(BadPlugin::class.java))
     }
 
 }
