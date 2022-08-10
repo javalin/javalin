@@ -16,7 +16,6 @@ import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.routing.PathMatcher
 import io.javalin.security.accessManagerNotConfiguredException
-import io.javalin.util.LogUtil
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -84,14 +83,8 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
-            val ctx = DefaultContext(
-                req = request,
-                res = response,
-                appAttributes = cfg.pvt.appAttributes,
-                compressionStrategy = cfg.pvt.compressionStrategy
-            )
+            val ctx = DefaultContext(req = request, res = response, cfg = cfg)
 
-            LogUtil.setup(ctx, matcher, cfg.pvt.requestLogger != null)
             ctx.contentType(cfg.http.defaultContentType)
 
             JavalinServletHandler(

@@ -62,10 +62,9 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         val upgradeContext = DefaultContext(
             req = req,
             res = res,
-            appAttributes = cfg.pvt.appAttributes,
-            compressionStrategy = cfg.pvt.compressionStrategy,
+            cfg = cfg,
+            matchedPath = entry.path,
             pathParamMap = entry.extractPathParams(requestUri),
-            matchedPath = entry.path
         )
         if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(HttpStatus.UNAUTHORIZED.code, HttpStatus.UNAUTHORIZED.message)
         req.setAttribute(upgradeContextKey, upgradeContext)

@@ -3,7 +3,6 @@ package io.javalin.http
 import io.javalin.config.JavalinConfig
 import io.javalin.config.contextResolver
 import io.javalin.http.util.ETagGenerator
-import io.javalin.util.LogUtil
 import io.javalin.util.exceptionallyComposeFallback
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
@@ -176,7 +175,7 @@ class JavalinServletHandler(
                     if (!etagWritten) resultStream.copyTo(outputStream)
                 }
             }
-            cfg.pvt.requestLogger?.handle(ctx, LogUtil.executionTimeMs(ctx))
+            cfg.pvt.requestLogger?.handle(ctx, ctx.executionTimeMs())
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(ctx.res(), throwable) // handle any unexpected error, e.g. write failure
         } finally {

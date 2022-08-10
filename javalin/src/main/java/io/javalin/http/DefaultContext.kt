@@ -8,6 +8,7 @@ package io.javalin.http
 
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
+import io.javalin.config.JavalinConfig
 import io.javalin.http.HandlerType.AFTER
 import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
@@ -28,14 +29,18 @@ import java.util.function.Consumer
 class DefaultContext(
     private var req: HttpServletRequest,
     private val res: HttpServletResponse,
-    private val appAttributes: Map<String, Any> = mapOf(),
-    private val compressionStrategy: CompressionStrategy = CompressionStrategy.NONE,
+    cfg: JavalinConfig,
+    private val appAttributes: Map<String, Any> = cfg.pvt.appAttributes,
+    private val compressionStrategy: CompressionStrategy = cfg.pvt.compressionStrategy,
+    private val startTimeNanos: Long? = if (cfg.pvt.requestLogger != null) System.nanoTime() else null,
     private var handlerType: HandlerType = HandlerType.BEFORE,
     private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = mapOf(),
     internal var endpointHandlerPath: String = "",
-    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result()),
+    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result())
 ) : Context {
+
+    fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
     fun changeBaseRequest(req: HttpServletRequest) = also {
         this.req = req

@@ -13,9 +13,13 @@ import io.javalin.websocket.WsContext
 import java.util.*
 
 internal class DevLoggingPlugin : Plugin, PluginLifecycleInit {
+
+    lateinit var matcher: PathMatcher
+
     override fun apply(app: Javalin) {
-        app.cfg.requestLoggers.http() { ctx, ms -> requestDevLogger(ctx, ms) }
+        app.cfg.requestLoggers.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
         app.cfg.requestLoggers.webSocket { wsDevLogger(it) }
+        matcher = app.javalinServlet().matcher
     }
 
     override fun init(app: Javalin) {
@@ -27,10 +31,9 @@ internal class DevLoggingPlugin : Plugin, PluginLifecycleInit {
     }
 }
 
-fun requestDevLogger(ctx: Context, time: Float) = try {
+fun requestDevLogger(matcher: PathMatcher, ctx: Context, time: Float) = try {
     val requestUri = ctx.path()
     with(ctx) {
-        val matcher = ctx.attribute<PathMatcher>("javalin-request-log-matcher")!!
         val allMatching = (matcher.findEntries(HandlerType.BEFORE, requestUri) +
             matcher.findEntries(ctx.method(), requestUri) +
             matcher.findEntries(HandlerType.AFTER, requestUri))
