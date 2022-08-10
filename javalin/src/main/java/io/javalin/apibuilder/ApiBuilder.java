@@ -50,7 +50,10 @@ public class ApiBuilder {
     }
 
     public static String prefixPath(@NotNull String path) {
-        return String.join("", pathDeque.get()) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
+        if (!path.equals("*")) {
+            path = (path.startsWith("/") || path.isEmpty()) ? path : "/" + path;
+        }
+        return String.join("", pathDeque.get()) + path;
     }
 
     public static Javalin staticInstance() {
@@ -338,7 +341,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void before(@NotNull Handler handler) {
-        staticInstance().before(prefixPath("/*"), handler);
+        staticInstance().before(prefixPath("*"), handler);
     }
 
     /**
@@ -358,7 +361,7 @@ public class ApiBuilder {
      * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
      */
     public static void after(@NotNull Handler handler) {
-        staticInstance().after(prefixPath("/*"), handler);
+        staticInstance().after(prefixPath("*"), handler);
     }
 
     // ********************************************************************************************
@@ -418,7 +421,7 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public Javalin wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
-        return staticInstance().wsBefore(prefixPath("/*"), wsConfig);
+        return staticInstance().wsBefore(prefixPath("*"), wsConfig);
     }
 
     /**
@@ -434,7 +437,7 @@ public class ApiBuilder {
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
     public Javalin wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
-        return staticInstance().wsAfter(prefixPath("/*"), wsConfig);
+        return staticInstance().wsAfter(prefixPath("*"), wsConfig);
     }
 
     // ********************************************************************************************

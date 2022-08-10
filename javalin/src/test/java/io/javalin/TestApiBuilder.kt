@@ -115,6 +115,45 @@ class TestApiBuilder {
         assertThat(http.getBody("/level-1/hello")).isEqualTo("Hello")
     }
 
+    @Test
+    fun `pathless routes do not require a trailing slash`() = TestUtil.test { app, http ->
+        app.routes {
+            path("api") {
+                before { it.result("before") }
+                get(updateAnswer("get"))
+                after(updateAnswer("after"))
+            }
+        }
+        assertThat(http.getBody("/api")).isEqualTo("beforegetafter")
+        assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
+    }
+
+    @Test
+    fun `star routes do not require a trailing slash`() = TestUtil.test { app, http ->
+        app.routes {
+            path("api") {
+                before("*") { it.result("before") }
+                get(updateAnswer("get"))
+                after("*", updateAnswer("after"))
+            }
+        }
+        assertThat(http.getBody("/api")).isEqualTo("beforegetafter")
+        assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
+    }
+
+    @Test
+    fun `slash star routes do require a trailing slash`() = TestUtil.test { app, http ->
+        app.routes {
+            path("api") {
+                before("/*") { it.result("before") }
+                get { it.result((it.resultString() ?: "") + "get") }
+                after("/*", updateAnswer("after"))
+            }
+        }
+        assertThat(http.getBody("/api")).isEqualTo("get")
+        assertThat(http.getBody("/api/")).isEqualTo("beforegetafter")
+    }
+
     private fun simpleAnswer(body: String) = Handler { it.result(body) }
     private fun updateAnswer(body: String) = Handler { it.result(it.resultString()!! + body) }
 
