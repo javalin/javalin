@@ -15,7 +15,7 @@ import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.routing.PathMatcher
-import io.javalin.security.SecurityUtil
+import io.javalin.security.accessManagerNotConfiguredException
 import io.javalin.util.LogUtil
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
@@ -42,9 +42,12 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         Stage(DefaultName.HTTP) { submitTask ->
             matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
                 submitTask {
-                    cfg.pvt.accessManager
-                        ?.manage({ submitTask { entry.handle(ctx, requestUri) } }, ctx, entry.roles)
-                        ?: SecurityUtil.noopAccessManager({ entry.handle(ctx, requestUri) }, ctx, entry.roles)
+                    when {
+                        /** we wrap the handler with [submitTask] to treat it as a separate stage in [JavalinServletHandler] */
+                        cfg.pvt.accessManager != null -> cfg.pvt.accessManager?.manage({ submitTask { entry.handle(ctx, requestUri) } }, ctx, entry.roles)
+                        entry.roles.isNotEmpty() -> throw accessManagerNotConfiguredException()
+                        else -> entry.handle(ctx, requestUri)
+                    }
                 }
                 return@Stage // return after first match
             }

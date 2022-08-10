@@ -11,9 +11,10 @@ import io.javalin.http.Context
 import io.javalin.http.DefaultContext
 import io.javalin.http.Handler
 import io.javalin.http.Header
+import io.javalin.http.HttpStatus
 import io.javalin.http.JavalinServlet
-import io.javalin.security.SecurityUtil
 import io.javalin.security.RouteRole
+import io.javalin.security.accessManagerNotConfiguredException
 import io.javalin.websocket.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -66,18 +67,21 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             pathParamMap = entry.extractPathParams(requestUri),
             matchedPath = entry.path
         )
-        if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(401, "Unauthorized")
+        if (!allowedByAccessManager(entry, upgradeContext)) return res.sendError(HttpStatus.UNAUTHORIZED.code, HttpStatus.UNAUTHORIZED.message)
         req.setAttribute(upgradeContextKey, upgradeContext)
         setWsProtocolHeader(req, res)
         super.service(req, res) // everything is okay, perform websocket upgrade
     }
 
-    private val accessManagerHandler = Handler { it.attribute("javalin-ws-upgrade-allowed", true)}
+    private val setUpgradeAllowed = Handler { it.attribute("javalin-ws-upgrade-allowed", true) }
 
     private fun allowedByAccessManager(entry: WsEntry, ctx: Context): Boolean = try {
-        cfg.pvt.accessManager
-            ?.manage(accessManagerHandler, ctx, entry.roles) // run custom access manager
-            ?: SecurityUtil.noopAccessManager(accessManagerHandler, ctx, entry.roles)
+        when {
+            // we run upgrade-allowed-setter against user access manager to see if upgrade-request should be allowed
+            cfg.pvt.accessManager != null -> cfg.pvt.accessManager?.manage(setUpgradeAllowed, ctx, entry.roles)
+            entry.roles.isNotEmpty() -> throw accessManagerNotConfiguredException()
+            else -> setUpgradeAllowed.handle(ctx)
+        }
         ctx.attribute<Boolean>("javalin-ws-upgrade-allowed") == true // attribute is true if access manger allowed the request
     } catch (e: Exception) {
         false
