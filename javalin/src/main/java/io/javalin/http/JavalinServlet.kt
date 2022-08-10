@@ -34,12 +34,12 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
      * You can modify its state to add/remove stages and directly affect the way that Javalin handles requests.
      */
     val lifecycle = mutableListOf(
-        Stage(DefaultName.BEFORE) { submitTask ->
+        Stage(DefaultName.BEFORE, haltsOnException = true) { submitTask ->
             matcher.findEntries(BEFORE, requestUri).forEach { entry ->
                 submitTask { entry.handle(ctx, requestUri) }
             }
         },
-        Stage(DefaultName.HTTP) { submitTask ->
+        Stage(DefaultName.HTTP, haltsOnException = true) { submitTask ->
             matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
                 submitTask {
                     when {
@@ -72,10 +72,10 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
         },
-        Stage(DefaultName.ERROR, haltsOnError = false) { submitTask ->
+        Stage(DefaultName.ERROR, haltsOnException = false) { submitTask ->
             submitTask { errorMapper.handle(ctx.statusCode(), ctx) }
         },
-        Stage(DefaultName.AFTER, haltsOnError = false) { submitTask ->
+        Stage(DefaultName.AFTER, haltsOnException = false) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
                 submitTask { entry.handle(ctx, requestUri) }
             }

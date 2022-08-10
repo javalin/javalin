@@ -22,7 +22,7 @@ class TestCustomRequestLifecycle {
     @Test
     fun `can add custom lifecycle stage`() = TestUtil.test { app, http ->
         app.javalinServlet().lifecycle.removeIf { it.name == DefaultName.AFTER }
-        app.javalinServlet().lifecycle.add(Stage(CustomName.CustomAfter) { submitTask ->
+        app.javalinServlet().lifecycle.add(Stage(CustomName.CustomAfter, haltsOnException = false) { submitTask ->
             submitTask {
                 ctx.result("Static after!")
             }

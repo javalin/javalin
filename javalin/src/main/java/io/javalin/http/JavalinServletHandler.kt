@@ -20,12 +20,12 @@ interface StageName
 enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
 
 private object FutureCallbackStage : StageName {
-    val stage = Stage(this, haltsOnError = false)
+    val stage = Stage(this, haltsOnException = false)
 }
 
 data class Stage(
     val name: StageName,
-    val haltsOnError: Boolean = true, // tasks in this scope should be executed even if some previous stage ended up with exception
+    val haltsOnException: Boolean, // tasks in this stage can be aborted by throwing an exception
     val initializer: StageInitializer = {} // DSL method to add task to the stage's queue
 )
 
@@ -72,7 +72,7 @@ class JavalinServletHandler(
     private var currentTaskFuture: CompletableFuture<*> = completedFuture(null)
 
     /** Indicates if exception occurred during execution of a tasks chain */
-    private var errored = false
+    private var exceptionOccurred = false
 
     /** Indicates if [JavalinServletHandler] already wrote response to client, requires support for atomic switch */
     private val finished = AtomicBoolean(false)
@@ -102,11 +102,11 @@ class JavalinServletHandler(
      */
     private fun executeNextTask(): CompletableFuture<*> =
         tasks.poll()
-            .takeUnless { errored && it.stage.haltsOnError } // each subsequent task for this stage will be queued and skipped
+            .takeUnless { exceptionOccurred && it.stage.haltsOnException } // each subsequent task for this stage will be queued and skipped
             ?.let { handleFutureResultReference { it.handler(this) } } // execute main task
             ?.exceptionallyComposeFallback { throwable -> // handle exception from task with exception mapper
                 handleFutureResultReference {
-                    errored = true
+                    exceptionOccurred = true
                     exceptionMapper.handleFutureException(ctx, throwable)
                 }
             }
