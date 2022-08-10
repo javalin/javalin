@@ -50,7 +50,10 @@ public class ApiBuilder {
     }
 
     public static String prefixPath(@NotNull String path) {
-        return String.join("", pathDeque.get()) + ((path.startsWith("/") || path.isEmpty()) ? path : "/" + path);
+        if (!path.equals("*")) {
+            path = (path.startsWith("/") || path.isEmpty()) ? path : "/" + path;
+        }
+        return String.join("", pathDeque.get()) + path;
     }
 
     public static Javalin staticInstance() {
