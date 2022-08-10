@@ -9,6 +9,7 @@ import io.javalin.http.Context
 import io.javalin.http.Handler
 import kotlin.Throws
 import java.lang.Exception
+import java.lang.IllegalStateException
 
 /**
  * The access manager is a way of implementing per-endpoint security management.
@@ -30,3 +31,6 @@ fun interface AccessManager {
     fun manage(handler: Handler, ctx: Context, routeRoles: Set<RouteRole>)
 
 }
+
+fun accessManagerNotConfiguredException() =
+    IllegalStateException("No access-manager configured. Add an access-manager using 'Javalin.create(c -> c.core.accessManager(...))'.")
