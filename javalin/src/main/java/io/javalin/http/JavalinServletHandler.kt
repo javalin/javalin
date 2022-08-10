@@ -75,7 +75,7 @@ class JavalinServletHandler(
     private var exceptionOccurred = false
 
     /** Indicates if [JavalinServletHandler] already wrote response to client, requires support for atomic switch */
-    private val finished = AtomicBoolean(false)
+    private val responseWritten = AtomicBoolean(false)
 
     /**
      * This method starts execution process of all stages in a given lifecycle.
@@ -88,7 +88,7 @@ class JavalinServletHandler(
             stage.initializer.invoke(this) { taskHandler -> tasks.offer(Task(stage, taskHandler)) } // add tasks from stage to task queue
         }
         if (tasks.isEmpty())
-            finishResponse() // we looked but didn't find any more tasks, time to write the response
+            writeResponseAndLog() // we looked but didn't find any more tasks, time to write the response
         else
             currentTaskFuture = currentTaskFuture
                 .thenCompose { executeNextTask() } // chain next task into current future
@@ -160,13 +160,15 @@ class JavalinServletHandler(
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
             errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
             if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
-            finishResponse() // write response
+            writeResponseAndLog() // write response
         })
         .also { asyncCtx -> asyncCtx.timeout = cfg.http.asyncTimeout }
 
     /** Writes response to the client and frees resources */
-    private fun finishResponse() {
-        if (finished.getAndSet(true)) return // prevent writing more than once (ex. both async requests+errors) [it's required because timeout listener can terminate the flow at any tim]
+    private fun writeResponseAndLog() {
+        // prevent writing more than once (ex. both async requests+errors).
+        // it's required because timeout listener can terminate the flow at any time.
+        if (responseWritten.getAndSet(true)) return
         try {
             ctx.outputStream().use { outputStream ->
                 ctx.resultStream()?.use { resultStream ->
