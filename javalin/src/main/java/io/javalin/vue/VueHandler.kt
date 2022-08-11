@@ -56,10 +56,11 @@ abstract class VueHandler(private val componentId: String) : Handler {
 }
 
 private fun String.insertNoncesAndCspHeader(ctx: Context): String {
-    if (!JavalinVue.enableCspAndNonces) return this.replace("nonce=\"@addNonce\"", "") // remove from loadabledata and state snippets
+    if (!JavalinVue.enableCspAndNonces) return this.replace("nonce=\"@internalAddNonce\"", "") // remove from loadabledata and state snippets
     val nonces = mutableSetOf<String>()
     fun MutableSet<String>.newNonce() = ("jv-" + UUID.randomUUID().toString().replace("-", "")).also { this.add(it) }
     return this
+        .replace("@internalAddNonce".toRegex()) { nonces.newNonce() }
         .replace("@addNonce".toRegex()) { nonces.newNonce() }
         .also { ctx.header(Header.CONTENT_SECURITY_POLICY, "script-src 'unsafe-eval' ${nonces.joinToString(" ") { "'nonce-$it'" }}") }
 }
@@ -88,7 +89,7 @@ object FileInliner {
 }
 
 internal fun getState(ctx: Context, state: Any?) =
-    "\n<script nonce=\"@addNonce\">\n${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent('${urlEncodedState(ctx, state)}'))\n</script>\n"
+    "\n<script nonce=\"@internalAddNonce\">\n${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent('${urlEncodedState(ctx, state)}'))\n</script>\n"
 
 private fun urlEncodedState(ctx: Context, state: Any?) = urlEncodeForJavascript(
     ctx.jsonMapper().toJsonString(
