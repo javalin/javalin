@@ -2,7 +2,7 @@ package io.javalin.vue
 
 const val loadableDataScript = """
 
-<script>
+<script nonce="@addNonce">
     class LoadableData {
         constructor(url, cache = true, errorCallback = null) {
             this._url = url;

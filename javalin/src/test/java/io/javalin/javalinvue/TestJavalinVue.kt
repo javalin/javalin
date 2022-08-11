@@ -30,7 +30,8 @@ class TestJavalinVue {
     companion object {
         fun before() {
             with(JavalinVue) {
-                vueAppName = null // rest
+                enableCspAndNonces = false // reset
+                vueAppName = null // reset
                 isDev = null // reset
                 stateFunction = { mapOf<String, String>() } // reset
                 rootDirectory("src/test/resources/vue", Location.EXTERNAL) // src/main ->

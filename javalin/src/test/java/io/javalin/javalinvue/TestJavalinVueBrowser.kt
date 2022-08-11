@@ -3,9 +3,11 @@ package io.javalin.javalinvue
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import io.javalin.vue.JavalinVue
 import io.javalin.vue.VueComponent
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -46,6 +48,34 @@ class TestJavalinVueBrowser {
             }
         }
 
+    }
+
+    @Test
+    fun `loadabledata and state works when csp is enabled`() = TestUtil.test { app, http ->
+        JavalinVue.enableCspAndNonces = true
+        app.get("/vue/{my-param}", VueComponent("test-component"))
+        driver.get(http.origin + "/vue/odd&co")
+        driver.executeScript("let ld = new LoadableData()") // would throw if loadable data was removed by CSP
+        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
+        assertThat(pathParam).isEqualTo("odd&co")
+    }
+
+    @Test
+    fun `script tag without nonce is loaded if csp is not enabled`() = TestUtil.test { app, http ->
+        app.get("/vue", VueComponent("test-component"))
+        driver.get(http.origin + "/vue")
+        val stringFromLayoutHtml = driver.executeScript("return noncelessString") as String
+        assertThat(stringFromLayoutHtml).isEqualTo("abc")
+    }
+
+    @Test
+    fun `script tag without nonce is not loaded if csp is enabled`() = TestUtil.test { app, http ->
+        JavalinVue.enableCspAndNonces = true
+        app.get("/vue", VueComponent("test-component"))
+        driver.get(http.origin + "/vue")
+        Assertions.assertThatExceptionOfType(RuntimeException::class.java)
+            .isThrownBy { driver.executeScript("return noncelessString") }
+            .withMessageContaining("javascript error: noncelessString is not defined")
     }
 
     @Test
