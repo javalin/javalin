@@ -18,6 +18,7 @@ import io.javalin.vue.JavalinVue.walkPaths
 import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.UUID
 import java.util.regex.Matcher
 
 abstract class VueHandler(private val componentId: String) : Handler {
@@ -45,6 +46,7 @@ abstract class VueHandler(private val componentId: String) : Handler {
                 .replace("@serverState", getState(ctx, state(ctx))) // add escaped params and state
                 .replace("@routeComponent", routeComponent) // finally, add the route component itself
                 .replace("@cdnWebjar/", if (isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
+                .insertNoncesAndCspHeader(ctx)
                 .postRenderHook(ctx)
         ).header(Header.CACHE_CONTROL, cacheControl)
     }
@@ -53,6 +55,15 @@ abstract class VueHandler(private val componentId: String) : Handler {
     private fun String.postRenderHook(ctx: Context) = postRender(this, ctx);
 }
 
+private fun String.insertNoncesAndCspHeader(ctx: Context): String {
+    if (!JavalinVue.enableCspAndNonces) return this.replace("nonce=\"@internalAddNonce\"", "") // remove from loadabledata and state snippets
+    val nonces = mutableSetOf<String>()
+    fun MutableSet<String>.newNonce() = ("jv-" + UUID.randomUUID().toString().replace("-", "")).also { this.add(it) }
+    return this
+        .replace("@internalAddNonce".toRegex()) { nonces.newNonce() }
+        .replace("@addNonce".toRegex()) { nonces.newNonce() }
+        .also { ctx.header(Header.CONTENT_SECURITY_POLICY, "script-src 'unsafe-eval' ${nonces.joinToString(" ") { "'nonce-$it'" }}") }
+}
 
 private fun Set<Path>.joinVueFiles() = this.filter { it.isVueFile() }.joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
 
@@ -78,7 +89,7 @@ object FileInliner {
 }
 
 internal fun getState(ctx: Context, state: Any?) =
-    "\n<script>\n${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent('${urlEncodedState(ctx, state)}'))\n</script>\n"
+    "\n<script nonce=\"@internalAddNonce\">\n${prototypeOrGlobalConfig()}.\$javalin = JSON.parse(decodeURIComponent('${urlEncodedState(ctx, state)}'))\n</script>\n"
 
 private fun urlEncodedState(ctx: Context, state: Any?) = urlEncodeForJavascript(
     ctx.jsonMapper().toJsonString(

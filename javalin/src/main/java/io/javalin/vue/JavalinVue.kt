@@ -36,6 +36,8 @@ object JavalinVue {
     @JvmField var stateFunction: (Context) -> Any = { mapOf<String, String>() } // global state that is injected into all VueComponents
 
     @JvmField var cacheControl = "no-cache, no-store, must-revalidate"
+
+    @JvmField var enableCspAndNonces = false
     // @formatter:on
     fun walkPaths(): Set<Path> = Files.walk(rootDirectory, 20).use { it.collect(Collectors.toSet()) }
     internal val cachedPaths by lazy { walkPaths() }
