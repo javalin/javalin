@@ -46,7 +46,7 @@ abstract class VueHandler(private val componentId: String) : Handler {
                 .replace("@serverState", getState(ctx, state(ctx))) // add escaped params and state
                 .replace("@routeComponent", routeComponent) // finally, add the route component itself
                 .replace("@cdnWebjar/", if (isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
-                .insertNoncesAndCspHeader()
+                .insertNoncesAndCspHeader(ctx)
                 .postRenderHook(ctx)
         ).header(Header.CACHE_CONTROL, cacheControl)
     }
@@ -55,16 +55,13 @@ abstract class VueHandler(private val componentId: String) : Handler {
     private fun String.postRenderHook(ctx: Context) = postRender(this, ctx);
 }
 
-private fun String.insertNoncesAndCspHeader(): String {
-    if (!JavalinVue.enableCspAndNonces) return this
+private fun String.insertNoncesAndCspHeader(ctx: Context): String {
+    if (!JavalinVue.enableCspAndNonces) return this.replace("nonce=\"@addNonce\"", "") // remove from loadabledata and state snippets
     val nonces = mutableSetOf<String>()
     fun MutableSet<String>.newNonce() = ("jv-" + UUID.randomUUID().toString().replace("-", "")).also { this.add(it) }
     return this
         .replace("@addNonce".toRegex()) { nonces.newNonce() }
-        .replace(
-            """<head>""",
-            """<head><meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-eval' ${nonces.joinToString(" ") { "'nonce-$it'" }}">"""
-        )
+        .also { ctx.header(Header.CONTENT_SECURITY_POLICY, "script-src 'unsafe-eval' ${nonces.joinToString(" ") { "'nonce-$it'" }}") }
 }
 
 private fun Set<Path>.joinVueFiles() = this.filter { it.isVueFile() }.joinToString("") { "\n<!-- ${it.fileName} -->\n" + it.readText() }
