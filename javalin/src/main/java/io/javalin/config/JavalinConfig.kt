@@ -45,7 +45,6 @@ class JavalinConfig {
             cfg.pvt.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, executorService("JavalinDefaultAsyncThreadPool"))
             cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize)
             cfg.pvt.appAttributes.putIfAbsent(JAVALINVUE_CONFIG_KEY, cfg.vue)
-            VuePathMaster.init(cfg.pvt.appAttributes[JAVALINVUE_CONFIG_KEY]!! as JavalinVueConfig)
         }
     }
 }

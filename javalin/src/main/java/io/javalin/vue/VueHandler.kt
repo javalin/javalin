@@ -6,9 +6,6 @@ import io.javalin.http.Header
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.json.jsonMapper
 import io.javalin.vue.FileInliner.inlineFiles
-import io.javalin.vue.VuePathMaster.cachedDependencyResolver
-import io.javalin.vue.VuePathMaster.cachedPaths
-import io.javalin.vue.VuePathMaster.walkPaths
 import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
@@ -22,28 +19,28 @@ abstract class VueHandler(private val componentId: String) : Handler {
     open fun postRender(layout: String, ctx: Context): String = layout
 
     override fun handle(ctx: Context) {
-        val cfg = ctx.appAttribute<JavalinVueConfig>(JAVALINVUE_CONFIG_KEY)
-        cfg.isDev = cfg.isDev ?: cfg.isDevFunction(ctx)
-        cfg.rootDirectory = cfg.rootDirectory ?: VuePathMaster.defaultLocation(cfg.isDev!!)
+        val c = ctx.appAttribute<JavalinVueConfig>(JAVALINVUE_CONFIG_KEY)
+        c.isDev = c.isDev ?: c.isDevFunction(ctx)
+        c.rootDirectory = c.rootDirectory ?: c.pathMaster.defaultLocation(c.isDev!!)
         val routeComponent = if (componentId.startsWith("<")) componentId else "<$componentId></$componentId>"
-        val allFiles = if (cfg.isDev == true) walkPaths() else cachedPaths
-        val resolver by lazy { if (cfg.isDev == true) VueDependencyResolver(allFiles, cfg.vueAppName) else cachedDependencyResolver }
+        val allFiles = if (c.isDev == true) c.pathMaster.walkPaths() else c.pathMaster.cachedPaths
+        val resolver by lazy { if (c.isDev == true) VueDependencyResolver(allFiles, c.vueAppName) else c.pathMaster.cachedDependencyResolver }
         val componentId = routeComponent.removePrefix("<").takeWhile { it !in setOf('>', ' ') }
-        val dependencies = if (cfg.optimizeDependencies) resolver.resolve(componentId) else allFiles.joinVueFiles()
+        val dependencies = if (c.optimizeDependencies) resolver.resolve(componentId) else allFiles.joinVueFiles()
         if (componentId !in dependencies) throw InternalServerErrorResponse("Route component not found: $routeComponent")
         ctx.html(
             allFiles.find { it.endsWith("vue/layout.html") }!!.readText() // we start with the layout file
                 .preRenderHook(ctx)
-                .inlineFiles(cfg.isDev!!, allFiles.filterNot { it.isVueFile() }) // we then inline css/js files
+                .inlineFiles(c.isDev!!, allFiles.filterNot { it.isVueFile() }) // we then inline css/js files
                 .replace("@componentRegistration", "@loadableData@componentRegistration@serverState") // add anchors for later
                 .replace("@loadableData", loadableDataScript) // add loadable data class
                 .replace("@componentRegistration", dependencies) // add all dependencies
                 .replace("@serverState", getState(ctx, state(ctx))) // add escaped params and state
                 .replace("@routeComponent", routeComponent) // finally, add the route component itself
-                .replace("@cdnWebjar/", if (cfg.isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
-                .insertNoncesAndCspHeader(cfg.enableCspAndNonces, ctx)
+                .replace("@cdnWebjar/", if (c.isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
+                .insertNoncesAndCspHeader(c.enableCspAndNonces, ctx)
                 .postRenderHook(ctx)
-        ).header(Header.CACHE_CONTROL, cfg.cacheControl)
+        ).header(Header.CACHE_CONTROL, c.cacheControl)
     }
 
     private fun String.preRenderHook(ctx: Context) = preRender(this, ctx);

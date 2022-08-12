@@ -12,6 +12,10 @@ class JavalinVueConfig {
 
     @get:JvmSynthetic
     @set:JvmSynthetic
+    internal var pathMaster = VuePathMaster(this)
+
+    @get:JvmSynthetic
+    @set:JvmSynthetic
     internal var rootDirectory: Path? = null // is set on first request (if not configured)
 
     fun rootDirectory(path: Path) {
@@ -20,7 +24,7 @@ class JavalinVueConfig {
 
     @JvmOverloads
     fun rootDirectory(path: String, location: Location = Location.CLASSPATH, resourcesJarClass: Class<*> = VuePathMaster::class.java) {
-        this.rootDirectory = if (location == Location.CLASSPATH) VuePathMaster.classpathPath(path, resourcesJarClass) else Paths.get(path)
+        this.rootDirectory = if (location == Location.CLASSPATH) pathMaster.classpathPath(path, resourcesJarClass) else Paths.get(path)
     }
 
     @JvmField

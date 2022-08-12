@@ -13,12 +13,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Collectors
 
-object VuePathMaster {
-
-    lateinit var cfg: JavalinVueConfig
-    fun init(config: JavalinVueConfig) {
-        this.cfg = config
-    }
+internal class VuePathMaster(val cfg: JavalinVueConfig) {
 
     fun walkPaths(): Set<Path> = Files.walk(cfg.rootDirectory, 20).use { it.collect(Collectors.toSet()) }
     internal val cachedPaths by lazy { walkPaths() }
