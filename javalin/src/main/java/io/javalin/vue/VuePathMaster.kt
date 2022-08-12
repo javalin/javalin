@@ -15,19 +15,10 @@ import java.util.stream.Collectors
 
 internal class VuePathMaster(val cfg: JavalinVueConfig) {
 
-    fun walkPaths(): Set<Path> = Files.walk(cfg.rootDirectory, 20).use { it.collect(Collectors.toSet()) }
     internal val cachedPaths by lazy { walkPaths() }
     internal val cachedDependencyResolver by lazy { VueDependencyResolver(cachedPaths, cfg.vueAppName) }
 
-    /** We create a filesystem to "walk" the jar ([JavalinVue.walkPaths]) to find all the .vue files. */
-    private lateinit var fileSystem: FileSystem // we need to keep this variable around to keep the file system open ?
-
-    private fun getFileSystem(jarClass: Class<*>): FileSystem {
-        if (!this::fileSystem.isInitialized) {
-            this.fileSystem = FileSystems.newFileSystem(jarClass.getResource("")!!.toURI(), emptyMap<String, Any>())
-        }
-        return this.fileSystem
-    }
+    fun walkPaths(): Set<Path> = Files.walk(cfg.rootDirectory, 20).use { it.collect(Collectors.toSet()) }
 
     fun classpathPath(path: String, jarClass: Class<*>): Path = when {
         jarClass.getResource(path)!!.toURI().scheme == "jar" -> getFileSystem(jarClass).getPath(path) // we're inside a jar
@@ -36,4 +27,14 @@ internal class VuePathMaster(val cfg: JavalinVueConfig) {
 
     fun defaultLocation(isDev: Boolean): Path =
         if (isDev) Paths.get("src/main/resources/vue") else classpathPath("/vue", VuePathMaster::class.java)
+
+    /** We create a filesystem to "walk" the jar ([walkPaths]) to find all the .vue files. */
+    private lateinit var fileSystem: FileSystem // we need to keep this variable around to keep the file system open ?
+    private fun getFileSystem(jarClass: Class<*>): FileSystem {
+        if (!this::fileSystem.isInitialized) {
+            this.fileSystem = FileSystems.newFileSystem(jarClass.getResource("")!!.toURI(), emptyMap<String, Any>())
+        }
+        return this.fileSystem
+    }
+
 }
