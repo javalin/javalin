@@ -247,6 +247,15 @@ class TestStaticFiles {
     }
 
     @Test
+    fun `no exceptions in logs when getting hosted path`() = TestUtil.test(Javalin.create { javalin ->
+        javalin.staticFiles.add { staticFiles -> staticFiles.hostedPath = "/url-prefix" }
+    }) { _, http ->
+        val log = TestUtil.captureStdOut { http.get("/url-prefix") }
+        assertThat(http.get("/url-prefix").status).isEqualTo(404)
+        assertThat(log).doesNotContain("Exception occurred while handling static resource")
+    }
+
+    @Test
     fun `urlPathPrefix filters requests to a specific subfolder`() {
         TestUtil.test(Javalin.create { servlet ->
             // effectively equivalent to servlet.staticFiles.add("/public", Location.CLASSPATH)
