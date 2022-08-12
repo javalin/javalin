@@ -15,7 +15,6 @@ import io.javalin.util.ConcurrencyUtil.executorService
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
 import io.javalin.vue.JAVALINVUE_CONFIG_KEY
 import io.javalin.vue.JavalinVueConfig
-import io.javalin.vue.VuePathMaster
 import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
