@@ -3,25 +3,19 @@ package io.javalin.javalinvue
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
-import io.javalin.vue.JavalinVue
 import io.javalin.vue.VueComponent
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import java.util.*
 
 class TestJavalinVueBrowser {
-
-    @BeforeEach
-    fun beforeEach() = TestJavalinVue.before()
 
     companion object {
         lateinit var driver: ChromeDriver
@@ -51,8 +45,9 @@ class TestJavalinVueBrowser {
     }
 
     @Test
-    fun `loadabledata and state works when csp is enabled`() = TestUtil.test { app, http ->
-        JavalinVue.enableCspAndNonces = true
+    fun `loadabledata and state works when csp is enabled`() = VueTestUtil.test({
+        it.vue.enableCspAndNonces = true
+    }) { app, http ->
         app.get("/vue/{my-param}", VueComponent("test-component"))
         driver.get(http.origin + "/vue/odd&co")
         driver.executeScript("let ld = new LoadableData()") // would throw if loadable data was removed by CSP
@@ -61,7 +56,7 @@ class TestJavalinVueBrowser {
     }
 
     @Test
-    fun `script tag without nonce is loaded if csp is not enabled`() = TestUtil.test { app, http ->
+    fun `script tag without nonce is loaded if csp is not enabled`() = VueTestUtil.test { app, http ->
         app.get("/vue", VueComponent("test-component"))
         driver.get(http.origin + "/vue")
         val stringFromLayoutHtml = driver.executeScript("return noncelessString") as String
@@ -69,8 +64,9 @@ class TestJavalinVueBrowser {
     }
 
     @Test
-    fun `script tag without nonce is not loaded if csp is enabled`() = TestUtil.test { app, http ->
-        JavalinVue.enableCspAndNonces = true
+    fun `script tag without nonce is not loaded if csp is enabled`() = VueTestUtil.test({
+        it.vue.enableCspAndNonces = true
+    }) { app, http ->
         app.get("/vue", VueComponent("test-component"))
         driver.get(http.origin + "/vue")
         Assertions.assertThatExceptionOfType(RuntimeException::class.java)
@@ -79,7 +75,7 @@ class TestJavalinVueBrowser {
     }
 
     @Test
-    fun `path params are not html-encoded on the Vue prototype`() = TestUtil.test { app, http ->
+    fun `path params are not html-encoded on the Vue prototype`() = VueTestUtil.test { app, http ->
         app.get("/vue/{my-param}", VueComponent("test-component"))
         driver.get(http.origin + "/vue/odd&co")
         val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
@@ -87,43 +83,41 @@ class TestJavalinVueBrowser {
     }
 
     @Test
-    fun `script tags in state function does not break page rendering`() = TestUtil.test { app, http ->
+    fun `script tags in state function does not break page rendering`() {
         val testValue = "some value with <script></script> tags in it"
-        JavalinVue.stateFunction = {
-            mapOf("some_key" to testValue)
+        VueTestUtil.test({ it.vue.stateFunction = { mapOf("some_key" to testValue) } }) { app, http ->
+            app.get("/script_in_state", VueComponent("test-component"))
+            driver.get(http.origin + "/script_in_state")
+            val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+            assertThat(stateValue).isEqualTo(testValue)
         }
-        app.get("/script_in_state", VueComponent("test-component"))
-        driver.get(http.origin + "/script_in_state")
-        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
-        assertThat(stateValue).isEqualTo(testValue)
     }
 
     @Test
-    fun `utf8 characters in state and parameters`() = TestUtil.test { app, http ->
+    fun `utf8 characters in state and parameters`() {
         val testValue = "some value with weird ✔️ \uD83C\uDF89 characters in it"
-        JavalinVue.stateFunction = {
-            mapOf("some_key" to testValue)
+        VueTestUtil.test({ it.vue.stateFunction = { mapOf("some_key" to testValue) } }) { app, http ->
+            app.get("/script_in_state/{param}", VueComponent("test-component"))
+            driver.get(http.origin + "/script_in_state/my_path_param_with_\uD83D\uDE80")
+            val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+            val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
+            assertThat(stateValue).isEqualTo(testValue)
+            assertThat(pathParam).isEqualTo("my_path_param_with_\uD83D\uDE80")
         }
-        app.get("/script_in_state/{param}", VueComponent("test-component"))
-        driver.get(http.origin + "/script_in_state/my_path_param_with_\uD83D\uDE80")
-        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
-        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
-        assertThat(stateValue).isEqualTo(testValue)
-        assertThat(pathParam).isEqualTo("my_path_param_with_\uD83D\uDE80")
     }
 
+
     @Test
-    fun `problematic characters in state and parameters`() = TestUtil.test { app, http ->
+    fun `problematic characters in state and parameters`() {
         val testValue = "-_.!~*'()"
-        JavalinVue.stateFunction = {
-            mapOf("some_key" to testValue)
+        VueTestUtil.test({ it.vue.stateFunction = { mapOf("some_key" to testValue) } }) { app, http ->
+            app.get("/script_in_state/{param}", VueComponent("test-component"))
+            driver.get(http.origin + "/script_in_state/$testValue")
+            val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+            val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
+            assertThat(stateValue).isEqualTo(testValue)
+            assertThat(pathParam).isEqualTo(testValue)
         }
-        app.get("/script_in_state/{param}", VueComponent("test-component"))
-        driver.get(http.origin + "/script_in_state/$testValue")
-        val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
-        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
-        assertThat(stateValue).isEqualTo(testValue)
-        assertThat(pathParam).isEqualTo(testValue)
     }
 
     /* LoadableData tests below here */

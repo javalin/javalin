@@ -1,27 +1,19 @@
 package io.javalin.javalinvue;
 
 import io.javalin.http.Context;
-import io.javalin.testing.TestUtil;
-import io.javalin.vue.JavalinVue;
 import io.javalin.vue.VueComponent;
 import io.javalin.vue.VueHandler;
 import io.javalin.vue.VueRenderer;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestJavalinVueHandler {
 
-    @BeforeEach
-    public void resetJavalinVue() {
-        TestJavalinVue.Companion.before();
-        JavalinVue.optimizeDependencies = true;
-    }
-
     @Test
     public void testDefaultPreAndPostRenderer() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/no-state", new VueHandler("test-component") {
             });
             String body = httpUtil.getBody("/no-state");
@@ -33,7 +25,7 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testPreRenderer() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
@@ -50,7 +42,7 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testPostRenderer() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/no-state", new VueHandler("test-component") {
                 @NotNull
                 @Override
@@ -67,7 +59,7 @@ public class TestJavalinVueHandler {
 
     @Test
     public void testVueRenderer() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/no-state", new VueComponent("test-component", null, new VueRenderer() {
                 @NotNull
                 @Override

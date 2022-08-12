@@ -8,11 +8,14 @@ package io.javalin.config
 import io.javalin.Javalin
 import io.javalin.http.MAX_REQUEST_SIZE_KEY
 import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
-import io.javalin.plugin.PluginUtil.attachPlugins
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
+import io.javalin.plugin.PluginUtil.attachPlugins
 import io.javalin.util.ConcurrencyUtil.executorService
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
+import io.javalin.vue.JAVALINVUE_CONFIG_KEY
+import io.javalin.vue.JavalinVueConfig
+import io.javalin.vue.VuePathMaster
 import java.util.function.Consumer
 
 // this class should be abbreviated `cfg` in the source code.
@@ -29,6 +32,7 @@ class JavalinConfig {
     @JvmField val compression = CompressionConfig(pvt)
     @JvmField val requestLoggers = LoggingConfig(pvt)
     @JvmField val plugins = PluginConfig(pvt)
+    @JvmField val vue = JavalinVueConfig()
     //@formatter:on
     companion object {
         @JvmStatic
@@ -40,6 +44,8 @@ class JavalinConfig {
             cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, ContextResolver())
             cfg.pvt.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, executorService("JavalinDefaultAsyncThreadPool"))
             cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize)
+            cfg.pvt.appAttributes.putIfAbsent(JAVALINVUE_CONFIG_KEY, cfg.vue)
+            VuePathMaster.init(cfg.pvt.appAttributes[JAVALINVUE_CONFIG_KEY]!! as JavalinVueConfig)
         }
     }
 }
