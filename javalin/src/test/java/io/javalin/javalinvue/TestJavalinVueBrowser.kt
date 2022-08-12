@@ -3,6 +3,7 @@ package io.javalin.javalinvue
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
 import io.javalin.vue.VueComponent
 import org.assertj.core.api.Assertions
@@ -122,7 +123,7 @@ class TestJavalinVueBrowser {
 
     /* LoadableData tests below here */
 
-    fun loadableDataTestApp() = Javalin.create().routes {
+    fun loadableDataTestApp() = Javalin.create { it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) }.routes {
         val users = mutableListOf("John")
         get("/api/users") { it.json(users) }
         get("/api/otherUsers") { it.json(users) }
