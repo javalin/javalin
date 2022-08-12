@@ -40,7 +40,7 @@ class JavalinConfig {
             userConfig.accept(cfg) // apply user config to the default config
             attachPlugins(app, cfg.pvt.plugins.values)
             cfg.pvt.appAttributes.putIfAbsent(JSON_MAPPER_KEY, JavalinJackson())
-            cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, ContextResolver())
+            cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, cfg.core.contextResolver)
             cfg.pvt.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, executorService("JavalinDefaultAsyncThreadPool"))
             cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize)
             cfg.pvt.appAttributes.putIfAbsent(JAVALINVUE_CONFIG_KEY, cfg.vue)

@@ -89,10 +89,8 @@ class TestConfiguration {
     fun `test contextResolvers config with custom settings`() {
         TestUtil.test(
             Javalin.create {
-                it.core.contextResolvers { resolvers ->
-                    resolvers.ip = { "CUSTOM IP" }
-                    resolvers.host = { "CUSTOM HOST" }
-                }
+                it.core.contextResolver.ip = { "CUSTOM IP" }
+                it.core.contextResolver.host = { "CUSTOM HOST" }
             }
                 .get("/ip") { it.result(it.ip()) }
                 .get("/host") { it.result("${it.host()}") }
