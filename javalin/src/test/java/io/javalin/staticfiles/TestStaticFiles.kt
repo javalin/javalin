@@ -250,8 +250,12 @@ class TestStaticFiles {
     fun `no exceptions in logs when getting hosted path`() = TestUtil.test(Javalin.create { javalin ->
         javalin.staticFiles.add { staticFiles -> staticFiles.hostedPath = "/url-prefix" }
     }) { _, http ->
-        val log = TestUtil.captureStdOut { http.get("/url-prefix") }
+        val log = TestUtil.captureStdOut {
+            http.get("/url-prefix")
+            http.get("/url-prefixy")
+        }
         assertThat(http.get("/url-prefix").status).isEqualTo(404)
+        assertThat(http.get("/url-prefixy").status).isEqualTo(404)
         assertThat(log).doesNotContain("Exception occurred while handling static resource")
     }
 
