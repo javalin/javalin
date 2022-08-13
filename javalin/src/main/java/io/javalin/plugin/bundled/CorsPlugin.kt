@@ -1,6 +1,7 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
+import io.javalin.http.Context
 import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
@@ -21,7 +22,8 @@ data class CorsPluginConfig(
     @JvmField var allowCredentials: Boolean = false,
     @JvmField var reflectClientOrigin: Boolean = false,
     private val allowedOrigins: MutableList<String> = mutableListOf(),
-    private val headersToExpose: MutableList<String> = mutableListOf()
+    private val headersToExpose: MutableList<String> = mutableListOf(),
+    var useNewImplementation: Boolean = false
 ) {
     fun allowedOrigins(): List<String> = Collections.unmodifiableList(allowedOrigins)
     fun headersToExpose(): List<String> = Collections.unmodifiableList(headersToExpose)
@@ -53,32 +55,10 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
         require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
         require(origins.isEmpty() || !cfg.reflectClientOrigin) { "Cannot set `allowedOrigins` if `reflectClientOrigin` is true" }
         app.before { ctx ->
-            if (ctx.method() == OPTIONS) {
-                ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also { headerValue ->
-                    ctx.header(ACCESS_CONTROL_ALLOW_HEADERS, headerValue)
-                }
-                ctx.header(ACCESS_CONTROL_REQUEST_METHOD)?.also { headerValue ->
-                    ctx.header(ACCESS_CONTROL_ALLOW_METHODS, headerValue)
-                }
-            }
-            val clientOrigin = ctx.header(ORIGIN) ?: ctx.header(REFERER) ?: return@before
-            val allowOriginValue = when {
-                "*" in origins -> "*"
-                cfg.reflectClientOrigin -> clientOrigin
-                clientOrigin in origins -> clientOrigin
-                else -> null
-            } ?: return@before
-            ctx.header(ACCESS_CONTROL_ALLOW_ORIGIN, allowOriginValue)
-            ctx.header(VARY, ORIGIN)
-            if (cfg.allowCredentials) {
-                ctx.header(
-                    ACCESS_CONTROL_ALLOW_CREDENTIALS,
-                    "true"
-                ) // should never be set to "false", but rather omitted
-            }
-
-            if (headersToExpose.isNotEmpty()) {
-                ctx.header(ACCESS_CONTROL_EXPOSE_HEADERS, headersToExpose.joinToString(separator = ","))
+            if (cfg.useNewImplementation) {
+                newImplementation(ctx)
+            } else {
+                oldImplementation(ctx)
             }
         }
         app.after { ctx ->
@@ -88,5 +68,38 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
         }
     }
 
+    private fun oldImplementation(ctx: Context) {
+        if (ctx.method() == OPTIONS) {
+            ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also { headerValue ->
+                ctx.header(ACCESS_CONTROL_ALLOW_HEADERS, headerValue)
+            }
+            ctx.header(ACCESS_CONTROL_REQUEST_METHOD)?.also { headerValue ->
+                ctx.header(ACCESS_CONTROL_ALLOW_METHODS, headerValue)
+            }
+        }
+        val clientOrigin = ctx.header(ORIGIN) ?: ctx.header(REFERER) ?: return
+        val allowOriginValue = when {
+            "*" in origins -> "*"
+            cfg.reflectClientOrigin -> clientOrigin
+            clientOrigin in origins -> clientOrigin
+            else -> null
+        } ?: return
+        ctx.header(ACCESS_CONTROL_ALLOW_ORIGIN, allowOriginValue)
+        ctx.header(VARY, ORIGIN)
+        if (cfg.allowCredentials) {
+            ctx.header(
+                ACCESS_CONTROL_ALLOW_CREDENTIALS,
+                "true"
+            ) // should never be set to "false", but rather omitted
+        }
+
+        if (headersToExpose.isNotEmpty()) {
+            ctx.header(ACCESS_CONTROL_EXPOSE_HEADERS, headersToExpose.joinToString(separator = ","))
+        }
+    }
+
+    private fun newImplementation(ctx: Context) {
+        TODO("to be implemented")
+    }
 }
 
