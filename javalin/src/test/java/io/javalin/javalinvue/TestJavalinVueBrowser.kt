@@ -25,8 +25,8 @@ class TestJavalinVueBrowser {
         @JvmStatic
         fun setupClass() {
             assumeTrue(System.getProperty("RunningOnCi") == null)
-            val os: String = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)
-            assumeTrue("mac" !in os && "darwin" !in os)
+            // val os: String = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)
+            // assumeTrue("mac" !in os && "darwin" !in os) // comment this out if you're having trouble locally
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--no-sandbox")
