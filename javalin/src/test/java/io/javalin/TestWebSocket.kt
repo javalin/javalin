@@ -545,7 +545,7 @@ class TestWebSocket {
         assertThat(app.logger().log).contains("0")
         doBlocking({ client.send("DISABLE_PINGS") }, { pingFutures.size > 0 }) // check that this map clears
         app.logger().log.clear()
-        Thread.sleep(50)
+        Thread.sleep(100)
         assertThat(app.logger().log.size).isEqualTo(0) // no pings sent during sleep after disabling pings
         // re-enable pings, now we get the new payload [1, 1, 1]
         client.send("ENABLE_PINGS")

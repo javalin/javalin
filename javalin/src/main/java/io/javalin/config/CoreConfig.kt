@@ -9,11 +9,7 @@ class CoreConfig(private val pvt: PrivateConfig) {
 
     var showJavalinBanner = true
 
-    fun contextResolvers(userResolver: Consumer<ContextResolver>) {
-        val finalResolver = ContextResolver()
-        userResolver.accept(finalResolver)
-        pvt.appAttributes[CONTEXT_RESOLVER_KEY] = finalResolver
-    }
+    var contextResolver = ContextResolver()
 
     fun accessManager(accessManager: AccessManager) {
         pvt.accessManager = accessManager

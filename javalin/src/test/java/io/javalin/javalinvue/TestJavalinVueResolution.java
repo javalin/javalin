@@ -15,11 +15,9 @@
  */
 package io.javalin.javalinvue;
 
-import io.javalin.testing.TestUtil;
-import io.javalin.vue.JavalinVue;
 import io.javalin.vue.VueComponent;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -27,16 +25,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class TestJavalinVueResolution {
 
-    @BeforeEach
-    public void resetJavalinVue() {
-        TestJavalinVue.Companion.before();
-        JavalinVue.optimizeDependencies = true;
-    }
-
     @Test
     public void resoleAllDependenciesTest() {
-        TestUtil.test((server, httpUtil) -> {
-            JavalinVue.optimizeDependencies = false;
+        VueTestUtil.test(config -> {
+            config.vue.optimizeDependencies = false;
+        }, (server, httpUtil) -> {
             server.get("/non-optimized", new VueComponent("<test-component></test-component>"));
             String body = httpUtil.getBody("/non-optimized");
             assertThat(body).contains("<body><test-component></test-component></body>");
@@ -55,7 +48,7 @@ public class TestJavalinVueResolution {
 
     @Test
     public void resolveSingleDependencyTest() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/single-view", new VueComponent("<view-one></view-one>"));
             String body = httpUtil.getBody("/single-view");
             assertThat(body).contains("<body><view-one></view-one></body>");
@@ -72,8 +65,9 @@ public class TestJavalinVueResolution {
 
     @Test
     public void resolveVue3DependencyTest() {
-        TestUtil.test((server, httpUtil) -> {
-            JavalinVue.vueAppName = "app";
+        VueTestUtil.test(config -> {
+            config.vue.vueAppName = "app";
+        }, (server, httpUtil) -> {
             server.get("/single-view", new VueComponent("<view-one-3></view-one-3>"));
             String body = httpUtil.getBody("/single-view");
             assertThat(body).contains("<body><view-one-3></view-one-3></body>");
@@ -100,7 +94,7 @@ public class TestJavalinVueResolution {
 
     @Test
     public void resolveNestedDependencyTest() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/nested-view", new VueComponent("<view-nested-dependency></view-nested-dependency>"));
             String body = httpUtil.getBody("/nested-view");
             assertThat(body).doesNotContain("<view-one>");
@@ -117,7 +111,7 @@ public class TestJavalinVueResolution {
 
     @Test
     public void resolveMultiComponentFileDependencyTest() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/multi-view-one", new VueComponent("<view-two></view-two>"));
             String body = httpUtil.getBody("/multi-view-one");
             assertThat(body).doesNotContain("<view-one>");
@@ -146,7 +140,7 @@ public class TestJavalinVueResolution {
 
     @Test
     public void componentWithNumberTest() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/multi-view-number", new VueComponent("<view-number-dependency></view-number-dependency>"));
             String body = httpUtil.getBody("/multi-view-number");
             assertThat(body).contains("<dependency-1></dependency-1>");
@@ -161,7 +155,7 @@ public class TestJavalinVueResolution {
 
     @Test
     public void componentWithMultilineComponentsUsageTest() {
-        TestUtil.test((server, httpUtil) -> {
+        VueTestUtil.test((server, httpUtil) -> {
             server.get("/multiline-view-number", new VueComponent("<view-multiline-dependency></view-multiline-dependency>"));
             String body = httpUtil.getBody("/multiline-view-number");
             assertThat(body).contains("Vue.component(\"view-multiline-dependency\",{template:\"#view-multiline-dependency\"})");
