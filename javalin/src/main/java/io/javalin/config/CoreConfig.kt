@@ -19,4 +19,6 @@ class CoreConfig(private val pvt: PrivateConfig) {
         pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper
     }
 
+    @JvmField var stackTraceCleanerFunction: ((Array<StackTraceElement>) -> Array<StackTraceElement>)? = null
+
 }
