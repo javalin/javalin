@@ -12,7 +12,6 @@ import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.RouteOverviewPlugin
-import io.javalin.plugin.bundled.MicrometerPlugin
 import io.javalin.testing.TestUtil
 import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener
@@ -45,7 +44,6 @@ class TestConfiguration {
             it.http.prefer405over404 = false
             it.requestLoggers.http { ctx, timeInMs -> }
             it.requestLoggers.webSocket { ws -> }
-            it.plugins.register(MicrometerPlugin())
             it.core.showJavalinBanner = false
             it.routing.contextPath = "/"
             it.jetty.sessionHandler { SessionHandler() }

@@ -60,11 +60,6 @@
             <artifactId>jackson-module-kotlin</artifactId>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-            <optional>true</optional>
-        </dependency>
         <!-- END Optional dependencies -->
 
         <!-- BEGIN Test dependencies -->
