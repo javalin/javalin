@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.data.Offset
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.junit.jupiter.api.Test
@@ -25,7 +26,7 @@ import org.junit.jupiter.api.Test
 class TestConfiguration {
 
     @Test
-    fun `test all config options`() = TestUtil.runLogLess {
+    fun `all config options`() = TestUtil.runLogLess {
         val app = Javalin.create {
             it.spaRoot.addFile("/", "/public/html.html")
             it.spaRoot.addFile("/", "src/test/resources/public/html.html", Location.EXTERNAL)
@@ -86,7 +87,7 @@ class TestConfiguration {
     }
 
     @Test
-    fun `test contextResolvers config with custom settings`() {
+    fun `contextResolvers config with custom settings`() {
         TestUtil.test(
             Javalin.create {
                 it.core.contextResolver.ip = { "CUSTOM IP" }
@@ -101,7 +102,7 @@ class TestConfiguration {
     }
 
     @Test
-    fun `test contextResolvers config with default settings`() {
+    fun `contextResolvers config with default settings`() {
         TestUtil.test(
             Javalin.create {}
                 .get("/ip") { it.result(it.ip()) }
@@ -112,5 +113,14 @@ class TestConfiguration {
             assertThat(http.get("/ip").body).isEqualTo(http.get("/remote-ip").body)
             assertThat(http.get("/host").body).isEqualTo(http.get("/remote-host").body)
         }
+    }
+
+    @Test
+    fun `can clean stacktraces`() = TestUtil.test { app, http ->
+        app.get("/") { throw Exception("Exceptional!") }
+        val bigLog = TestUtil.captureStdOut { http.get("/") }
+        app.cfg.core.stackTraceCleanerFunction = { arrayOf() }
+        val smallLog = TestUtil.captureStdOut { http.get("/") }
+        assertThat(bigLog.length).isNotCloseTo(smallLog.length, Offset.offset(1000))
     }
 }

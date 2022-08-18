@@ -25,7 +25,7 @@ import java.util.*
 class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
     val matcher = PathMatcher()
-    val exceptionMapper = ExceptionMapper()
+    val exceptionMapper = ExceptionMapper(cfg)
     val errorMapper = ErrorMapper()
 
     /**

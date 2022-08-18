@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.config.JavalinConfig
 import io.javalin.jetty.JettyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
@@ -14,11 +15,12 @@ import java.util.concurrent.CompletionException
 
 class SkipHttpHandlerException : RuntimeException()
 
-class ExceptionMapper {
+class ExceptionMapper(val cfg: JavalinConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
+        cfg.core.stackTraceCleanerFunction?.let { exception.stackTrace = it.invoke(exception.stackTrace) }
         if (exception is SkipHttpHandlerException) {
             // do nothing
         } else if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
