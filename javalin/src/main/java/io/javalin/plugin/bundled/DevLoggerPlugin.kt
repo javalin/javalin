@@ -62,11 +62,6 @@ fun requestDevLogger(matcher: PathMatcher, ctx: Context, time: Float) = try {
 private fun String.probablyFormData() = this.trim().firstOrNull()?.isLetter() == true && this.split("=").size >= 2
 
 private fun resBody(ctx: Context): String {
-    val staticFile = ctx.req().getAttribute("handled-as-static-file") == true
-    if (staticFile) {
-        return "Body is a static file (not logged)"
-    }
-
     val stream = ctx.resultStream() ?: return "No body was set"
     if (!stream.markSupported()) {
         return "Body is binary (not logged)"
