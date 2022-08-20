@@ -25,9 +25,8 @@ object JettyPrecompressingResourceHandler {
 
     val excludedMimeTypes = CompressionStrategy().excludedMimeTypesFromCompression
 
-    fun handle(resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
+    fun handle(target: String, resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
         if (resource.exists() && !resource.isDirectory) {
-            val target = req.getAttribute("jetty-target") as String
             var acceptCompressType = CompressionType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
             val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
             if (contentType == null || excludedMimeType(contentType)) {

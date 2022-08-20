@@ -52,8 +52,7 @@ class JettyServer(val cfg: JavalinConfig) {
 
         val wsAndHttpHandler = object : ServletContextHandler(nullParent, Util.normalizeContextPath(cfg.routing.contextPath), SESSIONS) {
             override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                request.setAttribute("jetty-target", target) // used in JettyResourceHandler
-                request.setAttribute("jetty-request", jettyRequest)
+                request.setAttribute("jetty-target-and-request", Pair(target, jettyRequest)) // used in JettyResourceHandler
                 nextHandle(target, jettyRequest, request, response)
             }
         }.apply {

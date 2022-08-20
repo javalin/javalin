@@ -34,18 +34,18 @@ class JettyResourceHandler : JavalinResourceHandler {
     override fun addStaticFileConfig(config: StaticFileConfig) = configs.add(config)
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
-        val target = httpRequest.getAttribute("jetty-target") as String
-        val baseRequest = httpRequest.getAttribute("jetty-request") as Request
+        val (target, baseRequest) = httpRequest.getAttribute("jetty-target-and-request") as Pair<String, Request>
         handlers.filter { !it.config.skipFileFunction(httpRequest) }.forEach { handler ->
             try {
                 val resource = handler.getResource(target)
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     handler.config.headers.forEach { httpResponse.setHeader(it.key, it.value) }
-                    if (handler.config.precompress && JettyPrecompressingResourceHandler.handle(resource, httpRequest, httpResponse)) {
-                        return true
+                    if (handler.config.precompress) {
+                        return JettyPrecompressingResourceHandler.handle(target, resource, httpRequest, httpResponse)
                     }
                     httpResponse.contentType = null // Jetty will only set the content-type if it's null
-                    httpResponse.outputStream.use { handler.handle(target, baseRequest, httpRequest, httpResponse) }
+                    handler.handle(target, baseRequest, httpRequest, httpResponse)
+                    httpResponse.outputStream.close()
                     httpRequest.setAttribute("handled-as-static-file", true)
                     return true
                 }
