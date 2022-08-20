@@ -29,7 +29,7 @@ class JavalinConfig {
     @JvmField val staticFiles = StaticFilesConfig(pvt)
     @JvmField val spaRoot = SpaRootConfig(pvt)
     @JvmField val compression = CompressionConfig(pvt)
-    @JvmField val requestLoggers = LoggingConfig(pvt)
+    @JvmField val requestLogger = RequestLoggerConfig(pvt)
     @JvmField val plugins = PluginConfig(pvt)
     @JvmField val vue = JavalinVueConfig()
     //@formatter:on

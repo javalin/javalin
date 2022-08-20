@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import java.io.File
-import java.util.*
 import kotlin.math.ceil
 
 class TestWebBrowser {
@@ -84,7 +83,7 @@ class TestWebBrowser {
         val expectedChunkCount = ceil(file.inputStream().available() / chunkSize.toDouble()).toInt()
         var chunkCount = 0
         val requestLoggerApp = Javalin.create {
-            it.requestLoggers.http { ctx, ms ->
+            it.requestLogger.http { ctx, ms ->
                 if (ctx.req().getHeader(Header.RANGE) == null) return@http
                 chunkCount++
                 // println("Req: " + ctx.req.getHeader(Header.RANGE))

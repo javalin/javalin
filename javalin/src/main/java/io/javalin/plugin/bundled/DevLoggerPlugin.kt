@@ -17,8 +17,8 @@ internal class DevLoggingPlugin : Plugin, PluginLifecycleInit {
     lateinit var matcher: PathMatcher
 
     override fun apply(app: Javalin) {
-        app.cfg.requestLoggers.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
-        app.cfg.requestLoggers.webSocket { wsDevLogger(it) }
+        app.cfg.requestLogger.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
+        app.cfg.requestLogger.webSocket { wsDevLogger(it) }
         matcher = app.javalinServlet().matcher
     }
 
