@@ -22,7 +22,7 @@ enum class MyRoles : RouteRole {
 }
 
 fun main() {
-    val app = Javalin.create { it.core.accessManager(::accessManager) }.start(7070)
+    val app = Javalin.create { it.accessManager(::accessManager) }.start(7070)
 
     app.routes {
         get("/hello", { it.result("Hello World 1") }, ROLE_ONE)

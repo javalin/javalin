@@ -351,7 +351,7 @@ interface Context {
      * @param launch Optional callback that provides a possibility to launch any kind of async execution in a thread-safe way.
      *  Any async task that will mutate [Context] should be submitted to the executor in this scope to eliminate race-conditions between threads.
      * @param callback Optional callback used to process result from the specified future.
-     *  The default callback (used if no callback is provided) can be configured through [io.javalin.config.ContextResolver.defaultFutureCallback]
+     *  The default callback (used if no callback is provided) can be configured through [io.javalin.config.ContextResolverConfig.defaultFutureCallback]
      * @throws IllegalStateException if result was already set
      */
     fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context

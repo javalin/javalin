@@ -44,7 +44,7 @@ class TestConfiguration {
             it.http.prefer405over404 = false
             it.requestLogger.http { ctx, timeInMs -> }
             it.requestLogger.ws { ws -> }
-            it.core.showJavalinBanner = false
+            it.showJavalinBanner = false
             it.routing.contextPath = "/"
             it.jetty.sessionHandler { SessionHandler() }
             it.jetty.wsFactoryConfig { factory -> }
@@ -88,8 +88,8 @@ class TestConfiguration {
     fun `contextResolvers config with custom settings`() {
         TestUtil.test(
             Javalin.create {
-                it.core.contextResolver.ip = { "CUSTOM IP" }
-                it.core.contextResolver.host = { "CUSTOM HOST" }
+                it.contextResolver.ip = { "CUSTOM IP" }
+                it.contextResolver.host = { "CUSTOM HOST" }
             }
                 .get("/ip") { it.result(it.ip()) }
                 .get("/host") { it.result("${it.host()}") }
@@ -117,7 +117,7 @@ class TestConfiguration {
     fun `can clean stacktraces`() = TestUtil.test { app, http ->
         app.get("/") { throw Exception("Exceptional!") }
         val bigLog = TestUtil.captureStdOut { http.get("/") }
-        app.cfg.core.stackTraceCleanerFunction = { arrayOf() }
+        app.cfg.stackTraceCleanerFunction = { arrayOf() }
         val smallLog = TestUtil.captureStdOut { http.get("/") }
         assertThat(bigLog.length).isNotCloseTo(smallLog.length, Offset.offset(1000))
     }

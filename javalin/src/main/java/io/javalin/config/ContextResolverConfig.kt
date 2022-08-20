@@ -7,9 +7,9 @@ import java.io.InputStream
 
 const val CONTEXT_RESOLVER_KEY = "javalin-context-resolver"
 
-fun Context.contextResolver() = this.appAttribute<ContextResolver>(CONTEXT_RESOLVER_KEY)
+fun Context.contextResolver() = this.appAttribute<ContextResolverConfig>(CONTEXT_RESOLVER_KEY)
 
-class ContextResolver {
+class ContextResolverConfig {
     // @formatter:off
     @JvmField var ip: (Context) -> String = { it.req().remoteAddr }
     @JvmField var host: (Context) -> String? = { it.header(Header.HOST) }

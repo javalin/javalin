@@ -54,7 +54,7 @@ class TestWebSocket {
     fun contextPathJavalin(): Javalin = Javalin.create { it.routing.contextPath = "/websocket" }
 
     fun accessManagedJavalin(): Javalin = Javalin.create().apply {
-        this.cfg.core.accessManager { handler, ctx, roles ->
+        this.cfg.accessManager { handler, ctx, roles ->
             this.logger().log.add("handling upgrade request ...")
             when {
                 ctx.queryParam("exception") == "true" -> throw UnauthorizedResponse()
@@ -140,7 +140,7 @@ class TestWebSocket {
 
     @Test
     fun `receive and send json messages`() = TestUtil.test(Javalin.create {
-        it.core.jsonMapper(fasterJacksonMapper)
+        it.jsonMapper(fasterJacksonMapper)
     }) { app, _ ->
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->

@@ -222,7 +222,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to webjar on localhost`() = VueTestUtil.test({
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
-        it.core.contextResolver.url = { "http://localhost:1234/" }
+        it.contextResolver.url = { "http://localhost:1234/" }
     }) { app, http ->
         app.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("""src="/webjars/""")
@@ -231,7 +231,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to cdn on non-localhost`() = VueTestUtil.test({
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
-        it.core.contextResolver.url = { "https://example.com" }
+        it.contextResolver.url = { "https://example.com" }
     }) { app, http ->
         app.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("""src="https://cdn.jsdelivr.net/webjars/""")
@@ -240,7 +240,7 @@ class TestJavalinVue {
     @Test
     fun `@cdnWebjar resolves to https even on non https hosts`() = VueTestUtil.test({
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
-        it.core.contextResolver.url = { "http://123.123.123.123:1234/" }
+        it.contextResolver.url = { "http://123.123.123.123:1234/" }
     }) { app, http ->
         app.get("/path", VueComponent("test-component"))
         assertThat(http.getBody("/path")).contains("""src="https://cdn.jsdelivr.net/webjars/""")
@@ -249,7 +249,7 @@ class TestJavalinVue {
     @Test
     fun `@inlineFile functionality works as expected if not-dev`() = VueTestUtil.test({
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
-        it.core.contextResolver.url = { "http://123.123.123.123:1234/" }
+        it.contextResolver.url = { "http://123.123.123.123:1234/" }
     }) { app, http ->
         app.get("/path", VueComponent("test-component"))
         val responseBody = http.getBody("/path")
@@ -263,7 +263,7 @@ class TestJavalinVue {
     @Test
     fun `@inlineFile functionality works as expected if dev`() = VueTestUtil.test({
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
-        it.core.contextResolver.url = { "http://localhost:1234/" }
+        it.contextResolver.url = { "http://localhost:1234/" }
     }) { app, http ->
         app.get("/path", VueComponent("test-component"))
         val responseBody = http.getBody("/path")

@@ -166,7 +166,7 @@ internal class TestFuture {
         @Test
         fun `can set default callback via context resolvers`() {
             val ignoringServer = Javalin.create { config ->
-                config.core.contextResolver.defaultFutureCallback = { ctx, _ -> ctx.result("Ignored") }
+                config.contextResolver.defaultFutureCallback = { ctx, _ -> ctx.result("Ignored") }
             }
 
             TestUtil.test(ignoringServer) { app, http ->

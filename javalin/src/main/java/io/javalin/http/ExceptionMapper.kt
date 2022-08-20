@@ -20,7 +20,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
-        cfg.core.stackTraceCleanerFunction?.let { exception.stackTrace = it.invoke(exception.stackTrace) }
+        cfg.stackTraceCleanerFunction?.let { exception.stackTrace = it.invoke(exception.stackTrace) }
         if (exception is SkipHttpHandlerException) {
             // do nothing
         } else if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {

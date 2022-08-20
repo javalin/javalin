@@ -104,7 +104,7 @@ class TestCors {
     @Test
     fun `works with AccessManager`() = TestUtil.test(Javalin.create {
         it.plugins.enableCors { it.reflectClientOrigin = true }
-        it.core.accessManager { _, ctx, _ -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message) }
+        it.accessManager { _, ctx, _ -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message) }
     }) { app, http ->
         app.get("/", { it.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
         assertThat(http.get("/").body).isEqualTo(UNAUTHORIZED.message)

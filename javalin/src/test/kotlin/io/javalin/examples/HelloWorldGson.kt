@@ -20,7 +20,7 @@ fun main() {
         override fun toJsonString(obj: Any) = gson.toJson(obj)
     }
 
-    val app = Javalin.create { it.core.jsonMapper(gsonMapper) }.start(7070)
+    val app = Javalin.create { it.jsonMapper(gsonMapper) }.start(7070)
     app.get("/") { it.json(Arrays.asList("a", "b", "c")) }
 
 }

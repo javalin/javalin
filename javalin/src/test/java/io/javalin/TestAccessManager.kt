@@ -24,7 +24,7 @@ class TestAccessManager {
     enum class MyRoles : RouteRole { ROLE_ONE, ROLE_TWO, ROLE_THREE }
 
     private fun managedApp() = Javalin.create { config ->
-        config.core.accessManager { handler, ctx, routeRoles ->
+        config.accessManager { handler, ctx, routeRoles ->
             val role: RouteRole? = ctx.queryParam("role")?.let { MyRoles.valueOf(it) }
 
             when (role) {
@@ -70,7 +70,7 @@ class TestAccessManager {
 
     @Test
     fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
-        it.core.accessManager { handler, ctx, _ ->
+        it.accessManager { handler, ctx, _ ->
             ctx.result("Test")
             handler.handle(ctx)
         }
