@@ -43,7 +43,7 @@ class TestConfiguration {
             it.plugins.enableSslRedirects()
             it.http.prefer405over404 = false
             it.requestLogger.http { ctx, timeInMs -> }
-            it.requestLogger.webSocket { ws -> }
+            it.requestLogger.ws { ws -> }
             it.core.showJavalinBanner = false
             it.routing.contextPath = "/"
             it.jetty.sessionHandler { SessionHandler() }

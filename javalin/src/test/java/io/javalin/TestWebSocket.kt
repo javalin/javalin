@@ -282,7 +282,7 @@ class TestWebSocket {
 
     @Test
     fun `web socket logging works`() = TestUtil.test(Javalin.create().apply {
-        this.cfg.requestLogger.webSocket { ws ->
+        this.cfg.requestLogger.ws { ws ->
             ws.onConnect { ctx -> this.logger().log.add(ctx.pathParam("param") + " connected") }
             ws.onClose { ctx -> this.logger().log.add(ctx.pathParam("param") + " disconnected") }
         }

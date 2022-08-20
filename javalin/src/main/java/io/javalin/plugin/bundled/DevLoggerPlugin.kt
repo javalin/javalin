@@ -18,7 +18,7 @@ internal class DevLoggingPlugin : Plugin, PluginLifecycleInit {
 
     override fun apply(app: Javalin) {
         app.cfg.requestLogger.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
-        app.cfg.requestLogger.webSocket { wsDevLogger(it) }
+        app.cfg.requestLogger.ws { wsDevLogger(it) }
         matcher = app.javalinServlet().matcher
     }
 

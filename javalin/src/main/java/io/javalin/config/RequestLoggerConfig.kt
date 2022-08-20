@@ -10,7 +10,7 @@ class RequestLoggerConfig(private val pvt: PrivateConfig) {
         pvt.requestLogger = requestLogger
     }
 
-    fun webSocket(ws: Consumer<WsConfig>) {
+    fun ws(ws: Consumer<WsConfig>) {
         val logger = WsConfig()
         ws.accept(logger)
         pvt.wsLogger = logger
