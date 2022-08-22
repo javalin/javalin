@@ -138,19 +138,24 @@ internal object CorsUtils {
         if (!isSchemeValid(origin.subSequence(0, schemeAndHostDelimiter))) return false
 
         // if a port is specified is must consist of only digits
-        val portResult = CorsUtils.extractPort(origin)
-        if (portResult == PortResult.PortInvalid) return false
+        val portResult = extractPort(origin)
+        if (portResult is PortResult.ErrorState) return false
 
         return true
     }
 
     /**
      * Tries to extract a port from a given origin.
+     * If the origin does not contain a colon [PortResult.ErrorState.InvalidOrigin] is returned.
      * If no port is specified [PortResult.NoPortSpecified] is returned.
-     * If the port value contains non digit characters [PortResult.PortInvalid] is returned.
+     * If the port value contains non digit characters [PortResult.ErrorState.InvalidPort] is returned.
      * Otherwise [PortResult.PortSpecified] with the extracted [PortResult.PortSpecified.port] value is returned.
+     *
+     * __Notes:__
+     * - Should only be called on an origin with a valid scheme, see [isSchemeValid]
      */
     internal fun extractPort(origin: String): PortResult {
+        if (':' !in origin) return PortResult.ErrorState.InvalidOrigin
         val possiblePortIndex = origin.lastIndexOf(':')
         val colonAfterSchemeIndex = origin.indexOf(':')
         val hasPort = possiblePortIndex != colonAfterSchemeIndex
@@ -164,14 +169,18 @@ internal object CorsUtils {
         // Ref: https://www.rfc-editor.org/rfc/rfc2234#section-3.4
         // Ref: https://www.fileformat.info/info/unicode/category/Nd/list.htm
         if (possiblePortDigits.any { it !in '0'..'9' }) {
-            return PortResult.PortInvalid
+            return PortResult.ErrorState.InvalidPort
         }
         return PortResult.PortSpecified(possiblePortDigits.toInt(radix = 10))
     }
 }
 
 internal sealed class PortResult {
+    internal sealed class ErrorState : PortResult() {
+        internal object InvalidOrigin : ErrorState()
+        internal object InvalidPort : ErrorState()
+    }
+
     internal object NoPortSpecified : PortResult()
-    internal object PortInvalid : PortResult()
     internal data class PortSpecified(val port: Int) : PortResult()
 }
