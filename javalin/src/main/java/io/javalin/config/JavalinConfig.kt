@@ -37,7 +37,6 @@ class JavalinConfig {
     @JvmField var showJavalinBanner = true
     fun accessManager(accessManager: AccessManager) { pvt.accessManager = accessManager }
     fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
-    @JvmField var stackTraceCleanerFunction: ((Array<StackTraceElement>) -> Array<StackTraceElement>)? = null
     //@formatter:on
     companion object {
         @JvmStatic

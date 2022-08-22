@@ -27,5 +27,6 @@ class PrivateConfig {
     @JvmField var server: Server? = null
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
+    @JvmField var stackTraceCleanerFunction: ((Array<StackTraceElement>) -> Array<StackTraceElement>)? = null
 }
 // @formatter:on

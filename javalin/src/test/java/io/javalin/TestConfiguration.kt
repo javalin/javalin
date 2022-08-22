@@ -117,7 +117,7 @@ class TestConfiguration {
     fun `can clean stacktraces`() = TestUtil.test { app, http ->
         app.get("/") { throw Exception("Exceptional!") }
         val bigLog = TestUtil.captureStdOut { http.get("/") }
-        app.cfg.stackTraceCleanerFunction = { arrayOf() }
+        app.cfg.pvt.stackTraceCleanerFunction = { arrayOf() }
         val smallLog = TestUtil.captureStdOut { http.get("/") }
         assertThat(bigLog.length).isNotCloseTo(smallLog.length, Offset.offset(1000))
     }
