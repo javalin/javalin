@@ -15,6 +15,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
+import io.javalin.http.HttpStatus.CREATED
 import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
@@ -28,15 +29,15 @@ class TestCors {
     @Test
     fun `throws for empty origins if reflectClientOrigin is false`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java)
-            .isThrownBy { Javalin.create { it.plugins.enableCors({}) } }
+            .isThrownBy { Javalin.create { it.plugins.enableCors {} } }
             .withMessageStartingWith("Origins cannot be empty if `reflectClientOrigin` is false.")
     }
 
     @Test
     fun `throws for non-empty if reflectClientOrigin is true`() {
         assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
-            Javalin.create {
-                it.plugins.enableCors {
+            Javalin.create { config ->
+                config.plugins.enableCors {
                     it.reflectClientOrigin = true
                     it.allowHost("A", "B")
                 }
@@ -46,12 +47,14 @@ class TestCors {
 
     @Test
     fun `can enable cors for specific origins`() = TestUtil.test(Javalin.create {
-        it.plugins.enableCors { it.allowHost("origin-1", "referer-1") }
+        it.plugins.enableCors { it.allowHost("https://origin-1", "https://referer-1") }
     }) { app, http ->
         app.get("/") { it.result("Hello") }
         assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
-        assertThat(http.get("/", mapOf(ORIGIN to "origin-1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("origin-1")
-        assertThat(http.get("/", mapOf(REFERER to "referer-1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("referer-1")
+        assertThat(http.get("/", mapOf(ORIGIN to "https://origin-1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://origin-1")
+        assertThat(http.get("/", mapOf(ORIGIN to "https://referer-1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://referer-1")
+        // referer gets ignored
+        assertThat(http.get("/", mapOf(REFERER to "https://referer-1")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("")
     }
 
     @Test
@@ -59,17 +62,18 @@ class TestCors {
         it.plugins.enableCors { it.anyHost() }
     }) { app, http ->
         app.get("/") { it.result("Hello") }
-        assertThat(http.get("/", mapOf(ORIGIN to "A")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*")
-        assertThat(http.get("/", mapOf(REFERER to "B")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*")
+        assertThat(http.get("/", mapOf(ORIGIN to "https://A")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*")
+        // referer gets ignored
+        assertThat(http.get("/", mapOf(REFERER to "https://B")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("")
     }
 
     @Test
     fun `headers are not set when origin doesn't match`() = TestUtil.test(Javalin.create {
-        it.plugins.enableCors { it.allowHost("origin-1.com") }
+        it.plugins.enableCors { it.allowHost("https://origin-1.com") }
     }) { app, http ->
         app.get("/") { it.result("Hello") }
-        assertThat(http.get("/", mapOf(ORIGIN to "origin-2.com")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
-        assertThat(http.get("/", mapOf(ORIGIN to "origin-1.com.au")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
+        assertThat(http.get("/", mapOf(ORIGIN to "https://origin-2.com")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
+        assertThat(http.get("/", mapOf(ORIGIN to "https://origin-1.com.au")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
     }
 
     @Test
@@ -78,9 +82,10 @@ class TestCors {
     }) { app, http ->
         app.get("/") { it.result("Hello") }
         assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
-        assertThat(http.get("/", mapOf(ORIGIN to "some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("some-origin")
-        assertThat(http.get("/", mapOf(ORIGIN to "some-origin")).header(ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEmpty() // cookies not allowed
-        assertThat(http.get("/", mapOf(REFERER to "some-referer")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("some-referer")
+        assertThat(http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://some-origin")
+        assertThat(http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEmpty() // cookies not allowed
+        // referer gets ignored
+        assertThat(http.get("/", mapOf(REFERER to "https://some-referer")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("")
     }
 
     @Test
@@ -92,14 +97,15 @@ class TestCors {
     }) { app, http ->
         app.get("/") { it.result("Hello") }
         assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
-        assertThat(http.get("/", mapOf(ORIGIN to "some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("some-origin")
-        assertThat(http.get("/", mapOf(ORIGIN to "some-origin")).header(ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true") // cookies allowed
-        assertThat(http.get("/", mapOf(REFERER to "some-referer")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("some-referer")
+        assertThat(http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://some-origin")
+        assertThat(http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo("true") // cookies allowed
+        // referer gets ignored
+        assertThat(http.get("/", mapOf(REFERER to "https://some-referer")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("")
     }
 
     @Test
     fun `works for 404s`() = TestUtil.test(Javalin.create { it.plugins.enableCors { it.reflectClientOrigin = true } }) { app, http ->
-        assertThat(http.get("/not-found", mapOf(ORIGIN to "some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("some-origin")
+        assertThat(http.get("/not-found", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://some-origin")
     }
 
     @Test
@@ -110,6 +116,7 @@ class TestCors {
         app.get("/", { it.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
         assertThat(http.get("/").body).isEqualTo(UNAUTHORIZED.message)
         val response = Unirest.options(http.origin)
+            .header(ORIGIN, "https://example.com")
             .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
             .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
             .asString()
@@ -125,6 +132,7 @@ class TestCors {
     }) { app, http ->
         app.options("/") { it.result("Hello") }
         val response = Unirest.options(http.origin)
+            .header(ORIGIN, "https://example.com")
             .header(ACCESS_CONTROL_REQUEST_HEADERS, "123")
             .header(ACCESS_CONTROL_REQUEST_METHOD, "TEST")
             .asString()
@@ -142,7 +150,7 @@ class TestCors {
     }) { app, http ->
         app.get("/") { it.result("Hello") }
         val response = Unirest.get(http.origin)
-            .header(ORIGIN, "example.com")
+            .header(ORIGIN, "https://example.com")
             .asString()
         assertThat(response.header(ACCESS_CONTROL_EXPOSE_HEADERS)).isEqualTo("x-test")
         assertThat(response.body).isEqualTo("Hello")
@@ -158,7 +166,7 @@ class TestCors {
     }) { app, http ->
         app.get("/") { it.result("Hello") }
         val response = Unirest.get(http.origin)
-            .header(ORIGIN, "example.com")
+            .header(ORIGIN, "https://example.com")
             .asString()
         assertThat(response.header(ACCESS_CONTROL_EXPOSE_HEADERS)).isEqualTo("x-test,x-world")
         assertThat(response.body).isEqualTo("Hello")

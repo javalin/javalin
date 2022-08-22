@@ -3,6 +3,7 @@ package io.javalin.plugin.bundled
 import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HandlerType.OPTIONS
+import io.javalin.http.Header
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_CREDENTIALS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_ORIGIN
@@ -67,10 +68,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin, PluginLifecyc
     }
 
     private fun handleCors(ctx: Context) {
-        val clientOrigin = ctx.header(ORIGIN) ?: run {
-            ctx.status(HttpStatus.BAD_REQUEST)
-            return
-        }
+        val clientOrigin = ctx.header(ORIGIN) ?: return
 
         if (!isValidOrigin(clientOrigin)) {
             return
@@ -79,6 +77,9 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin, PluginLifecyc
         if (ctx.method() == OPTIONS) {
             ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also { headerValue ->
                 ctx.header(ACCESS_CONTROL_ALLOW_HEADERS, headerValue)
+            }
+            ctx.header(Header.ACCESS_CONTROL_REQUEST_METHOD)?.also { headerValue ->
+                ctx.header(Header.ACCESS_CONTROL_ALLOW_METHODS, headerValue)
             }
         }
 
