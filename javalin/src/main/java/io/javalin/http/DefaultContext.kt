@@ -13,7 +13,6 @@ import io.javalin.http.HandlerType.AFTER
 import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
-import io.javalin.util.isCompletedSuccessfully
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -23,8 +22,6 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Consumer
 
 class DefaultContext(
     private var req: HttpServletRequest,
@@ -37,7 +34,8 @@ class DefaultContext(
     private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = mapOf(),
     internal var endpointHandlerPath: String = "",
-    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result())
+    internal var resultStream: InputStream? = null,
+    internal var userFuture: CompletableFuture<out Any?>? = null
 ) : Context {
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
@@ -96,28 +94,19 @@ class DefaultContext(
     private val outputStreamWrapper by lazy { CompressedOutputStream(compressionStrategy, this) }
     override fun outputStream(): ServletOutputStream = outputStreamWrapper
 
-    override fun resultStream(): InputStream? = resultReference.get().let { result ->
-        result.future
-            ?.takeIf { it.isCompletedSuccessfully() }
-            ?.get() as? InputStream?
-            ?: result.previous
+    override fun resultStream(): InputStream? = resultStream
+
+    override fun result(resultStream: InputStream): Context {
+        runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
+        this.resultStream = resultStream
+        return this
     }
 
     override fun <T> future(future: CompletableFuture<T>, launch: Runnable?): Context = also {
-        if (resultReference.get().future != null) {
-            throw IllegalStateException("Cannot override result")
-        }
-        resultReference.updateAndGet { oldResult ->
-            oldResult.future?.cancel(true)
-            Result(
-                previous = oldResult.previous,
-                future = future,
-                launch = launch,
-            )
-        }
+        userFuture = future
     }
 
-    override fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
+    override fun userFuture(): CompletableFuture<*>? = userFuture
 
 }
 

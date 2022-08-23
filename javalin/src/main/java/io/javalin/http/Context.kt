@@ -298,10 +298,7 @@ interface Context {
      * Sets context result to the specified [InputStream].
      * Will overwrite the current result if there is one.
      */
-    fun result(resultStream: InputStream): Context {
-        runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
-        return this.future(CompletableFuture.completedFuture(resultStream))
-    }
+    fun result(resultStream: InputStream): Context
 
     /** Gets the current [resultStream] as a [String] (if possible), and reset the underlying stream */
     fun resultString() = readAndResetStreamIfPossible(resultStream(), responseCharset())
@@ -360,7 +357,7 @@ interface Context {
     fun <T> future(future: CompletableFuture<T>): Context = future(future = future, launch = null)
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>?
+    fun userFuture(): CompletableFuture<*>?
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context = also { res().contentType = contentType }
