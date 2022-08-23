@@ -20,10 +20,7 @@ class SseClient internal constructor(
      * so you can't use any result function in this scope anymore.
      */
     fun keepAlive() {
-        this.blockingFuture = ctx.future(
-            future = CompletableFuture<Nothing?>(),
-            callback = { /* noop */ }
-        ).resultFuture()
+        this.blockingFuture = ctx.future(future = CompletableFuture<Nothing?>()).resultFuture()
     }
 
     fun onClose(closeCallback: Runnable) {

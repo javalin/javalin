@@ -300,7 +300,7 @@ interface Context {
      */
     fun result(resultStream: InputStream): Context {
         runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
-        return this.future(CompletableFuture.completedFuture(resultStream), callback = { /* noop */ })
+        return this.future(CompletableFuture.completedFuture(resultStream))
     }
 
     /** Gets the current [resultStream] as a [String] (if possible), and reset the underlying stream */
@@ -354,13 +354,10 @@ interface Context {
      *  The default callback (used if no callback is provided) can be configured through [io.javalin.config.ContextResolverConfig.defaultFutureCallback]
      * @throws IllegalStateException if result was already set
      */
-    fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context
+    fun <T> future(future: CompletableFuture<T>, launch: Runnable?): Context
 
     /** See the main `future(CompletableFuture<T>, Runnable, Consumer<T>)` method for details. */
-    fun <T> future(future: CompletableFuture<T>): Context = future(future = future, callback = null)
-
-    /** See the main `future(CompletableFuture<T>, Runnable, Consumer<T>)` method for details. */
-    fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>?): Context = future(future = future, launch = null, callback = callback)
+    fun <T> future(future: CompletableFuture<T>): Context = future(future = future, launch = null)
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
     fun resultFuture(): CompletableFuture<*>?

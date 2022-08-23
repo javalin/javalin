@@ -1,7 +1,6 @@
 package io.javalin.http
 
 import io.javalin.config.JavalinConfig
-import io.javalin.config.contextResolver
 import io.javalin.http.util.ETagGenerator
 import io.javalin.util.exceptionallyComposeFallback
 import jakarta.servlet.AsyncContext
@@ -13,14 +12,9 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.failedFuture
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Consumer
 
 interface StageName
-enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
-
-private object FutureCallbackStage : StageName {
-    val stage = Stage(this, haltsOnException = false)
-}
+enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER, USERCODE }
 
 data class Stage(
     val name: StageName,
@@ -32,7 +26,6 @@ data class Result<VALUE : Any?>(
     val previous: InputStream? = null,
     val future: CompletableFuture<VALUE>? = null,
     val launch: Runnable? = null,
-    val callback: Consumer<VALUE>? = null,
 )
 
 internal data class Task(
@@ -109,19 +102,11 @@ class JavalinServletHandler(
                     exceptionMapper.handleFutureException(ctx, throwable)
                 }
             }
-            ?.thenAccept { if (it.result.future != null) tasks.offerFirst(createFutureCallbackTask(it)) } // add future callback add the beginning of queue
+            ?.thenAccept { if (it.result.future != null) tasks.offerFirst(createUserCodeTask()) } // add future callback add the beginning of queue
             ?: completedFuture(null) // stub future if task was skipped
 
-    @Suppress("UNCHECKED_CAST")
-    private fun createFutureCallbackTask(executionResult: ExecutionResult): Task =
-        Task(
-            stage = FutureCallbackStage.stage,
-            handler = {
-                executionResult.result.callback
-                    ?.let { (it as Consumer<Any?>).accept(executionResult.value) }
-                    ?: ctx.contextResolver().defaultFutureCallback(ctx, executionResult.value)
-            }
-        )
+    private fun createUserCodeTask(): Task =
+        Task(stage = Stage(DefaultName.USERCODE, haltsOnException = false), handler = {})
 
     /** Handles futures provided by user through ctx.future() in various handlers */
     private fun handleFutureResultReference(handler: () -> Unit): CompletableFuture<ExecutionResult> {

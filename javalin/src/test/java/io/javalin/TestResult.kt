@@ -14,7 +14,7 @@ internal class TestResult {
 
     @Test
     fun `should respond with specified input-stream `() = TestUtil.test { app, http ->
-        app.get("/") { it.future(completedFuture("Response".byteInputStream()), callback = {}) }
+        app.get("/") { it.future(completedFuture("Response".byteInputStream())) }
         assertThat(http.getBody("/")).isEqualTo("Response")
     }
 
@@ -38,26 +38,6 @@ internal class TestResult {
             assertDoesNotThrow { assertThat(it.resultStream()).isNull() }
         }
         assertThat(http.getBody("/errored")).isEqualTo(INTERNAL_SERVER_ERROR.message)
-    }
-
-    @Test
-    fun `result function can be called once per handler`() = TestUtil.test { app, http ->
-        app.before("/") { ctx ->
-            ctx.future(completedFuture("Before")) {
-                ctx.future(completedFuture("$it Callback"))
-            }
-        }
-        app.get("/") { ctx ->
-            ctx.future(completedFuture("${ctx.resultString()} Http")) {
-                ctx.future(completedFuture("$it Callback"))
-            }
-        }
-        app.after("/") { ctx ->
-            ctx.future(completedFuture("${ctx.resultString()} After")) {
-                ctx.future(completedFuture("$it Callback"))
-            }
-        }
-        assertThat(http.getBody("/")).isEqualTo("Before Callback Http Callback After Callback")
     }
 
     @Test

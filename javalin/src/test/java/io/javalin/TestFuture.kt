@@ -31,7 +31,7 @@ internal class TestFuture {
 
     @Test
     fun `hello future world`() = TestUtil.test { app, http ->
-        app.get("/test-future") { it.future(getFuture("Result")) }
+        app.get("/test-future") { it.future(getFuture("Result").thenAccept { v -> it.result(v) }) }
         assertThat(http.getBody("/test-future")).isEqualTo("Result")
     }
 
@@ -60,16 +60,18 @@ internal class TestFuture {
 
         @Test
         fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
-            app.before("/future") { it.future(getFuture("before")) }
-            app.get("/future") { it.future(getFuture("nothing")) { /* do nothing */ } }
-            app.after("/future") { it.future(getFuture("${it.resultString()}, after")) }
+            app.before("/future") { it.future(getFuture("before").thenAccept { v -> it.result(v) }) }
+            app.get("/future") { it.future(getFuture("nothing")) }
+            app.after("/future") { it.future(getFuture("${it.resultString()}, after").thenAccept { v -> it.result(v) }) }
             assertThat(http.get("/future").body).isEqualTo("before, after")
         }
 
         @Test
         fun `can use future in exception mapper`() = TestUtil.test { app, http ->
             app.get("/") { throw Exception("Oh no!") }
-            app.exception(Exception::class.java) { _, ctx -> ctx.future(getFuture("Wee")) }
+            app.exception(Exception::class.java) { _, ctx ->
+                ctx.future(getFuture("Wee").thenAccept { ctx.result(it) })
+            }
             assertThat(http.get("/").body).isEqualTo("Wee")
         }
 
@@ -105,7 +107,7 @@ internal class TestFuture {
 
         @Test
         fun `exceptions that occur during response writing are handled`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.future(getFutureFailingStream()) }
+            app.get("/test-future") { it.future(getFutureFailingStream().thenAccept { v -> it.result(v) }) }
             assertThat(http.get("/test-future").body).isEmpty()
             assertThat(http.get("/test-future").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
         }
@@ -156,69 +158,6 @@ internal class TestFuture {
             app.get("/") { it.future(future) }
             assertThat(http.get("/").body).isEqualTo("Request timed out")
             assertThat(future.isCancelled).isTrue()
-        }
-
-    }
-
-    @Nested
-    inner class Callbacks {
-
-        @Test
-        fun `can set default callback via context resolvers`() {
-            val ignoringServer = Javalin.create { config ->
-                config.contextResolver.defaultFutureCallback = { ctx, _ -> ctx.result("Ignored") }
-            }
-
-            TestUtil.test(ignoringServer) { app, http ->
-                app.get("/") { it.future(CompletableFuture.completedFuture("Success")) }
-                assertThat(http.get("/").body).isEqualTo("Ignored")
-            }
-        }
-
-        @Test
-        fun `callback can mutate context and provide various responses`() = TestUtil.test { app, http ->
-            app.get("/") { ctx ->
-                ctx.future(getFuture("Result")) {
-                    when {
-                        ctx.queryParam("with-content") != null -> {
-                            ctx.status(OK)
-                            ctx.json(it)
-                        }
-                        else -> ctx.status(NO_CONTENT)
-                    }
-                }
-            }
-
-            val contentResponse = http.get("/?with-content")
-            assertThat(contentResponse.httpCode()).isEqualTo(OK)
-            assertThat(contentResponse.body).isEqualTo("Result")
-            assertThat(contentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(JSON)
-
-            val noContentResponse = http.get("/?no-content")
-            assertThat(noContentResponse.httpCode()).isEqualTo(NO_CONTENT)
-            assertThat(noContentResponse.body).isEmpty()
-            assertThat(noContentResponse.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(PLAIN)
-        }
-
-        @Test
-        fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
-            app.get("/") { ctx ->
-                ctx.future(getFuture("A")) {
-                    ctx.future(getFuture("B")) {
-                        ctx.future(getFuture("C"))
-                    }
-                }
-            }
-
-            assertThat(http.getBody("/")).isEqualTo("C")
-        }
-
-        @Test
-        fun `exceptions in future callback are mapped`() = TestUtil.test { app, http ->
-            app.get("/") { ctx ->
-                ctx.future(getFuture("result")) { throw NotFoundResponse() }
-            }
-            assertThat(http.get("/").httpCode()).isEqualTo(NOT_FOUND)
         }
 
     }

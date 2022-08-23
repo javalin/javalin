@@ -29,7 +29,6 @@ object AsyncUtil {
                     }
                     .exceptionallyAccept { await.completeExceptionally(it) } // catch exception from timeout listener
             },
-            callback = { /* noop */ }
         )
 
         return await

@@ -103,7 +103,7 @@ class DefaultContext(
             ?: result.previous
     }
 
-    override fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context = also {
+    override fun <T> future(future: CompletableFuture<T>, launch: Runnable?): Context = also {
         if (resultReference.get().future != null) {
             throw IllegalStateException("Cannot override result")
         }
@@ -113,7 +113,6 @@ class DefaultContext(
                 previous = oldResult.previous,
                 future = future,
                 launch = launch,
-                callback = callback
             )
         }
     }
