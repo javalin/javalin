@@ -81,6 +81,20 @@ internal class TestFuture {
     inner class Exceptions {
 
         @Test
+        fun `can call ctx inside thenAccept and exceptionally`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future(getFuture(ctx.queryParam("qp")) // could be null, which would cause a CancellationException
+                    .thenAccept { ctx.result(it) }
+                    .exceptionally {
+                        ctx.result("Error: $it")
+                        null
+                    })
+            }
+            assertThat(http.get("/?qp=Hello").body).isEqualTo("Hello")
+            assertThat(http.get("/").body).isEqualTo("Error: java.util.concurrent.CompletionException: java.util.concurrent.CancellationException")
+        }
+
+        @Test
         fun `unresolved futures are handled by exception-mapper`() = TestUtil.test { app, http ->
             app.get("/test-future") { it.future(getFuture(null)) }
             app.exception(CancellationException::class.java) { _, ctx -> ctx.result("Handled") }
