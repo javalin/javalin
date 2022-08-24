@@ -51,25 +51,25 @@ class JavalinServletHandler(
     /** Indicates if [JavalinServletHandler] already wrote response to client, requires support for atomic switch */
     private val responseWritten = AtomicBoolean(false)
 
+    private lateinit var lastFuture: CompletableFuture<*>
+
     /**
      * This method starts execution process of all stages in a given lifecycle.
      * Execution is based on recursive calls of this method,
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
-    internal fun queueNextTaskOrFinish() {
+    internal fun nextTaskOrFinish() {
         while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from next stage, if the current queue is empty
             val stage = stages.poll()
-            stage.initializer.invoke(this) { taskHandler -> tasks.offer(Task(stage, taskHandler)) } // add tasks from stage to task queue
+            stage.initializer.invoke(this) { taskHandler ->
+                if (!exceptionOccurred || !stage.haltsOnException) tasks.offer(Task(stage, taskHandler))
+            }
         }
         if (tasks.isEmpty()) {
-            writeResponseAndLog()
-            return
+            return writeResponseAndLog()
         }
-        val nextTask = tasks.poll()
-            .takeUnless { exceptionOccurred && it.stage.haltsOnException }
-            ?: return queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
         try {
-            nextTask.handler.invoke(this)
+            tasks.poll().handler.invoke(this)
         } catch (t: Throwable) {
             if (t is Exception) {
                 exceptionOccurred = true
@@ -77,30 +77,32 @@ class JavalinServletHandler(
             } else {
                 exceptionMapper.handleUnexpectedThrowable(ctx.res(), t)
             }
-            return queueNextTaskOrFinish()
+            return nextTaskOrFinish() // recursive call
         }
-        val future = this.ctx.consumeUserFuture() ?: return queueNextTaskOrFinish()
-        future.whenComplete { _, throwable ->
+        lastFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish()  // recursive call
+        startAsyncAndAddDefaultTimeoutListeners()
+        lastFuture.whenComplete { _, throwable ->
             if (throwable != null) {
                 exceptionOccurred = true
                 exceptionMapper.handleFutureException(ctx, throwable)
             }
-            queueNextTaskOrFinish()
+            nextTaskOrFinish()  // recursive call
         }.exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res(), it) }
-        startAsyncAndAddDefaultTimeoutListeners(future)
+
     }
 
-    private fun startAsyncAndAddDefaultTimeoutListeners(future: CompletableFuture<*>) {
-        if (!ctx.req().isAsyncStarted) {
-            ctx.req().startAsync().apply { timeout = cfg.http.asyncTimeout }
+    private fun startAsyncAndAddDefaultTimeoutListeners() {
+        if (ctx.req().isAsyncStarted) return
+        ctx.req().startAsync().apply {
+            timeout = cfg.http.asyncTimeout
+            addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
+                lastFuture.cancel(true)
+                ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
+                errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
+                if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
+                writeResponseAndLog() // write response
+            })
         }
-        ctx.req().asyncContext.addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
-            future.cancel(true)
-            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
-            errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
-            if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
-            writeResponseAndLog() // write response
-        })
     }
 
     /** Writes response to the client and frees resources */
