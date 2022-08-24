@@ -35,7 +35,8 @@ class DefaultContext(
     private var pathParamMap: Map<String, String> = mapOf(),
     internal var endpointHandlerPath: String = "",
     internal var resultStream: InputStream? = null,
-    internal var userFuture: CompletableFuture<out Any?>? = null
+    internal var userFuture: CompletableFuture<out Any?>? = null,
+    internal var futureLaunch: Runnable? = null,
 ) : Context {
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
@@ -103,10 +104,16 @@ class DefaultContext(
     }
 
     override fun <T> future(future: CompletableFuture<T>, launch: Runnable?): Context = also {
+        futureLaunch = launch
         userFuture = future
     }
 
     override fun userFuture(): CompletableFuture<*>? = userFuture
+
+    fun consumeUserFuture(): CompletableFuture<*>? {
+        futureLaunch?.run()
+        return userFuture().also { userFuture = null }
+    }
 
 }
 

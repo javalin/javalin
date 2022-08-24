@@ -6,6 +6,7 @@ import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 
 interface StageName
@@ -64,18 +65,42 @@ class JavalinServletHandler(
             writeResponseAndLog()
             return
         }
-        val nextTask = tasks.poll().takeUnless { exceptionOccurred && it.stage.haltsOnException } // each subsequent task for this stage will be queued and skipped
+        val nextTask = tasks.poll()
+            .takeUnless { exceptionOccurred && it.stage.haltsOnException }
+            ?: return queueNextTaskOrFinish() // each subsequent task for this stage will be queued and skipped
         try {
-            nextTask?.handler?.invoke(this)
-        } catch (e: Exception) {
-            exceptionMapper.handle(e, ctx)
+            nextTask.handler.invoke(this)
+        } catch (t: Throwable) {
+            if (t is Exception) {
+                exceptionOccurred = true
+                exceptionMapper.handle(t, ctx)
+            } else {
+                exceptionMapper.handleUnexpectedThrowable(ctx.res(), t)
+            }
+            return queueNextTaskOrFinish()
         }
-        val future = this.ctx.userFuture()
-        if (future == null) {
+        val future = this.ctx.consumeUserFuture() ?: return queueNextTaskOrFinish()
+        future.whenComplete { _, throwable ->
+            if (throwable != null) {
+                exceptionOccurred = true
+                exceptionMapper.handleFutureException(ctx, throwable)
+            }
             queueNextTaskOrFinish()
-        } else {
-            future.thenAccept { queueNextTaskOrFinish() }
+        }.exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res(), it) }
+        startAsyncAndAddDefaultTimeoutListeners(future)
+    }
+
+    private fun startAsyncAndAddDefaultTimeoutListeners(future: CompletableFuture<*>) {
+        if (!ctx.req().isAsyncStarted) {
+            ctx.req().startAsync().apply { timeout = cfg.http.asyncTimeout }
         }
+        ctx.req().asyncContext.addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
+            future.cancel(true)
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
+            errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
+            if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
+            writeResponseAndLog() // write response
+        })
     }
 
     /** Writes response to the client and frees resources */
@@ -94,14 +119,11 @@ class JavalinServletHandler(
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(ctx.res(), throwable) // handle any unexpected error, e.g. write failure
         } finally {
-            if (ctx.isAsync()) ctx.req().asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
+            if (ctx.req().isAsyncStarted) ctx.req().asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
         }
     }
 
 }
-
-/** Checks if request is executed asynchronously */
-private fun Context.isAsync(): Boolean = req().isAsyncStarted
 
 internal fun AsyncContext.addListener(
     onComplete: (AsyncEvent) -> Unit = {},

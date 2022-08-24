@@ -51,7 +51,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
             JavalinLogger.debug("Client aborted or timed out", throwable)
             return null // jetty aborts and timeouts happen when clients disconnect, they are not actually unexpected
         }
-        res.status = 500
+        res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         return null
     }

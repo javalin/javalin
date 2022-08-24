@@ -2,6 +2,7 @@ package io.javalin.util
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 /** [CompletableFuture.thenAccept] alternative for [CompletableFuture.exceptionally] */
@@ -18,3 +19,5 @@ fun <T> CompletableFuture<T>.exceptionallyComposeFallback(mapping: (Throwable) -
         .thenCompose { it }
 
 fun <T> CompletableFuture<T>.isCompletedSuccessfully() = this.isDone && !this.isCompletedExceptionally && !this.isCancelled
+
+fun <T> CompletableFuture<T>.orTimeoutIfTimeoutSet(timeout: Long) = this.apply { if (timeout > 0) this.orTimeout(timeout, TimeUnit.MILLISECONDS) }

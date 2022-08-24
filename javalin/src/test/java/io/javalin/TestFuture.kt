@@ -126,17 +126,6 @@ internal class TestFuture {
             assertThat(http.get("/test-future").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
         }
 
-        @Test
-        fun `user's future should be cancelled in case of exception in handler`() = TestUtil.test { app, http ->
-            val future = CompletableFuture<String>()
-            app.get("/") {
-                it.future(future)
-                throw RuntimeException()
-            }
-            assertThat(http.get("/").body).isEqualTo(INTERNAL_SERVER_ERROR.message)
-            assertThat(future.isCancelled).isTrue()
-        }
-
     }
 
     @Nested
