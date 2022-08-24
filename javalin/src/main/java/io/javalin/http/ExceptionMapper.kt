@@ -20,6 +20,9 @@ class ExceptionMapper(val cfg: JavalinConfig) {
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
     internal fun handle(exception: Exception, ctx: Context) {
+        if (exception is CompletionException && exception.cause is java.lang.Exception) {
+            return handle(exception.cause as java.lang.Exception, ctx)
+        }
         cfg.pvt.stackTraceCleanerFunction?.let { exception.stackTrace = it.invoke(exception.stackTrace) }
         if (exception is SkipHttpHandlerException) {
             // do nothing
@@ -36,24 +39,13 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         }
     }
 
-    internal fun handleFutureException(ctx: Context, throwable: Throwable): Nothing? {
-        if (throwable is CompletionException && throwable.cause is Exception) {
-            handleFutureException(ctx, throwable.cause as Exception)
-        } else if (throwable is Exception) {
-            handle(throwable, ctx)
-        }
-        return null
-    }
-
-    internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
+    internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable) {
         val unwrapped = (throwable as? CompletionException)?.cause ?: throwable
         if (JettyUtil.isClientAbortException(unwrapped) || JettyUtil.isJettyTimeoutException(unwrapped)) {
             JavalinLogger.debug("Client aborted or timed out", throwable)
-            return null // jetty aborts and timeouts happen when clients disconnect, they are not actually unexpected
         }
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         JavalinLogger.error("Exception occurred while servicing http-request", throwable)
-        return null
     }
 
     private fun noUserHandler(e: Exception) =

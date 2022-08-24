@@ -2,6 +2,9 @@ package io.javalin.http
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.util.ETagGenerator
+import io.javalin.util.exceptionallyAccept
+import io.javalin.util.exceptionallyComposeFallback
+import io.javalin.util.isKotlinMethodReference
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -51,7 +54,7 @@ class JavalinServletHandler(
     /** Indicates if [JavalinServletHandler] already wrote response to client, requires support for atomic switch */
     private val responseWritten = AtomicBoolean(false)
 
-    private lateinit var lastFuture: CompletableFuture<*>
+    private lateinit var lastFuture: CompletableFuture<out Any?>
 
     /**
      * This method starts execution process of all stages in a given lifecycle.
@@ -67,26 +70,24 @@ class JavalinServletHandler(
             return nextTaskOrFinish()
         }
         try {
-            remainingTasks.poll().handler(this)
-        } catch (t: Throwable) {
-            if (t is Exception) {
-                exceptionOccurred = true
-                exceptionMapper.handle(t, ctx)
-            } else {
-                exceptionMapper.handleUnexpectedThrowable(ctx.res(), t)
-            }
+            remainingTasks.poll().handler(this) // run user code
+        } catch (throwable: Throwable) {
+            handleUserCodeThrowable(throwable)
         }
-        val userFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish() // if there is no future, we move on to the next task
-        lastFuture = userFuture.whenComplete { _, throwable ->
-            if (throwable != null) {
-                exceptionOccurred = true
-                exceptionMapper.handleFutureException(ctx, throwable)
-            }
-            nextTaskOrFinish()
-        }.exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res(), it) }
-        if (!ctx.req().isAsyncStarted) {
-            startAsyncAndAddDefaultTimeoutListeners()
-        } // no nextTaskOrFinish call here, that happens in [whenComplete] ^^^
+        val userFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish() // if there is no future, we immediately move on to the next task
+        lastFuture = userFuture
+            .exceptionally { throwable -> handleUserCodeThrowable(throwable) }
+            .whenComplete { _, _ -> nextTaskOrFinish() }
+            .also { if (!ctx.req().isAsyncStarted) startAsyncAndAddDefaultTimeoutListeners() }
+    }
+
+    private fun handleUserCodeThrowable(throwable: Throwable): Nothing? { // return null for easy chaining
+        exceptionOccurred = true
+        when (throwable) {
+            is Exception -> exceptionMapper.handle(throwable, ctx)
+            else -> exceptionMapper.handleUnexpectedThrowable(ctx.res(), throwable)
+        }
+        return null
     }
 
     private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req().startAsync().apply {
