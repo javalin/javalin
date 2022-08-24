@@ -112,7 +112,7 @@ class DefaultContext(
 
     fun consumeUserFuture(): CompletableFuture<*>? {
         futureLaunch?.run()
-        return userFuture().also { userFuture = null }
+        return userFuture.also { userFuture = null }
     }
 
 }

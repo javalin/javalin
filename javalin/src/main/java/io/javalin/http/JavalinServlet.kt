@@ -88,7 +88,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             ctx.contentType(cfg.http.defaultContentType)
 
             JavalinServletHandler(
-                remainingStages = ArrayDeque(lifecycle),
+                lifecycleStages = ArrayDeque(lifecycle),
                 cfg = cfg,
                 errorMapper = errorMapper,
                 exceptionMapper = exceptionMapper,

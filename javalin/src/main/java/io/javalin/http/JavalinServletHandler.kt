@@ -29,12 +29,12 @@ typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> U
 
 /**
  * Executes request lifecycle.
- * The lifecycle consists of multiple [remainingStages] (before/http/etc), each of which
+ * The lifecycle consists of multiple lifecycle stages (before/http/etc), each of which
  * can have one or more [remainingTasks]. The default lifecycle is defined in [JavalinServlet].
  * [JavalinServletHandler] is called only once per request, and has a mutable state.
  */
 class JavalinServletHandler(
-    remainingStages: ArrayDeque<Stage>,
+    lifecycleStages: ArrayDeque<Stage>,
     private val cfg: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
@@ -44,9 +44,10 @@ class JavalinServletHandler(
 
     /** Queue of tasks to execute within the current [Stage] */
     private val remainingTasks = ArrayDeque<Task>(4)
+
     init {
-        remainingStages.forEach { stage ->
-            stage.initializer.invoke(this) { taskHandler -> remainingTasks.offer(Task(stage, taskHandler)) }
+        lifecycleStages.forEach { stage ->
+            stage.initializer(this) { handler -> remainingTasks.offer(Task(stage, handler)) }
         }
     }
 
@@ -55,8 +56,6 @@ class JavalinServletHandler(
 
     /** Indicates if [JavalinServletHandler] already wrote response to client, requires support for atomic switch */
     private val responseWritten = AtomicBoolean(false)
-
-    private lateinit var lastFuture: CompletableFuture<out Any?>
 
     /**
      * This method starts execution process of all stages in a given lifecycle.
@@ -68,15 +67,15 @@ class JavalinServletHandler(
         val nextTask = remainingTasks.poll()
         if (exceptionOccurred && nextTask.stage.skipTasksOnException) return nextTaskOrFinish() // skip this stage's tasks
         try {
-            nextTask.handler(this) // run user code
+            nextTask.handler(this)
         } catch (throwable: Throwable) {
             handleUserCodeThrowable(throwable)
         }
         val userFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish() // if there is no future, we immediately move on to the next task
-        lastFuture = userFuture
+        userFuture
             .exceptionally { throwable -> handleUserCodeThrowable(throwable) }
             .whenComplete { _, _ -> nextTaskOrFinish() }
-            .also { if (!ctx.req().isAsyncStarted) startAsyncAndAddDefaultTimeoutListeners() }
+            .also { startAsyncAndAddDefaultTimeoutListeners(userFuture) }
     }
 
     private fun handleUserCodeThrowable(throwable: Throwable): Nothing? { // return null for easy chaining
@@ -88,15 +87,19 @@ class JavalinServletHandler(
         return null
     }
 
-    private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req().startAsync().apply {
-        timeout = cfg.http.asyncTimeout
-        addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
-            lastFuture.cancel(true)
-            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
-            errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
-            if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
-            writeResponseAndLog() // write response
-        })
+    private fun startAsyncAndAddDefaultTimeoutListeners(userFuture: CompletableFuture<*>) {
+        if (!ctx.req().isAsyncStarted) {
+            ctx.req().startAsync().apply {
+                timeout = cfg.http.asyncTimeout
+                addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
+                    ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
+                    errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
+                    if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
+                    writeResponseAndLog() // write response
+                })
+            }
+        }
+        ctx.req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) })
     }
 
     /** Writes response to the client and frees resources */
