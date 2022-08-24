@@ -34,7 +34,7 @@ typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> U
  * [JavalinServletHandler] is called only once per request, and has a mutable state.
  */
 class JavalinServletHandler(
-    private val remainingStages: ArrayDeque<Stage>,
+    remainingStages: ArrayDeque<Stage>,
     private val cfg: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
@@ -44,6 +44,11 @@ class JavalinServletHandler(
 
     /** Queue of tasks to execute within the current [Stage] */
     private val remainingTasks = ArrayDeque<Task>(4)
+    init {
+        remainingStages.forEach { stage ->
+            stage.initializer.invoke(this) { taskHandler -> remainingTasks.offer(Task(stage, taskHandler)) }
+        }
+    }
 
     /** Indicates if exception occurred during execution of a tasks chain */
     private var exceptionOccurred = false
@@ -59,15 +64,11 @@ class JavalinServletHandler(
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
     internal fun nextTaskOrFinish() {
-        if (remainingTasks.isEmpty() && remainingStages.isEmpty()) return writeResponseAndLog() // terminate
-        if (remainingTasks.isEmpty() && remainingStages.isNotEmpty()) {
-            val nextStage = remainingStages.poll() // we get tasks from next stage
-            if (exceptionOccurred && nextStage.skipTasksOnException) return nextTaskOrFinish() // skip this stage's tasks
-            nextStage.initializer.invoke(this) { taskHandler -> remainingTasks.offer(Task(nextStage, taskHandler)) }
-            return nextTaskOrFinish()
-        }
+        if (remainingTasks.isEmpty()) return writeResponseAndLog() // terminate
+        val nextTask = remainingTasks.poll()
+        if (exceptionOccurred && nextTask.stage.skipTasksOnException) return nextTaskOrFinish() // skip this stage's tasks
         try {
-            remainingTasks.poll().handler(this) // run user code
+            nextTask.handler(this) // run user code
         } catch (throwable: Throwable) {
             handleUserCodeThrowable(throwable)
         }
