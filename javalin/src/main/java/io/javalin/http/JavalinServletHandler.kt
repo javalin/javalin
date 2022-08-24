@@ -2,9 +2,6 @@ package io.javalin.http
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.util.ETagGenerator
-import io.javalin.util.exceptionallyAccept
-import io.javalin.util.exceptionallyComposeFallback
-import io.javalin.util.isKotlinMethodReference
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
