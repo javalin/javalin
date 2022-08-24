@@ -29,12 +29,12 @@ typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> U
 
 /**
  * Executes request lifecycle.
- * The lifecycle consists of multiple [stages] (before/http/etc), each of which
- * can have one or more [tasks]. The default lifecycle is defined in [JavalinServlet].
+ * The lifecycle consists of multiple [remainingStages] (before/http/etc), each of which
+ * can have one or more [remainingTasks]. The default lifecycle is defined in [JavalinServlet].
  * [JavalinServletHandler] is called only once per request, and has a mutable state.
  */
 class JavalinServletHandler(
-    private val stages: ArrayDeque<Stage>,
+    private val remainingStages: ArrayDeque<Stage>,
     private val cfg: JavalinConfig,
     private val errorMapper: ErrorMapper,
     private val exceptionMapper: ExceptionMapper,
@@ -43,7 +43,7 @@ class JavalinServletHandler(
 ) {
 
     /** Queue of tasks to execute within the current [Stage] */
-    private val tasks = ArrayDeque<Task>(4)
+    private val remainingTasks = ArrayDeque<Task>(4)
 
     /** Indicates if exception occurred during execution of a tasks chain */
     private var exceptionOccurred = false
@@ -59,17 +59,15 @@ class JavalinServletHandler(
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
     internal fun nextTaskOrFinish() {
-        while (tasks.isEmpty() && stages.isNotEmpty()) { // refill tasks from next stage, if the current queue is empty
-            val stage = stages.poll()
-            stage.initializer.invoke(this) { taskHandler ->
-                if (!exceptionOccurred || !stage.haltsOnException) tasks.offer(Task(stage, taskHandler))
-            }
-        }
-        if (tasks.isEmpty()) {
-            return writeResponseAndLog()
+        if (remainingTasks.isEmpty() && remainingStages.isEmpty()) return writeResponseAndLog() // terminate
+        if (remainingTasks.isEmpty() && remainingStages.isNotEmpty()) { // get tasks from next stage
+            val nextStage = remainingStages.poll()
+            if (exceptionOccurred && nextStage.haltsOnException) return nextTaskOrFinish() // skip this stage's tasks
+            nextStage.initializer.invoke(this) { taskHandler -> remainingTasks.offer(Task(nextStage, taskHandler)) }
+            return nextTaskOrFinish()
         }
         try {
-            tasks.poll().handler.invoke(this)
+            remainingTasks.poll().handler.invoke(this)
         } catch (t: Throwable) {
             if (t is Exception) {
                 exceptionOccurred = true
