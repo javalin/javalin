@@ -14,7 +14,7 @@ enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
 
 data class Stage(
     val name: StageName,
-    val haltsOnException: Boolean, // tasks in this stage can be aborted by throwing an exception
+    val skipTasksOnException: Boolean, // tasks in this stage can be aborted by throwing an exception
     val initializer: StageInitializer = {} // DSL method to add task to the stage's queue
 )
 
@@ -60,9 +60,9 @@ class JavalinServletHandler(
      */
     internal fun nextTaskOrFinish() {
         if (remainingTasks.isEmpty() && remainingStages.isEmpty()) return writeResponseAndLog() // terminate
-        if (remainingTasks.isEmpty() && remainingStages.isNotEmpty()) { // get tasks from next stage
-            val nextStage = remainingStages.poll()
-            if (exceptionOccurred && nextStage.haltsOnException) return nextTaskOrFinish() // skip this stage's tasks
+        if (remainingTasks.isEmpty() && remainingStages.isNotEmpty()) {
+            val nextStage = remainingStages.poll() // we get tasks from next stage
+            if (exceptionOccurred && nextStage.skipTasksOnException) return nextTaskOrFinish() // skip this stage's tasks
             nextStage.initializer.invoke(this) { taskHandler -> remainingTasks.offer(Task(nextStage, taskHandler)) }
             return nextTaskOrFinish()
         }
