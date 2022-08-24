@@ -63,43 +63,38 @@ class JavalinServletHandler(
      * because we need a lazy evaluation of next tasks in a chain to support multiple concurrent stages.
      */
     internal fun nextTaskOrFinish() {
-        if (remainingTasks.isEmpty()) return writeResponseAndLog() // terminate
-        val nextTask = remainingTasks.poll()
+        val nextTask = remainingTasks.poll() ?: return writeResponseAndLog() // terminate if we're out of tasks
         if (exceptionOccurred && nextTask.stage.skipTasksOnException) return nextTaskOrFinish() // skip this stage's tasks
         try {
             nextTask.handler(this)
         } catch (throwable: Throwable) {
             handleUserCodeThrowable(throwable)
         }
-        val userFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish() // if there is no future, we immediately move on to the next task
-        userFuture
+        val userFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish() // if there is no user future, we immediately move on to the next task
+        userFuture // there is a user future! attach error handling, callback, and start async
             .exceptionally { throwable -> handleUserCodeThrowable(throwable) }
             .whenComplete { _, _ -> nextTaskOrFinish() }
-            .also { startAsyncAndAddDefaultTimeoutListeners(userFuture) }
+            .also { if (!ctx.req().isAsyncStarted) startAsyncAndAddDefaultTimeoutListeners() }
+            .also { ctx.req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) }) }
     }
 
-    private fun handleUserCodeThrowable(throwable: Throwable): Nothing? { // return null for easy chaining
+    private fun handleUserCodeThrowable(throwable: Throwable): Nothing? {
         exceptionOccurred = true
         when (throwable) {
             is Exception -> exceptionMapper.handle(throwable, ctx)
             else -> exceptionMapper.handleUnexpectedThrowable(ctx.res(), throwable)
         }
-        return null
+        return null  // for easy chaining in exceptionally()
     }
 
-    private fun startAsyncAndAddDefaultTimeoutListeners(userFuture: CompletableFuture<*>) {
-        if (!ctx.req().isAsyncStarted) {
-            ctx.req().startAsync().apply {
-                timeout = cfg.http.asyncTimeout
-                addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
-                    ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
-                    errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
-                    if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
-                    writeResponseAndLog() // write response
-                })
-            }
-        }
-        ctx.req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) })
+    private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req().startAsync().apply {
+        timeout = cfg.http.asyncTimeout
+        addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
+            errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
+            if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
+            writeResponseAndLog() // write response
+        })
     }
 
     /** Writes response to the client and frees resources */

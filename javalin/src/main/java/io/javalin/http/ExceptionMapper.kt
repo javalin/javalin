@@ -45,6 +45,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
             JavalinLogger.debug("Client aborted or timed out", throwable)
         }
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+        // this might happen while writing the response, so we don't want to try writing anything
         JavalinLogger.error("Exception occurred while servicing http-request", throwable)
     }
 
