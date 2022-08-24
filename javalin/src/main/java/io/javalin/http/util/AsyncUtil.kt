@@ -1,12 +1,11 @@
 package io.javalin.http.util
 
 import io.javalin.http.Context
-import io.javalin.util.exceptionallyAccept
-import io.javalin.util.orTimeoutIfTimeoutSet
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
 
 object AsyncUtil {
 
@@ -33,5 +32,14 @@ object AsyncUtil {
         )
         return await
     }
+
+    /** [CompletableFuture.thenAccept] alternative for [CompletableFuture.exceptionally] */
+    private fun CompletableFuture<*>.exceptionallyAccept(exceptionConsumer: Consumer<Throwable>): CompletableFuture<*> =
+        exceptionally {
+            exceptionConsumer.accept(it)
+            null
+        }
+
+    fun <T> CompletableFuture<T>.orTimeoutIfTimeoutSet(timeout: Long) = this.apply { if (timeout > 0) this.orTimeout(timeout, TimeUnit.MILLISECONDS) }
 
 }
