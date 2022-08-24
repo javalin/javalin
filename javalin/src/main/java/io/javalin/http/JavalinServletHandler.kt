@@ -67,7 +67,7 @@ class JavalinServletHandler(
             return nextTaskOrFinish()
         }
         try {
-            remainingTasks.poll().handler.invoke(this)
+            remainingTasks.poll().handler(this)
         } catch (t: Throwable) {
             if (t is Exception) {
                 exceptionOccurred = true
@@ -75,32 +75,29 @@ class JavalinServletHandler(
             } else {
                 exceptionMapper.handleUnexpectedThrowable(ctx.res(), t)
             }
-            return nextTaskOrFinish() // recursive call
         }
-        lastFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish()  // recursive call
-        startAsyncAndAddDefaultTimeoutListeners()
-        lastFuture.whenComplete { _, throwable ->
+        val userFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish() // if there is no future, we move on to the next task
+        lastFuture = userFuture.whenComplete { _, throwable ->
             if (throwable != null) {
                 exceptionOccurred = true
                 exceptionMapper.handleFutureException(ctx, throwable)
             }
-            nextTaskOrFinish()  // recursive call
+            nextTaskOrFinish()
         }.exceptionally { exceptionMapper.handleUnexpectedThrowable(ctx.res(), it) }
-
+        if (!ctx.req().isAsyncStarted) {
+            startAsyncAndAddDefaultTimeoutListeners()
+        } // no nextTaskOrFinish call here, that happens in [whenComplete] ^^^
     }
 
-    private fun startAsyncAndAddDefaultTimeoutListeners() {
-        if (ctx.req().isAsyncStarted) return
-        ctx.req().startAsync().apply {
-            timeout = cfg.http.asyncTimeout
-            addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
-                lastFuture.cancel(true)
-                ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
-                errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
-                if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
-                writeResponseAndLog() // write response
-            })
-        }
+    private fun startAsyncAndAddDefaultTimeoutListeners() = ctx.req().startAsync().apply {
+        timeout = cfg.http.asyncTimeout
+        addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
+            lastFuture.cancel(true)
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
+            errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
+            if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
+            writeResponseAndLog() // write response
+        })
     }
 
     /** Writes response to the client and frees resources */
