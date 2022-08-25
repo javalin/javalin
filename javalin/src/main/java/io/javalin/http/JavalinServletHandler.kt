@@ -42,11 +42,9 @@ class JavalinServletHandler(
 ) {
 
     /** Queue of tasks to execute within the current [Stage] */
-    private val remainingTasks = ArrayDeque<Task>(4)
-
-    init {
+    private val remainingTasks = ArrayDeque<Task>(4).also {// this would be faster if it were lazy, but is it necessary?
         lifecycleStages.forEach { stage ->
-            stage.initializer(this) { handler -> remainingTasks.offer(Task(stage, handler)) }
+            stage.initializer(this) { handler -> it.offer(Task(stage, handler)) }
         }
     }
 
@@ -91,7 +89,7 @@ class JavalinServletHandler(
         addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR) // default error handling
             errorMapper.handle(ctx.statusCode(), ctx) // user defined error handling
-            if (ctx.resultStream() == null) ctx.result("Request timed out") // write default response only if handler didn't do anything
+            if (ctx.resultStream() == null) ctx.result(HttpStatus.REQUEST_TIMEOUT.message) // write default response only if handler didn't do anything
             writeResponseAndLog() // write response
         })
     }

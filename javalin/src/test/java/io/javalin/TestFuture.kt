@@ -1,12 +1,9 @@
 package io.javalin
 
-import io.javalin.http.HttpStatus.ENHANCE_YOUR_CALM
-import io.javalin.http.HttpStatus.IM_A_TEAPOT
+import io.javalin.http.HttpStatus.REQUEST_TIMEOUT
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -131,7 +128,7 @@ internal class TestFuture {
         @Test
         fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->
             app.get("/") { it.future(getFuture("Test", delay = 5000)) }
-            assertThat(http.get("/").body).isEqualTo("Request timed out")
+            assertThat(http.get("/").body).isEqualTo(REQUEST_TIMEOUT.message)
         }
 
         @Test
@@ -145,7 +142,7 @@ internal class TestFuture {
         fun `timed out futures are canceled`() = TestUtil.test(impatientServer) { app, http ->
             val future = getFuture("Test", delay = 5000)
             app.get("/") { it.future(future) }
-            assertThat(http.get("/").body).isEqualTo("Request timed out")
+            assertThat(http.get("/").body).isEqualTo(REQUEST_TIMEOUT.message)
             assertThat(future.isCancelled).isTrue()
         }
 
@@ -154,7 +151,7 @@ internal class TestFuture {
             app.before { it.future(CompletableFuture.completedFuture("Success")) }
             val future = getFuture("Test", delay = 5000)
             app.get("/") { it.future(future) }
-            assertThat(http.get("/").body).isEqualTo("Request timed out")
+            assertThat(http.get("/").body).isEqualTo(REQUEST_TIMEOUT.message)
             assertThat(future.isCancelled).isTrue()
         }
 
