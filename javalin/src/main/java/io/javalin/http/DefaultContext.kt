@@ -104,6 +104,7 @@ class DefaultContext(
     }
 
     override fun <T> future(future: CompletableFuture<T>, launch: Runnable?): Context = also {
+        userFuture?.cancel(true)
         futureLaunch = launch
         userFuture = future
     }

@@ -39,7 +39,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         }
     }
 
-    internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable) {
+    internal fun handleUnexpectedThrowable(throwable: Throwable, res: HttpServletResponse) {
         val unwrapped = (throwable as? CompletionException)?.cause ?: throwable
         if (JettyUtil.isClientAbortException(unwrapped) || JettyUtil.isJettyTimeoutException(unwrapped)) {
             JavalinLogger.debug("Client aborted or timed out", throwable)

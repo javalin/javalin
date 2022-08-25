@@ -6,7 +6,6 @@ import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
 import java.util.*
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 
 interface StageName
@@ -82,7 +81,7 @@ class JavalinServletHandler(
         exceptionOccurred = true
         when (throwable) {
             is Exception -> exceptionMapper.handle(throwable, ctx)
-            else -> exceptionMapper.handleUnexpectedThrowable(ctx.res(), throwable)
+            else -> exceptionMapper.handleUnexpectedThrowable(throwable, ctx.res())
         }
         return null  // for easy chaining in exceptionally()
     }
@@ -111,7 +110,7 @@ class JavalinServletHandler(
             }
             cfg.pvt.requestLogger?.handle(ctx, ctx.executionTimeMs())
         } catch (throwable: Throwable) {
-            exceptionMapper.handleUnexpectedThrowable(ctx.res(), throwable) // handle any unexpected error, e.g. write failure
+            exceptionMapper.handleUnexpectedThrowable(throwable, ctx.res()) // handle any unexpected error, e.g. write failure
         } finally {
             if (ctx.req().isAsyncStarted) ctx.req().asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
         }
