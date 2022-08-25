@@ -1,5 +1,7 @@
 package io.javalin.config
 
+import io.javalin.plugin.Plugin
+import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.plugin.bundled.CorsPluginConfig
@@ -7,11 +9,9 @@ import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.plugin.bundled.GlobalHeaderConfig
 import io.javalin.plugin.bundled.GlobalHeadersPlugin
 import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin
-import io.javalin.plugin.Plugin
-import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
-import io.javalin.plugin.bundled.SslRedirectPlugin
 import io.javalin.plugin.bundled.RouteOverviewPlugin
+import io.javalin.plugin.bundled.SslRedirectPlugin
 import io.javalin.security.RouteRole
 import java.util.function.Consumer
 import java.util.function.Supplier

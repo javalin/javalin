@@ -103,16 +103,14 @@ class DefaultContext(
         return this
     }
 
-    override fun <T> future(future: CompletableFuture<T>, launch: Runnable?): Context = also {
+    override fun <T> future(future: CompletableFuture<T>): Context = also {
         userFuture?.cancel(true)
-        futureLaunch = launch
         userFuture = future
     }
 
     override fun userFuture(): CompletableFuture<*>? = userFuture
 
     fun consumeUserFuture(): CompletableFuture<*>? {
-        futureLaunch?.run()
         return userFuture.also { userFuture = null }
     }
 

@@ -7,13 +7,11 @@ package io.javalin.config
 
 import io.javalin.Javalin
 import io.javalin.http.MAX_REQUEST_SIZE_KEY
-import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.PluginUtil.attachPlugins
 import io.javalin.security.AccessManager
-import io.javalin.util.ConcurrencyUtil.executorService
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
 import io.javalin.vue.JAVALINVUE_CONFIG_KEY
 import io.javalin.vue.JavalinVueConfig
@@ -46,7 +44,6 @@ class JavalinConfig {
             attachPlugins(app, cfg.pvt.plugins.values)
             cfg.pvt.appAttributes.putIfAbsent(JSON_MAPPER_KEY, JavalinJackson())
             cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, cfg.contextResolver)
-            cfg.pvt.appAttributes.putIfAbsent(ASYNC_EXECUTOR_KEY, executorService("JavalinDefaultAsyncThreadPool"))
             cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize)
             cfg.pvt.appAttributes.putIfAbsent(JAVALINVUE_CONFIG_KEY, cfg.vue)
         }

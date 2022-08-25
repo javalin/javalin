@@ -2,7 +2,6 @@ package io.javalin.config
 
 import io.javalin.http.Context
 import io.javalin.http.Header
-import java.io.InputStream
 
 
 const val CONTEXT_RESOLVER_KEY = "javalin-context-resolver"

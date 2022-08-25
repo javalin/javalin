@@ -109,29 +109,6 @@ class TestSse {
     }
 
     @Test
-    fun `sending async data is properly processed`() = TestUtil.test { app, http ->
-        app.sse("/sse") {
-            it.sendEvent("Sync event")
-            it.ctx.async {
-                Thread.sleep(100)
-                it.sendEvent("Async event")
-            }
-        }
-
-        val body = http.sse("/sse").get().body
-
-        assertThat(body.trim()).isEqualTo(
-            """
-            event: message
-            data: Sync event
-
-            event: message
-            data: Async event
-            """.trimIndent().trim()
-        )
-    }
-
-    @Test
     fun `user can freeze sse handler to leak sse client outside the handler`() = TestUtil.test { app, http ->
         val clients = mutableListOf<SseClient>()
 

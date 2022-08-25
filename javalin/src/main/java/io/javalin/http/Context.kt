@@ -7,8 +7,6 @@
 package io.javalin.http
 
 import io.javalin.config.contextResolver
-import io.javalin.http.util.AsyncUtil
-import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
@@ -24,9 +22,6 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeoutException
-import java.util.function.Consumer
 
 /**
  * Provides access to functions for handling the request and response
@@ -268,11 +263,7 @@ interface Context {
 
     /**
      * Writes the specified inputStream as a seekable stream.
-     * This method is asynchronous and uses the global predefined executor
-     * service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
-     * You can change this default in [io.javalin.config.JavalinConfig].
-     *
-     * @return the [CompletableFuture] used to write the seekable stream
+     * This method is blocking.
      */
     fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long) = SeekableWriter.write(this, inputStream, contentType, size)
 
@@ -307,54 +298,15 @@ interface Context {
     fun resultStream(): InputStream?
 
     /**
-     * Utility function that allows to run async task on top of the [Context.future] method.
-     * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
-     *
-     * @param executor Thread-pool used to execute the given task
-     *
-     * @param timeout Timeout in milliseconds,
-     * by default it's 0 which means timeout watcher is disabled.
-     *
-     * @param onTimeout Timeout listener executed when [TimeoutException] is thrown in specified task.
-     * This timeout listener is a part of request lifecycle, so you can still modify context here.
-     *
-     * @return As a result, function returns a new future that you can listen to.
-     * The limitation is that you can't modify context after such event,
-     * because it'll most likely be executed when the connection is already closed,
-     * so it's just not thread-safe.
-     */
-    fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> = AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
-
-    /**
-     * Launch async task with default, globally predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
-     * You can change this default in [io.javalin.config.JavalinConfig].
-     * @see [async]
-     */
-    fun async(timeout: Long = 0L, onTimeout: (() -> Unit)? = null, task: Runnable): CompletableFuture<*> = async(appAttribute(ASYNC_EXECUTOR_KEY), timeout, onTimeout, task)
-
-    /**
-     * Launch async task with default async executor and without custom timeout
-     * @see [async]
-     */
-    fun async(task: Runnable): CompletableFuture<*> = async(task = task, timeout = 0L, onTimeout = null)
-
-    /**
      * The main entrypoint for all async related functionalities exposed by [Context].
      *
      * @param future Future represents any delayed in time result.
      *  Upon this value Javalin will schedule further execution of this request().
      *  When servlet will detect that the given future is completed, request will be executed synchronously,
      *  otherwise request will be executed asynchronously by a thread which will complete the future.
-     * @param launch Optional callback that provides a possibility to launch any kind of async execution in a thread-safe way.
-     *  Any async task that will mutate [Context] should be submitted to the executor in this scope to eliminate race-conditions between threads.
-     * @param callback Optional callback used to process result from the specified future.
-     *  The default callback (used if no callback is provided) can be configured through [io.javalin.config.ContextResolverConfig.defaultFutureCallback]
      * @throws IllegalStateException if result was already set
      */
-    fun <T> future(future: CompletableFuture<T>, launch: Runnable?): Context
-
-    /** See the main `future(CompletableFuture<T>, Runnable, Consumer<T>)` method for details. */
-    fun <T> future(future: CompletableFuture<T>): Context = future(future = future, launch = null)
+    fun <T> future(future: CompletableFuture<T>): Context
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
     fun userFuture(): CompletableFuture<*>?

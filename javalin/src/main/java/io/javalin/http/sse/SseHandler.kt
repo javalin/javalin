@@ -5,8 +5,7 @@ import io.javalin.http.Handler
 import io.javalin.http.Header
 import java.util.function.Consumer
 
-class SseHandler @JvmOverloads constructor(
-    private val timeout: Long = 0,
+class SseHandler constructor(
     private val clientConsumer: Consumer<SseClient>
 ) : Handler {
 
@@ -21,9 +20,7 @@ class SseHandler @JvmOverloads constructor(
                 addHeader(Header.X_ACCEL_BUFFERING, "no") // See https://serverfault.com/a/801629
                 flushBuffer()
             }
-            ctx.async(timeout = timeout) {
-                clientConsumer.accept(SseClient(ctx))
-            }
+            clientConsumer.accept(SseClient(ctx))
         }
     }
 

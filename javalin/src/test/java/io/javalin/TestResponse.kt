@@ -203,18 +203,6 @@ class TestResponse {
     }
 
     @Test
-    fun `seekable - can listen to future`() = TestUtil.test { app, http ->
-        var response: String? = null
-        app.get("/seekable-5") {
-            it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN).thenAccept {
-                assertThat(response!!.length).isEqualTo(getSeekableInput().available())
-            }
-            assertThat(response).isNull()
-        }
-        response = Unirest.get(http.origin + "/seekable-5").asString().body
-    }
-
-    @Test
     fun `seekable - large file works`() = TestUtil.test { app, http ->
         val prefixSize = 1L shl 31 //2GB
         val contentSize = 100L

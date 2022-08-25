@@ -1,17 +1,12 @@
 package io.javalin
 
-import io.javalin.http.ContentType.Companion.JSON
-import io.javalin.http.ContentType.Companion.PLAIN
-import io.javalin.http.Header
 import io.javalin.http.HttpStatus.ENHANCE_YOUR_CALM
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpStatus.NOT_FOUND
-import io.javalin.http.HttpStatus.NO_CONTENT
 import io.javalin.http.HttpStatus.OK
-import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -161,70 +156,6 @@ internal class TestFuture {
             app.get("/") { it.future(future) }
             assertThat(http.get("/").body).isEqualTo("Request timed out")
             assertThat(future.isCancelled).isTrue()
-        }
-
-    }
-
-    @Nested
-    inner class Async {
-
-        @Test
-        fun `async requests works`() = TestUtil.test { app, http ->
-            app.get("/") { ctx ->
-                val httpThreadName = Thread.currentThread().name
-
-                ctx.async {
-                    ctx.result((Thread.currentThread().name != httpThreadName).toString())
-                }
-            }
-
-            assertThat(http.get("/").body).isEqualTo("true")
-        }
-
-        @Test
-        fun `async tasks should start execution in a proper order`() = TestUtil.test { app, http ->
-            app.get("/") { ctx ->
-                ctx.async {
-                    ctx.async {
-                        ctx.status(OK)
-                    }
-                    Thread.sleep(100)
-                    ctx.status(ENHANCE_YOUR_CALM)
-                }
-                Thread.sleep(100)
-                ctx.status(IM_A_TEAPOT)
-            }
-
-            assertThat(http.get("/").httpCode()).isEqualTo(OK)
-        }
-
-        @Test
-        fun `exception in async works`() = TestUtil.test { app, http ->
-            app
-                .get("/") { ctx ->
-                    ctx.async { throw UnsupportedOperationException() }
-                }
-                .exception(UnsupportedOperationException::class.java) { error, ctx ->
-                    ctx.result("Unsupported")
-                }
-
-            assertThat(http.get("/").body).isEqualTo("Unsupported")
-        }
-
-        @Test
-        fun `timeout should work`() = TestUtil.test { app, http ->
-            app.get("/") { ctx ->
-                ctx.async(
-                    timeout = 10L,
-                    onTimeout = { ctx.result("Timeout") },
-                    task = {
-                        Thread.sleep(500L)
-                        ctx.result("Result")
-                    }
-                )
-            }
-
-            assertThat(http.get("/").body).isEqualTo("Timeout")
         }
 
     }
