@@ -11,9 +11,7 @@ import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.HandlerType.BEFORE
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
-import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.util.MethodNotAllowedUtil
-import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.routing.PathMatcher
 import io.javalin.security.accessManagerNotConfiguredException
 import jakarta.servlet.http.HttpServlet
@@ -95,8 +93,6 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             exceptionMapper.handleUnexpectedThrowable(throwable, response)
         }
     }
-
-    private fun JavalinConfig.isCorsEnabled() = this.pvt.plugins[CorsPlugin::class.java] != null
 
     private class JavalinResourceResponseWrapper(private val ctx: Context) : HttpServletResponseWrapper(ctx.res()) {
         override fun getOutputStream() = ctx.outputStream()
