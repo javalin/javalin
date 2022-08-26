@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 data class Stage(
     val id: String,
     val skipTasksOnException: Boolean, // tasks in this stage can be aborted by throwing an exception
-    val initializer: StageInitializer = {} // DSL method to add task to the stage's queue
+    val init: StageInitializer = {} // DSL method to add task to the stage's queue
 )
 
 internal data class Task(
@@ -20,13 +20,12 @@ internal data class Task(
 )
 
 typealias TaskHandler = (JavalinServletHandler).() -> Unit // a runnable with access to JavalinServletHandler
-typealias SubmitTask = (TaskHandler) -> Unit
-typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> Unit
+typealias StageInitializer = JavalinServletHandler.(submitTask: (TaskHandler) -> Unit) -> Unit // same as above
 
 /**
  * Executes request lifecycle.
  * The lifecycle consists of multiple lifecycle stages (before/http/etc), each of which
- * can have one or more [remainingTasks]. The default lifecycle is defined in [JavalinServlet].
+ * can have one or more [Task]s. The default lifecycle is defined in [JavalinServlet].
  * [JavalinServletHandler] is called only once per request, and has a mutable state.
  */
 class JavalinServletHandler(
@@ -38,10 +37,9 @@ class JavalinServletHandler(
     val requestUri: String = ctx.path().removePrefix(ctx.contextPath()),
 ) {
 
-    /** Queue of tasks to execute within the current [Stage] */
-    private val remainingTasks = ArrayDeque<Task>(4).also {// this would be faster if it were lazy, but is it necessary?
+    private val remainingTasks = ArrayDeque<Task>(4).also {
         lifecycleStages.forEach { stage ->
-            stage.initializer(this) { handler -> it.offer(Task(stage, handler)) }
+            stage.init(this) { handler -> it.offer(Task(stage, handler)) }
         }
     }
 
