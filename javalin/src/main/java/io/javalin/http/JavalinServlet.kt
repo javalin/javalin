@@ -58,9 +58,6 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                     if (cfg.pvt.resourceHandler?.handle(it.ctx.req(), JavalinResourceResponseWrapper(it.ctx)) == true) return@submitTask
                     if (cfg.pvt.singlePageHandler.handle(ctx)) return@submitTask
                 }
-                if (ctx.method() == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
-                    return@submitTask
-                }
                 if (ctx.handlerType() == BEFORE) { // no match, status will be 404 or 405 after this point
                     ctx.endpointHandlerPath = "No handler matched request path/method (404/405)"
                 }

@@ -115,6 +115,7 @@ class TestCors {
         assertThat(response.header(ACCESS_CONTROL_ALLOW_HEADERS)).isEqualTo("123")
         assertThat(response.header(ACCESS_CONTROL_ALLOW_METHODS)).isEqualTo("TEST")
         assertThat(response.body).isBlank()
+        assertThat(response.status).isEqualTo(200)
     }
 
     @Test

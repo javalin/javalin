@@ -11,6 +11,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
 import io.javalin.http.Header.VARY
+import io.javalin.http.HttpStatus
 import io.javalin.plugin.Plugin
 import java.util.function.Consumer
 
@@ -49,6 +50,11 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
             ctx.header(VARY, ORIGIN)
             if (cfg.allowCredentials) {
                 ctx.header(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true") // should never be set to "false", but rather omitted
+            }
+        }
+        app.after { ctx ->
+            if (ctx.method() == OPTIONS && ctx.status() == HttpStatus.NOT_FOUND) { // CORS is enabled, so we return 200 for OPTIONS
+                ctx.result("").status(200)
             }
         }
     }
