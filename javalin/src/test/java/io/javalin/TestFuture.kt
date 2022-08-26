@@ -59,6 +59,14 @@ internal class TestFuture {
         }
 
         @Test
+        fun `calling future in (before - before) handlers works`() = TestUtil.test { app, http ->
+            app.before { it.future(getFuture("before 1").thenAccept { v -> it.result(v) }) }
+            app.before { it.future(getFuture("${it.resultString()}, before 2").thenAccept { v -> it.result(v) }) }
+            app.get("/future") {}
+            assertThat(http.get("/future").body).isEqualTo("before 1, before 2")
+        }
+
+        @Test
         fun `can use future in exception mapper`() = TestUtil.test { app, http ->
             app.get("/") { throw Exception("Oh no!") }
             app.exception(Exception::class.java) { _, ctx ->

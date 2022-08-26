@@ -36,7 +36,6 @@ class DefaultContext(
     internal var endpointHandlerPath: String = "",
     internal var resultStream: InputStream? = null,
     internal var userFuture: CompletableFuture<out Any?>? = null,
-    internal var futureLaunch: Runnable? = null,
 ) : Context {
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f

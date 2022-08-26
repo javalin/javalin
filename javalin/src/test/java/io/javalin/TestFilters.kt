@@ -72,8 +72,7 @@ class TestFilters {
     fun `after is after before`() = TestUtil.test { app, http ->
         app.before { it.header("X-FILTER", "This header is mine!") }
         app.after { it.header("X-FILTER", "After-filter beats before-filter") }
-        app.get("/mapped", TestUtil.okHandler)
-        assertThat(http.get("/maped").headers.getFirst("X-FILTER")).isEqualTo("After-filter beats before-filter")
+        assertThat(http.get("/unmapped").headers.getFirst("X-FILTER")).isEqualTo("After-filter beats before-filter")
     }
 
 }
