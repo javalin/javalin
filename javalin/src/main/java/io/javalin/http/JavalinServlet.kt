@@ -33,12 +33,12 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
      * You can modify its state to add/remove stages and directly affect the way that Javalin handles requests.
      */
     val lifecycle = mutableListOf(
-        Stage(DefaultName.BEFORE, skipTasksOnException = true) { submitTask ->
+        Stage("before", skipTasksOnException = true) { submitTask ->
             matcher.findEntries(BEFORE, requestUri).forEach { entry ->
                 submitTask { entry.handle(ctx, requestUri) }
             }
         },
-        Stage(DefaultName.HTTP, skipTasksOnException = true) { submitTask ->
+        Stage("http", skipTasksOnException = true) { submitTask ->
             matcher.findEntries(ctx.method(), requestUri).firstOrNull()?.let { entry ->
                 submitTask {
                     when {
@@ -55,7 +55,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                     return@submitTask
                 }
                 if (ctx.method() == HEAD || ctx.method() == GET) { // check for static resources (will write response if found)
-                    if (cfg.pvt.resourceHandler?.handle(it.ctx.req(), JavalinResourceResponseWrapper(it.ctx)) == true) return@submitTask
+                    if (cfg.pvt.resourceHandler?.handle(ctx.req(), JavalinResourceResponseWrapper(ctx)) == true) return@submitTask
                     if (cfg.pvt.singlePageHandler.handle(ctx)) return@submitTask
                 }
                 if (ctx.method() == OPTIONS && cfg.isCorsEnabled()) { // CORS is enabled, so we return 200 for OPTIONS
@@ -71,10 +71,10 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                 throw NotFoundResponse()
             }
         },
-        Stage(DefaultName.ERROR, skipTasksOnException = false) { submitTask ->
+        Stage("error", skipTasksOnException = false) { submitTask ->
             submitTask { errorMapper.handle(ctx.statusCode(), ctx) }
         },
-        Stage(DefaultName.AFTER, skipTasksOnException = false) { submitTask ->
+        Stage("after", skipTasksOnException = false) { submitTask ->
             matcher.findEntries(AFTER, requestUri).forEach { entry ->
                 submitTask { entry.handle(ctx, requestUri) }
             }

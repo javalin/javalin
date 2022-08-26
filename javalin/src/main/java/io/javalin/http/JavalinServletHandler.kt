@@ -8,11 +8,8 @@ import jakarta.servlet.AsyncListener
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
-interface StageName
-enum class DefaultName : StageName { BEFORE, HTTP, ERROR, AFTER }
-
 data class Stage(
-    val name: StageName,
+    val id: String,
     val skipTasksOnException: Boolean, // tasks in this stage can be aborted by throwing an exception
     val initializer: StageInitializer = {} // DSL method to add task to the stage's queue
 )
@@ -22,7 +19,7 @@ internal data class Task(
     val handler: TaskHandler
 )
 
-typealias TaskHandler = (JavalinServletHandler) -> Unit
+typealias TaskHandler = (JavalinServletHandler).() -> Unit // a runnable with access to JavalinServletHandler
 typealias SubmitTask = (TaskHandler) -> Unit
 typealias StageInitializer = JavalinServletHandler.(submitTask: SubmitTask) -> Unit
 
