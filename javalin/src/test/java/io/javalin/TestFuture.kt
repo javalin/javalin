@@ -75,6 +75,16 @@ internal class TestFuture {
             assertThat(http.get("/").body).isEqualTo("Wee")
         }
 
+        @Test
+        fun `will not hang on completed futures`() = TestUtil.test { app, http ->
+            app.get("/") {
+                val completedFuture = CompletableFuture.supplyAsync { it.result("Hello!") }
+                completedFuture.get()
+                it.future(completedFuture)
+            }
+            assertThat(http.get("/").body).isEqualTo("Hello!")
+        }
+
     }
 
     @Nested

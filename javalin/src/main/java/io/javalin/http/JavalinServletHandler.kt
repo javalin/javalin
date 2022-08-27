@@ -63,6 +63,7 @@ class JavalinServletHandler(
             handleUserCodeThrowable(throwable)
         }
         val userFuture = ctx.consumeUserFuture() ?: return nextTaskOrFinish() // if there is no user future, we immediately move on to the next task
+        if (userFuture.isDone || userFuture.isCancelled) return nextTaskOrFinish() // nothing to do here
         userFuture // there is a user future! attach error handling, callback, and start async
             .exceptionally { throwable -> handleUserCodeThrowable(throwable) }
             .whenComplete { _, _ -> nextTaskOrFinish() }
