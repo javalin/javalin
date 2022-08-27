@@ -109,13 +109,14 @@ class DefaultContext(
 
     override fun userFuture(): CompletableFuture<*>? = userFuture
 
-    fun consumeUserFuture(): CompletableFuture<*>? {
+    fun consumePendingFuture(): CompletableFuture<*>? {
+        if (userFuture?.isDone == true || userFuture?.isCancelled == true) userFuture = null
         return userFuture.also { userFuture = null }
     }
 
 }
 
-// this header is semi-colon separated, like: "text/html; charset=UTF-8"
+// this header is semicolon separated, like: "text/html; charset=UTF-8"
 fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.let { value ->
     value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
 }
