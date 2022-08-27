@@ -175,6 +175,42 @@ internal class TestFuture {
 
     }
 
+    @Nested
+    inner class Async {
+
+        @Test
+        fun `async requests works`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                val httpThreadName = Thread.currentThread().name
+                ctx.async {
+                    ctx.result((Thread.currentThread().name != httpThreadName).toString())
+                }
+            }
+            assertThat(http.get("/").body).isEqualTo("true")
+        }
+
+        @Test
+        fun `cannot call async multiple times`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.async { }
+                ctx.async { }
+            }
+            assertThat(http.get("/").body).isEqualTo(INTERNAL_SERVER_ERROR.message)
+        }
+
+        @Test
+        fun `exception in async works`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.async { throw UnsupportedOperationException() }
+            }.exception(UnsupportedOperationException::class.java) { error, ctx ->
+                ctx.result("Unsupported")
+            }
+
+            assertThat(http.get("/").body).isEqualTo("Unsupported")
+        }
+
+    }
+
     private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {
         return CompletableFuture.supplyAsync { throw failure }
     }

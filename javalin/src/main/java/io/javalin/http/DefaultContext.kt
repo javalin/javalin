@@ -102,7 +102,7 @@ class DefaultContext(
         return this
     }
 
-    override fun <T> future(future: CompletableFuture<T>): Context = also {
+    override fun <T> future(future: CompletableFuture<T>) {
         userFuture?.cancel(true)
         userFuture = future
     }

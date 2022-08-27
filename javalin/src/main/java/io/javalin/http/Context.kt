@@ -7,6 +7,7 @@
 package io.javalin.http
 
 import io.javalin.config.contextResolver
+import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
@@ -19,6 +20,7 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
+import java.lang.IllegalStateException
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -263,7 +265,7 @@ interface Context {
 
     /**
      * Writes the specified inputStream as a seekable stream.
-     * This method is blocking.
+     * This method is async.
      */
     fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long) = SeekableWriter.write(this, inputStream, contentType, size)
 
@@ -298,15 +300,11 @@ interface Context {
     fun resultStream(): InputStream?
 
     /**
-     * The main entrypoint for all async related functionalities exposed by [Context].
-     *
-     * @param future Future represents any delayed in time result.
-     *  Upon this value Javalin will schedule further execution of this request().
-     *  When servlet will detect that the given future is completed, request will be executed synchronously,
-     *  otherwise request will be executed asynchronously by a thread which will complete the future.
-     * @throws IllegalStateException if result was already set
+     * Use this to execute your [Handler] asynchronously.
+     * Call your [Context] methods in the standard callbacks (ex. 'thenAccept' and 'exceptionally')
      */
-    fun <T> future(future: CompletableFuture<T>): Context
+    fun <T> future(future: CompletableFuture<T>)
+    fun async(runnable: Runnable) = if (userFuture() != null) throw IllegalStateException("Cannot run two async tasks simultaneously") else AsyncUtil.submit(this, runnable)
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
     fun userFuture(): CompletableFuture<*>?

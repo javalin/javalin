@@ -20,7 +20,9 @@ class SseHandler constructor(
                 addHeader(Header.X_ACCEL_BUFFERING, "no") // See https://serverfault.com/a/801629
                 flushBuffer()
             }
-            clientConsumer.accept(SseClient(ctx))
+            ctx.async {
+                clientConsumer.accept(SseClient(ctx))
+            }
         }
     }
 
