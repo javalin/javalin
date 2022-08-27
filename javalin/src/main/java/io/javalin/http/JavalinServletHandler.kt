@@ -6,6 +6,7 @@ import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 
 data class Stage(
@@ -67,6 +68,7 @@ class JavalinServletHandler(
         if (!ctx.req().isAsyncStarted) startAsyncAndAddDefaultTimeoutListeners()
         ctx.req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) })
         userFuture
+            .thenCompose { ctx.consumePendingFuture() ?: CompletableFuture.completedFuture(null) } // allows user to call Context#future in the callback of a future
             .exceptionally { throwable -> handleUserCodeThrowable(throwable) }
             .whenComplete { _, _ -> nextTaskOrFinish() }
     }

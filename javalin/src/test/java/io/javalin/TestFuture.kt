@@ -67,6 +67,22 @@ internal class TestFuture {
         }
 
         @Test
+        fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future(getFuture("A").thenAccept {
+                    ctx.result("A")
+                    ctx.future(getFuture("B").thenAccept {
+                        ctx.result(ctx.resultString() + "B")
+                        ctx.future(getFuture("C").thenAccept {
+                            ctx.result(ctx.resultString() + "C")
+                        })
+                    })
+                })
+            }
+            assertThat(http.getBody("/")).isEqualTo("ABC")
+        }
+
+        @Test
         fun `can use future in exception mapper`() = TestUtil.test { app, http ->
             app.get("/") { throw Exception("Oh no!") }
             app.exception(Exception::class.java) { _, ctx ->
