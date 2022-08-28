@@ -69,12 +69,12 @@ internal class TestFuture {
         @Test
         fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.future(getFuture("A").thenAccept {
-                    ctx.result("A")
-                    ctx.future(getFuture("B").thenAccept {
-                        ctx.result(ctx.resultString() + "B")
-                        ctx.future(getFuture("C").thenAccept {
-                            ctx.result(ctx.resultString() + "C")
+                ctx.future(getFuture("A").thenAccept { futureValueA ->
+                    ctx.result(futureValueA)
+                    ctx.future(getFuture("B").thenAccept { futureValueB ->
+                        ctx.result(ctx.resultString() + futureValueB)
+                        ctx.future(getFuture("C").thenAccept { futureValueC ->
+                            ctx.result(ctx.resultString() + futureValueC)
                         })
                     })
                 })
