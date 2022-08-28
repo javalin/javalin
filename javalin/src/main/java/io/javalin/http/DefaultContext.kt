@@ -106,7 +106,7 @@ class DefaultContext(
         userFutures.add(future)
     }
 
-    override fun nextUserFuture(): CompletableFuture<*>? = userFutures.peek()
+    override fun peekUserFuture(): CompletableFuture<*>? = userFutures.peek()
 
     fun pollUserFuture(): CompletableFuture<*>? = userFutures.poll()
 
