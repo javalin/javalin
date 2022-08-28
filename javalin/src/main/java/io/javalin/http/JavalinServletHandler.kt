@@ -63,12 +63,12 @@ class JavalinServletHandler(
         } catch (throwable: Throwable) {
             handleUserCodeThrowable(throwable)
         }
-        val userFuture = ctx.consumePendingFuture() ?: return nextTaskOrFinish() // if there is no pending future, we immediately move on to the next task
-        // there is a user future! start async servlet context with error-handling, and attach future callbacks
+        val userFuture = ctx.pollUserFuture() ?: return nextTaskOrFinish() // if there is no future, we immediately move on to the next task
+        // there is a future! start async servlet context with error-handling, and attach future callbacks
         if (!ctx.req().isAsyncStarted) startAsyncAndAddDefaultTimeoutListeners()
         ctx.req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) })
         userFuture
-            .thenCompose { ctx.consumePendingFuture() ?: CompletableFuture.completedFuture(null) } // allows user to call Context#future in the callback of a future
+            .thenCompose { ctx.pollUserFuture() ?: CompletableFuture.completedFuture(null) } // allows user to call Context#future in the callback of a future
             .exceptionally { throwable -> handleUserCodeThrowable(throwable) }
             .whenComplete { _, _ -> nextTaskOrFinish() }
     }

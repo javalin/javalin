@@ -1,5 +1,6 @@
 package io.javalin
 
+import io.javalin.http.Context
 import io.javalin.http.HttpStatus.REQUEST_TIMEOUT
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.testing.TestUtil
@@ -69,17 +70,40 @@ internal class TestFuture {
         @Test
         fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.future(getFuture("A").thenAccept { futureValueA ->
-                    ctx.result(futureValueA)
-                    ctx.future(getFuture("B").thenAccept { futureValueB ->
-                        ctx.result(ctx.resultString() + futureValueB)
-                        ctx.future(getFuture("C").thenAccept { futureValueC ->
-                            ctx.result(ctx.resultString() + futureValueC)
+                ctx.future(getFuture("A", delay = 100).thenAccept {
+                    ctx.accumulatingResult(it)
+                    ctx.future(getFuture("B", delay = 0).thenAccept {
+                        ctx.accumulatingResult(it)
+                    })
+                })
+            }
+            assertThat(http.getBody("/")).isEqualTo("AB")
+        }
+
+        @Test
+        fun `should be able to mix completed and non-completed futures`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future(getFuture("A", delay = 50).thenAccept {
+                    ctx.accumulatingResult(it)
+                    ctx.future(CompletableFuture.completedFuture("B").thenAccept {
+                        ctx.accumulatingResult(it)
+                        ctx.future(getFuture("C", delay = 50).thenAccept {
+                            ctx.accumulatingResult(it)
                         })
                     })
                 })
             }
             assertThat(http.getBody("/")).isEqualTo("ABC")
+        }
+
+        @Test
+        fun `should be able to set multiple futures in same handler`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future(getFuture("A", delay = 30).thenAccept { ctx.accumulatingResult(it) })
+                ctx.future(getFuture("B", delay = 20).thenAccept { ctx.accumulatingResult(it) })
+                ctx.future(getFuture("C", delay = 10).thenAccept { ctx.accumulatingResult(it) })
+            }
+            assertThat(http.getBody("/")).isEqualTo("CBA")
         }
 
         @Test
@@ -249,3 +273,5 @@ internal class TestFuture {
         }
 
 }
+
+private fun Context.accumulatingResult(s: String) = this.result((resultString() ?: "") + s)

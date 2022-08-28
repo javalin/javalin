@@ -304,10 +304,10 @@ interface Context {
      * Call your [Context] methods in the standard callbacks (ex. 'thenAccept' and 'exceptionally')
      */
     fun <T> future(future: CompletableFuture<T>)
-    fun async(runnable: Runnable) = if (userFuture() != null) throw IllegalStateException("Cannot run two async tasks simultaneously") else AsyncUtil.submit(this, runnable)
+    fun async(runnable: Runnable) = if (nextUserFuture() != null) throw IllegalStateException("Cannot run two async tasks simultaneously") else AsyncUtil.submit(this, runnable)
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun userFuture(): CompletableFuture<*>?
+    fun nextUserFuture(): CompletableFuture<*>?
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context = also { res().contentType = contentType }
