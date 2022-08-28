@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture
 
 object AsyncUtil {
     private val executor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool")
-    fun submit(ctx: Context, runnable: Runnable) {
+    fun submit(ctx: Context, runnable: Runnable): CompletableFuture<Any?> {
         val await = CompletableFuture<Any?>()
         ctx.future(await)
         CompletableFuture.runAsync({
@@ -17,5 +17,6 @@ object AsyncUtil {
                 await.completeExceptionally(throwable)
             }
         }, executor)
+        return await
     }
 }
