@@ -1,8 +1,10 @@
 package io.javalin
 
 import io.javalin.http.Context
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.REQUEST_TIMEOUT
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
@@ -59,7 +61,7 @@ internal class TestFuture {
         @Test
         fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
             app.before("/future") { it.future(getFuture("before").thenAccept { v -> it.result(v) }) }
-            app.get("/future") { it.future(getFuture("nothing")) }
+            app.get("/future") { it.future(getFuture("no-action")) }
             app.after("/future") { it.future(getFuture("${it.resultString()}, after").thenAccept { v -> it.result(v) }) }
             assertThat(http.get("/future").body).isEqualTo("before, after")
         }
@@ -150,7 +152,16 @@ internal class TestFuture {
         }
 
         @Test
-        fun `unresolved futures are handled by exception-mapper`() = TestUtil.test { app, http ->
+        fun `can throw exceptions like normal inside thenAccept`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future(getFuture("A").thenAccept { throw NotFoundResponse() })
+            }
+            assertThat(http.get("/").status).isEqualTo(HttpStatus.NOT_FOUND.code)
+            assertThat(http.get("/").body).isEqualTo(HttpStatus.NOT_FOUND.message)
+        }
+
+        @Test
+        fun `cancelled futures are handled by exception-mapper`() = TestUtil.test { app, http ->
             app.get("/test-future") { it.future(getFuture(null)) }
             app.exception(CancellationException::class.java) { _, ctx -> ctx.result("Handled") }
             assertThat(http.getBody("/test-future")).isEqualTo("Handled")
@@ -168,9 +179,8 @@ internal class TestFuture {
         @Test
         fun `error is handled as unexpected throwable`() = TestUtil.test { app, http ->
             app.get("/out-of-memory") { throw OutOfMemoryError() }
-            assertThat(http.getStatus("/out-of-memory")).isEqualTo(INTERNAL_SERVER_ERROR)
-
             app.get("/out-of-memory-future") { it.future(getFailingFuture(OutOfMemoryError())) }
+            assertThat(http.getStatus("/out-of-memory")).isEqualTo(INTERNAL_SERVER_ERROR)
             assertThat(http.getStatus("/out-of-memory-future")).isEqualTo(INTERNAL_SERVER_ERROR)
         }
 
