@@ -245,12 +245,22 @@ internal class TestFuture {
         }
 
         @Test
-        fun `cannot call async multiple times`() = TestUtil.test { app, http ->
+        fun `async tasks should start execution in a proper order`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.async { }
-                ctx.async { }
+                ctx.async {
+                    Thread.sleep(50)
+                    ctx.accumulatingResult("A")
+                }
+                ctx.async {
+                    Thread.sleep(0)
+                    ctx.accumulatingResult("B")
+                }
+                ctx.async {
+                    Thread.sleep(25)
+                    ctx.accumulatingResult("C")
+                }
             }
-            assertThat(http.get("/").body).isEqualTo(INTERNAL_SERVER_ERROR.message)
+            assertThat(http.get("/").body).isEqualTo("BCA")
         }
 
         @Test

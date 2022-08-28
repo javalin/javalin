@@ -304,7 +304,7 @@ interface Context {
      * Call your [Context] methods in the standard callbacks (ex. 'thenAccept' and 'exceptionally')
      */
     fun <T> future(future: CompletableFuture<T>)
-    fun async(runnable: Runnable) = if (peekUserFuture() == null) AsyncUtil.submit(this, runnable) else throw IllegalStateException("Cannot run two async tasks simultaneously")
+    fun async(runnable: Runnable) = AsyncUtil.submit(this, runnable)
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
     fun peekUserFuture(): CompletableFuture<*>?

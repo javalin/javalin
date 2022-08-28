@@ -6,8 +6,8 @@ import java.util.concurrent.CompletableFuture
 
 object AsyncUtil {
     private val executor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool")
-    fun submit(ctx: Context, runnable: Runnable): CompletableFuture<Any?> {
-        val await = CompletableFuture<Any?>()
+    fun submit(ctx: Context, runnable: Runnable): CompletableFuture<Void> {
+        val await = CompletableFuture<Void>()
         ctx.future(await)
         CompletableFuture.runAsync({
             try {
