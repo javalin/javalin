@@ -22,16 +22,21 @@ internal class TestFuture {
 
     private val scheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
 
-    @Test
-    fun `hello future world`() = TestUtil.test { app, http ->
-        app.get("/test-future") { it.future(getFuture("Result").thenAccept { v -> it.result(v) }) }
-        assertThat(http.getBody("/test-future")).isEqualTo("Result")
-    }
+    @Nested
+    inner class HappyAndUnhappyPath {
 
-    @Test
-    fun `unresolved future throws`() = TestUtil.test { app, http ->
-        app.get("/test-future") { it.future(getFuture(null)) }
-        assertThat(http.getBody("/test-future")).isEqualTo(INTERNAL_SERVER_ERROR.message)
+        @Test
+        fun `hello future world`() = TestUtil.test { app, http ->
+            app.get("/test-future") { it.future(getFuture("Result").thenAccept { v -> it.result(v) }) }
+            assertThat(http.getBody("/test-future")).isEqualTo("Result")
+        }
+
+        @Test
+        fun `cancelled future throws and is mapped`() = TestUtil.test { app, http ->
+            app.get("/test-future") { it.future(getFuture(null)) }
+            assertThat(http.getBody("/test-future")).isEqualTo(INTERNAL_SERVER_ERROR.message)
+        }
+
     }
 
     @Nested
