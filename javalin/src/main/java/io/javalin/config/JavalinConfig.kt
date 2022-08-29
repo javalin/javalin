@@ -6,7 +6,7 @@
 package io.javalin.config
 
 import io.javalin.Javalin
-import io.javalin.http.MAX_REQUEST_SIZE_KEY
+import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
 import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson

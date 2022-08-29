@@ -20,7 +20,7 @@ import io.javalin.http.ExceptionHandler;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
 import io.javalin.http.HttpStatus;
-import io.javalin.http.JavalinServlet;
+import io.javalin.http.servlet.JavalinServlet;
 import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.jetty.JavalinJettyServlet;

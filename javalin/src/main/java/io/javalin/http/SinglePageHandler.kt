@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.http.servlet.isLocalhost
 import io.javalin.http.staticfiles.Location
 import io.javalin.util.Util
 import java.net.URL

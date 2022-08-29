@@ -7,6 +7,14 @@
 package io.javalin.http
 
 import io.javalin.config.contextResolver
+import io.javalin.http.servlet.cacheAndSetSessionAttribute
+import io.javalin.http.servlet.cachedSessionAttributeOrCompute
+import io.javalin.http.servlet.getBasicAuthCredentials
+import io.javalin.http.servlet.getCachedRequestAttributeOrSessionAttribute
+import io.javalin.http.servlet.getRequestCharset
+import io.javalin.http.servlet.readAndResetStreamIfPossible
+import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
+import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.CookieStore
@@ -25,8 +33,9 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
 import java.util.concurrent.TimeoutException
-import java.util.function.Consumer
+import java.util.function.Supplier
 
 /**
  * Provides access to functions for handling the request and response
@@ -298,10 +307,7 @@ interface Context {
      * Sets context result to the specified [InputStream].
      * Will overwrite the current result if there is one.
      */
-    fun result(resultStream: InputStream): Context {
-        runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
-        return this.future(CompletableFuture.completedFuture(resultStream), callback = { /* noop */ })
-    }
+    fun result(resultStream: InputStream): Context
 
     /** Gets the current [resultStream] as a [String] (if possible), and reset the underlying stream */
     fun resultString() = readAndResetStreamIfPossible(resultStream(), responseCharset())
@@ -326,20 +332,23 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> = AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
+    fun async(executor: ExecutorService, onSuccess: (() -> Unit)?, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): Context =
+        AsyncUtil.submitAsyncTask(this, executor, onSuccess, timeout, onTimeout, task)
 
     /**
      * Launch async task with default, globally predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
      * You can change this default in [io.javalin.config.JavalinConfig].
      * @see [async]
      */
-    fun async(timeout: Long = 0L, onTimeout: (() -> Unit)? = null, task: Runnable): CompletableFuture<*> = async(appAttribute(ASYNC_EXECUTOR_KEY), timeout, onTimeout, task)
+    fun async(timeout: Long = 0L, onTimeout: (() -> Unit)? = null, task: Runnable): Context =
+        async(executor = appAttribute(ASYNC_EXECUTOR_KEY), onSuccess = null, timeout = timeout, onTimeout = onTimeout, task = task)
 
     /**
      * Launch async task with default async executor and without custom timeout
      * @see [async]
      */
-    fun async(task: Runnable): CompletableFuture<*> = async(task = task, timeout = 0L, onTimeout = null)
+    fun async(task: Runnable): Context =
+        async(task = task, timeout = 0L, onTimeout = null)
 
     /**
      * The main entrypoint for all async related functionalities exposed by [Context].
@@ -348,22 +357,9 @@ interface Context {
      *  Upon this value Javalin will schedule further execution of this request().
      *  When servlet will detect that the given future is completed, request will be executed synchronously,
      *  otherwise request will be executed asynchronously by a thread which will complete the future.
-     * @param launch Optional callback that provides a possibility to launch any kind of async execution in a thread-safe way.
-     *  Any async task that will mutate [Context] should be submitted to the executor in this scope to eliminate race-conditions between threads.
-     * @param callback Optional callback used to process result from the specified future.
-     *  The default callback (used if no callback is provided) can be configured through [io.javalin.config.ContextResolverConfig.defaultFutureCallback]
      * @throws IllegalStateException if result was already set
      */
-    fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context
-
-    /** See the main `future(CompletableFuture<T>, Runnable, Consumer<T>)` method for details. */
-    fun <T> future(future: CompletableFuture<T>): Context = future(future = future, callback = null)
-
-    /** See the main `future(CompletableFuture<T>, Runnable, Consumer<T>)` method for details. */
-    fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>?): Context = future(future = future, launch = null, callback = callback)
-
-    /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>?
+    fun future(future: Supplier<out CompletableFuture<*>>): Context
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context = also { res().contentType = contentType }

@@ -19,30 +19,30 @@ class ExceptionMapper(val cfg: JavalinConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
-    internal fun handle(exception: Exception, ctx: Context) {
-        cfg.pvt.stackTraceCleanerFunction?.let { exception.stackTrace = it.invoke(exception.stackTrace) }
-        if (exception is SkipHttpHandlerException) {
-            // do nothing
-        } else if (HttpResponseExceptionMapper.canHandle(exception) && noUserHandler(exception)) {
-            HttpResponseExceptionMapper.handle(exception, ctx)
-        } else {
-            val exceptionHandler = Util.findByClass(handlers, exception.javaClass)
-            if (exceptionHandler != null) {
-                exceptionHandler.handle(exception, ctx)
-            } else {
-                JavalinLogger.warn("Uncaught exception", exception)
-                HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
-            }
+    internal fun handle(ctx: Context, throwable: Throwable) {
+        if (throwable is CompletionException && throwable.cause is Exception) {
+            return handle(ctx, throwable.cause as Exception)
+        }
+
+        cfg.pvt.stackTraceCleanerFunction?.run {
+            throwable.stackTrace = invoke(throwable.stackTrace)
+        }
+
+        when {
+            throwable is SkipHttpHandlerException -> { /* do nothing */ }
+            throwable is Exception && HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable) ->
+                HttpResponseExceptionMapper.handle(throwable, ctx)
+            throwable is Exception ->
+                Util.findByClass(handlers, throwable.javaClass)
+                    ?.handle(throwable, ctx)
+                    ?: run { uncaughtThrowable(ctx, throwable) }
+            else -> uncaughtThrowable(ctx, throwable)
         }
     }
 
-    internal fun handleFutureException(ctx: Context, throwable: Throwable): Nothing? {
-        if (throwable is CompletionException && throwable.cause is Exception) {
-            handleFutureException(ctx, throwable.cause as Exception)
-        } else if (throwable is Exception) {
-            handle(throwable, ctx)
-        }
-        return null
+    private fun uncaughtThrowable(ctx: Context, throwable: Throwable) {
+        JavalinLogger.warn("Uncaught exception", throwable)
+        HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
     }
 
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
@@ -58,4 +58,5 @@ class ExceptionMapper(val cfg: JavalinConfig) {
 
     private fun noUserHandler(e: Exception) =
         this.handlers[e::class.java] == null && this.handlers[HttpResponseException::class.java] == null
+
 }

@@ -1,7 +1,7 @@
 package io.javalin.routing
 
 import io.javalin.config.RoutingConfig
-import io.javalin.http.urlDecode
+import io.javalin.http.servlet.urlDecode
 
 class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
 

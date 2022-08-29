@@ -3,6 +3,9 @@ package io.javalin.config
 import io.javalin.compression.CompressionStrategy
 import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
+import io.javalin.http.servlet.DefaultTasks
+import io.javalin.http.servlet.JavalinServletContext
+import io.javalin.http.servlet.TaskInitializer
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.plugin.Plugin
 import io.javalin.security.AccessManager
@@ -28,5 +31,10 @@ class PrivateConfig {
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var stackTraceCleanerFunction: ((Array<StackTraceElement>) -> Array<StackTraceElement>)? = null
+    /**
+     * Default request lifecycle used by servlet to handle HTTP requests.
+     * You can modify its state to add/remove stages and directly affect the way that Javalin handles requests.
+     */
+    @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
 }
 // @formatter:on

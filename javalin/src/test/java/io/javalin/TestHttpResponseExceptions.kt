@@ -131,7 +131,7 @@ class TestHttpResponseExceptions {
             }, 0, TimeUnit.MILLISECONDS)
             return future
         }
-        app.get("/completed-future-route") { it.future(getExceptionallyCompletingFuture()) }
+        app.get("/completed-future-route") { it.future { getExceptionallyCompletingFuture() } }
         assertThat(http.get("/completed-future-route").body).isEqualTo("Unauthorized")
         assertThat(http.get("/completed-future-route").httpCode()).isEqualTo(UNAUTHORIZED)
     }
@@ -144,7 +144,7 @@ class TestHttpResponseExceptions {
             }
             "Result"
         }
-        app.get("/throwing-future-route") { it.future(getThrowingFuture()) }
+        app.get("/throwing-future-route") { it.future { getThrowingFuture() } }
         assertThat(http.get("/throwing-future-route").body).isEqualTo("Unauthorized")
         assertThat(http.get("/throwing-future-route").httpCode()).isEqualTo(UNAUTHORIZED)
     }
@@ -158,7 +158,7 @@ class TestHttpResponseExceptions {
             }, 0, TimeUnit.MILLISECONDS)
             return future
         }
-        app.get("/completed-future-route") { it.future(getUnexpectedExceptionallyCompletingFuture()) }
+        app.get("/completed-future-route") { it.future { getUnexpectedExceptionallyCompletingFuture() } }
         app.exception(IllegalStateException::class.java) { exception, ctx -> ctx.result(exception.message!!) }
         assertThat(http.get("/completed-future-route").body).isEqualTo("Unexpected message")
     }
