@@ -68,7 +68,7 @@ class JavalinServletHandler(
         if (!ctx.req().isAsyncStarted) startAsyncAndAddDefaultTimeoutListeners()
         ctx.req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) })
         userFuture
-            .thenCompose { ctx.pollUserFuture() ?: CompletableFuture.completedFuture(null) } // allows user to call Context#future in the callback of a future
+            .thenCompose { ctx.pollUserFuture() ?: CompletableFuture.completedFuture(null) } /** allows user to call [Context.await] in the callback of a future */
             .exceptionally { throwable -> handleUserCodeThrowable(throwable) }
             .whenComplete { _, _ -> nextTaskOrFinish() }
     }

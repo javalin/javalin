@@ -102,7 +102,7 @@ class DefaultContext(
         return this
     }
 
-    override fun <T> future(future: CompletableFuture<T>) {
+    override fun <T> await(future: CompletableFuture<T>) {
         userFutures.add(future)
     }
 

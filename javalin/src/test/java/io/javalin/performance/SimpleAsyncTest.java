@@ -36,7 +36,7 @@ public class SimpleAsyncTest {
 
         HttpUtil http = new HttpUtil(app.port());
 
-        app.get("/test-async", ctx -> ctx.future(getFuture()));
+        app.get("/test-async", ctx -> ctx.await(getFuture()));
         app.get("/test-sync", ctx -> ctx.result(getBlockingResult()));
 
         timeCallable("Async result", () -> {

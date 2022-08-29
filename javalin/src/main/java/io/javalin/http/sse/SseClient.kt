@@ -16,11 +16,11 @@ class SseClient internal constructor(
 
     /**
      * By blocking SSE connection, you can share client outside the handler to notify it from other sources.
-     * Keep in mind that this function is based on top of the [Context.future],
+     * Keep in mind that this function is based on top of the [Context.await],
      * so you can't use any result function in this scope anymore.
      */
     fun keepAlive() {
-        this.blockingFuture = ctx.apply { future(future = CompletableFuture<Nothing?>()) }.peekUserFuture()
+        this.blockingFuture = ctx.apply { await(future = CompletableFuture<Nothing?>()) }.peekUserFuture()
     }
 
     fun onClose(closeCallback: Runnable) {

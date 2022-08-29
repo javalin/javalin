@@ -29,13 +29,13 @@ internal class TestFuture {
 
         @Test
         fun `hello future world`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.future(getFuture("Result").thenAccept { v -> it.result(v) }) }
+            app.get("/test-future") { it.await(getFuture("Result").thenAccept { v -> it.result(v) }) }
             assertThat(http.getBody("/test-future")).isEqualTo("Result")
         }
 
         @Test
         fun `cancelled future throws and is mapped`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.future(getFuture(null)) }
+            app.get("/test-future") { it.await(getFuture(null)) }
             assertThat(http.getBody("/test-future")).isEqualTo(INTERNAL_SERVER_ERROR.message)
         }
 
@@ -46,30 +46,30 @@ internal class TestFuture {
 
         @Test
         fun `after-handlers run after future is resolved`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.future(getFuture("Not result")) }
+            app.get("/test-future") { it.await(getFuture("Not result")) }
             app.after { it.result("Overwritten by after-handler") }
             assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by after-handler")
         }
 
         @Test
         fun `error-handlers run after future is resolved`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.status(INTERNAL_SERVER_ERROR).future(getFuture("Not result")) }
+            app.get("/test-future") { it.status(INTERNAL_SERVER_ERROR).await(getFuture("Not result")) }
             app.error(INTERNAL_SERVER_ERROR) { it.result("Overwritten by error-handler") }
             assertThat(http.getBody("/test-future")).isEqualTo("Overwritten by error-handler")
         }
 
         @Test
         fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
-            app.before("/future") { it.future(getFuture("before").thenAccept { v -> it.result(v) }) }
-            app.get("/future") { it.future(getFuture("no-action")) }
-            app.after("/future") { it.future(getFuture("${it.resultString()}, after").thenAccept { v -> it.result(v) }) }
+            app.before("/future") { it.await(getFuture("before").thenAccept { v -> it.result(v) }) }
+            app.get("/future") { it.await(getFuture("no-action")) }
+            app.after("/future") { it.await(getFuture("${it.resultString()}, after").thenAccept { v -> it.result(v) }) }
             assertThat(http.get("/future").body).isEqualTo("before, after")
         }
 
         @Test
         fun `calling future in (before - before) handlers works`() = TestUtil.test { app, http ->
-            app.before { it.future(getFuture("before 1").thenAccept { v -> it.result(v) }) }
-            app.before { it.future(getFuture("${it.resultString()}, before 2").thenAccept { v -> it.result(v) }) }
+            app.before { it.await(getFuture("before 1").thenAccept { v -> it.result(v) }) }
+            app.before { it.await(getFuture("${it.resultString()}, before 2").thenAccept { v -> it.result(v) }) }
             app.get("/future") {}
             assertThat(http.get("/future").body).isEqualTo("before 1, before 2")
         }
@@ -77,9 +77,9 @@ internal class TestFuture {
         @Test
         fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.future(getFuture("A", delay = 100).thenAccept {
+                ctx.await(getFuture("A", delay = 100).thenAccept {
                     ctx.accumulatingResult(it)
-                    ctx.future(getFuture("B", delay = 0).thenAccept {
+                    ctx.await(getFuture("B", delay = 0).thenAccept {
                         ctx.accumulatingResult(it)
                     })
                 })
@@ -90,11 +90,11 @@ internal class TestFuture {
         @Test
         fun `should be able to mix completed and non-completed futures`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.future(getFuture("A", delay = 50).thenAccept {
+                ctx.await(getFuture("A", delay = 50).thenAccept {
                     ctx.accumulatingResult(it)
-                    ctx.future(CompletableFuture.completedFuture("B").thenAccept {
+                    ctx.await(CompletableFuture.completedFuture("B").thenAccept {
                         ctx.accumulatingResult(it)
-                        ctx.future(getFuture("C", delay = 50).thenAccept {
+                        ctx.await(getFuture("C", delay = 50).thenAccept {
                             ctx.accumulatingResult(it)
                         })
                     })
@@ -106,9 +106,9 @@ internal class TestFuture {
         @Test
         fun `should be able to set multiple futures in same handler`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.future(getFuture("A", delay = 30).thenAccept { ctx.accumulatingResult(it) })
-                ctx.future(getFuture("B", delay = 20).thenAccept { ctx.accumulatingResult(it) })
-                ctx.future(getFuture("C", delay = 10).thenAccept { ctx.accumulatingResult(it) })
+                ctx.await(getFuture("A", delay = 30).thenAccept { ctx.accumulatingResult(it) })
+                ctx.await(getFuture("B", delay = 20).thenAccept { ctx.accumulatingResult(it) })
+                ctx.await(getFuture("C", delay = 10).thenAccept { ctx.accumulatingResult(it) })
             }
             assertThat(http.getBody("/")).isEqualTo("CBA")
         }
@@ -117,7 +117,7 @@ internal class TestFuture {
         fun `can use future in exception mapper`() = TestUtil.test { app, http ->
             app.get("/") { throw Exception("Oh no!") }
             app.exception(Exception::class.java) { _, ctx ->
-                ctx.future(getFuture("Wee").thenAccept { ctx.result(it) })
+                ctx.await(getFuture("Wee").thenAccept { ctx.result(it) })
             }
             assertThat(http.get("/").body).isEqualTo("Wee")
         }
@@ -127,7 +127,7 @@ internal class TestFuture {
             app.get("/") {
                 val completedFuture = CompletableFuture.supplyAsync { it.result("Hello!") }
                 completedFuture.get()
-                it.future(completedFuture)
+                it.await(completedFuture)
             }
             assertThat(http.get("/").body).isEqualTo("Hello!")
         }
@@ -140,7 +140,7 @@ internal class TestFuture {
         @Test
         fun `can call ctx inside thenAccept and exceptionally`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.future(getFuture(ctx.queryParam("qp")) // could be null, which would cause a CancellationException
+                ctx.await(getFuture(ctx.queryParam("qp")) // could be null, which would cause a CancellationException
                     .thenAccept { ctx.result(it) }
                     .exceptionally {
                         ctx.result("Error: $it")
@@ -154,7 +154,7 @@ internal class TestFuture {
         @Test
         fun `can throw exceptions like normal inside thenAccept`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.future(getFuture("A").thenAccept { throw NotFoundResponse() })
+                ctx.await(getFuture("A").thenAccept { throw NotFoundResponse() })
             }
             assertThat(http.get("/").status).isEqualTo(HttpStatus.NOT_FOUND.code)
             assertThat(http.get("/").body).isEqualTo(HttpStatus.NOT_FOUND.message)
@@ -162,7 +162,7 @@ internal class TestFuture {
 
         @Test
         fun `cancelled futures are handled by exception-mapper`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.future(getFuture(null)) }
+            app.get("/test-future") { it.await(getFuture(null)) }
             app.exception(CancellationException::class.java) { _, ctx -> ctx.result("Handled") }
             assertThat(http.getBody("/test-future")).isEqualTo("Handled")
         }
@@ -170,7 +170,7 @@ internal class TestFuture {
         @Test
         fun `futures failures are handled by exception-mapper`() = TestUtil.test { app, http ->
             app.get("/test-future") { ctx ->
-                ctx.future(getFailingFuture(UnsupportedOperationException()))
+                ctx.await(getFailingFuture(UnsupportedOperationException()))
             }
             app.exception(UnsupportedOperationException::class.java) { _, ctx -> ctx.result("Handled") }
             assertThat(http.getBody("/test-future")).isEqualTo("Handled")
@@ -179,14 +179,14 @@ internal class TestFuture {
         @Test
         fun `error is handled as unexpected throwable`() = TestUtil.test { app, http ->
             app.get("/out-of-memory") { throw OutOfMemoryError() }
-            app.get("/out-of-memory-future") { it.future(getFailingFuture(OutOfMemoryError())) }
+            app.get("/out-of-memory-future") { it.await(getFailingFuture(OutOfMemoryError())) }
             assertThat(http.getStatus("/out-of-memory")).isEqualTo(INTERNAL_SERVER_ERROR)
             assertThat(http.getStatus("/out-of-memory-future")).isEqualTo(INTERNAL_SERVER_ERROR)
         }
 
         @Test
         fun `exceptions that occur during response writing are handled`() = TestUtil.test { app, http ->
-            app.get("/test-future") { it.future(getFutureFailingStream().thenAccept { v -> it.result(v) }) }
+            app.get("/test-future") { it.await(getFutureFailingStream().thenAccept { v -> it.result(v) }) }
             assertThat(http.get("/test-future").body).isEmpty()
             assertThat(http.get("/test-future").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
         }
@@ -200,13 +200,13 @@ internal class TestFuture {
 
         @Test
         fun `default timeout error isn't jetty branded`() = TestUtil.test(impatientServer) { app, http ->
-            app.get("/") { it.future(getFuture("Test", delay = 5000)) }
+            app.get("/") { it.await(getFuture("Test", delay = 5000)) }
             assertThat(http.get("/").body).isEqualTo(REQUEST_TIMEOUT.message)
         }
 
         @Test
         fun `can override timeout with custom error message`() = TestUtil.test(impatientServer) { app, http ->
-            app.get("/") { it.future(getFuture("Test", delay = 5000)) }
+            app.get("/") { it.await(getFuture("Test", delay = 5000)) }
             app.error(INTERNAL_SERVER_ERROR) { it.result("My own simple error message") }
             assertThat(http.get("/").body).isEqualTo("My own simple error message")
         }
@@ -214,16 +214,16 @@ internal class TestFuture {
         @Test
         fun `timed out futures are canceled`() = TestUtil.test(impatientServer) { app, http ->
             val future = getFuture("Test", delay = 5000)
-            app.get("/") { it.future(future) }
+            app.get("/") { it.await(future) }
             assertThat(http.get("/").body).isEqualTo(REQUEST_TIMEOUT.message)
             assertThat(future.isCancelled).isTrue()
         }
 
         @Test
         fun `latest timed out future is canceled`() = TestUtil.test(impatientServer) { app, http ->
-            app.before { it.future(CompletableFuture.completedFuture("Success")) }
+            app.before { it.await(CompletableFuture.completedFuture("Success")) }
             val future = getFuture("Test", delay = 5000)
-            app.get("/") { it.future(future) }
+            app.get("/") { it.await(future) }
             assertThat(http.get("/").body).isEqualTo(REQUEST_TIMEOUT.message)
             assertThat(future.isCancelled).isTrue()
         }

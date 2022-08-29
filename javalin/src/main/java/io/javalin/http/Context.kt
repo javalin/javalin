@@ -303,7 +303,7 @@ interface Context {
      * Use this to execute your [Handler] asynchronously.
      * Call your [Context] methods in the standard callbacks (ex. 'thenAccept' and 'exceptionally')
      */
-    fun <T> future(future: CompletableFuture<T>)
+    fun <T> await(future: CompletableFuture<T>)
     fun async(runnable: Runnable) = AsyncUtil.submit(this, runnable)
 
     /** Gets the current context result as a [CompletableFuture] (if set). */
