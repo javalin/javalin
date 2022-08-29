@@ -18,8 +18,10 @@ import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.CookieStore
+import io.javalin.http.util.DoneListener
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
+import io.javalin.http.util.TimeoutListener
 import io.javalin.json.jsonMapper
 import io.javalin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
@@ -33,7 +35,6 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
 import java.util.concurrent.TimeoutException
 import java.util.function.Supplier
 
@@ -283,25 +284,25 @@ interface Context {
      *
      * @return the [CompletableFuture] used to write the seekable stream
      */
-    fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long) = SeekableWriter.write(this, inputStream, contentType, size)
+    fun writeSeekableStream(inputStream: InputStream, contentType: String, totalBytes: Long): Context = SeekableWriter.write(this, inputStream, contentType, totalBytes) {}
 
     /**
      * Writes input stream to [writeSeekableStream] with currently available data ([InputStream.available])
      * @see writeSeekableStream]
      */
-    fun writeSeekableStream(inputStream: InputStream, contentType: String) = writeSeekableStream(inputStream, contentType, inputStream.available().toLong())
+    fun writeSeekableStream(inputStream: InputStream, contentType: String): Context = writeSeekableStream(inputStream, contentType, inputStream.available().toLong())
 
     /**
      * Sets context result to the specified [String].
      * Will overwrite the current result if there is one.
      */
-    fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
+    fun result(resultString: String): Context = result(resultString.byteInputStream(responseCharset()))
 
     /**
      * Sets context result to the specified array of bytes.
      * Will overwrite the current result if there is one.
      */
-    fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
+    fun result(resultBytes: ByteArray): Context = result(resultBytes.inputStream())
 
     /**
      * Sets context result to the specified [InputStream].
@@ -319,7 +320,9 @@ interface Context {
      * Utility function that allows to run async task on top of the [Context.future] method.
      * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
      *
-     * @param executor Thread-pool used to execute the given task
+     * @param executor Thread-pool used to execute the given task,
+     * by default uses globally predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
+     * You can change this default in [io.javalin.config.JavalinConfig].
      *
      * @param timeout Timeout in milliseconds,
      * by default it's 0 which means timeout watcher is disabled.
@@ -332,23 +335,29 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun async(executor: ExecutorService, onSuccess: (() -> Unit)?, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): Context =
-        AsyncUtil.submitAsyncTask(this, executor, onSuccess, timeout, onTimeout, task)
+    fun <R> async(
+        executor: ExecutorService = appAttribute(ASYNC_EXECUTOR_KEY),
+        onDone: DoneListener<R>?,
+        timeout: Long = 0L,
+        onTimeout: TimeoutListener?,
+        task: Supplier<R>
+    ): Context = AsyncUtil.submitAsyncTask(
+        context = this,
+        executor = executor,
+        onDone = onDone,
+        timeout = timeout,
+        onTimeout = onTimeout,
+        task = task
+    )
 
-    /**
-     * Launch async task with default, globally predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
-     * You can change this default in [io.javalin.config.JavalinConfig].
-     * @see [async]
-     */
-    fun async(timeout: Long = 0L, onTimeout: (() -> Unit)? = null, task: Runnable): Context =
-        async(executor = appAttribute(ASYNC_EXECUTOR_KEY), onSuccess = null, timeout = timeout, onTimeout = onTimeout, task = task)
+    /** @see [async] */
+    fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>): Context = async(task = task, onDone = null, timeout = timeout, onTimeout = onTimeout)
 
-    /**
-     * Launch async task with default async executor and without custom timeout
-     * @see [async]
-     */
-    fun async(task: Runnable): Context =
-        async(task = task, timeout = 0L, onTimeout = null)
+    /** @see [async] */
+    fun <R> async(task: Supplier<R>, onDone: DoneListener<R>): Context = async(task = task, onDone = onDone, onTimeout = null)
+
+    /* @see [async] */
+    fun <R> async(task: Supplier<R>): Context = async(task = task, onDone = null, onTimeout = null)
 
     /**
      * The main entrypoint for all async related functionalities exposed by [Context].

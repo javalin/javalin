@@ -6,21 +6,35 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
+import java.util.function.Supplier
+
+typealias DoneListener<R> = (Result<R>) -> Unit
+typealias TimeoutListener = () -> Unit
 
 object AsyncUtil {
 
     /** Defines default [ExecutorService] used by [Context.future] */
     const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
 
-    fun submitAsyncTask(context: Context, executor: ExecutorService, onSuccess: (() -> Unit)?, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): Context =
+    fun <R> submitAsyncTask(
+        context: Context,
+        executor: ExecutorService,
+        onDone: DoneListener<R>?,
+        timeout: Long,
+        onTimeout: TimeoutListener?,
+        task: Supplier<R>
+    ): Context =
         context.future {
-            CompletableFuture.runAsync(task, executor)
+            CompletableFuture.supplyAsync({ task.get() }, executor)
                 .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
-                .let { if (onSuccess != null) it.thenAccept { onSuccess() } else it }
+                .let { if (onDone != null) it.thenAccept { result -> onDone(Result.success(result)) } else it }
                 .exceptionallyAccept {
                     when {
                         onTimeout != null && it is TimeoutException -> onTimeout.invoke()
-                        else -> throw it
+                        else -> {
+                            onDone?.invoke(Result.failure(it))
+                            throw it
+                        }
                     }
                 }
         }
