@@ -16,14 +16,7 @@ object AsyncUtil {
     /** Defines default [ExecutorService] used by [Context.future] */
     const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
 
-    fun <R> submitAsyncTask(
-        context: Context,
-        executor: ExecutorService,
-        onDone: DoneListener<R>?,
-        timeout: Long,
-        onTimeout: TimeoutListener?,
-        task: Supplier<R>
-    ): Context =
+    fun <R> submitAsyncTask(context: Context, executor: ExecutorService, task: Supplier<R>, onDone: DoneListener<R>?, timeout: Long, onTimeout: TimeoutListener?): Context =
         context.future {
             CompletableFuture.supplyAsync({ task.get() }, executor)
                 .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }

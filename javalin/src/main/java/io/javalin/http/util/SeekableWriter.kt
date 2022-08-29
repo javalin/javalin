@@ -9,30 +9,27 @@ import kotlin.math.min
 
 object SeekableWriter {
     var chunkSize = 128000
-    fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long, onDone: DoneListener<Unit>): Context = ctx.async(
-        task = {
-            val uncompressedStream = ctx.res().outputStream
-            if (ctx.header(Header.RANGE) == null) {
-                ctx.header(Header.CONTENT_TYPE, contentType)
-                inputStream.transferTo(uncompressedStream)
-                return@async
-            }
-            val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
-            val from = requestedRange[0].toLong()
-            val to = when {
-                from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
-                requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
-                else -> from + chunkSize - 1 // chunk smaller than file, to/from not specified
-            }
-            ctx.status(HttpStatus.PARTIAL_CONTENT)
+    fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long): Context = ctx.async {
+        val uncompressedStream = ctx.res().outputStream
+        if (ctx.header(Header.RANGE) == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)
-            ctx.header(Header.ACCEPT_RANGES, "bytes")
-            ctx.header(Header.CONTENT_RANGE, "bytes $from-$to/$totalBytes")
-            ctx.header(Header.CONTENT_LENGTH, "${min(to - from + 1, totalBytes)}")
-            uncompressedStream.write(inputStream, from, to)
-        },
-        onDone = onDone
-    )
+            inputStream.transferTo(uncompressedStream)
+            return@async
+        }
+        val requestedRange = ctx.header(Header.RANGE)!!.split("=")[1].split("-").filter { it.isNotEmpty() }
+        val from = requestedRange[0].toLong()
+        val to = when {
+            from + chunkSize > totalBytes -> totalBytes - 1 // chunk bigger than file, write all
+            requestedRange.size == 2 -> requestedRange[1].toLong() // chunk smaller than file, to/from specified
+            else -> from + chunkSize - 1 // chunk smaller than file, to/from not specified
+        }
+        ctx.status(HttpStatus.PARTIAL_CONTENT)
+        ctx.header(Header.CONTENT_TYPE, contentType)
+        ctx.header(Header.ACCEPT_RANGES, "bytes")
+        ctx.header(Header.CONTENT_RANGE, "bytes $from-$to/$totalBytes")
+        ctx.header(Header.CONTENT_LENGTH, "${min(to - from + 1, totalBytes)}")
+        uncompressedStream.write(inputStream, from, to)
+    }
 
     private fun OutputStream.write(inputStream: InputStream, from: Long, to: Long, buffer: ByteArray = ByteArray(1024)) = inputStream.use {
         var toSkip = from

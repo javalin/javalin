@@ -284,7 +284,7 @@ interface Context {
      *
      * @return the [CompletableFuture] used to write the seekable stream
      */
-    fun writeSeekableStream(inputStream: InputStream, contentType: String, totalBytes: Long): Context = SeekableWriter.write(this, inputStream, contentType, totalBytes) {}
+    fun writeSeekableStream(inputStream: InputStream, contentType: String, totalBytes: Long): Context = SeekableWriter.write(this, inputStream, contentType, totalBytes)
 
     /**
      * Writes input stream to [writeSeekableStream] with currently available data ([InputStream.available])
@@ -341,14 +341,7 @@ interface Context {
         timeout: Long = 0L,
         onTimeout: TimeoutListener?,
         task: Supplier<R>
-    ): Context = AsyncUtil.submitAsyncTask(
-        context = this,
-        executor = executor,
-        onDone = onDone,
-        timeout = timeout,
-        onTimeout = onTimeout,
-        task = task
-    )
+    ): Context = AsyncUtil.submitAsyncTask(this, executor, task, onDone, timeout, onTimeout)
 
     /** @see [async] */
     fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>): Context = async(task = task, onDone = null, timeout = timeout, onTimeout = onTimeout)
