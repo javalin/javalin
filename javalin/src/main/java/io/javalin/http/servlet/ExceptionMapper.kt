@@ -4,9 +4,13 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http
+package io.javalin.http.servlet
 
 import io.javalin.config.JavalinConfig
+import io.javalin.http.Context
+import io.javalin.http.ExceptionHandler
+import io.javalin.http.HttpResponseException
+import io.javalin.http.InternalServerErrorResponse
 import io.javalin.jetty.JettyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
@@ -27,7 +31,10 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         }
 
         when {
-            throwable is Exception && HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable) -> HttpResponseExceptionMapper.handle(throwable, ctx)
+            throwable is Exception && HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable) -> HttpResponseExceptionMapper.handle(
+                throwable,
+                ctx
+            )
             throwable is Exception -> Util.findByClass(handlers, throwable.javaClass)?.handle(throwable, ctx) ?: run { uncaughtThrowable(ctx, throwable) }
             else -> uncaughtThrowable(ctx, throwable)
         }

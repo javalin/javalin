@@ -4,8 +4,25 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http
+package io.javalin.http.servlet
 
+import io.javalin.http.BadGatewayResponse
+import io.javalin.http.BadRequestResponse
+import io.javalin.http.ConflictResponse
+import io.javalin.http.ContentType
+import io.javalin.http.ContentType.APPLICATION_JSON
+import io.javalin.http.Context
+import io.javalin.http.ForbiddenResponse
+import io.javalin.http.GatewayTimeoutResponse
+import io.javalin.http.GoneResponse
+import io.javalin.http.Header
+import io.javalin.http.HttpResponseException
+import io.javalin.http.InternalServerErrorResponse
+import io.javalin.http.MethodNotAllowedResponse
+import io.javalin.http.NotFoundResponse
+import io.javalin.http.RedirectResponse
+import io.javalin.http.ServiceUnavailableResponse
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.util.JsonEscapeUtil
 import java.util.*
 import java.util.concurrent.CompletionException
@@ -24,7 +41,7 @@ object HttpResponseExceptionMapper {
                    |    "type": "${getTypeUrl(e).lowercase(Locale.ROOT)}",
                    |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
                    |}""".trimMargin()
-            ).contentType(ContentType.APPLICATION_JSON)
+            ).contentType(APPLICATION_JSON)
         } else {
             val result = if (e.details.isEmpty()) "${e.message}" else """
                 |${e.message}

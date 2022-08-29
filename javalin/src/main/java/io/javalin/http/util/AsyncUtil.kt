@@ -37,7 +37,6 @@ internal object AsyncUtil {
                 }
         }
 
-    /** Checks if request is executed asynchronously */
     internal fun Context.isAsync(): Boolean =
         req().isAsyncStarted
 

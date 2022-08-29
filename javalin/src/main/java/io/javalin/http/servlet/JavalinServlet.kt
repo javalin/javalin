@@ -7,8 +7,6 @@
 package io.javalin.http.servlet
 
 import io.javalin.config.JavalinConfig
-import io.javalin.http.ErrorMapper
-import io.javalin.http.ExceptionMapper
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.util.AsyncUtil.addListener
 import io.javalin.http.util.AsyncUtil.isAsync

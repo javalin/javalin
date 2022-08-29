@@ -4,7 +4,11 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http
+package io.javalin.http.servlet
+
+import io.javalin.http.Context
+import io.javalin.http.Handler
+import io.javalin.http.Header
 
 class ErrorMapper {
 
