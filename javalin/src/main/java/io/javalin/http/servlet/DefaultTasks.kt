@@ -1,15 +1,12 @@
 package io.javalin.http.servlet
 
-import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
-import io.javalin.http.HandlerType.OPTIONS
 import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.http.NotFoundResponse
 import io.javalin.http.util.MethodNotAllowedUtil
-import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.security.accessManagerNotConfiguredException
 import jakarta.servlet.http.HttpServletResponseWrapper
 

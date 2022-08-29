@@ -19,9 +19,6 @@ import io.javalin.http.HttpStatus
 import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
-import jakarta.servlet.AsyncContext
-import jakarta.servlet.AsyncEvent
-import jakarta.servlet.AsyncListener
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -44,11 +41,12 @@ class JavalinServletContext(
     private var handlerType: HandlerType = HandlerType.BEFORE,
     private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = mapOf(),
+    internal val tasks: Deque<Task> = ArrayDeque(8),
+    internal val responseWritten: AtomicBoolean = AtomicBoolean(false),
+    internal var exceptionOccurred: Boolean = false,
     internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Lazy<CompletableFuture<*>>? = null,
     internal var result: InputStream? = null,
-    internal var exceptionOccurred: Boolean = false,
-    internal val responseWritten: AtomicBoolean = AtomicBoolean(false)
 ) : Context {
 
     init {
@@ -110,6 +108,13 @@ class JavalinServletContext(
 
     private val outputStreamWrapper by lazy { CompressedOutputStream(compressionStrategy, this) }
     override fun outputStream(): ServletOutputStream = outputStreamWrapper
+
+    override fun redirect(location: String, status: HttpStatus) {
+        header(Header.LOCATION, location).status(status).result("Redirected")
+        if (handlerType() == HandlerType.BEFORE) {
+            tasks.removeIf { it.skipIfErrorOccurred }
+        }
+    }
 
     override fun result(resultStream: InputStream): Context = apply {
         runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls

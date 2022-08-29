@@ -368,12 +368,7 @@ interface Context {
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String, status: HttpStatus) {
-        header(Header.LOCATION, location).status(status).result("Redirected")
-        if (handlerType() == HandlerType.BEFORE) {
-            throw SkipHttpHandlerException()
-        }
-    }
+    fun redirect(location: String, status: HttpStatus)
 
     /** Redirects to location with status [HttpStatus.FOUND]. Skips HTTP handler if called in before-handler */
     fun redirect(location: String) = redirect(location, HttpStatus.FOUND)

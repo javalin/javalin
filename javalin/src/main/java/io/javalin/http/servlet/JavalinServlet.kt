@@ -17,7 +17,6 @@ import io.javalin.routing.PathMatcher
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import java.util.*
 
 class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
@@ -28,37 +27,36 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
             val ctx = JavalinServletContext(req = request, res = response, cfg = cfg)
-            val requestUri = ctx.path().removePrefix(ctx.contextPath())
 
-            val tasks = ArrayDeque<Task>(8)
-            val submitTask: (Task) -> Unit = { tasks.add(it) }
+            val submitTask: (Task) -> Unit = { ctx.tasks.add(it) }
+            val requestUri = ctx.path().removePrefix(ctx.contextPath())
             cfg.pvt.servletRequestLifecycle.forEach { it.createTasks(submitTask, this, ctx, requestUri) }
 
-            handleSync(tasks, ctx)
+            handleSync(ctx)
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)
         }
     }
 
-    private fun handleSync(tasks: ArrayDeque<Task>, ctx: JavalinServletContext) {
-        while (ctx.userFutureSupplier == null && tasks.isNotEmpty()) {
-            val task = tasks.poll()
+    private fun handleSync(ctx: JavalinServletContext) {
+        while (ctx.userFutureSupplier == null && ctx.tasks.isNotEmpty()) {
+            val task = ctx.tasks.poll()
             if (ctx.exceptionOccurred && task.skipIfErrorOccurred) {
                 continue
             }
-            handleTask(tasks, ctx, task.handler)
+            handleTask(ctx, task.handler)
         }
 
         when {
-            ctx.userFutureSupplier != null -> handleAsync(tasks, ctx)
+            ctx.userFutureSupplier != null -> handleAsync(ctx)
             else -> writeResponseAndLog(ctx)
         }
     }
 
-    private fun handleAsync(tasks: ArrayDeque<Task>, ctx: JavalinServletContext) {
+    private fun handleAsync(ctx: JavalinServletContext) {
         val userFutureSupplier = ctx.userFutureSupplier ?: return
         ctx.userFutureSupplier = null
-        val userFuture = handleTask(tasks, ctx) { userFutureSupplier.value } ?: return handleSync(tasks, ctx) // get future from supplier or handle error
+        val userFuture = handleTask(ctx) { userFutureSupplier.value } ?: return handleSync(ctx) // get future from supplier or handle error
 
         if (!ctx.isAsync()) {
             ctx.req().startAsync().addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
@@ -74,20 +72,20 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         }
 
         userFuture
-            .thenApply { handleSync(tasks, ctx) }
+            .thenApply { handleSync(ctx) }
             .exceptionally {
                 exceptionMapper.handle(ctx, it)
                 writeResponseAndLog(ctx)
             }
     }
 
-    private fun <R> handleTask(tasks: ArrayDeque<Task>, ctx: JavalinServletContext, handler: TaskHandler<R>): R? =
+    private fun <R> handleTask(ctx: JavalinServletContext, handler: TaskHandler<R>): R? =
         try {
             handler.handle()
         } catch (throwable: Throwable) {
             ctx.exceptionOccurred = true
             ctx.userFutureSupplier = null
-            tasks.offerFirst(Task(skipIfErrorOccurred = false) { exceptionMapper.handle(ctx, throwable) })
+            ctx.tasks.offerFirst(Task(skipIfErrorOccurred = false) { exceptionMapper.handle(ctx, throwable) })
             null
         }
 
