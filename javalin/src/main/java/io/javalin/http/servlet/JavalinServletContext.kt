@@ -48,8 +48,6 @@ class JavalinServletContext(
     internal var userFutureSupplier: Lazy<CompletableFuture<*>>? = null,
     internal var result: InputStream? = null,
     internal var exceptionOccurred: Boolean = false,
-    // prevent writing more than once (ex. both async requests+errors).
-    // it's required because timeout listener can terminate the flow at any time.
     internal val responseWritten: AtomicBoolean = AtomicBoolean(false)
 ) : Context {
 
@@ -200,22 +198,4 @@ fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {
     stream?.apply { reset() }?.readBytes()?.toString(charset).also { stream?.reset() }
 } catch (e: Exception) {
     "resultString unavailable (resultStream couldn't be reset)"
-}
-
-/** Checks if request is executed asynchronously */
-internal fun Context.isAsync(): Boolean =
-    req().isAsyncStarted
-
-internal fun AsyncContext.addListener(
-    onComplete: (AsyncEvent) -> Unit = {},
-    onError: (AsyncEvent) -> Unit = {},
-    onStartAsync: (AsyncEvent) -> Unit = {},
-    onTimeout: (AsyncEvent) -> Unit = {},
-): AsyncContext = apply {
-    addListener(object : AsyncListener {
-        override fun onComplete(event: AsyncEvent) = onComplete(event)
-        override fun onError(event: AsyncEvent) = onError(event)
-        override fun onStartAsync(event: AsyncEvent) = onStartAsync(event)
-        override fun onTimeout(event: AsyncEvent) = onTimeout(event)
-    })
 }

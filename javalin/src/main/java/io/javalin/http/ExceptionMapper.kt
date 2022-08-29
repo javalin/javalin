@@ -30,12 +30,8 @@ class ExceptionMapper(val cfg: JavalinConfig) {
 
         when {
             throwable is SkipHttpHandlerException -> { /* do nothing */ }
-            throwable is Exception && HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable) ->
-                HttpResponseExceptionMapper.handle(throwable, ctx)
-            throwable is Exception ->
-                Util.findByClass(handlers, throwable.javaClass)
-                    ?.handle(throwable, ctx)
-                    ?: run { uncaughtThrowable(ctx, throwable) }
+            throwable is Exception && HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable) -> HttpResponseExceptionMapper.handle(throwable, ctx)
+            throwable is Exception -> Util.findByClass(handlers, throwable.javaClass)?.handle(throwable, ctx) ?: run { uncaughtThrowable(ctx, throwable) }
             else -> uncaughtThrowable(ctx, throwable)
         }
     }
@@ -56,7 +52,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         return null
     }
 
-    private fun noUserHandler(e: Exception) =
-        this.handlers[e::class.java] == null && this.handlers[HttpResponseException::class.java] == null
+    private fun noUserHandler(exception: Exception) =
+        this.handlers[exception::class.java] == null && this.handlers[HttpResponseException::class.java] == null
 
 }

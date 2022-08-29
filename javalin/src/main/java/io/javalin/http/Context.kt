@@ -335,13 +335,8 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun <R> async(
-        executor: ExecutorService = appAttribute(ASYNC_EXECUTOR_KEY),
-        onDone: DoneListener<R>?,
-        timeout: Long = 0L,
-        onTimeout: TimeoutListener?,
-        task: Supplier<R>
-    ): Context = AsyncUtil.submitAsyncTask(this, executor, task, onDone, timeout, onTimeout)
+    fun <R> async(executor: ExecutorService = appAttribute(ASYNC_EXECUTOR_KEY), onDone: DoneListener<R>?, timeout: Long = 0L, onTimeout: TimeoutListener?, task: Supplier<R>): Context =
+        AsyncUtil.submitAsyncTask(this, executor, task, onDone, timeout, onTimeout)
 
     /** @see [async] */
     fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>): Context = async(task = task, onDone = null, timeout = timeout, onTimeout = onTimeout)

@@ -1,11 +1,14 @@
 package io.javalin.http.util
 
 import io.javalin.http.Context
-import io.javalin.util.exceptionallyAccept
+import jakarta.servlet.AsyncContext
+import jakarta.servlet.AsyncEvent
+import jakarta.servlet.AsyncListener
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 typealias DoneListener<R> = (Result<R>) -> Unit
@@ -21,15 +24,36 @@ object AsyncUtil {
             CompletableFuture.supplyAsync({ task.get() }, executor)
                 .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
                 .let { if (onDone != null) it.thenAccept { result -> onDone(Result.success(result)) } else it }
-                .exceptionallyAccept {
+                .exceptionally {
                     when {
-                        onTimeout != null && it is TimeoutException -> onTimeout.invoke()
+                        onTimeout != null && it is TimeoutException -> {
+                            onTimeout.invoke()
+                            null // handled
+                        }
                         else -> {
                             onDone?.invoke(Result.failure(it))
-                            throw it
+                            throw it // rethrow
                         }
                     }
                 }
         }
+
+    /** Checks if request is executed asynchronously */
+    internal fun Context.isAsync(): Boolean =
+        req().isAsyncStarted
+
+    internal fun AsyncContext.addListener(
+        onComplete: (AsyncEvent) -> Unit = {},
+        onError: (AsyncEvent) -> Unit = {},
+        onStartAsync: (AsyncEvent) -> Unit = {},
+        onTimeout: (AsyncEvent) -> Unit = {},
+    ): AsyncContext = apply {
+        addListener(object : AsyncListener {
+            override fun onComplete(event: AsyncEvent) = onComplete(event)
+            override fun onError(event: AsyncEvent) = onError(event)
+            override fun onStartAsync(event: AsyncEvent) = onStartAsync(event)
+            override fun onTimeout(event: AsyncEvent) = onTimeout(event)
+        })
+    }
 
 }

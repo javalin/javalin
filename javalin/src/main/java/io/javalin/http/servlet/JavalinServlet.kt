@@ -76,7 +76,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         userFuture
             .thenApply { handleSync(tasks, ctx) }
             .exceptionally {
-                exceptionMapper.handle(ctx, it as Exception)
+                exceptionMapper.handle(ctx, it)
                 writeResponseAndLog(ctx)
             }
     }
@@ -93,7 +93,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
     private fun writeResponseAndLog(ctx: JavalinServletContext) {
         try {
-            if (ctx.responseWritten.getAndSet(true)) return
+            if (ctx.responseWritten.getAndSet(true)) return // prevent writing more than once, it's required because timeout listener can terminate the flow at any time
             ctx.outputStream().use { outputStream ->
                 ctx.resultStream()?.use { resultStream ->
                     val etagWritten = ETagGenerator.tryWriteEtagAndClose(cfg.http.generateEtags, ctx, resultStream)
