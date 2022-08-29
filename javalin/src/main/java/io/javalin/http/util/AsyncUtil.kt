@@ -8,13 +8,12 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-import java.util.function.Consumer
 import java.util.function.Supplier
 
 typealias DoneListener<R> = (Result<R>) -> Unit
 typealias TimeoutListener = () -> Unit
 
-object AsyncUtil {
+internal object AsyncUtil {
 
     /** Defines default [ExecutorService] used by [Context.future] */
     const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"

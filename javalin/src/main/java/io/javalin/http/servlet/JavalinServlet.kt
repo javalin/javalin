@@ -10,6 +10,8 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.ErrorMapper
 import io.javalin.http.ExceptionMapper
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.util.AsyncUtil.addListener
+import io.javalin.http.util.AsyncUtil.isAsync
 import io.javalin.http.util.ETagGenerator
 import io.javalin.routing.PathMatcher
 import jakarta.servlet.http.HttpServlet
@@ -41,11 +43,9 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     private fun handleSync(tasks: ArrayDeque<Task>, ctx: JavalinServletContext) {
         while (ctx.userFutureSupplier == null && tasks.isNotEmpty()) {
             val task = tasks.poll()
-
             if (ctx.exceptionOccurred && task.skipIfErrorOccurred) {
                 continue
             }
-
             handleTask(tasks, ctx, task.handler)
         }
 
