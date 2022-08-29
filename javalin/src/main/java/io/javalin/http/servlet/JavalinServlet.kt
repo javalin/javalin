@@ -64,7 +64,6 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
                 writeResponseAndLog(ctx)
             }).also { asyncCtx -> asyncCtx.timeout = cfg.http.asyncTimeout }
         }
-
         if (ctx.isAsync()) {
             ctx.req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) }) // registers timeout listener
         }
