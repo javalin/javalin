@@ -25,16 +25,8 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         if (throwable is CompletionException && throwable.cause is Exception) {
             return handle(ctx, throwable.cause as Exception)
         }
-
-        cfg.pvt.stackTraceCleanerFunction?.run {
-            throwable.stackTrace = invoke(throwable.stackTrace)
-        }
-
         when {
-            throwable is Exception && HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable) -> HttpResponseExceptionMapper.handle(
-                throwable,
-                ctx
-            )
+            throwable is Exception && HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable) -> HttpResponseExceptionMapper.handle(throwable, ctx)
             throwable is Exception -> Util.findByClass(handlers, throwable.javaClass)?.handle(throwable, ctx) ?: run { uncaughtThrowable(ctx, throwable) }
             else -> uncaughtThrowable(ctx, throwable)
         }

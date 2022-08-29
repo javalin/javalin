@@ -112,13 +112,4 @@ class TestConfiguration {
             assertThat(http.get("/host").body).isEqualTo(http.get("/remote-host").body)
         }
     }
-
-    @Test
-    fun `can clean stacktraces`() = TestUtil.test { app, http ->
-        app.get("/") { throw Exception("Exceptional!") }
-        val bigLog = TestUtil.captureStdOut { http.get("/") }
-        app.cfg.pvt.stackTraceCleanerFunction = { arrayOf() }
-        val smallLog = TestUtil.captureStdOut { http.get("/") }
-        assertThat(bigLog.length).isNotCloseTo(smallLog.length, Offset.offset(1000))
-    }
 }
