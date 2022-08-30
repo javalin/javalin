@@ -16,7 +16,6 @@ import io.javalin.http.servlet.readAndResetStreamIfPossible
 import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
 import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.AsyncUtil
-import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.DoneListener
 import io.javalin.http.util.MultipartUtil
@@ -335,17 +334,17 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun <R> async(executor: ExecutorService = appAttribute(ASYNC_EXECUTOR_KEY), onDone: DoneListener<R>?, timeout: Long = 0L, onTimeout: TimeoutListener?, task: Supplier<R>) =
-        AsyncUtil.submitAsyncTask(this, executor, task, onDone, timeout, onTimeout)
+    fun <R> async(executor: ExecutorService?= null, timeout: Long = 0L, onTimeout: TimeoutListener?, onDone: DoneListener<R>?, task: Supplier<R>) =
+        AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, onDone, task)
 
     /** @see [async] */
-    fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>) = async(task = task, onDone = null, timeout = timeout, onTimeout = onTimeout)
+    fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>) = async(timeout = timeout, onTimeout = onTimeout, onDone = null, task = task)
 
     /** @see [async] */
-    fun <R> async(task: Supplier<R>, onDone: DoneListener<R>) = async(task = task, onDone = onDone, onTimeout = null)
+    fun <R> async(task: Supplier<R>, onDone: DoneListener<R>) = async(onTimeout = null, onDone = onDone, task = task)
 
     /* @see [async] */
-    fun <R> async(task: Supplier<R>) = async(task = task, onDone = null, onTimeout = null)
+    fun <R> async(task: Supplier<R>) = async(onTimeout = null, onDone = null, task = task)
 
     /**
      * The main entrypoint for all async related functionalities exposed by [Context].

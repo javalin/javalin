@@ -266,7 +266,7 @@ internal class TestFuture {
         }
 
         @Test
-        fun `timeout should work`() = TestUtil.test { app, http ->
+        fun `timeout and onTimeout should work`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
                 ctx.async(
                     timeout = 10L,
@@ -279,6 +279,19 @@ internal class TestFuture {
             }
 
             assertThat(http.get("/").body).isEqualTo("Timeout")
+        }
+
+        @Test
+        fun `onDone should work`() = TestUtil.test { app, http ->
+            var itIsDone = false
+            app.get("/") { ctx ->
+                ctx.async(
+                    onDone = { itIsDone = true },
+                    task = { ctx.result("Result") }
+                )
+            }
+            assertThat(http.get("/").body).isEqualTo("Result")
+            assertThat(itIsDone).isTrue()
         }
 
     }

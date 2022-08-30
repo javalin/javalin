@@ -1,6 +1,7 @@
 package io.javalin.http.util
 
 import io.javalin.http.Context
+import io.javalin.util.ConcurrencyUtil
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -15,12 +16,11 @@ typealias TimeoutListener = () -> Unit
 
 internal object AsyncUtil {
 
-    /** Defines default [ExecutorService] used by [Context.future] */
-    const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
+    val defaultExecutor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool")
 
-    fun <R> submitAsyncTask(context: Context, executor: ExecutorService, task: Supplier<R>, onDone: DoneListener<R>?, timeout: Long, onTimeout: TimeoutListener?) =
+    fun <R> submitAsyncTask(context: Context, executor: ExecutorService?, timeout: Long, onTimeout: TimeoutListener?, onDone: DoneListener<R>?, task: Supplier<R>) =
         context.future {
-            CompletableFuture.supplyAsync({ task.get() }, executor)
+            CompletableFuture.supplyAsync({ task.get() }, executor ?: defaultExecutor)
                 .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
                 .let { if (onDone != null) it.thenAccept { result -> onDone(Result.success(result)) } else it }
                 .exceptionally {
