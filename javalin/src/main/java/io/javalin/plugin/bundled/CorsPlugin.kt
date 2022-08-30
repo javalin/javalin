@@ -13,7 +13,6 @@ import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.VARY
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.Plugin
-import io.javalin.plugin.PluginLifecycleInit
 import io.javalin.plugin.bundled.CorsUtils.isValidOrigin
 import io.javalin.plugin.bundled.CorsUtils.normalizeOrigin
 import io.javalin.plugin.bundled.CorsUtils.originsMatch
@@ -49,16 +48,12 @@ data class CorsPluginConfig(
     }
 }
 
-class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin, PluginLifecycleInit {
+class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
 
     val cfg = CorsPluginConfig().also { userConfig.accept(it) }
 
     private val origins: List<String> = cfg.allowedOrigins()
     private val headersToExpose: List<String> = cfg.headersToExpose()
-
-    override fun init(app: Javalin) {
-        app.cfg.plugins.enableHttpAllowedMethodsOnRoutes()
-    }
 
     override fun apply(app: Javalin) {
         require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
