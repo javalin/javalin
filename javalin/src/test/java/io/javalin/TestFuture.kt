@@ -1,9 +1,12 @@
 package io.javalin
 
+import io.javalin.http.Context
+import io.javalin.http.HttpStatus
 import io.javalin.http.HttpStatus.ENHANCE_YOUR_CALM
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.OK
+import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
@@ -76,6 +79,56 @@ internal class TestFuture {
             app.get("/future") { ctx -> ctx.future { getFuture("nothing") } }
             app.after("/future") { ctx -> ctx.future { getFuture("${ctx.resultString()}, after").thenApply { ctx.result(it) } } }
             assertThat(http.get("/future").body).isEqualTo("before, after")
+        }
+
+        @Test
+        fun `calling future in (before - before) handlers works`() = TestUtil.test { app, http ->
+            app.before { it.future { getFuture("before 1").thenAccept { v -> it.result(v) } } }
+            app.before { it.future { getFuture("${it.resultString()}, before 2").thenAccept { v -> it.result(v) } } }
+            app.get("/future") {}
+            assertThat(http.get("/future").body).isEqualTo("before 1, before 2")
+        }
+
+        @Test
+        fun `can call ctx inside thenAccept and exceptionally`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future {
+                    getFuture(ctx.queryParam("qp")) // could be null, which would cause a CancellationException
+                        .thenAccept { ctx.result(it) }
+                        .exceptionally {
+                            ctx.result("Error: $it")
+                            null
+                        }
+                }
+            }
+            assertThat(http.get("/?qp=Hello").body).isEqualTo("Hello")
+            assertThat(http.get("/").body).isEqualTo("Error: java.util.concurrent.CompletionException: java.util.concurrent.CancellationException")
+        }
+
+        @Test
+        fun `can throw exceptions like normal inside thenAccept`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future { getFuture("A").thenAccept { throw NotFoundResponse() } }
+            }
+            assertThat(http.get("/").status).isEqualTo(HttpStatus.NOT_FOUND.code)
+            assertThat(http.get("/").body).isEqualTo(HttpStatus.NOT_FOUND.message)
+        }
+
+        @Test
+        fun `should support nested futures in callbacks`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future {
+                    getFuture("A", delay = 100).thenAccept {
+                        ctx.accumulatingResult(it)
+                        ctx.future {
+                            getFuture("B", delay = 0).thenAccept {
+                                ctx.accumulatingResult(it)
+                            }
+                        }
+                    }
+                }
+            }
+            assertThat(http.getBody("/")).isEqualTo("AB")
         }
 
         @Test
@@ -189,27 +242,25 @@ internal class TestFuture {
             app.get("/") { ctx ->
                 ctx.async {
                     ctx.async {
-                        ctx.status(OK)
+                        ctx.accumulatingResult("3")
                     }
-                    Thread.sleep(100)
-                    ctx.status(ENHANCE_YOUR_CALM)
+                    Thread.sleep(10)
+                    ctx.accumulatingResult("2")
                 }
-                Thread.sleep(100)
-                ctx.status(IM_A_TEAPOT)
+                Thread.sleep(40)
+                ctx.accumulatingResult("1")
             }
 
-            assertThat(http.get("/").httpCode()).isEqualTo(OK)
+            assertThat(http.get("/").body).isEqualTo("123")
         }
 
         @Test
         fun `exception in async works`() = TestUtil.test { app, http ->
-            app
-                .get("/") { ctx ->
-                    ctx.async { throw UnsupportedOperationException() }
-                }
-                .exception(UnsupportedOperationException::class.java) { error, ctx ->
-                    ctx.result("Unsupported")
-                }
+            app.get("/") { ctx ->
+                ctx.async { throw UnsupportedOperationException() }
+            }.exception(UnsupportedOperationException::class.java) { error, ctx ->
+                ctx.result("Unsupported")
+            }
 
             assertThat(http.get("/").body).isEqualTo("Unsupported")
         }
@@ -254,3 +305,5 @@ internal class TestFuture {
         }
 
 }
+
+private fun Context.accumulatingResult(s: String) = this.result((resultString() ?: "") + s)
