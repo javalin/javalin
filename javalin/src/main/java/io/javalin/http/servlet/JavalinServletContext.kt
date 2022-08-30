@@ -4,16 +4,21 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http
+package io.javalin.http.servlet
 
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
 import io.javalin.config.JavalinConfig
+import io.javalin.http.ContentType
+import io.javalin.http.Context
+import io.javalin.http.HandlerType
 import io.javalin.http.HandlerType.AFTER
+import io.javalin.http.Header
+import io.javalin.http.HttpResponseException
+import io.javalin.http.HttpStatus
 import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
-import io.javalin.util.isCompletedSuccessfully
 import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -23,13 +28,16 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Consumer
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Supplier
 
-class DefaultContext(
+class JavalinServletContext(
+    cfg: JavalinConfig,
+    val tasks: Deque<Task> = ArrayDeque(8),
+    var exceptionOccurred: Boolean = false,
+    val responseWritten: AtomicBoolean = AtomicBoolean(false),
     private var req: HttpServletRequest,
     private val res: HttpServletResponse,
-    cfg: JavalinConfig,
     private val appAttributes: Map<String, Any> = cfg.pvt.appAttributes,
     private val compressionStrategy: CompressionStrategy = cfg.pvt.compressionStrategy,
     private val startTimeNanos: Long? = if (cfg.pvt.requestLogger != null) System.nanoTime() else null,
@@ -37,8 +45,13 @@ class DefaultContext(
     private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = mapOf(),
     internal var endpointHandlerPath: String = "",
-    internal val resultReference: AtomicReference<Result<out Any?>> = AtomicReference(Result())
+    internal var userFutureSupplier: Lazy<CompletableFuture<*>>? = null,
+    internal var result: InputStream? = null,
 ) : Context {
+
+    init {
+        contentType(cfg.http.defaultContentType)
+    }
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
 
@@ -96,33 +109,27 @@ class DefaultContext(
     private val outputStreamWrapper by lazy { CompressedOutputStream(compressionStrategy, this) }
     override fun outputStream(): ServletOutputStream = outputStreamWrapper
 
-    override fun resultStream(): InputStream? = resultReference.get().let { result ->
-        result.future
-            ?.takeIf { it.isCompletedSuccessfully() }
-            ?.get() as? InputStream?
-            ?: result.previous
-    }
-
-    override fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context = also {
-        if (resultReference.get().future != null) {
-            throw IllegalStateException("Cannot override result")
-        }
-        resultReference.updateAndGet { oldResult ->
-            oldResult.future?.cancel(true)
-            Result(
-                previous = oldResult.previous,
-                future = future,
-                launch = launch,
-                callback = callback
-            )
+    override fun redirect(location: String, status: HttpStatus) {
+        header(Header.LOCATION, location).status(status).result("Redirected")
+        if (handlerType() == HandlerType.BEFORE) {
+            tasks.removeIf { it.skipIfExceptionOccurred }
         }
     }
 
-    override fun resultFuture(): CompletableFuture<*>? = resultReference.get().future
+    override fun result(resultStream: InputStream): Context = apply {
+        runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
+        this.result = resultStream
+    }
+    override fun resultStream(): InputStream? = result
+
+    override fun future(future: Supplier<out CompletableFuture<*>>) {
+        if (userFutureSupplier != null) throw IllegalStateException("Cannot override future from the same handler")
+        this.userFutureSupplier = lazy { future.get() }
+    }
 
 }
 
-// this header is semi-colon separated, like: "text/html; charset=UTF-8"
+// this header is semicolon separated, like: "text/html; charset=UTF-8"
 fun getRequestCharset(ctx: Context) = ctx.req().getHeader(Header.CONTENT_TYPE)?.let { value ->
     value.split(";").find { it.trim().startsWith("charset", ignoreCase = true) }?.let { it.split("=")[1].trim() }
 }

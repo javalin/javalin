@@ -1,7 +1,7 @@
 package io.javalin.vue
 
 import io.javalin.http.Context
-import io.javalin.http.isLocalhost
+import io.javalin.http.servlet.isLocalhost
 import io.javalin.http.staticfiles.Location
 import java.nio.file.Path
 import java.nio.file.Paths

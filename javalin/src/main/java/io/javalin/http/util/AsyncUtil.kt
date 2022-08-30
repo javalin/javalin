@@ -1,38 +1,57 @@
 package io.javalin.http.util
 
 import io.javalin.http.Context
-import io.javalin.util.exceptionallyAccept
+import io.javalin.util.ConcurrencyUtil
+import jakarta.servlet.AsyncContext
+import jakarta.servlet.AsyncEvent
+import jakarta.servlet.AsyncListener
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
+import java.util.function.Supplier
 
-object AsyncUtil {
+typealias DoneListener<R> = (Result<R>) -> Unit
+typealias TimeoutListener = () -> Unit
 
-    /** Defines default [ExecutorService] used by [Context.future] */
-    const val ASYNC_EXECUTOR_KEY = "javalin-context-async-executor"
+internal object AsyncUtil {
 
-    fun submitAsyncTask(context: Context, executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> {
-        val await = CompletableFuture<Any?>()
+    val defaultExecutor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool")
 
-        context.future(
-            future = await,
-            launch = {
-                CompletableFuture.runAsync(task, executor)
-                    .thenAccept { await.complete(null) }
-                    .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
-                    .exceptionallyAccept {
-                        when {
-                            onTimeout != null && it is TimeoutException -> onTimeout.invoke().run { await.complete(null) }
-                            else -> await.completeExceptionally(it) // catch standard exception
+    fun <R> submitAsyncTask(context: Context, executor: ExecutorService?, timeout: Long, onTimeout: TimeoutListener?, onDone: DoneListener<R>?, task: Supplier<R>) =
+        context.future {
+            CompletableFuture.supplyAsync({ task.get() }, executor ?: defaultExecutor)
+                .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
+                .let { if (onDone != null) it.thenAccept { result -> onDone(Result.success(result)) } else it }
+                .exceptionally {
+                    when {
+                        onTimeout != null && it is TimeoutException -> {
+                            onTimeout.invoke()
+                            null // handled
+                        }
+                        else -> {
+                            onDone?.invoke(Result.failure(it))
+                            throw it // rethrow
                         }
                     }
-                    .exceptionallyAccept { await.completeExceptionally(it) } // catch exception from timeout listener
-            },
-            callback = { /* noop */ }
-        )
+                }
+        }
 
-        return await
+    internal fun Context.isAsync(): Boolean =
+        req().isAsyncStarted
+
+    internal fun AsyncContext.addListener(
+        onComplete: (AsyncEvent) -> Unit = {},
+        onError: (AsyncEvent) -> Unit = {},
+        onStartAsync: (AsyncEvent) -> Unit = {},
+        onTimeout: (AsyncEvent) -> Unit = {},
+    ): AsyncContext = apply {
+        addListener(object : AsyncListener {
+            override fun onComplete(event: AsyncEvent) = onComplete(event)
+            override fun onError(event: AsyncEvent) = onError(event)
+            override fun onStartAsync(event: AsyncEvent) = onStartAsync(event)
+            override fun onTimeout(event: AsyncEvent) = onTimeout(event)
+        })
     }
 
 }

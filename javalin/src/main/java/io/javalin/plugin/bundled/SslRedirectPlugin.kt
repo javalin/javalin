@@ -3,7 +3,7 @@ package io.javalin.plugin.bundled
 import io.javalin.Javalin
 import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
-import io.javalin.http.isLocalhost
+import io.javalin.http.servlet.isLocalhost
 import io.javalin.plugin.Plugin
 
 /**

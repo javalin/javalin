@@ -8,11 +8,11 @@ package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
-import io.javalin.http.DefaultContext
 import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus
-import io.javalin.http.JavalinServlet
+import io.javalin.http.servlet.JavalinServlet
+import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.security.RouteRole
 import io.javalin.security.accessManagerNotConfiguredException
 import io.javalin.websocket.*
@@ -45,7 +45,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
     override fun configure(factory: JettyWebSocketServletFactory) { // this is called once, before everything
         cfg.pvt.wsFactoryConfig?.accept(factory)
         factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
-            val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as DefaultContext
+            val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as JavalinServletContext
             req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))
             val session = req.session as? Session?
             req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
@@ -59,7 +59,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         }
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val entry = wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
-        val upgradeContext = DefaultContext(
+        val upgradeContext = JavalinServletContext(
             req = req,
             res = res,
             cfg = cfg,

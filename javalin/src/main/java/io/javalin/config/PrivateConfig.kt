@@ -3,6 +3,7 @@ package io.javalin.config
 import io.javalin.compression.CompressionStrategy
 import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
+import io.javalin.http.servlet.DefaultTasks
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.plugin.Plugin
 import io.javalin.security.AccessManager
@@ -27,6 +28,6 @@ class PrivateConfig {
     @JvmField var server: Server? = null
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
-    @JvmField var stackTraceCleanerFunction: ((Array<StackTraceElement>) -> Array<StackTraceElement>)? = null
+    @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
 }
 // @formatter:on

@@ -36,7 +36,7 @@ public class SimpleAsyncTest {
 
         HttpUtil http = new HttpUtil(app.port());
 
-        app.get("/test-async", ctx -> ctx.future(getFuture()));
+        app.get("/test-async", ctx -> ctx.future(this::getFuture));
         app.get("/test-sync", ctx -> ctx.result(getBlockingResult()));
 
         timeCallable("Async result", () -> {
@@ -54,7 +54,7 @@ public class SimpleAsyncTest {
         app.stop();
     }
 
-    private void timeCallable(String name, Callable callable) throws Exception {
+    private void timeCallable(String name, Callable<?> callable) throws Exception {
         long startTime = System.currentTimeMillis();
         callable.call();
         log.info(name + " took " + (System.currentTimeMillis() - startTime) + " milliseconds");

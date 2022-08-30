@@ -7,11 +7,20 @@
 package io.javalin.http
 
 import io.javalin.config.contextResolver
+import io.javalin.http.servlet.cacheAndSetSessionAttribute
+import io.javalin.http.servlet.cachedSessionAttributeOrCompute
+import io.javalin.http.servlet.getBasicAuthCredentials
+import io.javalin.http.servlet.getCachedRequestAttributeOrSessionAttribute
+import io.javalin.http.servlet.getRequestCharset
+import io.javalin.http.servlet.readAndResetStreamIfPossible
+import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
+import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.AsyncUtil
-import io.javalin.http.util.AsyncUtil.ASYNC_EXECUTOR_KEY
 import io.javalin.http.util.CookieStore
+import io.javalin.http.util.DoneListener
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
+import io.javalin.http.util.TimeoutListener
 import io.javalin.json.jsonMapper
 import io.javalin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
@@ -26,7 +35,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeoutException
-import java.util.function.Consumer
+import java.util.function.Supplier
 
 /**
  * Provides access to functions for handling the request and response
@@ -274,7 +283,7 @@ interface Context {
      *
      * @return the [CompletableFuture] used to write the seekable stream
      */
-    fun writeSeekableStream(inputStream: InputStream, contentType: String, size: Long) = SeekableWriter.write(this, inputStream, contentType, size)
+    fun writeSeekableStream(inputStream: InputStream, contentType: String, totalBytes: Long) = SeekableWriter.write(this, inputStream, contentType, totalBytes)
 
     /**
      * Writes input stream to [writeSeekableStream] with currently available data ([InputStream.available])
@@ -286,22 +295,19 @@ interface Context {
      * Sets context result to the specified [String].
      * Will overwrite the current result if there is one.
      */
-    fun result(resultString: String) = result(resultString.byteInputStream(responseCharset()))
+    fun result(resultString: String): Context = result(resultString.byteInputStream(responseCharset()))
 
     /**
      * Sets context result to the specified array of bytes.
      * Will overwrite the current result if there is one.
      */
-    fun result(resultBytes: ByteArray) = result(resultBytes.inputStream())
+    fun result(resultBytes: ByteArray): Context = result(resultBytes.inputStream())
 
     /**
      * Sets context result to the specified [InputStream].
      * Will overwrite the current result if there is one.
      */
-    fun result(resultStream: InputStream): Context {
-        runCatching { resultStream()?.close() } // avoid memory leaks for multiple result() calls
-        return this.future(CompletableFuture.completedFuture(resultStream), callback = { /* noop */ })
-    }
+    fun result(resultStream: InputStream): Context
 
     /** Gets the current [resultStream] as a [String] (if possible), and reset the underlying stream */
     fun resultString() = readAndResetStreamIfPossible(resultStream(), responseCharset())
@@ -313,7 +319,9 @@ interface Context {
      * Utility function that allows to run async task on top of the [Context.future] method.
      * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
      *
-     * @param executor Thread-pool used to execute the given task
+     * @param executor Thread-pool used to execute the given task,
+     * by default uses globally predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
+     * You can change this default in [io.javalin.config.JavalinConfig].
      *
      * @param timeout Timeout in milliseconds,
      * by default it's 0 which means timeout watcher is disabled.
@@ -326,20 +334,17 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun async(executor: ExecutorService, timeout: Long, onTimeout: (() -> Unit)?, task: Runnable): CompletableFuture<*> = AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
+    fun <R> async(executor: ExecutorService?= null, timeout: Long = 0L, onTimeout: TimeoutListener?, onDone: DoneListener<R>?, task: Supplier<R>) =
+        AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, onDone, task)
 
-    /**
-     * Launch async task with default, globally predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
-     * You can change this default in [io.javalin.config.JavalinConfig].
-     * @see [async]
-     */
-    fun async(timeout: Long = 0L, onTimeout: (() -> Unit)? = null, task: Runnable): CompletableFuture<*> = async(appAttribute(ASYNC_EXECUTOR_KEY), timeout, onTimeout, task)
+    /** @see [async] */
+    fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>) = async(timeout = timeout, onTimeout = onTimeout, onDone = null, task = task)
 
-    /**
-     * Launch async task with default async executor and without custom timeout
-     * @see [async]
-     */
-    fun async(task: Runnable): CompletableFuture<*> = async(task = task, timeout = 0L, onTimeout = null)
+    /** @see [async] */
+    fun <R> async(task: Supplier<R>, onDone: DoneListener<R>) = async(onTimeout = null, onDone = onDone, task = task)
+
+    /* @see [async] */
+    fun <R> async(task: Supplier<R>) = async(onTimeout = null, onDone = null, task = task)
 
     /**
      * The main entrypoint for all async related functionalities exposed by [Context].
@@ -348,22 +353,9 @@ interface Context {
      *  Upon this value Javalin will schedule further execution of this request().
      *  When servlet will detect that the given future is completed, request will be executed synchronously,
      *  otherwise request will be executed asynchronously by a thread which will complete the future.
-     * @param launch Optional callback that provides a possibility to launch any kind of async execution in a thread-safe way.
-     *  Any async task that will mutate [Context] should be submitted to the executor in this scope to eliminate race-conditions between threads.
-     * @param callback Optional callback used to process result from the specified future.
-     *  The default callback (used if no callback is provided) can be configured through [io.javalin.config.ContextResolverConfig.defaultFutureCallback]
      * @throws IllegalStateException if result was already set
      */
-    fun <T> future(future: CompletableFuture<T>, launch: Runnable?, callback: Consumer<T>?): Context
-
-    /** See the main `future(CompletableFuture<T>, Runnable, Consumer<T>)` method for details. */
-    fun <T> future(future: CompletableFuture<T>): Context = future(future = future, callback = null)
-
-    /** See the main `future(CompletableFuture<T>, Runnable, Consumer<T>)` method for details. */
-    fun <T> future(future: CompletableFuture<T>, callback: Consumer<T>?): Context = future(future = future, launch = null, callback = callback)
-
-    /** Gets the current context result as a [CompletableFuture] (if set). */
-    fun resultFuture(): CompletableFuture<*>?
+    fun future(future: Supplier<out CompletableFuture<*>>)
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context = also { res().contentType = contentType }
@@ -375,12 +367,7 @@ interface Context {
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
-    fun redirect(location: String, status: HttpStatus) {
-        header(Header.LOCATION, location).status(status).result("Redirected")
-        if (handlerType() == HandlerType.BEFORE) {
-            throw SkipHttpHandlerException()
-        }
-    }
+    fun redirect(location: String, status: HttpStatus)
 
     /** Redirects to location with status [HttpStatus.FOUND]. Skips HTTP handler if called in before-handler */
     fun redirect(location: String) = redirect(location, HttpStatus.FOUND)
