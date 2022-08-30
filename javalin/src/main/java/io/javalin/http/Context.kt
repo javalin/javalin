@@ -284,13 +284,13 @@ interface Context {
      *
      * @return the [CompletableFuture] used to write the seekable stream
      */
-    fun writeSeekableStream(inputStream: InputStream, contentType: String, totalBytes: Long): Context = SeekableWriter.write(this, inputStream, contentType, totalBytes)
+    fun writeSeekableStream(inputStream: InputStream, contentType: String, totalBytes: Long) = SeekableWriter.write(this, inputStream, contentType, totalBytes)
 
     /**
      * Writes input stream to [writeSeekableStream] with currently available data ([InputStream.available])
      * @see writeSeekableStream]
      */
-    fun writeSeekableStream(inputStream: InputStream, contentType: String): Context = writeSeekableStream(inputStream, contentType, inputStream.available().toLong())
+    fun writeSeekableStream(inputStream: InputStream, contentType: String) = writeSeekableStream(inputStream, contentType, inputStream.available().toLong())
 
     /**
      * Sets context result to the specified [String].
@@ -335,17 +335,17 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun <R> async(executor: ExecutorService = appAttribute(ASYNC_EXECUTOR_KEY), onDone: DoneListener<R>?, timeout: Long = 0L, onTimeout: TimeoutListener?, task: Supplier<R>): Context =
+    fun <R> async(executor: ExecutorService = appAttribute(ASYNC_EXECUTOR_KEY), onDone: DoneListener<R>?, timeout: Long = 0L, onTimeout: TimeoutListener?, task: Supplier<R>) =
         AsyncUtil.submitAsyncTask(this, executor, task, onDone, timeout, onTimeout)
 
     /** @see [async] */
-    fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>): Context = async(task = task, onDone = null, timeout = timeout, onTimeout = onTimeout)
+    fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>) = async(task = task, onDone = null, timeout = timeout, onTimeout = onTimeout)
 
     /** @see [async] */
-    fun <R> async(task: Supplier<R>, onDone: DoneListener<R>): Context = async(task = task, onDone = onDone, onTimeout = null)
+    fun <R> async(task: Supplier<R>, onDone: DoneListener<R>) = async(task = task, onDone = onDone, onTimeout = null)
 
     /* @see [async] */
-    fun <R> async(task: Supplier<R>): Context = async(task = task, onDone = null, onTimeout = null)
+    fun <R> async(task: Supplier<R>) = async(task = task, onDone = null, onTimeout = null)
 
     /**
      * The main entrypoint for all async related functionalities exposed by [Context].
@@ -356,7 +356,7 @@ interface Context {
      *  otherwise request will be executed asynchronously by a thread which will complete the future.
      * @throws IllegalStateException if result was already set
      */
-    fun future(future: Supplier<out CompletableFuture<*>>): Context
+    fun future(future: Supplier<out CompletableFuture<*>>)
 
     /** Sets response content type to specified [String] value. */
     fun contentType(contentType: String): Context = also { res().contentType = contentType }

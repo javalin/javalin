@@ -14,7 +14,7 @@ object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
-            submitTask(Task(skipIfErrorOccurred = true) { entry.handle(ctx, requestUri) })
+            submitTask(Task(skipIfExceptinOccurred = true) { entry.handle(ctx, requestUri) })
         }
     }
 
@@ -57,12 +57,12 @@ object DefaultTasks {
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
-        submitTask(Task(skipIfErrorOccurred = false) { servlet.errorMapper.handle(ctx.statusCode(), ctx) })
+        submitTask(Task(skipIfExceptinOccurred = false) { servlet.errorMapper.handle(ctx.statusCode(), ctx) })
     }
 
     val AFTER = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-            submitTask(Task(skipIfErrorOccurred = false) { entry.handle(ctx, requestUri) })
+            submitTask(Task(skipIfExceptinOccurred = false) { entry.handle(ctx, requestUri) })
         }
     }
 

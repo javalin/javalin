@@ -9,7 +9,7 @@ import kotlin.math.min
 
 object SeekableWriter {
     var chunkSize = 128000
-    fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long): Context = ctx.async {
+    fun write(ctx: Context, inputStream: InputStream, contentType: String, totalBytes: Long) = ctx.async {
         val uncompressedStream = ctx.res().outputStream
         if (ctx.header(Header.RANGE) == null) {
             ctx.header(Header.CONTENT_TYPE, contentType)

@@ -112,7 +112,7 @@ class JavalinServletContext(
     override fun redirect(location: String, status: HttpStatus) {
         header(Header.LOCATION, location).status(status).result("Redirected")
         if (handlerType() == HandlerType.BEFORE) {
-            tasks.removeIf { it.skipIfErrorOccurred }
+            tasks.removeIf { it.skipIfExceptinOccurred }
         }
     }
 
@@ -122,7 +122,7 @@ class JavalinServletContext(
     }
     override fun resultStream(): InputStream? = result
 
-    override fun future(future: Supplier<out CompletableFuture<*>>): Context = also {
+    override fun future(future: Supplier<out CompletableFuture<*>>) {
         if (userFutureSupplier != null) throw IllegalStateException("Cannot override future from the same handler")
         this.userFutureSupplier = lazy { future.get() }
     }

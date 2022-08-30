@@ -40,7 +40,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     private fun JavalinServletContext.handleSync() {
         while (userFutureSupplier == null && tasks.isNotEmpty()) {
             val task = tasks.poll()
-            if (exceptionOccurred && task.skipIfErrorOccurred) {
+            if (exceptionOccurred && task.skipIfExceptinOccurred) {
                 continue
             }
             handleTask(task.handler)
@@ -80,7 +80,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         } catch (throwable: Throwable) {
             exceptionOccurred = true
             userFutureSupplier = null
-            tasks.offerFirst(Task(skipIfErrorOccurred = false) { exceptionMapper.handle(this, throwable) })
+            tasks.offerFirst(Task(skipIfExceptinOccurred = false) { exceptionMapper.handle(this, throwable) })
             null
         }
 
