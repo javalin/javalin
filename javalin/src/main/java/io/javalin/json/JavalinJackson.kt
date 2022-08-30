@@ -12,10 +12,11 @@ import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.Util
 import java.io.InputStream
+import java.lang.reflect.Type
 
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
-    override fun toJsonString(obj: Any): String {
+    override fun toJsonString(obj: Any, type: Type): String {
         ensureDependenciesPresent()
         return when (obj) {
             is String -> obj // the default mapper treats strings as if they are already JSON
@@ -23,7 +24,7 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
         }
     }
 
-    override fun toJsonStream(obj: Any): InputStream {
+    override fun toJsonStream(obj: Any, type: Type): InputStream {
         ensureDependenciesPresent()
         return when (obj) {
             is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
@@ -33,14 +34,14 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
         }
     }
 
-    override fun <T : Any> fromJsonString(json: String, targetClass: Class<T>): T {
-        ensureDependenciesPresent(targetClass)
-        return objectMapper!!.readValue(json, targetClass)
+    override fun <T : Any> fromJsonString(json: String, targetType: Type): T {
+        ensureDependenciesPresent(targetType as Class<*>)
+        return objectMapper!!.readValue(json, targetType as Class<T>)
     }
 
-    override fun <T : Any> fromJsonStream(json: InputStream, targetClass: Class<T>): T {
-        ensureDependenciesPresent(targetClass)
-        return objectMapper!!.readValue(json, targetClass)
+    override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T {
+        ensureDependenciesPresent(targetType as Class<*>)
+        return objectMapper!!.readValue(json, targetType as Class<T>)
     }
 
     private fun ensureDependenciesPresent(targetClass: Class<*>? = null) {

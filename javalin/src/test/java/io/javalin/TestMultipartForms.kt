@@ -57,7 +57,7 @@ class TestMultipartForms {
             .field("upload", uploadFile)
             .asString()
 
-        val uploadInfo = fasterJacksonMapper.fromJsonString(response.body, UploadInfo::class.java)
+        val uploadInfo = fasterJacksonMapper.fromJsonString<UploadInfo>(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo(ContentType.OCTET_STREAM)
@@ -74,7 +74,7 @@ class TestMultipartForms {
         val response = http.post("/test-upload")
             .field("upload", uploadFile, ContentType.IMAGE_PNG.mimeType)
             .asString()
-        val uploadInfo = fasterJacksonMapper.fromJsonString(response.body, UploadInfo::class.java)
+        val uploadInfo = fasterJacksonMapper.fromJsonString<UploadInfo>(response.body, UploadInfo::class.java)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo(ContentType.IMAGE_PNG.mimeType)

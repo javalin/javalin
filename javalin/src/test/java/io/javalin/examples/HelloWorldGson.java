@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.javalin.Javalin;
 import io.javalin.json.JsonMapper;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,14 +22,14 @@ public class HelloWorldGson {
         JsonMapper gsonMapper = new JsonMapper() {
             @NotNull
             @Override
-            public String toJsonString(@NotNull Object obj) {
+            public String toJsonString(@NotNull Object obj, Type type) {
                 return gson.toJson(obj);
             }
 
             @NotNull
             @Override
-            public <T> T fromJsonString(@NotNull String json, @NotNull Class<T> targetClass) {
-                return gson.fromJson(json, targetClass);
+            public <T> T fromJsonString(@NotNull String json, @NotNull Type targetType) {
+                return gson.fromJson(json, targetType);
             }
         };
 

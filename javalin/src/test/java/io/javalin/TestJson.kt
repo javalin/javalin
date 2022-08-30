@@ -7,6 +7,9 @@
 package io.javalin
 
 import com.google.gson.GsonBuilder
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.adapter
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
@@ -15,15 +18,17 @@ import io.javalin.http.bodyStreamAsClass
 import io.javalin.http.bodyValidator
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
+import io.javalin.json.fromJsonString
 import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.InputStream
+import java.lang.reflect.Type
 import java.time.Instant
 
-class TestJson {
+internal class TestJson {
 
-    val serializableObjectString = fasterJacksonMapper.toJsonString(SerializableObject())
+    private val serializableObjectString = fasterJacksonMapper.toJsonString(SerializableObject())
 
     @Test
     fun `default mapper maps object to json`() = TestUtil.test { app, http ->
@@ -113,7 +118,7 @@ class TestJson {
     @Test
     fun `user can configure custom toJsonString`() {
         val sillyMapper = object : JsonMapper {
-            override fun toJsonString(obj: Any): String = "toJsonString"
+            override fun toJsonString(obj: Any, type: Type): String = "toJsonString"
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
             app.get("/") { it.json(SerializableObject()) }
@@ -124,7 +129,7 @@ class TestJson {
     @Test
     fun `user can configure custom toJsonStream`() {
         val sillyMapper = object : JsonMapper {
-            override fun toJsonStream(obj: Any): InputStream = "toJsonStream".byteInputStream()
+            override fun toJsonStream(obj: Any, type: Type): InputStream = "toJsonStream".byteInputStream()
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
             app.get("/") { it.jsonStream(SerializableObject()) }
@@ -135,7 +140,7 @@ class TestJson {
     @Test
     fun `user can configure custom fromJsonString`() {
         val sillyMapper = object : JsonMapper {
-            override fun <T : Any> fromJsonString(json: String, targetClass: Class<T>): T = "fromJsonString" as T
+            override fun <T : Any> fromJsonString(json: String, targetType: Type): T = "fromJsonString" as T
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
             app.get("/") { it.result(it.bodyAsClass<String>()) }
@@ -146,7 +151,7 @@ class TestJson {
     @Test
     fun `user can configure custom fromJsonStream`() {
         val sillyMapper = object : JsonMapper {
-            override fun <T : Any> fromJsonStream(json: InputStream, targetClass: Class<T>): T = "fromJsonStream" as T
+            override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T = "fromJsonStream" as T
         }
         TestUtil.test(Javalin.create { it.jsonMapper(sillyMapper) }) { app, http ->
             app.get("/") { it.result(it.bodyStreamAsClass<String>()) }
@@ -158,8 +163,8 @@ class TestJson {
     fun `user can use GSON`() {
         val gson = GsonBuilder().create()
         val gsonMapper = object : JsonMapper {
-            override fun <T : Any> fromJsonString(json: String, targetClass: Class<T>): T = gson.fromJson(json, targetClass)
-            override fun toJsonString(obj: Any) = gson.toJson(obj)
+            override fun <T : Any> fromJsonString(json: String, targetType: Type): T = gson.fromJson(json, targetType)
+            override fun toJsonString(obj: Any, type: Type) = gson.toJson(obj, type)
         }
         TestUtil.test(Javalin.create { it.jsonMapper(gsonMapper) }) { app, http ->
             app.get("/") { it.json(SerializableObject()) }
@@ -172,12 +177,29 @@ class TestJson {
         }
     }
 
+    @Test
+    fun `user can use Moshi as mapper`() {
+        val moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+
+        val moshiMapper = object : JsonMapper {
+            override fun toJsonString(obj: Any, type: Type): String = moshi.adapter<Any>(type).toJson(obj)
+            override fun <T : Any> fromJsonString(json: String, targetType: Type): T = moshi.adapter<Any>(targetType).fromJson(json) as T
+        }
+
+        val asText = moshiMapper.toJsonString(arrayOf("use", "jackson"))
+        val asObject = moshiMapper.fromJsonString<Array<String>>(asText)
+
+        assertThat(asObject).isEqualTo(arrayOf("use", "jackson"))
+    }
+
     data class SerializableDataClass(val value1: String = "Default1", val value2: String)
 
     @Test
     fun `can use JavalinJackson with a custom object-mapper on a kotlin data class`() {
         val mapped = JavalinJackson().toJsonString(SerializableDataClass("First value", "Second value"))
-        val mappedBack = JavalinJackson().fromJsonString(mapped, SerializableDataClass::class.java)
+        val mappedBack = JavalinJackson().fromJsonString<SerializableDataClass>(mapped, SerializableDataClass::class.java)
         assertThat("First value").isEqualTo(mappedBack.value1)
         assertThat("Second value").isEqualTo(mappedBack.value2)
     }
