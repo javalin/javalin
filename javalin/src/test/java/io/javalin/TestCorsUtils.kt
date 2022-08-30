@@ -3,6 +3,7 @@ package io.javalin
 import io.javalin.plugin.bundled.CorsUtils
 import io.javalin.plugin.bundled.OriginParts
 import io.javalin.plugin.bundled.PortResult
+import io.javalin.plugin.bundled.WildcardResult
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.Nested
@@ -217,6 +218,33 @@ class TestCorsUtils {
             ).forEach { (input, expected) ->
                 assertThat(CorsUtils.addSchemeIfMissing(input, "https")).describedAs(input).isEqualTo(expected)
             }
+        }
+    }
+
+    @Nested
+    inner class WildcardRequirements {
+        @Test
+        fun `no wildcard origins are okay`() {
+            assertThat(CorsUtils.originFulfillsWildcardRequirements("https://example.com"))
+                .isEqualTo(WildcardResult.NoWildcardDetected)
+        }
+
+        @Test
+        fun `wildcards at the start of the host are accepted`() {
+            assertThat(CorsUtils.originFulfillsWildcardRequirements("https://*.example.com"))
+                .isEqualTo(WildcardResult.WildcardOkay)
+        }
+
+        @Test
+        fun `at most one wildcard is allowed`() {
+            assertThat(CorsUtils.originFulfillsWildcardRequirements("https://*.look.*.multiple.wildcards.com"))
+                .isEqualTo(WildcardResult.ErrorState.TooManyWildcards)
+        }
+
+        @Test
+        fun `wildcards in the middle are not accepted`() {
+            assertThat(CorsUtils.originFulfillsWildcardRequirements("https://subsub.*.example.com"))
+                .isEqualTo(WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost)
         }
     }
 }

@@ -102,9 +102,10 @@ internal object CorsUtils {
     internal fun parseAsOriginParts(origin: String): OriginParts {
         val schemeAndHostDelimiter =
             origin.indexOf("://").also { require(it > 0) { "scheme delimiter :// must exist" } }
-        val scheme: String =
-            origin.subSequence(0, schemeAndHostDelimiter).toString().also { require(isSchemeValid(it)) { "specified scheme is not valid" } }
-        val port = (extractPort(origin) as? PortResult.PortSpecified)?.port ?: throw IllegalArgumentException("explicit port is required")
+        val scheme: String = origin.subSequence(0, schemeAndHostDelimiter).toString()
+                .also { require(isSchemeValid(it)) { "specified scheme is not valid" } }
+        val port = (extractPort(origin) as? PortResult.PortSpecified)?.port
+            ?: throw IllegalArgumentException("explicit port is required")
         val host = origin.subSequence(schemeAndHostDelimiter + 3, origin.lastIndexOf(':')).toString()
 
         val reconstructedOrigin = "$scheme://$host:$port"
@@ -142,6 +143,18 @@ internal object CorsUtils {
 
         return serverHostBase == clientHostBase
     }
+
+    internal fun originFulfillsWildcardRequirements(origin: String): WildcardResult {
+        return when(origin.count { it == '*' }) {
+            0 -> WildcardResult.NoWildcardDetected
+            1 -> if ("://*." !in origin) {
+                    WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost
+                } else {
+                    WildcardResult.WildcardOkay
+            }
+            else -> WildcardResult.ErrorState.TooManyWildcards
+        }
+    }
 }
 
 internal sealed class PortResult {
@@ -152,6 +165,18 @@ internal sealed class PortResult {
 
     internal object NoPortSpecified : PortResult()
     internal data class PortSpecified(val port: Int, val fromSchemeDefault: Boolean = false) : PortResult()
+}
+
+internal sealed class WildcardResult {
+    internal sealed class ErrorState : WildcardResult() {
+        internal object TooManyWildcards : ErrorState()
+
+        internal object WildcardNotAtTheStartOfTheHost : ErrorState()
+    }
+
+    internal object NoWildcardDetected : WildcardResult()
+
+    internal object WildcardOkay : WildcardResult()
 }
 
 internal data class OriginParts(val scheme: String, val host: String, val port: Int)

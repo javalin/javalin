@@ -15,6 +15,7 @@ import io.javalin.http.HttpStatus
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.bundled.CorsUtils.isValidOrigin
 import io.javalin.plugin.bundled.CorsUtils.normalizeOrigin
+import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
 import io.javalin.plugin.bundled.CorsUtils.originsMatch
 import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
 import java.util.*
@@ -39,6 +40,17 @@ data class CorsPluginConfig(
         origins.map { CorsUtils.addSchemeIfMissing(it, defaultScheme) }.forEachIndexed { idx, it ->
             require(it != "null") { "Adding the string null as an allowed host is forbidden. Consider calling anyHost() instead" }
             require(isValidOrigin(it)) { "The given value '${origins[idx]}' could not be transformed into a valid origin" }
+            val wildcardResult = originFulfillsWildcardRequirements(it)
+            require(wildcardResult !is WildcardResult.ErrorState) {
+                when (wildcardResult) {
+                    WildcardResult.ErrorState.TooManyWildcards -> "Too many wildcards detected inside '${origins[idx]}'. Only one at the start of the host is allowed!"
+                    WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost -> "The wildcard must be at the start of the passed in host. The value '${origins[idx]}' violates this requirement!"
+                    else -> throw IllegalStateException("""This code path should never be hit.
+                        |
+                        |Please report it to the maintainers of Javalin as a GitHub issue at https://github.com/javalin/javalin/issues/new/choose""".trimMargin()
+                    )
+                }
+            }
             allowedOrigins.add(it)
         }
     }
