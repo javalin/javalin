@@ -484,6 +484,19 @@
                             <version>${junit.version}</version>
                         </dependency>
                     </dependencies>
+                    <configuration>
+                        <!--
+                        default: **/*$*
+                        Source: https://maven.apache.org/surefire/maven-surefire-plugin/test-mojo.html#excludes
+
+                        Not removing this default causes roots tests mixed with nested tests to be not executed by
+                        Maven.
+                        Similar JUnit issue: https://github.com/junit-team/junit5/issues/1377
+                        -->
+                        <excludes>
+                            <exclude/>
+                        </excludes>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-jar-plugin</artifactId>
