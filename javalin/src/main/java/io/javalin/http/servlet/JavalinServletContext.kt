@@ -32,18 +32,18 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
 
 class JavalinServletContext(
+    cfg: JavalinConfig,
+    val tasks: Deque<Task> = ArrayDeque(8),
+    var exceptionOccurred: Boolean = false,
+    val responseWritten: AtomicBoolean = AtomicBoolean(false),
     private var req: HttpServletRequest,
     private val res: HttpServletResponse,
-    cfg: JavalinConfig,
     private val appAttributes: Map<String, Any> = cfg.pvt.appAttributes,
     private val compressionStrategy: CompressionStrategy = cfg.pvt.compressionStrategy,
     private val startTimeNanos: Long? = if (cfg.pvt.requestLogger != null) System.nanoTime() else null,
     private var handlerType: HandlerType = HandlerType.BEFORE,
     private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = mapOf(),
-    internal val tasks: Deque<Task> = ArrayDeque(8),
-    internal val responseWritten: AtomicBoolean = AtomicBoolean(false),
-    internal var exceptionOccurred: Boolean = false,
     internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Lazy<CompletableFuture<*>>? = null,
     internal var result: InputStream? = null,

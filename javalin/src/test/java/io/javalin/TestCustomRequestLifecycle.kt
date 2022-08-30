@@ -1,6 +1,7 @@
 package io.javalin
 
 import io.javalin.http.servlet.DefaultTasks.HTTP
+import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
 import io.javalin.testing.TestUtil
@@ -32,6 +33,17 @@ class TestCustomRequestLifecycle {
     }) { app, http ->
         app.get("/") { it.result("Hello!") }
         assertThat(http.getBody("/")).isEqualTo("Static after!")
+    }
+
+    @Test
+    fun `can terminate request handling using unsafe api`() = TestUtil.test { app, http ->
+        app.before {
+            it.result("Before")
+            (it as JavalinServletContext).tasks.clear()
+        }
+        app.get("/") { it.result("Http") }
+        app.after { it.result("After") }
+        assertThat(http.getBody("/")).isEqualTo("Before")
     }
 
 }
