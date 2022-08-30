@@ -7,7 +7,7 @@ fun interface TaskInitializer<CTX : Context> {
 }
 
 data class Task(
-    val skipIfExceptinOccurred: Boolean = true, // tasks in this stage can be aborted by throwing an exception
+    val skipIfExceptionOccurred: Boolean = true, // tasks in this stage can be aborted by throwing an exception
     val handler: TaskHandler<Unit>
 )
 
