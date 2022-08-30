@@ -8,6 +8,7 @@ package io.javalin.http.servlet
 
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
+import io.javalin.http.HttpStatus.REQUEST_TIMEOUT
 import io.javalin.http.util.AsyncUtil.addListener
 import io.javalin.http.util.AsyncUtil.isAsync
 import io.javalin.http.util.ETagGenerator
@@ -15,7 +16,6 @@ import io.javalin.routing.PathMatcher
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import java.util.concurrent.CompletableFuture
 
 class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
@@ -46,17 +46,17 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             handleTask(task.handler)
         }
         when {
-            userFutureSupplier != null -> handleAsync()
+            userFutureSupplier != null -> handleUserFuture()
             else -> writeResponseAndLog()
         }
     }
 
-    private fun JavalinServletContext.handleAsync() {
-        val userFutureSupplier = userFutureSupplier ?: return
-        this.userFutureSupplier = null
+    private fun JavalinServletContext.handleUserFuture() {
+        val userFutureSupplier = userFutureSupplier!!.also { userFutureSupplier = null } // nullcheck in handleSync
         val userFuture = handleTask { userFutureSupplier.value } ?: return handleSync() // get future from supplier or handle error
-
-        handleAsyncContextAndAddDefaultTimeoutListeners(userFuture)
+        if (!isAsync()) startAsyncAndAddDefaultTimeoutListeners()
+        req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) })
+        userFuture
             .thenApply { handleSync() }
             .exceptionally {
                 exceptionMapper.handle(this, it)
@@ -64,30 +64,23 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             }
     }
 
-    private fun JavalinServletContext.handleAsyncContextAndAddDefaultTimeoutListeners(userFuture: CompletableFuture<*>) = userFuture.also {
-        if (!isAsync()) {
-            req().startAsync().also {
-                it.addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
-                    status(INTERNAL_SERVER_ERROR) // default error handling
-                    errorMapper.handle(statusCode(), this) // user defined error handling
-                    if (resultStream() == null) result("Request timed out") // write default response only if handler didn't do anything
-                    writeResponseAndLog()
-                })
-                it.timeout = cfg.http.asyncTimeout
-            }
-        }
-        if (isAsync()) {
-            req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) }) // registers timeout listener
-        }
+    private fun JavalinServletContext.startAsyncAndAddDefaultTimeoutListeners() = req().startAsync().also {
+        it.timeout = cfg.http.asyncTimeout
+        it.addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
+            status(INTERNAL_SERVER_ERROR) // default error handling
+            errorMapper.handle(statusCode(), this) // user defined error handling
+            if (resultStream() == null) result(REQUEST_TIMEOUT.message) // write default response only if handler didn't do anything
+            writeResponseAndLog()
+        })
     }
 
     private fun <R> JavalinServletContext.handleTask(handler: TaskHandler<R>): R? =
         try {
             handler.handle()
         } catch (throwable: Throwable) {
-            this.exceptionOccurred = true
-            this.userFutureSupplier = null
-            this.tasks.offerFirst(Task(skipIfErrorOccurred = false) { exceptionMapper.handle(this, throwable) })
+            exceptionOccurred = true
+            userFutureSupplier = null
+            tasks.offerFirst(Task(skipIfErrorOccurred = false) { exceptionMapper.handle(this, throwable) })
             null
         }
 
