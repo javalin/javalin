@@ -10,6 +10,7 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HttpResponseException
+import io.javalin.http.HttpStatus
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.jetty.JettyUtil
 import io.javalin.util.JavalinLogger
@@ -21,19 +22,19 @@ class ExceptionMapper(val cfg: JavalinConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
-    internal fun handle(ctx: Context, throwable: Throwable) {
-        if (throwable is CompletionException && throwable.cause is Exception) {
-            return handle(ctx, throwable.cause as Exception)
+    internal fun handle(ctx: Context, t: Throwable) {
+        if (t is CompletionException && t.cause is Exception) {
+            return handle(ctx, t.cause as Exception)
         }
         when {
-            throwable is Exception && HttpResponseExceptionMapper.canHandle(throwable) && noUserHandler(throwable) -> HttpResponseExceptionMapper.handle(throwable, ctx)
-            throwable is Exception -> Util.findByClass(handlers, throwable.javaClass)?.handle(throwable, ctx) ?: run { uncaughtThrowable(ctx, throwable) }
-            else -> uncaughtThrowable(ctx, throwable)
+            t is Exception && HttpResponseExceptionMapper.canHandle(t) && noUserHandler(t) -> HttpResponseExceptionMapper.handle(t, ctx)
+            t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
+            else -> handleUnexpectedThrowable(ctx.res(), t)
         }
     }
 
-    private fun uncaughtThrowable(ctx: Context, throwable: Throwable) {
-        JavalinLogger.warn("Uncaught exception", throwable)
+    private fun uncaughtException(ctx: Context, exception: Exception) {
+        JavalinLogger.warn("Uncaught exception", exception)
         HttpResponseExceptionMapper.handle(InternalServerErrorResponse(), ctx)
     }
 
@@ -43,7 +44,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
             JavalinLogger.debug("Client aborted or timed out", throwable)
             return null // jetty aborts and timeouts happen when clients disconnect, they are not actually unexpected
         }
-        res.status = 500
+        res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         return null
     }
