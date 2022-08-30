@@ -170,7 +170,7 @@ internal class TestJson {
             app.get("/") { it.json(SerializableObject()) }
             assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
             app.post("/") { ctx ->
-                ctx.bodyAsClass(SerializableObject::class.java)
+                ctx.bodyAsClass<SerializableObject>(SerializableObject::class.java)
                 ctx.result("success")
             }
             assertThat(http.post("/").body(gson.toJson(SerializableObject())).asString().body).isEqualTo("success")
