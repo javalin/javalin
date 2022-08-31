@@ -75,7 +75,7 @@ class TestAccessManager {
             handler.handle(ctx)
         }
     }) { app, http ->
-        app.get("/secured", { it.result(it.resultString() ?: "") }, ROLE_ONE)
+        app.get("/secured", { it.result(it.result() ?: "") }, ROLE_ONE)
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Test")
     }
 

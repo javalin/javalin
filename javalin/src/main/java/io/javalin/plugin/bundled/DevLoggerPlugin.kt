@@ -4,6 +4,7 @@ import io.javalin.Javalin
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
+import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginLifecycleInit
 import io.javalin.routing.PathMatcher
@@ -62,14 +63,15 @@ fun requestDevLogger(matcher: PathMatcher, ctx: Context, time: Float) = try {
 private fun String.probablyFormData() = this.trim().firstOrNull()?.isLetter() == true && this.split("=").size >= 2
 
 private fun resBody(ctx: Context): String {
-    val stream = ctx.resultStream() ?: return "No body was set"
+    val internalContext = ctx as JavalinServletContext
+    val stream = internalContext.resultStream ?: return "No body was set"
     if (!stream.markSupported()) {
         return "Body is binary (not logged)"
     }
 
     val gzipped = ctx.res().getHeader(Header.CONTENT_ENCODING) == "gzip"
     val brotlied = ctx.res().getHeader(Header.CONTENT_ENCODING) == "br"
-    val resBody = ctx.resultString()!!
+    val resBody = ctx.result()!!
     return when {
         gzipped -> "Body is gzipped (${resBody.length} bytes, not logged)"
         brotlied -> "Body is brotlied (${resBody.length} bytes, not logged)"
