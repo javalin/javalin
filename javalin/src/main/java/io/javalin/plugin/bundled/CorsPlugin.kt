@@ -25,6 +25,7 @@ data class CorsPluginConfig(
     @JvmField var allowCredentials: Boolean = false,
     @JvmField var reflectClientOrigin: Boolean = false,
     @JvmField var defaultScheme: String = "https",
+    @JvmField var url: String = "*",
     private val allowedOrigins: MutableList<String> = mutableListOf(),
     private val headersToExpose: MutableList<String> = mutableListOf()
 ) {
@@ -70,10 +71,10 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
     override fun apply(app: Javalin) {
         require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
         require(origins.isEmpty() || !cfg.reflectClientOrigin) { "Cannot set `allowedOrigins` if `reflectClientOrigin` is true" }
-        app.before { ctx ->
+        app.before(cfg.url) { ctx ->
             handleCors(ctx)
         }
-        app.after { ctx ->
+        app.after(cfg.url) { ctx ->
             if (ctx.method() == OPTIONS && ctx.status() == HttpStatus.NOT_FOUND) { // CORS is enabled, so we return 200 for OPTIONS
                 ctx.result("").status(200)
             }
@@ -125,3 +126,16 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
         return serverOriginParts.any { originsMatch(clientOriginPart, it) }
     }
 }
+
+class CorsContainerPlugin : Plugin {
+    private val corsPlugins = mutableListOf<CorsPlugin>()
+
+    override fun apply(app: Javalin) {
+        corsPlugins.forEach { it.apply(app) }
+    }
+
+    fun addCors(userConfig: Consumer<CorsPluginConfig>) {
+        corsPlugins.add(CorsPlugin(userConfig))
+    }
+}
+

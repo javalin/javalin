@@ -16,6 +16,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.REFERER
 import io.javalin.http.HttpStatus.UNAUTHORIZED
+import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
 import kong.unirest.Unirest
@@ -325,6 +326,60 @@ class TestCors {
                 .asString()
             assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://example.com")
             assertThat(response.body).isEqualTo("Hello")
+        }
+    }
+
+    @Nested
+    inner class ComplexSetup {
+        @Test
+        fun works() = TestUtil.test(Javalin.create { cfg ->
+            cfg.plugins.enableCors {
+                it.url = "images*"
+                it.allowHost("https://images.local")
+            }
+            cfg.plugins.enableCors {
+                it.url = "videos*"
+                it.allowHost("https://videos.local")
+            }
+            cfg.plugins.enableCors {
+                it.url = "music*"
+                it.allowHost("https://music.local")
+            }
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            app.get("/images/{id}") { it.result(it.pathParam("id")) }
+            app.get("/videos/{id}") { it.result(it.pathParam("id")) }
+            app.get("/music/{id}") { it.result(it.pathParam("id")) }
+            val response = Unirest.get(http.origin)
+                .header(ORIGIN, "https://example.com")
+                .asString()
+            assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
+            assertThat(response.body).isEqualTo("Hello")
+
+            checkHappyPath(http, "images")
+            checkHappyPath(http, "videos")
+            checkHappyPath(http, "music")
+
+            checkUnhappyPath(http, "images")
+            checkUnhappyPath(http, "videos")
+            checkUnhappyPath(http, "music")
+        }
+
+        private fun checkHappyPath(http: HttpUtil, input: String) {
+            val response = Unirest.get("${http.origin}/$input/media-id")
+                .header(ORIGIN, "https://$input.local")
+                .asString()
+
+            assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://$input.local")
+            assertThat(response.body).isEqualTo("media-id")
+        }
+
+        private fun checkUnhappyPath(http: HttpUtil, input: String) {
+            val response = Unirest.get("${http.origin}/$input/media-id")
+                .header(ORIGIN, "https://example.local")
+                .asString()
+
+            assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
         }
     }
 
