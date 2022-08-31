@@ -121,11 +121,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
     private fun matchOrigin(clientOrigin: String, origins: List<String>): Boolean {
         val clientOriginPart = parseAsOriginParts(normalizeOrigin(clientOrigin))
         val serverOriginParts = origins.map(::normalizeOrigin).map(::parseAsOriginParts)
-        for (serverOriginPart in serverOriginParts) {
-            if (originsMatch(clientOriginPart, serverOriginPart)) {
-                return true
-            }
-        }
-        return false
+
+        return serverOriginParts.any { originsMatch(clientOriginPart, it) }
     }
 }

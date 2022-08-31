@@ -6,8 +6,8 @@ internal object CorsUtils {
     /**
      * validates a given scheme against [the RFC3986 definition](https://www.rfc-editor.org/rfc/rfc3986#section-3.1)
      */
-    internal fun isSchemeValid(proto: CharSequence) = proto.isNotEmpty() && proto[0].isLetter() && proto.all { ch ->
-        ch.isLetter() || ch.isAsciiDigit() || ch == '-' || ch == '+' || ch == '.'
+    internal fun isSchemeValid(scheme: CharSequence) = scheme.isNotEmpty() && scheme.first().isLetter() && scheme.all {
+        it.isLetter() || it.isAsciiDigit() || it == '-' || it == '+' || it == '.'
     }
 
     /**
@@ -17,24 +17,22 @@ internal object CorsUtils {
      * - We ignore list of origins
      */
     internal fun isValidOrigin(origin: String): Boolean {
-        if (origin.isEmpty()) return false
-        if (origin == "null") return true
-        // query strings are not a valid part of an origin
-        if ("?" in origin) return false
-        // schemes are a required part of an origin
         val schemeAndHostDelimiter = origin.indexOf("://")
-
-        if (schemeAndHostDelimiter <= 0) return false
-        if (!isSchemeValid(origin.subSequence(0, schemeAndHostDelimiter))) return false
-
-        // only slashed that are allowed are the delimiter slashes
-        if (origin.count { it == '/' } != 2) return false
-
-        // if a port is specified is must consist of only digits
         val portResult = extractPort(origin)
-        if (portResult is PortResult.ErrorState) return false
-
-        return true
+        return when {
+            origin.isEmpty() -> false
+            origin == "null" -> true
+            // query strings are not a valid part of an origin
+            "?" in origin -> false
+            // schemes are a required part of an origin
+            schemeAndHostDelimiter <= 0 -> false
+            !isSchemeValid(origin.subSequence(0, schemeAndHostDelimiter)) -> false
+            // only slashes that are allowed are the delimiter slashes
+            origin.count { it == '/' } != 2 -> false
+            // if a port is specified is must consist of only digits
+            portResult is PortResult.ErrorState -> false
+            else -> true
+        }
     }
 
     /**
@@ -67,25 +65,24 @@ internal object CorsUtils {
      */
     internal fun extractPortOrSchemeDefault(origin: String): PortResult {
         val portResult = extractPort(origin)
-        if (portResult !is PortResult.NoPortSpecified) {
-            return portResult
-        }
         return when {
-            origin.startsWith("https://", ignoreCase = true) -> PortResult.PortSpecified(443, fromSchemeDefault = true)
-            origin.startsWith("http://", ignoreCase = true) -> PortResult.PortSpecified(80, fromSchemeDefault = true)
+            portResult is PortResult.NoPortSpecified && origin.startsWith("https://", ignoreCase = true) ->
+                PortResult.PortSpecified(443, fromSchemeDefault = true)
+
+            portResult is PortResult.NoPortSpecified && origin.startsWith("http://", ignoreCase = true) ->
+                PortResult.PortSpecified(80, fromSchemeDefault = true)
+
             else -> portResult
         }
     }
 
     internal fun addSchemeIfMissing(host: String, defaultScheme: String): String {
-        // do not add a scheme to special values
-        if (host == "*" || host == "null") {
-            return host
-        }
-        val hostWithScheme = if ("://" in host) {
-            host
-        } else {
-            "$defaultScheme://$host"
+        val hostWithScheme = when {
+            // do not add a scheme to special values
+            host == "*" -> host
+            host == "null" -> host
+            "://" in host -> host
+            else -> "$defaultScheme://$host"
         }
 
         return hostWithScheme.lowercase(Locale.ROOT).removeSuffix("/")
@@ -103,7 +100,7 @@ internal object CorsUtils {
         val schemeAndHostDelimiter =
             origin.indexOf("://").also { require(it > 0) { "scheme delimiter :// must exist" } }
         val scheme: String = origin.subSequence(0, schemeAndHostDelimiter).toString()
-                .also { require(isSchemeValid(it)) { "specified scheme is not valid" } }
+            .also { require(isSchemeValid(it)) { "specified scheme is not valid" } }
         val port = (extractPort(origin) as? PortResult.PortSpecified)?.port
             ?: throw IllegalArgumentException("explicit port is required")
         val host = origin.subSequence(schemeAndHostDelimiter + 3, origin.lastIndexOf(':')).toString()
@@ -145,13 +142,14 @@ internal object CorsUtils {
     }
 
     internal fun originFulfillsWildcardRequirements(origin: String): WildcardResult {
-        return when(origin.count { it == '*' }) {
+        return when (origin.count { it == '*' }) {
             0 -> WildcardResult.NoWildcardDetected
             1 -> if ("://*." !in origin) {
-                    WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost
-                } else {
-                    WildcardResult.WildcardOkay
+                WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost
+            } else {
+                WildcardResult.WildcardOkay
             }
+
             else -> WildcardResult.ErrorState.TooManyWildcards
         }
     }
