@@ -308,6 +308,9 @@
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/main/java</sourceDir>
                             </sourceDirs>
+                            <args>
+                                <arg>-Xjvm-default=all</arg>
+                            </args>
                         </configuration>
                     </execution>
                     <execution>
