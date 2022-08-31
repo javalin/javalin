@@ -15,7 +15,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>5.0.0-SNAPSHOT</version>
+    <version>5.0.0.RC1</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -497,7 +497,7 @@
                         Similar JUnit issue: https://github.com/junit-team/junit5/issues/1377
                         -->
                         <excludes>
-                            <exclude/>
+                            <exclude />
                         </excludes>
                     </configuration>
                 </plugin>
