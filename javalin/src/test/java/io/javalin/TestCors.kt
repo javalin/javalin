@@ -376,15 +376,15 @@ class TestCors {
         fun works() = TestUtil.test(Javalin.create { cfg ->
             cfg.plugins.enableCors { cors ->
                 cors.add {
-                    it.url = "images*"
+                    it.path = "images*"
                     it.allowHost("https://images.local")
                 }
                 cors.add {
-                    it.url = "videos*"
+                    it.path = "videos*"
                     it.allowHost("https://videos.local")
                 }
                 cors.add {
-                    it.url = "music*"
+                    it.path = "music*"
                     it.allowHost("https://music.local")
                 }
             }

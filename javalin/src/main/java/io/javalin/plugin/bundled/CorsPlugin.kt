@@ -26,7 +26,7 @@ data class CorsPluginConfig(
     @JvmField var allowCredentials: Boolean = false,
     @JvmField var reflectClientOrigin: Boolean = false,
     @JvmField var defaultScheme: String = "https",
-    @JvmField var url: String = "*",
+    @JvmField var path: String = "*",
     private val allowedOrigins: MutableList<String> = mutableListOf(),
     private val headersToExpose: MutableList<String> = mutableListOf()
 ) {
@@ -76,10 +76,10 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
         val origins = cfg.allowedOrigins()
         require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
         require(origins.isEmpty() || !cfg.reflectClientOrigin) { "Cannot set `allowedOrigins` if `reflectClientOrigin` is true" }
-        app.before(cfg.url) { ctx ->
+        app.before(cfg.path) { ctx ->
             handleCors(ctx, cfg)
         }
-        app.after(cfg.url) { ctx ->
+        app.after(cfg.path) { ctx ->
             if (ctx.method() == OPTIONS && ctx.status() == HttpStatus.NOT_FOUND) { // CORS is enabled, so we return 200 for OPTIONS
                 ctx.result("").status(200)
             }
