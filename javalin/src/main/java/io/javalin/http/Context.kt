@@ -266,7 +266,7 @@ interface Context {
     ///////////////////////////////////////////////////////////////
 
     /** Gets the current response [Charset]. */
-    private fun responseCharset() = runCatching { Charset.forName(res().characterEncoding) }.getOrElse { Charset.defaultCharset() }
+    fun responseCharset(): Charset = runCatching { Charset.forName(res().characterEncoding) }.getOrElse { Charset.defaultCharset() }
 
     /**
      * Gets output-stream you can write to.
@@ -310,11 +310,8 @@ interface Context {
      */
     fun result(resultStream: InputStream): Context
 
-    /** Gets the current [resultStream] as a [String] (if possible), and reset the underlying stream */
-    fun resultString() = readAndResetStreamIfPossible(resultStream(), responseCharset())
-
-    /** Extracts input stream from latest result if possible */
-    fun resultStream(): InputStream?
+    /** Gets the current [io.javalin.http.servlet.JavalinServletContext.resultStream] as a [String] (if set), and reset the underlying stream */
+    fun result(): String?
 
     /**
      * Utility function that allows to run async task on top of the [Context.future] method.

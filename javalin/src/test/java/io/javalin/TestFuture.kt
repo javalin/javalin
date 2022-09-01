@@ -2,15 +2,11 @@ package io.javalin
 
 import io.javalin.http.Context
 import io.javalin.http.HttpStatus
-import io.javalin.http.HttpStatus.ENHANCE_YOUR_CALM
-import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
-import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
@@ -77,14 +73,14 @@ internal class TestFuture {
         fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
             app.before("/future") { ctx -> ctx.future { getFuture("before").thenApply { ctx.result(it) } } }
             app.get("/future") { ctx -> ctx.future { getFuture("nothing") } }
-            app.after("/future") { ctx -> ctx.future { getFuture("${ctx.resultString()}, after").thenApply { ctx.result(it) } } }
+            app.after("/future") { ctx -> ctx.future { getFuture("${ctx.result()}, after").thenApply { ctx.result(it) } } }
             assertThat(http.get("/future").body).isEqualTo("before, after")
         }
 
         @Test
         fun `calling future in (before - before) handlers works`() = TestUtil.test { app, http ->
             app.before { it.future { getFuture("before 1").thenAccept { v -> it.result(v) } } }
-            app.before { it.future { getFuture("${it.resultString()}, before 2").thenAccept { v -> it.result(v) } } }
+            app.before { it.future { getFuture("${it.result()}, before 2").thenAccept { v -> it.result(v) } } }
             app.get("/future") {}
             assertThat(http.get("/future").body).isEqualTo("before 1, before 2")
         }
@@ -319,4 +315,4 @@ internal class TestFuture {
 
 }
 
-private fun Context.accumulatingResult(s: String) = this.result((resultString() ?: "") + s)
+private fun Context.accumulatingResult(s: String) = this.result((result() ?: "") + s)

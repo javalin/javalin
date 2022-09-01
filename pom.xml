@@ -510,7 +510,7 @@
                         Similar JUnit issue: https://github.com/junit-team/junit5/issues/1377
                         -->
                         <excludes>
-                            <exclude/>
+                            <exclude />
                         </excludes>
                     </configuration>
                 </plugin>
