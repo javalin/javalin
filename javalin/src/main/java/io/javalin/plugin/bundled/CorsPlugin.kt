@@ -21,6 +21,8 @@ import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
 import java.util.*
 import java.util.function.Consumer
 
+const val CORS_KEY = "javalin-cors"
+
 data class CorsPluginConfig(
     @JvmField var allowCredentials: Boolean = false,
     @JvmField var reflectClientOrigin: Boolean = false,

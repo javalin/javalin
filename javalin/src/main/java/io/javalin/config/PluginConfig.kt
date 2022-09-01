@@ -3,6 +3,7 @@ package io.javalin.config
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.bundled.BasicAuthPlugin
+import io.javalin.plugin.bundled.CORS_KEY
 import io.javalin.plugin.bundled.CorsContainerPlugin
 import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.DevLoggingPlugin
@@ -34,10 +35,8 @@ class PluginConfig(private val pvt: PrivateConfig) {
     fun enableBasicAuth(username: String, password: String) = register(BasicAuthPlugin(username, password))
     fun enableSslRedirects() = register(SslRedirectPlugin())
     fun enableCors(userConfig: Consumer<CorsPluginConfig>) {
-        if (pvt.cors == null) {
-            pvt.cors = CorsContainerPlugin().also { register(it) }
-        }
-        pvt.cors?.addCors(userConfig)
+        pvt.appAttributes.putIfAbsent(CORS_KEY, CorsContainerPlugin().also { register(it) })
+        (pvt.appAttributes[CORS_KEY] as? CorsContainerPlugin)?.addCors(userConfig)
     }
 
 }
