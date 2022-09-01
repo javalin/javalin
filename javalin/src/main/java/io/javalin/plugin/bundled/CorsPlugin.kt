@@ -21,7 +21,6 @@ import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
 import java.util.*
 import java.util.function.Consumer
 
-const val CORS_KEY = "javalin-cors"
 
 data class CorsPluginConfig(
     @JvmField var allowCredentials: Boolean = false,
@@ -48,7 +47,8 @@ data class CorsPluginConfig(
                 when (wildcardResult) {
                     WildcardResult.ErrorState.TooManyWildcards -> "Too many wildcards detected inside '${origins[idx]}'. Only one at the start of the host is allowed!"
                     WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost -> "The wildcard must be at the start of the passed in host. The value '${origins[idx]}' violates this requirement!"
-                    else -> throw IllegalStateException("""This code path should never be hit.
+                    else -> throw IllegalStateException(
+                        """This code path should never be hit.
                         |
                         |Please report it to the maintainers of Javalin as a GitHub issue at https://github.com/javalin/javalin/issues/new/choose""".trimMargin()
                     )
@@ -63,18 +63,21 @@ data class CorsPluginConfig(
     }
 }
 
-class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
+class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
 
-    val cfg = CorsPluginConfig().also { userConfig.accept(it) }
+    val configs = userConfigs.map { userConfig -> CorsPluginConfig().also { userConfig.accept(it) } }
 
-    private val origins: List<String> = cfg.allowedOrigins()
-    private val headersToExpose: List<String> = cfg.headersToExpose()
 
     override fun apply(app: Javalin) {
+        configs.forEach { applySingleConfig(app, it) }
+    }
+
+    private fun applySingleConfig(app: Javalin, cfg: CorsPluginConfig) {
+        val origins = cfg.allowedOrigins()
         require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
         require(origins.isEmpty() || !cfg.reflectClientOrigin) { "Cannot set `allowedOrigins` if `reflectClientOrigin` is true" }
         app.before(cfg.url) { ctx ->
-            handleCors(ctx)
+            handleCors(ctx, cfg)
         }
         app.after(cfg.url) { ctx ->
             if (ctx.method() == OPTIONS && ctx.status() == HttpStatus.NOT_FOUND) { // CORS is enabled, so we return 200 for OPTIONS
@@ -83,7 +86,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
         }
     }
 
-    private fun handleCors(ctx: Context) {
+    private fun handleCors(ctx: Context, cfg: CorsPluginConfig) {
         val clientOrigin = ctx.header(ORIGIN) ?: return
 
         if (!isValidOrigin(clientOrigin)) {
@@ -99,6 +102,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
             }
         }
 
+        val origins = cfg.allowedOrigins()
         val allowOriginValue: String = when {
             "*" in origins -> "*"
             clientOrigin == "null" -> return
@@ -116,6 +120,7 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
             ctx.header(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
         }
 
+        val headersToExpose = cfg.headersToExpose()
         if (headersToExpose.isNotEmpty()) {
             ctx.header(ACCESS_CONTROL_EXPOSE_HEADERS, headersToExpose.joinToString(separator = ","))
         }
@@ -129,15 +134,14 @@ class CorsPlugin(userConfig: Consumer<CorsPluginConfig>) : Plugin {
     }
 }
 
-class CorsContainerPlugin : Plugin {
-    private val corsPlugins = mutableListOf<CorsPlugin>()
+class CorsContainer {
 
-    override fun apply(app: Javalin) {
-        corsPlugins.forEach { it.apply(app) }
-    }
+    private val corsConfigs = mutableListOf<Consumer<CorsPluginConfig>>()
 
-    fun addCors(userConfig: Consumer<CorsPluginConfig>) {
-        corsPlugins.add(CorsPlugin(userConfig))
+    fun corsConfigs(): List<Consumer<CorsPluginConfig>> = Collections.unmodifiableList(corsConfigs)
+
+    fun add(consumer: Consumer<CorsPluginConfig>) {
+        corsConfigs.add(consumer)
     }
 }
 

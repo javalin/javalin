@@ -32,7 +32,7 @@ class TestCors {
         @Test
         fun `throws for empty origins if reflectClientOrigin is false`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java)
-                .isThrownBy { Javalin.create { it.plugins.enableCors {} } }
+                .isThrownBy { Javalin.create { it.plugins.enableCors { cors -> cors.add {} } } }
                 .withMessageStartingWith("Origins cannot be empty if `reflectClientOrigin` is false.")
         }
 
@@ -40,9 +40,11 @@ class TestCors {
         fun `throws for non-empty if reflectClientOrigin is true`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
-                    config.plugins.enableCors {
-                        it.reflectClientOrigin = true
-                        it.allowHost("A", "B")
+                    config.plugins.enableCors { cors ->
+                        cors.add {
+                            it.reflectClientOrigin = true
+                            it.allowHost("A", "B")
+                        }
                     }
                 }
             }.withMessageStartingWith("Cannot set `allowedOrigins` if `reflectClientOrigin` is true")
@@ -52,8 +54,8 @@ class TestCors {
         fun `passing in the null origin as an allowed host does not work`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
-                    config.plugins.enableCors {
-                        it.allowHost("null")
+                    config.plugins.enableCors { cors ->
+                        cors.add { it.allowHost("null") }
                     }
                 }
             }
@@ -64,8 +66,8 @@ class TestCors {
         fun `exception for untransformable hosts exists`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
-                    config.plugins.enableCors {
-                        it.allowHost("example.com?query=true")
+                    config.plugins.enableCors { cors ->
+                        cors.add { it.allowHost("example.com?query=true") }
                     }
                 }
             }
@@ -76,8 +78,8 @@ class TestCors {
         fun `multiple wildcards lead to an exception`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
-                    config.plugins.enableCors {
-                        it.allowHost("*.*.example.com")
+                    config.plugins.enableCors { cors ->
+                        cors.add { it.allowHost("*.*.example.com") }
                     }
                 }
             }
@@ -88,8 +90,8 @@ class TestCors {
         fun `wildcard in the middle leads to an exception`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
-                    config.plugins.enableCors {
-                        it.allowHost("subsub.*.example.com")
+                    config.plugins.enableCors { cors ->
+                        cors.add { it.allowHost("subsub.*.example.com") }
                     }
                 }
             }
@@ -101,7 +103,9 @@ class TestCors {
     inner class HappyPath {
         @Test
         fun `can enable cors for specific origins`() = TestUtil.test(Javalin.create {
-            it.plugins.enableCors { it.allowHost("https://origin-1", "https://referer-1") }
+            it.plugins.enableCors { cors ->
+                cors.add { it.allowHost("https://origin-1", "https://referer-1") }
+            }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
             assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
@@ -119,7 +123,9 @@ class TestCors {
 
         @Test
         fun `can enable cors for star origins`() = TestUtil.test(Javalin.create {
-            it.plugins.enableCors { it.anyHost() }
+            it.plugins.enableCors { cors ->
+                cors.add { it.anyHost() }
+            }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
             assertThat(http.get("/", mapOf(ORIGIN to "https://A")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*")
@@ -129,11 +135,15 @@ class TestCors {
 
         @Test
         fun `has allowsCredentials false by default`() = TestUtil.test(Javalin.create {
-            it.plugins.enableCors { it.reflectClientOrigin = true }
+            it.plugins.enableCors { cors ->
+                cors.add { it.reflectClientOrigin = true }
+            }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
             assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
-            assertThat(http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo(
+            assertThat(
+                http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
+            ).isEqualTo(
                 "https://some-origin"
             )
             assertThat(
@@ -147,14 +157,18 @@ class TestCors {
 
         @Test
         fun `can have allowsCredentials set true`() = TestUtil.test(Javalin.create {
-            it.plugins.enableCors {
-                it.reflectClientOrigin = true
-                it.allowCredentials = true
+            it.plugins.enableCors { cors ->
+                cors.add {
+                    it.reflectClientOrigin = true
+                    it.allowCredentials = true
+                }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
             assertThat(http.get("/").header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
-            assertThat(http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo(
+            assertThat(
+                http.get("/", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
+            ).isEqualTo(
                 "https://some-origin"
             )
             assertThat(
@@ -168,7 +182,11 @@ class TestCors {
 
         @Test
         fun `works for 404s`() =
-            TestUtil.test(Javalin.create { it.plugins.enableCors { it.reflectClientOrigin = true } }) { _, http ->
+            TestUtil.test(Javalin.create {
+                it.plugins.enableCors { cors ->
+                    cors.add { it.reflectClientOrigin = true }
+                }
+            }) { _, http ->
                 assertThat(
                     http.get("/not-found", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
                 ).isEqualTo("https://some-origin")
@@ -176,7 +194,9 @@ class TestCors {
 
         @Test
         fun `works with AccessManager`() = TestUtil.test(Javalin.create {
-            it.plugins.enableCors { it.reflectClientOrigin = true }
+            it.plugins.enableCors { cors ->
+                cors.add { it.reflectClientOrigin = true }
+            }
             it.accessManager { _, ctx, _ -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message) }
         }) { app, http ->
             app.get("/", { it.result("Hello") }, TestAccessManager.MyRoles.ROLE_ONE)
@@ -194,7 +214,9 @@ class TestCors {
 
         @Test
         fun `works with options endpoint mapping`() = TestUtil.test(Javalin.create {
-            it.plugins.enableCors { it.reflectClientOrigin = true }
+            it.plugins.enableCors { cors ->
+                cors.add { it.reflectClientOrigin = true }
+            }
         }) { app, http ->
             app.options("/") { it.result("Hello") }
             val response = Unirest.options(http.origin)
@@ -212,36 +234,45 @@ class TestCors {
     inner class NegativeTests {
         @Test
         fun `headers are not set when origin doesn't match`() = TestUtil.test(Javalin.create {
-            it.plugins.enableCors { it.allowHost("https://origin-1.com") }
+            it.plugins.enableCors { cors ->
+                cors.add { it.allowHost("https://origin-1.com") }
+            }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
-            assertThat(http.get("/", mapOf(ORIGIN to "https://origin-2.com")).header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
+            assertThat(
+                http.get("/", mapOf(ORIGIN to "https://origin-2.com")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
+            ).isEmpty()
             assertThat(
                 http.get("/", mapOf(ORIGIN to "https://origin-1.com.au")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
             ).isEmpty()
         }
 
         @Test
-        fun `same hostname with different ports is detected as different origins`() = TestUtil.test(Javalin.create { cfg ->
-            cfg.plugins.enableCors {
-                it.allowHost("https://example.com:8443")
+        fun `same hostname with different ports is detected as different origins`() =
+            TestUtil.test(Javalin.create { cfg ->
+                cfg.plugins.enableCors { cors ->
+                    cors.add {
+                        it.allowHost("https://example.com:8443")
+                    }
+                }
+            }) { app, http ->
+                app.get("/") { it.result("Hello") }
+                val response = Unirest.get(http.origin)
+                    .header(ORIGIN, "https://example.com")
+                    .asString()
+                assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
             }
-        }) { app, http ->
-            app.get("/") { it.result("Hello") }
-            val response = Unirest.get(http.origin)
-                .header(ORIGIN, "https://example.com")
-                .asString()
-            assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEmpty()
-        }
     }
 
     @Nested
     inner class ExposingHeaders {
         @Test
         fun `allows exposing a single header`() = TestUtil.test(Javalin.create { cfg ->
-            cfg.plugins.enableCors {
-                it.reflectClientOrigin = true
-                it.exposeHeader("x-test")
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.reflectClientOrigin = true
+                    it.exposeHeader("x-test")
+                }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -254,10 +285,12 @@ class TestCors {
 
         @Test
         fun `allows exposing multiple headers`() = TestUtil.test(Javalin.create { cfg ->
-            cfg.plugins.enableCors {
-                it.reflectClientOrigin = true
-                it.exposeHeader("x-test")
-                it.exposeHeader("x-world")
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.reflectClientOrigin = true
+                    it.exposeHeader("x-test")
+                    it.exposeHeader("x-world")
+                }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -273,9 +306,11 @@ class TestCors {
     inner class ConvenienceFeatures {
         @Test
         fun `default scheme can be overridden`() = TestUtil.test(Javalin.create { cfg ->
-            cfg.plugins.enableCors {
-                it.defaultScheme = "http"
-                it.allowHost("example.com")
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.defaultScheme = "http"
+                    it.allowHost("example.com")
+                }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -288,8 +323,10 @@ class TestCors {
 
         @Test
         fun `wildcard subdomain work`() = TestUtil.test(Javalin.create { cfg ->
-            cfg.plugins.enableCors {
-                it.allowHost("*.example.com")
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.allowHost("*.example.com")
+                }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -302,8 +339,10 @@ class TestCors {
 
         @Test
         fun `default port detection works`() = TestUtil.test(Javalin.create { cfg ->
-            cfg.plugins.enableCors {
-                it.allowHost("https://example.com:443")
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.allowHost("https://example.com:443")
+                }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -316,8 +355,10 @@ class TestCors {
 
         @Test
         fun `capitalization does not matter`() = TestUtil.test(Javalin.create { cfg ->
-            cfg.plugins.enableCors {
-                it.allowHost("HTTPS://EXAMPLE.COM")
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.allowHost("HTTPS://EXAMPLE.COM")
+                }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -333,17 +374,19 @@ class TestCors {
     inner class ComplexSetup {
         @Test
         fun works() = TestUtil.test(Javalin.create { cfg ->
-            cfg.plugins.enableCors {
-                it.url = "images*"
-                it.allowHost("https://images.local")
-            }
-            cfg.plugins.enableCors {
-                it.url = "videos*"
-                it.allowHost("https://videos.local")
-            }
-            cfg.plugins.enableCors {
-                it.url = "music*"
-                it.allowHost("https://music.local")
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.url = "images*"
+                    it.allowHost("https://images.local")
+                }
+                cors.add {
+                    it.url = "videos*"
+                    it.allowHost("https://videos.local")
+                }
+                cors.add {
+                    it.url = "music*"
+                    it.allowHost("https://music.local")
+                }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }

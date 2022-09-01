@@ -3,9 +3,8 @@ package io.javalin.config
 import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.bundled.BasicAuthPlugin
-import io.javalin.plugin.bundled.CORS_KEY
-import io.javalin.plugin.bundled.CorsContainerPlugin
-import io.javalin.plugin.bundled.CorsPluginConfig
+import io.javalin.plugin.bundled.CorsContainer
+import io.javalin.plugin.bundled.CorsPlugin
 import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.plugin.bundled.GlobalHeaderConfig
 import io.javalin.plugin.bundled.GlobalHeadersPlugin
@@ -34,9 +33,9 @@ class PluginConfig(private val pvt: PrivateConfig) {
     fun enableRedirectToLowercasePaths() = register(RedirectToLowercasePathPlugin())
     fun enableBasicAuth(username: String, password: String) = register(BasicAuthPlugin(username, password))
     fun enableSslRedirects() = register(SslRedirectPlugin())
-    fun enableCors(userConfig: Consumer<CorsPluginConfig>) {
-        pvt.appAttributes.putIfAbsent(CORS_KEY, CorsContainerPlugin().also { register(it) })
-        (pvt.appAttributes[CORS_KEY] as? CorsContainerPlugin)?.addCors(userConfig)
+    fun enableCors(userConfig: Consumer<CorsContainer>) {
+        val corsConfigs = CorsContainer().also { userConfig.accept(it) }.corsConfigs()
+        register(CorsPlugin(corsConfigs))
     }
 
 }
