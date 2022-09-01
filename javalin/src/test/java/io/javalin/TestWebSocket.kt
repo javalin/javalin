@@ -63,6 +63,7 @@ class TestWebSocket {
                     this.logger().log.add("upgrade request valid!")
                     handler.handle(ctx)
                 }
+
                 else -> this.logger().log.add("upgrade request invalid!")
             }
         }
@@ -521,37 +522,41 @@ class TestWebSocket {
         }
     }
 
+    private fun pingingApp() = Javalin.create().apply {
+        this.ws("/ws") { ws ->
+            ws.onConnect { it.enableAutomaticPings(5, TimeUnit.MILLISECONDS, ByteBuffer.wrap(byteArrayOf(0, 0, 0))) }
+            ws.onMessage {
+                it.disableAutomaticPings()
+                this.logger().log.clear()
+            }
+        }
+    }
+
+    private fun loggingClient(app: Javalin) = TestClient(app, "/ws", emptyMap(), {}, null, { frame: Framedata? ->
+        app.logger().log.add(frame!!.payloadData.get(2).toString())
+    }, null)
+
     @Test
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
-    fun `websocket enableAutomaticPings() works`() = TestUtil.test { app, _ ->
-        app.wsBefore("/ws") {
-            it.onConnect { ctx ->
-                ctx.enableAutomaticPings(5, TimeUnit.MILLISECONDS, ByteBuffer.wrap(byteArrayOf(0, 0, 0)))
-            }
-        }
-        app.ws("/ws") { ws ->
-            ws.onMessage { ctx ->
-                when (ctx.message()) {
-                    "ENABLE_PINGS" -> ctx.enableAutomaticPings(5, TimeUnit.MILLISECONDS, ByteBuffer.wrap(byteArrayOf(1, 1, 1)))
-                    "DISABLE_PINGS" -> ctx.disableAutomaticPings()
-                }
-            }
-        }
-        val client = TestClient(app, "/ws", emptyMap(), {}, null, { frame: Framedata? ->
-            app.logger().log.add(frame!!.payloadData.get(2).toString())
-        }, null)
-        val pingsToWaitFor = (2..4).shuffled()[0] // randomization is good, wait for 2-4 pings
+    fun `websocket enableAutomaticPings() works`() = TestUtil.test(pingingApp()) { app, _ ->
+        val client = loggingClient(app)
         client.connectBlocking()
-        doBlocking({ /* wait for pings */ }, conditionFunction = { app.logger().log.size < pingsToWaitFor })
-        assertThat(app.logger().log).contains("0")
+        Thread.sleep(50)
+        assertThat(app.logger().log.size).isGreaterThan(0)
+        client.disconnectBlocking()
+    }
+
+
+    @Test
+    @Timeout(value = 2, unit = TimeUnit.SECONDS)
+    fun `websocket disableAutomaticPings() works`() = TestUtil.test(pingingApp()) { app, _ ->
+        val client = loggingClient(app)
+        client.connectBlocking()
+        Thread.sleep(50)
+        assertThat(app.logger().log.size).isGreaterThan(0)
         doBlocking({ client.send("DISABLE_PINGS") }, { pingFutures.size > 0 }) // check that this map clears
-        app.logger().log.clear()
-        Thread.sleep(100)
+        Thread.sleep(50)
         assertThat(app.logger().log.size).isEqualTo(0) // no pings sent during sleep after disabling pings
-        // re-enable pings, now we get the new payload [1, 1, 1]
-        client.send("ENABLE_PINGS")
-        doBlocking({ /* wait for pings */ }, conditionFunction = { app.logger().log.size < pingsToWaitFor })
-        assertThat(app.logger().log).contains("1")
         client.disconnectBlocking()
     }
 
