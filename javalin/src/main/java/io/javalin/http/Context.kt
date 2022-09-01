@@ -309,11 +309,11 @@ interface Context {
      */
     fun result(resultStream: InputStream): Context
 
-    /** Gets the current [io.javalin.http.servlet.JavalinServletContext.resultStream] as a [String] (if set), and reset the underlying stream */
-    fun result(): String? = readAndResetStreamIfPossible(resultStream(), responseCharset())
+    /** Gets the current [io.javalin.http.servlet.JavalinServletContext.resultAsInputStream] as a [String] (if set), and reset the underlying stream */
+    fun resultAsString(): String? = readAndResetStreamIfPossible(resultAsInputStream(), responseCharset())
 
-    /** Gets the current [io.javalin.http.servlet.JavalinServletContext.resultStream] */
-    fun resultStream(): InputStream?
+    /** Gets the current [io.javalin.http.servlet.JavalinServletContext.resultAsInputStream] */
+    fun resultAsInputStream(): InputStream?
 
     /**
      * Utility function that allows to run async task on top of the [Context.future] method.

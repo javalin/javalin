@@ -146,7 +146,7 @@ class TestApiBuilder {
         app.routes {
             path("api") {
                 before("/*") { it.result("before") }
-                get { it.result((it.result() ?: "") + "get") }
+                get { it.result((it.resultAsString() ?: "") + "get") }
                 after("/*", updateAnswer("after"))
             }
         }
@@ -155,7 +155,7 @@ class TestApiBuilder {
     }
 
     private fun simpleAnswer(body: String) = Handler { it.result(body) }
-    private fun updateAnswer(body: String) = Handler { it.result(it.result()!! + body) }
+    private fun updateAnswer(body: String) = Handler { it.result(it.resultAsString()!! + body) }
 
     @Test
     fun `ApiBuilder throws if used outside of routes{} call`() = TestUtil.test { _, _ ->

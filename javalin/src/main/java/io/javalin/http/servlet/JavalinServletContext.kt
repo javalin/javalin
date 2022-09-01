@@ -121,7 +121,7 @@ class JavalinServletContext(
         this.resultStream = resultStream
     }
 
-    override fun resultStream(): InputStream? = resultStream
+    override fun resultAsInputStream(): InputStream? = resultStream
 
     override fun future(future: Supplier<out CompletableFuture<*>>) {
         if (userFutureSupplier != null) throw IllegalStateException("Cannot override future from the same handler")
