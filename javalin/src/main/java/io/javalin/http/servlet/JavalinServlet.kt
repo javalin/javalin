@@ -53,7 +53,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
     private fun JavalinServletContext.handleUserFuture() {
         val userFutureSupplier = userFutureSupplier!!.also { userFutureSupplier = null } // nullcheck in handleSync
-        val userFuture = handleTask { userFutureSupplier.value } ?: return handleSync() // get future from supplier or handle error
+        val userFuture = handleTask { userFutureSupplier.get() } ?: return handleSync() // get future from supplier or handle error
         if (!isAsync()) startAsyncAndAddDefaultTimeoutListeners()
         req().asyncContext.addListener(onTimeout = { userFuture.cancel(true) })
         userFuture

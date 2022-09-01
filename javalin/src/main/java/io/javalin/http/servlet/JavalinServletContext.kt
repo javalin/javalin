@@ -45,7 +45,7 @@ class JavalinServletContext(
     private var matchedPath: String = "",
     private var pathParamMap: Map<String, String> = mapOf(),
     internal var endpointHandlerPath: String = "",
-    internal var userFutureSupplier: Lazy<CompletableFuture<*>>? = null,
+    internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
 ) : Context {
 
@@ -125,7 +125,7 @@ class JavalinServletContext(
 
     override fun future(future: Supplier<out CompletableFuture<*>>) {
         if (userFutureSupplier != null) throw IllegalStateException("Cannot override future from the same handler")
-        userFutureSupplier = lazy { future.get() }
+        userFutureSupplier = future
     }
 
 }
