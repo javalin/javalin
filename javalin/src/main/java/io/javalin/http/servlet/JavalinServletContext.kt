@@ -46,7 +46,7 @@ class JavalinServletContext(
     private var pathParamMap: Map<String, String> = mapOf(),
     internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
-    internal var resultStream: InputStream? = null,
+    private var resultStream: InputStream? = null,
 ) : Context {
 
     init {
@@ -116,12 +116,12 @@ class JavalinServletContext(
         }
     }
 
-    override fun result(inputStream: InputStream): Context = apply {
-        runCatching { resultStream?.close() } // avoid memory leaks for multiple result() calls
-        resultStream = inputStream
+    override fun result(resultStream: InputStream): Context = apply {
+        runCatching { this.resultStream?.close() } // avoid memory leaks for multiple result() calls
+        this.resultStream = resultStream
     }
 
-    override fun result(): String? = readAndResetStreamIfPossible(resultStream, responseCharset())
+    override fun resultAsInputStream(): InputStream? = resultStream
 
     override fun future(future: Supplier<out CompletableFuture<*>>) {
         if (userFutureSupplier != null) throw IllegalStateException("Cannot override future from the same handler")

@@ -73,14 +73,14 @@ internal class TestFuture {
         fun `calling future in (before - get - after) handlers works`() = TestUtil.test { app, http ->
             app.before("/future") { ctx -> ctx.future { getFuture("before").thenApply { ctx.result(it) } } }
             app.get("/future") { ctx -> ctx.future { getFuture("nothing") } }
-            app.after("/future") { ctx -> ctx.future { getFuture("${ctx.result()}, after").thenApply { ctx.result(it) } } }
+            app.after("/future") { ctx -> ctx.future { getFuture("${ctx.resultAsString()}, after").thenApply { ctx.result(it) } } }
             assertThat(http.get("/future").body).isEqualTo("before, after")
         }
 
         @Test
         fun `calling future in (before - before) handlers works`() = TestUtil.test { app, http ->
             app.before { it.future { getFuture("before 1").thenAccept { v -> it.result(v) } } }
-            app.before { it.future { getFuture("${it.result()}, before 2").thenAccept { v -> it.result(v) } } }
+            app.before { it.future { getFuture("${it.resultAsString()}, before 2").thenAccept { v -> it.result(v) } } }
             app.get("/future") {}
             assertThat(http.get("/future").body).isEqualTo("before 1, before 2")
         }
@@ -315,4 +315,4 @@ internal class TestFuture {
 
 }
 
-private fun Context.accumulatingResult(s: String) = this.result((result() ?: "") + s)
+private fun Context.accumulatingResult(s: String) = this.result((resultAsString() ?: "") + s)
