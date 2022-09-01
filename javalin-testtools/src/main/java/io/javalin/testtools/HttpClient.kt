@@ -3,6 +3,7 @@ package io.javalin.testtools
 import io.javalin.Javalin
 import io.javalin.http.ContentType
 import io.javalin.json.jsonMapper
+import io.javalin.json.toJsonString
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -43,7 +44,7 @@ class HttpClient(val app: Javalin, val okHttp: OkHttpClient) {
     fun delete(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
             request(path, combine(req, { it.delete(json.toRequestBody()) }))
 
-    private fun Any?.toRequestBody(): RequestBody {
+    private inline fun <reified T : Any> T?.toRequestBody(): RequestBody {
         return if (this == null) {
             ByteArray(0).toRequestBody(null, 0, 0)
         } else {

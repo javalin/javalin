@@ -8,7 +8,9 @@ package io.javalin.http.util
 
 import io.javalin.http.Context
 import io.javalin.http.Cookie
+import io.javalin.json.fromJsonString
 import io.javalin.json.jsonMapper
+import io.javalin.json.toJsonString
 import java.util.*
 
 @Suppress("UNCHECKED_CAST")
@@ -43,11 +45,12 @@ class CookieStore(val ctx: Context) {
         ctx.removeCookie(COOKIE_NAME)
     }
 
-    private fun deserialize(cookie: String?) = if (!cookie.isNullOrEmpty()) {
-        ctx.jsonMapper().fromJsonString(String(decoder.decode(cookie)), Map::class.java) as MutableMap<String, Any>
-    } else mutableMapOf()
+    private fun deserialize(cookie: String?): MutableMap<String, Any> = when {
+        !cookie.isNullOrEmpty() -> ctx.jsonMapper().fromJsonString(String(decoder.decode(cookie)))
+        else -> mutableMapOf()
+    }
 
-    private fun serialize(map: MutableMap<String, Any>) =
+    private fun serialize(map: MutableMap<String, Any>): String =
         encoder.encodeToString(ctx.jsonMapper().toJsonString(map).toByteArray())
 
     companion object {

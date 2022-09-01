@@ -13,8 +13,11 @@ import io.javalin.json.jsonMapper
 import org.eclipse.jetty.websocket.api.CloseStatus
 import org.eclipse.jetty.websocket.api.RemoteEndpoint
 import org.eclipse.jetty.websocket.api.Session
+import java.lang.reflect.Type
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.javaType
+import kotlin.reflect.typeOf
 
 /**
  * The [WsContext] class holds Jetty's [Session] and provides (convenient) delegate methods.
@@ -31,7 +34,10 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     fun matchedPath() = upgradeCtx.matchedPath()
 
-    fun send(message: Any) = send(upgradeCtx.jsonMapper().toJsonString(message))
+    @OptIn(ExperimentalStdlibApi::class)
+    inline fun <reified T : Any> sendAsClass(message: T) = sendAsClass(message, typeOf<T>().javaType)
+    fun send(message: Any) = sendAsClass(message, message::class.java)
+    fun sendAsClass(message: Any, type: Type) = send(upgradeCtx.jsonMapper().toJsonString(message, type))
     fun send(message: String) = session.remote.sendString(message)
     fun send(message: ByteBuffer) = session.remote.sendBytes(message)
 
@@ -101,6 +107,8 @@ class WsBinaryMessageContext(sessionId: String, session: Session, private val da
 
 class WsMessageContext(sessionId: String, session: Session, private val message: String) : WsContext(sessionId, session) {
     fun message(): String = message
-    fun <T> messageAsClass(clazz: Class<T>): T = upgradeCtx.jsonMapper().fromJsonString(message, clazz)
-    inline fun <reified T : Any> messageAsClass(): T = messageAsClass(T::class.java)
+    fun <T> messageAsClass(type: Type): T = upgradeCtx.jsonMapper().fromJsonString(message, type)
+    fun <T> messageAsClass(clazz: Class<T>): T = messageAsClass(type = clazz as Type)
+    @OptIn(ExperimentalStdlibApi::class)
+    inline fun <reified T : Any> messageAsClass(): T = messageAsClass(typeOf<T>().javaType)
 }

@@ -57,7 +57,7 @@ public class JavaTest {
     @Test
     public void post_with_json_serialization_works() {
         JavalinTest.test((server, client) -> {
-            server.post("/hello", ctx -> ctx.result(ctx.<MyJavaClass>bodyAsClass(MyJavaClass.class).field1));
+            server.post("/hello", ctx -> ctx.result(ctx.bodyAsClass(MyJavaClass.class).field1));
             Response response = client.post("/hello", new MyJavaClass("v1", "v2"));
             assertThat(response.body().string()).isEqualTo("v1");
         });

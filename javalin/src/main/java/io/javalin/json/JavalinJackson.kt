@@ -17,7 +17,7 @@ import java.lang.reflect.Type
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
     override fun toJsonString(obj: Any, type: Type): String {
-        ensureDependenciesPresent()
+        ensureDependenciesPresent(type)
         return when (obj) {
             is String -> obj // the default mapper treats strings as if they are already JSON
             else -> objectMapper!!.writeValueAsString(obj) // convert object to JSON
@@ -25,7 +25,7 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
     }
 
     override fun toJsonStream(obj: Any, type: Type): InputStream {
-        ensureDependenciesPresent()
+        ensureDependenciesPresent(type)
         return when (obj) {
             is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
             else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
@@ -35,16 +35,17 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
     }
 
     override fun <T : Any> fromJsonString(json: String, targetType: Type): T {
-        ensureDependenciesPresent(targetType as Class<*>)
-        return objectMapper!!.readValue(json, targetType as Class<T>)
+        ensureDependenciesPresent(targetType)
+        return objectMapper!!.readValue(json, objectMapper!!.typeFactory.constructType(targetType))
     }
 
     override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T {
-        ensureDependenciesPresent(targetType as Class<*>)
-        return objectMapper!!.readValue(json, targetType as Class<T>)
+        ensureDependenciesPresent(targetType)
+        return objectMapper!!.readValue(json, objectMapper!!.typeFactory.constructType(targetType))
     }
 
-    private fun ensureDependenciesPresent(targetClass: Class<*>? = null) {
+    private fun ensureDependenciesPresent(targetType: Type? = null) {
+        val targetClass = targetType as? Class<*>?
         DependencyUtil.ensurePresence(CoreDependency.JACKSON)
         if (targetClass != null && Util.isKotlinClass(targetClass)) {
             DependencyUtil.ensurePresence(CoreDependency.JACKSON_KT)

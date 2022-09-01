@@ -19,6 +19,7 @@ import io.javalin.http.bodyValidator
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.json.fromJsonString
+import io.javalin.json.toJsonString
 import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -161,16 +162,19 @@ internal class TestJson {
 
     @Test
     fun `user can use GSON`() {
-        val gson = GsonBuilder().create()
+        val gson = GsonBuilder()
+            .create()
+
         val gsonMapper = object : JsonMapper {
             override fun <T : Any> fromJsonString(json: String, targetType: Type): T = gson.fromJson(json, targetType)
             override fun toJsonString(obj: Any, type: Type) = gson.toJson(obj, type)
         }
+
         TestUtil.test(Javalin.create { it.jsonMapper(gsonMapper) }) { app, http ->
             app.get("/") { it.json(SerializableObject()) }
             assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
             app.post("/") { ctx ->
-                ctx.bodyAsClass<SerializableObject>(SerializableObject::class.java)
+                ctx.bodyAsClass<SerializableObject>()
                 ctx.result("success")
             }
             assertThat(http.post("/").body(gson.toJson(SerializableObject())).asString().body).isEqualTo("success")
@@ -199,7 +203,7 @@ internal class TestJson {
     @Test
     fun `can use JavalinJackson with a custom object-mapper on a kotlin data class`() {
         val mapped = JavalinJackson().toJsonString(SerializableDataClass("First value", "Second value"))
-        val mappedBack = JavalinJackson().fromJsonString<SerializableDataClass>(mapped, SerializableDataClass::class.java)
+        val mappedBack = JavalinJackson().fromJsonString<SerializableDataClass>(mapped)
         assertThat("First value").isEqualTo(mappedBack.value1)
         assertThat("Second value").isEqualTo(mappedBack.value2)
     }

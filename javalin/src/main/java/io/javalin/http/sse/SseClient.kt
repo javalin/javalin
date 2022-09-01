@@ -2,8 +2,10 @@ package io.javalin.http.sse
 
 import io.javalin.http.Context
 import io.javalin.json.jsonMapper
+import io.javalin.json.toJsonString
 import java.io.Closeable
 import java.io.InputStream
+import java.lang.reflect.Type
 import java.util.concurrent.CompletableFuture
 
 class SseClient internal constructor(
