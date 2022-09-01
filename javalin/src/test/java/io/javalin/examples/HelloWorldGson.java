@@ -22,8 +22,8 @@ public class HelloWorldGson {
         JsonMapper gsonMapper = new JsonMapper() {
             @NotNull
             @Override
-            public String toJsonString(@NotNull Object obj, Type type) {
-                return gson.toJson(obj);
+            public String toJsonString(@NotNull Object obj, @NotNull Type type) {
+                return gson.toJson(obj, type);
             }
 
             @NotNull
