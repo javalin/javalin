@@ -69,7 +69,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         it.addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
             status(INTERNAL_SERVER_ERROR) // default error handling
             errorMapper.handle(statusCode(), this) // user defined error handling
-            if (resultStream == null) result(REQUEST_TIMEOUT.message) // write default response only if handler didn't do anything
+            if (resultStream() == null) result(REQUEST_TIMEOUT.message) // write default response only if handler didn't do anything
             writeResponseAndLog()
         })
     }
@@ -88,7 +88,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         try {
             if (responseWritten.getAndSet(true)) return // prevent writing more than once, it's required because timeout listener can terminate the flow at any time
             outputStream().use { outputStream ->
-                resultStream?.use { resultStream ->
+                resultStream()?.use { resultStream ->
                     val etagWritten = ETagGenerator.tryWriteEtagAndClose(cfg.http.generateEtags, this, resultStream)
                     if (!etagWritten) resultStream.copyTo(outputStream, 4096)
                 }

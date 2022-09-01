@@ -63,8 +63,7 @@ fun requestDevLogger(matcher: PathMatcher, ctx: Context, time: Float) = try {
 private fun String.probablyFormData() = this.trim().firstOrNull()?.isLetter() == true && this.split("=").size >= 2
 
 private fun resBody(ctx: Context): String {
-    val internalContext = ctx as JavalinServletContext
-    val stream = internalContext.resultStream ?: return "No body was set"
+    val stream = ctx.resultStream() ?: return "No body was set"
     if (!stream.markSupported()) {
         return "Body is binary (not logged)"
     }
