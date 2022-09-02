@@ -97,6 +97,7 @@
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.23.1</assertj.version>
         <gson.version>2.9.1</gson.version>
+        <moshi.version>1.13.0</moshi.version>
         <java.websocket.version>1.5.2</java.websocket.version>
         <junit.version>5.7.2</junit.version>
         <okhttp.version>4.10.0</okhttp.version>
@@ -268,6 +269,18 @@
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${gson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.moshi</groupId>
+                <artifactId>moshi</artifactId>
+                <version>${moshi.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.moshi</groupId>
+                <artifactId>moshi-kotlin</artifactId>
+                <version>${moshi.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>

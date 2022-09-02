@@ -2,17 +2,20 @@ package io.javalin.vue
 
 import io.javalin.http.Context
 import io.javalin.json.jsonMapper
+import io.javalin.json.toJsonString
 import java.net.URLEncoder
 
 internal object VueStateRenderer {
     fun getState(ctx: Context, state: Any?): String {
         val cfg = ctx.appAttribute<JavalinVueConfig>(JAVALINVUE_CONFIG_KEY)
-        fun urlEncodedState(state: Any?) = ctx.jsonMapper().toJsonString(
-            mapOf(
-                "pathParams" to ctx.pathParamMap(),
-                "state" to (state ?: cfg.stateFunction(ctx))
+        fun urlEncodedState(state: Any?): String = ctx.jsonMapper()
+            .toJsonString(
+                mapOf(
+                    "pathParams" to ctx.pathParamMap(),
+                    "state" to (state ?: cfg.stateFunction(ctx))
+                )
             )
-        ).urlEncodeForJavascript()
+            .urlEncodeForJavascript()
 
         val prototypeOrGlobalConfig = if (cfg.vueAppName != null) "${cfg.vueAppName}.config.globalProperties" else "Vue.prototype"
         return """
