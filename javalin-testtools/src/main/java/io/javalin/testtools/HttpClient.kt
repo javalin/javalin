@@ -44,7 +44,7 @@ class HttpClient(val app: Javalin, val okHttp: OkHttpClient) {
     fun delete(path: String, json: Any? = null, req: Consumer<Request.Builder>? = null) =
             request(path, combine(req, { it.delete(json.toRequestBody()) }))
 
-    private inline fun <reified T : Any> T?.toRequestBody(): RequestBody {
+    private fun Any?.toRequestBody(): RequestBody {
         return if (this == null) {
             ByteArray(0).toRequestBody(null, 0, 0)
         } else {
