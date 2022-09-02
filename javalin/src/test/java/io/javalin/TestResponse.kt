@@ -158,7 +158,7 @@ class TestResponse {
 
         app.get("/test") { context ->
             context.result(result)
-            context.resultAsString()
+            context.result()
         }
 
         assertThat(http.getBody("/test")).isEqualTo(result)

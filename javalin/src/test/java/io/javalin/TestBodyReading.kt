@@ -81,7 +81,7 @@ class TestBodyReading {
 
     @Test
     fun `reading body as stream works`() = TestUtil.test { app, http ->
-        app.post("/") { it.result(it.bodyAsInputStream()) }
+        app.post("/") { it.result(it.bodyInputStream()) }
         assertThat(http.post("/").body("body").asString().body).isEqualTo("body")
     }
 

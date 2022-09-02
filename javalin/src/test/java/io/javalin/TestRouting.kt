@@ -79,9 +79,9 @@ class TestRouting {
     @Test
     fun `filers are executed in order`() = TestUtil.test { app, http ->
         app.before { it.result("1") }
-        app.before { it.result(it.resultAsString() + "2") }
-        app.get("/hello") { it.result(it.resultAsString() + "Hello") }
-        app.after { it.result(it.resultAsString() + "3") }
+        app.before { it.result(it.result() + "2") }
+        app.get("/hello") { it.result(it.result() + "Hello") }
+        app.after { it.result(it.result() + "3") }
         assertThat(http.getBody("/hello")).isEqualTo("12Hello3")
     }
 
@@ -233,7 +233,7 @@ class TestRouting {
     fun `non sub-path star wildcard works for plain paths`() = TestUtil.test { app, http ->
         app.get("/p") { it.result("1") }.also { assertThat(http.getBody("/p")).isEqualTo("1") }
         app.get("/p-test") { it.result("2") }.also { assertThat(http.getBody("/p-test")).isEqualTo("2") }
-        app.after("/p*") { it.result("${it.resultAsString()}AFTER") }.also {
+        app.after("/p*") { it.result("${it.result()}AFTER") }.also {
             assertThat(http.getBody("/p")).isEqualTo("1AFTER")
             assertThat(http.getBody("/p-test")).isEqualTo("2AFTER")
         }
@@ -243,7 +243,7 @@ class TestRouting {
     fun `non sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
         app.get("/{pp}-test") { it.result("2") }.also { assertThat(http.getBody("/p-test")).isEqualTo("2") }
         app.get("/{pp}") { it.result("1") }.also { assertThat(http.getBody("/p")).isEqualTo("1") }
-        app.after("/{pp}*") { it.result("${it.resultAsString()}AFTER") }.also {
+        app.after("/{pp}*") { it.result("${it.result()}AFTER") }.also {
             assertThat(http.getBody("/p")).isEqualTo("1AFTER")
             assertThat(http.getBody("/p-test")).isEqualTo("2AFTER")
         }
@@ -252,7 +252,7 @@ class TestRouting {
     @Test
     fun `sub-path wildcard works for path-params`() = TestUtil.test { app, http ->
         app.routes {
-            after("/partners/{pp}*") { it.result("${it.resultAsString()} - after") }
+            after("/partners/{pp}*") { it.result("${it.result()} - after") }
             path("/partners/{pp}") {
                 get { it.result("root") }
                 get("/api") { it.result("api") }

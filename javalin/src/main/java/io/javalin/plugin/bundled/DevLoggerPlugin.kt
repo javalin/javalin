@@ -62,14 +62,14 @@ fun requestDevLogger(matcher: PathMatcher, ctx: Context, time: Float) = try {
 private fun String.probablyFormData() = this.trim().firstOrNull()?.isLetter() == true && this.split("=").size >= 2
 
 private fun resBody(ctx: Context): String {
-    val stream = ctx.resultAsInputStream() ?: return "No body was set"
+    val stream = ctx.resultInputStream() ?: return "No body was set"
     if (!stream.markSupported()) {
         return "Body is binary (not logged)"
     }
 
     val gzipped = ctx.res().getHeader(Header.CONTENT_ENCODING) == "gzip"
     val brotlied = ctx.res().getHeader(Header.CONTENT_ENCODING) == "br"
-    val resBody = ctx.resultAsString()!!
+    val resBody = ctx.result()!!
     return when {
         gzipped -> "Body is gzipped (${resBody.length} bytes, not logged)"
         brotlied -> "Body is brotlied (${resBody.length} bytes, not logged)"

@@ -72,8 +72,8 @@ class TestLogging {
         val loggerLog = mutableListOf<String?>()
         val bodyLoggingJavalin = Javalin.create {
             it.requestLogger.http { ctx, _ ->
-                loggerLog.add(ctx.resultAsString())
-                loggerLog.add(ctx.resultAsString())
+                loggerLog.add(ctx.result())
+                loggerLog.add(ctx.result())
             }
         }
         TestUtil.test(bodyLoggingJavalin) { app, http ->

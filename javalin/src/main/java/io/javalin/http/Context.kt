@@ -135,8 +135,8 @@ interface Context {
     /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */
     fun <T> bodyStreamAsClass(type: Type): T = jsonMapper().fromJsonStream(req().inputStream, type)
 
-    /** Gets the request body as a [InputStream] */
-    fun bodyAsInputStream(): InputStream = req().inputStream
+    /** Gets the underlying [InputStream] for the request body */
+    fun bodyInputStream(): InputStream = req().inputStream
 
     /** Creates a typed [BodyValidator] for the body() value */
     fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, this.jsonMapper())
@@ -315,11 +315,11 @@ interface Context {
      */
     fun result(resultStream: InputStream): Context
 
-    /** Gets the current [io.javalin.http.servlet.JavalinServletContext.resultAsInputStream] as a [String] (if set), and reset the underlying stream */
-    fun resultAsString(): String? = readAndResetStreamIfPossible(resultAsInputStream(), responseCharset())
+    /** Gets the current [io.javalin.http.servlet.JavalinServletContext.resultInputStream] as a [String] (if set), and reset the underlying stream */
+    fun result(): String? = readAndResetStreamIfPossible(resultInputStream(), responseCharset())
 
-    /** Gets the current [io.javalin.http.servlet.JavalinServletContext.resultAsInputStream] */
-    fun resultAsInputStream(): InputStream?
+    /** Gets the underlying [InputStream] for the result ([io.javalin.http.servlet.JavalinServletContext.resultInputStream]) */
+    fun resultInputStream(): InputStream?
 
     /**
      * Utility function that allows to run async task on top of the [Context.future] method.
