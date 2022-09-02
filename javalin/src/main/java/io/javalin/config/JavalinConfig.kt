@@ -42,7 +42,7 @@ class JavalinConfig {
             addValidationExceptionMapper(app) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             attachPlugins(app, cfg.pvt.plugins.values)
-            cfg.pvt.appAttributes.putIfAbsent(JSON_MAPPER_KEY, JavalinJackson())
+            cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
             cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, cfg.contextResolver)
             cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize)
             cfg.pvt.appAttributes.putIfAbsent(JAVALINVUE_CONFIG_KEY, cfg.vue)
