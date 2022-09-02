@@ -12,26 +12,46 @@ import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.Util
 import java.io.InputStream
+import java.lang.reflect.Type
 
-class JavalinJackson(private var objectMapper: ObjectMapper = defaultMapper()) : JsonMapper {
+class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
-    init {
+    override fun toJsonString(obj: Any, type: Type): String {
+        ensureDependenciesPresent(type)
+        return when (obj) {
+            is String -> obj // the default mapper treats strings as if they are already JSON
+            else -> objectMapper!!.writeValueAsString(obj) // convert object to JSON
+        }
+    }
+
+    override fun toJsonStream(obj: Any, type: Type): InputStream {
+        ensureDependenciesPresent(type)
+        return when (obj) {
+            is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
+            else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
+                objectMapper!!.factory.createGenerator(pipedOutputStream).writeObject(obj)
+            }
+        }
+    }
+
+    override fun <T : Any> fromJsonString(json: String, targetType: Type): T {
+        ensureDependenciesPresent(targetType)
+        return objectMapper!!.readValue(json, objectMapper!!.typeFactory.constructType(targetType))
+    }
+
+    override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T {
+        ensureDependenciesPresent(targetType)
+        return objectMapper!!.readValue(json, objectMapper!!.typeFactory.constructType(targetType))
+    }
+
+    private fun ensureDependenciesPresent(targetType: Type? = null) {
+        val targetClass = targetType as? Class<*>?
         DependencyUtil.ensurePresence(CoreDependency.JACKSON)
+        if (targetClass != null && Util.isKotlinClass(targetClass)) {
+            DependencyUtil.ensurePresence(CoreDependency.JACKSON_KT)
+        }
+        objectMapper = objectMapper ?: defaultMapper()
     }
-
-    override fun toJsonString(obj: Any): String = when (obj) {
-        is String -> obj // the default mapper treats strings as if they are already JSON
-        else -> objectMapper.writeValueAsString(obj) // convert object to JSON
-    }
-
-    override fun toJsonStream(obj: Any): InputStream = when (obj) {
-        is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
-        else -> PipedStreamUtil.getInputStream { objectMapper.factory.createGenerator(it).writeObject(obj) }
-    }
-
-    override fun <T : Any> fromJsonString(json: String, targetClass: Class<T>): T = objectMapper.readValue(json, targetClass)
-
-    override fun <T : Any> fromJsonStream(json: InputStream, targetClass: Class<T>): T = objectMapper.readValue(json, targetClass)
 
     companion object {
         fun defaultMapper(): ObjectMapper = ObjectMapper()
@@ -39,7 +59,6 @@ class JavalinJackson(private var objectMapper: ObjectMapper = defaultMapper()) :
             .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass)
             .registerOptionalModule(CoreDependency.JACKSON_KTORM.testClass) // very optional module for ktorm (a kotlin orm)
     }
-
 }
 
 private fun ObjectMapper.registerOptionalModule(classString: String): ObjectMapper {

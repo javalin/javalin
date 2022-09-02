@@ -30,12 +30,15 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
+import java.lang.reflect.Type
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeoutException
 import java.util.function.Supplier
+import kotlin.reflect.javaType
+import kotlin.reflect.typeOf
 
 /**
  * Provides access to functions for handling the request and response
@@ -123,11 +126,14 @@ interface Context {
         return req().inputStream.readBytes()
     }
 
-    /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
-    fun <T> bodyAsClass(clazz: Class<T>): T = jsonMapper().fromJsonString(body(), clazz)
+    /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */
+    fun <T> bodyAsClass(type: Type): T = jsonMapper().fromJsonString(body(), type)
 
-    /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.plugin.json.JsonMapper] */
-    fun <T> bodyStreamAsClass(clazz: Class<T>): T = jsonMapper().fromJsonStream(req().inputStream, clazz)
+    /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */
+    fun <T> bodyAsClass(clazz: Class<T>): T = bodyAsClass(type = clazz as Type)
+
+    /** Maps a JSON body to a Java/Kotlin class using the registered [io.javalin.json.JsonMapper] */
+    fun <T> bodyStreamAsClass(type: Type): T = jsonMapper().fromJsonStream(req().inputStream, type)
 
     /** Gets the request body as a [InputStream] */
     fun bodyAsInputStream(): InputStream = req().inputStream
@@ -403,13 +409,18 @@ interface Context {
      * Serializes object to a JSON-string using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun json(obj: Any): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonString(obj))
+    fun json(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonString(obj, type))
+
+    /** @see [json] */
+    fun json(obj: Any): Context = json(obj, obj::class.java)
 
     /**
      * Serializes object to a JSON-stream using the registered [io.javalin.plugin.json.JsonMapper] and sets it as the context result.
      * Also sets content type to application/json.
      */
-    fun jsonStream(obj: Any): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj))
+    fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
+    /** @see [jsonStream] */
+    fun jsonStream(obj: Any): Context = jsonStream(obj, obj::class.java)
 
     /** Sets context result to specified html string and sets content-type to text/html. */
     fun html(html: String): Context = contentType(ContentType.TEXT_HTML).result(html)
@@ -426,23 +437,29 @@ interface Context {
 
 }
 
-/** Reified version of [bodyAsClass] (Kotlin only) */
-inline fun <reified T : Any> Context.bodyAsClass(): T = bodyAsClass(T::class.java)
+/** Reified version of [Context.json] (Kotlin only) */
+@OptIn(ExperimentalStdlibApi::class)
+inline fun <reified T : Any> Context.jsonAsType(obj: Any): Context = json(obj, typeOf<T>().javaType)
 
-/** Reified version of [formParamAsClass] (Kotlin only) */
-inline fun <reified T : Any> Context.formParamAsClass(key: String) = formParamAsClass(key, T::class.java)
+/** Reified version of [Context.bodyAsClass] (Kotlin only) */
+@OptIn(ExperimentalStdlibApi::class)
+inline fun <reified T : Any> Context.bodyAsClass(): T = bodyAsClass(typeOf<T>().javaType)
 
-/** Reified version of [bodyStreamAsClass] (Kotlin only) */
-inline fun <reified T : Any> Context.bodyStreamAsClass(): T = bodyStreamAsClass(T::class.java)
+/** Reified version of [Context.bodyStreamAsClass] (Kotlin only) */
+@OptIn(ExperimentalStdlibApi::class)
+inline fun <reified T : Any> Context.bodyStreamAsClass(): T = bodyStreamAsClass(typeOf<T>().javaType)
 
-/** Reified version of [bodyValidator] (Kotlin only) */
-inline fun <reified T : Any> Context.bodyValidator() = bodyValidator(T::class.java)
+/** Reified version of [Context.bodyValidator] (Kotlin only) */
+inline fun <reified T : Any> Context.bodyValidator(): BodyValidator<T> = bodyValidator(T::class.java)
 
-/** Reified version of [pathParamAsClass] (Kotlin only) */
-inline fun <reified T : Any> Context.pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
+/** Reified version of [Context.pathParamAsClass] (Kotlin only) */
+inline fun <reified T : Any> Context.pathParamAsClass(key: String): Validator<T> = pathParamAsClass(key, T::class.java)
 
-/** Reified version of [headerAsClass] (Kotlin only) */
-inline fun <reified T : Any> Context.headerAsClass(header: String) = headerAsClass(header, T::class.java)
+/** Reified version of [Context.headerAsClass] (Kotlin only) */
+inline fun <reified T : Any> Context.headerAsClass(header: String): Validator<T> = headerAsClass(header, T::class.java)
 
-/** Reified version of [queryParamAsClass] (Kotlin only) */
-inline fun <reified T : Any> Context.queryParamAsClass(key: String) = queryParamAsClass(key, T::class.java)
+/** Reified version of [Context.queryParamAsClass] (Kotlin only) */
+inline fun <reified T : Any> Context.queryParamAsClass(key: String): Validator<T> = queryParamAsClass(key, T::class.java)
+
+/** Reified version of [Context.formParamAsClass] (Kotlin only) */
+inline fun <reified T : Any> Context.formParamAsClass(key: String): Validator<T> = formParamAsClass(key, T::class.java)

@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.data.Offset
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.junit.jupiter.api.Test
@@ -37,7 +36,7 @@ class TestConfiguration {
             it.http.asyncTimeout = 10_000L
             it.http.generateEtags = true
             it.http.defaultContentType = ContentType.PLAIN
-            it.plugins.enableCors { it.reflectClientOrigin = true }
+            it.plugins.enableCors { cors -> cors.add { it.reflectClientOrigin = true } }
             it.plugins.enableDevLogging()
             it.plugins.register(RouteOverviewPlugin("/test"))
             it.plugins.enableSslRedirects()

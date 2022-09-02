@@ -23,6 +23,7 @@ import io.javalin.validation.ValidationException
 import io.javalin.validation.Validator
 import io.javalin.validation.collectErrors
 import io.javalin.json.JavalinJackson
+import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.fasterJacksonMapper
