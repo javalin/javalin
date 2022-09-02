@@ -64,7 +64,11 @@ data class CorsPluginConfig(
 }
 
 class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
-
+    init {
+        require(userConfigs.isNotEmpty()) {
+            "At least one cors config has to be provided. Use CorsContainer.add() to add one."
+        }
+    }
     val configs = userConfigs.map { userConfig -> CorsPluginConfig().also { userConfig.accept(it) } }
 
 

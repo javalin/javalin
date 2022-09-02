@@ -30,6 +30,13 @@ class TestCors {
     @Nested
     inner class ExceptionTests {
         @Test
+        fun `throws for zero configurations`() {
+            assertThatExceptionOfType(IllegalArgumentException::class.java)
+                .isThrownBy { Javalin.create { it.plugins.enableCors { } } }
+                .withMessageStartingWith("At least one cors config has to be provided. Use CorsContainer.add() to add one.")
+        }
+
+        @Test
         fun `throws for empty origins if reflectClientOrigin is false`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java)
                 .isThrownBy { Javalin.create { it.plugins.enableCors { cors -> cors.add {} } } }
