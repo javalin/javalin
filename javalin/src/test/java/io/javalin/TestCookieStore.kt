@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class TestCookieStore {
 
-    private val javalinWithMapper = Javalin.create { it.jsonMapper = JacksonJsonMapper() }
+    private val javalinWithMapper = Javalin.create { it.jsonMapper(JacksonJsonMapper()) }
 
     @Test
     fun `cookieStore works between two handlers`() = TestUtil.test { app, http ->

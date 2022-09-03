@@ -61,7 +61,7 @@ class TestEncoding {
     }
 
     @Test
-    fun `default charsets work`() = TestUtil.test(Javalin.create { it.jsonMapper = JacksonJsonMapper() }) { app, http ->
+    fun `default charsets work`() = TestUtil.test(Javalin.create { it.jsonMapper(JacksonJsonMapper()) }) { app, http ->
         app.get("/text") { it.result("суп из капусты") }
         app.get("/json") { it.json("白菜湯") }
         app.get("/html") { it.html("kålsuppe") }

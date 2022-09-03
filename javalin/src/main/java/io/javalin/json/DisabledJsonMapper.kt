@@ -11,9 +11,9 @@ class DisabledJsonMapper : JsonMapper {
     |JsonMapper is currently disabled and you cannot serialize & deserialize Java objects.
     |To enable JsonMapper, define your mapper in Javalin configuration.
     |Available mappers:
-    |cfg.jsonMapper = new DisabledJsonMapper(); // current
-    |cfg.jsonMapper = new JacksonJsonMapper(); // requires Jackson dependency
-    |cfg.jsonMapper = new GsonJsonMapper(); // requires Gson dependency
+    |cfg.jsonMapper(new DisabledJsonMapper()); // current
+    |cfg.jsonMapper(new JacksonJsonMapper()); // requires Jackson dependency
+    |cfg.jsonMapper(new GsonJsonMapper()); // requires Gson dependency
     |
     |You can also implement your own mapper. For more details visit:
     |* https://javalin.io/documentation#configuring-the-json-mapper

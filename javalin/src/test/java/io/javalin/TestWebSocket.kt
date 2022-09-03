@@ -143,7 +143,7 @@ class TestWebSocket {
     private val jacksonJsonMapper = JacksonJsonMapper()
 
     @Test
-    fun `receive and send json messages`() = TestUtil.test(Javalin.create { it.jsonMapper = jacksonJsonMapper }) { app, _ ->
+    fun `receive and send json messages`() = TestUtil.test(Javalin.create { it.jsonMapper(jacksonJsonMapper) }) { app, _ ->
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->
                 val receivedMessage = ctx.messageAsClass<SerializableObject>()

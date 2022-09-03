@@ -32,7 +32,7 @@ import java.time.Instant
 internal class TestJson {
 
     private val jacksonJsonMapper = JacksonJsonMapper()
-    private val javalinWithJackson = Javalin.create { it.jsonMapper = jacksonJsonMapper }
+    private val javalinWithJackson = Javalin.create { it.jsonMapper(jacksonJsonMapper) }
 
     @Test
     fun `default mapper maps object to json`() = TestUtil.test(javalinWithJackson) { app, http ->
@@ -121,7 +121,7 @@ internal class TestJson {
     @Test
     fun `user can use GSON`() {
         val gson = Gson()
-        TestUtil.test(Javalin.create { it.jsonMapper = GsonJsonMapper(gson) }) { app, http ->
+        TestUtil.test(Javalin.create { it.jsonMapper(GsonJsonMapper(gson)) }) { app, http ->
             app.get("/") { it.json(SerializableObject()) }
             assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
             app.post("/") { ctx ->

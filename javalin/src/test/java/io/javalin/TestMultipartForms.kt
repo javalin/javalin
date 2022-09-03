@@ -52,7 +52,7 @@ class TestMultipartForms {
     private val jacksonJsonMapper = JacksonJsonMapper()
 
     @Test
-    fun `mp3s are uploaded correctly`() = TestUtil.test(Javalin.create { it.jsonMapper = jacksonJsonMapper }) { app, http ->
+    fun `mp3s are uploaded correctly`() = TestUtil.test(Javalin.create { it.jsonMapper(jacksonJsonMapper) }) { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")!!
             ctx.json(UploadInfo(uf.filename(), uf.size(), uf.contentType(), uf.extension()))
@@ -70,7 +70,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun `pngs are uploaded correctly`() = TestUtil.test(Javalin.create { it.jsonMapper = JacksonJsonMapper() }) { app, http ->
+    fun `pngs are uploaded correctly`() = TestUtil.test(Javalin.create { it.jsonMapper(JacksonJsonMapper()) }) { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")
             ctx.json(UploadInfo(uf!!.filename(), uf.size(), uf.contentType(), uf.extension()))

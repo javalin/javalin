@@ -33,7 +33,7 @@ class TestSse {
     }
 
     @Test
-    fun `sending json works`() = TestUtil.test(Javalin.create { it.jsonMapper = JacksonJsonMapper() }) { app, http ->
+    fun `sending json works`() = TestUtil.test(Javalin.create { it.jsonMapper(JacksonJsonMapper()) }) { app, http ->
         app.sse("/sse") { it.doAndClose { it.sendEvent(event, SerializableObject()) } }
         assertThat(http.sse("/sse").get().body).contains("""data: {"value1":"FirstValue","value2":"SecondValue"}""")
     }

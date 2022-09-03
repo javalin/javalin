@@ -124,7 +124,7 @@ class TestJavalinVueBrowser {
     /* LoadableData tests below here */
 
     fun loadableDataTestApp() = Javalin.create {
-        it.jsonMapper = JacksonJsonMapper()
+        it.jsonMapper(JacksonJsonMapper())
         it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
     }.routes {
         val users = mutableListOf("John")

@@ -22,7 +22,7 @@ public class TestValidation_Java {
         }
     }
 
-    private final Javalin validationWithRequiedMapper = Javalin.create(cfg -> cfg.jsonMapper = new JacksonJsonMapper());
+    private final Javalin validationWithRequiedMapper = Javalin.create(cfg -> cfg.jsonMapper(new JacksonJsonMapper()));
 
     @Test
     public void validation_on_context_works_from_java() {

@@ -36,7 +36,7 @@ import java.time.Instant
 class TestValidation {
 
     private val jacksonJsonMapper = JacksonJsonMapper()
-    private val javalinWithMapper = Javalin.create { it.jsonMapper = jacksonJsonMapper }
+    private val javalinWithMapper = Javalin.create { it.jsonMapper(jacksonJsonMapper) }
 
     @Test
     fun `pathParam gives correct error message`() = TestUtil.test(javalinWithMapper) { app, http ->
@@ -123,7 +123,7 @@ class TestValidation {
     private val timeModuleMapper = JacksonJsonMapper(ObjectMapper().apply { registerModule(JavaTimeModule()) })
 
     @Test
-    fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper = timeModuleMapper }) { app, http ->
+    fun `custom converter works`() = TestUtil.test(Javalin.create { it.jsonMapper(timeModuleMapper) }) { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()

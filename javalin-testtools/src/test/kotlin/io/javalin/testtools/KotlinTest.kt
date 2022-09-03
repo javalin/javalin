@@ -42,7 +42,7 @@ class KotlinTest {
     }
 
     @Test
-    fun `post with json serialization works`() = JavalinTest.test(Javalin.create { it.jsonMapper = JacksonJsonMapper() }) { server, client ->
+    fun `post with json serialization works`() = JavalinTest.test(Javalin.create { it.jsonMapper(JacksonJsonMapper()) }) { server, client ->
         server.post("/hello") { it.result(it.bodyAsClass<MyKotlinClass>().field1) }
         val response = client.post("/hello", MyKotlinClass("v1", "v2"))
         assertThat(response.body?.string()).isEqualTo("v1")
