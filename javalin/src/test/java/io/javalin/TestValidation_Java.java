@@ -6,6 +6,7 @@
 
 package io.javalin;
 
+import io.javalin.json.JacksonJsonMapper;
 import io.javalin.validation.JavalinValidation;
 import io.javalin.validation.Validator;
 import io.javalin.testing.TestUtil;
@@ -14,15 +15,18 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestValidation_Java {
+
     private static class CustomException extends RuntimeException {
         public CustomException(String message) {
             super(message);
         }
     }
 
+    private final Javalin validationWithRequiedMapper = Javalin.create(cfg -> cfg.jsonMapper = new JacksonJsonMapper());
+
     @Test
     public void validation_on_context_works_from_java() {
-        TestUtil.test((app, http) -> {
+        TestUtil.test(validationWithRequiedMapper, (app, http) -> {
             app.get("/validate", ctx -> ctx.queryParamAsClass("param", Integer.class).get());
             assertThat(http.getBody("/validate?param=hmm")).contains("TYPE_CONVERSION_FAILED");
         });
@@ -30,7 +34,7 @@ public class TestValidation_Java {
 
     @Test
     public void default_values_work_from_java() {
-        TestUtil.test((app, http) -> {
+        TestUtil.test(validationWithRequiedMapper, (app, http) -> {
             app.get("/validate", ctx -> ctx.result(ctx.queryParamAsClass("param", Integer.class).getOrDefault(250).toString()));
             assertThat(http.getBody("/validate?param=hmm")).contains("TYPE_CONVERSION_FAILED");
             assertThat(http.getBody("/validate")).isEqualTo("250");

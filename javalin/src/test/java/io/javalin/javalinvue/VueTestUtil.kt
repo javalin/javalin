@@ -3,6 +3,7 @@ package io.javalin.javalinvue
 import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 import io.javalin.http.staticfiles.Location
+import io.javalin.json.JacksonJsonMapper
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import io.javalin.testing.ThrowingBiConsumer
@@ -13,6 +14,7 @@ object VueTestUtil {
     @JvmStatic
     fun test(config: Consumer<JavalinConfig>? = null, test: ThrowingBiConsumer<Javalin, HttpUtil>) =
         TestUtil.test(Javalin.create { baseConfig ->
+            baseConfig.jsonMapper = JacksonJsonMapper()
             baseConfig.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
             config?.accept(baseConfig)
         }, test)

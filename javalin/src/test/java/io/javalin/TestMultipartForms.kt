@@ -8,10 +8,10 @@ package io.javalin
 
 import io.javalin.http.ContentType
 import io.javalin.http.formParamAsClass
+import io.javalin.json.JacksonJsonMapper
 import io.javalin.json.fromJsonString
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
-import io.javalin.testing.fasterJacksonMapper
 import jakarta.servlet.MultipartConfigElement
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -32,6 +32,8 @@ class TestMultipartForms {
     // Using OkHttp because Unirest doesn't allow to send non-files as form-data
     private val okHttp = OkHttpClient()
 
+
+
     @Test
     fun `text is uploaded correctly`() = TestUtil.test { app, http ->
         app.post("/test-upload") {
@@ -47,8 +49,10 @@ class TestMultipartForms {
         }
     }
 
+    private val jacksonJsonMapper = JacksonJsonMapper()
+
     @Test
-    fun `mp3s are uploaded correctly`() = TestUtil.test { app, http ->
+    fun `mp3s are uploaded correctly`() = TestUtil.test(Javalin.create { it.jsonMapper = jacksonJsonMapper }) { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")!!
             ctx.json(UploadInfo(uf.filename(), uf.size(), uf.contentType(), uf.extension()))
@@ -58,7 +62,7 @@ class TestMultipartForms {
             .field("upload", uploadFile)
             .asString()
 
-        val uploadInfo = fasterJacksonMapper.fromJsonString<UploadInfo>(response.body)
+        val uploadInfo = jacksonJsonMapper.fromJsonString<UploadInfo>(response.body)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo(ContentType.OCTET_STREAM)
@@ -66,7 +70,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun `pngs are uploaded correctly`() = TestUtil.test { app, http ->
+    fun `pngs are uploaded correctly`() = TestUtil.test(Javalin.create { it.jsonMapper = JacksonJsonMapper() }) { app, http ->
         app.post("/test-upload") { ctx ->
             val uf = ctx.uploadedFile("upload")
             ctx.json(UploadInfo(uf!!.filename(), uf.size(), uf.contentType(), uf.extension()))
@@ -75,7 +79,7 @@ class TestMultipartForms {
         val response = http.post("/test-upload")
             .field("upload", uploadFile, ContentType.IMAGE_PNG.mimeType)
             .asString()
-        val uploadInfo = fasterJacksonMapper.fromJsonString<UploadInfo>(response.body)
+        val uploadInfo = jacksonJsonMapper.fromJsonString<UploadInfo>(response.body)
         assertThat(uploadInfo.size).isEqualTo(uploadFile.length())
         assertThat(uploadInfo.filename).isEqualTo(uploadFile.name)
         assertThat(uploadInfo.contentType).isEqualTo(ContentType.IMAGE_PNG.mimeType)

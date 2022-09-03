@@ -36,7 +36,7 @@ object DependencyUtil {
         dependencyCheckCache[dependency.testClass] = true
     }
 
-    internal fun missingDependencyMessage(dependency: OptionalDependency) = """
+    internal fun missingDependencyMessage(dependency: OptionalDependency): String = """
         |-------------------------------------------------------------------
         |Missing dependency '${dependency.displayName}'. Add the dependency.
         |

@@ -7,8 +7,9 @@ package io.javalin.config
 
 import io.javalin.Javalin
 import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
+import io.javalin.json.DisabledJsonMapper
 import io.javalin.json.JSON_MAPPER_KEY
-import io.javalin.json.JavalinJackson
+import io.javalin.json.JacksonJsonMapper
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.PluginUtil.attachPlugins
 import io.javalin.security.AccessManager
@@ -33,8 +34,8 @@ class JavalinConfig {
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
     @JvmField var showJavalinBanner = true
+    @JvmField var jsonMapper: JsonMapper = DisabledJsonMapper()
     fun accessManager(accessManager: AccessManager) { pvt.accessManager = accessManager }
-    fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
     //@formatter:on
     companion object {
         @JvmStatic
@@ -42,7 +43,7 @@ class JavalinConfig {
             addValidationExceptionMapper(app) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             attachPlugins(app, cfg.pvt.plugins.values)
-            cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
+            cfg.pvt.appAttributes.putIfAbsent(JSON_MAPPER_KEY, cfg.jsonMapper)
             cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, cfg.contextResolver)
             cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize)
             cfg.pvt.appAttributes.putIfAbsent(JAVALINVUE_CONFIG_KEY, cfg.vue)

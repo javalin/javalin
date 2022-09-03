@@ -4,6 +4,7 @@ import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.http.staticfiles.Location
+import io.javalin.json.JacksonJsonMapper
 import io.javalin.testing.TestUtil
 import io.javalin.vue.VueComponent
 import org.assertj.core.api.Assertions
@@ -14,7 +15,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
-import java.util.*
 
 class TestJavalinVueBrowser {
 
@@ -123,7 +123,10 @@ class TestJavalinVueBrowser {
 
     /* LoadableData tests below here */
 
-    fun loadableDataTestApp() = Javalin.create { it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) }.routes {
+    fun loadableDataTestApp() = Javalin.create {
+        it.jsonMapper = JacksonJsonMapper()
+        it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL)
+    }.routes {
         val users = mutableListOf("John")
         get("/api/users") { it.json(users) }
         get("/api/otherUsers") { it.json(users) }

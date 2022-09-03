@@ -9,11 +9,11 @@ package io.javalin
 import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.http.Header
 import io.javalin.http.UnauthorizedResponse
+import io.javalin.json.JacksonJsonMapper
 import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
-import io.javalin.testing.fasterJacksonMapper
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.pingFutures
 import kong.unirest.Unirest
@@ -140,10 +140,10 @@ class TestWebSocket {
         )
     }
 
+    private val jacksonJsonMapper = JacksonJsonMapper()
+
     @Test
-    fun `receive and send json messages`() = TestUtil.test(Javalin.create {
-        it.jsonMapper(fasterJacksonMapper)
-    }) { app, _ ->
+    fun `receive and send json messages`() = TestUtil.test(Javalin.create { it.jsonMapper = jacksonJsonMapper }) { app, _ ->
         app.ws("/message") { ws ->
             ws.onMessage { ctx ->
                 val receivedMessage = ctx.messageAsClass<SerializableObject>()
@@ -152,7 +152,7 @@ class TestWebSocket {
             }
         }
 
-        val clientJsonString = fasterJacksonMapper.toJsonString(SerializableObject().apply { value1 = "test1"; value2 = "test2" })
+        val clientJsonString = jacksonJsonMapper.toJsonString(SerializableObject().apply { value1 = "test1"; value2 = "test2" })
         var response: String? = null
         val testClient = TestClient(app, "/message").also {
             it.onMessage = { msg -> response = msg }
