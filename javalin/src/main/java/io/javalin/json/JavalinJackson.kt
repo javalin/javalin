@@ -16,42 +16,28 @@ import java.lang.reflect.Type
 
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
-    override fun toJsonString(obj: Any, type: Type): String {
-        ensureDependenciesPresent(type)
-        return when (obj) {
-            is String -> obj // the default mapper treats strings as if they are already JSON
-            else -> objectMapper!!.writeValueAsString(obj) // convert object to JSON
-        }
-    }
-
-    override fun toJsonStream(obj: Any, type: Type): InputStream {
-        ensureDependenciesPresent(type)
-        return when (obj) {
-            is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
-            else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
-                objectMapper!!.factory.createGenerator(pipedOutputStream).writeObject(obj)
-            }
-        }
-    }
-
-    override fun <T : Any> fromJsonString(json: String, targetType: Type): T {
-        ensureDependenciesPresent(targetType)
-        return objectMapper!!.readValue(json, objectMapper!!.typeFactory.constructType(targetType))
-    }
-
-    override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T {
-        ensureDependenciesPresent(targetType)
-        return objectMapper!!.readValue(json, objectMapper!!.typeFactory.constructType(targetType))
-    }
-
-    private fun ensureDependenciesPresent(targetType: Type? = null) {
-        val targetClass = targetType as? Class<*>?
+    val mapper by lazy {
         DependencyUtil.ensurePresence(CoreDependency.JACKSON)
-        if (targetClass != null && Util.isKotlinClass(targetClass)) {
-            DependencyUtil.ensurePresence(CoreDependency.JACKSON_KT)
-        }
-        objectMapper = objectMapper ?: defaultMapper()
+        objectMapper ?: defaultMapper()
     }
+
+    override fun toJsonString(obj: Any, type: Type): String = when (obj) {
+        is String -> obj // the default mapper treats strings as if they are already JSON
+        else -> mapper.writeValueAsString(obj) // convert object to JSON
+    }
+
+    override fun toJsonStream(obj: Any, type: Type): InputStream = when (obj) {
+        is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
+        else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
+            mapper.factory.createGenerator(pipedOutputStream).writeObject(obj)
+        }
+    }
+
+    override fun <T : Any> fromJsonString(json: String, targetType: Type): T =
+        mapper.readValue(json, mapper.typeFactory.constructType(targetType))
+
+    override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T =
+        mapper.readValue(json, mapper.typeFactory.constructType(targetType))
 
     companion object {
         fun defaultMapper(): ObjectMapper = ObjectMapper()

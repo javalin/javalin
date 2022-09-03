@@ -1,7 +1,9 @@
 package io.javalin.jetty
 
+import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.CompressionType
+import io.javalin.compression.Gzip
 import io.javalin.compression.LeveledBrotliStream
 import io.javalin.compression.LeveledGzipStream
 import io.javalin.http.Header
@@ -23,7 +25,9 @@ object JettyPrecompressingResourceHandler {
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
-    val excludedMimeTypes = CompressionStrategy().excludedMimeTypesFromCompression
+    val compressionStrategy = CompressionStrategy(Brotli(), Gzip())
+
+    val excludedMimeTypes = compressionStrategy.excludedMimeTypesFromCompression
 
     fun handle(target: String, resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
         if (resource.exists() && !resource.isDirectory) {
@@ -72,7 +76,7 @@ object JettyPrecompressingResourceHandler {
             type == CompressionType.GZIP -> {
                 LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
             }
-            type == CompressionType.BR && DependencyUtil.isPresent(CoreDependency.JVMBROTLI) -> {
+            type == CompressionType.BR && compressionStrategy.brotli != null -> {
                 LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
             }
             else -> byteArrayOutputStream
