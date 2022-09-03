@@ -9,6 +9,7 @@ package io.javalin
 
 import io.javalin.http.Header
 import io.javalin.http.ContentType
+import io.javalin.json.JacksonJsonMapper
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -60,7 +61,7 @@ class TestEncoding {
     }
 
     @Test
-    fun `default charsets work`() = TestUtil.test { app, http ->
+    fun `default charsets work`() = TestUtil.test(Javalin.create { it.jsonMapper = JacksonJsonMapper() }) { app, http ->
         app.get("/text") { it.result("суп из капусты") }
         app.get("/json") { it.json("白菜湯") }
         app.get("/html") { it.html("kålsuppe") }

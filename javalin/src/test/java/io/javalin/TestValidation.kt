@@ -36,22 +36,22 @@ import java.time.Instant
 class TestValidation {
 
     private val jacksonJsonMapper = JacksonJsonMapper()
-    private val validationWithRequiredMapper = Javalin.create { it.jsonMapper = jacksonJsonMapper }
+    private val javalinWithMapper = Javalin.create { it.jsonMapper = jacksonJsonMapper }
 
     @Test
-    fun `pathParam gives correct error message`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `pathParam gives correct error message`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/{param}") { it.pathParamAsClass<Int>("param").get() }
         assertThat(http.get("/abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
-    fun `queryParam gives correct error message`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `queryParam gives correct error message`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/") { it.queryParamAsClass<Int>("param").get() }
         assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
     }
 
     @Test
-    fun `formParam gives correct error message`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `formParam gives correct error message`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.post("/") { it.formParamAsClass<Int>("param").get() }
         assertThat(http.post("/").body("param=abc").asString().body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
         val log = TestUtil.captureStdOut { http.post("/").body("param=abc").asString().body }
@@ -60,7 +60,7 @@ class TestValidation {
     }
 
     @Test
-    fun `notNullOrEmpty works for Validator`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `notNullOrEmpty works for Validator`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/") { it.queryParamAsClass<String>("my-qp").get() }
         assertThat(http.get("/").body).isEqualTo("""{"my-qp":[{"message":"NULLCHECK_FAILED","args":{},"value":null}]}""")
         assertThat(http.get("/").httpCode()).isEqualTo(BAD_REQUEST)
@@ -74,7 +74,7 @@ class TestValidation {
     }
 
     @Test
-    fun `getAs clazz works`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `getAs clazz works`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/int") { ctx ->
             val myInt = ctx.queryParamAsClass<Int>("my-qp").get()
             ctx.result((myInt * 2).toString())
@@ -85,7 +85,7 @@ class TestValidation {
     }
 
     @Test
-    fun `check works`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `check works`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/") { ctx ->
             ctx.queryParamAsClass<String>("my-qp").check({ it.length > 5 }, "Length must be more than five").get()
         }
@@ -93,7 +93,7 @@ class TestValidation {
     }
 
     @Test
-    fun `default query param values work`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `default query param values work`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/") { ctx ->
             val myInt = ctx.queryParamAsClass<Int>("my-qp").getOrDefault(788)
             ctx.result(myInt.toString())
@@ -137,7 +137,7 @@ class TestValidation {
     }
 
     @Test
-    fun `custom converter works for null when nullable`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `custom converter works for null when nullable`() = TestUtil.test(javalinWithMapper) { app, http ->
         JavalinValidation.register(Instant::class.java) { Instant.ofEpochMilli(it.toLong()) }
         app.get("/instant") { ctx ->
             val fromDate = ctx.queryParamAsClass<Instant>("from").get()
@@ -152,7 +152,7 @@ class TestValidation {
     }
 
     @Test
-    fun `custom converter returns null`() = TestUtil.test { app, http ->
+    fun `custom converter returns null`() = TestUtil.test(javalinWithMapper) { app, http ->
         JavalinValidation.register(Instant::class.java) { null }
         app.get("/instant") { it.queryParamAsClass<Instant>("from").get() }
         assertThat(http.get("/instant?from=1262347200000").httpCode()).isEqualTo(BAD_REQUEST)
@@ -168,7 +168,7 @@ class TestValidation {
     }
 
     @Test
-    fun `validatedBody works`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `validatedBody works`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializableObject>()
                 .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
@@ -191,7 +191,7 @@ class TestValidation {
     }
 
     @Test
-    fun `multiple checks and named fields work when validating class`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `multiple checks and named fields work when validating class`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializableObject>()
                 .check({ false }, "UnnamedFieldCheck1")
@@ -236,7 +236,7 @@ class TestValidation {
     }
 
     @Test
-    fun `optional query param value with check works`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `optional query param value with check works`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/") { ctx ->
             val id: Int? = ctx.queryParamAsClass<Int>("id")
                 .allowNullable()
@@ -268,7 +268,7 @@ class TestValidation {
     }
 
     @Test
-    fun `All errors can be collected from multiple validators`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `All errors can be collected from multiple validators`() = TestUtil.test(javalinWithMapper) { app, http ->
 
         app.get("/") { ctx ->
             val numberValidator = ctx.queryParamAsClass<Int>("number")
@@ -307,7 +307,7 @@ class TestValidation {
     }
 
     @Test
-    fun `body validator with check and retrieve errors`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `body validator with check and retrieve errors`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.post("/") { ctx ->
             val errors = ctx.bodyValidator<Map<String, String>>()
                 .check("first_name", { it.containsKey("first_name") }, "This field is mandatory")
@@ -337,7 +337,7 @@ class TestValidation {
     }
 
     @Test
-    fun `error args work`() = TestUtil.test(validationWithRequiredMapper) { app, http ->
+    fun `error args work`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/args") { ctx ->
             ctx.queryParamAsClass<Int>("my-qp")
                 .check({ it <= 5 }, ValidationError("OVER_LIMIT", args = mapOf("limit" to 5)))

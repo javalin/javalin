@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class TestCookieStore {
 
-    private val javalinWithJsonMapper = Javalin.create { it.jsonMapper = JacksonJsonMapper() }
+    private val javalinWithMapper = Javalin.create { it.jsonMapper = JacksonJsonMapper() }
 
     @Test
     fun `cookieStore works between two handlers`() = TestUtil.test { app, http ->
@@ -39,7 +39,7 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore works between two requests`() = TestUtil.test(javalinWithJsonMapper) { app, http ->
+    fun `cookieStore works between two requests`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/cookie-storer") { it.cookieStore()["test-object"] = 123 }
         app.get("/cookie-reader") { ctx ->
             if (ctx.cookieStore().get<Any>("test-object") is Int) {
@@ -51,7 +51,7 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore works between two request with object overwrite`() = TestUtil.test(javalinWithJsonMapper) { app, http ->
+    fun `cookieStore works between two request with object overwrite`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/cookie-storer") { it.cookieStore()["test-object"] = 1 }
         app.get("/cookie-overwriter") { it.cookieStore()["test-object"] = "Hello world!" }
         app.get("/cookie-reader") { ctx ->
@@ -65,7 +65,7 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore works between two request with multiple objects`() = TestUtil.test(javalinWithJsonMapper) { app, http ->
+    fun `cookieStore works between two request with multiple objects`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/cookie-storer") { ctx ->
             ctx.cookieStore()["s"] = "Hello world!"
             ctx.cookieStore()["i"] = 42
@@ -86,13 +86,13 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore cookie path is root`() = TestUtil.test(javalinWithJsonMapper) { app, http ->
+    fun `cookieStore cookie path is root`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/") { it.cookieStore()["s"] = "Hello world!" }
         assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).endsWith("; Path=/")
     }
 
     @Test
-    fun `renaming cookieStore cookie works`() = TestUtil.test { app, http ->
+    fun `renaming cookieStore cookie works`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/") { it.cookieStore()["s"] = "Hello world!" }
         assertThat(http.get("/").headers.getFirst(Header.SET_COOKIE)).startsWith(CookieStore.COOKIE_NAME)
         CookieStore.COOKIE_NAME = "another-name"
@@ -100,7 +100,7 @@ class TestCookieStore {
     }
 
     @Test
-    fun `cookieStore cookie should not be duplicated`() = TestUtil.test(javalinWithJsonMapper) { app, http ->
+    fun `cookieStore cookie should not be duplicated`() = TestUtil.test(javalinWithMapper) { app, http ->
         app.get("/test") { ctx ->
             ctx.cookieStore()["first"] = "hello"
             ctx.cookieStore()["second"] = "world"

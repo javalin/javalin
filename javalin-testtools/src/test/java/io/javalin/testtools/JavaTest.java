@@ -2,6 +2,7 @@ package io.javalin.testtools;
 
 import io.javalin.Javalin;
 import io.javalin.http.Header;
+import io.javalin.json.JacksonJsonMapper;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -56,7 +57,7 @@ public class JavaTest {
 
     @Test
     public void post_with_json_serialization_works() {
-        JavalinTest.test((server, client) -> {
+        JavalinTest.test(Javalin.create(cfg -> cfg.jsonMapper = new JacksonJsonMapper()), (server, client) -> {
             server.post("/hello", ctx -> ctx.result(ctx.bodyAsClass(MyJavaClass.class).field1));
             Response response = client.post("/hello", new MyJavaClass("v1", "v2"));
             assertThat(response.body().string()).isEqualTo("v1");

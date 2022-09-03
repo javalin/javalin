@@ -6,6 +6,7 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.bodyAsClass
+import io.javalin.json.JacksonJsonMapper
 import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -41,7 +42,7 @@ class KotlinTest {
     }
 
     @Test
-    fun `post with json serialization works`() = JavalinTest.test { server, client ->
+    fun `post with json serialization works`() = JavalinTest.test(Javalin.create { it.jsonMapper = JacksonJsonMapper() }) { server, client ->
         server.post("/hello") { it.result(it.bodyAsClass<MyKotlinClass>().field1) }
         val response = client.post("/hello", MyKotlinClass("v1", "v2"))
         assertThat(response.body?.string()).isEqualTo("v1")
