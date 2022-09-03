@@ -6,8 +6,8 @@ import io.javalin.compression.LeveledBrotliStream
 import io.javalin.compression.LeveledGzipStream
 import io.javalin.http.Header
 import io.javalin.util.CoreDependency
-import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
+import io.javalin.util.Util
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
@@ -65,6 +65,7 @@ object JettyPrecompressingResourceHandler {
         return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
     }
 
+    private val brotliAvailable = Util.classExists(CoreDependency.JVMBROTLI.testClass)
     private fun getCompressedByteArray(resource: Resource, type: CompressionType): ByteArray {
         val fileInput = resource.inputStream
         val byteArrayOutputStream = ByteArrayOutputStream()
@@ -72,7 +73,7 @@ object JettyPrecompressingResourceHandler {
             type == CompressionType.GZIP -> {
                 LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
             }
-            type == CompressionType.BR && DependencyUtil.isPresent(CoreDependency.JVMBROTLI) -> {
+            type == CompressionType.BR && brotliAvailable -> {
                 LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
             }
             else -> byteArrayOutputStream

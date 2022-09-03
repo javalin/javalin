@@ -109,19 +109,6 @@ object Util {
 
     fun getFileUrl(path: String): URL? = if (File(path).exists()) File(path).toURI().toURL() else null
 
-    fun isKotlinClass(clazz: Class<*>): Boolean {
-        try {
-            for (annotation in clazz.declaredAnnotations) {
-                // Note: annotation.simpleClass can be used if kotlin-reflect is available.
-                if (annotation.annotationClass.toString().contains("kotlin.Metadata")) {
-                    return true
-                }
-            }
-        } catch (ignored: Exception) {
-        }
-        return false
-    }
-
     @JvmStatic
     fun getPort(e: Exception) = e.message!!.takeLastWhile { it != ':' }
 

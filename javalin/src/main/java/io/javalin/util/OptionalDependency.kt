@@ -6,39 +6,13 @@
 
 package io.javalin.util
 
-import io.javalin.http.InternalServerErrorResponse
 import java.net.URLEncoder
 
 object DependencyUtil {
 
-    private val dependencyCheckCache = HashMap<String, Boolean>()
-
-    fun isPresent(dependency: OptionalDependency) = try {
-        ensurePresence(dependency)
-        true
-    } catch (e: Exception) {
-        false
-    }
-
-    fun ensurePresence(dependency: OptionalDependency, startupCheck: Boolean = false) {
-        if (dependencyCheckCache[dependency.testClass] == true) {
-            return
-        }
-        if (!Util.classExists(dependency.testClass)) {
-            val message = missingDependencyMessage(dependency)
-            if (startupCheck) {
-                throw IllegalStateException(message)
-            } else {
-                JavalinLogger.warn(message)
-                throw InternalServerErrorResponse(message)
-            }
-        }
-        dependencyCheckCache[dependency.testClass] = true
-    }
-
     internal fun missingDependencyMessage(dependency: OptionalDependency) = """
         |-------------------------------------------------------------------
-        |Missing dependency '${dependency.displayName}'. Add the dependency.
+        |You're missing the '${dependency.displayName}' dependency in your project. Add the dependency:
         |
         |pom.xml:
         |<dependency>
