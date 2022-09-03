@@ -8,8 +8,10 @@ package io.javalin.json
 
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.javalin.http.InternalServerErrorResponse
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
+import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import java.io.InputStream
 import java.lang.reflect.Type
@@ -17,7 +19,12 @@ import java.lang.reflect.Type
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
     val mapper by lazy {
-        DependencyUtil.ensurePresence(CoreDependency.JACKSON)
+        if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
+            val message = DependencyUtil.missingDependencyMessage(CoreDependency.JACKSON)
+            JavalinLogger.warn(message)
+            message + "\nIf you're using Kotlin, you will also need to add '${CoreDependency.JACKSON_KT.artifactId}'"
+            throw InternalServerErrorResponse(message)
+        }
         objectMapper ?: defaultMapper()
     }
 
