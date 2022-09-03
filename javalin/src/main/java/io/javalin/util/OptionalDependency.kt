@@ -11,6 +11,7 @@ import java.net.URLEncoder
 object DependencyUtil {
 
     internal fun missingDependencyMessage(dependency: OptionalDependency) = """
+        |
         |-------------------------------------------------------------------
         |You're missing the '${dependency.displayName}' dependency in your project. Add the dependency:
         |

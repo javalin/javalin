@@ -20,9 +20,9 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
 
     val mapper by lazy {
         if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
-            val message = DependencyUtil.missingDependencyMessage(CoreDependency.JACKSON)
+            val message = DependencyUtil.missingDependencyMessage(CoreDependency.JACKSON) +
+                "\nIf you're using Kotlin, you will need to add '${CoreDependency.JACKSON_KT.artifactId}'"
             JavalinLogger.warn(message)
-            message + "\nIf you're using Kotlin, you will also need to add '${CoreDependency.JACKSON_KT.artifactId}'"
             throw InternalServerErrorResponse(message)
         }
         objectMapper ?: defaultMapper()

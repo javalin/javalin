@@ -41,12 +41,12 @@ class TestHttpResponseExceptions {
     }
 
     @Test
-    fun `response is formatted as text if client wants text`() = TestUtil.test { app, http ->
-        app.post("/") { throw ForbiddenResponse() }
+    fun `response is formatted as text if client wants html or text`() = TestUtil.test { app, http ->
+        app.post("/") { throw ForbiddenResponse("Forbidden", mapOf("a" to "A", "b" to "B")) }
         val response = http.post("/").header(Header.ACCEPT, ContentType.PLAIN).asString()
         assertThat(response.headers.getFirst(Header.CONTENT_TYPE)).isEqualTo(ContentType.PLAIN)
         assertThat(response.httpCode()).isEqualTo(FORBIDDEN)
-        assertThat(response.body).isEqualTo("Forbidden")
+        assertThat(response.body).isEqualTo("Forbidden\n\na:\nA\nb:\nB\n")
     }
 
     @Test

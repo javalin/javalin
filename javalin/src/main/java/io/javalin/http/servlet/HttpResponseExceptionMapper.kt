@@ -11,6 +11,7 @@ import io.javalin.http.BadRequestResponse
 import io.javalin.http.ConflictResponse
 import io.javalin.http.ContentType
 import io.javalin.http.ContentType.APPLICATION_JSON
+import io.javalin.http.ContentType.TEXT_PLAIN
 import io.javalin.http.Context
 import io.javalin.http.ForbiddenResponse
 import io.javalin.http.GatewayTimeoutResponse
@@ -25,41 +26,33 @@ import io.javalin.http.ServiceUnavailableResponse
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.util.JsonEscapeUtil
 import java.util.*
-import java.util.concurrent.CompletionException
 
 object HttpResponseExceptionMapper {
 
     fun canHandle(t: Throwable) = HttpResponseException::class.java.isAssignableFrom(t::class.java) // is HttpResponseException or subclass
 
-    fun handle(exception: Exception, ctx: Context) {
-        val e = unwrap(exception)
-        if (ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res().contentType == ContentType.JSON) {
-            ctx.status(e.status).result(
-                """|{
-                   |    "title": "${e.message?.jsonEscape()}",
-                   |    "status": ${e.status},
-                   |    "type": "${getTypeUrl(e).lowercase(Locale.ROOT)}",
-                   |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
-                   |}""".trimMargin()
-            ).contentType(APPLICATION_JSON)
-        } else {
-            val result = if (e.details.isEmpty()) "${e.message}" else """
-                |${e.message}
-                |${
-                e.details.map {
-                    """
-                |${it.key}:
-                |${it.value}
-                |"""
-                }.joinToString("")
-            }""".trimMargin()
-            ctx.status(e.status).result(result)
-        }
+    fun handle(e: HttpResponseException, ctx: Context) = when {
+        ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true || ctx.res().contentType == ContentType.HTML -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
+        ctx.header(Header.ACCEPT)?.contains(ContentType.JSON) == true || ctx.res().contentType == ContentType.JSON -> ctx.status(e.status).result(jsonResult(e)).contentType(APPLICATION_JSON)
+        else -> ctx.status(e.status).result(plainResult(e)).contentType(TEXT_PLAIN)
     }
+
+    private fun jsonResult(e: HttpResponseException) =
+        """|{
+           |    "title": "${e.message?.jsonEscape()}",
+           |    "status": ${e.status},
+           |    "type": "${getTypeUrl(e).lowercase(Locale.ROOT)}",
+           |    "details": {${e.details.map { """"${it.key}":"${it.value.jsonEscape()}"""" }.joinToString(",")}}
+           |}""".trimMargin()
+
+    private fun plainResult(e: HttpResponseException) =
+        if (e.details.isEmpty()) "${e.message}" else """
+                |${e.message}
+                |${e.details.map { "\n${it.key}:\n${it.value}" }.joinToString("")}
+                |""".trimMargin()
 
     private const val docsUrl = "https://javalin.io/documentation#"
     private fun classUrl(e: HttpResponseException) = docsUrl + e.javaClass.simpleName
-    private fun unwrap(e: Exception) = (if (e is CompletionException) e.cause else e) as HttpResponseException
 
     // this could be removed by introducing a "DefaultResponse", but I would
     // rather keep this ugly snippet than introduced another abstraction layer

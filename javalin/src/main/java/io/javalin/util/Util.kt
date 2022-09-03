@@ -50,7 +50,7 @@ object Util {
             System.err.println(
                 """|-------------------------------------------------------------------
                    |It looks like you don't have a logger in your project.
-                   |The easiest way to fix this is to add 'slf4j-simple':
+                   |The easiest way to fix this is to add '${CoreDependency.SLF4JSIMPLE.artifactId}':
                    |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4JSIMPLE).lines().drop(2).joinToString("\n")}
                    |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin()
             )
