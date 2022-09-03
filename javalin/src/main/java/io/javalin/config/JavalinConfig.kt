@@ -7,7 +7,7 @@ package io.javalin.config
 
 import io.javalin.Javalin
 import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
-import io.javalin.json.DisabledJsonMapper
+import io.javalin.json.UnsupportedJsonMapper
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JsonMapper
 import io.javalin.plugin.PluginUtil.attachPlugins
@@ -42,7 +42,7 @@ class JavalinConfig {
             addValidationExceptionMapper(app) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
             attachPlugins(app, cfg.pvt.plugins.values)
-            cfg.pvt.appAttributes.get(JSON_MAPPER_KEY) ?: run { cfg.jsonMapper(DisabledJsonMapper()) }
+            cfg.pvt.appAttributes.get(JSON_MAPPER_KEY) ?: run { cfg.jsonMapper(UnsupportedJsonMapper()) }
             cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, cfg.contextResolver)
             cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize)
             cfg.pvt.appAttributes.putIfAbsent(JAVALINVUE_CONFIG_KEY, cfg.vue)
