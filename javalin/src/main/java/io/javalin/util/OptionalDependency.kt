@@ -6,28 +6,30 @@
 
 package io.javalin.util
 
-import java.net.URLEncoder
-
 object DependencyUtil {
 
-    fun missingDependencyMessage(dependency: OptionalDependency) = """
+    fun missingDependencyMessage(dependency: OptionalDependency) = wrapInSeparators(
+        """|You're missing the '${dependency.displayName}' dependency in your project. Add the dependency:
+           |
+           |${mavenAndGradleSnippets(dependency)}""".trimMargin()
+    )
+
+    fun mavenAndGradleSnippets(dependency: OptionalDependency) = """
+           |pom.xml:
+           |<dependency>
+           |    <groupId>${dependency.groupId}</groupId>
+           |    <artifactId>${dependency.artifactId}</artifactId>
+           |    <version>${dependency.version}</version>
+           |</dependency>
+           |
+           |build.gradle or build.gradle.kts:
+           |implementation("${dependency.groupId}:${dependency.artifactId}:${dependency.version}")""".trimMargin()
+
+    fun wrapInSeparators(msg: String) = """
         |
-        |-------------------------------------------------------------------
-        |You're missing the '${dependency.displayName}' dependency in your project. Add the dependency:
-        |
-        |pom.xml:
-        |<dependency>
-        |    <groupId>${dependency.groupId}</groupId>
-        |    <artifactId>${dependency.artifactId}</artifactId>
-        |    <version>${dependency.version}</version>
-        |</dependency>
-        |
-        |build.gradle or build.gradle.kts:
-        |implementation("${dependency.groupId}:${dependency.artifactId}:${dependency.version}")
-        |
-        |Find the latest version here:
-        |https://search.maven.org/search?q=${URLEncoder.encode("g:" + dependency.groupId + " AND a:" + dependency.artifactId, "UTF-8")}
-        |-------------------------------------------------------------------""".trimMargin()
+        |#########################################################################
+        |${msg}
+        |#########################################################################""".trimMargin()
 
 }
 

@@ -48,11 +48,14 @@ object Util {
         val hasLogger = classExists(CoreDependency.SLF4JSIMPLE.testClass) || slf4jServiceImplementationExists()
         if (!hasLogger) {
             System.err.println(
-                """|-------------------------------------------------------------------
-                   |It looks like you don't have a logger in your project.
-                   |The easiest way to fix this is to add '${CoreDependency.SLF4JSIMPLE.artifactId}':
-                   |${DependencyUtil.missingDependencyMessage(CoreDependency.SLF4JSIMPLE).lines().drop(2).joinToString("\n")}
-                   |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin()
+                DependencyUtil.wrapInSeparators(
+                    """|It looks like you don't have a logger in your project.
+                       |The easiest way to fix this is to add '${CoreDependency.SLF4JSIMPLE.artifactId}':
+                       |
+                       |${DependencyUtil.mavenAndGradleSnippets(CoreDependency.SLF4JSIMPLE)}
+                       |
+                       |Visit https://javalin.io/documentation#logging if you need more help""".trimMargin()
+                )
             )
         }
     }

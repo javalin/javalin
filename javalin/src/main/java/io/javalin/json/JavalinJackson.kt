@@ -20,9 +20,16 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
 
     val mapper by lazy {
         if (!Util.classExists(CoreDependency.JACKSON.testClass)) {
-            val message = DependencyUtil.missingDependencyMessage(CoreDependency.JACKSON) +
-                "\nIf you're using Kotlin, you will need to add '${CoreDependency.JACKSON_KT.artifactId}'"
-            JavalinLogger.warn(message)
+            val message =
+                """|It looks like you don't have an object mapper configured.
+                   |The easiest way to fix this is to simply add the '${CoreDependency.JACKSON.artifactId}' dependency:
+                   |
+                   |${DependencyUtil.mavenAndGradleSnippets(CoreDependency.JACKSON)}
+                   |
+                   |If you're using Kotlin, you will need to add '${CoreDependency.JACKSON_KT.artifactId}'.
+                   |
+                   |To use a different object mapper, visit https://javalin.io/documentation#configuring-the-json-mapper""".trimMargin()
+            JavalinLogger.warn(DependencyUtil.wrapInSeparators(message))
             throw InternalServerErrorResponse(message)
         }
         objectMapper ?: defaultMapper()
