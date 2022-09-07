@@ -57,6 +57,7 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
         fun defaultMapper(): ObjectMapper = ObjectMapper()
             .registerOptionalModule(CoreDependency.JACKSON_KT.testClass)
             .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass)
+            .registerOptionalModule(CoreDependency.JACKSON_ECLIPSE_COLLECTIONS.testClass)
             .registerOptionalModule(CoreDependency.JACKSON_KTORM.testClass) // very optional module for ktorm (a kotlin orm)
     }
 }
