@@ -49,7 +49,7 @@ object Util {
         if (!hasLogger) {
             System.err.println(
                 DependencyUtil.wrapInSeparators(
-                    """|It looks like you don't have a logger in your project.
+                    """|Javalin: It looks like you don't have a logger in your project.
                        |The easiest way to fix this is to add '${CoreDependency.SLF4JSIMPLE.artifactId}':
                        |
                        |${DependencyUtil.mavenAndGradleSnippets(CoreDependency.SLF4JSIMPLE)}
