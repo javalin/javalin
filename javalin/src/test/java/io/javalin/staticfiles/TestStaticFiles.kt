@@ -8,8 +8,8 @@
 package io.javalin.staticfiles
 
 import io.javalin.Javalin
-import io.javalin.http.Header
 import io.javalin.http.ContentType
+import io.javalin.http.Header
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.HttpStatus.UNAUTHORIZED
@@ -296,6 +296,15 @@ class TestStaticFiles {
     fun `logs handlers added on startup`() {
         TestUtil.test(multiLocationStaticResourceApp) { _, _ -> }
         assertThat(multiLocationStaticResourceApp.attribute<String>("testlogs").split("Static file handler added").size - 1).isEqualTo(4)
+    }
+
+    @Test
+    fun `static files can be added after app creation`() = TestUtil.test(
+        Javalin.create().updateConfig { it.staticFiles.add("/public", Location.CLASSPATH) }
+    ) { _, http ->
+        assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
+        assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
+        assertThat(http.getBody("/html.html")).contains("HTML works")
     }
 
 }
