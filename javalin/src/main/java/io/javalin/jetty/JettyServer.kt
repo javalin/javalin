@@ -77,7 +77,7 @@ class JettyServer(val cfg: JavalinConfig) {
 
         LoomUtil.logIfLoom(server())
 
-        cfg.pvt.resourceHandler?.init(mapOf("server" to server()))
+        (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init(server()) // we want to init this here to get logs in order
 
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${cfg.routing.contextPath}")
