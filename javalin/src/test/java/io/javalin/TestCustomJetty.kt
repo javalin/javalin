@@ -195,7 +195,7 @@ class TestCustomJetty {
         if (!LoomUtil.loomAvailable) return
         val defaultApp = Javalin.create()
         TestUtil.test(defaultApp) { app, http -> } // start and stop default server
-        assertThat(defaultApp.attribute<String>("testlogs")).contains("Loom is available, using Virtual ThreadPool... Neat!")
+        assertThat(defaultApp.attribute<String>("testlogs")).contains(LoomUtil.logMsg)
     }
 
     @Test

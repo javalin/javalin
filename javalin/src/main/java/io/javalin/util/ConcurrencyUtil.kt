@@ -1,6 +1,7 @@
 package io.javalin.util
 
 import io.javalin.util.LoomUtil.loomAvailable
+import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
 import java.util.concurrent.ExecutorService
@@ -49,8 +50,9 @@ internal class LoomThreadPool(name: String) : ThreadPool {
 
 internal object LoomUtil {
 
-    val loomAvailable = System.getProperty("java.version").contains("loom", ignoreCase = true) || try {
-        Thread::class.java.getDeclaredMethod("startVirtualThread", Runnable::class.java)
+    val loomAvailable = try {
+        Thread::class.java.getMethod("startVirtualThread", Runnable::class.java)
+        Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
         true
     } catch (e: Exception) {
         false
@@ -58,8 +60,15 @@ internal object LoomUtil {
 
     fun getExecutorService(name: String): ExecutorService {
         require(loomAvailable) { "Your Java version (${System.getProperty("java.version")}) doesn't support Loom" }
-        val factoryMethod = Executors::class.java.getMethod("newThreadPerTaskExecutor")
+        val factoryMethod = Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
         return factoryMethod.invoke(Executors::class.java, NamedThreadFactory(name)) as ExecutorService
+    }
+
+    val logMsg = "Your JDK supports Loom. Javalin will prefer Virtual Threads by default. Disable with `ConcurrencyUtil.useLoom = false`."
+
+    fun logIfLoom(server: Server) {
+        if (server.threadPool !is LoomThreadPool) return
+        JavalinLogger.startup(logMsg)
     }
 
 }
