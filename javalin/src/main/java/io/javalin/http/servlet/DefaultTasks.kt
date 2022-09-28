@@ -23,13 +23,14 @@ object DefaultTasks {
             submitTask(
                 Task {
                     when {
-                        /** we wrap the handler with [submitTask] to treat it as a separate task */
-                        servlet.cfg.pvt.accessManager != null -> servlet.cfg.pvt.accessManager?.manage(
-                            handler = { submitTask(Task { entry.handle(ctx, requestUri) }) },
-                            ctx = ctx,
-                            routeRoles = entry.roles
-                        )
-
+                        servlet.cfg.pvt.accessManager != null -> {
+                            ctx.update(entry, requestUri)
+                            servlet.cfg.pvt.accessManager?.manage(
+                                handler = { submitTask(Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
+                                ctx = ctx,
+                                routeRoles = entry.roles
+                            )
+                        }
                         entry.roles.isNotEmpty() -> throw accessManagerNotConfiguredException()
                         else -> entry.handle(ctx, requestUri)
                     }
