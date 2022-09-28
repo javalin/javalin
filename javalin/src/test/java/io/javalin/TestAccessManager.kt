@@ -69,6 +69,16 @@ class TestAccessManager {
     }
 
     @Test
+    fun `AccessManager supports path params`() = TestUtil.test(Javalin.create {
+        it.accessManager { _, ctx, _ ->
+            ctx.result(ctx.pathParam("userId"));
+        }
+    }) { app, http ->
+        app.get("/user/{userId}", {}, ROLE_ONE)
+        assertThat(http.get("/user/123").body).isEqualTo("123")
+    }
+
+    @Test
     fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
         it.accessManager { handler, ctx, _ ->
             ctx.result("Test")
