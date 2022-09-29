@@ -142,6 +142,10 @@ app.post("/upload") { ctx ->
 }
 ```
 
+## Sponsors
+* [@barbarysoftware](https://github.com/sponsors/barbarysoftware) (50 USD/m)
+* [@PsychotherapistSam](https://github.com/PsychotherapistSam) (25 USD/m)
+
 ## Special thanks
 * Blake Mizerany, for creating [Sinatra](http://www.sinatrarb.com/)
 * Per Wendel, for creating [Spark](http://sparkjava.com/)
