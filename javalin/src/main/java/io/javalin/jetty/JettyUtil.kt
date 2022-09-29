@@ -87,7 +87,7 @@ object JettyUtil {
 
 class LoomThreadPool : ThreadPool {
 
-    private val executorService = LoomUtil.getExecutorService()
+    private val executorService = LoomUtil.getExecutorService("JettyServerThreadPool")
 
     override fun execute(command: Runnable) {
         executorService.submit(command)

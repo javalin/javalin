@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 object PipedStreamUtil {
 
     val executorService = if (LoomUtil.loomAvailable) {
-        LoomUtil.getExecutorService()
+        LoomUtil.getExecutorService("PipedStreamThreadPool")
     } else {
         ThreadPoolExecutor(4, 32, 30L, TimeUnit.SECONDS, LinkedBlockingQueue())
     }
