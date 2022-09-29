@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java_version: [8, 11, 17, 18] # Test all LTS releases and the latest one
+        java_version: [8, 11, 17, 19] # Test all LTS releases and the latest one
         os: [windows-latest, macOS-latest, ubuntu-latest]
 
     steps:
