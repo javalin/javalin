@@ -2,24 +2,34 @@ package io.javalin.core
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.atomic.AtomicInteger
+
+internal class NamedThreadFactory(private val prefix: String) : ThreadFactory {
+    private val group = Thread.currentThread().threadGroup
+    private val threadCount = AtomicInteger(0)
+    override fun newThread(runnable: Runnable): Thread =
+        Thread(group, runnable, "$prefix-${threadCount.getAndIncrement()}", 0)
+
+}
 
 object LoomUtil {
 
     @JvmField
     var useLoomThreadPool = true
 
-    val loomAvailable = System.getProperty("java.version").contains("loom", ignoreCase = true) || try {
-        Thread::class.java.getDeclaredMethod("startVirtualThread", Runnable::class.java)
+    val loomAvailable = try {
+        Thread::class.java.getMethod("startVirtualThread", Runnable::class.java)
+        Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
         true
     } catch (e: Exception) {
         false
     }
 
-    fun getExecutorService(): ExecutorService {
-        if (!loomAvailable) {
-            throw IllegalStateException("Your Java version (${System.getProperty("java.version")}) doesn't support Loom")
-        }
-        return Executors::class.java.getMethod("newVirtualThreadPerTaskExecutor").invoke(Executors::class.java) as ExecutorService
+    fun getExecutorService(name: String): ExecutorService {
+        require(loomAvailable) { "Your Java version (${System.getProperty("java.version")}) doesn't support Loom" }
+        val factoryMethod = Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
+        return factoryMethod.invoke(Executors::class.java, NamedThreadFactory(name)) as ExecutorService
     }
 
 }
