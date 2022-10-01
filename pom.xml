@@ -85,12 +85,11 @@
         <source.plugin.version>3.2.1</source.plugin.version>
 
         <!-- DEPENDENCIES -->
-        <guava.version>31.1-jre</guava.version>
         <jackson.version>2.13.4</jackson.version>
-        <jetty.version>11.0.11</jetty.version>
+        <jetty.version>11.0.12</jetty.version>
         <jackson.databind.version>2.13.4</jackson.databind.version>
         <jvmbrotli.version>0.2.0</jvmbrotli.version>
-        <logback.version>1.2.11</logback.version>
+        <logback.version>1.4.1</logback.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
         <slf4j.version>1.7.36</slf4j.version>
 
@@ -138,11 +137,6 @@
                 <version>${kotlin.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
