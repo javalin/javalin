@@ -9,6 +9,7 @@ package io.javalin.examples
 import io.javalin.Javalin
 
 fun main() {
-    val app = Javalin.create().start(7070)
-    app.get("/") { it.result("Hello World") }
+    val app = Javalin.create(/*config*/)
+        .get("/") { it.result("Hello World") }
+        .start(7070)
 }
