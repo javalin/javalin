@@ -72,7 +72,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
                    |please create an issue at https://github.com/tipsy/javalin/
                    |---------------------------------------------------------------
                    |If you still want compression, please ensure GZIP is enabled!
-                   |---------------------------------------------------------------""".trimIndent()
+                   |---------------------------------------------------------------""".trimMargin()
             )
             null
         }
