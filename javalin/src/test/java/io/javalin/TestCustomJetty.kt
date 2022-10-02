@@ -202,7 +202,7 @@ class TestCustomJetty {
             }
             val responseBody = http.get("/").body
             assertThat(responseBody).contains("isVirtual:true")
-            // assertThat(responseBody).contains("JettyServerThreadPool-Virtual") // enable when we figure out how to do this
+            assertThat(responseBody).contains("JettyServerThreadPool-Virtual")
         }
         assertThat(defaultApp.jettyServer.server().threadPool is LoomThreadPool).isTrue()
         assertThat(defaultApp.attribute<String>("testlogs")).contains(LoomUtil.logMsg)
