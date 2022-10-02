@@ -29,14 +29,6 @@ object ConcurrencyUtil {
     }
 }
 
-internal class NamedThreadFactory(private val prefix: String) : ThreadFactory {
-    private val group = Thread.currentThread().threadGroup
-    private val threadCount = AtomicInteger(0)
-    override fun newThread(runnable: Runnable): Thread =
-        Thread(group, runnable, "$prefix-${threadCount.getAndIncrement()}", 0)
-
-}
-
 internal class LoomThreadPool(name: String) : ThreadPool {
     private val executorService = LoomUtil.getExecutorService(name)
     override fun join() {}
@@ -50,18 +42,11 @@ internal class LoomThreadPool(name: String) : ThreadPool {
 
 internal object LoomUtil {
 
-    val loomAvailable = try {
-        Thread::class.java.getMethod("startVirtualThread", Runnable::class.java)
-        Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
-        true
-    } catch (e: Exception) {
-        false
-    }
+    val loomAvailable = runCatching { getExecutorService("") }.isSuccess
 
-    fun getExecutorService(name: String): ExecutorService {
-        require(loomAvailable) { "Your Java version (${System.getProperty("java.version")}) doesn't support Loom" }
-        val factoryMethod = Executors::class.java.getMethod("newThreadPerTaskExecutor", ThreadFactory::class.java)
-        return factoryMethod.invoke(Executors::class.java, NamedThreadFactory(name)) as ExecutorService
+    fun getExecutorService(name: String): ExecutorService { // we should use this name when we figure out how
+        val factoryMethod = Executors::class.java.getMethod("newVirtualThreadPerTaskExecutor") // this will not throw if preview is not enabled
+        return factoryMethod.invoke(Executors::class.java) as ExecutorService // this *will* throw if preview is not enabled
     }
 
     val logMsg = "Your JDK supports Loom. Javalin will prefer Virtual Threads by default. Disable with `ConcurrencyUtil.useLoom = false`."
@@ -71,4 +56,11 @@ internal object LoomUtil {
         JavalinLogger.startup(logMsg)
     }
 
+}
+
+internal class NamedThreadFactory(private val prefix: String) : ThreadFactory {
+    private val group = Thread.currentThread().threadGroup
+    private val threadCount = AtomicInteger(0)
+    override fun newThread(runnable: Runnable): Thread =
+        Thread(group, runnable, "$prefix-${threadCount.getAndIncrement()}", 0)
 }
