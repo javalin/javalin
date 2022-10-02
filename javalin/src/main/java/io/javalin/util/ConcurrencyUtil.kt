@@ -74,3 +74,15 @@ internal class NamedVirtualThreadFactory(private val prefix: String) : ThreadFac
         .name("$prefix-Virtual-${threadCount.getAndIncrement()}")
         .unstarted(runnable)
 }
+
+private class ReflectiveVirtualThreadBuilder {
+    private val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
+    private var virtualBuilder = Thread::class.java.getMethod("ofVirtual").invoke(Thread::class.java)
+
+    fun name(name: String): ReflectiveVirtualThreadBuilder = also {
+        this.virtualBuilder = builderClass.getMethod("name", String::class.java).invoke(virtualBuilder, name)
+    }
+
+    fun unstarted(runnable: Runnable): Thread =
+        builderClass.getMethod("unstarted", Runnable::class.java).invoke(virtualBuilder, runnable) as Thread
+}
