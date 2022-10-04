@@ -329,7 +329,7 @@ class TestStaticFiles {
     }
 
     @Test
-    //@Disabled("This test represents the discord issue")
+    @Disabled("This test represents the discord issue")
     fun `static files can be added after app start without previous static files`() = TestUtil.test(
         Javalin.create()
     ) { app, http ->
