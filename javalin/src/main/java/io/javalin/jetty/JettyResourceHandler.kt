@@ -26,12 +26,10 @@ import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     var initialized = false
-    lateinit var serverReference: Server
 
     fun init(server: Server) { // we do init to get our logs in order during startup
         handlers = configs.map { ConfigurableHandler(it, server) }.toMutableList()
         initialized = true
-        serverReference = server
     }
 
     private val configs = mutableListOf<StaticFileConfig>()
@@ -51,8 +49,8 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         return if (!initialized) {
             configs.add(config)
         } else {
-            // otherwise add the handler directly as we now have a serverReference
-            handlers.add(ConfigurableHandler(config, serverReference))
+            // otherwise add the handler directly
+            handlers.add(ConfigurableHandler(config, pvt.server!!))
         }
     }
 
