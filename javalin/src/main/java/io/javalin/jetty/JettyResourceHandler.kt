@@ -40,17 +40,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         // It can be possible that the server is started without initializing the static files part, e.g. no static
         // files configured at start.
         // So we cheat a little and run the initialization once we have a Jetty Server reference in the private config.
-        pvt.server?.let { server ->
-            if(!initialized) {
-                init(server)
-            }
-        }
-        // if we are still not initialized then we save the config for init time
-        return if (!initialized) {
-            configs.add(config)
-        } else {
-            // otherwise add the handler directly
-            handlers.add(ConfigurableHandler(config, pvt.server!!))
+        pvt.server?.takeIf { !initialized }?.let { init(it) }
+        return when {
+            !initialized -> configs.add(config) // save the config for init time
+            else -> handlers.add(ConfigurableHandler(config, pvt.server!!)) // otherwise add the handler directly
         }
     }
 
