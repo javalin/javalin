@@ -25,15 +25,15 @@ import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
-    fun init() { // we do init to get our logs in order during startup
-        handlers = configs.map { ConfigurableHandler(it, pvt.server!!) }.toMutableList()
+    fun init() { // we delay the creation of ConfigurableHandler objects to get our logs in order during startup
+        handlers.addAll(lateInitConfigs.map { ConfigurableHandler(it, pvt.server!!) })
     }
 
-    private val configs = mutableListOf<StaticFileConfig>()
-    private var handlers: MutableList<ConfigurableHandler> = mutableListOf()
+    private val lateInitConfigs = mutableListOf<StaticFileConfig>()
+    private val handlers = mutableListOf<ConfigurableHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
-        if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else configs.add(config)
+        if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else lateInitConfigs.add(config)
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val (target, baseRequest) = httpRequest.getAttribute("jetty-target-and-request") as Pair<String, Request>
