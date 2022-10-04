@@ -25,37 +25,15 @@ import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
-    var initialized = false
-
-    /**
-     * Inits the Resource Handler if possible. Can be called multiple times without throwing an exception.
-     *
-     * This method cannot be removed as it is used during server startup.
-     * We need to know when the server starts in case every static file config being registered before server start.
-     */
-    fun init(server: Server?) { // we do init to get our logs in order during startup
-        // in case init gets called twice in quick succession
-        val notInitialized = !initialized
-        if (server != null && notInitialized) {
-            handlers = configs.map { ConfigurableHandler(it, server) }.toMutableList()
-            initialized = true
-        }
+    fun init() { // we do init to get our logs in order during startup
+        handlers = configs.map { ConfigurableHandler(it, pvt.server!!) }.toMutableList()
     }
 
     private val configs = mutableListOf<StaticFileConfig>()
-    lateinit var handlers: MutableList<ConfigurableHandler>
+    private var handlers: MutableList<ConfigurableHandler> = mutableListOf()
 
-    override fun addStaticFileConfig(config: StaticFileConfig): Boolean {
-        // we allow adding static files after startup
-        // It can be possible that the server is started without initializing the static files part, e.g. no static
-        // files configured at start.
-        // So we cheat a little and run the initialization once we have a Jetty Server reference in the private config.
-        init(pvt.server)
-        return when {
-            !initialized -> configs.add(config) // save the config for init time
-            else -> handlers.add(ConfigurableHandler(config, pvt.server!!)) // otherwise add the handler directly
-        }
-    }
+    override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
+        if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else configs.add(config)
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val (target, baseRequest) = httpRequest.getAttribute("jetty-target-and-request") as Pair<String, Request>
@@ -101,8 +79,10 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         return when {
             config.directory == "META-INF/resources/webjars" ->
                 Resource.newClassPathResource("META-INF/resources$path") ?: EmptyResource.INSTANCE
+
             config.aliasCheck != null && aliasResource.isAlias ->
                 if (config.aliasCheck?.check(path, aliasResource) == true) aliasResource else throw AccessDeniedException("Failed alias check")
+
             config.hostedPath == "/" -> super.getResource(path) // same as regular ResourceHandler
             path.startsWith(config.hostedPath + "/") -> super.getResource(path.removePrefix(config.hostedPath))
             else -> EmptyResource.INSTANCE // files that don't start with hostedPath should not be accessible
