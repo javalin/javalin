@@ -27,9 +27,19 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     var initialized = false
 
-    fun init(server: Server) { // we do init to get our logs in order during startup
-        handlers = configs.map { ConfigurableHandler(it, server) }.toMutableList()
-        initialized = true
+    /**
+     * Inits the Resource Handler if possible. Can be called multiple times without throwing an exception.
+     *
+     * This method cannot be removed as it is used during server startup.
+     * We need to know when the server starts in case every static file config being registered before server start.
+     */
+    fun init(server: Server?) { // we do init to get our logs in order during startup
+        // in case init gets called twice in quick succession
+        val notInitialized = !initialized
+        if (server != null && notInitialized) {
+            handlers = configs.map { ConfigurableHandler(it, server) }.toMutableList()
+            initialized = true
+        }
     }
 
     private val configs = mutableListOf<StaticFileConfig>()
@@ -40,7 +50,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         // It can be possible that the server is started without initializing the static files part, e.g. no static
         // files configured at start.
         // So we cheat a little and run the initialization once we have a Jetty Server reference in the private config.
-        pvt.server?.takeUnless { initialized }?.let { init(it) }
+        init(pvt.server)
         return when {
             !initialized -> configs.add(config) // save the config for init time
             else -> handlers.add(ConfigurableHandler(config, pvt.server!!)) // otherwise add the handler directly
