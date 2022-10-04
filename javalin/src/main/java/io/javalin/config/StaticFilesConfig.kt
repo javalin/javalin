@@ -21,7 +21,7 @@ class StaticFilesConfig(private val pvt: PrivateConfig) {
 
     fun add(userConfig: Consumer<StaticFileConfig>) {
         if (pvt.resourceHandler == null) {
-            pvt.resourceHandler = JettyResourceHandler()
+            pvt.resourceHandler = JettyResourceHandler(pvt)
         }
         val finalConfig = StaticFileConfig()
         userConfig.accept(finalConfig)

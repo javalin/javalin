@@ -6,6 +6,7 @@
 
 package io.javalin.jetty
 
+import io.javalin.config.PrivateConfig
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.util.JavalinException
@@ -22,22 +23,39 @@ import java.io.File
 import java.nio.file.AccessDeniedException
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
-class JettyResourceHandler : JavalinResourceHandler {
+class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     var initialized = false
-    lateinit var serverReference: Server
 
-    fun init(server: Server) { // we do init to get our logs in order during startup
-        handlers = configs.map { ConfigurableHandler(it, server) }.toMutableList()
-        initialized = true
-        serverReference = server
+    /**
+     * Inits the Resource Handler if possible. Can be called multiple times without throwing an exception.
+     *
+     * This method cannot be removed as it is used during server startup.
+     * We need to know when the server starts in case every static file config being registered before server start.
+     */
+    fun init(server: Server?) { // we do init to get our logs in order during startup
+        // in case init gets called twice in quick succession
+        val notInitialized = !initialized
+        if (server != null && notInitialized) {
+            handlers = configs.map { ConfigurableHandler(it, server) }.toMutableList()
+            initialized = true
+        }
     }
 
     private val configs = mutableListOf<StaticFileConfig>()
     lateinit var handlers: MutableList<ConfigurableHandler>
 
-    override fun addStaticFileConfig(config: StaticFileConfig) = // we allow adding static files after startup
-        if (!initialized) configs.add(config) else handlers.add(ConfigurableHandler(config, serverReference))
+    override fun addStaticFileConfig(config: StaticFileConfig): Boolean {
+        // we allow adding static files after startup
+        // It can be possible that the server is started without initializing the static files part, e.g. no static
+        // files configured at start.
+        // So we cheat a little and run the initialization once we have a Jetty Server reference in the private config.
+        init(pvt.server)
+        return when {
+            !initialized -> configs.add(config) // save the config for init time
+            else -> handlers.add(ConfigurableHandler(config, pvt.server!!)) // otherwise add the handler directly
+        }
+    }
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
         val (target, baseRequest) = httpRequest.getAttribute("jetty-target-and-request") as Pair<String, Request>
