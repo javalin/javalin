@@ -28,7 +28,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ServletResponseHttpWrapper
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.servlet.FilterHolder
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -329,7 +328,6 @@ class TestStaticFiles {
     }
 
     @Test
-    @Disabled("This test represents the discord issue")
     fun `static files can be added after app start without previous static files`() = TestUtil.test(
         Javalin.create()
     ) { app, http ->
