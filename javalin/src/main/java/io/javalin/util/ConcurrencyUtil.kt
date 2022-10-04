@@ -4,6 +4,9 @@ import io.javalin.util.LoomUtil.loomAvailable
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -78,14 +81,29 @@ private class NamedVirtualThreadFactory(private val prefix: String) : ThreadFact
         .unstarted(runnable)
 
     private class ReflectiveVirtualThreadBuilder {
-        private val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
-        private var virtualBuilder = Thread::class.java.getMethod("ofVirtual").invoke(Thread::class.java)
+        private var virtualBuilder = OF_VIRTUAL.invoke()
 
         fun name(name: String): ReflectiveVirtualThreadBuilder = also {
-            this.virtualBuilder = builderClass.getMethod("name", String::class.java).invoke(virtualBuilder, name)
+            this.virtualBuilder = NAME.invoke(virtualBuilder, name)
         }
 
         fun unstarted(runnable: Runnable): Thread =
-            builderClass.getMethod("unstarted", Runnable::class.java).invoke(virtualBuilder, runnable) as Thread
+            UNSTARTED.invoke(virtualBuilder, runnable) as Thread
+    }
+
+    companion object {
+
+        val OF_VIRTUAL: MethodHandle
+        val NAME: MethodHandle
+        val UNSTARTED: MethodHandle
+
+        init {
+            val threadClass = Thread::class.java
+            val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
+            val handles = MethodHandles.publicLookup()
+            OF_VIRTUAL = handles.findStatic(threadClass, "ofVirtual", MethodType.methodType(builderClass))
+            NAME = handles.findVirtual(builderClass, "name", MethodType.methodType(builderClass, String::class.java))
+            UNSTARTED = handles.findVirtual(builderClass, "unstarted", MethodType.methodType(threadClass, Runnable::class.java))
+        }
     }
 }
