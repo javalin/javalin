@@ -81,7 +81,7 @@ class TestSse {
 
     @Test
     fun `getting queryParam in sse handler works`() = TestUtil.test { app, http ->
-        app.sse("/sse") { it.doAndClose { it.sendEvent(event, it.ctx.queryParam("qp")!!) } }
+        app.sse("/sse") { it.doAndClose { it.sendEvent(event, it.ctx().queryParam("qp")!!) } }
         val body = http.sse("/sse?qp=my-qp").get().body
         assertThat(body).contains("event: $event")
         assertThat(body).contains("data: " + "my-qp")
@@ -112,7 +112,7 @@ class TestSse {
     fun `sending async data is properly processed`() = TestUtil.test { app, http ->
         app.sse("/sse") {
             it.sendEvent("Sync event")
-            it.ctx.async {
+            it.ctx().async {
                 Thread.sleep(100)
                 it.sendEvent("Async event")
             }

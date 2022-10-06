@@ -9,12 +9,14 @@ import java.lang.reflect.Type
 import java.util.concurrent.CompletableFuture
 
 class SseClient internal constructor(
-    @JvmField val ctx: Context
+    private val ctx: Context
 ) : Closeable {
 
     private val emitter = Emitter(ctx.res())
     private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
+
+    fun ctx(): Context = ctx
 
     /**
      * By blocking SSE connection, you can share client outside the handler to notify it from other sources.
