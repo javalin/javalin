@@ -75,6 +75,7 @@ enum class HttpStatus(val code: Int, val message: String) {
     companion object {
         private val cachedValues: Array<HttpStatus> = HttpStatus.values()
 
+        @JvmStatic
         fun forStatus(status: Int) = cachedValues.find { it.code == status } ?: UNKNOWN
     }
 
