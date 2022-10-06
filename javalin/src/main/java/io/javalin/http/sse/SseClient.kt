@@ -9,7 +9,7 @@ import java.lang.reflect.Type
 import java.util.concurrent.CompletableFuture
 
 class SseClient internal constructor(
-    @JvmField val ctx: Context
+    private val ctx: Context
 ) : Closeable {
 
     private val emitter = Emitter(ctx.res())
