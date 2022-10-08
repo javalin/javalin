@@ -5,6 +5,7 @@
         <module>javalin</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
+        <module>javalin-micrometer</module>
     </modules>
 
     <parent>
