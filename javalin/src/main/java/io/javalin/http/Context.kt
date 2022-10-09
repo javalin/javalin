@@ -353,6 +353,12 @@ interface Context {
     fun <R> async(task: Supplier<R>) = async(onTimeout = null, onDone = null, task = task)
 
     /**
+     * Overload for [async] that allows to use [Runnable] instead of [Supplier].
+     * @see [async]
+     */
+    fun async(task: Runnable) = async(onTimeout = null, onDone = null, task = { task.run() })
+
+    /**
      * The main entrypoint for all async related functionalities exposed by [Context].
      *
      * @param future Future represents any delayed in time result.
