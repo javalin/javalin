@@ -9,7 +9,6 @@ import io.javalin.Javalin
 import io.javalin.http.HttpStatus.OK
 import io.javalin.http.NotFoundResponse
 import io.javalin.testtools.JavalinTest
-import io.javalin.micrometer.MicrometerPlugin
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
