@@ -279,19 +279,24 @@ internal class TestFuture {
 
         @Test
         fun `onDone should work`() = TestUtil.test { app, http ->
+            val possibilities = setOf("A", "B", "C")
             var isDoneValue: String? = ""
             app.get("/") { ctx ->
                 ctx.async(
-                    onDone = { isDoneValue = it.getOrNull() },
                     task = {
-                        val uncertainValue = if (Math.random() > .5) "Success" else "Failure"
+                        val uncertainValue = possibilities.shuffled().first()
                         ctx.result(uncertainValue)
-                        uncertainValue
-                    }
+                        uncertainValue // return this so onDone an act on it
+                    },
+                    onDone = {
+                        // here you can act upon the result from the task
+                        isDoneValue = it.getOrNull()
+                    },
                 )
             }
-            assertThat(http.get("/").body).isIn("Success", "Failure")
-            assertThat(isDoneValue).isIn("Success", "Failure")
+            val responseBody = http.get("/").body
+            assertThat(responseBody).isIn(possibilities)
+            assertThat(isDoneValue).isIn(responseBody)
         }
 
     }
