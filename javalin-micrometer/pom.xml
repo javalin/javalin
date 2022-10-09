@@ -12,7 +12,17 @@
     <properties>
         <dokka.skip>false</dokka.skip>
         <copy-build-resources.skip>false</copy-build-resources.skip>
+
+        <micrometer.version>1.10.0-SNAPSHOT</micrometer.version> <!-- TODO: fix to 1.10.0 when released -->
     </properties>
+
+
+    <repositories>
+        <repository>
+            <id>micrometer-snapshots</id>
+            <url>https://repo.spring.io/libs-snapshot</url> <!-- TODO: remove when 1.10.0 is released -->
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -20,6 +30,16 @@
             <artifactId>javalin</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${micrometer.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-jetty11</artifactId>
+            <version>${micrometer.version}</version>
         </dependency>
         <!-- BEGIN TEST DEPENDENCIES -->
         <dependency>
@@ -37,5 +57,12 @@
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin-testtools</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 </project>
