@@ -278,25 +278,25 @@ internal class TestFuture {
         }
 
         @Test
-        fun `onDone should work`() = TestUtil.test { app, http ->
-            val possibilities = setOf("A", "B", "C")
-            var isDoneValue: String? = ""
+        fun `onDone can process result value`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
                 ctx.async(
-                    task = {
-                        val uncertainValue = possibilities.shuffled().first()
-                        ctx.result(uncertainValue)
-                        uncertainValue // return this so onDone an act on it
-                    },
-                    onDone = {
-                        // here you can act upon the result from the task
-                        isDoneValue = it.getOrNull()
-                    },
+                    task = { "Ok" }, // return this so onDone an act on it
+                    onDone = { ctx.result(it.getOrThrow()) }, // here you can act upon the result from the task
                 )
             }
-            val responseBody = http.get("/").body
-            assertThat(responseBody).isIn(possibilities)
-            assertThat(isDoneValue).isIn(responseBody)
+            assertThat(http.get("/").body).isEqualTo("Ok")
+        }
+
+        @Test
+        fun `onDone can process exception`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.async(
+                    task = { throw RuntimeException("Monke") }, // failing task
+                    onDone = { ctx.result(it.exceptionOrNull()?.message ?: "") }, // here you can catch error
+                )
+            }
+            assertThat(http.get("/").body).isEqualTo("Monke")
         }
 
     }
