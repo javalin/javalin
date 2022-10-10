@@ -6,6 +6,7 @@ import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
@@ -29,10 +30,11 @@ internal object AsyncUtil {
                             onTimeout.invoke()
                             null // handled
                         }
-                        else -> {
-                            onDone?.invoke(Result.failure(it))
-                            throw it // rethrow
+                        onDone != null && it is CompletionException && it.cause != null -> {
+                            onDone.invoke(Result.failure(it.cause!!))
+                            null // handled
                         }
+                        else -> throw it // rethrow if not handled by any listener
                     }
                 }
         }
