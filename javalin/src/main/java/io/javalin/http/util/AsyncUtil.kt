@@ -2,6 +2,7 @@ package io.javalin.http.util
 
 import io.javalin.http.Context
 import io.javalin.util.ConcurrencyUtil
+import io.javalin.util.function.ThrowingSupplier
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -10,28 +11,36 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-import java.util.function.Supplier
+import kotlin.Exception
 
-typealias DoneListener<R> = (Result<R>) -> Unit
-typealias TimeoutListener = () -> Unit
+fun interface DoneListener<R> {
+    fun call(result: R?, exception: Exception?)
+}
 
 internal object AsyncUtil {
 
     val defaultExecutor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool")
 
-    fun <R> submitAsyncTask(context: Context, executor: ExecutorService?, timeout: Long, onTimeout: TimeoutListener?, onDone: DoneListener<R>?, task: Supplier<R>) =
+    fun <R> submitAsyncTask(
+        context: Context,
+        executor: ExecutorService?,
+        timeout: Long,
+        onTimeout: Runnable?,
+        onDone: DoneListener<R>?,
+        task: ThrowingSupplier<R, Exception>
+    ): Unit =
         context.future {
             CompletableFuture.supplyAsync({ task.get() }, executor ?: defaultExecutor)
                 .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
-                .let { if (onDone != null) it.thenAccept { result -> onDone(Result.success(result)) } else it }
+                .let { if (onDone != null) it.thenAccept { result -> onDone.call(result, null) } else it }
                 .exceptionally {
                     when {
                         onTimeout != null && it is TimeoutException -> {
-                            onTimeout.invoke()
+                            onTimeout.run()
                             null // handled
                         }
-                        onDone != null && it is CompletionException && it.cause != null -> {
-                            onDone.invoke(Result.failure(it.cause!!))
+                        onDone != null && it is CompletionException && it.cause is Exception -> {
+                            onDone.call(null, it.cause as Exception)
                             null // handled
                         }
                         else -> throw it // rethrow if not handled by any listener

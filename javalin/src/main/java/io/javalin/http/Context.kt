@@ -20,10 +20,10 @@ import io.javalin.http.util.CookieStore
 import io.javalin.http.util.DoneListener
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
-import io.javalin.http.util.TimeoutListener
 import io.javalin.json.jsonMapper
 import io.javalin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
+import io.javalin.util.function.ThrowingSupplier
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
 import jakarta.servlet.ServletOutputStream
@@ -340,17 +340,17 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun <R> async(executor: ExecutorService?= null, timeout: Long = 0L, onTimeout: TimeoutListener?, onDone: DoneListener<R>?, task: Supplier<R>) =
+    fun <R> async(executor: ExecutorService? = null, timeout: Long = 0L, onTimeout: Runnable?, onDone: DoneListener<R>?, task: ThrowingSupplier<R, Exception>) =
         AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, onDone, task)
 
     /** @see [async] */
-    fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>) = async(timeout = timeout, onTimeout = onTimeout, onDone = null, task = task)
+    fun <R> async(timeout: Long, onTimeout: Runnable? = null, task: ThrowingSupplier<R, Exception>) = async(timeout = timeout, onTimeout = onTimeout, onDone = null, task = task)
 
     /** @see [async] */
-    fun <R> async(task: Supplier<R>, onDone: DoneListener<R>) = async(onTimeout = null, onDone = onDone, task = task)
+    fun <R> async(task: ThrowingSupplier<R, Exception>, onDone: DoneListener<R>) = async(onTimeout = null, onDone = onDone, task = task)
 
     /* @see [async] */
-    fun <R> async(task: Supplier<R>) = async(onTimeout = null, onDone = null, task = task)
+    fun <R> async(task: ThrowingSupplier<R, Exception>) = async(onTimeout = null, onDone = null, task = task)
 
     /**
      * Overload for [async] that allows to use [Runnable] instead of [Supplier].
