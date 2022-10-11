@@ -11,17 +11,18 @@ import io.javalin.Javalin;
 public class HelloWorldAsync {
 
     public static void main(String[] args) {
-        try (Javalin app = Javalin.create().start(7070)) {
-            app.get("/", ctx -> {
-                ctx.async(
-                    () -> {
-                        Thread.sleep(1000);
-                        return "Hello world";
-                    },
-                    (result, $) -> ctx.result(result)
-                );
-            });
-        }
+        Javalin app = Javalin.create().start(7070);
+
+        app.get("/", ctx -> {
+            ctx.async(
+                1000L,
+                () -> ctx.result("Request timed out :<"),
+                () -> {
+                    Thread.sleep((long) (Math.random() * 2000L));
+                    ctx.result("Hello Javalin");
+                }
+            );
+        });
     }
 
 }

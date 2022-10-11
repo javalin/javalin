@@ -277,28 +277,6 @@ internal class TestFuture {
             assertThat(http.get("/").body).isEqualTo("Timeout")
         }
 
-        @Test
-        fun `onDone can process result value`() = TestUtil.test { app, http ->
-            app.get("/") { ctx ->
-                ctx.async(
-                    task = { "Ok" }, // return this so onDone an act on it
-                    onDone = { result, _ -> ctx.result(result!!) }, // here you can act upon the result from the task
-                )
-            }
-            assertThat(http.get("/").body).isEqualTo("Ok")
-        }
-
-        @Test
-        fun `onDone can process exception`() = TestUtil.test { app, http ->
-            app.get("/") { ctx ->
-                ctx.async(
-                    task = { throw RuntimeException("Monke") }, // failing task
-                    onDone = { _, exception -> ctx.result(exception?.message!!) }, // here you can catch error
-                )
-            }
-            assertThat(http.get("/").body).isEqualTo("Monke")
-        }
-
     }
 
     private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {
