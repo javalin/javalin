@@ -1,6 +1,7 @@
 ---
 name: "\U0001F6A9 Feature request"
 about: Use this template to suggest/request a feature
+labels: "FEATURE REQUEST"
 
 ---
 
