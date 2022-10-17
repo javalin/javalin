@@ -2,6 +2,7 @@ package io.javalin
 
 import io.javalin.http.servlet.DefaultTasks.HTTP
 import io.javalin.http.servlet.JavalinServletContext
+import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
 import io.javalin.testing.TestUtil
@@ -25,7 +26,7 @@ class TestCustomRequestLifecycle {
         it.pvt.servletRequestLifecycle = listOf(
             HTTP,
             TaskInitializer { submitTask, _, ctx, _ ->
-                submitTask(Task {
+                submitTask(LAST, Task {
                     ctx.result("Static after!")
                 })
             }
