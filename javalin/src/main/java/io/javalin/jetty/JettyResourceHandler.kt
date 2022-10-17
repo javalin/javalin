@@ -43,7 +43,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                 if (resource.isFile() || resource.isDirectoryWithWelcomeFile(handler, target)) {
                     handler.config.headers.forEach { httpResponse.setHeader(it.key, it.value) }
                     if (handler.config.precompress) {
-                        return JettyPrecompressingResourceHandler.handle(target, resource, httpRequest, httpResponse)
+                        return if (resource.isDirectoryWithWelcomeFile(handler, target)) { // if it's a directory, we need to serve the welcome file
+                            JettyPrecompressingResourceHandler.handle(target, getWelcomeFile(handler, target), httpRequest, httpResponse)
+                        } else
+                            JettyPrecompressingResourceHandler.handle(target, resource, httpRequest, httpResponse)
                     }
                     httpResponse.contentType = null // Jetty will only set the content-type if it's null
                     return runCatching { handler.handle(target, baseRequest, httpRequest, httpResponse) }.isSuccess
@@ -58,9 +61,11 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     }
 
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
-
+    private fun getWelcomeFile(handler: ResourceHandler, target: String) =
+        handler.getResource("${target.removeSuffix("/")}/index.html")
     private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
-        this != null && this.isDirectory && handler.getResource("${target.removeSuffix("/")}/index.html")?.exists() == true
+        this != null && this.isDirectory && getWelcomeFile(handler, target)?.exists() == true
+
 }
 
 open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server) : ResourceHandler() {
