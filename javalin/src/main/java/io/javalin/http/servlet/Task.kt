@@ -2,8 +2,13 @@ package io.javalin.http.servlet
 
 import io.javalin.http.Context
 
+enum class SubmitOrder {
+    FIRST,
+    LAST
+}
+
 fun interface TaskInitializer<CTX : Context> {
-    fun createTasks(submitTask: (Task) -> Unit, servlet: JavalinServlet, ctx: CTX, requestUri: String)
+    fun createTasks(submitTask: (SubmitOrder, Task) -> Unit, servlet: JavalinServlet, ctx: CTX, requestUri: String)
 }
 
 data class Task(
