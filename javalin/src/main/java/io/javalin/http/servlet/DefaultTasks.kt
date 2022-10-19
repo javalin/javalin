@@ -29,8 +29,7 @@ object DefaultTasks {
                         servlet.cfg.pvt.accessManager != null -> {
                             ctx.update(entry, requestUri)
                             servlet.cfg.pvt.accessManager?.manage(
-                                // handler = { submitTask(FIRST, Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
-                                handler = entry.handler,
+                                handler = { submitTask(FIRST, Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
                                 ctx = ctx,
                                 routeRoles = entry.roles
                             )

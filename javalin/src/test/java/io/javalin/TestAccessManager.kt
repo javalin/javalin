@@ -82,8 +82,8 @@ class TestAccessManager {
     @Test
     fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
         it.accessManager { handler, ctx, _ ->
-            ctx.async { handler.handle(ctx) } // it won't throw
-            handler.handle(ctx) // it will throw
+            ctx.future { CompletableFuture.completedFuture("Something async") }
+            handler.handle(ctx) // it shouldn't override values from current layer (like future supplier)
         }
     }) { app, http ->
         app.get("/secured", { ctx ->
