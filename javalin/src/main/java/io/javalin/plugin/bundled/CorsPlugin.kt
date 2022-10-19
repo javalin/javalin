@@ -83,8 +83,9 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
         app.before(cfg.path) { ctx ->
             handleCors(ctx, cfg)
         }
+        val validOptionStatusCodes = listOf(HttpStatus.NOT_FOUND, HttpStatus.METHOD_NOT_ALLOWED)
         app.after(cfg.path) { ctx ->
-            if (ctx.method() == OPTIONS && ctx.status() == HttpStatus.NOT_FOUND) { // CORS is enabled, so we return 200 for OPTIONS
+            if (ctx.method() == OPTIONS && ctx.status() in validOptionStatusCodes) { // CORS is enabled, so we return 200 for OPTIONS
                 ctx.result("").status(200)
             }
         }
