@@ -14,7 +14,7 @@ import java.util.function.Consumer
 class HttpClient(val app: Javalin) {
 
     var okHttp = OkHttpClient()
-    var origin: String = "http://localhost:${app.port()}"
+    var origin: String = "http://127.0.0.1:${app.port()}"
 
     fun request(request: Request) = okHttp.newCall(request).execute()
     fun request(path: String, builder: Request.Builder) = request(builder.url(origin + path).build())
