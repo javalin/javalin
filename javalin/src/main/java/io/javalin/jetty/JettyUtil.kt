@@ -17,7 +17,7 @@ object JettyUtil {
         setAttribute("is-default-server", true)
     }
 
-    private fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool")
+    private fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool", 8, 250)
 
     @JvmStatic
     fun maybeLogIfServerNotStarted(jettyServer: JettyServer) = Thread {
