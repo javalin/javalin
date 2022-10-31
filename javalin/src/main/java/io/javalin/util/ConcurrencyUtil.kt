@@ -26,9 +26,9 @@ object ConcurrencyUtil {
     fun newSingleThreadScheduledExecutor(name: String): ScheduledExecutorService =
         Executors.newSingleThreadScheduledExecutor(NamedThreadFactory(name))
 
-    fun jettyThreadPool(name: String): ThreadPool = when (useLoom && loomAvailable) {
+    fun jettyThreadPool(name: String, minThreads: Int, maxThreads: Int): ThreadPool = when (useLoom && loomAvailable) {
         true -> LoomThreadPool(name)
-        false -> QueuedThreadPool(250, 8, 60_000).apply { this.name = name }
+        false -> QueuedThreadPool(maxThreads, minThreads, 60_000).apply { this.name = name }
     }
 }
 
