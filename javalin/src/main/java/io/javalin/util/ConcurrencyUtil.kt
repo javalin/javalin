@@ -1,6 +1,5 @@
 package io.javalin.util
 
-import io.javalin.util.LoomUtil.loomAvailable
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
@@ -15,32 +14,30 @@ import java.util.concurrent.atomic.AtomicInteger
 
 object ConcurrencyUtil {
 
+    @Suppress("MemberVisibilityCanBePrivate")
+    /** Determines if Javalin should use Loom. By default true, set it to false to disable Loom integration. **/
     var useLoom = true
 
     @JvmStatic
-    fun executorService(name: String): ExecutorService = when (useLoom && loomAvailable) {
+    fun executorService(name: String): ExecutorService = when (useLoom && isLoomAvailable()) {
         true -> LoomUtil.getExecutorService(name)
         false -> Executors.newCachedThreadPool(NamedThreadFactory(name))
     }
 
+    @JvmStatic
     fun newSingleThreadScheduledExecutor(name: String): ScheduledExecutorService =
         Executors.newSingleThreadScheduledExecutor(NamedThreadFactory(name))
 
-    fun jettyThreadPool(name: String, minThreads: Int, maxThreads: Int): ThreadPool = when (useLoom && loomAvailable) {
-        true -> LoomThreadPool(name)
+    @JvmStatic
+    fun jettyThreadPool(name: String, minThreads: Int, maxThreads: Int): ThreadPool = when (useLoom && isLoomAvailable()) {
+        true -> LoomUtil.getThreadPool(name)
         false -> QueuedThreadPool(maxThreads, minThreads, 60_000).apply { this.name = name }
     }
-}
 
-internal class LoomThreadPool(name: String) : ThreadPool {
-    private val executorService = LoomUtil.getExecutorService(name)
-    override fun join() {}
-    override fun getThreads() = 1
-    override fun getIdleThreads() = 1
-    override fun isLowOnThreads() = false
-    override fun execute(command: Runnable) {
-        executorService.submit(command)
-    }
+    @JvmStatic
+    fun isLoomAvailable(): Boolean =
+        LoomUtil.loomAvailable
+
 }
 
 internal object LoomUtil {
@@ -56,54 +53,67 @@ internal object LoomUtil {
         return factoryMethod.invoke(Executors::class.java, NamedVirtualThreadFactory(name)) as ExecutorService
     }
 
-    const val logMsg = "Your JDK supports Loom. Javalin will prefer Virtual Threads by default. Disable with `ConcurrencyUtil.useLoom = false`."
+    private class LoomThreadPool(name: String) : ThreadPool {
+        private val executorService = getExecutorService(name)
+        override fun join() {}
+        override fun getThreads() = 1
+        override fun getIdleThreads() = 1
+        override fun isLowOnThreads() = false
+        override fun execute(command: Runnable) {
+            executorService.submit(command)
+        }
+    }
+
+    fun getThreadPool(name: String): ThreadPool =
+        LoomThreadPool(name)
+
+    fun isLoomThreadPool(threadPool: ThreadPool): Boolean =
+        threadPool is LoomThreadPool
 
     fun logIfLoom(server: Server) {
-        if (server.threadPool !is LoomThreadPool) return
-        JavalinLogger.startup(logMsg)
+        if (!isLoomThreadPool(server.threadPool)) return
+        JavalinLogger.startup("Your JDK supports Loom. Javalin will prefer Virtual Threads by default. Disable with `ConcurrencyUtil.useLoom = false`.")
     }
 
 }
 
-private class NamedThreadFactory(private val prefix: String) : ThreadFactory {
-    private val group = Thread.currentThread().threadGroup
-    private val threadCount = AtomicInteger(0)
+open class NamedThreadFactory(protected val prefix: String) : ThreadFactory {
+    protected val group: ThreadGroup? = Thread.currentThread().threadGroup
+    protected val threadCount = AtomicInteger(0)
+
     override fun newThread(runnable: Runnable): Thread =
         Thread(group, runnable, "$prefix-${threadCount.getAndIncrement()}", 0)
 }
 
-private class NamedVirtualThreadFactory(private val prefix: String) : ThreadFactory {
-
-    private val threadCount = AtomicInteger(0)
-
+open class NamedVirtualThreadFactory(prefix: String) : NamedThreadFactory(prefix) {
     override fun newThread(runnable: Runnable): Thread = ReflectiveVirtualThreadBuilder()
         .name("$prefix-Virtual-${threadCount.getAndIncrement()}")
         .unstarted(runnable)
+}
 
-    private class ReflectiveVirtualThreadBuilder {
-        private var virtualBuilder = OF_VIRTUAL.invoke()
+open class ReflectiveVirtualThreadBuilder {
 
-        fun name(name: String): ReflectiveVirtualThreadBuilder = also {
-            this.virtualBuilder = NAME.invoke(virtualBuilder, name)
-        }
-
-        fun unstarted(runnable: Runnable): Thread =
-            UNSTARTED.invoke(virtualBuilder, runnable) as Thread
-    }
-
-    companion object {
-
+    protected companion object {
         val OF_VIRTUAL: MethodHandle
         val NAME: MethodHandle
         val UNSTARTED: MethodHandle
 
         init {
-            val threadClass = Thread::class.java
             val builderClass = Class.forName("java.lang.Thread\$Builder\$OfVirtual")
             val handles = MethodHandles.publicLookup()
-            OF_VIRTUAL = handles.findStatic(threadClass, "ofVirtual", MethodType.methodType(builderClass))
+            OF_VIRTUAL = handles.findStatic(Thread::class.java, "ofVirtual", MethodType.methodType(builderClass))
             NAME = handles.findVirtual(builderClass, "name", MethodType.methodType(builderClass, String::class.java))
-            UNSTARTED = handles.findVirtual(builderClass, "unstarted", MethodType.methodType(threadClass, Runnable::class.java))
+            UNSTARTED = handles.findVirtual(builderClass, "unstarted", MethodType.methodType(Thread::class.java, Runnable::class.java))
         }
     }
+
+    protected var virtualBuilder: Any = OF_VIRTUAL.invoke()
+
+    fun name(name: String): ReflectiveVirtualThreadBuilder = also {
+        this.virtualBuilder = NAME.invoke(virtualBuilder, name)
+    }
+
+    fun unstarted(runnable: Runnable): Thread =
+        UNSTARTED.invoke(virtualBuilder, runnable) as Thread
+
 }
