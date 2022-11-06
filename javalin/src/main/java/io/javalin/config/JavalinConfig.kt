@@ -10,7 +10,6 @@ import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
-import io.javalin.plugin.PluginUtil.attachPlugins
 import io.javalin.security.AccessManager
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
 import io.javalin.vue.JAVALINVUE_CONFIG_KEY
@@ -29,7 +28,7 @@ class JavalinConfig {
     @JvmField val spaRoot = SpaRootConfig(pvt)
     @JvmField val compression = CompressionConfig(pvt)
     @JvmField val requestLogger = RequestLoggerConfig(pvt)
-    @JvmField val plugins = PluginConfig(pvt)
+    @JvmField val plugins = PluginConfig()
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
     @JvmField var showJavalinBanner = true
@@ -41,7 +40,7 @@ class JavalinConfig {
         fun applyUserConfig(app: Javalin, cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
             addValidationExceptionMapper(app) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
-            attachPlugins(app, cfg.pvt.plugins.values)
+            cfg.plugins.pluginManager.initializePlugins(app)
             cfg.pvt.appAttributes.putIfAbsent(JSON_MAPPER_KEY, JavalinJackson())
             cfg.pvt.appAttributes.putIfAbsent(CONTEXT_RESOLVER_KEY, cfg.contextResolver)
             cfg.pvt.appAttributes.putIfAbsent(MAX_REQUEST_SIZE_KEY, cfg.http.maxRequestSize)
