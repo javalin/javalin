@@ -12,12 +12,12 @@ import io.javalin.websocket.WsHandlerType
 import java.util.function.Consumer
 
 class EventManager {
-    val lifecycleHandlers = JavalinEvent.values().associate { it to HashSet<io.javalin.event.EventHandler>() }
+    val lifecycleHandlers = JavalinEvent.values().associateWith { HashSet<EventHandler>() }
     var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
     val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
-    fun fireEvent(javalinEvent: JavalinEvent) = lifecycleHandlers[javalinEvent]?.forEach { eventHandler -> eventHandler.handleEvent() }
-    fun fireHandlerAddedEvent(metaInfo: HandlerMetaInfo) = handlerAddedHandlers.apply { this.forEach { it.accept(metaInfo) } }
-    fun fireWsHandlerAddedEvent(metaInfo: WsHandlerMetaInfo) = wsHandlerAddedHandlers.apply { this.forEach { it.accept(metaInfo) } }
+    fun fireEvent(javalinEvent: JavalinEvent) = lifecycleHandlers[javalinEvent]?.forEach { it.handleEvent() }
+    fun fireHandlerAddedEvent(metaInfo: HandlerMetaInfo) = handlerAddedHandlers.onEach { it.accept(metaInfo) }
+    fun fireWsHandlerAddedEvent(metaInfo: WsHandlerMetaInfo) = wsHandlerAddedHandlers.onEach { it.accept(metaInfo) }
 }
 
 enum class JavalinEvent { SERVER_STARTING, SERVER_STARTED, SERVER_START_FAILED, SERVER_STOP_FAILED, SERVER_STOPPING, SERVER_STOPPED }

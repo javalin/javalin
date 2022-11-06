@@ -269,9 +269,10 @@ public class Javalin implements AutoCloseable {
      * It fulfills a similar role to the existing {@link Javalin#create(Consumer)} call and can be called on an existing
      * instance.
      * <p>
-     * Do note that this method does not attach plugins to the Javalin instance, meaning you cannot use this method to
-     * add plugins to your Javalin instance! You can use {@link Javalin#create(Consumer)} for adding plugins instead.
-     * <p>
+     * Do note that this method is not a replacement to {@link Javalin#create(Consumer)},
+     * this method may or may not take effect on some parts of your application.
+     * You have to be conscious how your application works and if it can be reconfigured after startup.
+     * </p>
      * The recommended way is to always use {@link Javalin#create(Consumer)} for configuring Javalin and only using
      * this method if there is no other way.
      *
@@ -281,6 +282,7 @@ public class Javalin implements AutoCloseable {
      */
     public Javalin updateConfig(Consumer<JavalinConfig> userConfig) {
         userConfig.accept(cfg);
+        cfg.plugins.getPluginManager().initializePlugins(this);
         return this;
     }
 
