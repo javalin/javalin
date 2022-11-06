@@ -49,7 +49,7 @@ public class Javalin implements AutoCloseable {
 
     /**
      * Do not use this field unless you know what you're doing.
-     * Application config should be declared in {@link Javalin#create(Consumer)}
+     * Application config should be declared in {@link Javalin#create(Consumer)}.
      * Alternatively use {@link Javalin#updateConfig(Consumer)} to update the config at a later date.
      */
     public JavalinConfig cfg = new JavalinConfig();
@@ -268,6 +268,12 @@ public class Javalin implements AutoCloseable {
      * Updates the instance's configuration with new user configuration.
      * It fulfills a similar role to the existing {@link Javalin#create(Consumer)} call and can be called on an existing
      * instance.
+     * <p>
+     * Do note that this method does not attach plugins to the Javalin instance, meaning you cannot use this method to
+     * add plugins to your Javalin instance! You can use {@link Javalin#create(Consumer)} for adding plugins instead.
+     * <p>
+     * The recommended way is to always use {@link Javalin#create(Consumer)} for configuring Javalin and only using
+     * this method if there is no other way.
      *
      * @param userConfig new user configuration
      * @return application instance.
@@ -280,7 +286,7 @@ public class Javalin implements AutoCloseable {
 
     /**
      * Creates a temporary static instance in the scope of the endpointGroup.
-     * Allows you to call get(handler), post(handler), etc. without without using the instance prefix.
+     * Allows you to call get(handler), post(handler), etc. without using the instance prefix.
      *
      * @see <a href="https://javalin.io/documentation#handler-groups">Handler groups in documentation</a>
      * @see ApiBuilder
