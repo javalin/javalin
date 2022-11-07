@@ -17,7 +17,7 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
     private var compressedStream: OutputStream? = null
 
     override fun write(bytes: ByteArray, offset: Int, length: Int) {
-        if (compressedStream == null && length >= compression.minSizeForCompression && compression.allowsForCompression(ctx.res().contentType)) {
+        if (compressedStream == null && length >= compression.minSizeForCompression && compression.allowsForCompression(ctx.res().contentType) && !ctx.res().containsHeader(Header.CONTENT_ENCODING)) {
             tryMatchCompression(compression, ctx, originStream)?.also { (type, stream) ->
                 this.compressedStream = stream
                 ctx.header(Header.CONTENT_ENCODING, type.typeName)
