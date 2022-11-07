@@ -272,6 +272,24 @@ class TestCompression {
         }
     }
 
+    @Test
+    fun `doesn't compress when static files were pre-compressed`(){
+        val path = "/script.js"
+        val gzipWebjars = Javalin.create {
+            it.compression.gzipOnly()
+            it.staticFiles.enableWebjars()
+            it.staticFiles.add{ staticFiles->
+                staticFiles.precompress = true
+                staticFiles.directory = "/public"
+                staticFiles.location = Location.CLASSPATH
+            }
+            it.pvt.compressionStrategy.minSizeForCompression = 0 // minSize to enable automatic compress
+        }
+        TestUtil.test(gzipWebjars) { _, http ->
+            assertValidGzipResponse(http.origin, path)
+        }
+    }
+
     private fun assertUncompressedResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br, gzip")
         assertThat(response.code).isLessThan(400)
