@@ -1,4 +1,4 @@
-package io.javalin.testing;
+package io.javalin;
 
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
