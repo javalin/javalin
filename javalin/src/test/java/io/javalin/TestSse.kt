@@ -47,19 +47,17 @@ class TestSse {
     }
 
     @Test
-    fun `sending events to multiple clients works`() {
-        TestUtil.test { app, http ->
-            val eventSources: MutableList<SseClient> = ArrayList()
-            app.sse("/sse") {
-                eventSources.add(it)
-                it.sendEvent(event, data + eventSources.size)
-                it.close()
-            }
-            val bodyClient1 = http.sse("/sse").get().body
-            val bodyClient2 = http.sse("/sse").get().body
-            assertThat(bodyClient1).isNotEqualTo(bodyClient2)
-            assertThat(eventSources[0]).isNotEqualTo(eventSources[1])
+    fun `sending events to multiple clients works`() = TestUtil.test { app, http ->
+        val eventSources: MutableList<SseClient> = ArrayList()
+        app.sse("/sse") {
+            eventSources.add(it)
+            it.sendEvent(event, data + eventSources.size)
+            it.close()
         }
+        val bodyClient1 = http.sse("/sse").get().body
+        val bodyClient2 = http.sse("/sse").get().body
+        assertThat(bodyClient1).isNotEqualTo(bodyClient2)
+        assertThat(eventSources[0]).isNotEqualTo(eventSources[1])
     }
 
     @Test
@@ -70,6 +68,17 @@ class TestSse {
         assertThat(headers.getFirst("Content-Type")).containsIgnoringCase("text/event-stream")
         assertThat(headers.getFirst("Content-Type")).containsIgnoringCase("charset=utf-8")
         assertThat(headers.getFirst("Cache-Control")).containsIgnoringCase("no-cache")
+    }
+
+    @Test
+    fun `can check if SseClient has been terminated`() = TestUtil.test { app, http ->
+        var terminated = false
+        app.sse("/sse") {
+            it.close()
+            terminated = it.terminated()
+        }
+        http.sse("/sse").get().body
+        assertThat(terminated).isTrue()
     }
 
     @Test

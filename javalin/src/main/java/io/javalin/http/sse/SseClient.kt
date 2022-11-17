@@ -13,8 +13,9 @@ class SseClient internal constructor(
     private val ctx: Context
 ) : Closeable {
 
-    var terminated = AtomicBoolean(false);
+    fun terminated() = terminated.get()
 
+    private val terminated = AtomicBoolean(false)
     private val emitter = Emitter(ctx.res())
     private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
@@ -40,10 +41,9 @@ class SseClient internal constructor(
 
     /** Close the SseClient */
     override fun close() {
-        if (terminated.get()) return
+        if (terminated.getAndSet(true)) return
         closeCallback.run()
         blockingFuture?.complete(null)
-        terminated.set(true)
     }
 
     /** Calls [sendEvent] with event set to "message" */
@@ -51,7 +51,8 @@ class SseClient internal constructor(
 
     /**
      * Attempt to send an event.
-     * If the emitter fails to send (client has disconnected), [close] will be called instead.
+     * If the [emitter] fails to emit (remote client has disconnected),
+     * the [close] function will be called instead.
      */
     @JvmOverloads
     fun sendEvent(event: String, data: Any, id: String? = null) {
@@ -68,7 +69,8 @@ class SseClient internal constructor(
 
     /**
      * Attempt to send a comment.
-     * If the emitter fails to send (client has disconnected), [close] will be called instead.
+     * If the [emitter] fails to emit (remote client has disconnected),
+     * the [close] function will be called instead.
      */
     fun sendComment(comment: String) {
         if (terminated.get()) return logTerminated()
@@ -78,6 +80,6 @@ class SseClient internal constructor(
         }
     }
 
-    private fun logTerminated() = JavalinLogger.warn("Failed to send data, SseClient has been terminated.")
+    private fun logTerminated() = JavalinLogger.warn("Cannot send data, SseClient has been terminated.")
 
 }
