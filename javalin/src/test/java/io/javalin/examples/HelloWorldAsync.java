@@ -7,18 +7,21 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class HelloWorldAsync {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create().start(7070);
+
         app.get("/", ctx -> {
-            CompletableFuture<String> future = new CompletableFuture<>();
-            Executors.newSingleThreadScheduledExecutor().schedule(() -> future.complete("Hello World!"), 10, TimeUnit.MILLISECONDS);
-            ctx.future(() -> future.thenApply(ctx::result));
+            ctx.async(
+                1000L,
+                () -> ctx.result("Request timed out :<"),
+                () -> {
+                    Thread.sleep((long) (Math.random() * 2000L));
+                    ctx.result("Hello Javalin");
+                }
+            );
         });
     }
 

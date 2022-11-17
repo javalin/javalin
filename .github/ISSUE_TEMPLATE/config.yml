@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+- name: Documentation and examples
+  url: https://javalin.io/documentation
+  about: Find complete documentation with example here.
+- name: GitHub Community Support
+  url: https://discord.com/invite/sgak4e5NKv
+  about: Please ask and answer questions here.

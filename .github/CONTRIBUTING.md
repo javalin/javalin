@@ -92,4 +92,4 @@ TestUtil.test(Javalin.create().configure { ... }) { app, http ->
 
 ## Questions
 
-There's usually someone on [gitter](https://gitter.im/javalin-io/general) who can help you if you have any questions.
+There's usually someone on [discord](https://discord.gg/sgak4e5NKv) who can help you if you have any questions.

@@ -17,13 +17,12 @@ import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
 import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
 import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.CookieStore
-import io.javalin.http.util.DoneListener
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
-import io.javalin.http.util.TimeoutListener
 import io.javalin.json.jsonMapper
 import io.javalin.rendering.JavalinRenderer
 import io.javalin.security.BasicAuthCredentials
+import io.javalin.util.function.ThrowingRunnable
 import io.javalin.validation.BodyValidator
 import io.javalin.validation.Validator
 import jakarta.servlet.ServletOutputStream
@@ -340,17 +339,14 @@ interface Context {
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun <R> async(executor: ExecutorService?= null, timeout: Long = 0L, onTimeout: TimeoutListener?, onDone: DoneListener<R>?, task: Supplier<R>) =
-        AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, onDone, task)
+    fun async(executor: ExecutorService? = null, timeout: Long = 0L, onTimeout: Runnable?, task: ThrowingRunnable<Exception>) =
+        AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
 
     /** @see [async] */
-    fun <R> async(timeout: Long, onTimeout: TimeoutListener? = null, task: Supplier<R>) = async(timeout = timeout, onTimeout = onTimeout, onDone = null, task = task)
-
-    /** @see [async] */
-    fun <R> async(task: Supplier<R>, onDone: DoneListener<R>) = async(onTimeout = null, onDone = onDone, task = task)
+    fun async(timeout: Long, onTimeout: Runnable? = null, task: ThrowingRunnable<Exception>) = async(executor = null, timeout = timeout, onTimeout = onTimeout, task = task)
 
     /* @see [async] */
-    fun <R> async(task: Supplier<R>) = async(onTimeout = null, onDone = null, task = task)
+    fun async(task: ThrowingRunnable<Exception>) = async(onTimeout = null, task = task)
 
     /**
      * The main entrypoint for all async related functionalities exposed by [Context].

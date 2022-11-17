@@ -13,7 +13,6 @@ import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
-import io.javalin.util.LoomThreadPool
 import jakarta.servlet.DispatcherType
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -204,8 +203,8 @@ class TestCustomJetty {
             assertThat(responseBody).contains("isVirtual:true")
             assertThat(responseBody).contains("JettyServerThreadPool-Virtual")
         }
-        assertThat(defaultApp.jettyServer.server().threadPool is LoomThreadPool).isTrue()
-        assertThat(defaultApp.attribute<String>("testlogs")).contains(LoomUtil.logMsg)
+        assertThat(LoomUtil.isLoomThreadPool(defaultApp.jettyServer.server().threadPool)).isTrue
+        assertThat(defaultApp.attribute<String>("testlogs")).contains("JDK supports Loom")
     }
 
     @Test

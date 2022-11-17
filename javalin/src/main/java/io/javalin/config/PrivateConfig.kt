@@ -5,7 +5,6 @@ import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
 import io.javalin.http.servlet.DefaultTasks
 import io.javalin.http.staticfiles.ResourceHandler
-import io.javalin.plugin.Plugin
 import io.javalin.security.AccessManager
 import io.javalin.websocket.WsConfig
 import org.eclipse.jetty.server.Server
@@ -16,7 +15,6 @@ import java.util.function.Consumer
 
 // @formatter:off
 class PrivateConfig {
-    @JvmField var plugins: MutableMap<Class<out Plugin>, Plugin> = LinkedHashMap()
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
     @JvmField var resourceHandler: ResourceHandler? = null

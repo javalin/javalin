@@ -1,7 +1,7 @@
 package io.javalin.config
 
 import io.javalin.plugin.Plugin
-import io.javalin.plugin.PluginAlreadyRegisteredException
+import io.javalin.plugin.PluginManager
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.plugin.bundled.CorsContainer
 import io.javalin.plugin.bundled.CorsPlugin
@@ -16,14 +16,11 @@ import io.javalin.security.RouteRole
 import java.util.function.Consumer
 import java.util.function.Supplier
 
-class PluginConfig(private val pvt: PrivateConfig) {
+class PluginConfig {
 
-    fun register(plugin: Plugin) {
-        if (pvt.plugins.containsKey(plugin.javaClass)) {
-            throw PluginAlreadyRegisteredException(plugin.javaClass)
-        }
-        pvt.plugins[plugin.javaClass] = plugin
-    }
+    val pluginManager = PluginManager()
+
+    fun register(plugin: Plugin) = pluginManager.register(plugin)
 
     fun enableHttpAllowedMethodsOnRoutes() = register(HttpAllowedMethodsPlugin())
     fun enableDevLogging() = register(DevLoggingPlugin())

@@ -17,15 +17,15 @@ object JettyUtil {
         setAttribute("is-default-server", true)
     }
 
-    private fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool")
+    private fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool", 8, 250)
 
     @JvmStatic
     fun maybeLogIfServerNotStarted(jettyServer: JettyServer) = Thread {
         Thread.sleep(5000)
         if (!jettyServer.started) {
-            JavalinLogger.info("It looks like you created a Javalin instance, but you never started it.")
-            JavalinLogger.info("Try: Javalin app = Javalin.create().start();")
-            JavalinLogger.info("For more help, visit https://javalin.io/documentation#server-setup")
+            JavalinLogger.startup("It looks like you created a Javalin instance, but you never started it.")
+            JavalinLogger.startup("Try: Javalin app = Javalin.create().start();")
+            JavalinLogger.startup("For more help, visit https://javalin.io/documentation#server-setup")
         }
     }.start()
 

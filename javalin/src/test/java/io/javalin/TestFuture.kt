@@ -277,19 +277,6 @@ internal class TestFuture {
             assertThat(http.get("/").body).isEqualTo("Timeout")
         }
 
-        @Test
-        fun `onDone should work`() = TestUtil.test { app, http ->
-            var itIsDone = false
-            app.get("/") { ctx ->
-                ctx.async(
-                    onDone = { itIsDone = true },
-                    task = { ctx.result("Result") }
-                )
-            }
-            assertThat(http.get("/").body).isEqualTo("Result")
-            assertThat(itIsDone).isTrue()
-        }
-
     }
 
     private fun getFailingFuture(failure: Throwable): CompletableFuture<String> {

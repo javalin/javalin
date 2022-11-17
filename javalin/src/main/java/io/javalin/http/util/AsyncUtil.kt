@@ -2,6 +2,7 @@ package io.javalin.http.util
 
 import io.javalin.http.Context
 import io.javalin.util.ConcurrencyUtil
+import io.javalin.util.function.ThrowingRunnable
 import jakarta.servlet.AsyncContext
 import jakarta.servlet.AsyncEvent
 import jakarta.servlet.AsyncListener
@@ -9,32 +10,24 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-import java.util.function.Supplier
-
-typealias DoneListener<R> = (Result<R>) -> Unit
-typealias TimeoutListener = () -> Unit
+import kotlin.Exception
 
 internal object AsyncUtil {
 
     val defaultExecutor = ConcurrencyUtil.executorService("JavalinDefaultAsyncThreadPool")
 
-    fun <R> submitAsyncTask(context: Context, executor: ExecutorService?, timeout: Long, onTimeout: TimeoutListener?, onDone: DoneListener<R>?, task: Supplier<R>) =
+    fun submitAsyncTask(context: Context, executor: ExecutorService?, timeout: Long, onTimeout: Runnable?, task: ThrowingRunnable<Exception>): Unit =
         context.future {
-            CompletableFuture.supplyAsync({ task.get() }, executor ?: defaultExecutor)
+            CompletableFuture.runAsync({ task.run() }, executor ?: defaultExecutor)
                 .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
-                .let { if (onDone != null) it.thenAccept { result -> onDone(Result.success(result)) } else it }
-                .exceptionally {
-                    when {
-                        onTimeout != null && it is TimeoutException -> {
-                            onTimeout.invoke()
-                            null // handled
-                        }
-                        else -> {
-                            onDone?.invoke(Result.failure(it))
-                            throw it // rethrow
-                        }
-                    }
+                .let { if (onTimeout == null) it else it.exceptionally { exception ->
+                    exception as? TimeoutException
+                        ?: exception?.cause as? TimeoutException?
+                        ?: throw exception // rethrow if exception or its cause is not TimeoutException
+                    onTimeout.run()
+                    null // handled
                 }
+            }
         }
 
     internal fun Context.isAsync(): Boolean =

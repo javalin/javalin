@@ -26,6 +26,16 @@ class TestFilters {
     }
 
     @Test
+    fun `access manager does not affect handler order`() = TestUtil.test(
+        Javalin.create { it.accessManager { handler, ctx, routeRoles -> handler.handle(ctx) } }
+    ) { app, http ->
+        app.before { it.result("BEFORE") }
+        app.after { it.result(it.result() + "-AFTER") }
+        app.get("/") { it.result(it.result() + "-HTTP") }
+        assertThat(http.get("/").body).isEqualTo("BEFORE-HTTP-AFTER")
+    }
+
+    @Test
     fun `app returns 404 for GET if only before-handler present`() = TestUtil.test { app, http ->
         app.before(TestUtil.okHandler)
         val response = http.call(HttpMethod.GET, "/hello")

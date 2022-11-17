@@ -19,6 +19,7 @@ import io.javalin.http.HttpStatus.UNAUTHORIZED
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestUtil
 import kong.unirest.HttpResponse
+import kong.unirest.HttpStatus
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -194,9 +195,17 @@ class TestCors {
                     cors.add { it.reflectClientOrigin = true }
                 }
             }) { _, http ->
-                assertThat(
-                    http.get("/not-found", mapOf(ORIGIN to "https://some-origin")).header(ACCESS_CONTROL_ALLOW_ORIGIN)
-                ).isEqualTo("https://some-origin")
+                val optionsResponse = Unirest.options(http.origin + "/not-found")
+                    .headers(mapOf(ORIGIN to "https://some-origin"))
+                    .asString()
+                assertThat(optionsResponse.status)
+                    .describedAs("options status code")
+                    .isEqualTo(HttpStatus.OK)
+                assertThat(optionsResponse.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://some-origin")
+
+                val getResponse = http.get("/not-found", mapOf(ORIGIN to "https://some-origin"))
+                assertThat(getResponse.status).describedAs("get status code").isEqualTo(HttpStatus.NOT_FOUND)
+                assertThat(getResponse.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://some-origin")
             }
 
         @Test
@@ -374,6 +383,35 @@ class TestCors {
                 .asString()
             assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://example.com")
             assertThat(response.body).isEqualTo("Hello")
+        }
+    }
+
+    @Nested
+    inner class EdgeCases {
+
+        @Test
+        fun `cors plugin works with prefer405over404`() = TestUtil.test(Javalin.create { cfg ->
+            cfg.http.prefer405over404 = true
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.allowHost("example.com")
+                }
+            }
+        }) { app, http ->
+            app.post("/") { it.result("Hello") }
+            val optionsResponse = Unirest.options(http.origin)
+                .headers(mapOf(ORIGIN to "https://example.com"))
+                .asString()
+            assertThat(optionsResponse.status)
+                .describedAs("options status code")
+                .isEqualTo(HttpStatus.OK)
+            assertThat(optionsResponse.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://example.com")
+
+            val getResponse = http.get("/", mapOf(ORIGIN to "https://example.com"))
+            assertThat(getResponse.status)
+                .describedAs("get status code")
+                .isEqualTo(HttpStatus.METHOD_NOT_ALLOWED)
+            assertThat(getResponse.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://example.com")
         }
     }
 

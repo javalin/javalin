@@ -6,6 +6,8 @@ import io.javalin.http.HandlerType.GET
 import io.javalin.http.HandlerType.HEAD
 import io.javalin.http.MethodNotAllowedResponse
 import io.javalin.http.NotFoundResponse
+import io.javalin.http.servlet.SubmitOrder.FIRST
+import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.security.accessManagerNotConfiguredException
 import jakarta.servlet.http.HttpServletResponseWrapper
@@ -14,19 +16,20 @@ object DefaultTasks {
 
     val BEFORE = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.matcher.findEntries(HandlerType.BEFORE, requestUri).forEach { entry ->
-            submitTask(Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
+            submitTask(LAST, Task(skipIfExceptionOccurred = true) { entry.handle(ctx, requestUri) })
         }
     }
 
     val HTTP = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.matcher.findEntries(ctx.method(), requestUri).firstOrNull { entry ->
             submitTask(
+                LAST,
                 Task {
                     when {
                         servlet.cfg.pvt.accessManager != null -> {
                             ctx.update(entry, requestUri)
                             servlet.cfg.pvt.accessManager?.manage(
-                                handler = { submitTask(Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
+                                handler = { submitTask(FIRST, Task { entry.handle(ctx, requestUri) }) }, // we wrap the handler with [submitTask] to treat it as a separate task
                                 ctx = ctx,
                                 routeRoles = entry.roles
                             )
@@ -38,7 +41,7 @@ object DefaultTasks {
             )
             return@TaskInitializer
         }
-        submitTask(Task {
+        submitTask(LAST, Task {
             if (ctx.method() == HEAD && servlet.matcher.hasEntries(GET, requestUri)) { // return 200, there is a get handler
                 return@Task
             }
@@ -58,12 +61,12 @@ object DefaultTasks {
     }
 
     val ERROR = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, _ ->
-        submitTask(Task(skipIfExceptionOccurred = false) { servlet.errorMapper.handle(ctx.statusCode(), ctx) })
+        submitTask(LAST, Task(skipIfExceptionOccurred = false) { servlet.errorMapper.handle(ctx.statusCode(), ctx) })
     }
 
     val AFTER = TaskInitializer<JavalinServletContext> { submitTask, servlet, ctx, requestUri ->
         servlet.matcher.findEntries(HandlerType.AFTER, requestUri).forEach { entry ->
-            submitTask(Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
+            submitTask(LAST, Task(skipIfExceptionOccurred = false) { entry.handle(ctx, requestUri) })
         }
     }
 

@@ -18,6 +18,7 @@ import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.util.concurrent.CompletableFuture
 
 class TestAccessManager {
 
@@ -81,11 +82,15 @@ class TestAccessManager {
     @Test
     fun `AccessManager is handled as standalone layer by servlet`() = TestUtil.test(Javalin.create {
         it.accessManager { handler, ctx, _ ->
-            ctx.result("Test")
-            handler.handle(ctx)
+            ctx.future { CompletableFuture.completedFuture("Something async") }
+            handler.handle(ctx) // it shouldn't override values from current layer (like future supplier)
         }
     }) { app, http ->
-        app.get("/secured", { it.result(it.result() ?: "") }, ROLE_ONE)
+        app.get("/secured", { ctx ->
+            ctx.async {
+               ctx.result("Test")
+            }
+        }, ROLE_ONE)
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Test")
     }
 
