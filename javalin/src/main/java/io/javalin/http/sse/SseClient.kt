@@ -5,6 +5,7 @@ import io.javalin.json.jsonMapper
 import io.javalin.json.toJsonString
 import java.io.Closeable
 import java.io.InputStream
+import java.lang.IllegalStateException
 import java.lang.reflect.Type
 import java.util.concurrent.CompletableFuture
 
@@ -15,6 +16,7 @@ class SseClient internal constructor(
     private val emitter = Emitter(ctx.res())
     private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
+    private var closed = false;
 
     fun ctx(): Context = ctx
 
@@ -34,27 +36,32 @@ class SseClient internal constructor(
     override fun close() {
         closeCallback.run()
         blockingFuture?.complete(null)
+        this.closed = true;
     }
 
     fun sendEvent(data: Any) = sendEvent("message", data)
 
     @JvmOverloads
     fun sendEvent(event: String, data: Any, id: String? = null) {
+        if (this.closed) throw SseClientClosedException()
         when (data) {
             is InputStream -> emitter.emit(event, data, id)
             is String -> emitter.emit(event, data.byteInputStream(), id)
             else -> emitter.emit(event, ctx.jsonMapper().toJsonString(data).byteInputStream(), id)
         }
-        if (emitter.closed) { // can't detect if closed before we try emitting?
+        if (emitter.closed) { // can't detect if closed before we try emitting
             this.close()
         }
     }
 
     fun sendComment(comment: String) {
+        if (this.closed) throw SseClientClosedException()
         emitter.emit(comment)
-        if (emitter.closed) {
+        if (emitter.closed) { // can't detect if closed before we try emitting
             this.close()
         }
     }
 
 }
+
+class SseClientClosedException : IllegalStateException("SseClient is closed.")
