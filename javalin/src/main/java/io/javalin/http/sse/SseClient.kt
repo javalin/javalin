@@ -13,14 +13,18 @@ class SseClient internal constructor(
     private val ctx: Context
 ) : Closeable {
 
-    fun terminated() = terminated.get()
-
     private val terminated = AtomicBoolean(false)
     private val emitter = Emitter(ctx.res())
     private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
 
     fun ctx(): Context = ctx
+
+    /**
+     * Returns true if [close] has been called.
+     * This can either be by user, or by Javalin upon detecting that the [emitter] is closed.
+     * */
+    fun terminated() = terminated.get()
 
     /**
      * By blocking SSE connection, you can share client outside the handler to notify it from other sources.
