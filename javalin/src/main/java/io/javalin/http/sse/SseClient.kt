@@ -7,15 +7,17 @@ import io.javalin.util.JavalinLogger
 import java.io.Closeable
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
 
 class SseClient internal constructor(
     private val ctx: Context
 ) : Closeable {
 
+    var terminated = AtomicBoolean(false);
+
     private val emitter = Emitter(ctx.res())
     private var blockingFuture: CompletableFuture<*>? = null
     private var closeCallback = Runnable {}
-    private var closed = false;
 
     fun ctx(): Context = ctx
 
@@ -28,39 +30,54 @@ class SseClient internal constructor(
         this.blockingFuture = CompletableFuture<Nothing?>().also { ctx.future { it } }
     }
 
+    /**
+     * Add a callback that will be called either when connection is
+     * closed through [close], or when the [emitter] is detected as closed.
+     */
     fun onClose(closeCallback: Runnable) {
         this.closeCallback = closeCallback
     }
 
+    /** Close the SseClient */
     override fun close() {
-        if (this.closed) return
+        if (terminated.get()) return
         closeCallback.run()
         blockingFuture?.complete(null)
-        this.closed = true
+        terminated.set(true)
     }
 
+    /** Calls [sendEvent] with event set to "message" */
     fun sendEvent(data: Any) = sendEvent("message", data)
 
+    /**
+     * Attempt to send an event.
+     * If the emitter fails to send (client has disconnected), [close] will be called instead.
+     */
     @JvmOverloads
     fun sendEvent(event: String, data: Any, id: String? = null) {
+        if (terminated.get()) return logTerminated()
         when (data) {
             is InputStream -> emitter.emit(event, data, id)
             is String -> emitter.emit(event, data.byteInputStream(), id)
             else -> emitter.emit(event, ctx.jsonMapper().toJsonString(data).byteInputStream(), id)
         }
-        logAndCloseIfEmitterIsClosed(emitter)
-    }
-
-    fun sendComment(comment: String) {
-        emitter.emit(comment)
-        logAndCloseIfEmitterIsClosed(emitter)
-    }
-
-    private fun logAndCloseIfEmitterIsClosed(emitter: Emitter) {
         if (emitter.closed) { // can't detect if closed before we try emitting
-            JavalinLogger.warn("Failed to send data, SseClient has been closed.")
             this.close()
         }
     }
+
+    /**
+     * Attempt to send a comment.
+     * If the emitter fails to send (client has disconnected), [close] will be called instead.
+     */
+    fun sendComment(comment: String) {
+        if (terminated.get()) return logTerminated()
+        emitter.emit(comment)
+        if (emitter.closed) { // can't detect if closed before we try emitting
+            this.close()
+        }
+    }
+
+    private fun logTerminated() = JavalinLogger.warn("Failed to send data, SseClient has been terminated.")
 
 }
