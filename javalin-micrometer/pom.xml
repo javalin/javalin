@@ -13,16 +13,8 @@
         <dokka.skip>false</dokka.skip>
         <copy-build-resources.skip>false</copy-build-resources.skip>
 
-        <micrometer.version>1.10.0-SNAPSHOT</micrometer.version> <!-- TODO: fix to 1.10.0 when released -->
+        <micrometer.version>1.10.1</micrometer.version>
     </properties>
-
-
-    <repositories>
-        <repository>
-            <id>micrometer-snapshots</id>
-            <url>https://repo.spring.io/libs-snapshot</url> <!-- TODO: remove when 1.10.0 is released -->
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
