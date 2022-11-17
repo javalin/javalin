@@ -3,10 +3,9 @@ package io.javalin.http.sse
 import io.javalin.http.Context
 import io.javalin.json.jsonMapper
 import io.javalin.json.toJsonString
+import io.javalin.util.JavalinLogger
 import java.io.Closeable
 import java.io.InputStream
-import java.lang.IllegalStateException
-import java.lang.reflect.Type
 import java.util.concurrent.CompletableFuture
 
 class SseClient internal constructor(
@@ -34,34 +33,34 @@ class SseClient internal constructor(
     }
 
     override fun close() {
+        if (this.closed) return
         closeCallback.run()
         blockingFuture?.complete(null)
-        this.closed = true;
+        this.closed = true
     }
 
     fun sendEvent(data: Any) = sendEvent("message", data)
 
     @JvmOverloads
     fun sendEvent(event: String, data: Any, id: String? = null) {
-        if (this.closed) throw SseClientClosedException()
         when (data) {
             is InputStream -> emitter.emit(event, data, id)
             is String -> emitter.emit(event, data.byteInputStream(), id)
             else -> emitter.emit(event, ctx.jsonMapper().toJsonString(data).byteInputStream(), id)
         }
-        if (emitter.closed) { // can't detect if closed before we try emitting
-            this.close()
-        }
+        logAndCloseIfEmitterIsClosed(emitter)
     }
 
     fun sendComment(comment: String) {
-        if (this.closed) throw SseClientClosedException()
         emitter.emit(comment)
+        logAndCloseIfEmitterIsClosed(emitter)
+    }
+
+    private fun logAndCloseIfEmitterIsClosed(emitter: Emitter) {
         if (emitter.closed) { // can't detect if closed before we try emitting
+            JavalinLogger.warn("Failed to send data, SseClient has been closed.")
             this.close()
         }
     }
 
 }
-
-class SseClientClosedException : IllegalStateException("SseClient is closed.")
