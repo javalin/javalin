@@ -5,6 +5,7 @@
         <module>javalin</module>
         <module>javalin-bundle</module>
         <module>javalin-testtools</module>
+        <module>javalin-micrometer</module>
     </modules>
 
     <parent>
@@ -314,6 +315,7 @@
                         <configuration>
                             <sourceDirs>
                                 <sourceDir>${project.basedir}/src/main/java</sourceDir>
+                                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
                             </sourceDirs>
                             <args>
                                 <arg>-Xjvm-default=all</arg>
