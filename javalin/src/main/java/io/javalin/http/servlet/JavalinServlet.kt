@@ -94,16 +94,15 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     private fun JavalinServletContext.writeResponseAndLog() {
         try {
             if (responseWritten.getAndSet(true)) return // prevent writing more than once, it's required because timeout listener can terminate the flow at any time
-            outputStream().use { outputStream ->
-                resultInputStream()?.use { resultStream ->
-                    val etagWritten = ETagGenerator.tryWriteEtagAndClose(cfg.http.generateEtags, this, resultStream)
-                    if (!etagWritten) resultStream.copyTo(outputStream, 4096)
-                }
+            resultInputStream()?.use { resultStream ->
+                val etagWritten = ETagGenerator.tryWriteEtagAndClose(cfg.http.generateEtags, this, resultStream)
+                if (!etagWritten) resultStream.copyTo(outputStream(), 4096)
             }
             cfg.pvt.requestLogger?.handle(this, executionTimeMs())
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(res(), throwable) // handle any unexpected error, e.g. write failure
         } finally {
+            if (outputStreamWrapper.isReady) outputStream().close() // close initialized output wrappers
             if (isAsync()) req().asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
         }
     }
