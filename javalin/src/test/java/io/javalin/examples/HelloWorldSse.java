@@ -21,7 +21,8 @@ public class HelloWorldSse {
         Javalin app = Javalin.create().start(7000);
         app.get("/", ctx -> ctx.html("<script>new EventSource('http://localhost:7000/sse').addEventListener('hi', msg => console.log(msg));</script>"));
         app.sse("/sse", client -> {
-            clients.add(client);
+            client.keepAlive();
+            clients.add(client); // save the sse to use outside of this context
             client.onClose(() -> clients.remove(client));
         });
 
