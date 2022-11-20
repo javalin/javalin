@@ -22,14 +22,24 @@ import io.micrometer.core.instrument.binder.jetty.JettyServerThreadPoolMetrics
 import io.micrometer.jetty11.TimedHandler
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import java.util.function.Consumer
 
-class MicrometerPlugin @JvmOverloads constructor(
-    private val registry: MeterRegistry = Metrics.globalRegistry,
-    private val tags: Iterable<Tag> = Tags.empty(),
-    private val tagExceptionName: Boolean = false,
-    private val tagRedirectPaths: Boolean = false,
-    private val tagNotFoundMappedPaths: Boolean = false
+data class MicroMeterConfig(
+    @JvmField var registry: MeterRegistry = Metrics.globalRegistry,
+    @JvmField var tags: Iterable<Tag> = Tags.empty(),
+    @JvmField var tagExceptionName: Boolean = false,
+    @JvmField var tagRedirectPaths: Boolean = false,
+    @JvmField var tagNotFoundMappedPaths: Boolean = false,
+)
+
+class MicrometerPlugin private constructor(
+    private val registry: MeterRegistry,
+    private val tags: Iterable<Tag>,
+    private val tagExceptionName: Boolean,
+    private val tagRedirectPaths: Boolean,
+    private val tagNotFoundMappedPaths: Boolean,
 ) : Plugin {
+
     override fun apply(app: Javalin) {
         app.jettyServer()?.server()?.let { server ->
             if (tagExceptionName) {
@@ -77,6 +87,18 @@ class MicrometerPlugin @JvmOverloads constructor(
             val simpleName = e.javaClass.simpleName
             ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+        fun create(userConfig: Consumer<MicroMeterConfig>): MicrometerPlugin {
+            val finalConfig = MicroMeterConfig()
+            userConfig.accept(finalConfig)
+            return MicrometerPlugin(
+                registry = finalConfig.registry,
+                tags = finalConfig.tags,
+                tagExceptionName = finalConfig.tagExceptionName,
+                tagRedirectPaths = finalConfig.tagRedirectPaths,
+                tagNotFoundMappedPaths = finalConfig.tagNotFoundMappedPaths,
+            )
         }
     }
 
