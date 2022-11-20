@@ -24,7 +24,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
 
-data class MicroMeterConfig(
+data class MicrometerConfig(
     @JvmField var registry: MeterRegistry = Metrics.globalRegistry,
     @JvmField var tags: Iterable<Tag> = Tags.empty(),
     @JvmField var tagExceptionName: Boolean = false,
@@ -32,6 +32,10 @@ data class MicroMeterConfig(
     @JvmField var tagNotFoundMappedPaths: Boolean = false,
 )
 
+/**
+ * [MicrometerPlugin] has a private constructor, use
+ * [MicrometerPlugin.create] to create a new instance.
+ */
 class MicrometerPlugin private constructor(
     private val registry: MeterRegistry,
     private val tags: Iterable<Tag>,
@@ -89,8 +93,8 @@ class MicrometerPlugin private constructor(
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
-        fun create(userConfig: Consumer<MicroMeterConfig>): MicrometerPlugin {
-            val finalConfig = MicroMeterConfig()
+        fun create(userConfig: Consumer<MicrometerConfig>): MicrometerPlugin {
+            val finalConfig = MicrometerConfig()
             userConfig.accept(finalConfig)
             return MicrometerPlugin(
                 registry = finalConfig.registry,
