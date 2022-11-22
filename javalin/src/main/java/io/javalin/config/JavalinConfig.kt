@@ -38,7 +38,7 @@ class JavalinConfig {
     @JvmField var showJavalinBanner = true
     fun accessManager(accessManager: AccessManager) { pvt.accessManager = accessManager }
     fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
-    fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[JSON_MAPPER_KEY] = fileRenderer }
+    fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }
     //@formatter:on
     companion object {
         @JvmStatic
