@@ -46,4 +46,8 @@ object JavalinRenderer {
     private val String.extension: String get() = this.replaceBeforeLast(".", "")
 
     internal fun loadFileRenderers() = ServiceLoader.load(FileRendererLoader::class.java).forEach { it.load() }
+
+    interface FileRendererLoader {
+        fun load()
+    }
 }
