@@ -38,6 +38,12 @@ internal class TestRendering {
         assertThat(http.getBody("/")).contains("model:{a=b}")
     }
 
+    @Test
+    fun `can check if renderer exists`() = TestUtil.test { app, http ->
+        assertThat(JavalinRenderer.hasRenderer(".myExt", ".otherExt")).isTrue()
+        assertThat(JavalinRenderer.hasRenderer(".otherExt")).isFalse()
+    }
+
     companion object {
         @JvmStatic
         @BeforeAll
