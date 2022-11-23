@@ -21,6 +21,7 @@ import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.json.jsonMapper
 import io.javalin.rendering.JavalinRenderer
+import io.javalin.rendering.fileRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.function.ThrowingRunnable
 import io.javalin.validation.BodyValidator
@@ -426,7 +427,7 @@ interface Context {
      * Also sets content-type to text/html.
      * Determines the correct rendering-function based on the file extension.
      */
-    fun render(filePath: String, model: Map<String, Any?>): Context = html(JavalinRenderer.renderBasedOnExtension(filePath, model, this))
+    fun render(filePath: String, model: Map<String, Any?>): Context = html(fileRenderer().render(filePath, model, this))
 
     /** @see render() */
     fun render(filePath: String): Context = render(filePath, mutableMapOf())
