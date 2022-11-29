@@ -19,6 +19,7 @@ import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatIOException
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -74,15 +75,21 @@ class TestResponse {
 
     @Test
     fun `setting an InputStream result works and InputStream is closed`() = TestUtil.test { app, http ->
-        app.get("/file") { ctx ->
-            val file = File(workingDirectory, "my-file.txt").also {
-                it.printWriter().use { out ->
-                    out.print("Hello, World!")
-                }
+        val file = File(workingDirectory, "my-file.txt").also {
+            it.printWriter().use { out ->
+                out.print("Hello, World!")
             }
-            ctx.result(file.inputStream())
         }
+        val inputStream = file.inputStream()
+
+        app.get("/file") { ctx ->
+            ctx.result(inputStream)
+        }
+
         assertThat(http.getBody("/file")).isEqualTo("Hello, World!")
+        // Expecting an IOException for reading a closed stream
+        assertThatIOException()
+            .isThrownBy { inputStream.read() }
     }
 
     @Disabled("https://github.com/tipsy/javalin/pull/1413")
@@ -164,24 +171,36 @@ class TestResponse {
         assertThat(http.getBody("/test")).isEqualTo(result)
     }
 
-    private fun getSeekableInput(repeats: Int = SeekableWriter.chunkSize) = ByteArrayInputStream(
+    private fun getSeekableInput(repeats: Int = SeekableWriter.chunkSize) = object : ByteArrayInputStream(
         setOf("a", "b", "c").joinToString("") { it.repeat(repeats) }.toByteArray(Charsets.UTF_8)
-    )
+    ) {
+        @Volatile var closed = false
+
+        override fun close() {
+            super.close()
+            closed = true
+        }
+    }
 
     @Test
-    fun `seekable - range works`() = TestUtil.test { app, http ->
-        app.get("/seekable") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
+    fun `seekable - range works and input stream closed`() = TestUtil.test { app, http ->
+        val input = getSeekableInput()
+        app.get("/seekable") { it.writeSeekableStream(input, ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable")
             .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
             .asString().body
         assertThat(response).doesNotContain("a").contains("b").doesNotContain("c")
+        assertThat(input.closed).isTrue()
     }
 
     @Test
-    fun `seekable - no-range works`() = TestUtil.test { app, http ->
-        app.get("/seekable-2") { it.writeSeekableStream(getSeekableInput(), ContentType.PLAIN) }
+    fun `seekable - no-range works and input stream closed`() = TestUtil.test { app, http ->
+        val input = getSeekableInput()
+        val available = input.available()
+        app.get("/seekable-2") { it.writeSeekableStream(input, ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-2").asString().body
-        assertThat(response.length).isEqualTo(getSeekableInput().available())
+        assertThat(response.length).isEqualTo(available)
+        assertThat(input.closed).isTrue()
     }
 
     @Test
