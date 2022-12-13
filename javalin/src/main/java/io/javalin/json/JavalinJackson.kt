@@ -15,6 +15,7 @@ import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import java.io.InputStream
 import java.lang.reflect.Type
+import java.util.function.Consumer
 
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
@@ -53,7 +54,14 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
     override fun <T : Any> fromJsonStream(json: InputStream, targetType: Type): T =
         mapper.readValue(json, mapper.typeFactory.constructType(targetType))
 
+    /** Update the current mapper and return self for easy chaining */
+    fun updateMapper(updateFunction: Consumer<ObjectMapper>): JavalinJackson {
+        updateFunction.accept(this.mapper)
+        return this
+    }
+
     companion object {
+        @JvmStatic
         fun defaultMapper(): ObjectMapper = ObjectMapper()
             .registerOptionalModule(CoreDependency.JACKSON_KT.testClass)
             .registerOptionalModule(CoreDependency.JACKSON_JSR_310.testClass)

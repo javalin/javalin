@@ -6,9 +6,9 @@
 
 package io.javalin
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.google.gson.GsonBuilder
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.adapter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.javalin.http.Header
 import io.javalin.http.HttpStatus.BAD_REQUEST
@@ -206,6 +206,24 @@ internal class TestJson {
         val mappedBack = JavalinJackson().fromJsonString<SerializableDataClass>(mapped)
         assertThat("First value").isEqualTo(mappedBack.value1)
         assertThat("Second value").isEqualTo(mappedBack.value2)
+    }
+
+    @Test
+    fun `default JavalinJackson includes nulls`() = TestUtil.test { app, http ->
+        data class TestClass(val one: String? = null, val two: String? = null)
+        app.get("/") { it.json(TestClass()) }
+        assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
+    }
+
+    @Test
+    fun `can update ObjectMapper of JavalinJackson`() = TestUtil.test(Javalin.create {
+        it.jsonMapper(JavalinJackson().updateMapper {
+            it.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        })
+    }) { app, http ->
+        data class TestClass(val one: String? = null, val two: String? = null)
+        app.get("/") { it.json(TestClass()) }
+        assertThat(http.getBody("/")).isEqualTo("{}")
     }
 
 }
