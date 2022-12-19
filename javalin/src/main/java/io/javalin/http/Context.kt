@@ -266,6 +266,17 @@ interface Context {
         else -> listOf()
     }
 
+    /**
+     * Gets a map of all uploaded files as a map where the key is the name of the parameter the file was uploaded as and
+     * the value is the list of files uploaded under that parameter.
+     *
+     * If called on a non-multipart request this returns an empty map
+    */
+    fun uploadedFileMap(): Map<String, List<UploadedFile>> = when {
+        isMultipartFormData() -> MultipartUtil.getUploadedFileMap(req())
+        else -> emptyMap()
+    }
+
     ///////////////////////////////////////////////////////////////
     // Response-ish methods
     ///////////////////////////////////////////////////////////////

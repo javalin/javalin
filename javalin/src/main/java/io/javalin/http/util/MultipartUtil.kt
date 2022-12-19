@@ -35,6 +35,15 @@ object MultipartUtil {
         return req.parts.filter(this::isFile).map { UploadedFile(it) }
     }
 
+    fun getUploadedFileMap(req: HttpServletRequest): Map<String, List<UploadedFile>> {
+        preUploadFunction(req)
+        return req
+            .parts
+            .filter(this::isFile)
+            .groupBy { it.name }
+            .mapValues { entry ->  entry.value.map { UploadedFile(it) } }
+    }
+
     fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> {
         preUploadFunction(req)
         return req.parts.associate { part -> part.name to getPartValue(req, part.name) }
