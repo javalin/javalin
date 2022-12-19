@@ -237,4 +237,34 @@ class TestMultipartForms {
         }
     }
 
+    @Test
+    fun `returning files as map works`() = TestUtil.test{ app, http ->
+        app.post("/test-upload-map") { ctx ->
+            //get the uploaded files as a map and then sort them
+            val files = ctx.uploadedFileMap().toSortedMap()
+
+            //now turn that into a string.  we just need to know that we have correctly received the files since there
+            //are other tests to check that the uploaded file is correct.  We therefore expect to receive back something
+            //which looks like file1 --> image.png, file_array[] -> sound.mp3:text.txt
+            val metadata = files
+                .map { "${it.key} --> ${it.value.map { file -> file.filename() }.joinToString(":")}" }
+                .joinToString(", ")
+
+            ctx.result(metadata)
+        }
+
+        //post the data to the end point
+        val response = http.post("/test-upload-map")
+            .field("file1", File("src/test/resources/upload-test/image.png"))
+            .field("file_array[]", File("src/test/resources/upload-test/sound.mp3"))
+            .field("file_array[]", File("src/test/resources/upload-test/text.txt"))
+            .asString()
+            .body
+
+        //create the expected response
+        val expected = "file1 --> image.png, file_array[] --> sound.mp3:text.txt"
+
+        //and verify it
+        assertThat(response).isEqualTo(expected)
+    }
 }
