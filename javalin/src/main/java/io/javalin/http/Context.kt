@@ -335,7 +335,6 @@ interface Context {
      * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
      *
      * @param executor Thread-pool used to execute the given task,
-     * by default uses globally predefined executor service stored in [appAttribute] as [ASYNC_EXECUTOR_KEY].
      * You can change this default in [io.javalin.config.JavalinConfig].
      *
      * @param timeout Timeout in milliseconds,
