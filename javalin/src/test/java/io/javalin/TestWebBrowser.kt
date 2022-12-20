@@ -9,6 +9,7 @@ package io.javalin
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.http.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
+import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil.captureStdOut
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
@@ -30,9 +31,7 @@ class TestWebBrowser {
         @BeforeAll
         @JvmStatic
         fun setupClass() {
-            assumeTrue(System.getProperty("RunningOnCi") == null)
-            // val os: String = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)
-            // assumeTrue("mac" !in os && "darwin" !in os) // comment this out if you're having trouble locally
+            assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--no-sandbox")

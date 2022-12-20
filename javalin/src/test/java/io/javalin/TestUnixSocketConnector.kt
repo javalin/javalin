@@ -1,6 +1,7 @@
 package io.javalin
 
 import io.javalin.http.HttpStatus.OK
+import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
 import jnr.unixsocket.UnixSocketAddress
 import jnr.unixsocket.UnixSocketChannel
@@ -8,6 +9,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.unixsocket.server.UnixSocketConnector
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -19,11 +21,7 @@ class TestUnixSocketConnector {
 
     @Test
     fun `using unixsocket`() {
-
-        if (System.getProperty("os.name").contains("windows", ignoreCase = true)) {
-            return // this test can never succeed on windows
-        }
-
+        assumeTrue(TestEnvironment.isNotWindows) // this test can never succeed on windows
         val socketFileName = "/tmp/javalin.sock"
         val testPath = "/unixsocket"
         val expectedResultString = "hello unixsocket"

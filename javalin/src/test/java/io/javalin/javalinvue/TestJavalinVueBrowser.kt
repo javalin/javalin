@@ -4,6 +4,7 @@ import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.http.staticfiles.Location
+import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
 import io.javalin.vue.VueComponent
 import org.assertj.core.api.Assertions
@@ -14,7 +15,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
-import java.util.*
 
 class TestJavalinVueBrowser {
 
@@ -24,9 +24,7 @@ class TestJavalinVueBrowser {
         @BeforeAll
         @JvmStatic
         fun setupClass() {
-            assumeTrue(System.getProperty("RunningOnCi") == null)
-            // val os: String = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)
-            // assumeTrue("mac" !in os && "darwin" !in os) // comment this out if you're having trouble locally
+            assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--no-sandbox")
