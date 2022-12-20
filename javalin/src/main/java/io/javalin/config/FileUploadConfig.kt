@@ -32,7 +32,7 @@ class FileUploadConfig {
     /**
      * This class represents the potential file size descriptors to avoid the use of hard-coded multipliers
      */
-    enum class Units(val multiplier: Int){
+    enum class SizeUnit(val multiplier: Int){
         BYTES(1),
         KB(1024),
         MB(1024 * 1024),
@@ -52,30 +52,30 @@ class FileUploadConfig {
      * Sets the maximum file size for an individual file upload
      *
      * @param size : the maximum size of the file
-     * @param units : the units that this size is measured in
+     * @param sizeUnit : the units that this size is measured in
      */
-    fun maxFileSize(size: Long, units: Units){
-        this.maxFileSize = size * units.multiplier
+    fun maxFileSize(size: Long, sizeUnit: SizeUnit){
+        this.maxFileSize = size * sizeUnit.multiplier
     }
 
     /**
      * Sets the maximum size for a single file before it will be cached to disk rather than read in memory
      *
      * @param size : the maximum size of the file
-     * @param units : the units that this size is measured in
+     * @param sizeUnit : the units that this size is measured in
      */
-    fun maxInMemoryFileSize(size: Int, units: Units){
-        this.maxInMemoryFileSize = size * units.multiplier
+    fun maxInMemoryFileSize(size: Int, sizeUnit: SizeUnit){
+        this.maxInMemoryFileSize = size * sizeUnit.multiplier
     }
 
     /**
      * Sets the maximum size for the entire multipart request
      *
      * @param size : the maximum size of the file
-     * @param units : the units that this size is measured in
+     * @param sizeUnit : the units that this size is measured in
      */
-    fun maxTotalRequestSize(size: Long, units: Units){
-        this.maxTotalRequestSize = size * units.multiplier
+    fun maxTotalRequestSize(size: Long, sizeUnit: SizeUnit){
+        this.maxTotalRequestSize = size * sizeUnit.multiplier
     }
 
     /**

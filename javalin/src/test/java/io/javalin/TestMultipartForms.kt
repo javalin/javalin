@@ -277,9 +277,9 @@ class TestMultipartForms {
         //paths exist and are writable on the system the test is being run on.  However, if the other parameters
         //are read successfully
         app.updateConfig {
-            it.fileUpload.maxFileSize(100,FileUploadConfig.Units.MB)
-            it.fileUpload.maxInMemoryFileSize(10,FileUploadConfig.Units.MB)
-            it.fileUpload.maxTotalRequestSize(1, FileUploadConfig.Units.GB)
+            it.fileUpload.maxFileSize(100,FileUploadConfig.SizeUnit.MB)
+            it.fileUpload.maxInMemoryFileSize(10,FileUploadConfig.SizeUnit.MB)
+            it.fileUpload.maxTotalRequestSize(1, FileUploadConfig.SizeUnit.GB)
         }
 
         app.post("/test-multipart-config") { ctx ->
