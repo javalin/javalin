@@ -26,6 +26,8 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.util.*
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class TestResponse {
 
@@ -174,11 +176,11 @@ class TestResponse {
     private fun getSeekableInput(repeats: Int = SeekableWriter.chunkSize) = object : ByteArrayInputStream(
         setOf("a", "b", "c").joinToString("") { it.repeat(repeats) }.toByteArray(Charsets.UTF_8)
     ) {
-        @Volatile var closed = false
+        val closedLatch = CountDownLatch(1)
 
         override fun close() {
             super.close()
-            closed = true
+            closedLatch.countDown()
         }
     }
 
@@ -190,7 +192,7 @@ class TestResponse {
             .headers(mapOf(Header.RANGE to "bytes=${SeekableWriter.chunkSize}-${SeekableWriter.chunkSize * 2 - 1}"))
             .asString().body
         assertThat(response).doesNotContain("a").contains("b").doesNotContain("c")
-        assertThat(input.closed).isTrue()
+        assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
     }
 
     @Test
@@ -200,7 +202,7 @@ class TestResponse {
         app.get("/seekable-2") { it.writeSeekableStream(input, ContentType.PLAIN) }
         val response = Unirest.get(http.origin + "/seekable-2").asString().body
         assertThat(response.length).isEqualTo(available)
-        assertThat(input.closed).isTrue()
+        assertThat(input.closedLatch.await(2, TimeUnit.SECONDS)).isTrue()
     }
 
     @Test
