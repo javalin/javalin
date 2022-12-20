@@ -12,12 +12,10 @@ import jakarta.servlet.MultipartConfigElement
  * @property maxTotalRequestSize : the maximum size allowed (in bytes) for the entire multipart request
  */
 class FileUploadConfig {
-    //@formatter:off
     private var cacheDirectory = System.getProperty("java.io.tmpdir")
     private var maxFileSize: Long = -1
     private var maxInMemoryFileSize: Int = -1
     private var maxTotalRequestSize: Long = -1
-    //@formatter:on
 
     //when the configuration is initialized we override the preupload function in the multipart util to read the
     //configuration from these settings rather than the current hard-coded method
