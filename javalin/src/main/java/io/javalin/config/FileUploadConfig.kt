@@ -28,16 +28,6 @@ class FileUploadConfig {
     }
 
     /**
-     * This class represents the potential file size descriptors to avoid the use of hard-coded multipliers
-     */
-    enum class SizeUnit(val multiplier: Int){
-        BYTES(1),
-        KB(1024),
-        MB(1024 * 1024),
-        GB(1024 * 1024 * 1024)
-    }
-
-    /**
      * Sets the location of the cache directory used to write file uploads
      *
      * @param path : the path of the cache directory used to write file uploads > maxInMemoryFileSize
@@ -82,4 +72,14 @@ class FileUploadConfig {
     private fun multipartConfigElement(): MultipartConfigElement{
         return MultipartConfigElement(cacheDirectory,maxFileSize,maxTotalRequestSize,maxInMemoryFileSize)
     }
+}
+
+/**
+ * This class represents the potential file size descriptors to avoid the use of hard-coded multipliers
+ */
+enum class SizeUnit(val multiplier: Int){
+    BYTES(1),
+    KB(1024),
+    MB(1024 * 1024),
+    GB(1024 * 1024 * 1024)
 }

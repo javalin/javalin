@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import io.javalin.config.FileUploadConfig
+import io.javalin.config.SizeUnit
 import io.javalin.http.ContentType
 import io.javalin.http.formParamAsClass
 import io.javalin.http.util.MultipartUtil
@@ -277,9 +277,9 @@ class TestMultipartForms {
         //paths exist and are writable on the system the test is being run on.  However, if the other parameters
         //are read successfully
         app.updateConfig {
-            it.fileUpload.maxFileSize(100,FileUploadConfig.SizeUnit.MB)
-            it.fileUpload.maxInMemoryFileSize(10,FileUploadConfig.SizeUnit.MB)
-            it.fileUpload.maxTotalRequestSize(1, FileUploadConfig.SizeUnit.GB)
+            it.fileUpload.maxFileSize(100, SizeUnit.MB)
+            it.fileUpload.maxInMemoryFileSize(10, SizeUnit.MB)
+            it.fileUpload.maxTotalRequestSize(1, SizeUnit.GB)
         }
 
         app.post("/test-multipart-config") { ctx ->
