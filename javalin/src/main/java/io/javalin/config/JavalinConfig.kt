@@ -31,7 +31,6 @@ class JavalinConfig {
     @JvmField val spaRoot = SpaRootConfig(pvt)
     @JvmField val compression = CompressionConfig(pvt)
     @JvmField val requestLogger = RequestLoggerConfig(pvt)
-    @JvmField val fileUpload = FileUploadConfig()
     @JvmField val plugins = PluginConfig()
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()

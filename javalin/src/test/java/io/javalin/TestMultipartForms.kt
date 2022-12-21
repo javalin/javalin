@@ -277,16 +277,16 @@ class TestMultipartForms {
         //paths exist and are writable on the system the test is being run on.  However, if the other parameters
         //are read successfully
         app.updateConfig {
-            it.fileUpload.maxFileSize(100, SizeUnit.MB)
-            it.fileUpload.maxInMemoryFileSize(10, SizeUnit.MB)
-            it.fileUpload.maxTotalRequestSize(1, SizeUnit.GB)
+            it.jetty.multipartConfig.maxFileSize(100, SizeUnit.MB)
+            it.jetty.multipartConfig.maxInMemoryFileSize(10, SizeUnit.MB)
+            it.jetty.multipartConfig.maxTotalRequestSize(1, SizeUnit.GB)
         }
 
         app.post("/test-multipart-config") { ctx ->
             //get the files - this is solely required to ensure that the preUploadFunction has been called
             ctx.uploadedFiles()
 
-            //now get hold of the multipartconfigelement from the request attributes
+            //now get hold of the MultipartConfigElement from the request attributes
             val config = ctx.attribute<MultipartConfigElement>(MultipartUtil.MULTIPART_CONFIG_ATTRIBUTE)!!
 
             ctx.result("${config.maxFileSize}:${config.fileSizeThreshold}:${config.maxRequestSize}")

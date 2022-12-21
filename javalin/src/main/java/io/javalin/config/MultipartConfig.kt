@@ -11,7 +11,7 @@ import jakarta.servlet.MultipartConfigElement
  * @property maxInMemoryFileSize : the maximum size allowed (in bytes) before uploads are cached to disk
  * @property maxTotalRequestSize : the maximum size allowed (in bytes) for the entire multipart request
  */
-class FileUploadConfig {
+class MultipartConfig {
     private var cacheDirectory = System.getProperty("java.io.tmpdir")
     private var maxFileSize: Long = -1
     private var maxInMemoryFileSize: Int = -1
