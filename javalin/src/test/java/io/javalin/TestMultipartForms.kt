@@ -6,8 +6,10 @@
 
 package io.javalin
 
+import io.javalin.config.SizeUnit
 import io.javalin.http.ContentType
 import io.javalin.http.formParamAsClass
+import io.javalin.http.util.MultipartUtil
 import io.javalin.json.fromJsonString
 import io.javalin.testing.TestUtil
 import io.javalin.testing.UploadInfo
@@ -263,6 +265,41 @@ class TestMultipartForms {
 
         //create the expected response
         val expected = "file1 --> image.png, file_array[] --> sound.mp3:text.txt"
+
+        //and verify it
+        assertThat(response).isEqualTo(expected)
+    }
+
+    @Test
+    fun `changing the multipart config correctly sets it`() = TestUtil.test{ app, http ->
+
+        //note: this test does not check the cache directory is set correctly as there is no way to know which
+        //paths exist and are writable on the system the test is being run on.  However, if the other parameters
+        //are read successfully
+        app.updateConfig {
+            it.jetty.multipartConfig.maxFileSize(100, SizeUnit.MB)
+            it.jetty.multipartConfig.maxInMemoryFileSize(10, SizeUnit.MB)
+            it.jetty.multipartConfig.maxTotalRequestSize(1, SizeUnit.GB)
+        }
+
+        app.post("/test-multipart-config") { ctx ->
+            //get the files - this is solely required to ensure that the preUploadFunction has been called
+            ctx.uploadedFiles()
+
+            //now get hold of the MultipartConfigElement from the request attributes
+            val config = ctx.attribute<MultipartConfigElement>(MultipartUtil.MULTIPART_CONFIG_ATTRIBUTE)!!
+
+            ctx.result("${config.maxFileSize}:${config.fileSizeThreshold}:${config.maxRequestSize}")
+        }
+
+        //post the data to the end point
+        val response = http.post("/test-multipart-config")
+            .field("file1", File("src/test/resources/upload-test/image.png"))
+            .asString()
+            .body
+
+        //create the expected response which are the various sizes (in bytes) separated by colons
+        val expected = "${100*1024*1024}:${10*1024*1024}:${1*1024*1024*1024}"
 
         //and verify it
         assertThat(response).isEqualTo(expected)

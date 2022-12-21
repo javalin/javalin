@@ -12,7 +12,6 @@ import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
-import io.javalin.rendering.JavalinRenderer
 import io.javalin.rendering.LegacyFileRenderer
 import io.javalin.security.AccessManager
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper

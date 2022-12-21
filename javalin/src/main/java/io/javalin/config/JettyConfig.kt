@@ -8,6 +8,9 @@ import java.util.function.Consumer
 import java.util.function.Supplier
 
 class JettyConfig(private val pvt: PrivateConfig) {
+    //@formatter:off
+    @JvmField val multipartConfig = MultipartConfig()
+    //@formatter:on
 
     fun server(server: Supplier<Server?>) {
         pvt.server = server.get()
