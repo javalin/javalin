@@ -202,6 +202,13 @@ fun <T> cachedSessionAttributeOrCompute(callback: (Context) -> T, key: String, c
     return getCachedRequestAttributeOrSessionAttribute(key, ctx.req()) // existing or computed (or null)
 }
 
+fun <T> attributeOrCompute(callback: (Context) -> T, key: String, ctx: Context): T? {
+    if (ctx.attribute<T>(key) == null) {
+        ctx.attribute(key, callback(ctx))
+    }
+    return ctx.attribute<T>(key)
+}
+
 fun readAndResetStreamIfPossible(stream: InputStream?, charset: Charset) = try {
     stream?.apply { reset() }?.readBytes()?.toString(charset).also { stream?.reset() }
 } catch (e: Exception) {

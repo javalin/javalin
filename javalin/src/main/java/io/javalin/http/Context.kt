@@ -9,6 +9,7 @@ package io.javalin.http
 import io.javalin.config.contextResolver
 import io.javalin.http.servlet.cacheAndSetSessionAttribute
 import io.javalin.http.servlet.cachedSessionAttributeOrCompute
+import io.javalin.http.servlet.attributeOrCompute
 import io.javalin.http.servlet.getBasicAuthCredentials
 import io.javalin.http.servlet.getCachedRequestAttributeOrSessionAttribute
 import io.javalin.http.servlet.getRequestCharset
@@ -214,6 +215,9 @@ interface Context {
     /** Gets the specified attribute from the request(). */
     @Suppress("UNCHECKED_CAST")
     fun <T> attribute(key: String): T? = req().getAttribute(key) as? T
+
+    /** Gets specified [attribute], or computes the value from callback (and sets the attribute) */
+    fun <T> attributeOrCompute(key: String, callback: (Context) -> T): T? = attributeOrCompute(callback, key, this)
 
     /** Gets a map with all the attribute keys and values on the request(). */
     fun attributeMap(): Map<String, Any?> = req().attributeNames.asSequence().associateWith { attribute(it) as Any? }

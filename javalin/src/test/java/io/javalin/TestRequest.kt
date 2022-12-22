@@ -113,6 +113,20 @@ class TestRequest {
     }
 
     @Test
+    fun `attributes can be computed`() = TestUtil.test { app, http ->
+        val key = "set";
+        app.get("/") { ctx ->
+            val data = listOf(
+                ctx.attribute(key) ?: "NOT_SET",
+                ctx.attributeOrCompute(key) { "SET" },
+                ctx.attribute(key) ?: "NOT_SET",
+            )
+            ctx.result(data.joinToString("|"))
+        }
+        assertThat(http.getBody("/")).isEqualTo("NOT_SET|SET|SET")
+    }
+
+    @Test
     fun `attributes can be removed`() = TestUtil.test { app, http ->
         app.get("/store") { ctx ->
             ctx.attribute("test", "not-null")
