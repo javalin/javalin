@@ -118,6 +118,13 @@ class TestSse {
     }
 
     @Test
+    fun `sending multi line data works`() = TestUtil.test { app, http ->
+        app.sse("/sse") { it.doAndClose { it.sendEvent("a\nb") } }
+        val body = http.sse("/sse").get().body
+        assertThat(body).isEqualTo("event: message\ndata: a\ndata: b\n\n")
+    }
+
+    @Test
     fun `sending async data is properly processed`() = TestUtil.test { app, http ->
         app.sse("/sse") {
             it.sendEvent("Sync event")

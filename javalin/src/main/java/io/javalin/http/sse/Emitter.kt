@@ -18,9 +18,11 @@ class Emitter(private var response: HttpServletResponse) {
                 write("id: $id$NEW_LINE")
             }
             write("event: $event$NEW_LINE")
-            write("data: ")
-            data.copyTo(response.outputStream)
-            write(NEW_LINE)
+
+            data.buffered().reader().useLines {
+                it.forEach { line -> write("data: $line$NEW_LINE") }
+            }
+
             write(NEW_LINE)
             response.flushBuffer()
         } catch (ignored: IOException) {
