@@ -16,6 +16,7 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.bodyAsClass
 import io.javalin.http.bodyStreamAsClass
 import io.javalin.http.bodyValidator
+import io.javalin.http.jsonAsType
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.json.fromJsonString
@@ -181,8 +182,12 @@ internal class TestJson {
         }
     }
 
+    private object TestMoshi {
+        val list: List<String> = listOf("moshi") // property with some generic type
+    }
+
     @Test
-    fun `user can use Moshi as mapper`() {
+    fun `user can use Moshi as mapper`() = TestUtil.test(Javalin.create {
         val moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
@@ -192,10 +197,10 @@ internal class TestJson {
             override fun <T : Any> fromJsonString(json: String, targetType: Type): T = moshi.adapter<Any>(targetType).fromJson(json) as T
         }
 
-        val asText = moshiMapper.toJsonString(arrayOf("use", "jackson"))
-        val asObject = moshiMapper.fromJsonString<Array<String>>(asText)
-
-        assertThat(asObject).isEqualTo(arrayOf("use", "jackson"))
+        it.jsonMapper(moshiMapper)
+    }) { app, http ->
+        app.get("/moshi") { it.jsonAsType(TestMoshi.list) }
+        assertThat(http.getBody("/moshi")).isEqualTo("""["moshi"]""")
     }
 
     data class SerializableDataClass(val value1: String = "Default1", val value2: String)

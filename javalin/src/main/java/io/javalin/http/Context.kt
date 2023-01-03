@@ -448,7 +448,7 @@ interface Context {
 
 /** Reified version of [Context.json] (Kotlin only) */
 @OptIn(ExperimentalStdlibApi::class)
-inline fun <reified T : Any> Context.jsonAsType(obj: Any): Context = json(obj, typeOf<T>().javaType)
+inline fun <reified T : Any> Context.jsonAsType(obj: T): Context = json(obj, typeOf<T>().javaType)
 
 /** Reified version of [Context.bodyAsClass] (Kotlin only) */
 @OptIn(ExperimentalStdlibApi::class)
