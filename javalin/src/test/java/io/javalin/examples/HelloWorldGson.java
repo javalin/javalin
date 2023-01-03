@@ -6,36 +6,16 @@
 
 package io.javalin.examples;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import io.javalin.Javalin;
-import io.javalin.json.JsonMapper;
-import java.lang.reflect.Type;
+import io.javalin.json.JavalinGson;
 import java.util.Arrays;
-import org.jetbrains.annotations.NotNull;
 
 public class HelloWorldGson {
 
     public static void main(String[] args) {
-
-        Gson gson = new GsonBuilder().create();
-        JsonMapper gsonMapper = new JsonMapper() {
-            @NotNull
-            @Override
-            public String toJsonString(@NotNull Object obj, @NotNull Type type) {
-                return gson.toJson(obj, type);
-            }
-
-            @NotNull
-            @Override
-            public <T> T fromJsonString(@NotNull String json, @NotNull Type targetType) {
-                return gson.fromJson(json, targetType);
-            }
-        };
-
-        Javalin app = Javalin.create(config -> config.jsonMapper(gsonMapper)).start(7070);
-        app.get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")));
-
+        Javalin.create(config -> config.jsonMapper(new JavalinGson()))
+            .get("/", ctx -> ctx.json(Arrays.asList("a", "b", "c")))
+            .start(7070);
     }
 
 }
