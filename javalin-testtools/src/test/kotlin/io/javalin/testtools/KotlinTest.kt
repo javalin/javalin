@@ -36,8 +36,8 @@ class KotlinTest {
             val response = "${it.queryParam("from")} ${it.header(Header.FROM)}"
             it.result(response)
         }
-        val response = client.get("/hello?from=From") { it.header(Header.FROM, "Russia With Love") }
-        assertThat(response.body?.string()).isEqualTo("From Russia With Love")
+        val response = client.get("/hello?from=From") { it.header(Header.FROM, "Hello World") }
+        assertThat(response.body?.string()).isEqualTo("From Hello World")
     }
 
     @Test
