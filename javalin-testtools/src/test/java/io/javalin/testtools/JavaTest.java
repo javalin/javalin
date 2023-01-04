@@ -49,8 +49,8 @@ public class JavaTest {
                 String response = ctx.queryParam("from") + " " + ctx.header(Header.FROM);
                 ctx.result(response);
             });
-            Response response = client.get("/hello?from=From", req -> req.header(Header.FROM, "Russia With Love"));
-            assertThat(response.body().string()).isEqualTo("From Russia With Love");
+            Response response = client.get("/hello?from=From", req -> req.header(Header.FROM, "Paris to Berlin"));
+            assertThat(response.body().string()).isEqualTo("From Paris to Berlin");
         });
     }
 
