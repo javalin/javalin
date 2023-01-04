@@ -7,7 +7,7 @@
 package io.javalin
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.google.gson.GsonBuilder
+import com.google.gson.Gson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.javalin.http.Header
@@ -16,6 +16,7 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.bodyAsClass
 import io.javalin.http.bodyStreamAsClass
 import io.javalin.http.bodyValidator
+import io.javalin.json.JavalinGson
 import io.javalin.http.jsonAsType
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
@@ -162,24 +163,19 @@ internal class TestJson {
     }
 
     @Test
-    fun `user can use GSON`() {
-        val gson = GsonBuilder()
-            .create()
+    fun `user can serialize objects using gson mapper`() = TestUtil.test(Javalin.create {
+        it.jsonMapper(JavalinGson())
+    }) { app, http ->
+        app.get("/") { it.json(SerializableObject()) }
+        assertThat(http.getBody("/")).isEqualTo(Gson().toJson(SerializableObject()))
+    }
 
-        val gsonMapper = object : JsonMapper {
-            override fun <T : Any> fromJsonString(json: String, targetType: Type): T = gson.fromJson(json, targetType)
-            override fun toJsonString(obj: Any, type: Type) = gson.toJson(obj, type)
-        }
-
-        TestUtil.test(Javalin.create { it.jsonMapper(gsonMapper) }) { app, http ->
-            app.get("/") { it.json(SerializableObject()) }
-            assertThat(http.getBody("/")).isEqualTo(gson.toJson(SerializableObject()))
-            app.post("/") { ctx ->
-                ctx.bodyAsClass<SerializableObject>()
-                ctx.result("success")
-            }
-            assertThat(http.post("/").body(gson.toJson(SerializableObject())).asString().body).isEqualTo("success")
-        }
+    @Test
+    fun `user can deserialize objects using gson mapper`() = TestUtil.test(Javalin.create {
+        it.jsonMapper(JavalinGson())
+    }) { app, http ->
+        app.post("/") { it.result(it.bodyAsClass<SerializableObject>().value1) }
+        assertThat(http.post("/").body(Gson().toJson(SerializableObject())).asString().body).isEqualTo(SerializableObject().value1)
     }
 
     private object TestMoshi {
