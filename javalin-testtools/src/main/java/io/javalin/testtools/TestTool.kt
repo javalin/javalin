@@ -7,10 +7,16 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.util.*
 
+object DefaultTestConfig {
+    var clearCookies: Boolean = true
+    var captureLogs: Boolean = true
+    var okHttpClient: OkHttpClient = OkHttpClient()
+}
+
 data class TestConfig @JvmOverloads constructor(
-    val clearCookies: Boolean = true,
-    val captureLogs: Boolean = true,
-    val okHttpClient: OkHttpClient = OkHttpClient()
+    val clearCookies: Boolean = DefaultTestConfig.clearCookies,
+    val captureLogs: Boolean = DefaultTestConfig.captureLogs,
+    val okHttpClient: OkHttpClient = DefaultTestConfig.okHttpClient
 )
 
 class TestTool(private val testConfig: TestConfig = TestConfig()) {
