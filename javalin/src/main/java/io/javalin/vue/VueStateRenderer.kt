@@ -3,7 +3,7 @@ package io.javalin.vue
 import io.javalin.http.Context
 import io.javalin.json.jsonMapper
 import io.javalin.json.toJsonString
-import java.net.URLEncoder
+import org.eclipse.jetty.util.URIUtil
 
 internal object VueStateRenderer {
     fun getState(ctx: Context, state: Any?): String {
@@ -25,8 +25,7 @@ internal object VueStateRenderer {
         """.trimIndent()
     }
 
-    // Unfortunately, Java's URLEncoder does not encode the space character in the same way as Javascript.
-    // Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".
-    // All other encodings are implemented correctly, therefore we can simply replace the character in the encoded String.
-    private fun String.urlEncodeForJavascript() = URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+", "%20")
+    // Unfortunately, Java's URLEncoder#encode is slightly different from JavaScript's encodeURIComponent.
+    // Luckily, Jetty has a util which works exactly the same.
+    private fun String.urlEncodeForJavascript() = URIUtil.encodePath(this)
 }
