@@ -8,9 +8,9 @@ import java.io.PrintStream
 import java.util.*
 
 object DefaultTestConfig {
-    var clearCookies: Boolean = true
-    var captureLogs: Boolean = true
-    var okHttpClient: OkHttpClient = OkHttpClient()
+    @JvmStatic var clearCookies: Boolean = true
+    @JvmStatic var captureLogs: Boolean = true
+    @JvmStatic var okHttpClient: OkHttpClient = OkHttpClient()
 }
 
 data class TestConfig @JvmOverloads constructor(
