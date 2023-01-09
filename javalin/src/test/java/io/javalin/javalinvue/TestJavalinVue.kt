@@ -12,8 +12,8 @@ import io.javalin.http.staticfiles.Location
 import io.javalin.vue.VueComponent
 import io.javalin.vue.VueRenderer
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.util.URIUtil
 import org.junit.jupiter.api.Test
-import java.net.URLEncoder
 import java.nio.file.Paths
 
 class TestJavalinVue {
@@ -25,7 +25,7 @@ class TestJavalinVue {
     private val state = State(User("tipsy", "tipsy@tipsy.tipsy"), Role("Maintainer"))
 
     private fun String.uriEncodeForJavascript() =
-        URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+", "%20")
+        URIUtil.encodePath(this)
 
     @Test
     fun `vue component with state`() = VueTestUtil.test({
@@ -168,7 +168,7 @@ class TestJavalinVue {
 
     @Test
     fun `state is escaped`() = VueTestUtil.test { app, http ->
-        val encodedXSS = "%3Cscript%3Ealert%281%29%3Cscript%3E"
+        val encodedXSS = "%3Cscript%3Ealert(1)%3Cscript%3E"
         app.get("/escaped", VueComponent("test-component", mapOf("xss" to "<script>alert(1)<script>")))
         assertThat(http.getBody("/escaped")).doesNotContain("<script>alert(1)<script>")
         assertThat(http.getBody("/escaped")).contains(encodedXSS)
