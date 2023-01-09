@@ -25,7 +25,7 @@ internal object VueStateRenderer {
         """.trimIndent()
     }
 
-    // Unfortunately, Java's URLEncoder does not encode the space character in the same way as Javascript.
-    // Javascript expects a space character to be encoded as "%20", whereas Java encodes it as "+".
+    // Unfortunately, Java's URLEncoder#encode is slightly different from JavaScript's encodeURIComponent.
+    // Luckily, Jetty has a util which works exactly the same.
     private fun String.urlEncodeForJavascript() = URIUtil.encodePath(this)
 }
