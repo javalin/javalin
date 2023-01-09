@@ -172,4 +172,19 @@ class KotlinTest {
         assertThat(app.attribute("testlogs") as String).contains("Error in handler code")
     }
 
+    private fun throwingTest(app: Javalin) {
+        JavalinTest.test(app) { _, _ ->
+            assertThat(false).isTrue()
+        }
+    }
+
+    @Test
+    fun `errors should contain valid stacktrace of origin exception`() {
+        val app = Javalin.create()
+        val exception = assertThrows<AssertionError> {
+            throwingTest(app)
+        }
+        assertThat(exception.stackTrace.any { it.toString().contains("io.javalin.testtools.KotlinTest.throwingTest") }).isTrue
+    }
+
 }

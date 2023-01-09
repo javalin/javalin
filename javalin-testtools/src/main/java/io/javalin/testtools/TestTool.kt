@@ -15,7 +15,7 @@ data class TestConfig @JvmOverloads constructor(
 
 class TestTool(private val testConfig: TestConfig = TestConfig()) {
 
-    class RunResult(val logs: String?, val exception: Exception?)
+    class RunResult(val logs: String?, val exception: Throwable?)
 
     @JvmOverloads
     fun test(app: Javalin = Javalin.create(), config: TestConfig = this.testConfig, testCase: TestCase) {
@@ -32,7 +32,7 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
         }
         app.attribute("testlogs", result.logs)
         if (result.exception != null) {
-            JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs);
+            JavalinLogger.error("JavalinTest#test failed - full log output below:\n" + result.logs)
             throw result.exception
         }
     }
@@ -40,7 +40,7 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
     fun captureStdOut(runnable: Runnable): String? = runAndCaptureLogs(this.testConfig, runnable).logs
 
     private fun runAndCaptureLogs(testConfig: TestConfig = this.testConfig, testCode: Runnable): RunResult {
-        var exception: Exception? = null
+        var exception: Throwable? = null
         val out = ByteArrayOutputStream()
         val printStream = PrintStream(out)
         val oldOut = System.out
@@ -54,7 +54,7 @@ class TestTool(private val testConfig: TestConfig = TestConfig()) {
         } catch (t: Throwable) {
             exception = when (t) {
                 is Exception -> t
-                is AssertionError -> Exception("Assertion error: " + t.message)
+                is AssertionError -> t
                 else -> Exception("Unexpected Throwable in test. Message: '${t.message}'", t)
             }
         } finally {
