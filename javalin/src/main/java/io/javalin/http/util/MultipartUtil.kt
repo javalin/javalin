@@ -47,8 +47,8 @@ object MultipartUtil {
     }
 
     private fun getPartValue(req: HttpServletRequest, partName: String): List<String> {
-        return req.parts.filter { isField(it) && it.name == partName }.map { filePart ->
-            filePart.inputStream.use { it.readBytes().toString(Charset.forName("UTF-8")) }
+        return req.parts.filter { isField(it) && it.name == partName }.map { part ->
+            part.inputStream.use { it.readBytes().toString(Charset.forName("UTF-8")) }
         }.toList()
     }
 
