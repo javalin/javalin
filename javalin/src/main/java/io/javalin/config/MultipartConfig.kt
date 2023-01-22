@@ -8,20 +8,20 @@ import jakarta.servlet.MultipartConfigElement
  *
  * @property cacheDirectory : the directory where files which exceed the maximum in memory size should be cached
  * @property maxFileSize : the maximum size allowed (in bytes) for an individual uploaded file
- * @property maxInMemoryFileSize : the maximum size allowed (in bytes) before uploads are cached to disk
  * @property maxTotalRequestSize : the maximum size allowed (in bytes) for the entire multipart request
+ * @property maxInMemoryFileSize : the maximum size allowed (in bytes) before uploads are cached to disk
  */
 class MultipartConfig {
     private var cacheDirectory = System.getProperty("java.io.tmpdir")
     private var maxFileSize: Long = -1
-    private var maxInMemoryFileSize: Int = -1
     private var maxTotalRequestSize: Long = -1
+    private var maxInMemoryFileSize: Int = 1
 
     //when the configuration is initialized we override the preupload function in the multipart util to read the
     //configuration from these settings rather than the current hard-coded method
-    init{
+    init {
         MultipartUtil.preUploadFunction = { req ->
-            if(req.getAttribute(MultipartUtil.MULTIPART_CONFIG_ATTRIBUTE) == null){
+            if (req.getAttribute(MultipartUtil.MULTIPART_CONFIG_ATTRIBUTE) == null) {
                 req.setAttribute(MultipartUtil.MULTIPART_CONFIG_ATTRIBUTE, multipartConfigElement())
             }
         }
@@ -32,7 +32,7 @@ class MultipartConfig {
      *
      * @param path : the path of the cache directory used to write file uploads > maxInMemoryFileSize
      */
-    fun cacheDirectory(path: String){
+    fun cacheDirectory(path: String) {
         this.cacheDirectory = path
     }
 
@@ -42,7 +42,7 @@ class MultipartConfig {
      * @param size : the maximum size of the file
      * @param sizeUnit : the units that this size is measured in
      */
-    fun maxFileSize(size: Long, sizeUnit: SizeUnit){
+    fun maxFileSize(size: Long, sizeUnit: SizeUnit) {
         this.maxFileSize = size * sizeUnit.multiplier
     }
 
@@ -52,7 +52,7 @@ class MultipartConfig {
      * @param size : the maximum size of the file
      * @param sizeUnit : the units that this size is measured in
      */
-    fun maxInMemoryFileSize(size: Int, sizeUnit: SizeUnit){
+    fun maxInMemoryFileSize(size: Int, sizeUnit: SizeUnit) {
         this.maxInMemoryFileSize = size * sizeUnit.multiplier
     }
 
@@ -62,22 +62,22 @@ class MultipartConfig {
      * @param size : the maximum size of the file
      * @param sizeUnit : the units that this size is measured in
      */
-    fun maxTotalRequestSize(size: Long, sizeUnit: SizeUnit){
+    fun maxTotalRequestSize(size: Long, sizeUnit: SizeUnit) {
         this.maxTotalRequestSize = size * sizeUnit.multiplier
     }
 
     /**
      * builds a multipart configuration element from the current file upload settings
      */
-    private fun multipartConfigElement(): MultipartConfigElement{
-        return MultipartConfigElement(cacheDirectory,maxFileSize,maxTotalRequestSize,maxInMemoryFileSize)
+    private fun multipartConfigElement(): MultipartConfigElement {
+        return MultipartConfigElement(cacheDirectory, maxFileSize, maxTotalRequestSize, maxInMemoryFileSize)
     }
 }
 
 /**
  * This class represents the potential file size descriptors to avoid the use of hard-coded multipliers
  */
-enum class SizeUnit(val multiplier: Int){
+enum class SizeUnit(val multiplier: Int) {
     BYTES(1),
     KB(1024),
     MB(1024 * 1024),

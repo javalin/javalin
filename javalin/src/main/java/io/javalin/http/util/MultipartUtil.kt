@@ -14,14 +14,11 @@ import java.nio.charset.Charset
 
 object MultipartUtil {
     const val MULTIPART_CONFIG_ATTRIBUTE = "org.eclipse.jetty.multipartConfig"
+    private val defaultConfig = MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1)
 
     var preUploadFunction: (HttpServletRequest) -> Unit = { req ->
-        val existingConfig = req.getAttribute(MULTIPART_CONFIG_ATTRIBUTE)
-        if (existingConfig == null) {
-            req.setAttribute(
-                MULTIPART_CONFIG_ATTRIBUTE,
-                MultipartConfigElement(System.getProperty("java.io.tmpdir"), -1, -1, 1)
-            )
+        if (req.getAttribute(MULTIPART_CONFIG_ATTRIBUTE) == null) {
+            req.setAttribute(MULTIPART_CONFIG_ATTRIBUTE, defaultConfig)
         }
     }
 
@@ -41,7 +38,7 @@ object MultipartUtil {
             .parts
             .filter(this::isFile)
             .groupBy { it.name }
-            .mapValues { entry ->  entry.value.map { UploadedFile(it) } }
+            .mapValues { entry -> entry.value.map { UploadedFile(it) } }
     }
 
     fun getFieldMap(req: HttpServletRequest): Map<String, List<String>> {
