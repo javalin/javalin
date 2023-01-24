@@ -29,7 +29,7 @@ object JavalinValidation {
     )
 
     fun <T> convertValue(clazz: Class<T>, value: String?): T {
-        val converter = converters[clazz] ?: throw MissingConverterException(clazz.simpleName)
+        val converter = converters[clazz] ?: throw MissingConverterException(clazz.name)
         return (if (value != null) converter.invoke(value) else null) as T
     }
 

@@ -42,8 +42,8 @@ open class Validator<T>(fieldName: String, typedValue: T? = null, stringSource: 
         fun <T> create(clazz: Class<T>, value: String?, fieldName: String) = if (JavalinValidation.hasConverter(clazz)) {
             Validator(value, clazz, fieldName)
         } else {
-            JavalinLogger.info("Can't convert to ${clazz.simpleName}. Register a converter using JavalinValidation#register.")
-            throw InternalServerErrorResponse()
+            JavalinLogger.info("Can't convert to ${clazz.name}. Register a converter using JavalinValidation#register.")
+            throw MissingConverterException(clazz.name)
         }
     }
 }

@@ -406,6 +406,24 @@ class TestWebSocket {
     }
 
     @Test
+    fun `throw in wsAfter is covered by wsException`() = TestUtil.test { app, _ ->
+        app.wsAfter { it.onConnect { throw UnauthorizedResponse() } }
+        app.ws("/ws") { it.onConnect { app.logger().log.add("This should be added") } }
+        app.wsException(Exception::class.java) { e, _ -> app.logger().log.add(e.message!!) }
+        TestClient(app, "/ws").connectAndDisconnect()
+        assertThat(app.logger().log).contains("Unauthorized")
+        assertThat(app.logger().log).contains("This should be added")
+    }
+
+    @Test
+    fun `wsAfter works for onConnect`() = TestUtil.test { app, _ ->
+        app.wsAfter { it.onConnect { app.logger().log.add("After!") } }
+        app.ws("/ws") { it.onConnect { app.logger().log.add("Endpoint!") } }
+        TestClient(app, "/ws").connectAndDisconnect()
+        assertThat(app.logger().log).containsExactly("Endpoint!", "After!")
+    }
+
+    @Test
     fun `wsBefore with path works`() = TestUtil.test { app, _ ->
         app.wsBefore("/ws/*") { it.onConnect { app.logger().log.add("Before!") } }
         app.ws("/ws/test") { it.onConnect { app.logger().log.add("Endpoint!") } }

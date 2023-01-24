@@ -64,16 +64,6 @@ internal fun createNormal(string: String, enableRegex: Boolean = false) = if (en
 internal fun createSlashIgnoringParam(string: String) = PathSegment.Parameter.SlashIgnoringParameter(string)
 internal fun createSlashAcceptingParam(string: String) = PathSegment.Parameter.SlashAcceptingParameter(string)
 
-fun List<PathSegment>.flattenMultipleSegments(): List<PathSegment> {
-    return this.map {
-        if (it is PathSegment.MultipleSegments) {
-            it.innerSegments
-        } else {
-            listOf(it)
-        }
-    }.flatten()
-}
-
 internal fun PathSegment.pathParamNames(): List<String> {
     return when (this) {
         is PathSegment.Normal, is PathSegment.Wildcard -> emptyList()

@@ -28,11 +28,13 @@ import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.fasterJacksonMapper
 import io.javalin.testing.httpCode
+import io.javalin.validation.MissingConverterException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.text.MessageFormat
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 
 class TestValidation {
 
@@ -166,7 +168,7 @@ class TestValidation {
     }
 
     @Test
-    fun `validatedBody works`() = TestUtil.test { app, http ->
+    fun `bodyValidator works`() = TestUtil.test { app, http ->
         app.post("/json") { ctx ->
             val obj = ctx.bodyValidator<SerializableObject>()
                 .check({ it.value1 == "Bananas" }, "value1 must be 'Bananas'")
@@ -186,6 +188,19 @@ class TestValidation {
         }
 
         assertThat(http.post("/json").body(validJson).asString().body).isEqualTo("Bananas")
+    }
+
+    @Test
+    fun `can use bodyValidator check with ValidationError`() = TestUtil.test { app, http ->
+        app.post("/json") { ctx ->
+            val obj = ctx.bodyValidator<SerializableObject>()
+                .check({ it.value1 == "Bananas" }, ValidationError("value1 must be 'Bananas'"))
+                .get()
+        }
+        val invalidJson = fasterJacksonMapper.toJsonString(SerializableObject())
+        """{"REQUEST_BODY":[{"message":"value1 must be 'Bananas'","args":{},"value":{"value1":"FirstValue","value2":"SecondValue"}}]}""".let { expected ->
+            assertThat(http.post("/json").body(invalidJson).asString().body).isEqualTo(expected)
+        }
     }
 
     @Test
@@ -439,5 +454,30 @@ class TestValidation {
         val validator = Validator<KeyValuePair>("kvp").allowNullable()
         validator.check({ it!!.key == "key" }, "unexpected key")
         validator.check({ it!!.value == "value" }, "unexpected value")
+    }
+
+    @Test
+    fun `can use JavalinValidation#collectErrors to collect errors from multiple Validators`() = TestUtil.test { app, http ->
+        app.get("/collect-errors") { ctx ->
+            val errors = JavalinValidation.collectErrors(
+                Validator("first_name", ctx.queryParam("first_name"))
+                    .check({ it.length > 2 }, "too short")
+                    .check({ it.length < 10 }, "too long"),
+                Validator("last_name", ctx.queryParam("last_name"))
+                    .check({ it.length > 2 }, "too short")
+                    .check({ it.length < 10 }, "too long")
+            )
+            ctx.json(errors)
+        }
+        assertThat(http.get("/collect-errors?first_name=1&last_name=2").body).isEqualTo("""{"first_name":[{"message":"too short","args":{},"value":"1"}],"last_name":[{"message":"too short","args":{},"value":"2"}]}""")
+    }
+
+    @Test
+    fun `throws MissingConverterException if converter is missing`() = TestUtil.test { app, http ->
+        app.get("/converter") { it.queryParamAsClass<Date>("date") }
+        app.exception(MissingConverterException::class.java) { e, ctx ->
+            ctx.result(e.javaClass.name + ":" + e.className)
+        }
+        assertThat(http.get("/converter?date=20").body).contains("io.javalin.validation.MissingConverterException:java.util.Date")
     }
 }
