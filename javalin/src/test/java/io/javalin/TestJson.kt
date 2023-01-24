@@ -63,6 +63,15 @@ internal class TestJson {
     }
 
     @Test
+    fun `gson mapper doesn't deadlock when streaming large objects`() = TestUtil.test(
+        Javalin.create { it.jsonMapper(JavalinGson()) }
+    ) { app, http ->
+        val big = mapOf("big" to "1".repeat(100_000))
+        app.get("/") { it.jsonStream(big) }
+        assertThat(http.getBody("/")).isEqualTo(Gson().toJson(big))
+    }
+
+    @Test
     fun `default mapper throws when mapping unmappable object to json`() = TestUtil.test { app, http ->
         app.get("/streaming") { it.jsonStream(NonSerializableObject()) }
         http.get("/streaming").let {
