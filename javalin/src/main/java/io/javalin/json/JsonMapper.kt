@@ -9,6 +9,7 @@ package io.javalin.json
 import io.javalin.Javalin
 import io.javalin.http.Context
 import java.io.InputStream
+import java.io.OutputStream
 import java.lang.reflect.Type
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
@@ -27,6 +28,13 @@ interface JsonMapper {
      * an InputStream from an OutputStream.
      */
     fun toJsonStream(obj: Any, type: Type): InputStream = throw NotImplementedError("JsonMapper#toJsonStream not implemented")
+
+    /**
+     * Javalin will call this method first before calling [toJsonStream]. If this true is
+     * returned, then the responsiblity for writing all output is delegated to this function.
+     * If false is returned, then Javalin will continue with its call to [toJsonStream].
+     */
+    fun handleOutputStream(outputStream: OutputStream, obj: Any, type: Type): Boolean = false
 
     /**
      * If [.fromJsonStream] is not implemented, Javalin will use this method

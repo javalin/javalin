@@ -424,10 +424,16 @@ interface Context {
     fun json(obj: Any): Context = json(obj, obj::class.java)
 
     /**
-     * Serializes object to a JSON-stream using the registered [io.javalin.json.JsonMapper] and sets it as the context result.
-     * Also sets content type to application/json.
+     * Serializes object to a JSON-stream using the registered [io.javalin.json.JsonMapper]. The registered
+     * [io.javalin.json.JsonMapper] may write the output stream directly, or it may return a value that will
+     * be set as the context result. Also sets content type to application/json.
      */
-    fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
+    fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).apply {
+        if (!jsonMapper().handleOutputStream(outputStream(), obj, type)) {
+            result(jsonMapper().toJsonStream(obj, type))
+        }
+    }
+
     /** @see [jsonStream] */
     fun jsonStream(obj: Any): Context = jsonStream(obj, obj::class.java)
 
