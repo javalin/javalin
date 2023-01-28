@@ -30,6 +30,9 @@ class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
         // when multiple slashes are accepted we have to allow 0-n slashes when using ignoreTrailingSlashes
         // otherwise we also have to allow multiple slashes when only one slash is specified
         when {
+            // the root path is special: we already add a leading slash during regex construction,
+            // so we do not need to add an extra slash with the suffix
+            rawPath == "/" -> ""
             routingConfig.ignoreTrailingSlashes -> "/*"
             rawPath.endsWith("/") -> "/+"
             else -> ""
@@ -37,6 +40,9 @@ class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
     } else {
         // if ignoreTrailingSlashes config is set we keep /?, else we use the true path trailing slash : present or absent
         when {
+            // the root path is special: we already add a leading slash during regex construction,
+            // so we do not need to add an extra slash with the suffix
+            rawPath == "/" -> ""
             routingConfig.ignoreTrailingSlashes -> "/?"
             rawPath.endsWith("/") -> "/"
             else -> ""
