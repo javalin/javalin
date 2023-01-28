@@ -283,4 +283,26 @@ class TestRouting {
             }
         }
     }
+
+    @Test
+    fun `root path works with ignoreTrailingSlashes set to false`() = TestUtil.test(Javalin.create {
+        it.routing.ignoreTrailingSlashes = false
+    }) { app, http ->
+        app.get("/") { it.result("root") }
+        app.get("/home") { it.result("home") }
+        assertThat(http.getBody("/")).isEqualTo("root")
+        assertThat(http.getBody("/home")).isEqualTo("home")
+    }
+
+    @Test
+    fun `root path works with ApiBuilder and ignoreTrailingSlashes set to false`() = TestUtil.test(Javalin.create {
+        it.routing.ignoreTrailingSlashes = false
+    }) { app, http ->
+        app.routes {
+            get("/") { it.result("root") }
+            get("/home") { it.result("home") }
+        }
+        assertThat(http.getBody("/")).isEqualTo("root")
+        assertThat(http.getBody("/home")).isEqualTo("home")
+    }
 }
