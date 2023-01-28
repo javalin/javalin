@@ -27,6 +27,9 @@ class PathMatcher {
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
         handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
 
+    internal fun getAllEntriesOfType(handlerType: HandlerType) =
+        handlerEntries[handlerType]!!
+
     private fun match(entry: HandlerEntry, requestPath: String): Boolean = when (entry.path) {
         "*" -> true
         requestPath -> true
