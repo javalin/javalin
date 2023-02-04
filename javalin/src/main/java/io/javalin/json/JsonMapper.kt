@@ -11,6 +11,7 @@ import io.javalin.http.Context
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Type
+import java.util.stream.Stream
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -30,11 +31,27 @@ interface JsonMapper {
     fun toJsonStream(obj: Any, type: Type): InputStream = throw NotImplementedError("JsonMapper#toJsonStream not implemented")
 
     /**
-     * Javalin will call this method first before calling [toJsonStream]. If this true is
-     * returned, then the responsiblity for writing all output is delegated to this function.
-     * If false is returned, then Javalin will continue with its call to [toJsonStream].
+     * Javalin uses this method for [io.javalin.http.Context.writeJsonStream]. When implementing this method
+     * you are expected to consume `stream` one element at a time, convert that element to JSON, and write that
+     * element's corresponding JSON to the `outputStream`. The intent is to reduce the amount of memory used
+     * during transformation of a data stream to JSON.
+     *
+     * It is implied that the `stream` of objects will be transformed to an Array type in JSON. In other words,
+     * it is your responsibility to surround the output with `[` and `]`.
+     *
+     * Use `ctx.outputStream()` for the compressed output stream. Or use `ctx.res().outputStream` if you need the
+     * raw uncompressed stream.
+     *
+     * You are responsible for setting the content type header, which is likely to be "application/json" done
+     * by calling `ctx.contentType(ContentType.APPLICATION_JSON)`.
+     *
+     * Once Javalin calls this function, it will not participate any further in the response. It becomes
+     * your responsibility to deliver the remainder of the response to the `outputStream`.
+     *
+     * When your implementation returns from the `writeStream` function, assume that the underlying resources
+     * for the `stream` will be released.
      */
-    fun handleOutputStream(outputStream: OutputStream, obj: Any, type: Type): Boolean = false
+    fun writeStream(ctx: Context, stream: Stream<*>): Unit = throw NotImplementedError("JsonMapper#writeStream not implemented")
 
     /**
      * If [.fromJsonStream] is not implemented, Javalin will use this method

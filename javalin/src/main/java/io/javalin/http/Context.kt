@@ -38,6 +38,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeoutException
 import java.util.function.Supplier
+import java.util.stream.Stream
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -424,18 +425,19 @@ interface Context {
     fun json(obj: Any): Context = json(obj, obj::class.java)
 
     /**
-     * Serializes object to a JSON-stream using the registered [io.javalin.json.JsonMapper]. The registered
-     * [io.javalin.json.JsonMapper] may write the output stream directly, or it may return a value that will
-     * be set as the context result. Also sets content type to application/json.
+     * Serializes object to a JSON-stream using the registered [io.javalin.json.JsonMapper] and sets it as the context result.
+     * Also sets content type to application/json.
      */
-    fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).apply {
-        if (!jsonMapper().handleOutputStream(outputStream(), obj, type)) {
-            result(jsonMapper().toJsonStream(obj, type))
-        }
-    }
-
+    fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
     /** @see [jsonStream] */
     fun jsonStream(obj: Any): Context = jsonStream(obj, obj::class.java)
+
+    /**
+     * Consumes the specified stream with the configured JsonMapper, which transforms the stream's
+     * content to JSON, writing the results directly to the response's `outputStream` as the stream
+     * is consumed. This function call is synchronous, and may be wrapped in `ctx.async { }` if needed.
+     */
+    fun writeJsonStream(stream: Stream<*>) = jsonMapper().writeStream(this, stream)
 
     /** Sets context result to specified html string and sets content-type to text/html. */
     fun html(html: String): Context = contentType(ContentType.TEXT_HTML).result(html)
