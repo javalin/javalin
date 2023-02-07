@@ -25,9 +25,12 @@ import io.javalin.json.toJsonString
 import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.io.OutputStream
 import java.lang.reflect.Type
 import java.time.Instant
+import kotlin.streams.asStream
 
 internal class TestJson {
 
@@ -115,6 +118,11 @@ internal class TestJson {
 
         log = TestUtil.captureStdOut { app.get("/read-stream") { it.bodyStreamAsClass<String>() }.also { http.getBody("/read-stream") } }
         assertThat(log).contains("JsonMapper#fromJsonStream not implemented")
+
+        log = TestUtil.captureStdOut {
+            app.get("/write-json-stream") { it.writeJsonStream(listOf<String>().stream()) }.also { http.getBody("/write-json-stream") }
+        }
+        assertThat(log).contains("JsonMapper#writeToOutputStream not implemented")
     }
 
 
@@ -210,6 +218,36 @@ internal class TestJson {
     }
 
     @Test
+    fun `JavalinJackson can convert a small Stream to JSON`() {
+        data class Foo(val value: Long)
+        val source = listOf(Foo(1_000_000), Foo(1_000_001))
+        val baos = ByteArrayOutputStream()
+        JavalinJackson().writeToOutputStream(source.stream(), baos)
+        assertThat("""[{"value":1000000},{"value":1000001}]""").isEqualTo(baos.toString())
+    }
+
+    @Test
+    fun `JavalinJackson can convert a large Stream to JSON`() {
+        data class Foo(val value: Long)
+
+        val countingOutputStream = object : OutputStream() {
+            var count: Long = 0
+            override fun write(b: Int) {
+                count++
+            }
+        }
+        var value = 1_000_000_000L
+        val take = 50_000_000
+        val seq = generateSequence { Foo(value++) }
+        JavalinJackson().writeToOutputStream(seq.take(take).asStream(), countingOutputStream)
+        // expectedCharacterCount is approximately 1GB
+        val expectedCharacterCount = 2 + // bookend brackets
+            (take - 1) + // commas
+            20 * take // objects {"value":1000000000}
+        assertThat(expectedCharacterCount).isEqualTo(countingOutputStream.count)
+    }
+
+    @Test
     fun `default JavalinJackson includes nulls`() = TestUtil.test { app, http ->
         data class TestClass(val one: String? = null, val two: String? = null)
         app.get("/") { it.json(TestClass()) }
@@ -225,6 +263,28 @@ internal class TestJson {
         data class TestClass(val one: String? = null, val two: String? = null)
         app.get("/") { it.json(TestClass()) }
         assertThat(http.getBody("/")).isEqualTo("{}")
+    }
+
+    @Test
+    fun `can write a JSON stream with JavalinJackson`() =
+        TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson()) }) { app, http ->
+            data class Hello(val greet: String, val value: Long)
+            var value = 0L
+            val take = 100
+            val seq = generateSequence { Hello("hi", value++) }
+            app.get("/json-stream") { it.writeJsonStream(seq.take(take).asStream()) }
+            val expectedResponse = List(take) { """{"greet":"hi","value":${it}}""" }.joinToString(",", "[", "]")
+            assertThat(http.jsonGet("/json-stream").body).isEqualTo(expectedResponse)
+        }
+
+    @Test
+    fun `can write a JSON stream with async`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.async {
+                ctx.writeJsonStream(listOf("a", "b", "c").stream())
+            }
+        }
+        assertThat(http.jsonGet("/").body).isEqualTo("""["a","b","c"]""")
     }
 
 }

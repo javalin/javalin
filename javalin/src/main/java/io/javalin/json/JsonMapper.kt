@@ -9,7 +9,9 @@ package io.javalin.json
 import io.javalin.Javalin
 import io.javalin.http.Context
 import java.io.InputStream
+import java.io.OutputStream
 import java.lang.reflect.Type
+import java.util.stream.Stream
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -27,6 +29,27 @@ interface JsonMapper {
      * an InputStream from an OutputStream.
      */
     fun toJsonStream(obj: Any, type: Type): InputStream = throw NotImplementedError("JsonMapper#toJsonStream not implemented")
+
+    /**
+     * Javalin uses this method for [io.javalin.http.Context.writeJsonStream]. When implementing this method
+     * you are expected to consume `stream` one element at a time, convert that element to JSON, and write that
+     * element's corresponding JSON to the `outputStream`. The intent is to reduce the amount of memory used
+     * during transformation of a data stream to JSON.
+     *
+     * It is implied that the `stream` of objects will be transformed to an Array type in JSON. In other words,
+     * it is your responsibility to surround the output with `[` and `]`.
+     *
+     * The `outputStream` will be a compressed output stream.
+     *
+     * The content type header will already be set to "application/json".
+     *
+     * Once Javalin calls this function, it will not participate any further in the response. It becomes
+     * your responsibility to deliver the remainder of the response to the `outputStream`.
+     *
+     * When your implementation returns from this function, assume that the underlying resources for
+     * the `stream` will be released.
+     */
+    fun writeToOutputStream(stream: Stream<*>, outputStream: OutputStream): Unit = throw NotImplementedError("JsonMapper#writeToOutputStream not implemented")
 
     /**
      * If [.fromJsonStream] is not implemented, Javalin will use this method

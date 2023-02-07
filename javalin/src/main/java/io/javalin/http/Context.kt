@@ -38,6 +38,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeoutException
 import java.util.function.Supplier
+import java.util.stream.Stream
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -430,6 +431,15 @@ interface Context {
     fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
     /** @see [jsonStream] */
     fun jsonStream(obj: Any): Context = jsonStream(obj, obj::class.java)
+
+    /**
+     * Consumes the specified stream with the configured JsonMapper, which transforms the stream's
+     * content to JSON, writing the results directly to the response's `outputStream` as the stream
+     * is consumed. This function call is synchronous, and may be wrapped in `ctx.async { }` if needed.
+     */
+    fun writeJsonStream(stream: Stream<*>) = jsonMapper().writeToOutputStream(
+        stream, this.contentType(ContentType.APPLICATION_JSON).outputStream()
+    )
 
     /** Sets context result to specified html string and sets content-type to text/html. */
     fun html(html: String): Context = contentType(ContentType.TEXT_HTML).result(html)

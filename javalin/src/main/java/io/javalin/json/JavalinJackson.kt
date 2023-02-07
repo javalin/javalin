@@ -14,8 +14,10 @@ import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import java.io.InputStream
+import java.io.OutputStream
 import java.lang.reflect.Type
 import java.util.function.Consumer
+import java.util.stream.Stream
 
 class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMapper {
 
@@ -45,6 +47,12 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
         is String -> obj.byteInputStream() // the default mapper treats strings as if they are already JSON
         else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
             mapper.factory.createGenerator(pipedOutputStream).writeObject(obj)
+        }
+    }
+
+    override fun writeToOutputStream(stream: Stream<*>, outputStream: OutputStream) {
+        mapper.writer().writeValuesAsArray(outputStream).use { sequenceWriter ->
+            stream.forEach { sequenceWriter.write(it) }
         }
     }
 
