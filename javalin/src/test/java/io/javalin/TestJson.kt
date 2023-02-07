@@ -23,16 +23,13 @@ import io.javalin.json.JsonMapper
 import io.javalin.json.fromJsonString
 import io.javalin.json.toJsonString
 import io.javalin.testing.*
-import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Type
 import java.time.Instant
-import java.util.*
 import kotlin.streams.asStream
 
 internal class TestJson {
@@ -271,17 +268,13 @@ internal class TestJson {
     @Test
     fun `can write a JSON stream with JavalinJackson`() =
         TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson()) }) { app, http ->
-            val seq = generateSequence {
-                object {
-                    val greet = "hello";
-                    val planet = 3
-                }
-            }
-            app.get("/json-stream") {
-                it.writeJsonStream(seq.take(2).asStream())
-            }
-            val expectedResponse = """[{"greet":"hello","planet":3},{"greet":"hello","planet":3}]"""
-            assertThat(http.getBody("/json-stream")).isEqualTo(expectedResponse)
+            data class Hello(val greet: String, val value: Long)
+            var value = 0L
+            val take = 100
+            val seq = generateSequence { Hello("hi", value++) }
+            app.get("/json-stream") { it.writeJsonStream(seq.take(take).asStream()) }
+            val expectedResponse = List(take) { """{"greet":"hi","value":${it}}""" }.joinToString(",", "[", "]")
+            assertThat(http.jsonGet("/json-stream").body).isEqualTo(expectedResponse)
         }
 
 }
