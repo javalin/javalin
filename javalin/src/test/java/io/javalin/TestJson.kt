@@ -215,10 +215,9 @@ internal class TestJson {
     @Test
     fun `JavalinJackson can convert a small Stream to JSON`() {
         data class Foo(val value: Long)
-        var value = 1_000_000L
-        val seq = generateSequence { if (value < 1_000_002) Foo(value++) else null }
+        val source = listOf(Foo(1_000_000), Foo(1_000_001))
         val baos = ByteArrayOutputStream()
-        JavalinJackson().writeStream(baos, seq.asStream())
+        JavalinJackson().writeStream(baos, source.stream())
         assertThat("""[{"value":1000000},{"value":1000001}]""").isEqualTo(baos.toString())
     }
 
