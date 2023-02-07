@@ -25,9 +25,12 @@ import io.javalin.json.toJsonString
 import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.io.OutputStream
 import java.lang.reflect.Type
 import java.time.Instant
+import kotlin.streams.asStream
 
 internal class TestJson {
 
@@ -207,6 +210,38 @@ internal class TestJson {
         val mappedBack = JavalinJackson().fromJsonString<SerializableDataClass>(mapped)
         assertThat("First value").isEqualTo(mappedBack.value1)
         assertThat("Second value").isEqualTo(mappedBack.value2)
+    }
+
+    @Test
+    fun `JavalinJackson can convert a small Stream to JSON`() {
+        data class Foo(val value: Long)
+        var value = 1_000_000L
+        val seq = generateSequence { if (value < 1_000_002) Foo(value++) else null }
+        val baos = ByteArrayOutputStream()
+        JavalinJackson().writeStream(baos, seq.asStream())
+        assertThat("""[{"value":1000000},{"value":1000001}]""").isEqualTo(baos.toString())
+    }
+
+    @Test
+    fun `JavalinJackson can convert a large Stream to JSON`() {
+        data class Foo(val value: Long)
+
+        val countingOutputStream = object : OutputStream() {
+            var count: Long = 0
+            override fun write(b: Int) {
+                count++
+            }
+        }
+        var value = 1_000_000_000L
+        val take = 50_000_000L
+        val maxVal = value + take
+        val seq = generateSequence { if (value < maxVal) Foo(value++) else null }
+        JavalinJackson().writeStream(countingOutputStream, seq.asStream())
+        // expectedCharacterCount is approximately 1GB
+        val expectedCharacterCount = 2 + // bookend brackets
+            (take - 1) + // commas
+            20 * take // objects {"value":1000000000}
+        assertThat(expectedCharacterCount).isEqualTo(countingOutputStream.count)
     }
 
     @Test

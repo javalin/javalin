@@ -39,11 +39,9 @@ interface JsonMapper {
      * It is implied that the `stream` of objects will be transformed to an Array type in JSON. In other words,
      * it is your responsibility to surround the output with `[` and `]`.
      *
-     * Use `ctx.outputStream()` for the compressed output stream. Or use `ctx.res().outputStream` if you need the
-     * raw uncompressed stream.
+     * The `outputStream` will be a compressed output stream.
      *
-     * You are responsible for setting the content type header, which is likely to be "application/json" done
-     * by calling `ctx.contentType(ContentType.APPLICATION_JSON)`.
+     * The content type header will already be set to "application/json".
      *
      * Once Javalin calls this function, it will not participate any further in the response. It becomes
      * your responsibility to deliver the remainder of the response to the `outputStream`.
@@ -51,7 +49,7 @@ interface JsonMapper {
      * When your implementation returns from the `writeStream` function, assume that the underlying resources
      * for the `stream` will be released.
      */
-    fun writeStream(ctx: Context, stream: Stream<*>): Unit = throw NotImplementedError("JsonMapper#writeStream not implemented")
+    fun writeStream(outputStream: OutputStream, stream: Stream<*>): Unit = throw NotImplementedError("JsonMapper#writeStream not implemented")
 
     /**
      * If [.fromJsonStream] is not implemented, Javalin will use this method

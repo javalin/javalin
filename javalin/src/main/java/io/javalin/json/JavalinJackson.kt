@@ -8,8 +8,6 @@ package io.javalin.json
 
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.javalin.http.ContentType
-import io.javalin.http.Context
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
@@ -52,11 +50,8 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
         }
     }
 
-    override fun writeStream(ctx: Context, stream: Stream<*>) {
-        ctx.contentType(ContentType.APPLICATION_JSON)
-        val compressedOutputStream = ctx.outputStream()
-        mapper.writer().writeValues(compressedOutputStream).use { sequenceWriter ->
-            sequenceWriter.init(true) // wrapInArray=true, a Stream<T> of data implies Array in JSON output
+    override fun writeStream(outputStream: OutputStream, stream: Stream<*>) {
+        mapper.writer().writeValuesAsArray(outputStream).use { sequenceWriter ->
             stream.forEach { sequenceWriter.write(it) }
         }
     }
