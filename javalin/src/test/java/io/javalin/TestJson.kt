@@ -23,13 +23,16 @@ import io.javalin.json.JsonMapper
 import io.javalin.json.fromJsonString
 import io.javalin.json.toJsonString
 import io.javalin.testing.*
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Type
 import java.time.Instant
+import java.util.*
 import kotlin.streams.asStream
 
 internal class TestJson {
@@ -118,6 +121,11 @@ internal class TestJson {
 
         log = TestUtil.captureStdOut { app.get("/read-stream") { it.bodyStreamAsClass<String>() }.also { http.getBody("/read-stream") } }
         assertThat(log).contains("JsonMapper#fromJsonStream not implemented")
+
+        log = TestUtil.captureStdOut {
+            app.get("/write-json-stream") { it.writeJsonStream(listOf<String>().stream()) }.also { http.getBody("/write-json-stream") }
+        }
+        assertThat(log).contains("JsonMapper#writeStream not implemented")
     }
 
 
@@ -232,10 +240,9 @@ internal class TestJson {
             }
         }
         var value = 1_000_000_000L
-        val take = 50_000_000L
-        val maxVal = value + take
-        val seq = generateSequence { if (value < maxVal) Foo(value++) else null }
-        JavalinJackson().writeStream(countingOutputStream, seq.asStream())
+        val take = 50_000_000
+        val seq = generateSequence { Foo(value++) }
+        JavalinJackson().writeStream(countingOutputStream, seq.take(take).asStream())
         // expectedCharacterCount is approximately 1GB
         val expectedCharacterCount = 2 + // bookend brackets
             (take - 1) + // commas
@@ -260,5 +267,21 @@ internal class TestJson {
         app.get("/") { it.json(TestClass()) }
         assertThat(http.getBody("/")).isEqualTo("{}")
     }
+
+    @Test
+    fun `can write a JSON stream with JavalinJackson`() =
+        TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson()) }) { app, http ->
+            val seq = generateSequence {
+                object {
+                    val greet = "hello";
+                    val planet = 3
+                }
+            }
+            app.get("/json-stream") {
+                it.writeJsonStream(seq.take(2).asStream())
+            }
+            val expectedResponse = """[{"greet":"hello","planet":3},{"greet":"hello","planet":3}]"""
+            assertThat(http.getBody("/json-stream")).isEqualTo(expectedResponse)
+        }
 
 }
