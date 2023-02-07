@@ -50,7 +50,7 @@ class JavalinJackson(private var objectMapper: ObjectMapper? = null) : JsonMappe
         }
     }
 
-    override fun writeStream(outputStream: OutputStream, stream: Stream<*>) {
+    override fun writeToOutputStream(stream: Stream<*>, outputStream: OutputStream) {
         mapper.writer().writeValuesAsArray(outputStream).use { sequenceWriter ->
             stream.forEach { sequenceWriter.write(it) }
         }

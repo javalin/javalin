@@ -437,8 +437,8 @@ interface Context {
      * content to JSON, writing the results directly to the response's `outputStream` as the stream
      * is consumed. This function call is synchronous, and may be wrapped in `ctx.async { }` if needed.
      */
-    fun writeJsonStream(stream: Stream<*>) = jsonMapper().writeStream(
-        this.contentType(ContentType.APPLICATION_JSON).outputStream(), stream
+    fun writeJsonStream(stream: Stream<*>) = jsonMapper().writeToOutputStream(
+        stream, this.contentType(ContentType.APPLICATION_JSON).outputStream()
     )
 
     /** Sets context result to specified html string and sets content-type to text/html. */

@@ -46,10 +46,10 @@ interface JsonMapper {
      * Once Javalin calls this function, it will not participate any further in the response. It becomes
      * your responsibility to deliver the remainder of the response to the `outputStream`.
      *
-     * When your implementation returns from the `writeStream` function, assume that the underlying resources
-     * for the `stream` will be released.
+     * When your implementation returns from this function, assume that the underlying resources for
+     * the `stream` will be released.
      */
-    fun writeStream(outputStream: OutputStream, stream: Stream<*>): Unit = throw NotImplementedError("JsonMapper#writeStream not implemented")
+    fun writeToOutputStream(stream: Stream<*>, outputStream: OutputStream): Unit = throw NotImplementedError("JsonMapper#writeToOutputStream not implemented")
 
     /**
      * If [.fromJsonStream] is not implemented, Javalin will use this method

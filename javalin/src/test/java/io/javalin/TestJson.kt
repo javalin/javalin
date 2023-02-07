@@ -122,7 +122,7 @@ internal class TestJson {
         log = TestUtil.captureStdOut {
             app.get("/write-json-stream") { it.writeJsonStream(listOf<String>().stream()) }.also { http.getBody("/write-json-stream") }
         }
-        assertThat(log).contains("JsonMapper#writeStream not implemented")
+        assertThat(log).contains("JsonMapper#writeToOutputStream not implemented")
     }
 
 
@@ -222,7 +222,7 @@ internal class TestJson {
         data class Foo(val value: Long)
         val source = listOf(Foo(1_000_000), Foo(1_000_001))
         val baos = ByteArrayOutputStream()
-        JavalinJackson().writeStream(baos, source.stream())
+        JavalinJackson().writeToOutputStream(source.stream(), baos)
         assertThat("""[{"value":1000000},{"value":1000001}]""").isEqualTo(baos.toString())
     }
 
@@ -239,7 +239,7 @@ internal class TestJson {
         var value = 1_000_000_000L
         val take = 50_000_000
         val seq = generateSequence { Foo(value++) }
-        JavalinJackson().writeStream(countingOutputStream, seq.take(take).asStream())
+        JavalinJackson().writeToOutputStream(seq.take(take).asStream(), countingOutputStream)
         // expectedCharacterCount is approximately 1GB
         val expectedCharacterCount = 2 + // bookend brackets
             (take - 1) + // commas
