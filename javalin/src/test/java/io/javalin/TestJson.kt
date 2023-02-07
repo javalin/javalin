@@ -277,4 +277,14 @@ internal class TestJson {
             assertThat(http.jsonGet("/json-stream").body).isEqualTo(expectedResponse)
         }
 
+    @Test
+    fun `can write a JSON stream with async`() = TestUtil.test { app, http ->
+        app.get("/") { ctx ->
+            ctx.async {
+                ctx.writeJsonStream(listOf("a", "b", "c").stream())
+            }
+        }
+        assertThat(http.jsonGet("/").body).isEqualTo("""["a","b","c"]""")
+    }
+
 }
