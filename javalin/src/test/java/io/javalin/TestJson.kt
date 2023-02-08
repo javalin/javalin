@@ -217,17 +217,25 @@ internal class TestJson {
         assertThat("Second value").isEqualTo(mappedBack.value2)
     }
 
-    @Test
-    fun `JavalinJackson can convert a small Stream to JSON`() {
+    fun convertSmallStreamToJson(jsonMapper: JsonMapper) {
         data class Foo(val value: Long)
         val source = listOf(Foo(1_000_000), Foo(1_000_001))
         val baos = ByteArrayOutputStream()
-        JavalinJackson().writeToOutputStream(source.stream(), baos)
+        jsonMapper.writeToOutputStream(source.stream(), baos)
         assertThat("""[{"value":1000000},{"value":1000001}]""").isEqualTo(baos.toString())
     }
 
     @Test
-    fun `JavalinJackson can convert a large Stream to JSON`() {
+    fun `JavalinJackson can convert a small Stream to JSON`() {
+        convertSmallStreamToJson(JavalinJackson())
+    }
+
+    @Test
+    fun `JavalinGson can convert a small Stream to JSON`() {
+        convertSmallStreamToJson(JavalinGson())
+    }
+
+    fun convertLargeStreamToJson(jsonMapper: JsonMapper) {
         data class Foo(val value: Long)
 
         val countingOutputStream = object : OutputStream() {
@@ -245,6 +253,16 @@ internal class TestJson {
             (take - 1) + // commas
             20 * take // objects {"value":1000000000}
         assertThat(expectedCharacterCount).isEqualTo(countingOutputStream.count)
+    }
+
+    @Test
+    fun `JavalinJackson can convert a large Stream to JSON`() {
+        convertLargeStreamToJson(JavalinJackson())
+    }
+
+    @Test
+    fun `JavalinGson can convert a large Stream to JSON`() {
+        convertLargeStreamToJson(JavalinGson())
     }
 
     @Test
