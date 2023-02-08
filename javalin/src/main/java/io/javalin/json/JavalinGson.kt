@@ -6,10 +6,9 @@ import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
+import java.io.*
 import java.lang.reflect.Type
+import java.util.stream.Stream
 
 open class JavalinGson(private val gson: Gson = Gson()) : JsonMapper {
 
@@ -34,6 +33,18 @@ open class JavalinGson(private val gson: Gson = Gson()) : JsonMapper {
     override fun toJsonStream(obj: Any, type: Type): InputStream = when (obj) {
         is String -> obj.byteInputStream()
         else -> PipedStreamUtil.getInputStream { gson.toJson(obj, type, OutputStreamWriter(it)) }
+    }
+
+    override fun writeToOutputStream(stream: Stream<*>, outputStream: OutputStream) {
+        BufferedWriter(OutputStreamWriter(outputStream)).use { bufferedWriter ->
+            var hasComma = false
+            bufferedWriter.write("[")
+            stream.forEach {
+                if (hasComma) bufferedWriter.write(",") else hasComma = true
+                gson.toJson(it, bufferedWriter)
+            }
+            bufferedWriter.write("]")
+        }
     }
 
     override fun <T : Any> fromJsonString(json: String, targetType: Type): T =
