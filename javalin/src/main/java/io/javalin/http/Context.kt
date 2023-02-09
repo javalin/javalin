@@ -138,7 +138,7 @@ interface Context {
     fun <T> bodyStreamAsClass(type: Type): T = jsonMapper().fromJsonStream(req().inputStream, type)
 
     /** Gets the underlying [InputStream] for the request body */
-    fun bodyInputStream(): InputStream = req().inputStream
+    fun bodyAsInputStream(): InputStream = req().inputStream
 
     /** Creates a typed [BodyValidator] for the body() value */
     fun <T> bodyValidator(clazz: Class<T>) = BodyValidator(body(), clazz, this.jsonMapper())
