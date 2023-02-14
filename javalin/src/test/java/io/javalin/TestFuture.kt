@@ -51,7 +51,7 @@ internal class TestFuture {
         }
 
         @Test
-        fun `async context can be used already in future body`() = TestUtil.test { app, http ->
+        fun `async context can be used in future supplier`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
                 ctx.future {
                     completedFuture(ctx.req().asyncContext.timeout).thenApply { ctx.result(it.toString()) }
