@@ -50,6 +50,16 @@ internal class TestFuture {
             assertThat(http.getBody("/")).isEqualTo("Success")
         }
 
+        @Test
+        fun `async context can be used already in future body`() = TestUtil.test { app, http ->
+            app.get("/") { ctx ->
+                ctx.future {
+                    completedFuture(ctx.req().asyncContext.timeout).thenApply { ctx.result(it.toString()) }
+                }
+            }
+            assertThat(http.getBody("/")).isEqualTo(app.cfg.http.asyncTimeout.toString())
+        }
+
     }
 
     @Nested
