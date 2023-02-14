@@ -18,6 +18,8 @@ internal object AsyncUtil {
 
     fun submitAsyncTask(context: Context, executor: ExecutorService?, timeout: Long, onTimeout: Runnable?, task: ThrowingRunnable<Exception>): Unit =
         context.future {
+            context.req().asyncContext.timeout = 0 // override default timeout system
+
             CompletableFuture.runAsync({ task.run() }, executor ?: defaultExecutor)
                 .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
                 .let { if (onTimeout == null) it else it.exceptionally { exception ->
