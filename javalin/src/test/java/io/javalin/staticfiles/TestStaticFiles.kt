@@ -143,8 +143,15 @@ class TestStaticFiles {
     @Test
     fun `serving JS from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
         assertThat(http.get("/script.js").httpCode()).isEqualTo(OK)
-        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
+        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT_MODERN)
         assertThat(http.getBody("/script.js")).contains("JavaScript works")
+    }
+
+    @Test
+    fun `serving mjs from classpath works`() = TestUtil.test(defaultStaticResourceApp) { _, http ->
+        assertThat(http.get("/module.mjs").httpCode()).isEqualTo(OK)
+        assertThat(http.get("/module.mjs").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT_MODERN)
+        assertThat(http.getBody("/module.mjs")).contains("export function test()").contains("mjs works")
     }
 
     @Test
@@ -207,7 +214,7 @@ class TestStaticFiles {
         assertThat(http.get("/html.html").status).isEqualTo(200)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
         assertThat(http.getBody("/html.html")).contains("HTML works")
-        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT)
+        assertThat(http.get("/script.js").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.JAVASCRIPT_MODERN)
         assertThat(http.get("/styles.css").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.CSS)
     }
 
@@ -340,4 +347,16 @@ class TestStaticFiles {
         assertThat(http.getBody("/html.html")).contains("HTML works")
     }
 
+    @Test
+    fun `can add custom mimetype mappings`() = TestUtil.test(Javalin.create { config ->
+        config.staticFiles.add {
+            it.directory = "/public"
+            it.location = Location.CLASSPATH
+            it.mimeTypes.add("application/x-javalin", "javalin")
+        }
+    }) { _, http ->
+        assertThat(http.get("/file.javalin").httpCode()).isEqualTo(OK)
+        assertThat(http.get("/file.javalin").headers.getFirst(Header.CONTENT_TYPE)).contains("application/x-javalin")
+        assertThat(http.getBody("/file.javalin")).contains("TESTFILE.javalin")
+    }
 }
