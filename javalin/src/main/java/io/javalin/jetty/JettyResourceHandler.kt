@@ -7,12 +7,14 @@
 package io.javalin.jetty
 
 import io.javalin.config.PrivateConfig
+import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -76,6 +78,15 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         isDirAllowed = false
         isEtags = true
         server = jettyServer
+        mimeTypes = MimeTypes()
+        // TODO: the next two lines can be removed once Jetty releases a version with their new mimetype mappings.
+        //   Ref: https://github.com/eclipse/jetty.project/issues/9342
+        //   Ref: https://github.com/eclipse/jetty.project/pull/9347
+        mimeTypes.addMimeMapping("js", ContentType.JAVASCRIPT_MODERN)
+        mimeTypes.addMimeMapping("mjs", ContentType.JAVASCRIPT_MODERN)
+        config.mimeTypes.getMapping().forEach { (ext, mimeType) ->
+            mimeTypes.addMimeMapping(ext, mimeType)
+        }
         start()
     }
 

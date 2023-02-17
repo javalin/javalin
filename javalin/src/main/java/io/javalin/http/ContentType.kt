@@ -25,6 +25,7 @@ enum class ContentType(
     TEXT_CSS("text/css", true, "css"),
     TEXT_CSV("text/csv", false, "csv"),
     TEXT_HTML("text/html", true, "html", "htm"),
+    TEXT_JS("text/javascript", true, "js", "mjs"),
     TEXT_MARKDOWN("text/markdown", true, "md"),
     TEXT_PROPERTIES("text/x-java-properties", true, "properties"),
     TEXT_XML("text/xml", true, "xml"),
@@ -73,7 +74,12 @@ enum class ContentType(
     APPLICATION_DOCX("application/vnd.openxmlformats-officedocument.wordprocessingml.document", false, "docx"),
     APPLICATION_EPUB("application/epub+zip", false, "epub"),
     APPLICATION_GZ("application/gzip", false, "gz"),
-    APPLICATION_JS("application/javascript", true, "js", "mjs"),
+    @Deprecated(
+        message = "use TEXT_JS instead.",
+        replaceWith = ReplaceWith("io.javalin.http.ContentType.TEXT_JS"),
+        level = DeprecationLevel.ERROR
+    )
+    APPLICATION_JS("application/javascript", true, "application/javascript"),
     APPLICATION_JSON("application/json", true, "json"),
     APPLICATION_MPKG("application/vnd.apple.installer+xml", false, "mpkg"),
     APPLICATION_JAR("application/java-archive", false, "jar"),
@@ -104,7 +110,14 @@ enum class ContentType(
         const val HTML = "text/html"
         const val XML = "text/xml"
         const val OCTET_STREAM = "application/octet-stream"
+        @Deprecated(
+            message = "represents the older application/javascript mimetype. This will change to represent text/javascript instead. Please use either JAVASCRIPT_LEGACY or JAVASCRIPT_MODERN instead to be explicit",
+            replaceWith = ReplaceWith("io.javalin.http.ContentType.JAVASCRIPT_MODERN"),
+            level = DeprecationLevel.WARNING
+        )
         const val JAVASCRIPT = "application/javascript"
+        const val JAVASCRIPT_LEGACY = "application/javascript"
+        const val JAVASCRIPT_MODERN = "text/javascript"
         const val JSON = "application/json"
         const val FORM_DATA = "multipart/form-data"
 
