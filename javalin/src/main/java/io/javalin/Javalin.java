@@ -54,20 +54,13 @@ public class Javalin implements AutoCloseable {
      */
     public JavalinConfig cfg = new JavalinConfig();
 
-    protected JettyServer jettyServer; // null in standalone-mode
-    protected JavalinJettyServlet javalinJettyServlet; // null in standalone-mode
     protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
+    protected JettyServer jettyServer = new JettyServer(cfg);
+    protected JavalinJettyServlet javalinJettyServlet = new JavalinJettyServlet(cfg, javalinServlet);
 
     protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
-        this.jettyServer = new JettyServer(cfg);
-        this.javalinJettyServlet = new JavalinJettyServlet(cfg, javalinServlet);
-    }
-
-    public Javalin(JettyServer jettyServer, JavalinJettyServlet jettyServlet) {
-        this.jettyServer = jettyServer;
-        this.javalinJettyServlet = jettyServlet;
     }
 
     /**
@@ -95,20 +88,7 @@ public class Javalin implements AutoCloseable {
         return app;
     }
 
-    // Create a standalone (non-jetty dependent) Javalin with the supplied config
-    public static Javalin createStandalone(Consumer<JavalinConfig> config) {
-        Javalin app = new Javalin(null, null);
-        JavalinConfig.applyUserConfig(app, app.cfg, config); // mutates app.config and app (adds http-handlers)
-        return app;
-    }
-
-    // Create a standalone (non-jetty dependent) Javalin
-    public static Javalin createStandalone() {
-        return createStandalone(config -> {
-        });
-    }
-
-    // Get JavalinServlet (for use in standalone mode)
+    // Get JavalinServlet (can be attached to other servlet containers)
     public JavalinServlet javalinServlet() {
         return this.javalinServlet;
     }
