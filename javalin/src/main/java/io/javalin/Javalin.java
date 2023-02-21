@@ -56,7 +56,14 @@ public class Javalin implements AutoCloseable {
 
     protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
     protected JettyServer jettyServer = new JettyServer(cfg);
-    protected JavalinJettyServlet javalinJettyServlet = new JavalinJettyServlet(cfg, javalinServlet);
+    protected JavalinJettyServlet javalinJettyServlet = null;
+    // this can be replaced with a lazy kotlin property, if we convert this file to kotlin...
+    private JavalinJettyServlet javalinJettyServlet() {
+        if (javalinJettyServlet == null) {
+            javalinJettyServlet = new JavalinJettyServlet(cfg, javalinServlet);
+        }
+        return javalinJettyServlet;
+    }
 
     protected EventManager eventManager = new EventManager();
 
@@ -148,7 +155,7 @@ public class Javalin implements AutoCloseable {
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             JavalinLogger.startup("Starting Javalin ...");
-            jettyServer.start(javalinJettyServlet);
+            jettyServer.start(javalinJettyServlet());
             Util.logJavalinVersion();
             JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
@@ -584,7 +591,7 @@ public class Javalin implements AutoCloseable {
      * @see <a href="https://javalin.io/documentation#exception-mapping">Exception mapping in docs</a>
      */
     public <T extends Exception> Javalin wsException(@NotNull Class<T> exceptionClass, @NotNull WsExceptionHandler<? super T> exceptionHandler) {
-        javalinJettyServlet.getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
+        javalinJettyServlet().getWsExceptionMapper().getHandlers().put(exceptionClass, (WsExceptionHandler<Exception>) exceptionHandler);
         return this;
     }
 
@@ -594,7 +601,7 @@ public class Javalin implements AutoCloseable {
      */
     private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
-        javalinJettyServlet.addHandler(handlerType, path, wsConfig, roleSet);
+        javalinJettyServlet().addHandler(handlerType, path, wsConfig, roleSet);
         eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(cfg.routing.contextPath, path), wsConfig, roleSet));
         return this;
     }
