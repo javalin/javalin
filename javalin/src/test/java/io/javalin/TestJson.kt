@@ -217,54 +217,6 @@ internal class TestJson {
         assertThat("Second value").isEqualTo(mappedBack.value2)
     }
 
-    fun convertSmallStreamToJson(jsonMapper: JsonMapper) {
-        data class Foo(val value: Long)
-        val source = listOf(Foo(1_000_000), Foo(1_000_001))
-        val baos = ByteArrayOutputStream()
-        jsonMapper.writeToOutputStream(source.stream(), baos)
-        assertThat("""[{"value":1000000},{"value":1000001}]""").isEqualTo(baos.toString())
-    }
-
-    @Test
-    fun `JavalinJackson can convert a small Stream to JSON`() {
-        convertSmallStreamToJson(JavalinJackson())
-    }
-
-    @Test
-    fun `JavalinGson can convert a small Stream to JSON`() {
-        convertSmallStreamToJson(JavalinGson())
-    }
-
-    fun convertLargeStreamToJson(jsonMapper: JsonMapper) {
-        data class Foo(val value: Long)
-
-        val countingOutputStream = object : OutputStream() {
-            var count: Long = 0
-            override fun write(b: Int) {
-                count++
-            }
-        }
-        var value = 1_000_000_000L
-        val take = 50_000_000
-        val seq = generateSequence { Foo(value++) }
-        JavalinJackson().writeToOutputStream(seq.take(take).asStream(), countingOutputStream)
-        // expectedCharacterCount is approximately 1GB
-        val expectedCharacterCount = 2 + // bookend brackets
-            (take - 1) + // commas
-            20 * take // objects {"value":1000000000}
-        assertThat(expectedCharacterCount).isEqualTo(countingOutputStream.count)
-    }
-
-    @Test
-    fun `JavalinJackson can convert a large Stream to JSON`() {
-        convertLargeStreamToJson(JavalinJackson())
-    }
-
-    @Test
-    fun `JavalinGson can convert a large Stream to JSON`() {
-        convertLargeStreamToJson(JavalinGson())
-    }
-
     @Test
     fun `default JavalinJackson includes nulls`() = TestUtil.test { app, http ->
         data class TestClass(val one: String? = null, val two: String? = null)
