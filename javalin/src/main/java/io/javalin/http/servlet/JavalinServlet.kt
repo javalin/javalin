@@ -104,7 +104,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(res(), throwable) // handle any unexpected error, e.g. write failure
         } finally {
-            if (outputStreamWrapper.isReady) outputStream().close() // close initialized output wrappers
+            if (outputStreamWrapper.isInitialized()) outputStream().close() // close initialized output wrappers
             if (isAsync()) req().asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections
         }
     }

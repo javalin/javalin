@@ -108,8 +108,8 @@ class JavalinServletContext(
     private val queryParams by lazy { super.queryParamMap() }
     override fun queryParamMap(): Map<String, List<String>> = queryParams
 
-    internal val outputStreamWrapper by lazy { CompressedOutputStream(compressionStrategy, this) }
-    override fun outputStream(): ServletOutputStream = outputStreamWrapper
+    internal val outputStreamWrapper = lazy { CompressedOutputStream(compressionStrategy, this) }
+    override fun outputStream(): ServletOutputStream = outputStreamWrapper.value
 
     override fun redirect(location: String, status: HttpStatus) {
         header(Header.LOCATION, location).status(status).result("Redirected")
