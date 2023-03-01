@@ -9,7 +9,7 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.unixdomain.server.UnixDomainServerConnector
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
-import java.net.UnixDomainSocketAddress
+import java.net.SocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 import kotlin.io.path.Path
@@ -42,8 +42,9 @@ class TestUnixSocketConnector {
 
         TestUtil.test(unixSocketJavalin) { _, _ ->
 
-            val socketAddress = UnixDomainSocketAddress.of(socketFileName)
-            val socketChannel = SocketChannel.open(socketAddress)
+            val of = Class.forName("java.net.UnixDomainSocketAddress").getMethod("of", socketFileName.javaClass)
+            val socketAddress = of.invoke(Any(),socketFileName)
+            val socketChannel = SocketChannel.open(socketAddress as SocketAddress)
 
             val message = "GET $testPath HTTP/1.0\r\nHost:localhost\r\n\r\n"
             val messageBuffer = ByteBuffer.allocate(1024)
