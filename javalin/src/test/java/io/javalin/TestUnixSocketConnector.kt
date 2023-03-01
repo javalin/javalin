@@ -3,25 +3,24 @@ package io.javalin
 import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
-import jnr.unixsocket.UnixSocketAddress
-import jnr.unixsocket.UnixSocketChannel
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.unixsocket.server.UnixSocketConnector
+import org.eclipse.jetty.unixdomain.server.UnixDomainServerConnector
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
-import java.io.BufferedReader
-import java.io.BufferedWriter
-import java.io.File
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
+import java.net.UnixDomainSocketAddress
+import java.nio.ByteBuffer
+import java.nio.channels.SocketChannel
+import kotlin.io.path.Path
+
 
 class TestUnixSocketConnector {
 
     @Test
     fun `using unixsocket`() {
         assumeTrue(TestEnvironment.isNotWindows) // this test can never succeed on windows
+        assumeTrue(Runtime.version().feature()>=16) // the jetty-unixdomain-server module requires java 16
         val socketFileName = "/tmp/javalin.sock"
         val testPath = "/unixsocket"
         val expectedResultString = "hello unixsocket"
@@ -32,8 +31,8 @@ class TestUnixSocketConnector {
                 val serverConnector = ServerConnector(server)
                 serverConnector.port = 0
                 server.addConnector(serverConnector)
-                val unixSocketConnector = UnixSocketConnector(server)
-                unixSocketConnector.unixSocket = socketFileName
+                val unixSocketConnector = UnixDomainServerConnector(server)
+                unixSocketConnector.unixDomainPath = Path(socketFileName)
                 server.addConnector(unixSocketConnector)
                 server
             }
@@ -43,26 +42,28 @@ class TestUnixSocketConnector {
 
         TestUtil.test(unixSocketJavalin) { _, _ ->
 
-            val socketAddress = UnixSocketAddress(File(socketFileName))
-            val socket = UnixSocketChannel.open(socketAddress).socket()
-            val w = BufferedWriter(OutputStreamWriter(socket.outputStream, "UTF8"))
-            val r = BufferedReader(InputStreamReader(socket.inputStream))
-            val response = arrayListOf<String>()
+            val socketAddress = UnixDomainSocketAddress.of(socketFileName)
+            val socketChannel = SocketChannel.open(socketAddress)
 
-            w.write("GET $testPath HTTP/1.0\r\nHost:localhost\r\n\r\n")
-            w.flush()
+            val message = "GET $testPath HTTP/1.0\r\nHost:localhost\r\n\r\n"
+            val messageBuffer = ByteBuffer.allocate(1024)
+            messageBuffer.clear()
+            messageBuffer.put(message.toByteArray(Charsets.UTF_8))
+            messageBuffer.flip()
 
-            while (true) {
-                val line = r.readLine() ?: break
-                response.add(line)
+            while (messageBuffer.hasRemaining()) {
+                socketChannel.write(messageBuffer);
             }
 
-            w.close()
-            r.close()
+            val responseBuffer = ByteBuffer.allocate(1024)
+            socketChannel.read(responseBuffer)
+            responseBuffer.flip()
+            val response = String(responseBuffer.array()).split("\n")
+            socketChannel.close()
 
             val arr = response.first().split(" ")
-            assertThat("${arr.get(1)} ${arr.last()}").isEqualTo("200 OK")
-            assertThat(response.last()).isEqualTo(expectedResultString)
+            assertThat("${arr.get(1)} ${arr.last()}").contains("200 OK")
+            assertThat(response.last()).contains(expectedResultString)
         }
 
     }

@@ -110,13 +110,7 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-unixsocket</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-unixsocket-server</artifactId>
+            <artifactId>jetty-unixdomain-server</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
