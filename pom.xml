@@ -8,12 +8,6 @@
         <module>javalin-micrometer</module>
     </modules>
 
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
-
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
     <version>5.3.3-SNAPSHOT</version>
@@ -46,6 +40,10 @@
     </issueManagement>
 
     <distributionManagement>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
         <snapshotRepository>
             <name>Reposilite Maven Repository</name>
             <id>reposilite-repository</id>
