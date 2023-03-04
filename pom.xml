@@ -195,13 +195,7 @@
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-unixsocket</artifactId>
-                <version>${jetty.version}</version>
-                <type>pom</type>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-unixsocket-server</artifactId>
+                <artifactId>jetty-unixdomain-server</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
 
