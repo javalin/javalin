@@ -10,7 +10,6 @@
     <artifactId>javalin-micrometer</artifactId>
 
     <properties>
-        <dokka.skip>false</dokka.skip>
         <copy-build-resources.skip>false</copy-build-resources.skip>
 
         <micrometer.version>1.10.1</micrometer.version>

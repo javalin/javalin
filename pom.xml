@@ -57,8 +57,6 @@
         <copy-build-resources.skip>true</copy-build-resources.skip>
 
         <dokka.jdkVersion>11</dokka.jdkVersion>
-        <dokka.skip>true</dokka.skip>
-        <javadoc.skip>true</javadoc.skip>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -73,9 +71,7 @@
         <gpg.plugin.version>3.0.1</gpg.plugin.version>
         <jar.plugin.version>3.2.2</jar.plugin.version>
         <surefire.plugin.version>3.0.0-M7</surefire.plugin.version>
-        <antrun.plugin.version>3.1.0</antrun.plugin.version>
         <shade.plugin.version>3.3.0</shade.plugin.version>
-        <javadoc.plugin.version>3.4.0</javadoc.plugin.version>
         <build-helper.plugin.version>3.3.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.1.0</enforcer.plugin.version>
         <clean.plugin.version>3.2.0</clean.plugin.version>
@@ -386,6 +382,19 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <rerunFailingTestsCount>2</rerunFailingTestsCount>
@@ -483,7 +492,6 @@
                     <artifactId>dokka-maven-plugin</artifactId>
                     <version>${dokka.plugin.version}</version>
                     <configuration>
-                        <skip>${dokka.skip}</skip>
                         <jdkVersion>${dokka.jdkVersion}</jdkVersion>
                         <sourceDirectories>
                             <dir>${project.basedir}/src/main/java</dir>
@@ -549,17 +557,6 @@
                     <version>${shade.plugin.version}</version>
                 </plugin>
                 <plugin>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <version>${antrun.plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>${javadoc.plugin.version}</version>
-                    <configuration>
-                        <skip>${javadoc.skip}</skip>
-                    </configuration>
-                </plugin>
-                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${build-helper.plugin.version}</version>
@@ -616,19 +613,6 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <plugin>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>${javadoc.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <id>attach-javadocs-javadoc</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
                 </plugins>
             </build>
         </profile>
@@ -657,19 +641,6 @@
                                 <id>attach-javadocs-dokka</id>
                                 <goals>
                                     <goal>javadocJar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>${javadoc.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <id>attach-javadocs-javadoc</id>
-                                <goals>
-                                    <goal>jar</goal>
                                 </goals>
                             </execution>
                         </executions>
