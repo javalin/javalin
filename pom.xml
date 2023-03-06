@@ -68,6 +68,7 @@
         <!-- PLUGINS -->
         <compiler.plugin.version>3.10.1</compiler.plugin.version>
         <dokka.plugin.version>1.7.0</dokka.plugin.version>
+        <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.0.1</gpg.plugin.version>
         <jar.plugin.version>3.2.2</jar.plugin.version>
         <surefire.plugin.version>3.0.0-M7</surefire.plugin.version>
@@ -555,6 +556,13 @@
                 <plugin>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>${shade.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${javadoc.plugin.version}</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
