@@ -10,7 +10,7 @@
 
     <groupId>io.javalin</groupId>
     <artifactId>javalin-parent</artifactId>
-    <version>5.4.2</version>
+    <version>5.4.3-SNAPSHOT</version>
 
     <name>Javalin (parent)</name>
     <description>Javalin: Simple REST APIs for Java and Kotlin</description>
@@ -27,7 +27,7 @@
         <connection>scm:git:git@github.com:tipsy/javalin.git</connection>
         <developerConnection>scm:git:git@github.com:tipsy/javalin.git</developerConnection>
         <url>https://github.com/tipsy/javalin.git</url>
-        <tag>javalin-parent-5.4.2</tag>
+        <tag>HEAD</tag>
     </scm>
     <developers>
         <developer>
