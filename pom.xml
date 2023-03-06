@@ -605,14 +605,15 @@
 
     <profiles>
         <profile>
-            <id>disable-java8-doclint</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
+            <id>publish-snapshot</id>
             <properties>
-                <doclint>none</doclint>
+                <gpg.skip>true</gpg.skip>
             </properties>
         </profile>
+        <profile>
+            <id>sonatype-oss-release</id>
+            <!-- profile used by mvn release, uses default config -->
+        </profile>
     </profiles>
-
+    
 </project>
