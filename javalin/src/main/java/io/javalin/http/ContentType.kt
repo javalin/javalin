@@ -77,7 +77,7 @@ enum class ContentType(
     @Deprecated(
         message = "use TEXT_JS instead.",
         replaceWith = ReplaceWith("io.javalin.http.ContentType.TEXT_JS"),
-        level = DeprecationLevel.ERROR
+        level = DeprecationLevel.WARNING
     )
     APPLICATION_JS("application/javascript", true, "application/javascript"),
     APPLICATION_JSON("application/json", true, "json"),
