@@ -33,4 +33,4 @@ fun interface AccessManager {
 }
 
 fun accessManagerNotConfiguredException() =
-    IllegalStateException("No access-manager configured. Add an access-manager using 'Javalin.create(c -> c.core.accessManager(...))'.")
+    IllegalStateException("No access-manager configured. Add an access-manager using 'Javalin.create(c -> c.accessManager(...))'.")
