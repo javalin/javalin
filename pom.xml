@@ -24,9 +24,9 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:git@github.com:tipsy/javalin.git</connection>
-        <developerConnection>scm:git:git@github.com:tipsy/javalin.git</developerConnection>
-        <url>https://github.com/tipsy/javalin.git</url>
+        <connection>scm:git:git@github.com:javalin/javalin.git</connection>
+        <developerConnection>scm:git:git@github.com:javalin/javalin.git</developerConnection>
+        <url>https://github.com/javalin/javalin.git</url>
         <tag>HEAD</tag>
     </scm>
     <developers>
@@ -36,7 +36,7 @@
     </developers>
     <issueManagement>
         <system>GitHub Issue Tracker</system>
-        <url>https://github.com/tipsy/javalin/issues</url>
+        <url>https://github.com/javalin/javalin/issues</url>
     </issueManagement>
 
     <distributionManagement>
