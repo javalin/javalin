@@ -24,9 +24,9 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:git@github.com:tipsy/javalin.git</connection>
-        <developerConnection>scm:git:git@github.com:tipsy/javalin.git</developerConnection>
-        <url>https://github.com/tipsy/javalin.git</url>
+        <connection>scm:git:git@github.com:javalin/javalin.git</connection>
+        <developerConnection>scm:git:git@github.com:javalin/javalin.git</developerConnection>
+        <url>https://github.com/javalin/javalin.git</url>
         <tag>HEAD</tag>
     </scm>
     <developers>
@@ -36,7 +36,7 @@
     </developers>
     <issueManagement>
         <system>GitHub Issue Tracker</system>
-        <url>https://github.com/tipsy/javalin/issues</url>
+        <url>https://github.com/javalin/javalin/issues</url>
     </issueManagement>
 
     <distributionManagement>
@@ -232,74 +232,6 @@
                 <version>${okhttp.version}</version>
             </dependency>
             <!-- END Optional dependencies -->
-
-            <!-- BEGIN Test dependencies -->
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-api</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-core</artifactId>
-                <version>${assertj.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.konghq</groupId>
-                <artifactId>unirest-java</artifactId>
-                <version>${unirest.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>${mockito.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.java-websocket</groupId>
-                <artifactId>Java-WebSocket</artifactId>
-                <version>${java.websocket.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup.moshi</groupId>
-                <artifactId>moshi</artifactId>
-                <version>${moshi.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup.moshi</groupId>
-                <artifactId>moshi-kotlin</artifactId>
-                <version>${moshi.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-chrome-driver</artifactId>
-                <version>${selenium.chrome.driver.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.github.bonigarcia</groupId>
-                <artifactId>webdrivermanager</artifactId>
-                <version>${webdrivermanager.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.webjars</groupId>
-                <artifactId>swagger-ui</artifactId>
-                <version>${swagger.ui.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
