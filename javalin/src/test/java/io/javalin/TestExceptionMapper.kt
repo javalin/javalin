@@ -105,8 +105,8 @@ class TestExceptionMapper {
     }
 
     @Test
-    fun `jetty eof exceptions are ignored and logged as debug`() = TestUtil.test { app, http ->
+    fun `jetty eof exceptions are caught and handled as errors`() = TestUtil.test { app, http ->
         app.get("/") { throw EofException() }
-        assertThat(http.get("/").httpCode()).isEqualTo(OK)
+        assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
     }
 }

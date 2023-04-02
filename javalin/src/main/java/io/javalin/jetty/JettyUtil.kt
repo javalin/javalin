@@ -1,7 +1,9 @@
 package io.javalin.jetty
 
+import io.javalin.http.HttpStatus
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinLogger
+import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.StatisticsHandler
@@ -37,6 +39,9 @@ object JettyUtil {
     fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
 
     fun isSomewhatExpectedException(t: Throwable) = isClientAbortException(t) || isJettyTimeoutException(t)
-    fun logExpectedException(t: Throwable) = JavalinLogger.debug("Client aborted or timed out", t)
+    fun logDebugAndSetError(t: Throwable, res: HttpServletResponse) {
+        JavalinLogger.debug("Client aborted or timed out", t)
+        res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+    }
 
 }
