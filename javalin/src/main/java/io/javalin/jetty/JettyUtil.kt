@@ -36,4 +36,7 @@ object JettyUtil {
     // This is rare, but intended (see issues #163 and #1277)
     fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
 
+    fun isExpectedException(t: Throwable) = isClientAbortException(t) || isJettyTimeoutException(t)
+    fun logExpectedException(t: Throwable) = JavalinLogger.debug("Client aborted or timed out", t)
+
 }

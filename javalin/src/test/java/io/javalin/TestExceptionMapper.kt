@@ -18,6 +18,7 @@ import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.io.EofException
 import org.junit.jupiter.api.Test
 import kotlin.reflect.full.allSuperclasses
 
@@ -103,4 +104,9 @@ class TestExceptionMapper {
         assertThat(http.jsonGet("/").body).contains("""MY MESSAGE WITH \nNEWLINES\n""")
     }
 
+    @Test
+    fun `jetty eof exceptions are ignored and logged as debug`() = TestUtil.test { app, http ->
+        app.get("/") { throw EofException() }
+        assertThat(http.get("/").httpCode()).isEqualTo(OK)
+    }
 }
