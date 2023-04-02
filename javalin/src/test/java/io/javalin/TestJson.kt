@@ -6,8 +6,6 @@
 
 package io.javalin
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.google.gson.Gson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.javalin.http.Header
@@ -16,21 +14,15 @@ import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.bodyAsClass
 import io.javalin.http.bodyStreamAsClass
 import io.javalin.http.bodyValidator
-import io.javalin.json.JavalinGson
 import io.javalin.http.jsonAsType
-import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
-import io.javalin.json.fromJsonString
 import io.javalin.json.toJsonString
 import io.javalin.testing.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import java.io.OutputStream
 import java.lang.reflect.Type
 import java.time.Instant
-import kotlin.streams.asStream
 
 internal class TestJson {
 
@@ -170,22 +162,6 @@ internal class TestJson {
         }
     }
 
-    @Test
-    fun `user can serialize objects using gson mapper`() = TestUtil.test(Javalin.create {
-        it.jsonMapper(JavalinGson())
-    }) { app, http ->
-        app.get("/") { it.json(SerializableObject()) }
-        assertThat(http.getBody("/")).isEqualTo(Gson().toJson(SerializableObject()))
-    }
-
-    @Test
-    fun `user can deserialize objects using gson mapper`() = TestUtil.test(Javalin.create {
-        it.jsonMapper(JavalinGson())
-    }) { app, http ->
-        app.post("/") { it.result(it.bodyAsClass<SerializableObject>().value1) }
-        assertThat(http.post("/").body(Gson().toJson(SerializableObject())).asString().body).isEqualTo(SerializableObject().value1)
-    }
-
     private object TestMoshi {
         val list: List<String> = listOf("moshi") // property with some generic type
     }
@@ -206,46 +182,6 @@ internal class TestJson {
         app.get("/moshi") { it.jsonAsType(TestMoshi.list) }
         assertThat(http.getBody("/moshi")).isEqualTo("""["moshi"]""")
     }
-
-    data class SerializableDataClass(val value1: String = "Default1", val value2: String)
-
-    @Test
-    fun `can use JavalinJackson with a custom object-mapper on a kotlin data class`() {
-        val mapped = JavalinJackson().toJsonString(SerializableDataClass("First value", "Second value"))
-        val mappedBack = JavalinJackson().fromJsonString<SerializableDataClass>(mapped)
-        assertThat("First value").isEqualTo(mappedBack.value1)
-        assertThat("Second value").isEqualTo(mappedBack.value2)
-    }
-
-    @Test
-    fun `default JavalinJackson includes nulls`() = TestUtil.test { app, http ->
-        data class TestClass(val one: String? = null, val two: String? = null)
-        app.get("/") { it.json(TestClass()) }
-        assertThat(http.getBody("/")).isEqualTo("""{"one":null,"two":null}""")
-    }
-
-    @Test
-    fun `can update ObjectMapper of JavalinJackson`() = TestUtil.test(Javalin.create {
-        it.jsonMapper(JavalinJackson().updateMapper {
-            it.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        })
-    }) { app, http ->
-        data class TestClass(val one: String? = null, val two: String? = null)
-        app.get("/") { it.json(TestClass()) }
-        assertThat(http.getBody("/")).isEqualTo("{}")
-    }
-
-    @Test
-    fun `can write a JSON stream with JavalinJackson`() =
-        TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson()) }) { app, http ->
-            data class Hello(val greet: String, val value: Long)
-            var value = 0L
-            val take = 100
-            val seq = generateSequence { Hello("hi", value++) }
-            app.get("/json-stream") { it.writeJsonStream(seq.take(take).asStream()) }
-            val expectedResponse = List(take) { """{"greet":"hi","value":${it}}""" }.joinToString(",", "[", "]")
-            assertThat(http.jsonGet("/json-stream").body).isEqualTo(expectedResponse)
-        }
 
     @Test
     fun `can write a JSON stream with async`() = TestUtil.test { app, http ->
