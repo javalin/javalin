@@ -8,6 +8,7 @@ import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import java.io.IOException
+import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeoutException
 
 object JettyUtil {
@@ -38,7 +39,10 @@ object JettyUtil {
     // This is rare, but intended (see issues #163 and #1277)
     fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
 
-    fun isSomewhatExpectedException(t: Throwable) = isClientAbortException(t) || isJettyTimeoutException(t)
+    fun isSomewhatExpectedException(t: Throwable): Boolean {
+        val unwrapped = (t as? CompletionException)?.cause ?: t
+        return isClientAbortException(unwrapped) || isJettyTimeoutException(unwrapped)
+    }
     fun logDebugAndSetError(t: Throwable, res: HttpServletResponse) {
         JavalinLogger.debug("Client aborted or timed out", t)
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
