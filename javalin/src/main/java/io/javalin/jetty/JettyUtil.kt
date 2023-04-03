@@ -1,11 +1,14 @@
 package io.javalin.jetty
 
+import io.javalin.http.HttpStatus
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinLogger
+import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.StatisticsHandler
 import java.io.IOException
+import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeoutException
 
 object JettyUtil {
@@ -35,5 +38,14 @@ object JettyUtil {
     // Jetty may timeout connections to avoid having broken connections that remain open forever
     // This is rare, but intended (see issues #163 and #1277)
     fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
+
+    fun isSomewhatExpectedException(t: Throwable): Boolean {
+        val unwrapped = (t as? CompletionException)?.cause ?: t
+        return isClientAbortException(unwrapped) || isJettyTimeoutException(unwrapped)
+    }
+    fun logDebugAndSetError(t: Throwable, res: HttpServletResponse) {
+        JavalinLogger.debug("Client aborted or timed out", t)
+        res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+    }
 
 }
