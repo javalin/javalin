@@ -43,7 +43,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         val unwrapped = (throwable as? CompletionException)?.cause ?: throwable
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         when (JettyUtil.isSomewhatExpectedException(unwrapped)) {
-            true -> JettyUtil.logDebugAndSetError(unwrapped, res)
+            true -> JettyUtil.logDebugAndSetError(throwable, res)
             false -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
         return null
