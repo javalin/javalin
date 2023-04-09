@@ -7,7 +7,6 @@
 package io.javalin.jetty
 
 import io.javalin.config.PrivateConfig
-import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
 import io.javalin.http.staticfiles.StaticFileConfig
 import io.javalin.util.JavalinException
@@ -65,6 +64,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
     private fun Resource?.isFile() = this != null && this.exists() && !this.isDirectory
     private fun getWelcomeFile(handler: ResourceHandler, target: String) =
         handler.getResource("${target.removeSuffix("/")}/index.html")
+
     private fun Resource?.isDirectoryWithWelcomeFile(handler: ResourceHandler, target: String) =
         this != null && this.isDirectory && getWelcomeFile(handler, target)?.exists() == true
 
@@ -79,11 +79,6 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
         isEtags = true
         server = jettyServer
         mimeTypes = MimeTypes()
-        // TODO: the next two lines can be removed once Jetty releases a version with their new mimetype mappings.
-        //   Ref: https://github.com/eclipse/jetty.project/issues/9342
-        //   Ref: https://github.com/eclipse/jetty.project/pull/9347
-        mimeTypes.addMimeMapping("js", ContentType.JAVASCRIPT_MODERN)
-        mimeTypes.addMimeMapping("mjs", ContentType.JAVASCRIPT_MODERN)
         config.mimeTypes.getMapping().forEach { (ext, mimeType) ->
             mimeTypes.addMimeMapping(ext, mimeType)
         }
