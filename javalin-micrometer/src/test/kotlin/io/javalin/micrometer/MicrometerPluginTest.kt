@@ -247,7 +247,7 @@ class MicrometerPluginTest {
 
         // must manually delegate to Micrometer exception handler for exception tags to be correct
     }.exception(IllegalArgumentException::class.java) { e, ctx ->
-        MicrometerPlugin.EXCEPTION_HANDLER.handle(e, ctx)
+        MicrometerPlugin.exceptionHandler.handle(e, ctx)
     }
 
 }

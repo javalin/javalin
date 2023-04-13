@@ -47,7 +47,7 @@ class MicrometerPlugin private constructor(
     override fun apply(app: Javalin) {
         app.jettyServer()?.server()?.let { server ->
             if (tagExceptionName) {
-                app.exception(Exception::class.java, EXCEPTION_HANDLER)
+                app.exception(Exception::class.java, exceptionHandler)
             }
 
             server.insertHandler(TimedHandler(registry, tags, object : DefaultHttpJakartaServletRequestTagsProvider() {
@@ -87,12 +87,17 @@ class MicrometerPlugin private constructor(
     companion object {
         private const val EXCEPTION_HEADER = "__micrometer_exception_name"
 
-        var EXCEPTION_HANDLER = ExceptionHandler { e: Exception, ctx: Context ->
+        @JvmField
+        var exceptionHandler = ExceptionHandler { e: Exception, ctx: Context ->
             val simpleName = e.javaClass.simpleName
             ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
+        @Deprecated("User exceptionHandler instead", ReplaceWith("exceptionHandler"), DeprecationLevel.ERROR)
+        var EXCEPTION_HANDLER = exceptionHandler
+
+        @JvmStatic
         fun create(userConfig: Consumer<MicrometerConfig>): MicrometerPlugin {
             val finalConfig = MicrometerConfig()
             userConfig.accept(finalConfig)
