@@ -32,5 +32,14 @@ fun interface AccessManager {
 
 }
 
+enum class AccessManagerState {
+    /* Indicates that the access manager was not used for a request */
+    NOT_USED,
+    /* Access manager was invoked for a request */
+    INVOKED,
+    /* Access manager was invoked and requested handler invocation */
+    PASSED
+}
+
 fun accessManagerNotConfiguredException() =
     IllegalStateException("No access-manager configured. Add an access-manager using 'Javalin.create(c -> c.accessManager(...))'.")

@@ -9,8 +9,6 @@ package io.javalin.http.servlet
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.REQUEST_TIMEOUT
-import io.javalin.http.servlet.SubmitOrder.FIRST
-import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.AsyncUtil.addListener
 import io.javalin.http.util.AsyncUtil.isAsync
 import io.javalin.http.util.ETagGenerator
@@ -28,16 +26,8 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
             val ctx = JavalinServletContext(req = request, res = response, cfg = cfg)
-
-            val submitTask: (SubmitOrder, Task) -> Unit = { order, task ->
-                when (order) {
-                    FIRST -> ctx.tasks.offerFirst(task)
-                    LAST -> ctx.tasks.add(task)
-                }
-            }
-            val requestUri = ctx.path().removePrefix(ctx.contextPath())
-            cfg.pvt.servletRequestLifecycle.forEach { it.createTasks(submitTask, this, ctx, requestUri) }
-
+            val taskInitializerCtx = JavalinTaskInitializerContext(servlet = this, ctx = ctx, requestUri = ctx.path().removePrefix(ctx.contextPath()))
+            cfg.pvt.servletRequestLifecycle.forEach { it.createTasks(taskInitializerCtx) }
             ctx.handleSync()
         } catch (throwable: Throwable) {
             exceptionMapper.handleUnexpectedThrowable(response, throwable)

@@ -5,6 +5,8 @@ import io.javalin.http.servlet.JavalinServletContext
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.servlet.Task
 import io.javalin.http.servlet.TaskInitializer
+import io.javalin.security.AccessManagerState.INVOKED
+import io.javalin.security.AccessManagerState.PASSED
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -25,9 +27,9 @@ class TestCustomRequestLifecycle {
     fun `can add custom lifecycle stage`() = TestUtil.test(Javalin.create {
         it.pvt.servletRequestLifecycle = listOf(
             HTTP,
-            TaskInitializer { submitTask, _, ctx, _ ->
-                submitTask(LAST, Task {
-                    ctx.result("Static after!")
+            TaskInitializer {
+                it.submitTask(LAST, Task {
+                    it.ctx.result("Static after!")
                 })
             }
         )
@@ -45,6 +47,26 @@ class TestCustomRequestLifecycle {
         app.get("/") { it.result("Http") }
         app.after { it.result("After") }
         assertThat(http.getBody("/")).isEqualTo("Before")
+    }
+
+    @Test
+    fun `gh-1858 can add lifecycle stage between access manager and http handler`() = TestUtil.test(Javalin.create { config ->
+        config.accessManager { handler, ctx, _ ->
+            handler.handle(ctx) // authenticated
+        }
+        config.pvt.servletRequestLifecycle = config.pvt.servletRequestLifecycle.toMutableList().also {
+            it.add(it.indexOf(HTTP), TaskInitializer { initializerContext ->
+                initializerContext.submitTask(LAST, Task {
+                    if (initializerContext.accessManagerState == PASSED) {
+                        initializerContext.ctx.result("Cached response")
+                        initializerContext.accessManagerState = INVOKED // prevent http layer from being called
+                    }
+                })
+            })
+        }
+    }) { app, http ->
+        app.get("/") { it.result("Hello!") }
+        assertThat(http.getBody("/")).isEqualTo("Cached response")
     }
 
 }

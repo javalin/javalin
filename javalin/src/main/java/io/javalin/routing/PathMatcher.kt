@@ -21,8 +21,14 @@ class PathMatcher {
         handlerEntries[entry.type]!!.add(entry)
     }
 
-    fun findEntries(handlerType: HandlerType, requestUri: String) =
+    fun findEntries(handlerType: HandlerType, requestUri: String): List<HandlerEntry> =
         handlerEntries[handlerType]!!.filter { he -> match(he, requestUri) }
+
+    fun findEntries(requestUri: String): List<HandlerEntry> =
+        handlerEntries.values.asSequence()
+            .flatten()
+            .filter { match(it, requestUri) }
+            .toList()
 
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
         handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
