@@ -4,14 +4,14 @@ import io.javalin.Javalin
 
 class PluginManager {
 
-    private val plugins: MutableMap<Class<out Plugin>, Plugin> = LinkedHashMap()
+    private val plugins: MutableList<Plugin> = mutableListOf()
     private val initializedPlugins: MutableSet<Plugin> = mutableSetOf()
 
     fun register(plugin: Plugin) {
-        if (plugins.containsKey(plugin.javaClass)) {
+        if (plugin !is RepeatablePlugin && plugins.any { it.javaClass == plugin.javaClass }) {
             throw PluginAlreadyRegisteredException(plugin.javaClass)
         }
-        plugins[plugin.javaClass] = plugin
+        plugins.add(plugin)
     }
 
     fun initializePlugins(app: Javalin) {
@@ -22,7 +22,7 @@ class PluginManager {
             event.wsHandlerAdded { anyHandlerAdded = true }
         }
 
-        val pluginsToInitialize = plugins.values.filterNot { initializedPlugins.contains(it) }
+        val pluginsToInitialize = plugins.filterNot { initializedPlugins.contains(it) }
 
         pluginsToInitialize.forEach {
             if (it is PluginLifecycleInit) {
