@@ -14,6 +14,7 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
+import java.lang.Error
 import java.util.function.Consumer
 
 // @formatter:off
@@ -30,9 +31,9 @@ class PrivateConfig {
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
-    @JvmField var javaLangErrorHandler: (HttpServletResponse, Throwable) -> Unit = { res, throwable ->
+    @JvmField var javaLangErrorHandler: (HttpServletResponse, Error) -> Unit = { res, error ->
         res.status = INTERNAL_SERVER_ERROR.code
-        JavalinLogger.error("Fatal error occurred while servicing http-request", throwable)
+        JavalinLogger.error("Fatal error occurred while servicing http-request", error)
     }
 }
 // @formatter:on
