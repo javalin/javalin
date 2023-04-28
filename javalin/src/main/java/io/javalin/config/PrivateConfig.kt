@@ -32,7 +32,7 @@ class PrivateConfig {
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
     @JvmField var javaLangErrorHandler: (HttpServletResponse, Throwable) -> Unit = { res, throwable ->
         res.status = INTERNAL_SERVER_ERROR.code
-        JavalinLogger.error("Exception occurred while servicing http-request", throwable)
+        JavalinLogger.error("Fatal error occurred while servicing http-request", throwable)
     }
 }
 // @formatter:on
