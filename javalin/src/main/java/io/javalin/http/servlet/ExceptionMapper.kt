@@ -16,6 +16,7 @@ import io.javalin.jetty.JettyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import jakarta.servlet.http.HttpServletResponse
+import java.lang.Error
 import java.util.concurrent.CompletionException
 
 class ExceptionMapper(val cfg: JavalinConfig) {
@@ -43,7 +44,10 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         when (JettyUtil.isSomewhatExpectedException(throwable)) {
             true -> JettyUtil.logDebugAndSetError(throwable, res)
-            false -> cfg.pvt.javaLangErrorHandler(res,throwable)
+            false -> when (throwable is Error) {
+                true -> cfg.pvt.javaLangErrorHandler(res,throwable)
+                false -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
+            }
         }
         return null
     }
