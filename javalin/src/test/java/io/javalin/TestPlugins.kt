@@ -4,11 +4,13 @@ import io.javalin.plugin.Plugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
 import io.javalin.plugin.PluginInitException
 import io.javalin.plugin.PluginLifecycleInit
+import io.javalin.plugin.RepeatablePlugin
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 
 class TestPlugins {
 
@@ -76,6 +78,20 @@ class TestPlugins {
             assertThatThrownBy {
                 it.plugins.register(TestPlugin())
             }.isEqualTo(PluginAlreadyRegisteredException(TestPlugin::class.java))
+        }
+    }
+
+    class MultiInstanceTestPlugin : Plugin, RepeatablePlugin {
+        override fun apply(app: Javalin) {}
+    }
+
+    @Test
+    fun `registerPlugin should not throw error for repeatable plugins`() {
+        Javalin.create {
+            assertDoesNotThrow {
+                it.plugins.register(MultiInstanceTestPlugin())
+                it.plugins.register(MultiInstanceTestPlugin())
+            }
         }
     }
 

@@ -10,3 +10,8 @@ import io.javalin.Javalin
 fun interface Plugin {
     fun apply(app: Javalin)
 }
+
+/**
+ * A repeatable plugin is a plugin that can be registered multiple times.
+ */
+interface RepeatablePlugin
