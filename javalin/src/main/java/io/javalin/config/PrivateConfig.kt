@@ -1,7 +1,7 @@
 package io.javalin.config
 
 import io.javalin.compression.CompressionStrategy
-import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
 import io.javalin.http.servlet.DefaultTasks
@@ -31,7 +31,7 @@ class PrivateConfig {
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
     @JvmField var javaLangErrorHandler: (HttpServletResponse, Throwable) -> Unit = { res, throwable ->
-        res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+        res.status = INTERNAL_SERVER_ERROR.code
         JavalinLogger.error("Exception occurred while servicing http-request", throwable)
     }
 }
