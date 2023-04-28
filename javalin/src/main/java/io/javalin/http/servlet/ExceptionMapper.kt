@@ -43,7 +43,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         when (JettyUtil.isSomewhatExpectedException(throwable)) {
             true -> JettyUtil.logDebugAndSetError(throwable, res)
-            false -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
+            false -> cfg.pvt.javaLangErrorHandler(res,throwable)
         }
         return null
     }

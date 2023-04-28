@@ -1,12 +1,15 @@
 package io.javalin.config
 
 import io.javalin.compression.CompressionStrategy
+import io.javalin.http.HttpStatus
 import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
 import io.javalin.http.servlet.DefaultTasks
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.security.AccessManager
+import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
+import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -27,5 +30,9 @@ class PrivateConfig {
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
+    @JvmField var javaLangErrorHandler: (HttpServletResponse, Throwable) -> Unit = { res, throwable ->
+        res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+        JavalinLogger.error("Exception occurred while servicing http-request", throwable)
+    }
 }
 // @formatter:on
