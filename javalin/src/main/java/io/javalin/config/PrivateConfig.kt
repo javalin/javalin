@@ -31,9 +31,11 @@ class PrivateConfig {
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
-    @JvmField var javaLangErrorHandler: (HttpServletResponse, Error) -> Unit = { res, error ->
+    @JvmField var javaLangErrorHandler: ErrorHandler = ErrorHandler { res, error ->
         res.status = INTERNAL_SERVER_ERROR.code
         JavalinLogger.error("Fatal error occurred while servicing http-request", error)
     }
 }
+
+fun interface ErrorHandler { fun handle(res: HttpServletResponse, err: Error) }
 // @formatter:on
