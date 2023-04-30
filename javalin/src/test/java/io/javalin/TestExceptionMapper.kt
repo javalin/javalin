@@ -7,8 +7,6 @@
 
 package io.javalin
 
-import io.javalin.config.ErrorHandler
-import io.javalin.config.JavaLangErrorHandler
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
@@ -115,7 +113,7 @@ class TestExceptionMapper {
 
     @Test
     fun `errors are handled by javaLangErrorHandler`() = TestUtil.test { app, http ->
-        app.cfg.pvt.javaLangErrorHandler = JavaLangErrorHandler { res, throwable ->
+        app.cfg.pvt.javaLangErrorHandler { res, throwable ->
             res.status = 200
             res.writer.write("Error: ${throwable.message}")
         }

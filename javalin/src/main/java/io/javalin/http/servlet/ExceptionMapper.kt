@@ -16,7 +16,6 @@ import io.javalin.jetty.JettyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import jakarta.servlet.http.HttpServletResponse
-import java.lang.Error
 import java.util.concurrent.CompletionException
 
 class ExceptionMapper(val cfg: JavalinConfig) {
@@ -54,4 +53,8 @@ class ExceptionMapper(val cfg: JavalinConfig) {
     private fun noUserHandler(exception: Exception) =
         this.handlers[exception::class.java] == null && this.handlers[HttpResponseException::class.java] == null
 
+}
+
+fun interface JavaLangErrorHandler {
+    fun handle(res: HttpServletResponse, err: Error)
 }
