@@ -41,14 +41,20 @@ class ExceptionMapper(val cfg: JavalinConfig) {
 
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
-        when (JettyUtil.isSomewhatExpectedException(throwable)) {
-            true -> JettyUtil.logDebugAndSetError(throwable, res)
-            false -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
+        when {
+            throwable is Error -> cfg.pvt.javaLangErrorHandler.handle(res,throwable)
+            JettyUtil.isSomewhatExpectedException(throwable) -> JettyUtil.logDebugAndSetError(throwable, res)
+            else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
+
         return null
     }
 
     private fun noUserHandler(exception: Exception) =
         this.handlers[exception::class.java] == null && this.handlers[HttpResponseException::class.java] == null
 
+}
+
+fun interface JavaLangErrorHandler {
+    fun handle(res: HttpServletResponse, err: Error)
 }

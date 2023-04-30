@@ -17,6 +17,7 @@ import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.testing.httpCode
+import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.io.EofException
 import org.junit.jupiter.api.Test
@@ -108,5 +109,16 @@ class TestExceptionMapper {
     fun `jetty eof exceptions are caught and handled as errors`() = TestUtil.test { app, http ->
         app.get("/") { throw EofException() }
         assertThat(http.get("/").httpCode()).isEqualTo(INTERNAL_SERVER_ERROR)
+    }
+
+    @Test
+    fun `errors are handled by javaLangErrorHandler`() = TestUtil.test { app, http ->
+        app.cfg.pvt.javaLangErrorHandler { res, throwable ->
+            res.status = 200
+            res.writer.write("Error: ${throwable.message}")
+        }
+        app.get("/") { throw OutOfMemoryError("sample") }
+        assertThat(http.get("/").httpCode()).isEqualTo(OK)
+        assertThat(http.getBody("/")).isEqualTo("Error: sample")
     }
 }
