@@ -24,12 +24,14 @@ class TestJavalinVueBrowser {
         @BeforeAll
         @JvmStatic
         fun setupClass() {
-            assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
+            //assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--no-sandbox")
-                addArguments("--headless")
+                addArguments("--headless=new")
                 addArguments("--disable-gpu")
+                addArguments("--remote-allow-origins=*")
+                addArguments("--disable-dev-shm-usage")
             })
         }
 
