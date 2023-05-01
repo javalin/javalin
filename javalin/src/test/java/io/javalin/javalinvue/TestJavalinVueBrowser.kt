@@ -10,8 +10,10 @@ import io.javalin.vue.VueComponent
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
@@ -26,6 +28,10 @@ class TestJavalinVueBrowser {
         fun setupClass() {
             //assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
             WebDriverManager.chromedriver().setup()
+        }
+
+        @BeforeEach
+        fun setupTest(){
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--no-sandbox")
                 addArguments("--headless")
@@ -35,8 +41,8 @@ class TestJavalinVueBrowser {
             })
         }
 
-        @AfterAll
-        @JvmStatic
+
+        @AfterEach
         fun teardownClass() {
             if (Companion::driver.isInitialized) {
                 driver.quit()
