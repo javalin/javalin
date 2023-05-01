@@ -24,7 +24,7 @@ class TestJavalinVueBrowser {
         @BeforeAll
         @JvmStatic
         fun setupClass() {
-            assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
+            //assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--no-sandbox")
