@@ -60,7 +60,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <kotlin.version>1.7.10</kotlin.version>
+        <kotlin.version>1.8.21</kotlin.version>
         <kotlin.compiler.jvmTarget>11</kotlin.compiler.jvmTarget>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
@@ -82,14 +82,14 @@
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
 
         <!-- DEPENDENCIES -->
-        <jetty.version>11.0.14</jetty.version>
-        <jackson.version>2.14.2</jackson.version>
-        <jackson.databind.version>2.14.2</jackson.databind.version>
+        <jetty.version>11.0.15</jetty.version>
+        <jackson.version>2.15.0</jackson.version>
+        <jackson.databind.version>2.15.0</jackson.databind.version>
         <jvmbrotli.version>0.2.0</jvmbrotli.version>
-        <logback.version>1.4.5</logback.version>
-        <slf4j.version>2.0.6</slf4j.version>
+        <logback.version>1.4.7</logback.version>
+        <slf4j.version>2.0.7</slf4j.version>
         <gson.version>2.10.1</gson.version>
-        <okhttp.version>4.10.0</okhttp.version>
+        <okhttp.version>4.11.0</okhttp.version>
 
         <!-- TEST DEPENDENCIES -->
         <assertj.version>3.23.1</assertj.version>
