@@ -31,6 +31,7 @@ class TestJavalinVueBrowser {
                 addArguments("--headless")
                 addArguments("--disable-gpu")
                 addArguments("--remote-allow-origins=*")
+                addArguments("--disable-dev-shm-usage")
             })
         }
 
