@@ -30,6 +30,7 @@ class TestJavalinVueBrowser {
                 addArguments("--no-sandbox")
                 addArguments("--headless")
                 addArguments("--disable-gpu")
+                addArguments("--remote-allow-origins=*")
             })
         }
 
