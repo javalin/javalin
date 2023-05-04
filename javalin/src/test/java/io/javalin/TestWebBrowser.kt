@@ -38,8 +38,10 @@ class TestWebBrowser {
             WebDriverManager.chromedriver().setup()
             driver = ChromeDriver(ChromeOptions().apply {
                 addArguments("--no-sandbox")
-                addArguments("--headless")
+                addArguments("--headless=new")
                 addArguments("--disable-gpu")
+                addArguments("--remote-allow-origins=*")
+                addArguments("--disable-dev-shm-usage")
             })
         }
 
