@@ -6,7 +6,11 @@ on:
 
 jobs:
   publish:
-    if: github.repository == 'javalin/javalin'
+    if: |
+      github.repository == 'javalin/javalin' &&
+      !contains(github.event.head_commit.message, '[maven-release-plugin] prepare release')
+      
+
     name: Publish snapshot
     runs-on: ubuntu-latest
     steps:
