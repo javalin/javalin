@@ -40,6 +40,7 @@ enum class ContentType(
     IMAGE_SVG("image/svg+xml", true, "svg"),
     IMAGE_TIFF("image/tiff", true, "tiff", "tif"),
     IMAGE_WEBP("image/webp", true, "webp"),
+    IMAGE_AVIF("image/avif", true, "avif"),
 
     /* Audio */
 
