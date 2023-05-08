@@ -32,6 +32,7 @@ enum class ContentType(
 
     /* Image */
 
+    IMAGE_AVIF("image/avif", true, "avif"),
     IMAGE_BMP("image/bmp", true, "bmp"),
     IMAGE_GIF("image/gif", true, "gif"),
     IMAGE_ICO("image/vnd.microsoft.icon", true, "ico"),
@@ -40,7 +41,6 @@ enum class ContentType(
     IMAGE_SVG("image/svg+xml", true, "svg"),
     IMAGE_TIFF("image/tiff", true, "tiff", "tif"),
     IMAGE_WEBP("image/webp", true, "webp"),
-    IMAGE_AVIF("image/avif", true, "avif"),
 
     /* Audio */
 
