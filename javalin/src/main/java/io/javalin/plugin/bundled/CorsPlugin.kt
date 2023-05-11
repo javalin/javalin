@@ -27,6 +27,7 @@ data class CorsPluginConfig(
     @JvmField var reflectClientOrigin: Boolean = false,
     @JvmField var defaultScheme: String = "https",
     @JvmField var path: String = "*",
+    @JvmField var maxAge: Int = -1,
     private val allowedOrigins: MutableList<String> = mutableListOf(),
     private val headersToExpose: MutableList<String> = mutableListOf()
 ) {
@@ -99,12 +100,20 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
         }
 
         if (ctx.method() == OPTIONS) {
+            var requestedHeader = false // max-age is only needed if a header is requested
+
             ctx.header(ACCESS_CONTROL_REQUEST_HEADERS)?.also { headerValue ->
                 ctx.header(ACCESS_CONTROL_ALLOW_HEADERS, headerValue)
+                requestedHeader = true
             }
             ctx.header(Header.ACCESS_CONTROL_REQUEST_METHOD)?.also { headerValue ->
                 ctx.header(Header.ACCESS_CONTROL_ALLOW_METHODS, headerValue)
+                requestedHeader = true
             }
+            if(requestedHeader && cfg.maxAge >= 0) {
+                ctx.header(Header.ACCESS_CONTROL_MAX_AGE, cfg.maxAge.toString())
+            }
+
         }
 
         val origins = cfg.allowedOrigins()

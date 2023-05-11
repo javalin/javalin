@@ -11,6 +11,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_METHODS
 import io.javalin.http.Header.ACCESS_CONTROL_ALLOW_ORIGIN
 import io.javalin.http.Header.ACCESS_CONTROL_EXPOSE_HEADERS
+import io.javalin.http.Header.ACCESS_CONTROL_MAX_AGE
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_METHOD
 import io.javalin.http.Header.ORIGIN
@@ -384,6 +385,39 @@ class TestCors {
             assertThat(response.header(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("https://example.com")
             assertThat(response.body).isEqualTo("Hello")
         }
+
+        @Test
+        fun `maxAge is present in preflight`() = TestUtil.test(Javalin.create(){cfg ->
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.anyHost()
+                    it.maxAge = 100
+                }
+            }
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            val optionsResponse = Unirest.options(http.origin)
+                .headers(mapOf(ACCESS_CONTROL_REQUEST_METHOD to "GET", ACCESS_CONTROL_REQUEST_HEADERS to "origin", ORIGIN to "https://example.com"))
+                .asString()
+            assertThat(optionsResponse.header(ACCESS_CONTROL_MAX_AGE)).isEqualTo("100")
+        }
+
+        @Test
+        fun `maxAge is absent outside of preflight`() = TestUtil.test(Javalin.create(){cfg ->
+            cfg.plugins.enableCors { cors ->
+                cors.add {
+                    it.anyHost()
+                    it.maxAge = 100
+                }
+            }
+        }) { app, http ->
+            app.get("/") { it.result("Hello") }
+            val response = Unirest.get(http.origin)
+                .header(ORIGIN, "https://example.com")
+                .asString()
+            assertThat(response.header(ACCESS_CONTROL_MAX_AGE)).isEmpty()
+        }
+
     }
 
     @Nested
