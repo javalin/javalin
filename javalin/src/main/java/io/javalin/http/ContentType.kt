@@ -32,6 +32,7 @@ enum class ContentType(
 
     /* Image */
 
+    IMAGE_AVIF("image/avif", true, "avif"),
     IMAGE_BMP("image/bmp", true, "bmp"),
     IMAGE_GIF("image/gif", true, "gif"),
     IMAGE_ICO("image/vnd.microsoft.icon", true, "ico"),
