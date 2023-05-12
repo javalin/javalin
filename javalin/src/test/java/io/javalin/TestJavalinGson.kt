@@ -11,7 +11,7 @@ import io.javalin.http.bodyAsClass
 import io.javalin.json.JavalinGson
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class TestJavalinGson {
@@ -31,7 +31,7 @@ internal class TestJavalinGson {
         it.jsonMapper(JavalinGson())
     }) { app, http ->
         app.get("/") { it.json(SerializableObject()) }
-        Assertions.assertThat(http.getBody("/")).isEqualTo(Gson().toJson(SerializableObject()))
+        assertThat(http.getBody("/")).isEqualTo(Gson().toJson(SerializableObject()))
     }
 
     @Test
@@ -39,8 +39,15 @@ internal class TestJavalinGson {
         it.jsonMapper(JavalinGson())
     }) { app, http ->
         app.post("/") { it.result(it.bodyAsClass<SerializableObject>().value1) }
-        Assertions.assertThat(http.post("/").body(Gson().toJson(SerializableObject())).asString().body)
-            .isEqualTo(SerializableObject().value1)
+        assertThat(http.post("/").body(Gson().toJson(SerializableObject())).asString().body).isEqualTo(SerializableObject().value1)
+    }
+
+    @Test
+    fun `JavalinGson properly handles json stream`() = TestUtil.test(Javalin.create {
+        it.jsonMapper(JavalinGson(Gson()))
+    }) { app, http ->
+        app.get("/") { it.jsonStream(arrayOf("1")) }
+        assertThat(http.get("/").body).isEqualTo("[\"1\"]")
     }
 
 }
