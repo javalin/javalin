@@ -32,7 +32,11 @@ open class JavalinGson(private val gson: Gson = Gson()) : JsonMapper {
 
     override fun toJsonStream(obj: Any, type: Type): InputStream = when (obj) {
         is String -> obj.byteInputStream()
-        else -> PipedStreamUtil.getInputStream { gson.toJson(obj, type, OutputStreamWriter(it)) }
+        else -> PipedStreamUtil.getInputStream { pipedOutputStream ->
+            BufferedWriter(OutputStreamWriter(pipedOutputStream)).use { bufferedWriter ->
+                gson.toJson(obj, type, bufferedWriter)
+            }
+        }
     }
 
     override fun writeToOutputStream(stream: Stream<*>, outputStream: OutputStream) {
