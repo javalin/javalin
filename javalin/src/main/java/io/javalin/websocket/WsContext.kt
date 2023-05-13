@@ -93,6 +93,8 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     fun header(header: String): String? = upgradeCtx.header(header)
     /** Gets a [Map] with all the header keys and values  */
     fun headerMap(): Map<String, String> = upgradeCtx.headerMap()
+    /** Creates a typed [io.javalin.validation.Validator] for the [header] value */
+    fun <T> headerAsClass(header: String, clazz: Class<T>) = upgradeCtx.headerAsClass(header, clazz)
 
     /** Gets a request cookie by name, or null. */
     fun cookie(name: String) = upgradeCtx.cookie(name)
