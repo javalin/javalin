@@ -98,8 +98,8 @@
         <junit.version>5.7.2</junit.version>
         <mockito.version>4.6.1</mockito.version>
         <unirest.version>3.13.10</unirest.version>
-        <selenium.chrome.driver.version>4.9.0</selenium.chrome.driver.version>
-        <webdrivermanager.version>5.3.2</webdrivermanager.version>
+        <selenium.chrome.driver.version>4.9.1</selenium.chrome.driver.version>
+        <webdrivermanager.version>5.3.3</webdrivermanager.version>
         <swagger.ui.version>4.10.3</swagger.ui.version> <!-- used for testing webjars -->
     </properties>
 
