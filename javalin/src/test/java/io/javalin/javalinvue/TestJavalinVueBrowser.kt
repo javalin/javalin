@@ -29,6 +29,7 @@ class TestJavalinVueBrowser {
 
     @BeforeEach
     fun setup() {
+        // Use one driver per test, per selenium docs
         driver = ChromeDriver(ChromeOptions().apply {
             addArguments("--no-sandbox")
             addArguments("--headless=new")
