@@ -22,7 +22,7 @@ class TestJavalinVueBrowser {
     companion object {
         @JvmStatic
         @BeforeAll
-        fun setupDriver(): Unit {
+        fun setupDriver() {
             WebDriverManager.chromedriver().setup()
         }
     }
