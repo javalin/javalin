@@ -231,20 +231,19 @@ class TestCustomJetty {
     fun `can add filter to stop request before javalin`() {
         val filterJavalin = Javalin.create {
             it.jetty.contextHandlerConfig { handler ->
-                handler.addFilter(FilterHolder(object : Filter {
-                    override fun init(config: FilterConfig?) {}
-                    override fun destroy() {}
-                    override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-                        (response as HttpServletResponse).status = IM_A_TEAPOT.code
+                handler.addFilter(FilterHolder { req, res, chain ->
+                    if ((req as HttpServletRequest).requestURI != "/allowed") {
+                        res.writer.write("Not allowed")
+                    } else {
+                        chain.doFilter(req, res)
                     }
-                }), "/*", EnumSet.allOf(DispatcherType::class.java))
+                }, "/*", EnumSet.allOf(DispatcherType::class.java))
             }
-        }
+        }.get("/allowed") { it.result("Allowed!") }
         TestUtil.test(filterJavalin) { _, http ->
-            assertThat(http.get("/test").httpCode()).isEqualTo(IM_A_TEAPOT)
-            assertThat(http.get("/test").body).isNotEqualTo("Test")
+            assertThat(http.get("/allowed").body).isEqualTo("Allowed!")
+            assertThat(http.get("/anything-else").body).isEqualTo("Not allowed")
         }
     }
 
 }
-
