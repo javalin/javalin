@@ -4,45 +4,43 @@ import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.http.staticfiles.Location
-import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
 import io.javalin.vue.VueComponent
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 
 class TestJavalinVueBrowser {
 
+    private lateinit var driver: ChromeDriver
+
     companion object {
-        lateinit var driver: ChromeDriver
-
+        @JvmStatic
         @BeforeAll
-        @JvmStatic
-        fun setupClass() {
-            //assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
-            WebDriverManager.chromedriver().setup()
-            driver = ChromeDriver(ChromeOptions().apply {
-                addArguments("--no-sandbox")
-                addArguments("--headless=new")
-                addArguments("--disable-gpu")
-                addArguments("--remote-allow-origins=*")
-                addArguments("--disable-dev-shm-usage")
-            })
+        fun setupDriver(): Unit {
+            WebDriverManager.chromedriver().setup() // Can be changed to other browser drivers
         }
+    }
 
-        @AfterAll
-        @JvmStatic
-        fun teardownClass() {
-            if (Companion::driver.isInitialized) {
-                driver.quit()
-            }
-        }
+    @BeforeEach
+    fun setup() {
+        driver = ChromeDriver(ChromeOptions().apply {
+            addArguments("--no-sandbox")
+            addArguments("--headless=new")
+            addArguments("--disable-gpu")
+            addArguments("--remote-allow-origins=*")
+            addArguments("--disable-dev-shm-usage")
+        })
+    }
 
+    @AfterEach
+    fun teardown() {
+        driver.quit()
     }
 
     @Test
@@ -227,5 +225,6 @@ class TestJavalinVueBrowser {
     }
 
     private fun ChromeDriver.checkWindow(jsCode: String) = this.executeScript("return window.$jsCode") as Boolean
+
 
 }
