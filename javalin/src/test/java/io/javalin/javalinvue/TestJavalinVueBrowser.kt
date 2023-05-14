@@ -122,7 +122,7 @@ class TestJavalinVueBrowser {
 
     /* LoadableData tests below here */
 
-    fun loadableDataTestApp() = Javalin.create { it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) }.routes {
+    private fun loadableDataTestApp() = Javalin.create { it.vue.rootDirectory("src/test/resources/vue", Location.EXTERNAL) }.routes {
         val users = mutableListOf("John")
         get("/api/users") { it.json(users) }
         get("/api/otherUsers") { it.json(users) }
