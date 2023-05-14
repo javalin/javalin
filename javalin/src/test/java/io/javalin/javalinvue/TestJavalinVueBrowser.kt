@@ -226,5 +226,5 @@ class TestJavalinVueBrowser {
     }
 
     private fun ChromeDriver.checkWindow(jsCode: String) = this.executeScript("return window.$jsCode") as Boolean
-    
+
 }
