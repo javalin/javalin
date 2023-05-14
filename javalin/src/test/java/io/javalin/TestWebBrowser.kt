@@ -9,13 +9,12 @@ package io.javalin
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.http.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
-import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil.captureStdOut
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
@@ -24,29 +23,31 @@ import kotlin.math.ceil
 
 class TestWebBrowser {
 
+    private lateinit var driver: ChromeDriver
+
     companion object {
-
-        lateinit var driver: ChromeDriver
-
+        @JvmStatic
         @BeforeAll
-        @JvmStatic
-        fun setupClass() {
-            assumeTrue(TestEnvironment.isNotCiServer) // we are seeing some issues with browsers on CI
+        fun setupDriver() {
             WebDriverManager.chromedriver().setup()
-            driver = ChromeDriver(ChromeOptions().apply {
-                addArguments("--no-sandbox")
-                addArguments("--headless")
-                addArguments("--disable-gpu")
-            })
         }
+    }
 
-        @AfterAll
-        @JvmStatic
-        fun teardownClass() {
-            if (Companion::driver.isInitialized) {
-                driver.quit()
-            }
-        }
+    @BeforeEach
+    fun setup() {
+        // Use one driver per test, per selenium docs
+        driver = ChromeDriver(ChromeOptions().apply {
+            addArguments("--no-sandbox")
+            addArguments("--headless=new")
+            addArguments("--disable-gpu")
+            addArguments("--remote-allow-origins=*")
+            addArguments("--disable-dev-shm-usage")
+        })
+    }
+
+    @AfterEach
+    fun teardown() {
+        driver.quit()
     }
 
     @Test
