@@ -23,7 +23,7 @@ class TestJavalinVueBrowser {
         @JvmStatic
         @BeforeAll
         fun setupDriver(): Unit {
-            WebDriverManager.chromedriver().setup() // Can be changed to other browser drivers
+            WebDriverManager.chromedriver().setup()
         }
     }
 
