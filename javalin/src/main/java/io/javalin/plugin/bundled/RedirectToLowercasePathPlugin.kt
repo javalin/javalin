@@ -25,7 +25,7 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
 
     override fun init(app: Javalin) {
         if(app.cfg.routing.caseInsensitiveRoutes) {
-            throw IllegalArgumentException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
+            throw IllegalStateException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
         }
         app.events { listener ->
             listener.handlerAdded { handlerMetaInfo ->

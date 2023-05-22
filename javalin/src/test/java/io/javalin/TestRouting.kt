@@ -330,7 +330,7 @@ class TestRouting {
 
     @Test
     fun `enableRedirectToLowercasePaths with caseInsensitiveRoutes throws exception`() {
-        assertThrows<java.lang.IllegalArgumentException> {
+        assertThrows<java.lang.IllegalStateException> {
             Javalin.create {
                 it.routing.caseInsensitiveRoutes = true
                 it.plugins.enableRedirectToLowercasePaths()
