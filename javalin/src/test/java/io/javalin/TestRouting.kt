@@ -305,4 +305,15 @@ class TestRouting {
         assertThat(http.getBody("/")).isEqualTo("root")
         assertThat(http.getBody("/home")).isEqualTo("home")
     }
+
+    @Test
+    fun `routes are case insensitive`() = TestUtil.test(Javalin.create {
+        it.routing.caseInsensitiveRoutes = true
+    }) { app, http ->
+        app.get("/path") { it.result("ok") }
+        assertThat(http.getBody("/path")).isEqualTo("ok")
+        assertThat(http.getBody("/PATH")).isEqualTo("ok")
+        assertThat(http.getBody("/Path")).isEqualTo("ok")
+        assertThat(http.getBody("/pAtH")).isEqualTo("ok")
+    }
 }

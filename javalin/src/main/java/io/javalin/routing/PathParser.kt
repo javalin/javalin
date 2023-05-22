@@ -49,10 +49,15 @@ class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
         }
     }
 
+    private val regexOptions : Set<RegexOption> = when {
+        routingConfig.caseInsensitiveRoutes -> setOf(RegexOption.IGNORE_CASE)
+        else -> emptySet()
+    }
+
     private val matchRegex =
-        constructRegexList(routingConfig, matchPathAndEverySubPath, segments, regexSuffix) { it.asRegexString() }
+        constructRegexList(routingConfig, matchPathAndEverySubPath, segments, regexSuffix, regexOptions) { it.asRegexString() }
     private val pathParamRegex =
-        constructRegexList(routingConfig, matchPathAndEverySubPath, segments, regexSuffix) { it.asGroupedRegexString() }
+        constructRegexList(routingConfig, matchPathAndEverySubPath, segments, regexSuffix, regexOptions) { it.asGroupedRegexString() }
 
     fun matches(url: String): Boolean = matchRegex.any { url matches it }
 
