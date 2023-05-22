@@ -46,8 +46,8 @@
 
         <!-- brotli compression -->
         <dependency>
-            <groupId>com.nixxcode.jvmbrotli</groupId>
-            <artifactId>jvmbrotli</artifactId>
+            <groupId>com.aayushatharva.brotli4j</groupId>
+            <artifactId>brotli4j</artifactId>
         </dependency>
 
         <!-- necessary for HTTP/2 and ALPN (application layer protocol negotiation) -->

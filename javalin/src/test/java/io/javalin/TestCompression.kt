@@ -6,8 +6,9 @@
 
 package io.javalin
 
-import com.nixxcode.jvmbrotli.common.BrotliLoader
-import com.nixxcode.jvmbrotli.dec.BrotliInputStream
+
+import com.aayushatharva.brotli4j.Brotli4jLoader
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Gzip
@@ -109,7 +110,7 @@ class TestCompression {
 
     @Test
     fun `does brotli when Accept-Encoding header is set and size is big enough`() = TestUtil.test(superCompressingApp()) { _, http ->
-        assumeTrue(BrotliLoader.isBrotliAvailable())
+        assumeTrue(Brotli4jLoader.isAvailable())
         getResponse(http.origin, "/huge", "br").let { response -> // dynamic
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("br")
             assertThat(response.body!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
@@ -144,7 +145,7 @@ class TestCompression {
 
     @Test
     fun `chooses brotli when both enabled and supported`() = TestUtil.test(superCompressingApp()) { _, http ->
-        assumeTrue(BrotliLoader.isBrotliAvailable())
+        assumeTrue(Brotli4jLoader.isAvailable())
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("br")
             assertThat(response.body!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
@@ -221,7 +222,7 @@ class TestCompression {
 
     @Test
     fun `brotli works for large static files`() {
-        assumeTrue(BrotliLoader.isBrotliAvailable())
+        assumeTrue(Brotli4jLoader.isAvailable())
         val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
         val compressedWebjars = Javalin.create {
             it.compression.brotliOnly()
@@ -234,7 +235,7 @@ class TestCompression {
 
     @Test
     fun `brotli works for dynamic responses of different sizes`() = TestUtil.test(superCompressingApp()) { app, http ->
-        assumeTrue(BrotliLoader.isBrotliAvailable())
+        assumeTrue(Brotli4jLoader.isAvailable())
         listOf(10, 100, 1000, 10_000).forEach { size ->
             app.get("/$size") { it.result(testDocument.repeat(size)) }
             assertValidBrotliResponse(http.origin, "/$size")

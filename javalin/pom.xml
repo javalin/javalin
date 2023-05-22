@@ -45,8 +45,8 @@
 
         <!-- BEGIN Optional dependencies -->
         <dependency>
-            <groupId>com.nixxcode.jvmbrotli</groupId>
-            <artifactId>jvmbrotli</artifactId>
+            <groupId>com.aayushatharva.brotli4j</groupId>
+            <artifactId>brotli4j</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>

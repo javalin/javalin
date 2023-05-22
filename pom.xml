@@ -85,7 +85,7 @@
         <jetty.version>11.0.15</jetty.version>
         <jackson.version>2.15.0</jackson.version>
         <jackson.databind.version>2.15.0</jackson.databind.version>
-        <jvmbrotli.version>0.2.0</jvmbrotli.version>
+        <brotli4j.version>1.11.0</brotli4j.version>
         <logback.version>1.4.7</logback.version>
         <slf4j.version>2.0.7</slf4j.version>
         <gson.version>2.10.1</gson.version>
@@ -197,9 +197,9 @@
 
             <!-- BEGIN Optional dependencies -->
             <dependency>
-                <groupId>com.nixxcode.jvmbrotli</groupId>
-                <artifactId>jvmbrotli</artifactId>
-                <version>${jvmbrotli.version}</version>
+                <groupId>com.aayushatharva.brotli4j</groupId>
+                <artifactId>brotli4j</artifactId>
+                <version>${brotli4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>

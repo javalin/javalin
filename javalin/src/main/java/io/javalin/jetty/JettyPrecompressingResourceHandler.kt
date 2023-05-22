@@ -65,7 +65,7 @@ object JettyPrecompressingResourceHandler {
         return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
     }
 
-    private val brotliAvailable = Util.classExists(CoreDependency.JVMBROTLI.testClass)
+    private val brotliAvailable = Util.classExists(CoreDependency.BROTLI4J.testClass)
     private fun getCompressedByteArray(resource: Resource, type: CompressionType): ByteArray {
         val fileInput = resource.inputStream
         val byteArrayOutputStream = ByteArrayOutputStream()
