@@ -305,4 +305,37 @@ class TestRouting {
         assertThat(http.getBody("/")).isEqualTo("root")
         assertThat(http.getBody("/home")).isEqualTo("home")
     }
+
+    @Test
+    fun `case insensitive routes work with caseInsensitiveRoutes`() = TestUtil.test(Javalin.create {
+        it.routing.caseInsensitiveRoutes = true
+    }) { app, http ->
+        app.get("/paTh") { it.result("ok") }
+        assertThat(http.getBody("/path")).isEqualTo("ok")
+        assertThat(http.getBody("/PATH")).isEqualTo("ok")
+        assertThat(http.getBody("/Path")).isEqualTo("ok")
+        assertThat(http.getBody("/pAtH")).isEqualTo("ok")
+    }
+
+    @Test
+    fun `case insensitive path params work with caseInsensitiveRoutes`() = TestUtil.test(Javalin.create {
+        it.routing.caseInsensitiveRoutes = true
+    }) { app, http ->
+        app.get("/patH/<param>") { it.result(it.pathParam("param")) }
+        assertThat(http.getBody("/path/value")).isEqualTo("value")
+        assertThat(http.getBody("/PATH/vAlUe")).isEqualTo("vAlUe")
+        assertThat(http.getBody("/Path/VALUe")).isEqualTo("VALUe")
+        assertThat(http.getBody("/pAtH/VALUE")).isEqualTo("VALUE")
+    }
+
+    @Test
+    fun `enableRedirectToLowercasePaths with caseInsensitiveRoutes throws exception`() {
+        assertThrows<java.lang.IllegalStateException> {
+            Javalin.create {
+                it.routing.caseInsensitiveRoutes = true
+                it.plugins.enableRedirectToLowercasePaths()
+            }.start()
+        }
+    }
+
 }

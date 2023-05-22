@@ -11,4 +11,7 @@ class RoutingConfig {
     @JvmField
     var treatMultipleSlashesAsSingleSlash = false
 
+    @JvmField
+    var caseInsensitiveRoutes = false
+
 }
