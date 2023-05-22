@@ -323,9 +323,9 @@ class TestRouting {
     }) { app, http ->
         app.get("/patH/<param>") { it.result(it.pathParam("param")) }
         assertThat(http.getBody("/path/value")).isEqualTo("value")
-        assertThat(http.getBody("/PATH/value")).isEqualTo("value")
-        assertThat(http.getBody("/Path/value")).isEqualTo("value")
-        assertThat(http.getBody("/pAtH/value")).isEqualTo("value")
+        assertThat(http.getBody("/PATH/vAlUe")).isEqualTo("vAlUe")
+        assertThat(http.getBody("/Path/VALUe")).isEqualTo("VALUe")
+        assertThat(http.getBody("/pAtH/VALUE")).isEqualTo("VALUE")
     }
 
     @Test
