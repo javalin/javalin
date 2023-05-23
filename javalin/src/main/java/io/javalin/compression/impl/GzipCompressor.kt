@@ -15,7 +15,7 @@ class GzipCompressor(val level: Int) : Compressor {
         return CompressionType.GZIP
     }
 
-    override fun outputStream(out: OutputStream): OutputStream {
+    override fun compress(out: OutputStream): OutputStream {
         return LeveledGzipStream(out, level)
     }
 }

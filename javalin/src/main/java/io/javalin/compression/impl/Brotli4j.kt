@@ -17,7 +17,7 @@ class Brotli4j(val level: Int) : Compressor {
         return CompressionType.BR
     }
 
-    override fun outputStream(out: OutputStream): OutputStream {
+    override fun compress(out: OutputStream): OutputStream {
         return LeveledBrotli4jStream(out, level)
     }
 }

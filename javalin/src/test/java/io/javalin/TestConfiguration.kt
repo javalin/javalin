@@ -7,7 +7,6 @@
 package io.javalin
 
 import io.javalin.compression.CompressionStrategy
-import io.javalin.compression.CompressionType
 import io.javalin.compression.CompressionType.BR
 import io.javalin.compression.CompressionType.GZIP
 import io.javalin.compression.Gzip

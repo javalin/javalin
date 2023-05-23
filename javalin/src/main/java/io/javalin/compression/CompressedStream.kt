@@ -1,6 +1,5 @@
 package io.javalin.compression
 
-
 import io.javalin.http.Context
 import io.javalin.http.Header
 import jakarta.servlet.ServletOutputStream
@@ -15,7 +14,7 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
     override fun write(bytes: ByteArray, offset: Int, length: Int) {
         if (compressedStream == null && length >= compression.minSizeForCompression && compression.allowsForCompression(ctx.res().contentType) && !ctx.res().containsHeader(Header.CONTENT_ENCODING)) {
             tryMatchCompression(compression, ctx)?.also {
-                this.compressedStream = it.outputStream(originStream)
+                this.compressedStream = it.compress(originStream)
                 ctx.header(Header.CONTENT_ENCODING, it.type().typeName)
             }
         }

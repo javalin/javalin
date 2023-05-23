@@ -1,7 +1,6 @@
 package io.javalin.compression
 
 import com.aayushatharva.brotli4j.Brotli4jLoader
-import com.aayushatharva.brotli4j.common.BrotliCommon
 import com.nixxcode.jvmbrotli.common.BrotliLoader
 import io.javalin.compression.impl.Brotli4j
 import io.javalin.compression.impl.BrotliJvm
@@ -58,7 +57,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
     )
 
     /**
-     * When enabling Brotli, we try loading the jvm-brotli native library first.
+     * When enabling Brotli, we try loading the brotli4j or jvm-brotli native libraries first.
      * If this fails, we keep Brotli disabled and warn the user.
      */
     private fun tryLoadBrotli(brotli: Brotli): Compressor? {

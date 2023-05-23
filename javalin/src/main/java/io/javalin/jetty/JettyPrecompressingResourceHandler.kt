@@ -78,7 +78,7 @@ object JettyPrecompressingResourceHandler {
         val fileInput = resource.inputStream
         val byteArrayOutputStream = ByteArrayOutputStream()
         val outputStream: OutputStream =
-            compressionStrategy.compressors.forType(type)?.outputStream(byteArrayOutputStream)
+            compressionStrategy.compressors.forType(type)?.compress(byteArrayOutputStream)
                 ?: byteArrayOutputStream
 
         fileInput.copyTo(outputStream)

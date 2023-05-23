@@ -17,7 +17,7 @@ class BrotliJvm(val level: Int) : Compressor {
         return CompressionType.BR
     }
 
-    override fun outputStream(out: OutputStream): OutputStream {
+    override fun compress(out: OutputStream): OutputStream {
         return LeveledBrotliJvmStream(out, level)
     }
 }
