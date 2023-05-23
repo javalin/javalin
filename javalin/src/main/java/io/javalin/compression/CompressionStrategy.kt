@@ -1,6 +1,11 @@
 package io.javalin.compression
 
 import com.aayushatharva.brotli4j.Brotli4jLoader
+import com.aayushatharva.brotli4j.common.BrotliCommon
+import com.nixxcode.jvmbrotli.common.BrotliLoader
+import io.javalin.compression.impl.Brotli4j
+import io.javalin.compression.impl.BrotliJvm
+import io.javalin.compression.impl.GzipCompressor
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
@@ -25,14 +30,14 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         @JvmField
         val GZIP = CompressionStrategy(null, Gzip())
     }
-
-    val brotli: Brotli?
-    val gzip: Gzip?
+    val compressors : List<Compressor>
 
     init {
-        //Enabling brotli requires special handling since jvm-brotli is platform dependent
-        this.brotli = if (brotli != null) tryLoadBrotli(brotli) else null
-        this.gzip = gzip
+        //Enabling brotli requires special handling since brotli is platform dependent
+        val comp : MutableList<Compressor> = mutableListOf()
+        if (brotli != null) tryLoadBrotli(brotli)?.let { comp.add(it) }
+        if (gzip != null) comp.add(GzipCompressor(gzip.level))
+        compressors = comp.toList()
     }
 
     /** 1500 is the size of a packet, compressing responses smaller than this serves no purpose */
@@ -56,25 +61,30 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * When enabling Brotli, we try loading the jvm-brotli native library first.
      * If this fails, we keep Brotli disabled and warn the user.
      */
-    private fun tryLoadBrotli(brotli: Brotli): Brotli? {
-        if (!Util.classExists(CoreDependency.BROTLI4J.testClass)) {
+    private fun tryLoadBrotli(brotli: Brotli): Compressor? {
+        if (!Util.classExists(CoreDependency.BROTLI4J.testClass) &&
+            !Util.classExists(CoreDependency.JVMBROTLI.testClass)) {
             throw IllegalStateException(DependencyUtil.missingDependencyMessage(CoreDependency.BROTLI4J))
         }
-        return if (Brotli4jLoader.isAvailable()) {
-            brotli
-        } else {
-            JavalinLogger.warn(
-                """|
-                   |Failed to enable Brotli compression, because the brotli4j native library couldn't be loaded.
-                   |brotli4j is currently only supported on Windows, Linux and Mac OSX.
-                   |If you are running Javalin on a supported system, but are still getting this error,
-                   |try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
-                   |please create an issue at https://github.com/javalin/javalin/
-                   |---------------------------------------------------------------
-                   |If you still want compression, please ensure GZIP is enabled!
-                   |---------------------------------------------------------------""".trimMargin()
-            )
-            null
+        return when {
+            Brotli4jLoader.isAvailable() -> return Brotli4j(brotli.level)
+            BrotliLoader.isBrotliAvailable() -> return BrotliJvm(brotli.level)
+            else -> {
+                JavalinLogger.warn(
+                    """|
+                       |Failed to enable Brotli compression, because the brotli4j native library couldn't be loaded.
+                       |brotli4j is currently only supported on Windows, Linux and Mac OSX.
+                       |If you are running Javalin on a supported system, but are still getting this error,
+                       |try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
+                       |please create an issue at https://github.com/javalin/javalin/
+                       |---------------------------------------------------------------
+                       |If you still want compression, please ensure GZIP is enabled!
+                       |---------------------------------------------------------------""".trimMargin()
+                )
+                null
+            }
         }
     }
 }
+
+fun List<Compressor>.forType(type: CompressionType) = this.firstOrNull { it.type() == type }

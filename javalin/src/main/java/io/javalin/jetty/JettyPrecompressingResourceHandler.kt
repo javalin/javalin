@@ -1,9 +1,6 @@
 package io.javalin.jetty
 
-import io.javalin.compression.CompressionStrategy
-import io.javalin.compression.CompressionType
-import io.javalin.compression.LeveledBrotliStream
-import io.javalin.compression.LeveledGzipStream
+import io.javalin.compression.*
 import io.javalin.http.Header
 import io.javalin.util.CoreDependency
 import io.javalin.util.JavalinLogger
@@ -19,6 +16,18 @@ import java.util.concurrent.ConcurrentHashMap
 object JettyPrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
+
+    private val compressionStrategy : CompressionStrategy
+
+    init {
+        val brotliAvailable = Util.classExists(CoreDependency.BROTLI4J.testClass) || Util.classExists(CoreDependency.JVMBROTLI.testClass)
+        compressionStrategy = if (brotliAvailable) {
+            CompressionStrategy(Brotli(11), Gzip(9))
+        } else {
+            CompressionStrategy(null,Gzip(9))
+        }
+
+    }
 
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
@@ -65,19 +74,13 @@ object JettyPrecompressingResourceHandler {
         return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
     }
 
-    private val brotliAvailable = Util.classExists(CoreDependency.BROTLI4J.testClass)
     private fun getCompressedByteArray(resource: Resource, type: CompressionType): ByteArray {
         val fileInput = resource.inputStream
         val byteArrayOutputStream = ByteArrayOutputStream()
-        val outputStream: OutputStream = when {
-            type == CompressionType.GZIP -> {
-                LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
-            }
-            type == CompressionType.BR && brotliAvailable -> {
-                LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
-            }
-            else -> byteArrayOutputStream
-        }
+        val outputStream: OutputStream =
+            compressionStrategy.compressors.forType(type)?.outputStream(byteArrayOutputStream)
+                ?: byteArrayOutputStream
+
         fileInput.copyTo(outputStream)
         fileInput.close()
         outputStream.close()
@@ -88,3 +91,4 @@ object JettyPrecompressingResourceHandler {
         if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
 }
+
