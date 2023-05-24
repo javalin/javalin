@@ -1,10 +1,9 @@
 package io.javalin.jetty
 
 import io.javalin.compression.*
+import io.javalin.compression.CompressionStrategy.Companion.brotliPresent
 import io.javalin.http.Header
-import io.javalin.util.CoreDependency
 import io.javalin.util.JavalinLogger
-import io.javalin.util.Util
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
@@ -20,8 +19,7 @@ object JettyPrecompressingResourceHandler {
     private val compressionStrategy : CompressionStrategy
 
     init {
-        val brotliAvailable = Util.classExists(CoreDependency.BROTLI4J.testClass) || Util.classExists(CoreDependency.JVMBROTLI.testClass)
-        compressionStrategy = if (brotliAvailable) {
+        compressionStrategy = if (brotliPresent()) {
             CompressionStrategy(Brotli(11), Gzip(9))
         } else {
             CompressionStrategy(null,Gzip(9))
