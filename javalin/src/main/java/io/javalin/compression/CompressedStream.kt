@@ -15,7 +15,7 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
         if (compressedStream == null && length >= compression.minSizeForCompression && compression.allowsForCompression(ctx.res().contentType) && !ctx.res().containsHeader(Header.CONTENT_ENCODING)) {
             tryMatchCompression(compression, ctx)?.also {
                 this.compressedStream = it.compress(originStream)
-                ctx.header(Header.CONTENT_ENCODING, it.type().typeName)
+                ctx.header(Header.CONTENT_ENCODING, it.encoding())
             }
         }
         (compressedStream ?: originStream).write(bytes, offset, length) // fall back to default stream if no compression
@@ -35,7 +35,7 @@ private fun tryMatchCompression(
     ctx: Context,
 ): Compressor? =
     ctx.header(Header.ACCEPT_ENCODING)?.let { acceptedEncoding ->
-        compression.compressors.firstOrNull { acceptedEncoding.contains(it.type().typeName, ignoreCase = true) }
+        compression.compressors.firstOrNull { acceptedEncoding.contains(it.encoding(), ignoreCase = true) }
     }
 
 

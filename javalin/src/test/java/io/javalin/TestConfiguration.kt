@@ -76,8 +76,8 @@ class TestConfiguration {
         val app = Javalin.create {
             it.compression.custom(CompressionStrategy(null, Gzip(2)))
         }
-        assertThat((app.cfg.pvt.compressionStrategy.compressors.forType(GZIP) as GzipCompressor).level).isEqualTo(2)
-        assertThat(app.cfg.pvt.compressionStrategy.compressors.forType(BR)).isNull()
+        assertThat((app.cfg.pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
+        assertThat(app.cfg.pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()
     }
 
     @Test

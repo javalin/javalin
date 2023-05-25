@@ -86,4 +86,4 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
 
 }
 
-fun List<Compressor>.forType(type: CompressionType) = this.firstOrNull { it.type() == type }
+fun List<Compressor>.forType(type: String) = this.firstOrNull { it.encoding().equals(type, ignoreCase = true) }
