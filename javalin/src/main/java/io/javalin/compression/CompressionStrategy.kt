@@ -1,7 +1,7 @@
 package io.javalin.compression
 
 import com.nixxcode.jvmbrotli.common.BrotliLoader
-import io.javalin.compression.impl.BrotliJvm
+import io.javalin.compression.impl.JvmBrotliCompressor
 import io.javalin.compression.impl.GzipCompressor
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
@@ -66,7 +66,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
             throw IllegalStateException(DependencyUtil.missingDependencyMessage(CoreDependency.JVMBROTLI))
         }
         return when {
-            BrotliLoader.isBrotliAvailable() -> return BrotliJvm(brotli.level)
+            BrotliLoader.isBrotliAvailable() -> return JvmBrotliCompressor(brotli.level)
             else -> {
                 JavalinLogger.warn(
                     """|
