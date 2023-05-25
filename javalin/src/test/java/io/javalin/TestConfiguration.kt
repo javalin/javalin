@@ -7,7 +7,11 @@
 package io.javalin
 
 import io.javalin.compression.CompressionStrategy
+import io.javalin.compression.CompressionType.BR
+import io.javalin.compression.CompressionType.GZIP
 import io.javalin.compression.Gzip
+import io.javalin.compression.forType
+import io.javalin.compression.impl.GzipCompressor
 import io.javalin.http.Header
 import io.javalin.http.ContentType
 import io.javalin.http.staticfiles.Location
@@ -72,8 +76,8 @@ class TestConfiguration {
         val app = Javalin.create {
             it.compression.custom(CompressionStrategy(null, Gzip(2)))
         }
-        assertThat(app.cfg.pvt.compressionStrategy.gzip?.level).isEqualTo(2)
-        assertThat(app.cfg.pvt.compressionStrategy.brotli).isNull()
+        assertThat((app.cfg.pvt.compressionStrategy.compressors.forType(GZIP.typeName) as GzipCompressor).level).isEqualTo(2)
+        assertThat(app.cfg.pvt.compressionStrategy.compressors.forType(BR.typeName)).isNull()
     }
 
     @Test

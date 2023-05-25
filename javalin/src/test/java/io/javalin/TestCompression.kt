@@ -6,7 +6,7 @@
 
 package io.javalin
 
-import com.nixxcode.jvmbrotli.common.BrotliLoader
+
 import com.nixxcode.jvmbrotli.dec.BrotliInputStream
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
@@ -21,8 +21,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIf
 import java.util.zip.GZIPInputStream
 
 class TestCompression {
@@ -108,8 +108,8 @@ class TestCompression {
     }
 
     @Test
+    @EnabledIf("brotliAvailable")
     fun `does brotli when Accept-Encoding header is set and size is big enough`() = TestUtil.test(superCompressingApp()) { _, http ->
-        assumeTrue(BrotliLoader.isBrotliAvailable())
         getResponse(http.origin, "/huge", "br").let { response -> // dynamic
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("br")
             assertThat(response.body!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
@@ -143,8 +143,8 @@ class TestCompression {
     }
 
     @Test
+    @EnabledIf("brotliAvailable")
     fun `chooses brotli when both enabled and supported`() = TestUtil.test(superCompressingApp()) { _, http ->
-        assumeTrue(BrotliLoader.isBrotliAvailable())
         getResponse(http.origin, "/huge", "br, gzip").let { response -> // dynamic
             assertThat(response.headers[Header.CONTENT_ENCODING]).isEqualTo("br")
             assertThat(response.body!!.contentLength()).isEqualTo(2235L) // hardcoded because lazy
@@ -220,8 +220,8 @@ class TestCompression {
     }
 
     @Test
+    @EnabledIf("brotliAvailable")
     fun `brotli works for large static files`() {
-        assumeTrue(BrotliLoader.isBrotliAvailable())
         val path = "/webjars/swagger-ui/${TestDependency.swaggerVersion}/swagger-ui-bundle.js"
         val compressedWebjars = Javalin.create {
             it.compression.brotliOnly()
@@ -233,8 +233,8 @@ class TestCompression {
     }
 
     @Test
+    @EnabledIf("brotliAvailable")
     fun `brotli works for dynamic responses of different sizes`() = TestUtil.test(superCompressingApp()) { app, http ->
-        assumeTrue(BrotliLoader.isBrotliAvailable())
         listOf(10, 100, 1000, 10_000).forEach { size ->
             app.get("/$size") { it.result(testDocument.repeat(size)) }
             assertValidBrotliResponse(http.origin, "/$size")
@@ -333,5 +333,7 @@ class TestCompression {
             .header(Header.IF_NONE_MATCH, etag)
             .build()
     ).execute()
+
+    fun brotliAvailable() = CompressionStrategy.brotliPresent() && CompressionStrategy.brotliJvmAvailable()
 
 }

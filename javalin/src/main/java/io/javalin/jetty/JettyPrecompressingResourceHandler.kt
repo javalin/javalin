@@ -1,13 +1,9 @@
 package io.javalin.jetty
 
-import io.javalin.compression.CompressionStrategy
-import io.javalin.compression.CompressionType
-import io.javalin.compression.LeveledBrotliStream
-import io.javalin.compression.LeveledGzipStream
+import io.javalin.compression.*
+import io.javalin.compression.CompressionStrategy.Companion.brotliPresent
 import io.javalin.http.Header
-import io.javalin.util.CoreDependency
 import io.javalin.util.JavalinLogger
-import io.javalin.util.Util
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
@@ -20,6 +16,17 @@ object JettyPrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
 
+    private val compressionStrategy : CompressionStrategy
+
+    init {
+        compressionStrategy = if (brotliPresent()) {
+            CompressionStrategy(Brotli(11), Gzip(9))
+        } else {
+            CompressionStrategy(null,Gzip(9))
+        }
+
+    }
+
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
@@ -27,17 +34,17 @@ object JettyPrecompressingResourceHandler {
 
     fun handle(target: String, resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
         if (resource.exists() && !resource.isDirectory) {
-            var acceptCompressType = CompressionType.getByAcceptEncoding(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
+            var acceptCompressType = req.getHeader(Header.ACCEPT_ENCODING) ?: ""
             val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
             if (contentType == null || excludedMimeType(contentType)) {
-                acceptCompressType = CompressionType.NONE
+                acceptCompressType = ""
             }
             val resultByteArray = getStaticResourceByteArray(resource, target, acceptCompressType) ?: return false
             res.setContentLength(resultByteArray.size)
             res.setHeader(Header.CONTENT_TYPE, contentType)
 
-            if (acceptCompressType != CompressionType.NONE)
-                res.setHeader(Header.CONTENT_ENCODING, acceptCompressType.typeName)
+            if (acceptCompressType.isNotEmpty())
+                res.setHeader(Header.CONTENT_ENCODING, acceptCompressType)
 
             val weakETag = resource.weakETag // jetty resource use weakETag too
             req.getHeader(Header.IF_NONE_MATCH)?.let { etag ->
@@ -54,7 +61,7 @@ object JettyPrecompressingResourceHandler {
         return false
     }
 
-    private fun getStaticResourceByteArray(resource: Resource, target: String, type: CompressionType): ByteArray? {
+    private fun getStaticResourceByteArray(resource: Resource, target: String, type: String): ByteArray? {
         if (resource.length() > resourceMaxSize) {
             JavalinLogger.warn(
                 "Static file '$target' is larger than configured max size for pre-compression ($resourceMaxSize bytes).\n" +
@@ -62,22 +69,17 @@ object JettyPrecompressingResourceHandler {
             )
             return null
         }
-        return compressedFiles.computeIfAbsent(target + type.extension) { getCompressedByteArray(resource, type) }
+        val ext = compressionStrategy.compressors.forType(type)?.extension() ?: ""
+        return compressedFiles.computeIfAbsent(target + ext) { getCompressedByteArray(resource, type) }
     }
 
-    private val brotliAvailable = Util.classExists(CoreDependency.JVMBROTLI.testClass)
-    private fun getCompressedByteArray(resource: Resource, type: CompressionType): ByteArray {
+    private fun getCompressedByteArray(resource: Resource, type: String): ByteArray {
         val fileInput = resource.inputStream
         val byteArrayOutputStream = ByteArrayOutputStream()
-        val outputStream: OutputStream = when {
-            type == CompressionType.GZIP -> {
-                LeveledGzipStream(byteArrayOutputStream, 9) // use max-level compression
-            }
-            type == CompressionType.BR && brotliAvailable -> {
-                LeveledBrotliStream(byteArrayOutputStream, 11) // use max-level compression
-            }
-            else -> byteArrayOutputStream
-        }
+        val outputStream: OutputStream =
+            compressionStrategy.compressors.forType(type)?.compress(byteArrayOutputStream)
+                ?: byteArrayOutputStream
+
         fileInput.copyTo(outputStream)
         fileInput.close()
         outputStream.close()
@@ -88,3 +90,4 @@ object JettyPrecompressingResourceHandler {
         if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
 }
+
