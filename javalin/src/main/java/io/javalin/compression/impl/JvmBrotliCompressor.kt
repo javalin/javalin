@@ -13,17 +13,9 @@ class JvmBrotliCompressor(val level: Int) : Compressor {
         require(level in 0..11) { "Valid range for parameter level is 0 to 11" }
     }
 
-    override fun encoding(): String {
-        return CompressionType.BR.typeName
-    }
-
-    override fun extension(): String {
-        return CompressionType.BR.extension
-    }
-
-    override fun compress(out: OutputStream): OutputStream {
-        return LeveledBrotliJvmStream(out, level)
-    }
+    override fun encoding(): String = CompressionType.BR.typeName
+    override fun extension(): String = CompressionType.BR.extension
+    override fun compress(out: OutputStream): OutputStream = LeveledBrotliJvmStream(out, level)
 }
 
 class LeveledBrotliJvmStream(out: OutputStream, level: Int) :
