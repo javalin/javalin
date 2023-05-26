@@ -7,7 +7,8 @@
 package io.javalin
 
 
-import com.nixxcode.jvmbrotli.dec.BrotliInputStream
+import com.nixxcode.jvmbrotli.dec.BrotliInputStream as JvmBrotliInputStream
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Gzip
@@ -301,7 +302,11 @@ class TestCompression {
     private fun assertValidBrotliResponse(origin: String, url: String) {
         val response = getResponse(origin, url, "br")
         assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
-        val brotliInputStream = BrotliInputStream(response.body!!.byteStream())
+        val brotliInputStream = when {
+            CompressionStrategy.brotliJvmAvailable() -> JvmBrotliInputStream(response.body!!.byteStream())
+            CompressionStrategy.brotli4jAvailable() -> Brotli4jInputStream(response.body!!.byteStream())
+            else -> throw RuntimeException("No brotli implementation found")
+        }
         val decompressed = String(brotliInputStream.readBytes())
         val uncompressedResponse = getResponse(origin, url, "null").body!!.string()
         assertThat(decompressed).isEqualTo(uncompressedResponse)
@@ -334,6 +339,6 @@ class TestCompression {
             .build()
     ).execute()
 
-    fun brotliAvailable() = CompressionStrategy.brotliPresent() && CompressionStrategy.brotliJvmAvailable()
+    private fun brotliAvailable() = CompressionStrategy.brotliImplAvailable()
 
 }

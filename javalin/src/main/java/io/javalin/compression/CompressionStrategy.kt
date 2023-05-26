@@ -1,6 +1,8 @@
 package io.javalin.compression
 
+import com.aayushatharva.brotli4j.Brotli4jLoader
 import com.nixxcode.jvmbrotli.common.BrotliLoader
+import io.javalin.compression.impl.Brotli4jCompressor
 import io.javalin.compression.impl.JvmBrotliCompressor
 import io.javalin.compression.impl.GzipCompressor
 import io.javalin.util.CoreDependency
@@ -27,8 +29,16 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
 
         @JvmField
         val GZIP = CompressionStrategy(null, Gzip())
-        fun brotliPresent() = Util.classExists(CoreDependency.JVMBROTLI.testClass)
+
+        // Check if the dependencies are present
+        fun brotliJvmPresent() = Util.classExists(CoreDependency.JVMBROTLI.testClass)
+        fun brotli4jPresent() = Util.classExists(CoreDependency.BROTLI4J.testClass)
+        // Check if the native libraries are available
         fun brotliJvmAvailable() = try {BrotliLoader.isBrotliAvailable()} catch (t: Throwable) {false}
+        fun brotli4jAvailable() = try {Brotli4jLoader.isAvailable()} catch (t: Throwable) {false}
+        /** @returns true if brotli is can be used */
+        fun brotliImplAvailable() = (brotliJvmPresent() && brotliJvmAvailable()) || (brotli4jPresent() && brotli4jAvailable())
+
     }
     val compressors : List<Compressor>
 
@@ -62,16 +72,17 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * If this fails, we keep Brotli disabled and warn the user.
      */
     private fun tryLoadBrotli(brotli: Brotli): Compressor? {
-        if (!brotliPresent()) {
-            throw IllegalStateException(DependencyUtil.missingDependencyMessage(CoreDependency.JVMBROTLI))
+        if (!brotliJvmPresent()||!brotli4jPresent()) {
+            throw IllegalStateException(DependencyUtil.missingDependencyMessage(CoreDependency.BROTLI4J))
         }
         return when {
+            Brotli4jLoader.isAvailable() -> return Brotli4jCompressor(brotli.level)
             BrotliLoader.isBrotliAvailable() -> return JvmBrotliCompressor(brotli.level)
             else -> {
                 JavalinLogger.warn(
                     """|
-                       |Failed to enable Brotli compression, because the jvm-brotli native library couldn't be loaded.
-                       |jvm-brotli is currently only supported on Windows, Linux and Mac OSX.
+                       |Failed to enable Brotli compression, because the brotli4j native library couldn't be loaded.
+                       |brotli4j is currently only supported on Windows, Linux and Mac OSX.
                        |If you are running Javalin on a supported system, but are still getting this error,
                        |try re-importing your Maven and/or Gradle dependencies. If that doesn't resolve it,
                        |please create an issue at https://github.com/javalin/javalin/
