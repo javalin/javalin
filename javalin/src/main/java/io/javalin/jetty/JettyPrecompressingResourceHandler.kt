@@ -1,7 +1,7 @@
 package io.javalin.jetty
 
 import io.javalin.compression.*
-import io.javalin.compression.CompressionStrategy.Companion.brotliPresent
+import io.javalin.compression.CompressionStrategy.Companion.brotliImplAvailable
 import io.javalin.http.Header
 import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
@@ -19,7 +19,7 @@ object JettyPrecompressingResourceHandler {
     private val compressionStrategy : CompressionStrategy
 
     init {
-        compressionStrategy = if (brotliPresent()) {
+        compressionStrategy = if (brotliImplAvailable()) {
             CompressionStrategy(Brotli(11), Gzip(9))
         } else {
             CompressionStrategy(null,Gzip(9))
