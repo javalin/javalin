@@ -6,11 +6,7 @@
 
 package io.javalin.vue
 
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.*
 import java.util.stream.Collectors
 
 internal class VuePathMaster(val cfg: JavalinVueConfig) {
@@ -32,7 +28,11 @@ internal class VuePathMaster(val cfg: JavalinVueConfig) {
     private lateinit var fileSystem: FileSystem // we need to keep this variable around to keep the file system open ?
     private fun getFileSystem(jarClass: Class<*>): FileSystem {
         if (!this::fileSystem.isInitialized) {
-            this.fileSystem = FileSystems.newFileSystem(jarClass.getResource("")!!.toURI(), emptyMap<String, Any>())
+            try {
+                this.fileSystem = FileSystems.getFileSystem(jarClass.getResource("")!!.toURI())
+            } catch (e: FileSystemNotFoundException) {
+                this.fileSystem = FileSystems.newFileSystem(jarClass.getResource("")!!.toURI(), emptyMap<String, Any>())
+            }
         }
         return this.fileSystem
     }
