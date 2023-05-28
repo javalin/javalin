@@ -15,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap
 object JettyPrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
+    @JvmStatic
+    fun clearCache() = compressedFiles.clear()
 
     private val compressionStrategy : CompressionStrategy
 
