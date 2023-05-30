@@ -14,6 +14,7 @@ import io.javalin.util.Util.logJavalinBanner
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.HttpCookie
+import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.http.UriCompliance
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConfiguration
@@ -47,6 +48,9 @@ class JettyServer(val cfg: JavalinConfig) {
             serverPort = 8080
             JavalinLogger.startup("No port specified, starting on port $serverPort. Call start(port) to change ports.")
         }
+
+        val encodingMap = MimeTypes.getInferredEncodings()
+        encodingMap.put("text/plain","utf-8");
 
         cfg.pvt.sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
