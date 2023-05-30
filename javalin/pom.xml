@@ -14,6 +14,12 @@
     </properties>
 
     <dependencies>
+
+		<dependency>
+  			<groupId>org.jetbrains</groupId>
+  			<artifactId>annotations</artifactId>
+		</dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -160,13 +166,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Automatic-Module-Name>io.javalin</Automatic-Module-Name>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>

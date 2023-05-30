@@ -71,7 +71,7 @@
         <javadoc.plugin.version>3.5.0</javadoc.plugin.version>
         <gpg.plugin.version>3.0.1</gpg.plugin.version>
         <jar.plugin.version>3.2.2</jar.plugin.version>
-        <surefire.plugin.version>3.0.0-M7</surefire.plugin.version>
+        <surefire.plugin.version>3.0.0</surefire.plugin.version>
         <shade.plugin.version>3.3.0</shade.plugin.version>
         <build-helper.plugin.version>3.3.0</build-helper.plugin.version>
         <enforcer.plugin.version>3.1.0</enforcer.plugin.version>
@@ -82,6 +82,7 @@
         <maven.javadoc.skip>true</maven.javadoc.skip> <!-- property used by the javadoc plugin, which is triggered by ... something in the pom -->
 
         <!-- DEPENDENCIES -->
+        <annotations.version>24.0.1</annotations.version>
         <jetty.version>11.0.15</jetty.version>
         <jackson.version>2.15.0</jackson.version>
         <jackson.databind.version>2.15.0</jackson.databind.version>
@@ -134,7 +135,11 @@
                 <artifactId>kotlin-stdlib</artifactId>
                 <version>${kotlin.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${annotations.version}</version>
+            </dependency>
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -479,6 +484,7 @@
                         <excludes>
                             <exclude />
                         </excludes>
+          	            <useModulePath>false</useModulePath>
                     </configuration>
                 </plugin>
                 <plugin>
