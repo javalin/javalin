@@ -50,7 +50,7 @@ class JettyServer(val cfg: JavalinConfig) {
         }
 
         val encodingMap = MimeTypes.getInferredEncodings()
-        encodingMap.put("text/plain","utf-8");
+        encodingMap.put("text/plain","utf-8")
 
         cfg.pvt.sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
@@ -74,6 +74,10 @@ class JettyServer(val cfg: JavalinConfig) {
             handler = if (handler == null) wsAndHttpHandler else handler.attachHandler(wsAndHttpHandler)
             if (connectors.isEmpty()) { // user has not added their own connectors, we add a single HTTP connector
                 connectors = arrayOf(defaultConnector(this))
+            } else {
+                if(cfg.jetty.customizers.isNotEmpty()){
+                    JavalinLogger.startup("Customizers added to the JettyConfig have not been applied as a custom Jetty server was provided")
+                }
             }
         }.start()
 
@@ -98,6 +102,10 @@ class JettyServer(val cfg: JavalinConfig) {
         // TODO: Required to support ignoreTrailingSlashes, because Jetty 11 will refuse requests with doubled slashes
         val httpConfiguration = HttpConfiguration()
         httpConfiguration.uriCompliance = UriCompliance.RFC3986 // accept ambiguous values in path and let Javalin handle them
+
+        cfg.jetty.customizers.forEach {
+            httpConfiguration.addCustomizer(it)
+        }
 
         return ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
             this.port = serverPort

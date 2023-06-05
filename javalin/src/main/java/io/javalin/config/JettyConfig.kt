@@ -1,5 +1,6 @@
 package io.javalin.config
 
+import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -10,6 +11,7 @@ import java.util.function.Supplier
 class JettyConfig(private val pvt: PrivateConfig) {
     //@formatter:off
     @JvmField val multipartConfig = MultipartConfig()
+    @JvmField val customizers = mutableListOf<HttpConfiguration.Customizer>()
     //@formatter:on
 
     fun server(server: Supplier<Server?>) {
