@@ -12,11 +12,13 @@ import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.HttpConnectionFactory
 import org.junit.jupiter.api.Test
 
-class TestJettyCustomizers {
+class TestCustomJettyHttpConfiguration {
     private val customizer = ForwardedRequestCustomizer()
     @Test
     fun `customizers get added`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.jetty.customizers.add(customizer)
+        cfg.jetty.httpConfigurationConfig{
+            it.customizers.add(customizer)
+        }
     }) { javalin, http ->
         javalin.jettyServer.server().connectors.forEach {
             val cf = it.getConnectionFactory(HttpConnectionFactory::class.java)

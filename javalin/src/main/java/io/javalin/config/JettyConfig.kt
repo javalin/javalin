@@ -11,7 +11,6 @@ import java.util.function.Supplier
 class JettyConfig(private val pvt: PrivateConfig) {
     //@formatter:off
     @JvmField val multipartConfig = MultipartConfig()
-    @JvmField val customizers = mutableListOf<HttpConfiguration.Customizer>()
     //@formatter:on
 
     fun server(server: Supplier<Server?>) {
@@ -30,4 +29,7 @@ class JettyConfig(private val pvt: PrivateConfig) {
         pvt.wsFactoryConfig = wsFactoryConfig
     }
 
+    fun httpConfigurationConfig(httpConfigurationConfig:  Consumer<HttpConfiguration>) {
+        pvt.httpConfigurationConfig = httpConfigurationConfig
+    }
 }

@@ -11,6 +11,7 @@ import io.javalin.security.AccessManager
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
 import jakarta.servlet.http.HttpServletResponse
+import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -32,6 +33,8 @@ class PrivateConfig {
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
+    @JvmField var httpConfigurationConfig: Consumer<HttpConfiguration>? = null
+
     fun javaLangErrorHandler(handler: JavaLangErrorHandler) = apply { this.javaLangErrorHandler = handler }
     internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->
         res.status = INTERNAL_SERVER_ERROR.code

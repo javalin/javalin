@@ -75,8 +75,8 @@ class JettyServer(val cfg: JavalinConfig) {
             if (connectors.isEmpty()) { // user has not added their own connectors, we add a single HTTP connector
                 connectors = arrayOf(defaultConnector(this))
             } else {
-                if(cfg.jetty.customizers.isNotEmpty()){
-                    JavalinLogger.startup("Customizers added to the JettyConfig have not been applied as a custom Jetty server was provided")
+                if(cfg.pvt.httpConfigurationConfig != null){
+                    JavalinLogger.startup("Http Configuration added to the JettyConfig has not been applied as a custom Jetty server was provided")
                 }
             }
         }.start()
@@ -103,9 +103,8 @@ class JettyServer(val cfg: JavalinConfig) {
         val httpConfiguration = HttpConfiguration()
         httpConfiguration.uriCompliance = UriCompliance.RFC3986 // accept ambiguous values in path and let Javalin handle them
 
-        cfg.jetty.customizers.forEach {
-            httpConfiguration.addCustomizer(it)
-        }
+        //now apply the custom http configuration if we have one
+        cfg.pvt.httpConfigurationConfig?.accept(httpConfiguration)
 
         return ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
             this.port = serverPort
