@@ -25,4 +25,30 @@ class TestCustomJettyHttpConfiguration {
             assertThat(cf.httpConfiguration.customizers).contains(customizer)
         }
     }
+
+    @Test
+    fun `X-Fowarded-Proto Works With Customizer`() = TestUtil.test(Javalin.create { cfg ->
+        cfg.jetty.httpConfigurationConfig{
+            it.customizers.add(customizer)
+        }
+    }) { javalin, http ->
+        javalin.get("/"){
+            it.result(it.scheme())
+        }
+
+        val response = http.get("/", mapOf("X-Forwarded-Proto" to "https")).body
+
+        assertThat(response).isEqualTo("https")
+    }
+
+    @Test
+    fun `X-Fowarded-Proto Does Not Work Without Customizer`() = TestUtil.test(Javalin.create()) { javalin, http ->
+        javalin.get("/"){
+            it.result(it.scheme())
+        }
+
+        val response = http.get("/", mapOf("X-Forwarded-Proto" to "https")).body
+
+        assertThat(response).isNotEqualTo("https")
+    }
 }
