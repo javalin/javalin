@@ -10,13 +10,11 @@ import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.security.AccessManager
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
-import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
-import java.lang.Error
 import java.util.function.Consumer
 
 // @formatter:off
