@@ -69,12 +69,12 @@ class TestBodyReading {
             }
         }
         val params = "a=1" +      // single value
-                "&b=1&b=2&b=3" +  // multiple values
-                "&c=1=1" +        // value with '=' character
-                "&d=" +           // empty value
-                "&e" +            // also empty value
-                "&f=" + urlEncode("( # )") +   // %-encoded value with special chars
-                "&" + urlEncode("<g>") + "=g"  // %-encoded key with special chars
+            "&b=1&b=2&b=3" +  // multiple values
+            "&c=1=1" +        // value with '=' character
+            "&d=" +           // empty value
+            "&e" +            // also empty value
+            "&f=" + urlEncode("( # )") +   // %-encoded value with special chars
+            "&" + urlEncode("<g>") + "=g"  // %-encoded key with special chars
         val response = http.post("/?$params").body(params).asString()
         assertThat(response.body).isEqualTo("a: 1, as: [1]. b: 1, bs: [1, 2, 3]. c: 1=1, cs: [1=1]. d: , ds: []. e: , es: []. f: ( # ), fs: [( # )]. <g>: g, <g>s: [g]")
     }

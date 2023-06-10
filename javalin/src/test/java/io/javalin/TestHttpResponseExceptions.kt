@@ -6,16 +6,16 @@
 
 package io.javalin
 
-import io.javalin.http.Header
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.ContentType
 import io.javalin.http.ForbiddenResponse
+import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
-import io.javalin.http.UnauthorizedResponse
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.FORBIDDEN
 import io.javalin.http.HttpStatus.IM_A_TEAPOT
 import io.javalin.http.HttpStatus.UNAUTHORIZED
+import io.javalin.http.UnauthorizedResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import org.assertj.core.api.Assertions.assertThat

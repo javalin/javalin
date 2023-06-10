@@ -12,8 +12,8 @@ import io.javalin.compression.CompressionType.GZIP
 import io.javalin.compression.Gzip
 import io.javalin.compression.forType
 import io.javalin.compression.impl.GzipCompressor
-import io.javalin.http.Header
 import io.javalin.http.ContentType
+import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.bundled.RouteOverviewPlugin
 import io.javalin.testing.TestUtil

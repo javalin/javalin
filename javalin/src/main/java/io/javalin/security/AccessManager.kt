@@ -7,9 +7,6 @@ package io.javalin.security
 
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import kotlin.Throws
-import java.lang.Exception
-import java.lang.IllegalStateException
 
 /**
  * The access manager is a way of implementing per-endpoint security management.

@@ -7,16 +7,14 @@
 package io.javalin
 
 
-import com.nixxcode.jvmbrotli.dec.BrotliInputStream as JvmBrotliInputStream
-import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Gzip
-import io.javalin.util.FileUtil
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
+import io.javalin.util.FileUtil
 import kong.unirest.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -25,6 +23,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
 import java.util.zip.GZIPInputStream
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
+import com.nixxcode.jvmbrotli.dec.BrotliInputStream as JvmBrotliInputStream
 
 class TestCompression {
 
@@ -274,12 +274,12 @@ class TestCompression {
     }
 
     @Test
-    fun `doesn't compress when static files were pre-compressed`(){
+    fun `doesn't compress when static files were pre-compressed`() {
         val path = "/script.js"
         val gzipWebjars = Javalin.create {
             it.compression.gzipOnly()
             it.staticFiles.enableWebjars()
-            it.staticFiles.add{ staticFiles->
+            it.staticFiles.add { staticFiles ->
                 staticFiles.precompress = true
                 staticFiles.directory = "/public"
                 staticFiles.location = Location.CLASSPATH

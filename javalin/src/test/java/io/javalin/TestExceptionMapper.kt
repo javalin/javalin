@@ -8,16 +8,15 @@
 package io.javalin
 
 import io.javalin.http.BadRequestResponse
+import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus.BAD_REQUEST
 import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
-import io.javalin.http.HttpResponseException
 import io.javalin.http.NotFoundResponse
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
 import io.javalin.testing.httpCode
-import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.io.EofException
 import org.junit.jupiter.api.Test

@@ -34,6 +34,7 @@ object DefaultTasks {
                                 routeRoles = entry.roles
                             )
                         }
+
                         entry.roles.isNotEmpty() -> throw accessManagerNotConfiguredException()
                         else -> entry.handle(ctx, requestUri)
                     }

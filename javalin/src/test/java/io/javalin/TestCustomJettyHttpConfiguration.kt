@@ -14,9 +14,10 @@ import org.junit.jupiter.api.Test
 
 class TestCustomJettyHttpConfiguration {
     private val customizer = ForwardedRequestCustomizer()
+
     @Test
     fun `customizers get added`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.jetty.httpConfigurationConfig{
+        cfg.jetty.httpConfigurationConfig {
             it.customizers.add(customizer)
         }
     }) { javalin, http ->
@@ -28,11 +29,11 @@ class TestCustomJettyHttpConfiguration {
 
     @Test
     fun `X-Fowarded-Proto Works With Customizer`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.jetty.httpConfigurationConfig{
+        cfg.jetty.httpConfigurationConfig {
             it.customizers.add(customizer)
         }
     }) { javalin, http ->
-        javalin.get("/"){
+        javalin.get("/") {
             it.result(it.scheme())
         }
 
@@ -43,7 +44,7 @@ class TestCustomJettyHttpConfiguration {
 
     @Test
     fun `X-Fowarded-Proto Does Not Work Without Customizer`() = TestUtil.test(Javalin.create()) { javalin, http ->
-        javalin.get("/"){
+        javalin.get("/") {
             it.result(it.scheme())
         }
 

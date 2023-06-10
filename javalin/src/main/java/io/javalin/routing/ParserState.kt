@@ -33,16 +33,19 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 state = ParserState.INSIDE_SLASH_IGNORING_BRACKETS
                 null
             }
+
             '<' -> {
                 state = ParserState.INSIDE_SLASH_ACCEPTING_BRACKETS
                 null
             }
+
             '}', '>' -> throw MissingBracketsException(
                 segment,
                 rawPath
             ) // cannot start with a closing delimiter
             else -> createNormal(char.toString()) // the single characters will be merged later
         }
+
         ParserState.INSIDE_SLASH_IGNORING_BRACKETS -> when (char) {
             '}' -> {
                 state = ParserState.NORMAL
@@ -50,6 +53,7 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 pathNameAccumulator.clear()
                 createSlashIgnoringParam(name)
             }
+
             '{', '<', '>' -> throw MissingBracketsException(
                 segment,
                 rawPath
@@ -60,6 +64,7 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 null
             }
         }
+
         ParserState.INSIDE_SLASH_ACCEPTING_BRACKETS -> when (char) {
             '>' -> {
                 state = ParserState.NORMAL
@@ -67,6 +72,7 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 pathNameAccumulator.clear()
                 createSlashAcceptingParam(name)
             }
+
             '{', '}', '<' -> throw MissingBracketsException(
                 segment,
                 rawPath
@@ -89,6 +95,7 @@ private fun parseAsPathSegment(segment: String, rawPath: String): PathSegment {
                 lastAddition is PathSegment.Normal && pathSegment is PathSegment.Normal -> PathSegment.MultipleSegments(
                     acc.innerSegments.dropLast(1) + createNormal(lastAddition.content + pathSegment.content)
                 )
+
                 else -> PathSegment.MultipleSegments(acc.innerSegments + pathSegment)
             }
         }

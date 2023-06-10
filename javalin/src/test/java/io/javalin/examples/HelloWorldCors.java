@@ -7,7 +7,6 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import java.util.Set;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.patch;
 import static io.javalin.apibuilder.ApiBuilder.post;

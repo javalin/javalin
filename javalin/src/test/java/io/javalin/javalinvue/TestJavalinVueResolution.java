@@ -17,7 +17,6 @@ package io.javalin.javalinvue;
 
 import io.javalin.vue.VueComponent;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

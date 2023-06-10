@@ -15,10 +15,10 @@
 
     <dependencies>
 
-		<dependency>
-  			<groupId>org.jetbrains</groupId>
-  			<artifactId>annotations</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
 
         <!-- Logging -->
         <dependency>

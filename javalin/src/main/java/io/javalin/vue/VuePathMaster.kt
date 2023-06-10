@@ -6,7 +6,12 @@
 
 package io.javalin.vue
 
-import java.nio.file.*
+import java.nio.file.FileSystem
+import java.nio.file.FileSystemNotFoundException
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.stream.Collectors
 
 internal class VuePathMaster(val cfg: JavalinVueConfig) {

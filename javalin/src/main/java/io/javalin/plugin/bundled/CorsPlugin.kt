@@ -70,6 +70,7 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
             "At least one cors config has to be provided. Use CorsContainer.add() to add one."
         }
     }
+
     val configs = userConfigs.map { userConfig -> CorsPluginConfig().also { userConfig.accept(it) } }
 
 
@@ -110,7 +111,7 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
                 ctx.header(Header.ACCESS_CONTROL_ALLOW_METHODS, headerValue)
                 requestedHeader = true
             }
-            if(requestedHeader && cfg.maxAge >= 0) {
+            if (requestedHeader && cfg.maxAge >= 0) {
                 ctx.header(Header.ACCESS_CONTROL_MAX_AGE, cfg.maxAge.toString())
             }
 

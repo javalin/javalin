@@ -71,10 +71,13 @@ interface JsonMapper {
 
 @OptIn(ExperimentalStdlibApi::class)
 inline fun <reified T : Any> JsonMapper.toJsonString(obj: T): String = toJsonString(obj, typeOf<T>().javaType)
+
 @OptIn(ExperimentalStdlibApi::class)
 inline fun <reified T : Any> JsonMapper.toJsonStream(obj: T): InputStream = toJsonStream(obj, typeOf<T>().javaType)
+
 @OptIn(ExperimentalStdlibApi::class)
 inline fun <reified T : Any> JsonMapper.fromJsonString(json: String): T = fromJsonString(json, typeOf<T>().javaType)
+
 @OptIn(ExperimentalStdlibApi::class)
 inline fun <reified T : Any> JsonMapper.fromJsonStream(json: InputStream): T = fromJsonStream(json, typeOf<T>().javaType)
 

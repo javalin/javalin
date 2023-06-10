@@ -9,8 +9,8 @@ package io.javalin
 import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.http.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
-import io.javalin.testing.TestUtil.captureStdOut
 import io.javalin.testing.TestUtil
+import io.javalin.testing.TestUtil.captureStdOut
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll

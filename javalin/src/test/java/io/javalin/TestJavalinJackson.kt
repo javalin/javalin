@@ -60,6 +60,7 @@ internal class TestJavalinJackson {
     fun `can write a JSON stream with JavalinJackson`() =
         TestUtil.test(Javalin.create { it.jsonMapper(JavalinJackson()) }) { app, http ->
             data class Hello(val greet: String, val value: Long)
+
             var value = 0L
             val take = 100
             val seq = generateSequence { Hello("hi", value++) }

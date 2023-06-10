@@ -88,7 +88,7 @@ class TestAccessManager {
     }) { app, http ->
         app.get("/secured", { ctx ->
             ctx.async {
-               ctx.result("Test")
+                ctx.result("Test")
             }
         }, ROLE_ONE)
         assertThat(callWithRole(http.origin, "/secured", "ROLE_ONE")).isEqualTo("Test")

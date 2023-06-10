@@ -21,13 +21,14 @@ class TestStaticDirectorySlash {
 
     private val precompressingJavalin: Javalin by lazy {
         Javalin.create {
-            it.staticFiles.add{
+            it.staticFiles.add {
                 it.directory = "public"
                 it.location = Location.CLASSPATH
                 it.precompress = true
             }
         }
     }
+
     @Test
     fun `normal javalin ignores static directory slashes`() = TestUtil.test(normalJavalin) { _, http ->
         assertThat(http.getBody("/subpage")).isEqualTo("TEST") // ok, is directory

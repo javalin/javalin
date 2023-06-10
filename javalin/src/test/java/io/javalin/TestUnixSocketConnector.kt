@@ -20,7 +20,7 @@ class TestUnixSocketConnector {
     @Test
     fun `using unixsocket`() {
         assumeTrue(TestEnvironment.isNotWindows) // this test can never succeed on windows
-        assumeTrue(Runtime.version().feature()>=16) // the jetty-unixdomain-server module requires java 16
+        assumeTrue(Runtime.version().feature() >= 16) // the jetty-unixdomain-server module requires java 16
         val socketFileName = "/tmp/javalin.sock"
         val testPath = "/unixsocket"
         val expectedResultString = "hello unixsocket"
@@ -43,7 +43,7 @@ class TestUnixSocketConnector {
         TestUtil.test(unixSocketJavalin) { _, _ ->
 
             val of = Class.forName("java.net.UnixDomainSocketAddress").getMethod("of", socketFileName.javaClass)
-            val socketAddress = of.invoke(Any(),socketFileName)
+            val socketAddress = of.invoke(Any(), socketFileName)
             val socketChannel = SocketChannel.open(socketAddress as SocketAddress)
 
             val message = "GET $testPath HTTP/1.0\r\nHost:localhost\r\n\r\n"

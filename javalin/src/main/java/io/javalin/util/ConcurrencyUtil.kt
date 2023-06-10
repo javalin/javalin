@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger
 object ConcurrencyUtil {
 
     @Suppress("MemberVisibilityCanBePrivate")
-    /** Determines if Javalin should use Loom. By default true, set it to false to disable Loom integration. **/
+    // Determines if Javalin should use Loom. By default true, set it to false to disable Loom integration.
     var useLoom = true
 
     @JvmStatic

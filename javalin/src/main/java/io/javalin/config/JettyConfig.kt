@@ -29,7 +29,7 @@ class JettyConfig(private val pvt: PrivateConfig) {
         pvt.wsFactoryConfig = wsFactoryConfig
     }
 
-    fun httpConfigurationConfig(httpConfigurationConfig:  Consumer<HttpConfiguration>) {
+    fun httpConfigurationConfig(httpConfigurationConfig: Consumer<HttpConfiguration>) {
         pvt.httpConfigurationConfig = httpConfigurationConfig
     }
 }

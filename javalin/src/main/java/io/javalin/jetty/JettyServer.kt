@@ -50,7 +50,7 @@ class JettyServer(val cfg: JavalinConfig) {
         }
 
         val encodingMap = MimeTypes.getInferredEncodings()
-        encodingMap.put("text/plain","utf-8")
+        encodingMap.put("text/plain", "utf-8")
 
         cfg.pvt.sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
@@ -75,7 +75,7 @@ class JettyServer(val cfg: JavalinConfig) {
             if (connectors.isEmpty()) { // user has not added their own connectors, we add a single HTTP connector
                 connectors = arrayOf(defaultConnector(this))
             } else {
-                if(cfg.pvt.httpConfigurationConfig != null){
+                if (cfg.pvt.httpConfigurationConfig != null) {
                     JavalinLogger.startup("Http Configuration added to the JettyConfig has not been applied as a custom Jetty server was provided")
                 }
             }
@@ -130,6 +130,7 @@ class JettyServer(val cfg: JavalinConfig) {
             (this.unwrap() as? HandlerCollection)?.addHandler(servletContextHandler) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handler
             (this.unwrap() as? HandlerWrapper)?.handler = servletContextHandler // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
         }
+
         else -> throw IllegalStateException("Server has unsupported Handler attached to it (must be HandlerCollection or HandlerWrapper)")
     }
 

@@ -3,8 +3,8 @@ package io.javalin.compression
 import com.aayushatharva.brotli4j.Brotli4jLoader
 import com.nixxcode.jvmbrotli.common.BrotliLoader
 import io.javalin.compression.impl.Brotli4jCompressor
-import io.javalin.compression.impl.JvmBrotliCompressor
 import io.javalin.compression.impl.GzipCompressor
+import io.javalin.compression.impl.JvmBrotliCompressor
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
@@ -33,17 +33,29 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         // Check if the dependencies are present
         fun brotliJvmPresent() = Util.classExists(CoreDependency.JVMBROTLI.testClass)
         fun brotli4jPresent() = Util.classExists(CoreDependency.BROTLI4J.testClass)
+
         // Check if the native libraries are available
-        fun brotliJvmAvailable() = try {BrotliLoader.isBrotliAvailable()} catch (t: Throwable) {false}
-        fun brotli4jAvailable() = try {Brotli4jLoader.isAvailable()} catch (t: Throwable) {false}
+        fun brotliJvmAvailable() = try {
+            BrotliLoader.isBrotliAvailable()
+        } catch (t: Throwable) {
+            false
+        }
+
+        fun brotli4jAvailable() = try {
+            Brotli4jLoader.isAvailable()
+        } catch (t: Throwable) {
+            false
+        }
+
         /** @returns true if brotli is can be used */
         fun brotliImplAvailable() = (brotliJvmPresent() && brotliJvmAvailable()) || (brotli4jPresent() && brotli4jAvailable())
 
     }
-    val compressors : List<Compressor>
+
+    val compressors: List<Compressor>
 
     init {
-        val comp : MutableList<Compressor> = mutableListOf()
+        val comp: MutableList<Compressor> = mutableListOf()
         //Enabling brotli requires special handling since brotli is platform dependent
         if (brotli != null) tryLoadBrotli(brotli)?.let { comp.add(it) }
         if (gzip != null) comp.add(GzipCompressor(gzip.level))
@@ -72,7 +84,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * If this fails, we keep Brotli disabled and warn the user.
      */
     private fun tryLoadBrotli(brotli: Brotli): Compressor? {
-        if (!brotliJvmPresent()||!brotli4jPresent()) {
+        if (!brotliJvmPresent() || !brotli4jPresent()) {
             throw IllegalStateException(DependencyUtil.missingDependencyMessage(CoreDependency.BROTLI4J))
         }
         return when {

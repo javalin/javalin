@@ -14,7 +14,7 @@ import io.javalin.apibuilder.ApiBuilder.post
 fun main() {
 
     val corsApp = Javalin.create {
-        it.plugins.enableCors {cors ->
+        it.plugins.enableCors { cors ->
             cors.add {
                 it.allowHost("http://localhost:7001/", "http://localhost:7002")
             }

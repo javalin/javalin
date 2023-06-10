@@ -46,6 +46,6 @@ class SslRedirectPlugin @JvmOverloads constructor(
     // ServerConnector.port returns 0 if port is not set explicitly,
     // so we need to use localPort as a fallback value
     private fun ServerConnector.usedPort(): Int =
-        port.takeIf { it != 0 }?: localPort
+        port.takeIf { it != 0 } ?: localPort
 
 }

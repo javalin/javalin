@@ -7,18 +7,12 @@
 
 package io.javalin
 
-import io.javalin.http.HttpStatus.IM_A_TEAPOT
-import io.javalin.util.LoomUtil
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.testing.TestServlet
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
+import io.javalin.util.LoomUtil
 import jakarta.servlet.DispatcherType
-import jakarta.servlet.Filter
-import jakarta.servlet.FilterChain
-import jakarta.servlet.FilterConfig
-import jakarta.servlet.ServletRequest
-import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

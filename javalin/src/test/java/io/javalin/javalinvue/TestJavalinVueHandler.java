@@ -6,7 +6,6 @@ import io.javalin.vue.VueHandler;
 import io.javalin.vue.VueRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestJavalinVueHandler {

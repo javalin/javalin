@@ -7,9 +7,9 @@
 package io.javalin.http
 
 import io.javalin.config.contextResolver
+import io.javalin.http.servlet.attributeOrCompute
 import io.javalin.http.servlet.cacheAndSetSessionAttribute
 import io.javalin.http.servlet.cachedSessionAttributeOrCompute
-import io.javalin.http.servlet.attributeOrCompute
 import io.javalin.http.servlet.getBasicAuthCredentials
 import io.javalin.http.servlet.getCachedRequestAttributeOrSessionAttribute
 import io.javalin.http.servlet.getRequestCharset
@@ -21,7 +21,6 @@ import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
 import io.javalin.http.util.SeekableWriter
 import io.javalin.json.jsonMapper
-import io.javalin.rendering.JavalinRenderer
 import io.javalin.rendering.fileRenderer
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.function.ThrowingRunnable
@@ -276,7 +275,7 @@ interface Context {
      * the value is the list of files uploaded under that parameter.
      *
      * If called on a non-multipart request this returns an empty map
-    */
+     */
     fun uploadedFileMap(): Map<String, List<UploadedFile>> = when {
         isMultipartFormData() -> MultipartUtil.getUploadedFileMap(req())
         else -> emptyMap()
@@ -429,6 +428,7 @@ interface Context {
      * Also sets content type to application/json.
      */
     fun jsonStream(obj: Any, type: Type): Context = contentType(ContentType.APPLICATION_JSON).result(jsonMapper().toJsonStream(obj, type))
+
     /** @see [jsonStream] */
     fun jsonStream(obj: Any): Context = jsonStream(obj, obj::class.java)
 

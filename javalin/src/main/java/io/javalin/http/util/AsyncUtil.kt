@@ -11,7 +11,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-import kotlin.Exception
 
 internal object AsyncUtil {
 
@@ -28,14 +27,15 @@ internal object AsyncUtil {
 
             CompletableFuture.runAsync({ task.run() }, executor ?: defaultExecutor)
                 .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
-                .let { if (onTimeout == null) it else it.exceptionally { exception ->
-                    exception as? TimeoutException
-                        ?: exception?.cause as? TimeoutException?
-                        ?: throw exception // rethrow if exception or its cause is not TimeoutException
-                    onTimeout.run()
-                    null // handled
+                .let {
+                    if (onTimeout == null) it else it.exceptionally { exception ->
+                        exception as? TimeoutException
+                            ?: exception?.cause as? TimeoutException?
+                            ?: throw exception // rethrow if exception or its cause is not TimeoutException
+                        onTimeout.run()
+                        null // handled
+                    }
                 }
-            }
         }
 
     internal fun Context.isAsync(): Boolean =

@@ -8,9 +8,9 @@ package io.javalin.examples;
 
 import io.javalin.Javalin;
 import io.javalin.json.JsonMapper;
-import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import org.jetbrains.annotations.NotNull;
 
 public class HelloWorldCustomJsonMapper {
 
@@ -30,8 +30,9 @@ public class HelloWorldCustomJsonMapper {
                 // deserialize json your favourite api
                 if (targetType.equals(String.class)) {
                     return (T) json;
+                } else {
+                    throw new UnsupportedOperationException("RawJsonMapper can deserialize only strings");
                 }
-                else throw new UnsupportedOperationException("RawJsonMapper can deserialize only strings");
             }
         };
 

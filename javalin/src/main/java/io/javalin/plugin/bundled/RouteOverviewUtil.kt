@@ -214,6 +214,7 @@ object RouteOverviewUtil {
                     }
 
                 }
+
                 isKotlinAnonymousLambda -> parentClass.name + "::" + lambdaSign
                 isKotlinField -> parentClass.name + "." + kotlinFieldName
                 isJavaField -> parentClass.name + "." + javaFieldName

@@ -15,6 +15,7 @@ class LegacyFileRenderer : FileRenderer {
     init {
         JavalinRenderer.loadFileRenderers()
     }
+
     override fun render(filePath: String, model: Map<String, Any?>, context: Context) =
         JavalinRenderer.renderBasedOnExtension(filePath, model, context)
 }

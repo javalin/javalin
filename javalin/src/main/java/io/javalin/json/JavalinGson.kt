@@ -6,7 +6,11 @@ import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
-import java.io.*
+import java.io.BufferedWriter
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.lang.reflect.Type
 import java.util.stream.Stream
 

@@ -240,7 +240,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun `returning files as map works`() = TestUtil.test{ app, http ->
+    fun `returning files as map works`() = TestUtil.test { app, http ->
         app.post("/test-upload-map") { ctx ->
             //get the uploaded files as a map and then sort them
             val files = ctx.uploadedFileMap().toSortedMap()
@@ -271,7 +271,7 @@ class TestMultipartForms {
     }
 
     @Test
-    fun `changing the multipart config correctly sets it`() = TestUtil.test{ app, http ->
+    fun `changing the multipart config correctly sets it`() = TestUtil.test { app, http ->
 
         //note: this test does not check the cache directory is set correctly as there is no way to know which
         //paths exist and are writable on the system the test is being run on.  However, if the other parameters
@@ -299,7 +299,7 @@ class TestMultipartForms {
             .body
 
         //create the expected response which are the various sizes (in bytes) separated by colons
-        val expected = "${100*1024*1024}:${10*1024*1024}:${1*1024*1024*1024}"
+        val expected = "${100 * 1024 * 1024}:${10 * 1024 * 1024}:${1 * 1024 * 1024 * 1024}"
 
         //and verify it
         assertThat(response).isEqualTo(expected)

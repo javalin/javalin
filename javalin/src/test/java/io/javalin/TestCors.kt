@@ -387,7 +387,7 @@ class TestCors {
         }
 
         @Test
-        fun `maxAge is present in preflight`() = TestUtil.test(Javalin.create(){cfg ->
+        fun `maxAge is present in preflight`() = TestUtil.test(Javalin.create() { cfg ->
             cfg.plugins.enableCors { cors ->
                 cors.add {
                     it.anyHost()
@@ -403,7 +403,7 @@ class TestCors {
         }
 
         @Test
-        fun `maxAge is absent outside of preflight`() = TestUtil.test(Javalin.create(){cfg ->
+        fun `maxAge is absent outside of preflight`() = TestUtil.test(Javalin.create() { cfg ->
             cfg.plugins.enableCors { cors ->
                 cors.add {
                     it.anyHost()

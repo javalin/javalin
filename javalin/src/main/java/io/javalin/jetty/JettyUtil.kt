@@ -43,6 +43,7 @@ object JettyUtil {
         val unwrapped = (t as? CompletionException)?.cause ?: t
         return isClientAbortException(unwrapped) || isJettyTimeoutException(unwrapped)
     }
+
     fun logDebugAndSetError(t: Throwable, res: HttpServletResponse) {
         JavalinLogger.debug("Client aborted or timed out", t)
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code

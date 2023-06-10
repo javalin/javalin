@@ -49,7 +49,7 @@ class PathParser(private val rawPath: String, routingConfig: RoutingConfig) {
         }
     }
 
-    private val regexOptions : Set<RegexOption> = when {
+    private val regexOptions: Set<RegexOption> = when {
         routingConfig.caseInsensitiveRoutes -> setOf(RegexOption.IGNORE_CASE)
         else -> emptySet()
     }

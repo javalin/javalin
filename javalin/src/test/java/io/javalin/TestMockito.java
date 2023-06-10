@@ -2,10 +2,8 @@ package io.javalin;
 
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.atomic.AtomicReference;
-
+import org.junit.jupiter.api.Test;
 import static io.javalin.http.HttpStatus.IM_A_TEAPOT;
 import static io.javalin.http.HttpStatus.OK;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;

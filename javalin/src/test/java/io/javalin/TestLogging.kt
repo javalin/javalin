@@ -7,8 +7,8 @@
 package io.javalin
 
 import io.javalin.testing.HttpUtil
-import io.javalin.testing.TestUtil.captureStdOut
 import io.javalin.testing.TestUtil
+import io.javalin.testing.TestUtil.captureStdOut
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.io.File

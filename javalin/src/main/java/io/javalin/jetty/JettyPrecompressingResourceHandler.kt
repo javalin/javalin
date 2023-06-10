@@ -1,7 +1,10 @@
 package io.javalin.jetty
 
-import io.javalin.compression.*
+import io.javalin.compression.Brotli
+import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.CompressionStrategy.Companion.brotliImplAvailable
+import io.javalin.compression.Gzip
+import io.javalin.compression.forType
 import io.javalin.http.Header
 import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
@@ -15,16 +18,17 @@ import java.util.concurrent.ConcurrentHashMap
 object JettyPrecompressingResourceHandler {
 
     val compressedFiles = ConcurrentHashMap<String, ByteArray>()
+
     @JvmStatic
     fun clearCache() = compressedFiles.clear()
 
-    private val compressionStrategy : CompressionStrategy
+    private val compressionStrategy: CompressionStrategy
 
     init {
         compressionStrategy = if (brotliImplAvailable()) {
             CompressionStrategy(Brotli(11), Gzip(9))
         } else {
-            CompressionStrategy(null,Gzip(9))
+            CompressionStrategy(null, Gzip(9))
         }
 
     }
