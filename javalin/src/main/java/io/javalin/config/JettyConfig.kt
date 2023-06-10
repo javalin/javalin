@@ -1,5 +1,6 @@
 package io.javalin.config
 
+import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -28,4 +29,7 @@ class JettyConfig(private val pvt: PrivateConfig) {
         pvt.wsFactoryConfig = wsFactoryConfig
     }
 
+    fun httpConfigurationConfig(httpConfigurationConfig:  Consumer<HttpConfiguration>) {
+        pvt.httpConfigurationConfig = httpConfigurationConfig
+    }
 }
