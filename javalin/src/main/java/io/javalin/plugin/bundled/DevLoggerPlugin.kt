@@ -90,7 +90,7 @@ private fun WsContext.logEvent(event: String, additionalInfo: String = "") {
     JavalinLogger.info(
         """|JAVALIN WEBSOCKET DEBUG LOG
            |WebSocket Event: $event
-           |Session Id: ${this.sessionId}
+           |Session Id: ${this.sessionId()}
            |Host: ${this.host()}
            |Matched Path: ${this.matchedPath()}
            |PathParams: ${this.pathParamMap()}
