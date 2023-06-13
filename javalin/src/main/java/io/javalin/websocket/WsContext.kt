@@ -24,7 +24,7 @@ import kotlin.reflect.typeOf
  * It adds functionality similar to the API found in [io.javalin.http.Context].
  * It also adds a [send] method, which calls [RemoteEndpoint.sendString] on [Session.getRemote]
  */
-abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
+abstract class WsContext(private val sessionId: String, @JvmField val session: Session) {
 
     internal val upgradeReq by lazy { session.jettyUpgradeRequest() }
     internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
@@ -86,6 +86,9 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
 
     /** Returns a [Map] of all the path parameters */
     fun pathParamMap(): Map<String, String> = upgradeCtx.pathParamMap()
+
+    /** Returns a [String] of the session id */
+    fun sessionId(): String = sessionId
 
     /** Returns a path param by name (ex: pathParam("param")).
      *

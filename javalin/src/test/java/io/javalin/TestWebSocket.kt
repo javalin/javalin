@@ -75,13 +75,13 @@ class TestWebSocket {
     @Test
     fun `each connection receives a unique id`() = TestUtil.test(contextPathJavalin()) { app, _ ->
         app.ws("/test-websocket-1") { ws ->
-            ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId) }
-            ws.onClose { ctx -> app.logger().log.add(ctx.sessionId) }
+            ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId()) }
+            ws.onClose { ctx -> app.logger().log.add(ctx.sessionId()) }
         }
         app.routes {
             ws("/test-websocket-2") { ws ->
-                ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId) }
-                ws.onClose { ctx -> app.logger().log.add(ctx.sessionId) }
+                ws.onConnect { ctx -> app.logger().log.add(ctx.sessionId()) }
+                ws.onClose { ctx -> app.logger().log.add(ctx.sessionId()) }
             }
         }
         TestClient(app, "/websocket/test-websocket-1").connectAndDisconnect()
