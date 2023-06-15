@@ -29,10 +29,10 @@ abstract class VueHandler(private val componentId: String) : Handler {
             allFiles.find { it.endsWith("vue/layout.html") }!!.readText() // we start with the layout file
                 .preRenderHook(ctx)
                 .inlineFiles(c.isDev!!, allFiles.filterNot { it.isVueFile() }) // we then inline css/js files
-                .replace("@componentRegistration", "@loadableData@componentRegistration@serverState") // add anchors for later
+                .replace("@componentRegistration", "@serverState@loadableData@componentRegistration") // add anchors for later
+                .replace("@serverState", VueStateRenderer.getState(ctx, state(ctx))) // add escaped params and state
                 .replace("@loadableData", loadableDataScript) // add loadable data class
                 .replace("@componentRegistration", dependencies) // add all dependencies
-                .replace("@serverState", VueStateRenderer.getState(ctx, state(ctx))) // add escaped params and state
                 .replace("@routeComponent", routeComponent) // finally, add the route component itself
                 .replace("@cdnWebjar/", if (c.isDev == true) "/webjars/" else "https://cdn.jsdelivr.net/webjars/org.webjars.npm/")
                 .insertNoncesAndCspHeader(c.enableCspAndNonces, ctx)

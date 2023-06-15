@@ -51,7 +51,7 @@ class TestJavalinVueBrowser {
         app.get("/vue/{my-param}", VueComponent("test-component"))
         driver.get(http.origin + "/vue/odd&co")
         driver.executeScript("let ld = new LoadableData()") // would throw if loadable data was removed by CSP
-        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
+        val pathParam = driver.executeScript("""return JavalinVue.pathParams["my-param"]""") as String
         assertThat(pathParam).isEqualTo("odd&co")
     }
 
@@ -78,7 +78,7 @@ class TestJavalinVueBrowser {
     fun `path params are not html-encoded on the Vue prototype`() = VueTestUtil.test { app, http ->
         app.get("/vue/{my-param}", VueComponent("test-component"))
         driver.get(http.origin + "/vue/odd&co")
-        val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
+        val pathParam = driver.executeScript("""return JavalinVue.pathParams["my-param"]""") as String
         assertThat(pathParam).isEqualTo("odd&co")
     }
 
@@ -88,7 +88,7 @@ class TestJavalinVueBrowser {
         VueTestUtil.test({ it.vue.stateFunction = { mapOf("some_key" to testValue) } }) { app, http ->
             app.get("/script_in_state", VueComponent("test-component"))
             driver.get(http.origin + "/script_in_state")
-            val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
+            val stateValue = driver.executeScript("""return JavalinVue.state["some_key"]""") as String
             assertThat(stateValue).isEqualTo(testValue)
         }
     }
@@ -99,8 +99,8 @@ class TestJavalinVueBrowser {
         VueTestUtil.test({ it.vue.stateFunction = { mapOf("some_key" to testValue) } }) { app, http ->
             app.get("/script_in_state/{param}", VueComponent("test-component"))
             driver.get(http.origin + "/script_in_state/my_path_param_with_\uD83D\uDE80")
-            val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
-            val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
+            val stateValue = driver.executeScript("""return JavalinVue.state["some_key"]""") as String
+            val pathParam = driver.executeScript("""return JavalinVue.pathParams["param"]""") as String
             assertThat(stateValue).isEqualTo(testValue)
             assertThat(pathParam).isEqualTo("my_path_param_with_\uD83D\uDE80")
         }
@@ -113,8 +113,8 @@ class TestJavalinVueBrowser {
         VueTestUtil.test({ it.vue.stateFunction = { mapOf("some_key" to testValue) } }) { app, http ->
             app.get("/script_in_state/{param}", VueComponent("test-component"))
             driver.get(http.origin + "/script_in_state/$testValue")
-            val stateValue = driver.executeScript("""return Vue.prototype.${"$"}javalin.state["some_key"]""") as String
-            val pathParam = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["param"]""") as String
+            val stateValue = driver.executeScript("""return JavalinVue.state["some_key"]""") as String
+            val pathParam = driver.executeScript("""return JavalinVue.pathParams["param"]""") as String
             assertThat(stateValue).isEqualTo(testValue)
             assertThat(pathParam).isEqualTo(testValue)
         }

@@ -37,7 +37,7 @@ class TestJavalinVue {
         assertThat(res).contains(encodedState)
         assertThat(res).contains("""Vue.component("test-component", {template: "#test-component"});""")
         assertThat(res).contains("<body><test-component></test-component></body>")
-        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).contains("window.JavalinVue")
     }
 
     @Test
@@ -47,7 +47,7 @@ class TestJavalinVue {
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
-        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).contains("window.JavalinVue")
     }
 
     @Test
@@ -61,7 +61,7 @@ class TestJavalinVue {
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
-        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).contains("window.JavalinVue")
         assertThat(res).contains("PRE_RENDER")
         assertThat(res).doesNotContain("POST_RENDER")
     }
@@ -77,7 +77,7 @@ class TestJavalinVue {
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
-        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).contains("window.JavalinVue")
         assertThat(res).doesNotContain("PRE_RENDER")
         assertThat(res).contains("POST_RENDER")
     }
@@ -89,7 +89,7 @@ class TestJavalinVue {
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
-        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).contains("window.JavalinVue")
         assertThat(res).doesNotContain("PRE_RENDER")
         assertThat(res).doesNotContain("POST_RENDER")
     }
@@ -109,7 +109,7 @@ class TestJavalinVue {
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component></test-component></body>")
-        assertThat(res).contains("Vue.prototype.\$javalin")
+        assertThat(res).contains("window.JavalinVue")
         assertThat(res).contains("POST_RENDER")
         assertThat(res).contains("PRE_RENDER")
     }
@@ -123,7 +123,7 @@ class TestJavalinVue {
         val res = http.getBody("/no-state")
         assertThat(res).contains(encodedEmptyState)
         assertThat(res).contains("<body><test-component-3></test-component-3></body>")
-        assertThat(res).contains("app.config.globalProperties.\$javalin")
+        assertThat(res).contains("window.JavalinVue")
     }
 
 
@@ -138,7 +138,7 @@ class TestJavalinVue {
         assertThat(res).contains(encodedState)
         assertThat(res).contains("""app.component("test-component-3", {template: "#test-component-3"});""")
         assertThat(res).contains("<body><test-component-3></test-component-3></body>")
-        assertThat(res).contains("app.config.globalProperties.\$javalin")
+        assertThat(res).contains("window.JavalinVue")
     }
 
     @Test
