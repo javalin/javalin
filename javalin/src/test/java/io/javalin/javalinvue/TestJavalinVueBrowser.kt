@@ -137,7 +137,7 @@ class TestJavalinVueBrowser {
         assertThat(driver.checkWindow("ld.loading === false")).isTrue()
         assertThat(driver.checkWindow("ld.loadError === null")).isTrue()
         assertThat(driver.checkWindow("ld.data.length === 1")).isTrue()
-        assertThat(driver.checkWindow("localStorage.length === 1")).isTrue() // cache is true by default
+        assertThat(driver.checkWindow("localStorage.length === 0")).isTrue() // cache is false by default
         driver.createMaryOnBackend()
         driver.executeScript("window.ld.refresh()")
         driver.waitForCondition("ld.loaded")
@@ -152,17 +152,27 @@ class TestJavalinVueBrowser {
     }
 
     @Test
-    fun `LoadableData cache can be disabled`() = TestUtil.test(loadableDataTestApp()) { app, http ->
+    fun `LoadableData cache can be enabled`() = TestUtil.test(loadableDataTestApp()) { app, http ->
         driver.get(http.origin + "/ld")
         driver.executeScript("localStorage.clear()")
-        driver.createLoadableData("ld", "new LoadableData('/api/users', false)")
+        driver.createLoadableData("ld", "new LoadableData('/api/users', {cache: true})")
+        assertThat(driver.checkWindow("localStorage.length === 1")).isTrue()
+    }
+
+    @Test
+    fun `LoadableData cache can be invalidated`() = TestUtil.test(loadableDataTestApp()) { app, http ->
+        driver.get(http.origin + "/ld")
+        driver.executeScript("localStorage.clear()")
+        driver.createLoadableData("ld", "new LoadableData('/api/users', {cache: true})")
+        assertThat(driver.checkWindow("localStorage.length === 1")).isTrue()
+        driver.executeScript("window.ld.invalidateCache()")
         assertThat(driver.checkWindow("localStorage.length === 0")).isTrue()
     }
 
     @Test
     fun `LoadableData errorCallback works`() = TestUtil.test(loadableDataTestApp()) { app, http ->
         driver.get(http.origin + "/ld")
-        driver.createLoadableData("ld", "new LoadableData('/wrong-url', false, () => window.myVar = 'Error')")
+        driver.createLoadableData("ld", "new LoadableData('/wrong-url', {errorCallback: () => window.myVar = 'Error'})")
         assertThat(driver.checkWindow("ld.loadError.code === 404")).isTrue()
         assertThat(driver.checkWindow("myVar === 'Error'")).isTrue()
     }
@@ -173,16 +183,6 @@ class TestJavalinVueBrowser {
         driver.createLoadableData("ld", "new LoadableData('/api/users')")
         driver.createMaryOnBackend()
         driver.executeScript("window.ld.refresh()")
-        driver.waitForCondition("ld.loaded") // refresh sets this to false
-        assertThat(driver.checkWindow("ld.data.length === 2")).isTrue()
-    }
-
-    @Test
-    fun `LoadableData instance can be refreshed through static method`() = TestUtil.test(loadableDataTestApp()) { app, http ->
-        driver.get(http.origin + "/ld")
-        driver.createLoadableData("ld", "new LoadableData('/api/users')")
-        driver.createMaryOnBackend()
-        driver.executeScript("LoadableData.refreshAll('/api/users')")
         driver.waitForCondition("ld.loaded") // refresh sets this to false
         assertThat(driver.checkWindow("ld.data.length === 2")).isTrue()
     }

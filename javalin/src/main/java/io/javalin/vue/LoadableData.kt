@@ -4,13 +4,13 @@ const val loadableDataScript = """
 
 <script nonce="@internalAddNonce">
     class LoadableData {
-        constructor(url, cache = true, errorCallback = null) {
+        constructor(url, options = {cache: false, errorCallback: null}) {
             this._url = url;
-            this._errorCallback = errorCallback;
-            this.refresh(cache);
-            this.addRefreshListener();
+            this._errorCallback = options.errorCallback ?? null;
+            this.refresh(options.cache ?? false); // initial load
+            this.addRefreshListener(); // listen for global refresh events
         }
-        refresh(cache = true) {
+        refresh(cache = false) {
             this.data = null;
             this.loading = true;
             this.loaded = false;
@@ -23,7 +23,7 @@ const val loadableDataScript = """
             }
             fetch(this._url).then(res => {
                 if (res.ok) return res.json();
-                throw JSON.stringify({code: res.status, text: res.statusText});
+                throw { code: res.status, text: res.statusText };
             }).then(data => {
                 this.data = data;
                 this.loaded = true;
@@ -31,22 +31,22 @@ const val loadableDataScript = """
                     localStorage.setItem(cacheKey, JSON.stringify(data));
                 }
             }).catch(error => {
-                this.loadError = JSON.parse(error);
+                this.loadError = error;
                 if (this._errorCallback !== null) { // should probably handle in UI
                     this._errorCallback(error);
                 }
             }).finally(() => this.loading = false);
         }
         refreshAll() {
-            LoadableData.refreshAll(this._url);
+            window.dispatchEvent(new CustomEvent("loadabledata-refresh", {detail: this._url}));
         }
-        static refreshAll(url) {
-            window.dispatchEvent(new CustomEvent("javalinvue-loadable-data-update", {detail: url}));
+        invalidateCache() {
+            localStorage.removeItem("LoadableData:" + this._url);
         }
         addRefreshListener() {
-            window.addEventListener("javalinvue-loadable-data-update", e => {
+            window.addEventListener("loadabledata-refresh", e => {
                 if (this._url === e.detail) {
-                    this.refresh(false);
+                    this.refresh();
                 }
             }, false);
         }
