@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
 import java.util.zip.GZIPInputStream
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
-import com.nixxcode.jvmbrotli.dec.BrotliInputStream as JvmBrotliInputStream
 
 class TestCompression {
 
@@ -303,7 +302,6 @@ class TestCompression {
         val response = getResponse(origin, url, "br")
         assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("br")
         val brotliInputStream = when {
-            CompressionStrategy.brotliJvmAvailable() -> JvmBrotliInputStream(response.body!!.byteStream())
             CompressionStrategy.brotli4jAvailable() -> Brotli4jInputStream(response.body!!.byteStream())
             else -> throw RuntimeException("No brotli implementation found")
         }
