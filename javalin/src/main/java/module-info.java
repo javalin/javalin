@@ -35,7 +35,6 @@ module io.javalin {
 
     //optional dependencies
     requires static com.aayushatharva.brotli4j;
-    requires static jvmbrotli;
     requires static com.aayushatharva.brotli4j.service;
     requires static com.fasterxml.jackson.databind;
     requires static com.fasterxml.jackson.kotlin;

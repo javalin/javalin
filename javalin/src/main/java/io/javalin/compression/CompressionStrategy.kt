@@ -1,10 +1,8 @@
 package io.javalin.compression
 
 import com.aayushatharva.brotli4j.Brotli4jLoader
-import com.nixxcode.jvmbrotli.common.BrotliLoader
 import io.javalin.compression.impl.Brotli4jCompressor
 import io.javalin.compression.impl.GzipCompressor
-import io.javalin.compression.impl.JvmBrotliCompressor
 import io.javalin.util.CoreDependency
 import io.javalin.util.DependencyUtil
 import io.javalin.util.JavalinLogger
@@ -30,16 +28,10 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         @JvmField
         val GZIP = CompressionStrategy(null, Gzip())
 
-        // Check if the dependencies are present
-        fun brotliJvmPresent() = Util.classExists(CoreDependency.JVMBROTLI.testClass)
+        // Check if the dependency is present
         fun brotli4jPresent() = Util.classExists(CoreDependency.BROTLI4J.testClass)
 
         // Check if the native libraries are available
-        fun brotliJvmAvailable() = try {
-            BrotliLoader.isBrotliAvailable()
-        } catch (t: Throwable) {
-            false
-        }
 
         fun brotli4jAvailable() = try {
             Brotli4jLoader.isAvailable()
@@ -48,7 +40,7 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
         }
 
         /** @returns true if brotli is can be used */
-        fun brotliImplAvailable() = (brotliJvmPresent() && brotliJvmAvailable()) || (brotli4jPresent() && brotli4jAvailable())
+        fun brotliImplAvailable() =  brotli4jPresent() && brotli4jAvailable()
 
     }
 
@@ -84,12 +76,11 @@ class CompressionStrategy(brotli: Brotli? = null, gzip: Gzip? = null) {
      * If this fails, we keep Brotli disabled and warn the user.
      */
     private fun tryLoadBrotli(brotli: Brotli): Compressor? {
-        if (!brotliJvmPresent() || !brotli4jPresent()) {
+        if (!brotli4jPresent()) {
             throw IllegalStateException(DependencyUtil.missingDependencyMessage(CoreDependency.BROTLI4J))
         }
         return when {
             Brotli4jLoader.isAvailable() -> return Brotli4jCompressor(brotli.level)
-            BrotliLoader.isBrotliAvailable() -> return JvmBrotliCompressor(brotli.level)
             else -> {
                 JavalinLogger.warn(
                     """|
