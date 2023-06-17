@@ -28,7 +28,7 @@ class SslRedirectPlugin @JvmOverloads constructor(
 
                 val urlWithHttpsAndPort = app.jettyServer()
                     ?.takeIf { sslPort != null }
-                    ?.server()
+                    ?.server
                     ?.connectors
                     ?.filterIsInstance<ServerConnector>()
                     ?.firstOrNull { urlWithHttps.contains(":${it.usedPort()}/") }

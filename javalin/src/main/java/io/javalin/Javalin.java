@@ -54,7 +54,7 @@ public class Javalin implements AutoCloseable {
     public JavalinConfig cfg = new JavalinConfig();
 
     protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
-    protected JettyServer jettyServer = new JettyServer(cfg);
+    protected JettyServer jettyServer = null;
     protected JavalinJettyServlet javalinJettyServlet = null;
     // this can be replaced with a lazy kotlin property, if we convert this file to kotlin...
     private JavalinJettyServlet javalinJettyServlet() {
@@ -90,6 +90,7 @@ public class Javalin implements AutoCloseable {
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
         JavalinConfig.applyUserConfig(app, app.cfg, config); // mutates app.config and app (adds http-handlers)
+        app.jettyServer = new JettyServer(app.cfg);
         return app;
     }
 
@@ -160,7 +161,7 @@ public class Javalin implements AutoCloseable {
         } catch (Exception e) {
             JavalinLogger.error("Failed to start Javalin");
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
-            if (Boolean.TRUE.equals(jettyServer.server().getAttribute("is-default-server"))) {
+            if (Boolean.TRUE.equals(jettyServer.server.getAttribute("is-default-server"))) {
                 stop();// stop if server is default server; otherwise, the caller is responsible to stop
             }
             if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
@@ -189,7 +190,7 @@ public class Javalin implements AutoCloseable {
         JavalinLogger.info("Stopping Javalin ...");
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
         try {
-            jettyServer.server().stop();
+            jettyServer.server.stop();
         } catch (Exception e) {
             eventManager.fireEvent(JavalinEvent.SERVER_STOP_FAILED);
             JavalinLogger.error("Javalin failed to stop gracefully", e);
@@ -207,7 +208,7 @@ public class Javalin implements AutoCloseable {
      */
     @Override
     public void close() {
-        final Server server = jettyServer.server();
+        final Server server = jettyServer.server;
         if (server.isStopping() || server.isStopped()) {
             return;
         }

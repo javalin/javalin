@@ -25,7 +25,7 @@ class TestClose_Java {
                 // do nothing
             }
 
-            final Server server = Objects.requireNonNull(app.jettyServer()).server();
+            final Server server = Objects.requireNonNull(app.jettyServer()).server;
             assertThat(server.isStopped()).isTrue();
         });
     }
@@ -61,7 +61,7 @@ class TestClose_Java {
                 startedApp.close();
             }
 
-            final Server server = Objects.requireNonNull(app.jettyServer()).server();
+            final Server server = Objects.requireNonNull(app.jettyServer()).server;
             assertThat(server.isStopped()).isTrue();
             assertThat(log.toString()).isEqualTo("StoppingStopped");
         });

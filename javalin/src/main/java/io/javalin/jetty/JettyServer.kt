@@ -11,7 +11,6 @@ import io.javalin.http.ContentType
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
-import io.javalin.util.Util.logJavalinBanner
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.HttpCookie
@@ -47,48 +46,39 @@ class JettyServer(val cfg: JavalinConfig) {
         }.start()
     }
 
-    @JvmField
-    var started = false
-
-    @JvmField
-    var serverPort = 8080
-
-    @JvmField
-    var serverHost: String? = null
-
-    fun server(): Server {
-        cfg.pvt.server = cfg.pvt.server ?: defaultServer()
-        return cfg.pvt.server!!
-    }
+    //@formatter:off
+    @JvmField var started = false
+    @JvmField var serverPort = 8080
+    @JvmField var serverHost: String? = null
+    @JvmField var server = cfg.pvt.server
+    //@formatter:on
 
     @Throws(BindException::class)
     fun start(wsAndHttpServlet: JavalinJettyServlet) {
         val wsAndHttpHandler = createServletContextHandler()
         wsAndHttpHandler.contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
-        wsAndHttpHandler.sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
+        wsAndHttpHandler.sessionHandler = cfg.pvt.sessionHandler
         wsAndHttpHandler.addServlet(ServletHolder(wsAndHttpServlet), "/*")
         cfg.pvt.servletContextHandlerConsumer?.accept(wsAndHttpHandler)
 
-        server().apply {
-            handler = if (handler == null) wsAndHttpHandler else handler.attachHandler(wsAndHttpHandler)
-            if (connectors.isEmpty()) { // user has not added their own connectors, we add a single HTTP connector
-                connectors = arrayOf(defaultConnector(this))
-            }
-        }.start() // start Jetty server
+        server.apply {
+            handler = handler.attachHandler(wsAndHttpHandler)
+            connectors = if (connectors.isEmpty()) arrayOf(defaultConnector(this)) else connectors
+        }.start() // start Jetty server, Jetty will log a bunch of stuff here
 
-        logJavalinBanner(cfg.showJavalinBanner)
+        Util.logJavalinBanner(cfg.showJavalinBanner)
 
-        (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // we want to init this here to get logs in order
+        (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // also for logging
 
-        server().connectors.filterIsInstance<ServerConnector>().forEach {
-            JavalinLogger.startup("Listening on ${it.protocol}://${it.host ?: "localhost"}:${it.localPort}${cfg.routing.contextPath}")
+        server.connectors.filterIsInstance<ServerConnector>().forEach {
+            JavalinLogger.startup("Listening on ${it.baseUrl}")
         }
 
-        server().connectors.filter { it !is ServerConnector }.forEach {
+        server.connectors.filter { it !is ServerConnector }.forEach {
             JavalinLogger.startup("Binding to: $it")
         }
 
-        serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
+        serverPort = (server.connectors[0] as ServerConnector).localPort // there will always be at least one connector
     }
 
     private fun createServletContextHandler(): ServletContextHandler {
@@ -110,16 +100,10 @@ class JettyServer(val cfg: JavalinConfig) {
         }
     }
 
-    private fun defaultSessionHandler() = SessionHandler().apply {
-        httpOnly = true
-        sameSite = HttpCookie.SameSite.LAX
-    }
-
-    private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
-
-    private fun Handler.attachHandler(servletContextHandler: ServletContextHandler) = when (this) {
-        is HandlerCollection -> this.apply { addHandler(servletContextHandler) } // user is using a HandlerCollection, add Javalin handler to it
-        is HandlerWrapper -> this.apply {
+    private fun Handler?.attachHandler(servletContextHandler: ServletContextHandler) = when {
+        this == null -> servletContextHandler // server has no handler, just use Javalin handler
+        this is HandlerCollection -> this.apply { addHandler(servletContextHandler) } // user is using a HandlerCollection, add Javalin handler to it
+        this is HandlerWrapper -> this.apply {
             (this.unwrap() as? HandlerCollection)?.addHandler(servletContextHandler) // if HandlerWrapper unwraps as HandlerCollection, add Javalin handler
             (this.unwrap() as? HandlerWrapper)?.handler = servletContextHandler // if HandlerWrapper unwraps as HandlerWrapper, add Javalin last
         }
@@ -149,6 +133,14 @@ class JettyServer(val cfg: JavalinConfig) {
             uriCompliance = UriCompliance.RFC3986
             sendServerVersion = false
         }
+
+        fun defaultSessionHandler() = SessionHandler().apply {
+            httpOnly = true
+            sameSite = HttpCookie.SameSite.LAX
+        }
     }
+
+    private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
+    private val ServerConnector.baseUrl get() = "${this.protocol}://${this.host ?: "localhost"}:${this.localPort}${cfg.routing.contextPath}"
 
 }
