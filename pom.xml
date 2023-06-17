@@ -536,6 +536,15 @@
 
     <profiles>
         <profile>
+            <id>dev</id>
+            <properties>
+                <gpg.skip>true</gpg.skip>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
             <id>publish-snapshot</id>
             <properties>
                 <gpg.skip>true</gpg.skip>
@@ -543,7 +552,6 @@
         </profile>
         <profile>
             <id>sonatype-oss-release</id>
-            <!-- profile used by mvn release, uses default config -->
         </profile>
     </profiles>
 
