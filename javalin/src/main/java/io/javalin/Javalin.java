@@ -25,7 +25,6 @@ import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.jetty.JavalinJettyServlet;
 import io.javalin.jetty.JettyServer;
-import io.javalin.jetty.JettyUtil;
 import io.javalin.routing.HandlerEntry;
 import io.javalin.security.AccessManager;
 import io.javalin.security.RouteRole;
@@ -91,7 +90,6 @@ public class Javalin implements AutoCloseable {
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
         JavalinConfig.applyUserConfig(app, app.cfg, config); // mutates app.config and app (adds http-handlers)
-        JettyUtil.maybeLogIfServerNotStarted(app.jettyServer);
         return app;
     }
 
@@ -117,7 +115,7 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#start()
      */
     public Javalin start(String host, int port) {
-        jettyServer.setServerHost(host);
+        jettyServer.serverHost = host;
         return start(port);
     }
 
@@ -131,7 +129,7 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        jettyServer.setServerPort(port);
+        jettyServer.serverPort = port;
         return start();
     }
 
@@ -227,7 +225,7 @@ public class Javalin implements AutoCloseable {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return jettyServer.getServerPort();
+        return jettyServer.serverPort;
     }
 
     /**

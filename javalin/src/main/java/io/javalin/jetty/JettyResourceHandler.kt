@@ -14,6 +14,7 @@ import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
+import org.eclipse.jetty.io.EofException
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -53,7 +54,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                     return runCatching { handler.handle(target, baseRequest, httpRequest, httpResponse) }.isSuccess
                 }
             } catch (e: Exception) { // it's fine, we'll just 404
-                if (!JettyUtil.isClientAbortException(e)) {
+                if (e !is EofException) { // EofException is thrown when the client disconnects, which is fine
                     JavalinLogger.info("Exception occurred while handling static resource", e)
                 }
             }

@@ -7,6 +7,7 @@
 package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
+import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.LoomUtil
 import io.javalin.util.Util
@@ -19,11 +20,13 @@ import org.eclipse.jetty.http.UriCompliance
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
+import org.eclipse.jetty.server.LowResourceMonitor
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.HandlerWrapper
+import org.eclipse.jetty.server.handler.StatisticsHandler
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
@@ -32,13 +35,28 @@ import java.net.BindException
 
 class JettyServer(val cfg: JavalinConfig) {
 
+    init {
+        Thread {
+            Thread.sleep(5000)
+            if (!this.started) {
+                JavalinLogger.startup("It looks like you created a Javalin instance, but you never started it.")
+                JavalinLogger.startup("Try: Javalin app = Javalin.create().start();")
+                JavalinLogger.startup("For more help, visit https://javalin.io/documentation#server-setup")
+            }
+        }.start()
+    }
+
     @JvmField
     var started = false
+
+    @JvmField
     var serverPort = -1
+
+    @JvmField
     var serverHost: String? = null
 
     fun server(): Server {
-        cfg.pvt.server = cfg.pvt.server ?: JettyUtil.getOrDefault(cfg.pvt.server)
+        cfg.pvt.server = cfg.pvt.server ?: defaultServer()
         return cfg.pvt.server!!
     }
 
@@ -52,7 +70,6 @@ class JettyServer(val cfg: JavalinConfig) {
         val encodingMap = MimeTypes.getInferredEncodings()
         encodingMap.put("text/plain", "utf-8")
 
-        cfg.pvt.sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
         val nullParent = null // javalin handlers are orphans
 
         val wsAndHttpHandler = object : ServletContextHandler(nullParent, Util.normalizeContextPath(cfg.routing.contextPath), SESSIONS) {
@@ -61,7 +78,7 @@ class JettyServer(val cfg: JavalinConfig) {
                 nextHandle(target, jettyRequest, request, response)
             }
         }.apply {
-            this.sessionHandler = cfg.pvt.sessionHandler
+            this.sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
             cfg.pvt.servletContextHandlerConsumer?.accept(this)
             addServlet(ServletHolder(wsAndHttpServlet), "/*")
             // Initializes WebSocketComponents
@@ -99,13 +116,8 @@ class JettyServer(val cfg: JavalinConfig) {
     }
 
     private fun defaultConnector(server: Server): ServerConnector {
-        // TODO: Required to support ignoreTrailingSlashes, because Jetty 11 will refuse requests with doubled slashes
-        val httpConfiguration = HttpConfiguration()
-        httpConfiguration.uriCompliance = UriCompliance.RFC3986 // accept ambiguous values in path and let Javalin handle them
-
-        //now apply the custom http configuration if we have one
-        cfg.pvt.httpConfigurationConfig?.accept(httpConfiguration)
-
+        val httpConfiguration = defaultHttpConfiguration()
+        cfg.pvt.httpConfigurationConfig?.accept(httpConfiguration) // apply the custom http configuration if we have one
         return ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
             this.port = serverPort
             this.host = serverHost
@@ -139,6 +151,20 @@ class JettyServer(val cfg: JavalinConfig) {
         is HandlerCollection -> this.handler // HandlerWrapper wraps HandlerCollection, return HandlerCollection
         is HandlerWrapper -> (this.handler as HandlerWrapper).unwrap() // HandlerWrapper wraps another HandlerWrapper, recursive call required
         else -> throw IllegalStateException("HandlerWrapper has unsupported Handler type (must be HandlerCollection or HandlerWrapper")
+    }
+
+    companion object {
+        fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool", 8, 250)
+
+        fun defaultServer() = Server(defaultThreadPool()).apply {
+            addBean(LowResourceMonitor(this))
+            insertHandler(StatisticsHandler())
+            setAttribute("is-default-server", true)
+        }
+
+        // UriCompliance.RFC3986 makes Jetty accept ambiguous values in path, so Javalin can handle them
+        // This is required to support ignoreTrailingSlashes, because Jetty 11 will refuse requests with doubled slashes
+        fun defaultHttpConfiguration() = HttpConfiguration().apply { uriCompliance = UriCompliance.RFC3986 }
     }
 
 }
