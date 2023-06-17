@@ -7,9 +7,9 @@
 package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
+import io.javalin.http.ContentType
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinLogger
-import io.javalin.util.LoomUtil
 import io.javalin.util.Util
 import io.javalin.util.Util.logJavalinBanner
 import jakarta.servlet.http.HttpServletRequest
@@ -36,6 +36,7 @@ import java.net.BindException
 class JettyServer(val cfg: JavalinConfig) {
 
     init {
+        MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
         Thread {
             Thread.sleep(5000)
             if (!this.started) {
@@ -50,7 +51,7 @@ class JettyServer(val cfg: JavalinConfig) {
     var started = false
 
     @JvmField
-    var serverPort = -1
+    var serverPort = 8080
 
     @JvmField
     var serverHost: String? = null
@@ -62,45 +63,20 @@ class JettyServer(val cfg: JavalinConfig) {
 
     @Throws(BindException::class)
     fun start(wsAndHttpServlet: JavalinJettyServlet) {
-        if (serverPort == -1 && cfg.pvt.server == null) {
-            serverPort = 8080
-            JavalinLogger.startup("No port specified, starting on port $serverPort. Call start(port) to change ports.")
-        }
-
-        val encodingMap = MimeTypes.getInferredEncodings()
-        encodingMap.put("text/plain", "utf-8")
-
-        val nullParent = null // javalin handlers are orphans
-
-        val wsAndHttpHandler = object : ServletContextHandler(nullParent, Util.normalizeContextPath(cfg.routing.contextPath), SESSIONS) {
-            override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-                request.setAttribute("jetty-target-and-request", Pair(target, jettyRequest)) // used in JettyResourceHandler
-                nextHandle(target, jettyRequest, request, response)
-            }
-        }.apply {
-            this.sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
-            cfg.pvt.servletContextHandlerConsumer?.accept(this)
-            addServlet(ServletHolder(wsAndHttpServlet), "/*")
-            // Initializes WebSocketComponents
-            JettyWebSocketServletContainerInitializer.configure(this) { _, _ ->
-                /* we don't want to configure WebSocketMappings during ServletContext initialization phase */
-            }
-        }
+        val wsAndHttpHandler = createServletContextHandler()
+        wsAndHttpHandler.contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
+        wsAndHttpHandler.sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
+        wsAndHttpHandler.addServlet(ServletHolder(wsAndHttpServlet), "/*")
+        cfg.pvt.servletContextHandlerConsumer?.accept(wsAndHttpHandler)
 
         server().apply {
             handler = if (handler == null) wsAndHttpHandler else handler.attachHandler(wsAndHttpHandler)
             if (connectors.isEmpty()) { // user has not added their own connectors, we add a single HTTP connector
                 connectors = arrayOf(defaultConnector(this))
-            } else {
-                if (cfg.pvt.httpConfigurationConfig != null) {
-                    JavalinLogger.startup("Http Configuration added to the JettyConfig has not been applied as a custom Jetty server was provided")
-                }
             }
-        }.start()
+        }.start() // start Jetty server
 
         logJavalinBanner(cfg.showJavalinBanner)
-
-        LoomUtil.logIfLoom(server())
 
         (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // we want to init this here to get logs in order
 
@@ -115,17 +91,22 @@ class JettyServer(val cfg: JavalinConfig) {
         serverPort = (server().connectors[0] as? ServerConnector)?.localPort ?: -1
     }
 
+    private fun createServletContextHandler(): ServletContextHandler {
+        val contextHandler = object : ServletContextHandler(SESSIONS) {
+            override fun doHandle(target: String, jettyRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+                nextHandle(target, jettyRequest, request, response)
+            }
+        }
+        JettyWebSocketServletContainerInitializer.configure(contextHandler, null) // enable WebSocket support
+        return contextHandler
+    }
+
     private fun defaultConnector(server: Server): ServerConnector {
         val httpConfiguration = defaultHttpConfiguration()
         cfg.pvt.httpConfigurationConfig?.accept(httpConfiguration) // apply the custom http configuration if we have one
         return ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
             this.port = serverPort
             this.host = serverHost
-            this.connectionFactories.forEach {
-                if (it is HttpConnectionFactory) {
-                    it.httpConfiguration.sendServerVersion = false
-                }
-            }
         }
     }
 
@@ -164,7 +145,10 @@ class JettyServer(val cfg: JavalinConfig) {
 
         // UriCompliance.RFC3986 makes Jetty accept ambiguous values in path, so Javalin can handle them
         // This is required to support ignoreTrailingSlashes, because Jetty 11 will refuse requests with doubled slashes
-        fun defaultHttpConfiguration() = HttpConfiguration().apply { uriCompliance = UriCompliance.RFC3986 }
+        fun defaultHttpConfiguration() = HttpConfiguration().apply {
+            uriCompliance = UriCompliance.RFC3986
+            sendServerVersion = false
+        }
     }
 
 }

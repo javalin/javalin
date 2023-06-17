@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.io.EofException
+import org.eclipse.jetty.server.HttpConnection
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -38,7 +39,8 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
         if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else lateInitConfigs.add(config)
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
-        val (target, baseRequest) = httpRequest.getAttribute("jetty-target-and-request") as Pair<String, Request>
+        val jettyRequest = HttpConnection.getCurrentConnection().httpChannel.request as Request
+        val target = httpRequest.requestURI.removePrefix(httpRequest.contextPath)
         handlers.filter { !it.config.skipFileFunction(httpRequest) }.forEach { handler ->
             try {
                 val resource = handler.getResource(target)
@@ -51,7 +53,7 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                             JettyPrecompressingResourceHandler.handle(target, resource, httpRequest, httpResponse)
                     }
                     httpResponse.contentType = null // Jetty will only set the content-type if it's null
-                    return runCatching { handler.handle(target, baseRequest, httpRequest, httpResponse) }.isSuccess
+                    return runCatching { handler.handle(target, jettyRequest, httpRequest, httpResponse) }.isSuccess
                 }
             } catch (e: Exception) { // it's fine, we'll just 404
                 if (e !is EofException) { // EofException is thrown when the client disconnects, which is fine
