@@ -9,7 +9,7 @@ class HttpResponseExceptionTest {
     @Test
     fun `all HttpStatus values should be covered by an Exception class`() {
         for (httpStatus in HttpStatus.values()) {
-            if (httpStatus == HttpStatus.NOT_EXTENDED || httpStatus == HttpStatus.UNKNOWN) {
+            if (httpStatus == HttpStatus.UNKNOWN) {
                 continue
             }
             val convertedEnumName = httpStatus.name.splitToSequence("_").map { word ->

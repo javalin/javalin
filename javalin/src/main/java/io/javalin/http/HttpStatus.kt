@@ -62,9 +62,6 @@ enum class HttpStatus(val code: Int, val message: String) {
     HTTP_VERSION_NOT_SUPPORTED(505, "HTTP Version Not Supported"),
     INSUFFICIENT_STORAGE(507, "Insufficient Storage"),
     LOOP_DETECTED(508, "Loop Detected"),
-
-    @Deprecated("Obsoleted by https://datatracker.ietf.org/doc/status-change-http-experiments-to-historic/")
-    NOT_EXTENDED(510, "Not Extended"),
     NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required"),
     UNKNOWN(-1, "Unknown HTTP code");
 

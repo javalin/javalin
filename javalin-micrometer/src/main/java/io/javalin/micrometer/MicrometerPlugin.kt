@@ -94,9 +94,6 @@ class MicrometerPlugin private constructor(
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
-        @Deprecated("User exceptionHandler instead", ReplaceWith("exceptionHandler"), DeprecationLevel.ERROR)
-        var EXCEPTION_HANDLER = exceptionHandler
-
         @JvmStatic
         fun create(userConfig: Consumer<MicrometerConfig>): MicrometerPlugin {
             val finalConfig = MicrometerConfig()

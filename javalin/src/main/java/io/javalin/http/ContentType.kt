@@ -75,13 +75,6 @@ enum class ContentType(
     APPLICATION_DOCX("application/vnd.openxmlformats-officedocument.wordprocessingml.document", false, "docx"),
     APPLICATION_EPUB("application/epub+zip", false, "epub"),
     APPLICATION_GZ("application/gzip", false, "gz"),
-
-    @Deprecated(
-        message = "use TEXT_JS instead.",
-        replaceWith = ReplaceWith("io.javalin.http.ContentType.TEXT_JS"),
-        level = DeprecationLevel.WARNING
-    )
-    APPLICATION_JS("application/javascript", true, "application/javascript"),
     APPLICATION_JSON("application/json", true, "json"),
     APPLICATION_MPKG("application/vnd.apple.installer+xml", false, "mpkg"),
     APPLICATION_JAR("application/java-archive", false, "jar"),
@@ -112,15 +105,7 @@ enum class ContentType(
         const val HTML = "text/html"
         const val XML = "text/xml"
         const val OCTET_STREAM = "application/octet-stream"
-
-        @Deprecated(
-            message = "represents the older application/javascript mimetype. This will change to represent text/javascript instead. Please use either JAVASCRIPT_LEGACY or JAVASCRIPT_MODERN instead to be explicit",
-            replaceWith = ReplaceWith("io.javalin.http.ContentType.JAVASCRIPT_MODERN"),
-            level = DeprecationLevel.WARNING
-        )
-        const val JAVASCRIPT = "application/javascript"
-        const val JAVASCRIPT_LEGACY = "application/javascript"
-        const val JAVASCRIPT_MODERN = "text/javascript"
+        const val JAVASCRIPT = "text/javascript"
         const val JSON = "application/json"
         const val FORM_DATA = "multipart/form-data"
 
