@@ -1,47 +1,32 @@
 package io.javalin.javalinvue
 
-import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestUtil
+import io.javalin.testing.WebDriverUtil
 import io.javalin.vue.VueComponent
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
 
 class TestJavalinVueBrowser {
 
     private lateinit var driver: ChromeDriver
 
-    companion object {
-        @JvmStatic
-        @BeforeAll
-        fun setupDriver() {
-            WebDriverManager.chromedriver().setup()
-        }
-    }
-
     @BeforeEach
     fun setup() {
-        // Use one driver per test, per selenium docs
-        driver = ChromeDriver(ChromeOptions().apply {
-            addArguments("--no-sandbox")
-            addArguments("--headless=new")
-            addArguments("--disable-gpu")
-            addArguments("--remote-allow-origins=*")
-            addArguments("--disable-dev-shm-usage")
-        })
+        driver = WebDriverUtil.getDriver()
     }
 
     @AfterEach
     fun teardown() {
-        driver.quit()
+        if (::driver.isInitialized) { // we don't always initialize the driver when running locally
+            driver.quit()
+        }
     }
 
     @Test

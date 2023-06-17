@@ -6,18 +6,16 @@
 
 package io.javalin
 
-import io.github.bonigarcia.wdm.WebDriverManager
 import io.javalin.http.Header
 import io.javalin.http.util.SeekableWriter.chunkSize
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.captureStdOut
+import io.javalin.testing.WebDriverUtil
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeOptions
 import java.io.File
 import kotlin.math.ceil
 
@@ -25,29 +23,16 @@ class TestWebBrowser {
 
     private lateinit var driver: ChromeDriver
 
-    companion object {
-        @JvmStatic
-        @BeforeAll
-        fun setupDriver() {
-            WebDriverManager.chromedriver().setup()
-        }
-    }
-
     @BeforeEach
     fun setup() {
-        // Use one driver per test, per selenium docs
-        driver = ChromeDriver(ChromeOptions().apply {
-            addArguments("--no-sandbox")
-            addArguments("--headless=new")
-            addArguments("--disable-gpu")
-            addArguments("--remote-allow-origins=*")
-            addArguments("--disable-dev-shm-usage")
-        })
+        driver = WebDriverUtil.getDriver()
     }
 
     @AfterEach
     fun teardown() {
-        driver.quit()
+        if (::driver.isInitialized) { // we don't always initialize the driver when running locally
+            driver.quit()
+        }
     }
 
     @Test
