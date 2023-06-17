@@ -12,7 +12,6 @@ import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
 import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
-import io.javalin.rendering.LegacyFileRenderer
 import io.javalin.security.AccessManager
 import io.javalin.validation.JavalinValidation.addValidationExceptionMapper
 import io.javalin.vue.JAVALINVUE_CONFIG_KEY
@@ -46,7 +45,6 @@ class JavalinConfig {
             userConfig.accept(cfg) // apply user config to the default config
             cfg.plugins.pluginManager.initializePlugins(app)
             cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
-            cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { LegacyFileRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
             cfg.pvt.appAttributes.computeIfAbsent(MAX_REQUEST_SIZE_KEY) { cfg.http.maxRequestSize }
             cfg.pvt.appAttributes.computeIfAbsent(JAVALINVUE_CONFIG_KEY) { cfg.vue }
