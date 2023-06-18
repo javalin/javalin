@@ -13,7 +13,6 @@ import io.javalin.config.JavalinConfig;
 import io.javalin.event.EventListener;
 import io.javalin.event.EventManager;
 import io.javalin.event.HandlerMetaInfo;
-import io.javalin.event.JavalinEvent;
 import io.javalin.event.WsHandlerMetaInfo;
 import io.javalin.http.Context;
 import io.javalin.http.ExceptionHandler;
@@ -28,9 +27,6 @@ import io.javalin.jetty.JettyServer;
 import io.javalin.routing.HandlerEntry;
 import io.javalin.security.AccessManager;
 import io.javalin.security.RouteRole;
-import io.javalin.util.JavalinBindException;
-import io.javalin.util.JavalinException;
-import io.javalin.util.JavalinLogger;
 import io.javalin.util.Util;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
@@ -39,9 +35,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import org.eclipse.jetty.server.Server;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unchecked")
 public class Javalin implements AutoCloseable {
@@ -52,7 +46,7 @@ public class Javalin implements AutoCloseable {
      * Alternatively use {@link Javalin#updateConfig(Consumer)} to update the config at a later date.
      */
     public JavalinConfig cfg = new JavalinConfig();
-
+    protected EventManager eventManager = new EventManager(); // TODO: this could go into JavalinConfig?
     protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
     protected JettyServer jettyServer = null;
     protected JavalinJettyServlet javalinJettyServlet = null;
@@ -64,8 +58,6 @@ public class Javalin implements AutoCloseable {
         }
         return javalinJettyServlet;
     }
-
-    protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
     }
