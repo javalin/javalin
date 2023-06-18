@@ -7,6 +7,7 @@ package io.javalin.config
 
 import io.javalin.Javalin
 import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
+import io.javalin.jetty.JettyServer
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper

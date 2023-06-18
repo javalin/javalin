@@ -12,11 +12,16 @@ import io.javalin.http.ExceptionHandler
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
 import io.javalin.http.InternalServerErrorResponse
-import io.javalin.jetty.JettyUtil
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
 import jakarta.servlet.http.HttpServletResponse
+import java.io.IOException
 import java.util.concurrent.CompletionException
+import java.util.concurrent.TimeoutException
+
+fun interface JavaLangErrorHandler {
+    fun handle(res: HttpServletResponse, err: Error)
+}
 
 class ExceptionMapper(val cfg: JavalinConfig) {
 
@@ -27,7 +32,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
             return handle(ctx, t.cause as Exception)
         }
         when {
-            JettyUtil.isSomewhatExpectedException(t) -> JettyUtil.logDebugAndSetError(t, ctx.res())
+            isSomewhatExpectedException(t) -> logDebugAndSetError(t, ctx.res())
             t is Exception && HttpResponseExceptionMapper.canHandle(t) && noUserHandler(t) -> HttpResponseExceptionMapper.handle(t as HttpResponseException, ctx)
             t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
             else -> handleUnexpectedThrowable(ctx.res(), t)
@@ -43,7 +48,7 @@ class ExceptionMapper(val cfg: JavalinConfig) {
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         when {
             throwable is Error -> cfg.pvt.javaLangErrorHandler.handle(res, throwable)
-            JettyUtil.isSomewhatExpectedException(throwable) -> JettyUtil.logDebugAndSetError(throwable, res)
+            isSomewhatExpectedException(throwable) -> logDebugAndSetError(throwable, res)
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
 
@@ -55,6 +60,19 @@ class ExceptionMapper(val cfg: JavalinConfig) {
 
 }
 
-fun interface JavaLangErrorHandler {
-    fun handle(res: HttpServletResponse, err: Error)
+// Jetty throws if client aborts during response writing. testing name avoids hard dependency on jetty.
+private fun isClientAbortException(t: Throwable) = t::class.java.name == "org.eclipse.jetty.io.EofException"
+
+// Jetty may time out connections to avoid having broken connections that remain open forever
+// This is rare, but intended (see issues #163 and #1277)
+private fun isJettyTimeoutException(t: Throwable) = t is IOException && t.cause is TimeoutException
+
+private fun isSomewhatExpectedException(t: Throwable): Boolean {
+    val unwrapped = (t as? CompletionException)?.cause ?: t
+    return isClientAbortException(unwrapped) || isJettyTimeoutException(unwrapped)
+}
+
+private fun logDebugAndSetError(t: Throwable, res: HttpServletResponse) {
+    JavalinLogger.debug("Client aborted or timed out", t)
+    res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
 }

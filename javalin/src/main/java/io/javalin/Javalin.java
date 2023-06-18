@@ -13,7 +13,6 @@ import io.javalin.config.JavalinConfig;
 import io.javalin.event.EventListener;
 import io.javalin.event.EventManager;
 import io.javalin.event.HandlerMetaInfo;
-import io.javalin.event.JavalinEvent;
 import io.javalin.event.WsHandlerMetaInfo;
 import io.javalin.http.Context;
 import io.javalin.http.ExceptionHandler;
@@ -25,13 +24,9 @@ import io.javalin.http.sse.SseClient;
 import io.javalin.http.sse.SseHandler;
 import io.javalin.jetty.JavalinJettyServlet;
 import io.javalin.jetty.JettyServer;
-import io.javalin.jetty.JettyUtil;
 import io.javalin.routing.HandlerEntry;
 import io.javalin.security.AccessManager;
 import io.javalin.security.RouteRole;
-import io.javalin.util.JavalinBindException;
-import io.javalin.util.JavalinException;
-import io.javalin.util.JavalinLogger;
 import io.javalin.util.Util;
 import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsExceptionHandler;
@@ -40,9 +35,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import org.eclipse.jetty.server.Server;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unchecked")
 public class Javalin implements AutoCloseable {
@@ -53,10 +46,11 @@ public class Javalin implements AutoCloseable {
      * Alternatively use {@link Javalin#updateConfig(Consumer)} to update the config at a later date.
      */
     public JavalinConfig cfg = new JavalinConfig();
-
+    protected EventManager eventManager = new EventManager(); // TODO: this could go into JavalinConfig?
     protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
-    protected JettyServer jettyServer = new JettyServer(cfg);
+    protected JettyServer jettyServer = null;
     protected JavalinJettyServlet javalinJettyServlet = null;
+
     // this can be replaced with a lazy kotlin property, if we convert this file to kotlin...
     private JavalinJettyServlet javalinJettyServlet() {
         if (javalinJettyServlet == null) {
@@ -64,8 +58,6 @@ public class Javalin implements AutoCloseable {
         }
         return javalinJettyServlet;
     }
-
-    protected EventManager eventManager = new EventManager();
 
     protected Javalin() {
     }
@@ -91,7 +83,7 @@ public class Javalin implements AutoCloseable {
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
         JavalinConfig.applyUserConfig(app, app.cfg, config); // mutates app.config and app (adds http-handlers)
-        JettyUtil.maybeLogIfServerNotStarted(app.jettyServer);
+        app.jettyServer(); // initialize server if no plugin already did
         return app;
     }
 
@@ -100,9 +92,12 @@ public class Javalin implements AutoCloseable {
         return this.javalinServlet;
     }
 
-    // Get the JavalinServer
-    @Nullable
+    // Get the JettyServer Javalin is running on
     public JettyServer jettyServer() {
+        // TODO: is this lazy initialization okay? or should we figure out another way to make plugins work?
+        if (this.jettyServer == null) {
+            this.jettyServer = new JettyServer(this.cfg, this.javalinJettyServlet(), this.eventManager);
+        }
         return this.jettyServer;
     }
 
@@ -117,8 +112,9 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#start()
      */
     public Javalin start(String host, int port) {
-        jettyServer.setServerHost(host);
-        return start(port);
+        Util.printHelpfulMessageIfLoggerIsMissing();
+        jettyServer.start(host, port);
+        return this;
     }
 
     /**
@@ -131,8 +127,7 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        jettyServer.setServerPort(port);
-        return start();
+        return start(null, port);
     }
 
     /**
@@ -144,40 +139,11 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#create()
      */
     public Javalin start() {
-        long startupTimer = System.currentTimeMillis();
-        if (jettyServer.started) {
-            String message = "Server already started. If you are trying to call start() on an instance " +
-                "of Javalin that was stopped using stop(), please create a new instance instead.";
-            throw new IllegalStateException(message);
-        }
-        jettyServer.started = true;
-        Util.printHelpfulMessageIfLoggerIsMissing();
-        eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
-        try {
-            JavalinLogger.startup("Starting Javalin ...");
-            jettyServer.start(javalinJettyServlet());
-            Util.logJavalinVersion();
-            JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
-            eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
-        } catch (Exception e) {
-            JavalinLogger.error("Failed to start Javalin");
-            eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
-            if (Boolean.TRUE.equals(jettyServer.server().getAttribute("is-default-server"))) {
-                stop();// stop if server is default server; otherwise, the caller is responsible to stop
-            }
-            if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new JavalinBindException("Port already in use. Make sure no other process is using port " + Util.getPort(e) + " and try again.", e);
-            } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
-                throw new JavalinBindException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
-            }
-            throw new JavalinException(e);
-        }
-        return this;
+        return start(null, -1);
     }
 
     /**
      * Synchronously stops the application instance.
-     *
      * Recommended to use {@link Javalin#close} instead with Java's try-with-resources
      * or Kotlin's {@code use}. This differs from {@link Javalin#close} by
      * firing lifecycle events even if the server is stopping or already stopped.
@@ -188,29 +154,17 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#close()
      */
     public Javalin stop() {
-        JavalinLogger.info("Stopping Javalin ...");
-        eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
-        try {
-            jettyServer.server().stop();
-        } catch (Exception e) {
-            eventManager.fireEvent(JavalinEvent.SERVER_STOP_FAILED);
-            JavalinLogger.error("Javalin failed to stop gracefully", e);
-            throw new JavalinException(e);
-        }
-        JavalinLogger.info("Javalin has stopped");
-        eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
+        jettyServer.stop();
         return this;
     }
 
     /**
      * Synchronously stops the application instance.
-     *
      * Can safely be called multiple times.
      */
     @Override
     public void close() {
-        final Server server = jettyServer.server();
-        if (server.isStopping() || server.isStopped()) {
+        if (jettyServer.server().isStopping() || jettyServer.server().isStopped()) {
             return;
         }
         stop();
@@ -227,7 +181,7 @@ public class Javalin implements AutoCloseable {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return jettyServer.getServerPort();
+        return jettyServer.port();
     }
 
     /**

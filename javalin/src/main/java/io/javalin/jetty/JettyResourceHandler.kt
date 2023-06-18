@@ -14,6 +14,8 @@ import io.javalin.util.JavalinLogger
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.MimeTypes
+import org.eclipse.jetty.io.EofException
+import org.eclipse.jetty.server.HttpConnection
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ResourceHandler
@@ -27,17 +29,18 @@ import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
 
     fun init() { // we delay the creation of ConfigurableHandler objects to get our logs in order during startup
-        handlers.addAll(lateInitConfigs.map { ConfigurableHandler(it, pvt.server!!) })
+        handlers.addAll(lateInitConfigs.map { ConfigurableHandler(it, pvt.server) })
     }
 
     private val lateInitConfigs = mutableListOf<StaticFileConfig>()
     private val handlers = mutableListOf<ConfigurableHandler>()
 
     override fun addStaticFileConfig(config: StaticFileConfig): Boolean =
-        if (pvt.server?.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server!!)) else lateInitConfigs.add(config)
+        if (pvt.server.isStarted == true) handlers.add(ConfigurableHandler(config, pvt.server)) else lateInitConfigs.add(config)
 
     override fun handle(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse): Boolean {
-        val (target, baseRequest) = httpRequest.getAttribute("jetty-target-and-request") as Pair<String, Request>
+        val jettyRequest = HttpConnection.getCurrentConnection().httpChannel.request as Request
+        val target = httpRequest.requestURI.removePrefix(httpRequest.contextPath)
         handlers.filter { !it.config.skipFileFunction(httpRequest) }.forEach { handler ->
             try {
                 val resource = handler.getResource(target)
@@ -50,10 +53,10 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                             JettyPrecompressingResourceHandler.handle(target, resource, httpRequest, httpResponse)
                     }
                     httpResponse.contentType = null // Jetty will only set the content-type if it's null
-                    return runCatching { handler.handle(target, baseRequest, httpRequest, httpResponse) }.isSuccess
+                    return runCatching { handler.handle(target, jettyRequest, httpRequest, httpResponse) }.isSuccess
                 }
             } catch (e: Exception) { // it's fine, we'll just 404
-                if (!JettyUtil.isClientAbortException(e)) {
+                if (e !is EofException) { // EofException is thrown when the client disconnects, which is fine
                     JavalinLogger.info("Exception occurred while handling static resource", e)
                 }
             }

@@ -61,21 +61,6 @@ object Util {
     }
 
     @JvmStatic
-    fun logJavalinBanner(showBanner: Boolean) {
-        if (showBanner) JavalinLogger.info(
-            """|
-               |       __                  ___          _____
-               |      / /___ __   ______ _/ (_)___     / ___/
-               | __  / / __ `/ | / / __ `/ / / __ \   / __ \
-               |/ /_/ / /_/ /| |/ / /_/ / / / / / /  / /_/ /
-               |\____/\__,_/ |___/\__,_/_/_/_/ /_/   \____/  
-               |
-               |       https://javalin.io/documentation
-               |""".trimMargin()
-        )
-    }
-
-    @JvmStatic
     fun logJavalinVersion() = try {
         val properties = Properties().also {
             val propertiesPath = "META-INF/maven/io.javalin/javalin/pom.properties"

@@ -13,7 +13,7 @@ class JettyConfig(private val pvt: PrivateConfig) {
     @JvmField val multipartConfig = MultipartConfig()
     //@formatter:on
 
-    fun server(server: Supplier<Server?>) {
+    fun server(server: Supplier<Server>) {
         pvt.server = server.get()
     }
 

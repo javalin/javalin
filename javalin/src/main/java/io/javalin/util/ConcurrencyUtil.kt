@@ -70,11 +70,6 @@ internal object LoomUtil {
     fun isLoomThreadPool(threadPool: ThreadPool): Boolean =
         threadPool is LoomThreadPool
 
-    fun logIfLoom(server: Server) {
-        if (!isLoomThreadPool(server.threadPool)) return
-        JavalinLogger.startup("Your JDK supports Loom. Javalin will prefer Virtual Threads by default. Disable with `ConcurrencyUtil.useLoom = false`.")
-    }
-
 }
 
 open class NamedThreadFactory(protected val prefix: String) : ThreadFactory {
