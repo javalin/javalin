@@ -43,7 +43,7 @@ import kotlin.apply
 import kotlin.arrayOf
 
 class JettyServer(
-    val cfg: JavalinConfig,
+    private val cfg: JavalinConfig,
     private val wsAndHttpServlet: JavalinJettyServlet,
     private val eventManager: EventManager
 ) {
@@ -60,12 +60,11 @@ class JettyServer(
         }.start()
     }
 
-    //@formatter:off
-    @JvmField var started = false
-    @JvmField var serverPort = 8080
-    @JvmField var serverHost: String? = null
-    @JvmField var server = cfg.pvt.server
-    //@formatter:on
+    fun server() = cfg.pvt.server // make sure config has access to the update server instance
+    fun port() = (server().connectors[0] as ServerConnector).localPort
+
+    private var started = false
+    fun started() = started
 
     private val wsAndHttpHandler = createServletContextHandler().apply {
         contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
@@ -75,27 +74,27 @@ class JettyServer(
     }
 
     @Throws(JavalinException::class)
-    fun start() {
+    fun start(host: String?, port: Int?) {
         if (started) {
             throw JavalinException("Server already started - Javalin instances cannot be reused.")
         }
         started = true
         val startupTimer = System.currentTimeMillis()
-        server.apply {
+        server().apply {
             handler = handler.attachHandler(wsAndHttpHandler)
-            connectors = if (connectors.isEmpty()) arrayOf(defaultConnector(this)) else connectors
+            connectors = if (connectors.isEmpty()) arrayOf(defaultConnector(this, host, port)) else connectors
         }
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING)
         try {
             JavalinLogger.startup("Starting Javalin ...")
-            server.start()
+            server().start()
             JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED)
         } catch (e: Exception) {
             JavalinLogger.error("Failed to start Javalin")
             eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED)
-            if (server.getAttribute("is-default-server") == true) {
-                server.stop() // stop if server is default server; otherwise, the caller is responsible to stop
+            if (server().getAttribute("is-default-server") == true) {
+                server().stop() // stop if server is default server; otherwise, the caller is responsible to stop
             }
             if (e.message != null && e.message!!.contains("Failed to bind to")) {
                 throw JavalinBindException("Port already in use. Make sure no other process is using port " + getPort(e) + " and try again.", e)
@@ -116,13 +115,12 @@ class JettyServer(
                |""".trimMargin()
         )
         (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
-        server.connectors.filterIsInstance<ServerConnector>().forEach {
+        server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.baseUrl}")
         }
-        server.connectors.filter { it !is ServerConnector }.forEach {
+        server().connectors.filter { it !is ServerConnector }.forEach {
             JavalinLogger.startup("Binding to: $it")
         }
-        serverPort = (server.connectors[0] as ServerConnector).localPort // there will always be at least one connector
         Util.logJavalinVersion()
     }
 
@@ -130,7 +128,7 @@ class JettyServer(
         JavalinLogger.info("Stopping Javalin ...")
         eventManager.fireEvent(JavalinEvent.SERVER_STOPPING)
         try {
-            server.stop()
+            server().stop()
         } catch (e: Exception) {
             eventManager.fireEvent(JavalinEvent.SERVER_STOP_FAILED)
             JavalinLogger.error("Javalin failed to stop gracefully", e)
@@ -150,12 +148,12 @@ class JettyServer(
         return contextHandler
     }
 
-    private fun defaultConnector(server: Server): ServerConnector {
+    private fun defaultConnector(server: Server, host: String?, port: Int?): ServerConnector {
         val httpConfiguration = defaultHttpConfiguration()
         cfg.pvt.httpConfigurationConfig?.accept(httpConfiguration) // apply the custom http configuration if we have one
         return ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
-            this.port = serverPort
-            this.host = serverHost
+            this.host = host
+            this.port = port ?: 8080
         }
     }
 

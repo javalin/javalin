@@ -120,8 +120,9 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#start()
      */
     public Javalin start(String host, int port) {
-        jettyServer.serverHost = host;
-        return start(port);
+        Util.printHelpfulMessageIfLoggerIsMissing();
+        jettyServer.start(host, port);
+        return this;
     }
 
     /**
@@ -134,8 +135,7 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#start()
      */
     public Javalin start(int port) {
-        jettyServer.serverPort = port;
-        return start();
+        return start(null, port);
     }
 
     /**
@@ -147,9 +147,7 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#create()
      */
     public Javalin start() {
-        Util.printHelpfulMessageIfLoggerIsMissing();
-        jettyServer.start();
-        return this;
+        return start(null, -1);
     }
 
     /**
@@ -174,7 +172,7 @@ public class Javalin implements AutoCloseable {
      */
     @Override
     public void close() {
-        if (jettyServer.server.isStopping() || jettyServer.server.isStopped()) {
+        if (jettyServer.server().isStopping() || jettyServer.server().isStopped()) {
             return;
         }
         stop();
@@ -191,7 +189,7 @@ public class Javalin implements AutoCloseable {
      * Mostly useful if you start the instance with port(0) (random port)
      */
     public int port() {
-        return jettyServer.serverPort;
+        return jettyServer.port();
     }
 
     /**

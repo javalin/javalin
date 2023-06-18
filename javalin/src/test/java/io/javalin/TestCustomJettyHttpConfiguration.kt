@@ -21,7 +21,7 @@ class TestCustomJettyHttpConfiguration {
             it.customizers.add(customizer)
         }
     }) { javalin, http ->
-        javalin.jettyServer.server.connectors.forEach {
+        javalin.jettyServer.server().connectors.forEach {
             val cf = it.getConnectionFactory(HttpConnectionFactory::class.java)
             assertThat(cf.httpConfiguration.customizers).contains(customizer)
         }
