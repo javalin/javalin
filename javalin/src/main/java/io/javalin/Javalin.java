@@ -104,7 +104,7 @@ public class Javalin implements AutoCloseable {
     @Nullable
     public JettyServer jettyServer() {
         if (this.jettyServer == null) {
-            this.jettyServer = new JettyServer(this.cfg);
+            this.jettyServer = new JettyServer(this.cfg, this.javalinJettyServlet());
         }
         return this.jettyServer;
     }
@@ -148,18 +148,11 @@ public class Javalin implements AutoCloseable {
      */
     public Javalin start() {
         long startupTimer = System.currentTimeMillis();
-        if (jettyServer.started) {
-            String message = "Server already started. If you are trying to call start() on an instance " +
-                "of Javalin that was stopped using stop(), please create a new instance instead.";
-            throw new IllegalStateException(message);
-        }
-        jettyServer.started = true;
         Util.printHelpfulMessageIfLoggerIsMissing();
         eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
         try {
             JavalinLogger.startup("Starting Javalin ...");
-            jettyServer.start(javalinJettyServlet());
-            Util.logJavalinVersion();
+            jettyServer.start();
             JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
             eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
         } catch (Exception e) {

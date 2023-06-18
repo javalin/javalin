@@ -32,13 +32,13 @@ import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 import java.net.BindException
 
-class JettyServer(val cfg: JavalinConfig) {
+class JettyServer(val cfg: JavalinConfig, val wsAndHttpServlet: JavalinJettyServlet) {
 
     init {
         MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
         Thread {
             Thread.sleep(5000)
-            if (!this.started) {
+            if (!started) {
                 JavalinLogger.startup("It looks like you created a Javalin instance, but you never started it.")
                 JavalinLogger.startup("Try: Javalin app = Javalin.create().start();")
                 JavalinLogger.startup("For more help, visit https://javalin.io/documentation#server-setup")
@@ -53,32 +53,43 @@ class JettyServer(val cfg: JavalinConfig) {
     @JvmField var server = cfg.pvt.server
     //@formatter:on
 
-    @Throws(BindException::class)
-    fun start(wsAndHttpServlet: JavalinJettyServlet) {
-        val wsAndHttpHandler = createServletContextHandler()
-        wsAndHttpHandler.contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
-        wsAndHttpHandler.sessionHandler = cfg.pvt.sessionHandler
-        wsAndHttpHandler.addServlet(ServletHolder(wsAndHttpServlet), "/*")
-        cfg.pvt.servletContextHandlerConsumer?.accept(wsAndHttpHandler)
+    private val wsAndHttpHandler = createServletContextHandler().apply {
+        contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
+        sessionHandler = cfg.pvt.sessionHandler
+        addServlet(ServletHolder(wsAndHttpServlet), "/*")
+        cfg.pvt.servletContextHandlerConsumer?.accept(this)
+    }
 
+    @Throws(BindException::class, IllegalStateException::class)
+    fun start() {
+        if (started) {
+            throw IllegalStateException("Server already started - Javalin instances cannot be reused.")
+        }
+        started = true
         server.apply {
             handler = handler.attachHandler(wsAndHttpHandler)
             connectors = if (connectors.isEmpty()) arrayOf(defaultConnector(this)) else connectors
         }.start() // start Jetty server, Jetty will log a bunch of stuff here
-
-        Util.logJavalinBanner(cfg.showJavalinBanner)
-
-        (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // also for logging
-
+        if (cfg.showJavalinBanner) JavalinLogger.startup(
+            """|
+               |       __                  ___           _____
+               |      / /___ __   ______ _/ (_)___      / ___/
+               | __  / / __ `/ | / / __ `/ / / __ \    / __ \
+               |/ /_/ / /_/ /| |/ / /_/ / / / / / /   / /_/ /
+               |\____/\__,_/ |___/\__,_/_/_/_/ /_/    \____/
+               |
+               |       https://javalin.io/documentation
+               |""".trimMargin()
+        )
+        (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
         server.connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.baseUrl}")
         }
-
         server.connectors.filter { it !is ServerConnector }.forEach {
             JavalinLogger.startup("Binding to: $it")
         }
-
         serverPort = (server.connectors[0] as ServerConnector).localPort // there will always be at least one connector
+        Util.logJavalinVersion()
     }
 
     private fun createServletContextHandler(): ServletContextHandler {
