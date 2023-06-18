@@ -45,7 +45,7 @@ class MicrometerPlugin private constructor(
 ) : Plugin {
 
     override fun apply(app: Javalin) {
-        app.jettyServer()?.server()?.let { server ->
+        app.jettyServer()?.server?.let { server ->
             if (tagExceptionName) {
                 app.exception(Exception::class.java, exceptionHandler)
             }

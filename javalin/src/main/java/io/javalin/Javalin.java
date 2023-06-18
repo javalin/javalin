@@ -56,6 +56,7 @@ public class Javalin implements AutoCloseable {
     protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
     protected JettyServer jettyServer = null;
     protected JavalinJettyServlet javalinJettyServlet = null;
+
     // this can be replaced with a lazy kotlin property, if we convert this file to kotlin...
     private JavalinJettyServlet javalinJettyServlet() {
         if (javalinJettyServlet == null) {
@@ -90,7 +91,7 @@ public class Javalin implements AutoCloseable {
     public static Javalin create(Consumer<JavalinConfig> config) {
         Javalin app = new Javalin();
         JavalinConfig.applyUserConfig(app, app.cfg, config); // mutates app.config and app (adds http-handlers)
-        app.jettyServer = new JettyServer(app.cfg);
+        app.jettyServer(); // initialize server if no plugin already did
         return app;
     }
 
@@ -102,6 +103,9 @@ public class Javalin implements AutoCloseable {
     // Get the JavalinServer
     @Nullable
     public JettyServer jettyServer() {
+        if (this.jettyServer == null) {
+            this.jettyServer = new JettyServer(this.cfg);
+        }
         return this.jettyServer;
     }
 
@@ -176,7 +180,6 @@ public class Javalin implements AutoCloseable {
 
     /**
      * Synchronously stops the application instance.
-     *
      * Recommended to use {@link Javalin#close} instead with Java's try-with-resources
      * or Kotlin's {@code use}. This differs from {@link Javalin#close} by
      * firing lifecycle events even if the server is stopping or already stopped.
@@ -203,7 +206,6 @@ public class Javalin implements AutoCloseable {
 
     /**
      * Synchronously stops the application instance.
-     *
      * Can safely be called multiple times.
      */
     @Override
