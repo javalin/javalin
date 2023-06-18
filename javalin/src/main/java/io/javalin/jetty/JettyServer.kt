@@ -75,13 +75,13 @@ class JettyServer(
             handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
                 JettyWebSocketServletContainerInitializer.configure(this, null)
                 contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
-                sessionHandler = cfg.pvt.sessionHandler
-                cfg.pvt.servletContextHandlerConsumer?.accept(this)
+                sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
                 addServlet(ServletHolder(wsAndHttpServlet), "/*")
+                cfg.pvt.servletContextHandlerConsumer?.accept(this) // apply user config
             })
             if (connectors.isEmpty()) {
                 val httpConfiguration = defaultHttpConfiguration()
-                cfg.pvt.httpConfigurationConfig?.accept(httpConfiguration) // apply the custom http configuration if we have one
+                cfg.pvt.httpConfigurationConfig?.accept(httpConfiguration) // apply user config
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
                     this.host = host
                     this.port = port ?: 8080
