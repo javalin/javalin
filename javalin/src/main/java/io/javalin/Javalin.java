@@ -100,11 +100,11 @@ public class Javalin implements AutoCloseable {
         return this.javalinServlet;
     }
 
-    // Get the JavalinServer
-    @Nullable
+    // Get the JettyServer Javalin is running on
     public JettyServer jettyServer() {
+        // TODO: is this lazy initialization okay? or should we figure out another way to make plugins work?
         if (this.jettyServer == null) {
-            this.jettyServer = new JettyServer(this.cfg, this.javalinJettyServlet());
+            this.jettyServer = new JettyServer(this.cfg, this.javalinJettyServlet(), this.eventManager);
         }
         return this.jettyServer;
     }
@@ -147,27 +147,8 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#create()
      */
     public Javalin start() {
-        long startupTimer = System.currentTimeMillis();
         Util.printHelpfulMessageIfLoggerIsMissing();
-        eventManager.fireEvent(JavalinEvent.SERVER_STARTING);
-        try {
-            JavalinLogger.startup("Starting Javalin ...");
-            jettyServer.start();
-            JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/");
-            eventManager.fireEvent(JavalinEvent.SERVER_STARTED);
-        } catch (Exception e) {
-            JavalinLogger.error("Failed to start Javalin");
-            eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED);
-            if (Boolean.TRUE.equals(jettyServer.server.getAttribute("is-default-server"))) {
-                stop();// stop if server is default server; otherwise, the caller is responsible to stop
-            }
-            if (e.getMessage() != null && e.getMessage().contains("Failed to bind to")) {
-                throw new JavalinBindException("Port already in use. Make sure no other process is using port " + Util.getPort(e) + " and try again.", e);
-            } else if (e.getMessage() != null && e.getMessage().contains("Permission denied")) {
-                throw new JavalinBindException("Port 1-1023 require elevated privileges (process must be started by admin).", e);
-            }
-            throw new JavalinException(e);
-        }
+        jettyServer.start();
         return this;
     }
 
@@ -183,17 +164,7 @@ public class Javalin implements AutoCloseable {
      * @see Javalin#close()
      */
     public Javalin stop() {
-        JavalinLogger.info("Stopping Javalin ...");
-        eventManager.fireEvent(JavalinEvent.SERVER_STOPPING);
-        try {
-            jettyServer.server.stop();
-        } catch (Exception e) {
-            eventManager.fireEvent(JavalinEvent.SERVER_STOP_FAILED);
-            JavalinLogger.error("Javalin failed to stop gracefully", e);
-            throw new JavalinException(e);
-        }
-        JavalinLogger.info("Javalin has stopped");
-        eventManager.fireEvent(JavalinEvent.SERVER_STOPPED);
+        jettyServer.stop();
         return this;
     }
 
@@ -203,8 +174,7 @@ public class Javalin implements AutoCloseable {
      */
     @Override
     public void close() {
-        final Server server = jettyServer.server;
-        if (server.isStopping() || server.isStopped()) {
+        if (jettyServer.server.isStopping() || jettyServer.server.isStopped()) {
             return;
         }
         stop();

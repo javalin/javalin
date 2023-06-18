@@ -7,10 +7,15 @@
 package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
+import io.javalin.event.EventManager
+import io.javalin.event.JavalinEvent
 import io.javalin.http.ContentType
 import io.javalin.util.ConcurrencyUtil
+import io.javalin.util.JavalinBindException
+import io.javalin.util.JavalinException
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
+import io.javalin.util.Util.getPort
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.eclipse.jetty.http.HttpCookie
@@ -30,9 +35,18 @@ import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
-import java.net.BindException
+import kotlin.Exception
+import kotlin.IllegalStateException
+import kotlin.String
+import kotlin.Throws
+import kotlin.apply
+import kotlin.arrayOf
 
-class JettyServer(val cfg: JavalinConfig, val wsAndHttpServlet: JavalinJettyServlet) {
+class JettyServer(
+    val cfg: JavalinConfig,
+    private val wsAndHttpServlet: JavalinJettyServlet,
+    private val eventManager: EventManager
+) {
 
     init {
         MimeTypes.getInferredEncodings()[ContentType.PLAIN] = Charsets.UTF_8.name() // set default encoding for text/plain
@@ -60,16 +74,36 @@ class JettyServer(val cfg: JavalinConfig, val wsAndHttpServlet: JavalinJettyServ
         cfg.pvt.servletContextHandlerConsumer?.accept(this)
     }
 
-    @Throws(BindException::class, IllegalStateException::class)
+    @Throws(JavalinException::class)
     fun start() {
         if (started) {
-            throw IllegalStateException("Server already started - Javalin instances cannot be reused.")
+            throw JavalinException("Server already started - Javalin instances cannot be reused.")
         }
         started = true
+        val startupTimer = System.currentTimeMillis()
         server.apply {
             handler = handler.attachHandler(wsAndHttpHandler)
             connectors = if (connectors.isEmpty()) arrayOf(defaultConnector(this)) else connectors
-        }.start() // start Jetty server, Jetty will log a bunch of stuff here
+        }
+        eventManager.fireEvent(JavalinEvent.SERVER_STARTING)
+        try {
+            JavalinLogger.startup("Starting Javalin ...")
+            server.start()
+            JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
+            eventManager.fireEvent(JavalinEvent.SERVER_STARTED)
+        } catch (e: Exception) {
+            JavalinLogger.error("Failed to start Javalin")
+            eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED)
+            if (server.getAttribute("is-default-server") == true) {
+                server.stop() // stop if server is default server; otherwise, the caller is responsible to stop
+            }
+            if (e.message != null && e.message!!.contains("Failed to bind to")) {
+                throw JavalinBindException("Port already in use. Make sure no other process is using port " + getPort(e) + " and try again.", e)
+            } else if (e.message != null && e.message!!.contains("Permission denied")) {
+                throw JavalinBindException("Port 1-1023 require elevated privileges (process must be started by admin).", e)
+            }
+            throw JavalinException(e)
+        }
         if (cfg.showJavalinBanner) JavalinLogger.startup(
             """|
                |       __                  ___           _____
@@ -90,6 +124,20 @@ class JettyServer(val cfg: JavalinConfig, val wsAndHttpServlet: JavalinJettyServ
         }
         serverPort = (server.connectors[0] as ServerConnector).localPort // there will always be at least one connector
         Util.logJavalinVersion()
+    }
+
+    fun stop() {
+        JavalinLogger.info("Stopping Javalin ...")
+        eventManager.fireEvent(JavalinEvent.SERVER_STOPPING)
+        try {
+            server.stop()
+        } catch (e: Exception) {
+            eventManager.fireEvent(JavalinEvent.SERVER_STOP_FAILED)
+            JavalinLogger.error("Javalin failed to stop gracefully", e)
+            throw JavalinException(e)
+        }
+        JavalinLogger.info("Javalin has stopped")
+        eventManager.fireEvent(JavalinEvent.SERVER_STOPPED)
     }
 
     private fun createServletContextHandler(): ServletContextHandler {
