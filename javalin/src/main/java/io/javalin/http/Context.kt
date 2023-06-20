@@ -454,6 +454,12 @@ interface Context {
     /** @see render() */
     fun render(filePath: String): Context = render(filePath, mutableMapOf())
 
+    ///////////////////////////////////////////////////////////////
+    // Other methods
+    ///////////////////////////////////////////////////////////////
+
+    fun skipRemainingHandlers(): Context
+
 }
 
 /** Reified version of [Context.json] (Kotlin only) */

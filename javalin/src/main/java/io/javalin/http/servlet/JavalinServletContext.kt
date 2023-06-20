@@ -130,6 +130,8 @@ class JavalinServletContext(
         userFutureSupplier = future
     }
 
+    override fun skipRemainingHandlers(): Context = also { tasks.clear() }
+
 }
 
 // this header is semicolon separated, like: "text/html; charset=UTF-8"

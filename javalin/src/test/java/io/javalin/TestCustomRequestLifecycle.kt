@@ -37,10 +37,10 @@ class TestCustomRequestLifecycle {
     }
 
     @Test
-    fun `can terminate request handling using unsafe api`() = TestUtil.test { app, http ->
+    fun `can terminate request handling`() = TestUtil.test { app, http ->
         app.before {
             it.result("Before")
-            (it as JavalinServletContext).tasks.clear()
+            it.skipRemainingHandlers()
         }
         app.get("/") { it.result("Http") }
         app.after { it.result("After") }
