@@ -21,10 +21,6 @@ class JettyConfig(private val pvt: PrivateConfig) {
         pvt.servletContextHandlerConsumer = consumer
     }
 
-    fun sessionHandler(sessionHandlerSupplier: Supplier<SessionHandler>) {
-        pvt.sessionHandler = sessionHandlerSupplier.get()
-    }
-
     fun wsFactoryConfig(wsFactoryConfig: Consumer<JettyWebSocketServletFactory>) {
         pvt.wsFactoryConfig = wsFactoryConfig
     }

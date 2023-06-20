@@ -126,7 +126,7 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-            it.jetty.sessionHandler { fileSessionHandler }
+            it.jetty.contextHandlerConfig() { it.sessionHandler = fileSessionHandler }
             it.jetty.server { newServer }
         }.start(0)
         val httpHandler = (newServer.handlers[0] as ServletContextHandler)

@@ -30,7 +30,6 @@ class PrivateConfig {
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
     // Jetty
     @JvmField var server: Server = JettyServer.defaultServer()
-    @JvmField var sessionHandler: SessionHandler? = null
     @JvmField var httpConfigurationConfig: Consumer<HttpConfiguration>? = null
     @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
     @JvmField var wsFactoryConfig: Consumer<JettyWebSocketServletFactory>? = null

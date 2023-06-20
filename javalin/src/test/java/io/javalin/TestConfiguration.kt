@@ -49,7 +49,6 @@ class TestConfiguration {
             it.requestLogger.ws { ws -> }
             it.showJavalinBanner = false
             it.routing.contextPath = "/"
-            it.jetty.sessionHandler { SessionHandler() }
             it.jetty.wsFactoryConfig { factory -> }
             it.jetty.server {
                 Server()

@@ -75,7 +75,7 @@ class JettyServer(
             handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
                 JettyWebSocketServletContainerInitializer.configure(this, null)
                 contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
-                sessionHandler = cfg.pvt.sessionHandler ?: defaultSessionHandler()
+                sessionHandler = defaultSessionHandler()
                 addServlet(ServletHolder(wsAndHttpServlet), "/*")
                 cfg.pvt.servletContextHandlerConsumer?.accept(this) // apply user config
             })
