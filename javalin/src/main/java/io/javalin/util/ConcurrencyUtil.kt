@@ -1,6 +1,5 @@
 package io.javalin.util
 
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.eclipse.jetty.util.thread.ThreadPool
 import java.lang.invoke.MethodHandle

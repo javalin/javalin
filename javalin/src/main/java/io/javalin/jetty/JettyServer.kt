@@ -33,12 +33,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
-import kotlin.Exception
-import kotlin.IllegalStateException
-import kotlin.String
-import kotlin.Throws
-import kotlin.apply
-import kotlin.arrayOf
 
 class JettyServer(
     private val cfg: JavalinConfig,

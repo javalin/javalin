@@ -13,7 +13,6 @@ import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
 import java.util.function.Consumer
