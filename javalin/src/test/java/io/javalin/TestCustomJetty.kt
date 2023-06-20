@@ -66,7 +66,7 @@ class TestCustomJetty {
     fun `embedded server can have custom jetty Handler`() = TestUtil.runLogLess {
         val statisticsHandler = StatisticsHandler()
         val newServer = Server().apply { handler = statisticsHandler }
-        val app = Javalin.create { it.jetty.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.pvt.server =  newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 5
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -84,7 +84,7 @@ class TestCustomJetty {
         val requestLogHandler = RequestLogHandler().apply { requestLog = RequestLog { _, _ -> logCount.incrementAndGet() } }
         val handlerChain = StatisticsHandler().apply { handler = requestLogHandler }
         val newServer = Server().apply { handler = handlerChain }
-        val app = Javalin.create { it.jetty.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.pvt.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -102,7 +102,7 @@ class TestCustomJetty {
         val handlerCollection = HandlerCollection()
         val handlerChain = StatisticsHandler().apply { handler = handlerCollection }
         val newServer = Server().apply { handler = handlerChain }
-        val app = Javalin.create { it.jetty.server { newServer } }.get("/") { it.result("Hello World") }.start(0)
+        val app = Javalin.create { it.pvt.server = newServer }.get("/") { it.result("Hello World") }.start(0)
         val requests = 10
         for (i in 0 until requests) {
             assertThat(Unirest.get("http://localhost:" + app.port() + "/").asString().body).isEqualTo("Hello World")
@@ -126,8 +126,8 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-            it.jetty.contextHandlerConfig() { it.sessionHandler = fileSessionHandler }
-            it.jetty.server { newServer }
+            it.jetty.modifyServletContextHandler { it.sessionHandler = fileSessionHandler }
+            it.pvt.server = newServer
         }.start(0)
         val httpHandler = (newServer.handlers[0] as ServletContextHandler)
         assertThat(httpHandler.sessionHandler).isEqualTo(fileSessionHandler)
@@ -153,7 +153,7 @@ class TestCustomJetty {
         }
         newServer.handler = handler
 
-        val javalin = Javalin.create { it.jetty.server { newServer } }
+        val javalin = Javalin.create { it.pvt.server = newServer }
         TestUtil.test(javalin) { app, http ->
             app.get("/bar") { it.result("Hello") }
             assertThat(http.getBody("/foo/foo")).isEqualTo("yo dude")
@@ -173,7 +173,7 @@ class TestCustomJetty {
             }
         }
         val javalin = Javalin.create {
-            it.jetty.server { newServer }
+            it.pvt.server = newServer
             it.routing.contextPath = "/api"
         }
         TestUtil.test(javalin) { app, http ->
@@ -205,14 +205,12 @@ class TestCustomJetty {
     fun `custom connector works`() {
         val port = (2000..9999).random()
         val app = Javalin.create { config ->
-            config.jetty.server {
-                Server().apply {
-                    val httpConfiguration = HttpConfiguration()
-                    httpConfiguration.addCustomizer(ForwardedRequestCustomizer())
-                    val connector = ServerConnector(this, HttpConnectionFactory(httpConfiguration))
-                    connector.port = port
-                    this.addConnector(connector)
-                }
+            config.jetty.addConnector { server, _ ->
+                val httpConfiguration = HttpConfiguration()
+                httpConfiguration.addCustomizer(ForwardedRequestCustomizer())
+                val connector = ServerConnector(server, HttpConnectionFactory(httpConfiguration))
+                connector.port = port
+                connector
             }
         }
         TestUtil.test(app) { server, _ ->
@@ -224,7 +222,7 @@ class TestCustomJetty {
     @Test
     fun `can add filter to stop request before javalin`() {
         val filterJavalin = Javalin.create {
-            it.jetty.contextHandlerConfig { handler ->
+            it.jetty.modifyServletContextHandler { handler ->
                 handler.addFilter(FilterHolder { req, res, chain ->
                     if ((req as HttpServletRequest).requestURI != "/allowed") {
                         res.writer.write("Not allowed")

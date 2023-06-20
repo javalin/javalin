@@ -11,10 +11,12 @@ import io.javalin.jetty.JettyServer
 import io.javalin.security.AccessManager
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
+import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory
+import java.util.function.BiFunction
 import java.util.function.Consumer
 
 // @formatter:off
@@ -28,10 +30,12 @@ class PrivateConfig {
     @JvmField var compressionStrategy = CompressionStrategy.GZIP
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
     // Jetty
-    @JvmField var server: Server = JettyServer.defaultServer()
-    @JvmField var httpConfigurationConfig: Consumer<HttpConfiguration>? = null
-    @JvmField var servletContextHandlerConsumer: Consumer<ServletContextHandler>? = null
-    @JvmField var wsFactoryConfig: Consumer<JettyWebSocketServletFactory>? = null
+    @JvmField var server: Server? = null
+    var serverConsumers: MutableList<Consumer<Server>> = mutableListOf()
+    var httpConfigurationConfigs: MutableList<Consumer<HttpConfiguration>> = mutableListOf()
+    var servletContextHandlerConsumers: MutableList<Consumer<ServletContextHandler>> = mutableListOf()
+    var wsFactoryConfigs: MutableList<Consumer<JettyWebSocketServletFactory>> = mutableListOf()
+    var connectors: MutableList<BiFunction<Server, HttpConfiguration, Connector>> = mutableListOf()
 
     fun javaLangErrorHandler(handler: JavaLangErrorHandler) = apply { this.javaLangErrorHandler = handler }
     internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->

@@ -32,6 +32,7 @@ import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletContextHandler.SESSIONS
 import org.eclipse.jetty.servlet.ServletHolder
+import org.eclipse.jetty.util.thread.ThreadPool
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer
 
 class JettyServer(
@@ -52,7 +53,7 @@ class JettyServer(
         }.start()
     }
 
-    fun server() = cfg.pvt.server // make sure config has access to the update server instance
+    fun server() = cfg.pvt.server ?: defaultServer(cfg.jetty.threadPool).also { cfg.pvt.server = it } // make sure config has access to the update server instance
     fun port() = (server().connectors[0] as ServerConnector).localPort
 
     private var started = false
@@ -66,16 +67,18 @@ class JettyServer(
         started = true
         val startupTimer = System.currentTimeMillis()
         server().apply {
+            cfg.pvt.serverConsumers.forEach{ it.accept(this) } // apply user config
             handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
                 JettyWebSocketServletContainerInitializer.configure(this, null)
                 contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
                 sessionHandler = defaultSessionHandler()
                 addServlet(ServletHolder(wsAndHttpServlet), "/*")
-                cfg.pvt.servletContextHandlerConsumer?.accept(this) // apply user config
+                cfg.pvt.servletContextHandlerConsumers.forEach{ it.accept(this) } // apply user config
             })
-            if (connectors.isEmpty()) {
-                val httpConfiguration = defaultHttpConfiguration()
-                cfg.pvt.httpConfigurationConfig?.accept(httpConfiguration) // apply user config
+            val httpConfiguration = defaultHttpConfiguration()
+            cfg.pvt.httpConfigurationConfigs.forEach{ it.accept(httpConfiguration) } // apply user config (before connectors)
+            cfg.pvt.connectors.forEach{ it.apply(this, httpConfiguration) } // add user connectors
+            if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
                     this.host = host
                     this.port = port ?: 8080
@@ -157,7 +160,7 @@ class JettyServer(
     companion object {
         fun defaultThreadPool() = ConcurrencyUtil.jettyThreadPool("JettyServerThreadPool", 8, 250)
 
-        fun defaultServer() = Server(defaultThreadPool()).apply {
+        fun defaultServer(threadPool: ThreadPool) = Server(threadPool).apply {
             addBean(LowResourceMonitor(this))
             insertHandler(StatisticsHandler())
             setAttribute("is-default-server", true)

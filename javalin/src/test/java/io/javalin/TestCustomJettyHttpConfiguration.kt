@@ -17,7 +17,7 @@ class TestCustomJettyHttpConfiguration {
 
     @Test
     fun `customizers get added`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.jetty.httpConfigurationConfig {
+        cfg.jetty.modifyHttpConfiguration() {
             it.customizers.add(customizer)
         }
     }) { javalin, http ->
@@ -29,7 +29,7 @@ class TestCustomJettyHttpConfiguration {
 
     @Test
     fun `X-Fowarded-Proto Works With Customizer`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.jetty.httpConfigurationConfig {
+        cfg.jetty.modifyHttpConfiguration {
             it.customizers.add(customizer)
         }
     }) { javalin, http ->

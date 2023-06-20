@@ -73,7 +73,7 @@ class TestStaticFiles {
                 }
             }
             it.staticFiles.add("/public", Location.CLASSPATH)
-            it.jetty.contextHandlerConfig { handler ->
+            it.jetty.modifyServletContextHandler() { handler ->
                 handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
         }

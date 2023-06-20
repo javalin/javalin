@@ -26,15 +26,15 @@ class TestUnixSocketConnector {
         val expectedResultString = "hello unixsocket"
 
         val unixSocketJavalin = Javalin.create {
-            it.jetty.server {
-                val server = Server()
+            it.jetty.addConnector { server, _ ->
                 val serverConnector = ServerConnector(server)
                 serverConnector.port = 0
-                server.addConnector(serverConnector)
+                serverConnector
+            }
+            it.jetty.addConnector { server, _ ->
                 val unixSocketConnector = UnixDomainServerConnector(server)
                 unixSocketConnector.unixDomainPath = Path(socketFileName)
-                server.addConnector(unixSocketConnector)
-                server
+                unixSocketConnector
             }
         }
 

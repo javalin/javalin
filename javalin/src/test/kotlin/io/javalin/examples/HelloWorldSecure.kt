@@ -16,14 +16,15 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 // https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/examples/embedded/src/main/java/org/eclipse/jetty/embedded/LikeJettyXml.java#L139-L163
 fun main() {
     val app = Javalin.create {
-        it.jetty.server {
-            val server = Server()
+        it.jetty.addConnector { server, _ ->
             val sslConnector = ServerConnector(server, sslContextFactory())
             sslConnector.port = 443
-            val connector = ServerConnector(server)
-            connector.port = 80
-            server.connectors = arrayOf<Connector>(sslConnector, connector)
-            server
+            sslConnector
+        }
+        it.jetty.addConnector { server, _ ->
+            val httpConnector = ServerConnector(server)
+            httpConnector.port = 80
+            httpConnector
         }
     }.start()
 
