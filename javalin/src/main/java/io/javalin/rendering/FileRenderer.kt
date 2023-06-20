@@ -16,3 +16,9 @@ fun interface FileRenderer {
 
 const val FILE_RENDERER_KEY = "javalin-file-renderer"
 fun Context.fileRenderer(): FileRenderer = this.appAttribute(FILE_RENDERER_KEY)
+
+class NotImplementedRenderer : FileRenderer {
+    override fun render(filePath: String, model: Map<String, Any?>, context: Context): String {
+        throw UnsupportedOperationException("No FileRenderer configured. You can configure one in config.fileRenderer(...)")
+    }
+}

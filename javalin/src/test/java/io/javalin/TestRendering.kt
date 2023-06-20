@@ -6,60 +6,56 @@
 
 package io.javalin
 
-import io.javalin.rendering.JavalinRenderer
 import io.javalin.testing.TestUtil
+import io.javalin.testing.TestUtil.runAndCaptureLogs
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
 internal class TestRendering {
 
+    private fun renderingJavalin() = Javalin.create {
+        it.fileRenderer { filePath, model, ctx ->
+            "path:$filePath, model:$model, queryParam:${ctx.queryParam("q")}"
+        }
+    }
+
     @Test
-    fun `JavalinRenderer - custom renderer works`() = TestUtil.test { app, http ->
+    fun `FileRenderer - default renderer throws - exception`() = TestUtil.test { app, http ->
+        app.get("/") { it.render("abc.ext") }
+        val response = http.get("/")
+        assertThat(response.status).isEqualTo(500)
+        assertThat(response.body).contains("Server Error")
+    }
+
+    @Test
+    fun `FileRenderer - default renderer throws - logs`() = TestUtil.test { app, http ->
+        app.get("/") { it.render("abc.ext") }
+        val runResult = runAndCaptureLogs { http.getBody("/") }
+        assertThat(runResult.logs).contains("No FileRenderer configured. You can configure one in config.fileRenderer(...)");
+    }
+
+    @Test
+    fun `FileRenderer - custom renderer works`() = TestUtil.test(renderingJavalin()) { app, http ->
         app.get("/") { it.render("/foo.myExt") }
         assertThat(http.getBody("/")).contains("queryParam:null")
     }
 
     @Test
-    fun `JavalinRenderer - filepath is passed to renderer`() = TestUtil.test { app, http ->
+    fun `FileRenderer - filepath is passed to renderer`() = TestUtil.test(renderingJavalin()) { app, http ->
         app.get("/") { it.render("/foo.myExt") }
         assertThat(http.getBody("/")).contains("path:/foo.myExt")
     }
 
     @Test
-    fun `JavalinRenderer - context is passed to renderer`() = TestUtil.test { app, http ->
+    fun `FileRenderer - context is passed to renderer`() = TestUtil.test(renderingJavalin()) { app, http ->
         app.get("/") { it.render("/foo.myExt") }
         assertThat(http.getBody("/?q=bar")).contains("queryParam:bar")
     }
 
     @Test
-    fun `JavalinRenderer - model is passed to renderer`() = TestUtil.test { app, http ->
+    fun `FileRenderer - model is passed to renderer`() = TestUtil.test(renderingJavalin()) { app, http ->
         app.get("/") { it.render("/foo.myExt", mapOf("a" to "b")) }
         assertThat(http.getBody("/")).contains("model:{a=b}")
-    }
-
-    @Test
-    fun `JavalinRenderer - can check if renderer exists`() = TestUtil.test { app, http ->
-        assertThat(JavalinRenderer.hasRenderer(".myExt", ".otherExt")).isTrue()
-        assertThat(JavalinRenderer.hasRenderer(".otherExt")).isFalse()
-    }
-
-    @Test
-    fun `FileRenderer - can configure new style renderer`() = TestUtil.test(
-        Javalin.create { it.fileRenderer { _, _, _ -> "Hello!" } }
-    ) { app, http ->
-        app.get("/") { it.render("whatever") }
-        assertThat(http.getBody("/")).isEqualTo("Hello!")
-    }
-
-    companion object {
-        @JvmStatic
-        @BeforeAll
-        fun init() {
-            JavalinRenderer.register({ filePath, model, context ->
-                "path:$filePath, model:$model, queryParam:${context.queryParam("q")}"
-            }, ".myExt")
-        }
     }
 
 }
