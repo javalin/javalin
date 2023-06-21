@@ -77,7 +77,7 @@ class JettyServer(
             })
             val httpConfiguration = defaultHttpConfiguration()
             cfg.pvt.httpConfigurationConfigs.forEach{ it.accept(httpConfiguration) } // apply user config (before connectors)
-            cfg.pvt.connectors.forEach{ it.apply(this, httpConfiguration) } // add user connectors
+            cfg.pvt.connectors.map{ it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
                     this.host = host
