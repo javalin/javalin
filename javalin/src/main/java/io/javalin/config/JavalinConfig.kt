@@ -26,7 +26,7 @@ class JavalinConfig {
     @JvmField val pvt = PrivateConfig() // this is "private", only use it if you know what you're doing
     @JvmField val http = HttpConfig()
     @JvmField val routing = RoutingConfig()
-    @JvmField val jetty = JettyConfig(pvt)
+    @JvmField val jetty = JettyConfig()
     @JvmField val staticFiles = StaticFilesConfig(pvt)
     @JvmField val spaRoot = SpaRootConfig(pvt)
     @JvmField val compression = CompressionConfig(pvt)

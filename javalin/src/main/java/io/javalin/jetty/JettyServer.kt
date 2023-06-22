@@ -67,17 +67,17 @@ class JettyServer(
         started = true
         val startupTimer = System.currentTimeMillis()
         server().apply {
-            cfg.pvt.serverConsumers.forEach{ it.accept(this) } // apply user config
+            cfg.jetty.serverConsumers.forEach{ it.accept(this) } // apply user config
             handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
                 JettyWebSocketServletContainerInitializer.configure(this, null)
                 contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
                 sessionHandler = defaultSessionHandler()
                 addServlet(ServletHolder(wsAndHttpServlet), "/*")
-                cfg.pvt.servletContextHandlerConsumers.forEach{ it.accept(this) } // apply user config
+                cfg.jetty.servletContextHandlerConsumers.forEach{ it.accept(this) } // apply user config
             })
             val httpConfiguration = defaultHttpConfiguration()
-            cfg.pvt.httpConfigurationConfigs.forEach{ it.accept(httpConfiguration) } // apply user config (before connectors)
-            cfg.pvt.connectors.map{ it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
+            cfg.jetty.httpConfigurationConfigs.forEach{ it.accept(httpConfiguration) } // apply user config (before connectors)
+            cfg.jetty.connectors.map{ it.apply(this, httpConfiguration) }.forEach(this::addConnector) // add user connectors
             if (connectors.isEmpty()) { // add default connector if no connectors are specified
                 connectors = arrayOf(ServerConnector(server, HttpConnectionFactory(httpConfiguration)).apply {
                     this.host = host

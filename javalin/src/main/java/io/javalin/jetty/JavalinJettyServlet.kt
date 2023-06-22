@@ -43,7 +43,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
     }
 
     override fun configure(factory: JettyWebSocketServletFactory) { // this is called once, before everything
-        cfg.pvt.wsFactoryConfigs.forEach{ it.accept(factory) }
+        cfg.jetty.wsFactoryConfigs.forEach{ it.accept(factory) }
         factory.setCreator(JettyWebSocketCreator { req, _ -> // this is called when a websocket is created (after [service])
             val preUpgradeContext = req.httpServletRequest.getAttribute(upgradeContextKey) as JavalinServletContext
             req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))
