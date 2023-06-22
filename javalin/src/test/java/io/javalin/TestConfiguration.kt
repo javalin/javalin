@@ -21,8 +21,7 @@ import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.server.ServerConnector
 import org.junit.jupiter.api.Test
 
 class TestConfiguration {
@@ -49,17 +48,16 @@ class TestConfiguration {
             it.requestLogger.ws { ws -> }
             it.showJavalinBanner = false
             it.routing.contextPath = "/"
-            it.jetty.sessionHandler { SessionHandler() }
-            it.jetty.wsFactoryConfig { factory -> }
-            it.jetty.server {
-                Server()
-            }
-            it.jetty.contextHandlerConfig { handler ->
+            it.jetty.modifyJettyWebSocketServletFactory() { factory -> }
+            it.jetty.modifyServer { server -> }
+            it.jetty.modifyServletContextHandler { handler ->
                 handler.addEventListener(object : HttpSessionListener {
                     override fun sessionCreated(e: HttpSessionEvent?) {}
                     override fun sessionDestroyed(e: HttpSessionEvent?) {}
                 })
             }
+            it.jetty.modifyHttpConfiguration() { httpConfig -> }
+            it.jetty.addConnector { server, _ -> ServerConnector(server) }
         }.start(0)
         assertThat(app.jettyServer.started()).isTrue()
         app.stop()

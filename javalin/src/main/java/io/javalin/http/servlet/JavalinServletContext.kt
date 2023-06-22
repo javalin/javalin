@@ -23,6 +23,7 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
+import java.net.URI
 import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.Charset
@@ -166,7 +167,7 @@ fun acceptsHtml(ctx: Context) =
     ctx.header(Header.ACCEPT)?.contains(ContentType.HTML) == true
 
 fun Context.isLocalhost() = try {
-    URL(this.url()).host.let { it == "localhost" || it == "127.0.0.1" }
+    URI.create(this.url()).toURL().host.let { it == "localhost" || it == "127.0.0.1" }
 } catch (e: Exception) {
     false
 }

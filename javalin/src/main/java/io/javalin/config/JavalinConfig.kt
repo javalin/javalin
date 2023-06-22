@@ -7,7 +7,6 @@ package io.javalin.config
 
 import io.javalin.Javalin
 import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
-import io.javalin.jetty.JettyServer
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
@@ -27,7 +26,7 @@ class JavalinConfig {
     @JvmField val pvt = PrivateConfig() // this is "private", only use it if you know what you're doing
     @JvmField val http = HttpConfig()
     @JvmField val routing = RoutingConfig()
-    @JvmField val jetty = JettyConfig(pvt)
+    @JvmField val jetty = JettyConfig()
     @JvmField val staticFiles = StaticFilesConfig(pvt)
     @JvmField val spaRoot = SpaRootConfig(pvt)
     @JvmField val compression = CompressionConfig(pvt)

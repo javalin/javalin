@@ -22,7 +22,7 @@ fun main() {
 
     Javalin.create {
         it.staticFiles.add("/public", Location.CLASSPATH)
-        it.jetty.server { Server(tp) }
+        it.pvt.server = Server(tp)
     }.apply {
         get("/") { it.redirect("/sse/sse-example.html") }
         sse("/sse-counter") { client ->

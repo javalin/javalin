@@ -38,7 +38,7 @@ class TestConfigureServletContextHandler {
         }
 
         val app = Javalin.create {
-            it.jetty.contextHandlerConfig { handler ->
+            it.jetty.modifyServletContextHandler { handler ->
                 handler.addEventListener(listener)
             }
         }.start(0)
@@ -70,7 +70,7 @@ class TestConfigureServletContextHandler {
         }
 
         val filterJavalin = Javalin.create {
-            it.jetty.contextHandlerConfig { handler ->
+            it.jetty.modifyServletContextHandler { handler ->
                 handler.addFilter(FilterHolder(filter), "/*", EnumSet.allOf(DispatcherType::class.java))
             }
         }

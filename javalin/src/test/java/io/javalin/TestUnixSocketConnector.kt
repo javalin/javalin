@@ -4,7 +4,6 @@ import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.unixdomain.server.UnixDomainServerConnector
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -26,15 +25,15 @@ class TestUnixSocketConnector {
         val expectedResultString = "hello unixsocket"
 
         val unixSocketJavalin = Javalin.create {
-            it.jetty.server {
-                val server = Server()
+            it.jetty.addConnector { server, _ ->
                 val serverConnector = ServerConnector(server)
                 serverConnector.port = 0
-                server.addConnector(serverConnector)
+                serverConnector
+            }
+            it.jetty.addConnector { server, _ ->
                 val unixSocketConnector = UnixDomainServerConnector(server)
                 unixSocketConnector.unixDomainPath = Path(socketFileName)
-                server.addConnector(unixSocketConnector)
-                server
+                unixSocketConnector
             }
         }
 

@@ -7,9 +7,11 @@
 package io.javalin
 
 import io.javalin.testing.TestUtil
+import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
 import org.eclipse.jetty.server.ForwardedRequestCustomizer
 import org.eclipse.jetty.server.HttpConnectionFactory
+import org.eclipse.jetty.server.ServerConnector
 import org.junit.jupiter.api.Test
 
 class TestCustomJettyHttpConfiguration {
@@ -17,7 +19,7 @@ class TestCustomJettyHttpConfiguration {
 
     @Test
     fun `customizers get added`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.jetty.httpConfigurationConfig {
+        cfg.jetty.modifyHttpConfiguration() {
             it.customizers.add(customizer)
         }
     }) { javalin, http ->
@@ -29,7 +31,7 @@ class TestCustomJettyHttpConfiguration {
 
     @Test
     fun `X-Fowarded-Proto Works With Customizer`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.jetty.httpConfigurationConfig {
+        cfg.jetty.modifyHttpConfiguration {
             it.customizers.add(customizer)
         }
     }) { javalin, http ->
@@ -52,4 +54,29 @@ class TestCustomJettyHttpConfiguration {
 
         assertThat(response).isNotEqualTo("https")
     }
+
+    @Test
+    fun `custom http configuration is used on custom connectors`() {
+        val port = (2000..9999).random()
+        var app = Javalin.create { cfg ->
+            cfg.jetty.addConnector{ server, httpconf ->
+                ServerConnector(server, HttpConnectionFactory(httpconf)).apply {
+                    this.port = port
+                }
+            }
+            cfg.jetty.modifyHttpConfiguration {
+                it.sendXPoweredBy = true
+            }
+        }
+
+        TestUtil.test(app) { server, _ ->
+            server.get("*") { it.result("PORT WORKS") }
+            var response = Unirest.get("http://localhost:$port/").asString()
+            assertThat(response.body).isEqualTo("PORT WORKS")
+            assertThat(response.headers.getFirst("X-Powered-By")).isNotBlank()
+
+        }
+
+    }
+
 }

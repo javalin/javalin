@@ -45,10 +45,11 @@ class MicrometerPlugin private constructor(
 ) : Plugin {
 
     override fun apply(app: Javalin) {
-        app.jettyServer().server().let { server ->
-            if (tagExceptionName) {
-                app.exception(Exception::class.java, exceptionHandler)
-            }
+        if (tagExceptionName) {
+            app.exception(Exception::class.java, exceptionHandler)
+        }
+
+        app.cfg.jetty.modifyServer { server ->
 
             server.insertHandler(TimedHandler(registry, tags, object : DefaultHttpJakartaServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {

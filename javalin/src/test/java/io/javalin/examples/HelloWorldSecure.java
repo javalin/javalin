@@ -8,8 +8,6 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
@@ -19,15 +17,17 @@ public class HelloWorldSecure {
     // https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/examples/embedded/src/main/java/org/eclipse/jetty/embedded/LikeJettyXml.java#L139-L163
     public static void main(String[] args) {
         Javalin.create(config -> {
-            config.jetty.server(() -> {
-                Server server = new Server();
-                ServerConnector sslConnector = new ServerConnector(server, getSslContextFactory());
-                sslConnector.setPort(443);
-                ServerConnector connector = new ServerConnector(server);
-                connector.setPort(80);
-                server.setConnectors(new Connector[]{sslConnector, connector});
-                return server;
+            config.jetty.addConnector((server, httpConfiguration) -> {
+                    ServerConnector sslConnector = new ServerConnector(server, getSslContextFactory());
+                    sslConnector.setPort(443);
+                    return sslConnector;
             });
+            config.jetty.addConnector((server, httpConfiguration) -> {
+                    ServerConnector connector = new ServerConnector(server);
+                    connector.setPort(80);
+                    return connector;
+            });
+
         }).start().get("/", ctx -> ctx.result("Hello World")); // valid endpoint for both connectors
     }
 
