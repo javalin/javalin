@@ -7,8 +7,6 @@
 package io.javalin.examples
 
 import io.javalin.Javalin
-import org.eclipse.jetty.server.Connector
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.util.ssl.SslContextFactory
 

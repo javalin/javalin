@@ -7,7 +7,6 @@ import io.javalin.http.SinglePageHandler
 import io.javalin.http.servlet.DefaultTasks
 import io.javalin.http.servlet.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
-import io.javalin.jetty.JettyServer
 import io.javalin.security.AccessManager
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig

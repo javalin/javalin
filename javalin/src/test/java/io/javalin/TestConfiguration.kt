@@ -21,11 +21,8 @@ import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.session.SessionHandler
 import org.junit.jupiter.api.Test
-import java.util.function.BiFunction
 
 class TestConfiguration {
 

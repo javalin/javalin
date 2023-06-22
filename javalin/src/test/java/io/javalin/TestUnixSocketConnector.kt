@@ -4,7 +4,6 @@ import io.javalin.http.HttpStatus.OK
 import io.javalin.testing.TestEnvironment
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.unixdomain.server.UnixDomainServerConnector
 import org.junit.jupiter.api.Assumptions.assumeTrue
