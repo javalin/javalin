@@ -381,6 +381,9 @@ interface Context {
     /** Sets response header by name and value. */
     fun header(name: String, value: String): Context = also { res().setHeader(name, value) }
 
+    /** Remove header by name. */
+    fun removeHeader(name: String): Context = also { res().setHeader(name, null) }
+
     /** Redirects to location with given status. Skips HTTP handler if called in before-handler */
     fun redirect(location: String, status: HttpStatus)
 

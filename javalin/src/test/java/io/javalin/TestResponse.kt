@@ -115,6 +115,25 @@ class TestResponse {
     }
 
     @Test
+    fun `setting a header works`() = TestUtil.test { app, http ->
+        val headerValue = UUID.randomUUID().toString()
+        app.get("/") { it.header(Header.EXPIRES, headerValue) }
+        val responseHeader = http.get("/").headers.getFirst(Header.EXPIRES)
+        assertThat(responseHeader).isEqualTo(headerValue)
+    }
+
+    @Test
+    fun `removing a set header works`() = TestUtil.test { app, http ->
+        val headerValue = UUID.randomUUID().toString()
+        app.get("/") {
+            it.header(Header.EXPIRES, headerValue)
+            it.removeHeader(Header.EXPIRES)
+        }
+        val responseHeader = http.get("/").headers.getFirst(Header.EXPIRES)
+        assertThat(responseHeader).isBlank()
+    }
+
+    @Test
     fun `redirect in before-handler works`() = TestUtil.test { app, http ->
         app.before("/before") { it.redirect("/redirected") }
         app.get("/redirected") { it.result("Redirected") }
