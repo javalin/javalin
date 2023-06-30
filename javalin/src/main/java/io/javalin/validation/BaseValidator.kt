@@ -28,7 +28,7 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
         this(fieldName, null, StringSource<T>(stringValue, clazz, jsonMapper))
 
     private val errors by lazy {
-        if (stringSource != null) {
+        if (stringSource != null) { 
             if (this is BodyValidator) {
                 try {
                     typedValue = stringSource.jsonMapper!!.fromJsonString(stringSource.stringValue!!, stringSource.clazz)
@@ -38,7 +38,11 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
                 }
             } else if (this is NullableValidator || this is Validator) {
                 try {
-                    typedValue = JavalinValidation.convertValue(stringSource.clazz, stringSource.stringValue)
+                    typedValue = if (stringSource.stringValue?.contains("|") == true) { // turn type into list
+                        stringSource.stringValue.split("|").map { JavalinValidation.convertValue(stringSource.clazz, it) }.toList() as T
+                    } else {
+                        JavalinValidation.convertValue(stringSource.clazz, stringSource.stringValue)
+                    }
                 } catch (e: Exception) {
                     JavalinLogger.info("Parameter '$fieldName' with value '${stringSource.stringValue}' is not a valid ${stringSource.clazz.simpleName}")
                     return@lazy mapOf(fieldName to listOf(ValidationError("TYPE_CONVERSION_FAILED", value = stringSource.stringValue)))

@@ -16,6 +16,7 @@ import io.javalin.http.bodyValidator
 import io.javalin.http.formParamAsClass
 import io.javalin.http.pathParamAsClass
 import io.javalin.http.queryParamAsClass
+import io.javalin.http.queryParamsAsClass
 import io.javalin.json.JavalinJackson
 import io.javalin.json.toJsonString
 import io.javalin.testing.SerializableObject
@@ -48,6 +49,18 @@ class TestValidation {
     fun `queryParam gives correct error message`() = TestUtil.test { app, http ->
         app.get("/") { it.queryParamAsClass<Int>("param").get() }
         assertThat(http.get("/?param=abc").body).isEqualTo("""{"param":[{"message":"TYPE_CONVERSION_FAILED","args":{},"value":"abc"}]}""")
+    }
+
+    @Test
+    fun `queryParams can be used to validate list`() = TestUtil.test { app, http ->
+        app.get("/") {
+            it.queryParamsAsClass<Int>("param")
+                .check({ it.all { it < 5 } }, "All must be smaller than 5")
+                .get()
+        }
+        val response = http.get("/?param=1&param=2&param=5")
+        assertThat(response.status).isEqualTo(BAD_REQUEST.code)
+        assertThat(response.body).isEqualTo("""{"param":[{"message":"All must be smaller than 5","args":{},"value":[1,2,5]}]}""")
     }
 
     @Test
