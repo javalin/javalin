@@ -51,6 +51,20 @@ public class TestValidation_Java {
     }
 
     @Test
+    public void queryParams_can_be_used_to_validate_list() {
+        TestUtil.test((app, http) -> {
+            app.get("/", ctx -> {
+                ctx.queryParamsAsClass("param", Integer.class)
+                    .check(it -> it.stream().allMatch(number -> number < 5), "All must be smaller than 5")
+                    .get();
+            });
+            var response = http.get("/?param=1&param=2&param=5");
+            assertThat(response.getStatus()).isEqualTo(400);
+            assertThat(response.getBody()).contains("All must be smaller than 5");
+        });
+    }
+
+    @Test
     public void validator_works_from_java_too() {
         JavalinValidation.register(Instant.class, v -> Instant.ofEpochMilli(Long.parseLong(v)));
         String intString = "123";

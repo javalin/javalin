@@ -181,6 +181,10 @@ interface Context {
     /** Gets a list of query params for the specified key, or empty list. */
     fun queryParams(key: String): List<String> = queryParamMap()[key] ?: emptyList()
 
+    /** Creates a typed [Validator] for the queryParams() value */
+    fun <T> queryParamsAsClass(key: String, clazz: Class<T>): Validator<List<T>> =
+        Validator.create(clazz, queryParams(key), key) as Validator<List<T>>
+
     /** Gets a map with all the query param keys and values. */
     fun queryParamMap(): Map<String, List<String>> = splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding() ?: "UTF-8")
 
@@ -488,6 +492,9 @@ inline fun <reified T : Any> Context.headerAsClass(header: String): Validator<T>
 
 /** Reified version of [Context.queryParamAsClass] (Kotlin only) */
 inline fun <reified T : Any> Context.queryParamAsClass(key: String): Validator<T> = queryParamAsClass(key, T::class.java)
+
+/** Reified version of [Context.queryParamsAsClass] (Kotlin only) */
+inline fun <reified T : Any> Context.queryParamsAsClass(key: String): Validator<List<T>> = queryParamsAsClass(key, T::class.java)
 
 /** Reified version of [Context.formParamAsClass] (Kotlin only) */
 inline fun <reified T : Any> Context.formParamAsClass(key: String): Validator<T> = formParamAsClass(key, T::class.java)
