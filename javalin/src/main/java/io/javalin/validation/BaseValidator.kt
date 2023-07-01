@@ -16,8 +16,9 @@ data class ValidationError<T>(val message: String, val args: Map<String, Any?> =
 class ValidationException(val errors: Map<String, List<ValidationError<Any>>>) : RuntimeException()
 
 data class StringSource<T>(
-    val stringValue: String?,
     val clazz: Class<T>,
+    val stringValue: String? = null,
+    val stringListValue: List<String>? = null,
     val jsonMapper: JsonMapper? = null
 )
 
@@ -25,10 +26,10 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
     internal val rules = mutableListOf<Rule<T>>()
 
     constructor(stringValue: String?, clazz: Class<T>, fieldName: String, jsonMapper: JsonMapper? = null) :
-        this(fieldName, null, StringSource<T>(stringValue, clazz, jsonMapper))
+        this(fieldName, null, StringSource<T>(clazz, stringValue, jsonMapper = jsonMapper))
 
     private val errors by lazy {
-        if (stringSource != null) { 
+        if (stringSource != null) {
             if (this is BodyValidator) {
                 try {
                     typedValue = stringSource.jsonMapper!!.fromJsonString(stringSource.stringValue!!, stringSource.clazz)
@@ -38,8 +39,8 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
                 }
             } else if (this is NullableValidator || this is Validator) {
                 try {
-                    typedValue = if (stringSource.stringValue?.contains("|") == true) { // turn type into list
-                        stringSource.stringValue.split("|").map { JavalinValidation.convertValue(stringSource.clazz, it) }.toList() as T
+                    typedValue = if (stringSource.stringListValue?.isNotEmpty() == true) {
+                        stringSource.stringListValue.map { JavalinValidation.convertValue(stringSource.clazz, it) }.toList() as T
                     } else {
                         JavalinValidation.convertValue(stringSource.clazz, stringSource.stringValue)
                     }

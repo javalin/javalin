@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull
 open class Validator<T>(fieldName: String, typedValue: T? = null, stringSource: StringSource<T>? = null) : BaseValidator<T>(fieldName, typedValue, stringSource) {
 
     constructor(stringValue: String?, clazz: Class<T>, fieldName: String) :
-        this(fieldName, null, StringSource<T>(stringValue, clazz))
+        this(fieldName, null, StringSource<T>(clazz, stringValue = stringValue))
 
     fun allowNullable(): NullableValidator<T> {
         if (this.rules.isEmpty()) return NullableValidator(fieldName, typedValue, stringSource)
@@ -38,11 +38,19 @@ open class Validator<T>(fieldName: String, typedValue: T? = null, stringSource: 
 
     companion object {
         @JvmStatic
-        fun <T> create(clazz: Class<T>, value: String?, fieldName: String) = if (JavalinValidation.hasConverter(clazz)) {
-            Validator(value, clazz, fieldName)
-        } else {
-            JavalinLogger.info("Can't convert to ${clazz.name}. Register a converter using JavalinValidation#register.")
-            throw MissingConverterException(clazz.name)
+        fun <T> create(clazz: Class<T>, value: String?, fieldName: String) =
+            checkConverterExists(clazz) { Validator(value, clazz, fieldName) }
+
+        @JvmStatic
+        fun <T> create(clazz: Class<T>, value: List<String>, fieldName: String) =
+            checkConverterExists(clazz) { Validator(fieldName, null, StringSource(clazz, stringListValue = value)) }
+
+        private fun <T> checkConverterExists(clazz: Class<T>, supplier: () -> Validator<T>) : Validator<T> {
+            if (!JavalinValidation.hasConverter(clazz)) {
+                JavalinLogger.info("Can't convert to ${clazz.name}. Register a converter using JavalinValidation#register.")
+                throw MissingConverterException(clazz.name)
+            }
+            return supplier()
         }
     }
 }

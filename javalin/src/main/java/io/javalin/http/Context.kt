@@ -183,7 +183,7 @@ interface Context {
 
     /** Creates a typed [Validator] for the queryParams() value */
     fun <T> queryParamsAsClass(key: String, clazz: Class<T>): Validator<List<T>> =
-        Validator.create(clazz, queryParams(key).joinToString("|"), key) as Validator<List<T>>
+        Validator.create(clazz, queryParams(key), key) as Validator<List<T>>
 
     /** Gets a map with all the query param keys and values. */
     fun queryParamMap(): Map<String, List<String>> = splitKeyValueStringAndGroupByKey(queryString() ?: "", characterEncoding() ?: "UTF-8")
