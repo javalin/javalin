@@ -11,6 +11,25 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
+
+class AsyncTaskConfig(
+    /**
+     * Thread-pool used to execute the given task,
+     * You can change this default in [io.javalin.config.JavalinConfig].
+     */
+    @JvmField var executor: ExecutorService? = null,
+    /**
+     * Timeout in milliseconds,
+     * by default it's 0 which means timeout watcher is disabled.
+     */
+    @JvmField var timeout: Long = 0,
+    /**
+     * Timeout listener executed when [TimeoutException] is thrown in specified task.
+     * This timeout listener is a part of request lifecycle, so you can still modify context here.
+     */
+    @JvmField var onTimeout: Consumer<Context>? = null,
+)
 
 internal object AsyncUtil {
 
@@ -21,20 +40,29 @@ internal object AsyncUtil {
      * It also provides custom timeout handling via [onTimeout] callback registered directly on underlying [CompletableFuture],
      * so global [HttpConfig.asyncTimeout] does not affect this particular task.
      */
-    fun submitAsyncTask(context: Context, executor: ExecutorService?, timeout: Long, onTimeout: Runnable?, task: ThrowingRunnable<Exception>): Unit =
+    fun submitAsyncTask(context: Context, asyncTaskConfig: AsyncTaskConfig, task: ThrowingRunnable<Exception>): Unit =
         context.future {
             context.req().asyncContext.timeout = 0 // we're using cf timeouts below, so we need to disable default jetty timeout listener
 
-            CompletableFuture.runAsync({ task.run() }, executor ?: defaultExecutor)
-                .let { if (timeout > 0) it.orTimeout(timeout, MILLISECONDS) else it }
-                .let {
-                    if (onTimeout == null) it else it.exceptionally { exception ->
-                        exception as? TimeoutException
-                            ?: exception?.cause as? TimeoutException?
-                            ?: throw exception // rethrow if exception or its cause is not TimeoutException
-                        onTimeout.run()
-                        null // handled
-                    }
+            CompletableFuture.runAsync({ task.run() }, asyncTaskConfig.executor ?: defaultExecutor)
+                .let { taskFuture ->
+                    asyncTaskConfig.timeout
+                        .takeIf { it > 0 }
+                        ?.let { taskFuture.orTimeout(it, MILLISECONDS) }
+                        ?: taskFuture
+                }
+                .let { taskFuture ->
+                    asyncTaskConfig.onTimeout
+                        ?.let {
+                            taskFuture.exceptionally { exception ->
+                                exception as? TimeoutException
+                                    ?: exception?.cause as? TimeoutException?
+                                    ?: throw exception // rethrow if exception or its cause is not TimeoutException
+                                it.accept(context)
+                                null // handled
+                            }
+                        }
+                        ?: taskFuture
                 }
         }
 

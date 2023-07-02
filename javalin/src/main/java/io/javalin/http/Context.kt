@@ -16,6 +16,7 @@ import io.javalin.http.servlet.getRequestCharset
 import io.javalin.http.servlet.readAndResetStreamIfPossible
 import io.javalin.http.servlet.splitKeyValueStringAndGroupByKey
 import io.javalin.http.servlet.throwContentTooLargeIfContentTooLarge
+import io.javalin.http.util.AsyncTaskConfig
 import io.javalin.http.util.AsyncUtil
 import io.javalin.http.util.CookieStore
 import io.javalin.http.util.MultipartUtil
@@ -34,8 +35,7 @@ import java.lang.reflect.Type
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Stream
 import kotlin.reflect.javaType
@@ -342,28 +342,19 @@ interface Context {
      * Utility function that allows to run async task on top of the [Context.future] method.
      * It means you should treat provided task as a result of this handler, and you can't use any other result function simultaneously.
      *
-     * @param executor Thread-pool used to execute the given task,
-     * You can change this default in [io.javalin.config.JavalinConfig].
-     *
-     * @param timeout Timeout in milliseconds,
-     * by default it's 0 which means timeout watcher is disabled.
-     *
-     * @param onTimeout Timeout listener executed when [TimeoutException] is thrown in specified task.
-     * This timeout listener is a part of request lifecycle, so you can still modify context here.
+     * @param config Configuration of the async task with properties like executor, timeout, etc.
+     * @param task The task that will be executed asynchronously.
      *
      * @return As a result, function returns a new future that you can listen to.
      * The limitation is that you can't modify context after such event,
      * because it'll most likely be executed when the connection is already closed,
      * so it's just not thread-safe.
      */
-    fun async(executor: ExecutorService? = null, timeout: Long = 0L, onTimeout: Runnable?, task: ThrowingRunnable<Exception>) =
-        AsyncUtil.submitAsyncTask(this, executor, timeout, onTimeout, task)
-
-    /** @see [async] */
-    fun async(timeout: Long, onTimeout: Runnable? = null, task: ThrowingRunnable<Exception>) = async(executor = null, timeout = timeout, onTimeout = onTimeout, task = task)
+    fun async(config: Consumer<AsyncTaskConfig>, task: ThrowingRunnable<Exception>) =
+        AsyncUtil.submitAsyncTask(this, AsyncTaskConfig().also { config.accept(it) }, task)
 
     /* @see [async] */
-    fun async(task: ThrowingRunnable<Exception>) = async(onTimeout = null, task = task)
+    fun async(task: ThrowingRunnable<Exception>) = async(config = {}, task = task)
 
     /**
      * The main entrypoint for all async related functionalities exposed by [Context].

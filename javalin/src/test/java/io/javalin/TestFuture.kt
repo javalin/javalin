@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.function.Consumer
 
 @Timeout(value = 5, unit = SECONDS)
 internal class TestFuture {
@@ -274,14 +275,13 @@ internal class TestFuture {
         @Test
         fun `timeout and onTimeout should work`() = TestUtil.test { app, http ->
             app.get("/") { ctx ->
-                ctx.async(
-                    timeout = 10L,
-                    onTimeout = { ctx.result("Timeout") },
-                    task = {
-                        Thread.sleep(500L)
-                        ctx.result("Result")
-                    }
-                )
+                ctx.async({ config ->
+                    config.timeout = 10L
+                    config.onTimeout = Consumer { it.result("Timeout") }
+                }) {
+                    Thread.sleep(500L)
+                    ctx.result("Result")
+                }
             }
 
             assertThat(http.get("/").body).isEqualTo("Timeout")
