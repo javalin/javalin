@@ -12,7 +12,7 @@ import io.javalin.http.Header.ACCESS_CONTROL_REQUEST_HEADERS
 import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.VARY
 import io.javalin.http.HttpStatus
-import io.javalin.plugin.Plugin
+import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.bundled.CorsUtils.isValidOrigin
 import io.javalin.plugin.bundled.CorsUtils.normalizeOrigin
 import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
@@ -20,7 +20,6 @@ import io.javalin.plugin.bundled.CorsUtils.originsMatch
 import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
 import java.util.*
 import java.util.function.Consumer
-
 
 data class CorsPluginConfig(
     @JvmField var allowCredentials: Boolean = false,
@@ -64,7 +63,8 @@ data class CorsPluginConfig(
     }
 }
 
-class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
+class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : JavalinPlugin {
+
     init {
         require(userConfigs.isNotEmpty()) {
             "At least one cors config has to be provided. Use CorsContainer.add() to add one."
@@ -73,8 +73,7 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : Plugin {
 
     val configs = userConfigs.map { userConfig -> CorsPluginConfig().also { userConfig.accept(it) } }
 
-
-    override fun apply(app: Javalin) {
+    override fun onStart(app: Javalin) {
         configs.forEach { applySingleConfig(app, it) }
     }
 

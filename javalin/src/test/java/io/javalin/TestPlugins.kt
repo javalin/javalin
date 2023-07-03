@@ -1,10 +1,8 @@
 package io.javalin
 
-import io.javalin.plugin.Plugin
+import io.javalin.config.JavalinConfig
+import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
-import io.javalin.plugin.PluginInitException
-import io.javalin.plugin.PluginLifecycleInit
-import io.javalin.plugin.RepeatablePlugin
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -18,16 +16,15 @@ class TestPlugins {
 
     enum class Calls {
         INIT,
-        APPLY
+        START
     }
 
-    open inner class TestPlugin : Plugin, PluginLifecycleInit {
-        override fun init(app: Javalin) {
+    open inner class TestPlugin : JavalinPlugin {
+        override fun onInitialize(config: JavalinConfig) {
             calls.add(Calls.INIT)
         }
-
-        override fun apply(app: Javalin) {
-            calls.add(Calls.APPLY)
+        override fun onStart(app: Javalin) {
+            calls.add(Calls.START)
         }
     }
 
@@ -52,8 +49,8 @@ class TestPlugins {
         assertThat(calls).containsExactly(
             Calls.INIT,
             Calls.INIT,
-            Calls.APPLY,
-            Calls.APPLY
+            Calls.START,
+            Calls.START
         )
     }
 
@@ -81,8 +78,9 @@ class TestPlugins {
         }
     }
 
-    class MultiInstanceTestPlugin : Plugin, RepeatablePlugin {
-        override fun apply(app: Javalin) {}
+    class MultiInstanceTestPlugin : JavalinPlugin {
+        override fun onStart(app: Javalin) {}
+        override fun repeatable() = true
     }
 
     @Test
@@ -93,22 +91,6 @@ class TestPlugins {
                 it.plugins.register(MultiInstanceTestPlugin())
             }
         }
-    }
-
-    @Test
-    fun `init should throw error if handler is registered in init`() {
-        class BadPlugin : Plugin, PluginLifecycleInit {
-            override fun apply(app: Javalin) {}
-
-            override fun init(app: Javalin) {
-                app.get("/hello") {}
-            }
-
-        }
-
-        assertThatThrownBy {
-            Javalin.create { it.plugins.register(BadPlugin()) }
-        }.isEqualTo(PluginInitException(BadPlugin::class.java))
     }
 
     @Test

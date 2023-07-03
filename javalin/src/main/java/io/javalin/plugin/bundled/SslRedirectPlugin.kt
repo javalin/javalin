@@ -4,7 +4,7 @@ import io.javalin.Javalin
 import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
-import io.javalin.plugin.Plugin
+import io.javalin.plugin.JavalinPlugin
 import org.eclipse.jetty.server.ServerConnector
 
 /**
@@ -13,9 +13,9 @@ import org.eclipse.jetty.server.ServerConnector
 class SslRedirectPlugin @JvmOverloads constructor(
     private val redirectOnLocalhost: Boolean = false,
     private val sslPort: Int? = null
-) : Plugin {
+) : JavalinPlugin {
 
-    override fun apply(app: Javalin) {
+    override fun onStart(app: Javalin) {
         app.before { ctx ->
             if (!redirectOnLocalhost && ctx.isLocalhost()) {
                 return@before

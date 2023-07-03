@@ -223,7 +223,7 @@ public class Javalin implements AutoCloseable {
      */
     public Javalin updateConfig(Consumer<JavalinConfig> userConfig) {
         userConfig.accept(cfg);
-        cfg.plugins.getPluginManager().initializePlugins(this);
+        cfg.plugins.getPluginManager().initializePlugins(this, cfg);
         return this;
     }
 

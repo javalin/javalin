@@ -1,43 +1,40 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 
-class PluginManager {
+class PluginManager internal constructor() {
 
-    private val plugins: MutableList<Plugin> = mutableListOf()
-    private val initializedPlugins: MutableSet<Plugin> = mutableSetOf()
+    private val plugins: MutableList<JavalinPlugin> = mutableListOf()
+    private val enabledPlugins: MutableSet<JavalinPlugin> = mutableSetOf()
 
-    fun register(plugin: Plugin) {
-        if (plugin !is RepeatablePlugin && plugins.any { it.javaClass == plugin.javaClass }) {
+    fun register(plugin: JavalinPlugin) {
+        if (!plugin.repeatable() && plugins.any { it.javaClass == plugin.javaClass }) {
             throw PluginAlreadyRegisteredException(plugin.javaClass)
         }
         plugins.add(plugin)
     }
 
-    fun initializePlugins(app: Javalin) {
-        var anyHandlerAdded = false
+    fun initializePlugins(app: Javalin, cfg: JavalinConfig) {
+        val initializedPlugins = enabledPlugins.toMutableSet()
 
-        app.events { event ->
-            event.handlerAdded { anyHandlerAdded = true }
-            event.wsHandlerAdded { anyHandlerAdded = true }
-        }
-
-        val pluginsToInitialize = plugins.filterNot { initializedPlugins.contains(it) }
-
-        pluginsToInitialize.forEach {
-            if (it is PluginLifecycleInit) {
-                it.init(app)
-
-                if (anyHandlerAdded) { // check if any "init" added a handler
-                    throw PluginInitException(it.javaClass)
+        while (plugins.size != initializedPlugins.size) {
+            plugins
+                .filterNot { enabledPlugins.contains(it) }
+                .filterNot { initializedPlugins.contains(it) }
+                .forEach {
+                    it.onInitialize(cfg)
+                    initializedPlugins.add(it)
                 }
-            }
         }
 
-        pluginsToInitialize.forEach {
-            it.apply(app)
-            initializedPlugins.add(it)
-        }
+        initializedPlugins
+            .filterNot { enabledPlugins.contains(it) }
+            .sortedBy { it.priority() }
+            .forEach {
+                it.onStart(app)
+                enabledPlugins.add(it)
+            }
     }
 
 }

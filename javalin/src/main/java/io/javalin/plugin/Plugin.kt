@@ -1,17 +1,39 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 
-/**
- * A extension is a modular way of adding functionality to a Javalin instance.
- * Lifecycle interfaces can be used to listen to specific callbacks.
- * To apply a plugin use [JavalinConfig.registerPlugin].
- */
-fun interface Plugin {
-    fun apply(app: Javalin)
+enum class PluginPriority {
+    EARLY,
+    NORMAL,
+    LATE
 }
 
-/**
- * A repeatable plugin is a plugin that can be registered multiple times.
- */
-interface RepeatablePlugin
+fun interface JavalinPlugin {
+
+    /**
+     * Initialize properties and access configuration before any handler is registered.
+     */
+    fun onInitialize(config: JavalinConfig) {}
+
+    /**
+     * Called when the plugin is applied to the Javalin instance.
+     */
+    fun onStart(app: Javalin)
+
+    /**
+     * Checks if plugin can be registered multiple times.
+     */
+    fun repeatable(): Boolean = false
+
+    /**
+     * The priority of this plugin.
+     */
+    fun priority(): PluginPriority = PluginPriority.NORMAL
+
+    /**
+     * The name of this plugin.
+     */
+    fun name(): String = this.javaClass.simpleName
+
+}
