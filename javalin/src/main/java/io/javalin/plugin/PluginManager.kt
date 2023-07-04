@@ -10,7 +10,7 @@ class PluginManager internal constructor() {
 
     fun register(plugin: JavalinPlugin) {
         if (!plugin.repeatable() && plugins.any { it.javaClass == plugin.javaClass }) {
-            throw PluginAlreadyRegisteredException(plugin.javaClass)
+            throw PluginAlreadyRegisteredException(plugin)
         }
         plugins.add(plugin)
     }

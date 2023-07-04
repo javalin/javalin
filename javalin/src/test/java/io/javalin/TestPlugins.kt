@@ -3,6 +3,8 @@ package io.javalin
 import io.javalin.config.JavalinConfig
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginAlreadyRegisteredException
+import io.javalin.plugin.PluginPriority.EARLY
+import io.javalin.plugin.PluginPriority.LATE
 import io.javalin.testing.TestUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -72,9 +74,9 @@ class TestPlugins {
         Javalin.create {
             it.plugins.register(TestPlugin())
 
-            assertThatThrownBy {
-                it.plugins.register(TestPlugin())
-            }.isEqualTo(PluginAlreadyRegisteredException(TestPlugin::class.java))
+            assertThatThrownBy { it.plugins.register(TestPlugin()) }
+                .isInstanceOf(PluginAlreadyRegisteredException::class.java)
+                .hasMessage("TestPlugin is already registered")
         }
     }
 
@@ -108,6 +110,43 @@ class TestPlugins {
 
         assertThat(pluginAInitCount).isEqualTo(1) // make sure that plugin A was not initialized 2 times
         assertThat(pluginBInitCount).isEqualTo(1) // make sure that plugin B has been initialized
+    }
+
+    @Test
+    fun `plugins are initialized in the proper order`() {
+        val calls = mutableListOf<String>()
+
+        class EarlyPlugin : JavalinPlugin {
+            override fun priority() = EARLY
+            override fun onInitialize(config: JavalinConfig) { calls.add("early-init") }
+            override fun onStart(app: Javalin) { calls.add("early-start") }
+        }
+
+        class NormalPlugin : JavalinPlugin {
+            override fun onInitialize(config: JavalinConfig) { calls.add("normal-init") }
+            override fun onStart(app: Javalin) { calls.add("normal-start") }
+        }
+
+        class LatePlugin : JavalinPlugin {
+            override fun priority() = LATE
+            override fun onInitialize(config: JavalinConfig) { calls.add("late-init") }
+            override fun onStart(app: Javalin) { calls.add("late-start") }
+        }
+
+        Javalin.create { config ->
+            config.plugins.register(NormalPlugin())
+            config.plugins.register(LatePlugin())
+            config.plugins.register(EarlyPlugin())
+        }
+
+        assertThat(calls).containsExactly(
+            "early-init",
+            "normal-init",
+            "late-init",
+            "early-start",
+            "normal-start",
+            "late-start"
+        )
     }
 
 }
