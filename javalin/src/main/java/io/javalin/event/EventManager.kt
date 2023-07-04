@@ -12,7 +12,7 @@ import io.javalin.websocket.WsHandlerType
 import java.util.function.Consumer
 
 class EventManager {
-    val lifecycleHandlers = JavalinLifecycleEvent.values().associateWith { HashSet<EventHandler>() }
+    val lifecycleHandlers = JavalinLifecycleEvent.values().associateWith { HashSet<LifecycleEventListener>() }
     var handlerAddedHandlers = mutableSetOf<Consumer<HandlerMetaInfo>>()
     val wsHandlerAddedHandlers = mutableSetOf<Consumer<WsHandlerMetaInfo>>()
     fun fireEvent(javalinLifecycleEvent: JavalinLifecycleEvent) = lifecycleHandlers[javalinLifecycleEvent]?.forEach { it.handleEvent() }

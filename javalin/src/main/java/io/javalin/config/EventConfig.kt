@@ -6,7 +6,7 @@
 
 package io.javalin.config;
 
-import io.javalin.event.EventHandler
+import io.javalin.event.LifecycleEventListener
 import io.javalin.event.EventManager;
 import io.javalin.event.HandlerMetaInfo
 import io.javalin.event.JavalinLifecycleEvent;
@@ -17,12 +17,12 @@ class EventConfig {
 
     @JvmField val eventManager = EventManager()
 
-    fun serverStarting(eventHandler: EventHandler) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STARTING, eventHandler)
-    fun serverStarted(eventHandler: EventHandler) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STARTED, eventHandler)
-    fun serverStartFailed(eventHandler: EventHandler) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_START_FAILED, eventHandler)
-    fun serverStopFailed(eventHandler: EventHandler) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STOP_FAILED, eventHandler)
-    fun serverStopping(eventHandler: EventHandler) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STOPPING, eventHandler)
-    fun serverStopped(eventHandler: EventHandler) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STOPPED, eventHandler)
+    fun serverStarting(lifecycleEventListener: LifecycleEventListener) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STARTING, lifecycleEventListener)
+    fun serverStarted(lifecycleEventListener: LifecycleEventListener) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STARTED, lifecycleEventListener)
+    fun serverStartFailed(lifecycleEventListener: LifecycleEventListener) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_START_FAILED, lifecycleEventListener)
+    fun serverStopFailed(lifecycleEventListener: LifecycleEventListener) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STOP_FAILED, lifecycleEventListener)
+    fun serverStopping(lifecycleEventListener: LifecycleEventListener) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STOPPING, lifecycleEventListener)
+    fun serverStopped(lifecycleEventListener: LifecycleEventListener) = addLifecycleEvent(JavalinLifecycleEvent.SERVER_STOPPED, lifecycleEventListener)
 
     fun handlerAdded(callback: Consumer<HandlerMetaInfo>) {
         this.eventManager.handlerAddedHandlers.add(callback);
@@ -32,8 +32,8 @@ class EventConfig {
         eventManager.wsHandlerAddedHandlers.add(callback);
     }
 
-    private fun addLifecycleEvent(event: JavalinLifecycleEvent, eventHandler: EventHandler) {
-        eventManager.lifecycleHandlers[event]!!.add(eventHandler)
+    private fun addLifecycleEvent(event: JavalinLifecycleEvent, lifecycleEventListener: LifecycleEventListener) {
+        eventManager.lifecycleHandlers[event]!!.add(lifecycleEventListener)
     }
 
 }

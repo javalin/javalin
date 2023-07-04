@@ -13,6 +13,6 @@ package io.javalin.event;
  * @see <a href="https://javalin.io/documentation#lifecycle-events">Lifecycle Events in documentation</a>
  */
 @FunctionalInterface
-public interface EventHandler {
+public interface LifecycleEventListener {
     void handleEvent() throws Exception;
 }
