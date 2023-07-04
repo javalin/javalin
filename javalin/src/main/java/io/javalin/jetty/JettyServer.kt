@@ -8,7 +8,7 @@ package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
 import io.javalin.event.EventManager
-import io.javalin.event.JavalinEvent
+import io.javalin.event.JavalinLifecycleEvent
 import io.javalin.http.ContentType
 import io.javalin.util.ConcurrencyUtil
 import io.javalin.util.JavalinBindException
@@ -85,15 +85,15 @@ class JettyServer(
                 })
             }
         }
-        eventManager.fireEvent(JavalinEvent.SERVER_STARTING)
+        eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTING)
         try {
             JavalinLogger.startup("Starting Javalin ...")
             server().start() // this will log a lot of stuff
             JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
-            eventManager.fireEvent(JavalinEvent.SERVER_STARTED)
+            eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTED)
         } catch (e: Exception) {
             JavalinLogger.error("Failed to start Javalin")
-            eventManager.fireEvent(JavalinEvent.SERVER_START_FAILED)
+            eventManager.fireEvent(JavalinLifecycleEvent.SERVER_START_FAILED)
             if (server().getAttribute("is-default-server") == true) {
                 server().stop() // stop if server is default server; otherwise, the caller is responsible to stop
             }
@@ -127,16 +127,16 @@ class JettyServer(
 
     fun stop() {
         JavalinLogger.info("Stopping Javalin ...")
-        eventManager.fireEvent(JavalinEvent.SERVER_STOPPING)
+        eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOPPING)
         try {
             server().stop()
         } catch (e: Exception) {
-            eventManager.fireEvent(JavalinEvent.SERVER_STOP_FAILED)
+            eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOP_FAILED)
             JavalinLogger.error("Javalin failed to stop gracefully", e)
             throw JavalinException(e)
         }
         JavalinLogger.info("Javalin has stopped")
-        eventManager.fireEvent(JavalinEvent.SERVER_STOPPED)
+        eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STOPPED)
     }
 
     private fun Handler?.attachHandler(servletContextHandler: ServletContextHandler) = when {
