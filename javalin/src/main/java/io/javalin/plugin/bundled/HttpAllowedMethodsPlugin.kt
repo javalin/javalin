@@ -16,13 +16,10 @@ class HttpAllowedMethodsPlugin : JavalinPlugin {
 
     private val endpoints = mutableMapOf<String, MutableSet<HandlerMetaInfo>>()
 
-    override fun onInitialize(cfg: JavalinConfig) {
-// TODO: Move events to cfg
-//        app.events {
-//            it.handlerAdded { handlerInfo ->
-//                addOptionsToList(handlerInfo)
-//            }
-//        }
+    override fun onInitialize(config: JavalinConfig) {
+        config.events.handlerAdded { handlerInfo ->
+            addOptionsToList(handlerInfo)
+        }
     }
 
     override fun onStart(app: Javalin) {

@@ -7,7 +7,6 @@
 package io.javalin.jetty
 
 import io.javalin.config.JavalinConfig
-import io.javalin.event.EventManager
 import io.javalin.event.JavalinLifecycleEvent
 import io.javalin.http.ContentType
 import io.javalin.util.ConcurrencyUtil
@@ -38,7 +37,6 @@ import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerI
 class JettyServer(
     private val cfg: JavalinConfig,
     private val wsAndHttpServlet: JavalinJettyServlet,
-    private val eventManager: EventManager
 ) {
 
     init {
@@ -58,6 +56,8 @@ class JettyServer(
 
     private var started = false
     fun started() = started
+
+    private val eventManager by lazy { cfg.events.eventManager }
 
     @Throws(JavalinException::class)
     fun start(host: String?, port: Int?) {

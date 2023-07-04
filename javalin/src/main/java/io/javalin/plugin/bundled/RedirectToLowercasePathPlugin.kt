@@ -10,6 +10,7 @@ import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginPriority
 import io.javalin.routing.PathParser
 import io.javalin.routing.PathSegment
 import java.util.*
@@ -27,26 +28,24 @@ class RedirectToLowercasePathPlugin : JavalinPlugin {
         if (config.routing.caseInsensitiveRoutes) {
             throw IllegalStateException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
         }
-        // TODO: Move events to cfg
-//        app.events { listener ->
-//            listener.handlerAdded { handlerMetaInfo ->
-//                val parser = PathParser(handlerMetaInfo.path, config.routing)
-//
-//                parser.segments.asSequence()
-//                    .filterIsInstance<PathSegment.Normal>()
-//                    .map { it.content }
-//                    .firstOrNull { it != it.lowercase(Locale.ROOT) }
-//                    ?.run { throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin") }
-//
-//                parser.segments.asSequence()
-//                    .filterIsInstance<PathSegment.MultipleSegments>()
-//                    .flatMap { it.innerSegments }
-//                    .filterIsInstance<PathSegment.Normal>()
-//                    .map { it.content }
-//                    .firstOrNull { it != it.lowercase(Locale.ROOT) }
-//                    ?.run { throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin") }
-//            }
-//        }
+
+        config.events.handlerAdded { handlerMetaInfo ->
+            val parser = PathParser(handlerMetaInfo.path, config.routing)
+
+            parser.segments.asSequence()
+                .filterIsInstance<PathSegment.Normal>()
+                .map { it.content }
+                .firstOrNull { it != it.lowercase(Locale.ROOT) }
+                ?.run { throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin") }
+
+            parser.segments.asSequence()
+                .filterIsInstance<PathSegment.MultipleSegments>()
+                .flatMap { it.innerSegments }
+                .filterIsInstance<PathSegment.Normal>()
+                .map { it.content }
+                .firstOrNull { it != it.lowercase(Locale.ROOT) }
+                ?.run { throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin") }
+        }
     }
 
     override fun onStart(app: Javalin) {
@@ -95,6 +94,8 @@ class RedirectToLowercasePathPlugin : JavalinPlugin {
             )
         }
     }
+
+    override fun priority(): PluginPriority = PluginPriority.EARLY
 
 }
 

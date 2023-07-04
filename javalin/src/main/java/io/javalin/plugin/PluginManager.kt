@@ -19,13 +19,21 @@ class PluginManager internal constructor() {
         val initializedPlugins = enabledPlugins.toMutableSet()
 
         while (plugins.size != initializedPlugins.size) {
-            plugins
+            val amountOfPlugins = plugins.size
+
+            val pluginsToInitialize = plugins
                 .filterNot { enabledPlugins.contains(it) }
                 .filterNot { initializedPlugins.contains(it) }
-                .forEach {
-                    it.onInitialize(cfg)
-                    initializedPlugins.add(it)
+                .sortedBy { it.priority() }
+
+            for (plugin in pluginsToInitialize) {
+                plugin.onInitialize(cfg)
+                initializedPlugins.add(plugin)
+
+                if (amountOfPlugins != plugins.size) {
+                    continue // plugin was registered during onInitialize, so we need to re-sort
                 }
+            }
         }
 
         initializedPlugins

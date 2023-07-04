@@ -4,8 +4,20 @@ import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
 
 enum class PluginPriority {
+    /**
+     * Plugins with priority EARLY will be initialized before other type of plugins.
+     * These plugins should be focused on meta configuration and not on registering handlers.
+     */
     EARLY,
+    /**
+     * Plugins with priority NORMAL will be initialized after EARLY plugins and before LATE plugins.
+     * This is a good default priority for most plugins.
+     */
     NORMAL,
+    /**
+     * Plugins with priority LATE will be initialized after other type of plugins.
+     * These plugins should be focused on meta analysis of the overall setup.
+     */
     LATE
 }
 
