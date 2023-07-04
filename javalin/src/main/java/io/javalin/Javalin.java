@@ -10,8 +10,7 @@ package io.javalin;
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.config.JavalinConfig;
-import io.javalin.event.EventListener;
-import io.javalin.event.EventManager;
+import io.javalin.config.EventConfig;
 import io.javalin.event.HandlerMetaInfo;
 import io.javalin.event.WsHandlerMetaInfo;
 import io.javalin.http.Context;
@@ -46,7 +45,6 @@ public class Javalin implements AutoCloseable {
      * Alternatively use {@link Javalin#updateConfig(Consumer)} to update the config at a later date.
      */
     public JavalinConfig cfg = new JavalinConfig();
-    protected EventManager eventManager = new EventManager(); // TODO: this could go into JavalinConfig?
     protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
     protected JettyServer jettyServer = null;
     protected JavalinJettyServlet javalinJettyServlet = null;
@@ -96,7 +94,7 @@ public class Javalin implements AutoCloseable {
     public JettyServer jettyServer() {
         // TODO: is this lazy initialization okay? or should we figure out another way to make plugins work?
         if (this.jettyServer == null) {
-            this.jettyServer = new JettyServer(this.cfg, this.javalinJettyServlet(), this.eventManager);
+            this.jettyServer = new JettyServer(this.cfg, this.javalinJettyServlet(), this.cfg.events.eventManager);
         }
         return this.jettyServer;
     }
@@ -170,9 +168,8 @@ public class Javalin implements AutoCloseable {
         stop();
     }
 
-    public Javalin events(Consumer<EventListener> listener) {
-        EventListener eventListener = new EventListener(this.eventManager);
-        listener.accept(eventListener);
+    public Javalin events(Consumer<EventConfig> listener) {
+        listener.accept(cfg.events);
         return this;
     }
 
@@ -311,7 +308,7 @@ public class Javalin implements AutoCloseable {
     public Javalin addHandler(@NotNull HandlerType handlerType, @NotNull String path, @NotNull Handler handler, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
         javalinServlet.getMatcher().add(new HandlerEntry(handlerType, path, cfg.routing, roleSet, handler));
-        eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(cfg.routing.contextPath, path), handler, roleSet));
+        cfg.events.eventManager.fireHandlerAddedEvent(new HandlerMetaInfo(handlerType, Util.prefixContextPath(cfg.routing.contextPath, path), handler, roleSet));
         return this;
     }
 
@@ -556,7 +553,7 @@ public class Javalin implements AutoCloseable {
     private Javalin addWsHandler(@NotNull WsHandlerType handlerType, @NotNull String path, @NotNull Consumer<WsConfig> wsConfig, @NotNull RouteRole... roles) {
         Set<RouteRole> roleSet = new HashSet<>(Arrays.asList(roles));
         javalinJettyServlet().addHandler(handlerType, path, wsConfig, roleSet);
-        eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(cfg.routing.contextPath, path), wsConfig, roleSet));
+        cfg.events.eventManager.fireWsHandlerAddedEvent(new WsHandlerMetaInfo(handlerType, Util.prefixContextPath(cfg.routing.contextPath, path), wsConfig, roleSet));
         return this;
     }
 

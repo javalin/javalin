@@ -32,6 +32,7 @@ class JavalinConfig {
     @JvmField val compression = CompressionConfig(pvt)
     @JvmField val requestLogger = RequestLoggerConfig(pvt)
     @JvmField val plugins = PluginConfig()
+    @JvmField val events = EventConfig()
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
     @JvmField var showJavalinBanner = true
