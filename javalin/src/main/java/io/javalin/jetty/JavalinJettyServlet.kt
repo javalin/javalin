@@ -13,6 +13,7 @@ import io.javalin.http.Header
 import io.javalin.http.HttpStatus
 import io.javalin.http.servlet.JavalinServlet
 import io.javalin.http.servlet.JavalinServletContext
+import io.javalin.http.servlet.JavalinServletContextConfig
 import io.javalin.security.RouteRole
 import io.javalin.security.accessManagerNotConfiguredException
 import io.javalin.websocket.*
@@ -38,6 +39,13 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
     val wsExceptionMapper = WsExceptionMapper()
     val wsPathMatcher = WsPathMatcher()
 
+    private val servletContextConfig = JavalinServletContextConfig(
+        appAttributes = cfg.pvt.appAttributes,
+        compressionStrategy = cfg.pvt.compressionStrategy,
+        requestLoggerEnabled = cfg.pvt.requestLogger != null,
+        defaultContentType = cfg.http.defaultContentType,
+    )
+
     fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<RouteRole>) {
         wsPathMatcher.add(WsEntry(handlerType, path, cfg.routing, WsConfig().apply { ws.accept(this) }, roles))
     }
@@ -60,9 +68,9 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
         val requestUri = req.requestURI.removePrefix(req.contextPath)
         val entry = wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
         val upgradeContext = JavalinServletContext(
+            cfg = servletContextConfig,
             req = req,
             res = res,
-            cfg = cfg,
             matchedPath = entry.path,
             pathParamMap = entry.extractPathParams(requestUri),
         )
