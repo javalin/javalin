@@ -8,7 +8,6 @@ package io.javalin.http.servlet
 
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
-import io.javalin.config.JavalinConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
@@ -48,7 +47,7 @@ class JavalinServletContext(
     private val startTimeNanos: Long? = if (cfg.requestLoggerEnabled) System.nanoTime() else null,
     private var handlerType: HandlerType = HandlerType.BEFORE,
     private var matchedPath: String = "",
-    private var pathParamMap: Map<String, String> = mapOf(),
+    private var pathParamMap: Map<String, String> = emptyMap(),
     internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
