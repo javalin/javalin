@@ -1,7 +1,6 @@
 package io.javalin.plugin
 
 import io.javalin.Javalin
-import io.javalin.config.JavalinConfig
 
 class PluginManager internal constructor() {
 
@@ -15,19 +14,20 @@ class PluginManager internal constructor() {
         plugins.add(plugin)
     }
 
-    fun initializePlugins(app: Javalin, cfg: JavalinConfig) {
+    fun initializePlugins(app: Javalin) {
         val initializedPlugins = enabledPlugins.toMutableSet()
 
         while (plugins.size != initializedPlugins.size) {
             val amountOfPlugins = plugins.size
 
             val pluginsToInitialize = plugins
-                .filterNot { enabledPlugins.contains(it) }
-                .filterNot { initializedPlugins.contains(it) }
+                .asSequence()
+                .filter { it !in enabledPlugins }
+                .filter { it !in initializedPlugins }
                 .sortedBy { it.priority() }
 
             for (plugin in pluginsToInitialize) {
-                plugin.onInitialize(cfg)
+                plugin.onInitialize(app.cfg)
                 initializedPlugins.add(plugin)
 
                 if (amountOfPlugins != plugins.size) {
@@ -37,7 +37,8 @@ class PluginManager internal constructor() {
         }
 
         initializedPlugins
-            .filterNot { enabledPlugins.contains(it) }
+            .asSequence()
+            .filter { it !in enabledPlugins }
             .sortedBy { it.priority() }
             .forEach {
                 it.onStart(app)
