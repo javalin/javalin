@@ -25,12 +25,14 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
     val exceptionMapper = ExceptionMapper(cfg)
     val errorMapper = ErrorMapper()
 
-    private val servletContextConfig = JavalinServletContextConfig(
-        appAttributes = cfg.pvt.appAttributes,
-        compressionStrategy = cfg.pvt.compressionStrategy,
-        requestLoggerEnabled = cfg.pvt.requestLogger != null,
-        defaultContentType = cfg.http.defaultContentType
-    )
+    private val servletContextConfig by lazy {
+        JavalinServletContextConfig(
+            appAttributes = cfg.pvt.appAttributes,
+            compressionStrategy = cfg.pvt.compressionStrategy,
+            requestLoggerEnabled = cfg.pvt.requestLogger != null,
+            defaultContentType = cfg.http.defaultContentType
+        )
+    }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {

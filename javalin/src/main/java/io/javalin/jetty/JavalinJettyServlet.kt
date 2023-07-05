@@ -39,12 +39,14 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
     val wsExceptionMapper = WsExceptionMapper()
     val wsPathMatcher = WsPathMatcher()
 
-    private val servletContextConfig = JavalinServletContextConfig(
-        appAttributes = cfg.pvt.appAttributes,
-        compressionStrategy = cfg.pvt.compressionStrategy,
-        requestLoggerEnabled = cfg.pvt.requestLogger != null,
-        defaultContentType = cfg.http.defaultContentType,
-    )
+    private val servletContextConfig by lazy {
+        JavalinServletContextConfig(
+            appAttributes = cfg.pvt.appAttributes,
+            compressionStrategy = cfg.pvt.compressionStrategy,
+            requestLoggerEnabled = cfg.pvt.requestLogger != null,
+            defaultContentType = cfg.http.defaultContentType,
+        )
+    }
 
     fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<RouteRole>) {
         wsPathMatcher.add(WsEntry(handlerType, path, cfg.routing, WsConfig().apply { ws.accept(this) }, roles))
