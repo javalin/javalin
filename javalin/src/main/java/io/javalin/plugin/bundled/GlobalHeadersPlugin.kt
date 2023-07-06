@@ -7,11 +7,11 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
-import io.javalin.plugin.Plugin
+import io.javalin.plugin.JavalinPlugin
 
-class GlobalHeadersPlugin(private val globalHeaderConfig: GlobalHeaderConfig) : Plugin {
+class GlobalHeadersPlugin(private val globalHeaderConfig: GlobalHeaderConfig) : JavalinPlugin {
 
-    override fun apply(app: Javalin) {
+    override fun onStart(app: Javalin) {
         app.before { ctx ->
             globalHeaderConfig.headers.forEach { (name, value) ->
                 ctx.header(name, value)

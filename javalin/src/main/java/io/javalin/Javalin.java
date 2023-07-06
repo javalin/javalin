@@ -94,7 +94,7 @@ public class Javalin implements AutoCloseable {
     public JettyServer jettyServer() {
         // TODO: is this lazy initialization okay? or should we figure out another way to make plugins work?
         if (this.jettyServer == null) {
-            this.jettyServer = new JettyServer(this.cfg, this.javalinJettyServlet(), this.cfg.events.eventManager);
+            this.jettyServer = new JettyServer(this.cfg, this.javalinJettyServlet());
         }
         return this.jettyServer;
     }

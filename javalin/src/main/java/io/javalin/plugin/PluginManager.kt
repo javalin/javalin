@@ -2,42 +2,48 @@ package io.javalin.plugin
 
 import io.javalin.Javalin
 
-class PluginManager {
+class PluginManager internal constructor() {
 
-    private val plugins: MutableList<Plugin> = mutableListOf()
-    private val initializedPlugins: MutableSet<Plugin> = mutableSetOf()
+    private val plugins: MutableList<JavalinPlugin> = mutableListOf()
+    private val enabledPlugins: MutableSet<JavalinPlugin> = mutableSetOf()
 
-    fun register(plugin: Plugin) {
-        if (plugin !is RepeatablePlugin && plugins.any { it.javaClass == plugin.javaClass }) {
-            throw PluginAlreadyRegisteredException(plugin.javaClass)
+    fun register(plugin: JavalinPlugin) {
+        if (!plugin.repeatable() && plugins.any { it.javaClass == plugin.javaClass }) {
+            throw PluginAlreadyRegisteredException(plugin)
         }
         plugins.add(plugin)
     }
 
     fun initializePlugins(app: Javalin) {
-        var anyHandlerAdded = false
+        val initializedPlugins = enabledPlugins.toMutableSet()
 
-        app.events { event ->
-            event.handlerAdded { anyHandlerAdded = true }
-            event.wsHandlerAdded { anyHandlerAdded = true }
-        }
+        while (plugins.size != initializedPlugins.size) {
+            val amountOfPlugins = plugins.size
 
-        val pluginsToInitialize = plugins.filterNot { initializedPlugins.contains(it) }
+            val pluginsToInitialize = plugins
+                .asSequence()
+                .filter { it !in enabledPlugins }
+                .filter { it !in initializedPlugins }
+                .sortedBy { it.priority() }
 
-        pluginsToInitialize.forEach {
-            if (it is PluginLifecycleInit) {
-                it.init(app)
+            for (plugin in pluginsToInitialize) {
+                plugin.onInitialize(app.cfg)
+                initializedPlugins.add(plugin)
 
-                if (anyHandlerAdded) { // check if any "init" added a handler
-                    throw PluginInitException(it.javaClass)
+                if (amountOfPlugins != plugins.size) {
+                    continue // plugin was registered during onInitialize, so we need to re-sort
                 }
             }
         }
 
-        pluginsToInitialize.forEach {
-            it.apply(app)
-            initializedPlugins.add(it)
-        }
+        initializedPlugins
+            .asSequence()
+            .filter { it !in enabledPlugins }
+            .sortedBy { it.priority() }
+            .forEach {
+                it.onStart(app)
+                enabledPlugins.add(it)
+            }
     }
 
 }

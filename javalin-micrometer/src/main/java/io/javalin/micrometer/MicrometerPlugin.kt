@@ -11,7 +11,7 @@ import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus
-import io.javalin.plugin.Plugin
+import io.javalin.plugin.JavalinPlugin
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag
@@ -42,9 +42,9 @@ class MicrometerPlugin private constructor(
     private val tagExceptionName: Boolean,
     private val tagRedirectPaths: Boolean,
     private val tagNotFoundMappedPaths: Boolean,
-) : Plugin {
+) : JavalinPlugin {
 
-    override fun apply(app: Javalin) {
+    override fun onStart(app: Javalin) {
         if (tagExceptionName) {
             app.exception(Exception::class.java, exceptionHandler)
         }

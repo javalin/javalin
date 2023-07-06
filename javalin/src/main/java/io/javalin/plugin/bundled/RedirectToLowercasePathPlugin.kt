@@ -7,9 +7,10 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
-import io.javalin.plugin.Plugin
-import io.javalin.plugin.PluginLifecycleInit
+import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginPriority
 import io.javalin.routing.PathParser
 import io.javalin.routing.PathSegment
 import java.util.*
@@ -21,34 +22,33 @@ import java.util.*
  * URL fragments ('Users' becomes 'users' above, but 'John' remains 'John').
  * When using this plugin, you can only add paths with lowercase URL fragments.
  */
-class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
+class RedirectToLowercasePathPlugin : JavalinPlugin {
 
-    override fun init(app: Javalin) {
-        if (app.cfg.routing.caseInsensitiveRoutes) {
+    override fun onInitialize(config: JavalinConfig) {
+        if (config.routing.caseInsensitiveRoutes) {
             throw IllegalStateException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
         }
-        app.events { listener ->
-            listener.handlerAdded { handlerMetaInfo ->
-                val parser = PathParser(handlerMetaInfo.path, app.cfg.routing)
 
-                parser.segments.asSequence()
-                    .filterIsInstance<PathSegment.Normal>()
-                    .map { it.content }
-                    .firstOrNull { it != it.lowercase(Locale.ROOT) }
-                    ?.run { throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin") }
+        config.events.handlerAdded { handlerMetaInfo ->
+            val parser = PathParser(handlerMetaInfo.path, config.routing)
 
-                parser.segments.asSequence()
-                    .filterIsInstance<PathSegment.MultipleSegments>()
-                    .flatMap { it.innerSegments }
-                    .filterIsInstance<PathSegment.Normal>()
-                    .map { it.content }
-                    .firstOrNull { it != it.lowercase(Locale.ROOT) }
-                    ?.run { throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin") }
-            }
+            parser.segments.asSequence()
+                .filterIsInstance<PathSegment.Normal>()
+                .map { it.content }
+                .firstOrNull { it != it.lowercase(Locale.ROOT) }
+                ?.run { throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin") }
+
+            parser.segments.asSequence()
+                .filterIsInstance<PathSegment.MultipleSegments>()
+                .flatMap { it.innerSegments }
+                .filterIsInstance<PathSegment.Normal>()
+                .map { it.content }
+                .firstOrNull { it != it.lowercase(Locale.ROOT) }
+                ?.run { throw IllegalArgumentException("Paths must be lowercase when using RedirectToLowercasePathPlugin") }
         }
     }
 
-    override fun apply(app: Javalin) {
+    override fun onStart(app: Javalin) {
         app.before { ctx ->
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
             val matcher = app.javalinServlet().matcher
@@ -94,6 +94,8 @@ class RedirectToLowercasePathPlugin : Plugin, PluginLifecycleInit {
             )
         }
     }
+
+    override fun priority(): PluginPriority = PluginPriority.EARLY
 
 }
 

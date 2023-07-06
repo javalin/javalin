@@ -1,6 +1,6 @@
 package io.javalin.config
 
-import io.javalin.plugin.Plugin
+import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginManager
 import io.javalin.plugin.bundled.BasicAuthPlugin
 import io.javalin.plugin.bundled.CorsContainer
@@ -20,7 +20,7 @@ class PluginConfig {
 
     val pluginManager = PluginManager()
 
-    fun register(plugin: Plugin) = pluginManager.register(plugin)
+    fun register(plugin: JavalinPlugin) = pluginManager.register(plugin)
 
     fun enableHttpAllowedMethodsOnRoutes() = register(HttpAllowedMethodsPlugin())
     fun enableDevLogging() = register(DevLoggingPlugin())

@@ -7,24 +7,22 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.event.HandlerMetaInfo
 import io.javalin.http.Header
-import io.javalin.plugin.Plugin
-import io.javalin.plugin.PluginLifecycleInit
+import io.javalin.plugin.JavalinPlugin
 
-class HttpAllowedMethodsPlugin : Plugin, PluginLifecycleInit {
+class HttpAllowedMethodsPlugin : JavalinPlugin {
 
     private val endpoints = mutableMapOf<String, MutableSet<HandlerMetaInfo>>()
 
-    override fun init(app: Javalin) {
-        app.events {
-            it.handlerAdded { handlerInfo ->
-                addOptionsToList(handlerInfo)
-            }
+    override fun onInitialize(config: JavalinConfig) {
+        config.events.handlerAdded { handlerInfo ->
+            addOptionsToList(handlerInfo)
         }
     }
 
-    override fun apply(app: Javalin) {
+    override fun onStart(app: Javalin) {
         app.events {
             it.serverStarted {
                 createOptionsEndPoint(app)

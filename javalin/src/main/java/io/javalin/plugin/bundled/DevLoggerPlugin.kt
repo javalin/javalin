@@ -1,28 +1,29 @@
 package io.javalin.plugin.bundled
 
 import io.javalin.Javalin
+import io.javalin.config.JavalinConfig
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
-import io.javalin.plugin.Plugin
-import io.javalin.plugin.PluginLifecycleInit
+import io.javalin.plugin.JavalinPlugin
 import io.javalin.routing.PathMatcher
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import java.util.*
 
-internal class DevLoggingPlugin : Plugin, PluginLifecycleInit {
+internal class DevLoggingPlugin : JavalinPlugin {
 
     lateinit var matcher: PathMatcher
 
-    override fun apply(app: Javalin) {
-        app.cfg.requestLogger.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
-        app.cfg.requestLogger.ws { wsDevLogger(it) }
-        matcher = app.javalinServlet().matcher
+    override fun onInitialize(config: JavalinConfig) {
+        config.requestLogger.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
+        config.requestLogger.ws { wsDevLogger(it) }
     }
 
-    override fun init(app: Javalin) {
+    override fun onStart(app: Javalin) {
+        this.matcher = app.javalinServlet().matcher
+
         app.events { on ->
             on.handlerAdded { handlerMetaInfo ->
                 JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: ${handlerMetaInfo.httpMethod}[${handlerMetaInfo.path}]")
