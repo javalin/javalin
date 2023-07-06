@@ -8,7 +8,6 @@ package io.javalin.http.servlet
 
 import io.javalin.compression.CompressedOutputStream
 import io.javalin.compression.CompressionStrategy
-import io.javalin.config.JavalinConfig
 import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
@@ -24,7 +23,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.io.InputStream
 import java.net.URI
-import java.net.URL
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import java.util.*
@@ -32,26 +30,31 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
 
+data class JavalinServletContextConfig(
+    val appAttributes: Map<String, Any>,
+    val compressionStrategy: CompressionStrategy,
+    val requestLoggerEnabled: Boolean,
+    val defaultContentType: String,
+)
+
 class JavalinServletContext(
-    cfg: JavalinConfig,
+    private val cfg: JavalinServletContextConfig,
     val tasks: Deque<Task> = ArrayDeque(8),
     var exceptionOccurred: Boolean = false,
     val responseWritten: AtomicBoolean = AtomicBoolean(false),
     private var req: HttpServletRequest,
     private val res: HttpServletResponse,
-    private val appAttributes: Map<String, Any> = cfg.pvt.appAttributes,
-    private val compressionStrategy: CompressionStrategy = cfg.pvt.compressionStrategy,
-    private val startTimeNanos: Long? = if (cfg.pvt.requestLogger != null) System.nanoTime() else null,
+    private val startTimeNanos: Long? = if (cfg.requestLoggerEnabled) System.nanoTime() else null,
     private var handlerType: HandlerType = HandlerType.BEFORE,
     private var matchedPath: String = "",
-    private var pathParamMap: Map<String, String> = mapOf(),
+    private var pathParamMap: Map<String, String> = emptyMap(),
     internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
 ) : Context {
 
     init {
-        contentType(cfg.http.defaultContentType)
+        contentType(cfg.defaultContentType)
     }
 
     fun executionTimeMs(): Float = if (startTimeNanos == null) -1f else (System.nanoTime() - startTimeNanos) / 1000000f
@@ -75,7 +78,7 @@ class JavalinServletContext(
     override fun res(): HttpServletResponse = res
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> appAttribute(key: String): T = appAttributes[key] as T
+    override fun <T> appAttribute(key: String): T = cfg.appAttributes[key] as T
 
     override fun endpointHandlerPath() = when {
         handlerType() != HandlerType.BEFORE -> endpointHandlerPath
@@ -109,7 +112,7 @@ class JavalinServletContext(
     private val queryParams by lazy { super.queryParamMap() }
     override fun queryParamMap(): Map<String, List<String>> = queryParams
 
-    internal val outputStreamWrapper = lazy { CompressedOutputStream(compressionStrategy, this) }
+    internal val outputStreamWrapper = lazy { CompressedOutputStream(cfg.compressionStrategy, this) }
     override fun outputStream(): ServletOutputStream = outputStreamWrapper.value
 
     override fun redirect(location: String, status: HttpStatus) {
