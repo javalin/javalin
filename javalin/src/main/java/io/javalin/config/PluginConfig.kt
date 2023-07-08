@@ -1,6 +1,7 @@
 package io.javalin.config
 
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.PluginManager
 import io.javalin.plugin.bundled.BasicAuthPluginFactory
@@ -24,7 +25,7 @@ class PluginConfig {
         also { pluginManager.register(plugin) }
 
     @JvmOverloads
-    fun <PLUGIN : JavalinPlugin, CFG : Any> register(factory: PluginFactory<PLUGIN, CFG>, cfg: Consumer<CFG> = Consumer {}): PluginConfig =
+    fun <PLUGIN : JavalinPlugin, CFG : PluginConfiguration> register(factory: PluginFactory<PLUGIN, CFG>, cfg: Consumer<CFG> = Consumer {}) =
         register(factory.create(cfg))
 
     fun enableRouteOverview(path: String, vararg roles: RouteRole = emptyArray()) =
