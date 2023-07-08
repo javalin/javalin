@@ -31,7 +31,7 @@ public class VisualTest {
     public static void main(String[] args) {
         Javalin app = Javalin.create((config) -> {
             config.routing.contextPath = "/context-path";
-            config.plugins.enableCors(cors -> cors.add(corsConfig -> corsConfig.reflectClientOrigin = true));
+            config.plugins.enableCors(cors -> cors.addRule(corsConfig -> corsConfig.reflectClientOrigin = true));
             config.plugins.enableRouteOverview("/route-overview");
         }).start();
         setupJavalinRoutes(app);

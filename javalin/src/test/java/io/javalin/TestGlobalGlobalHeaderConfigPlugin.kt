@@ -123,11 +123,12 @@ class TestGlobalGlobalHeaderConfigPlugin {
 
     @Test
     fun `test headers are set on app`() {
-        val globalHeaderConfig = GlobalHeaderConfig()
-        globalHeaderConfig.xContentTypeOptionsNoSniff()
-        globalHeaderConfig.clearSiteData(ClearSiteData.ANY)
-
-        val testApp = Javalin.create { it.plugins.enableGlobalHeaders { globalHeaderConfig } }
+        val testApp = Javalin.create { cfg ->
+            cfg.plugins.enableGlobalHeaders {
+                it.xContentTypeOptionsNoSniff()
+                it.clearSiteData(ClearSiteData.ANY)
+            }
+        }
         TestUtil.test(testApp) { app, http ->
             app.get("/") { it.status(OK) }
             val returnedHeaders = http.get("/").headers

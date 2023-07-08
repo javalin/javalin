@@ -1,38 +1,60 @@
 package io.javalin.config
 
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.PluginManager
-import io.javalin.plugin.bundled.BasicAuthPlugin
-import io.javalin.plugin.bundled.CorsContainer
-import io.javalin.plugin.bundled.CorsPlugin
+import io.javalin.plugin.bundled.BasicAuthPluginFactory
+import io.javalin.plugin.bundled.CorsPluginConfig
+import io.javalin.plugin.bundled.CorsPluginFactory
 import io.javalin.plugin.bundled.DevLoggingPlugin
 import io.javalin.plugin.bundled.GlobalHeaderConfig
-import io.javalin.plugin.bundled.GlobalHeadersPlugin
+import io.javalin.plugin.bundled.GlobalHeadersPluginFactory
 import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin
-import io.javalin.plugin.bundled.RouteOverviewPlugin
+import io.javalin.plugin.bundled.RouteOverviewPluginFactory
 import io.javalin.plugin.bundled.SslRedirectPlugin
 import io.javalin.security.RouteRole
 import java.util.function.Consumer
-import java.util.function.Supplier
 
 class PluginConfig {
 
     val pluginManager = PluginManager()
 
-    fun register(plugin: JavalinPlugin) = pluginManager.register(plugin)
+    fun register(plugin: JavalinPlugin): PluginConfig =
+        also { pluginManager.register(plugin) }
 
-    fun enableHttpAllowedMethodsOnRoutes() = register(HttpAllowedMethodsPlugin())
-    fun enableDevLogging() = register(DevLoggingPlugin())
-    fun enableGlobalHeaders(globalHeaderConfig: Supplier<GlobalHeaderConfig?>) = register(GlobalHeadersPlugin(globalHeaderConfig.get()!!))
-    fun enableRouteOverview(path: String, vararg roles: RouteRole = arrayOf()) = register(RouteOverviewPlugin(path, *roles))
+    @JvmOverloads
+    fun <PLUGIN : JavalinPlugin, CFG : Any> register(factory: PluginFactory<PLUGIN, CFG>, cfg: Consumer<CFG> = Consumer {}): PluginConfig =
+        register(factory.create(cfg))
 
-    fun enableRedirectToLowercasePaths() = register(RedirectToLowercasePathPlugin())
-    fun enableBasicAuth(username: String, password: String) = register(BasicAuthPlugin(username, password))
-    fun enableSslRedirects() = register(SslRedirectPlugin())
-    fun enableCors(userConfig: Consumer<CorsContainer>) {
-        val corsConfigs = CorsContainer().also { userConfig.accept(it) }.corsConfigs()
-        register(CorsPlugin(corsConfigs))
-    }
+    fun enableRouteOverview(path: String, vararg roles: RouteRole = emptyArray()) =
+        register(RouteOverviewPluginFactory) {
+            it.path = path
+            it.roles = roles
+        }
+
+    fun enableBasicAuth(username: String, password: String) =
+        register(BasicAuthPluginFactory) {
+            it.username = username
+            it.password = password
+        }
+
+    fun enableGlobalHeaders(globalHeaderConfig: Consumer<GlobalHeaderConfig>) =
+        register(GlobalHeadersPluginFactory, globalHeaderConfig)
+
+    fun enableCors(userConfig: Consumer<CorsPluginConfig>) =
+        register(CorsPluginFactory, userConfig)
+
+    fun enableHttpAllowedMethodsOnRoutes() =
+        register(HttpAllowedMethodsPlugin())
+
+    fun enableDevLogging() =
+        register(DevLoggingPlugin())
+
+    fun enableRedirectToLowercasePaths() =
+        register(RedirectToLowercasePathPlugin())
+
+    fun enableSslRedirects() =
+        register(SslRedirectPlugin())
 
 }

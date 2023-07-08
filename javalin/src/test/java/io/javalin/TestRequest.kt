@@ -13,7 +13,7 @@ import io.javalin.http.headerAsClass
 import io.javalin.http.queryParamAsClass
 import io.javalin.http.servlet.SESSION_CACHE_KEY_PREFIX
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.bundled.BasicAuthPlugin
+import io.javalin.plugin.bundled.BasicAuthPluginFactory
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -269,11 +269,14 @@ class TestRequest {
 
     @Test
     fun `basic auth filter plugin works`() {
-        val basicauthApp = Javalin.create {
-            it.plugins.register(BasicAuthPlugin("u", "p"))
-            it.staticFiles.add("/public", Location.CLASSPATH)
+        val basicAuthApp = Javalin.create { cfg ->
+            cfg.plugins.register(BasicAuthPluginFactory) {
+                it.username = "u"
+                it.password = "p"
+            }
+            cfg.staticFiles.add("/public", Location.CLASSPATH)
         }.get("/hellopath") { it.result("Hello") }
-        TestUtil.test(basicauthApp) { _, http ->
+        TestUtil.test(basicAuthApp) { _, http ->
             assertThat(http.getBody("/hellopath")).isEqualTo("Unauthorized")
             assertThat(http.getBody("/html.html")).contains("Unauthorized")
             Unirest.get("${http.origin}/hellopath").basicAuth("u", "p").asString().let { assertThat(it.body).isEqualTo("Hello") }

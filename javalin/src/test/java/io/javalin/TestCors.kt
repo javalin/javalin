@@ -41,7 +41,7 @@ class TestCors {
         @Test
         fun `throws for empty origins if reflectClientOrigin is false`() {
             assertThatExceptionOfType(IllegalArgumentException::class.java)
-                .isThrownBy { Javalin.create { it.plugins.enableCors { cors -> cors.add {} } } }
+                .isThrownBy { Javalin.create { it.plugins.enableCors { cors -> cors.addRule {} } } }
                 .withMessageStartingWith("Origins cannot be empty if `reflectClientOrigin` is false.")
         }
 
@@ -50,7 +50,7 @@ class TestCors {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
                     config.plugins.enableCors { cors ->
-                        cors.add {
+                        cors.addRule {
                             it.reflectClientOrigin = true
                             it.allowHost("A", "B")
                         }
@@ -64,7 +64,7 @@ class TestCors {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
                     config.plugins.enableCors { cors ->
-                        cors.add { it.allowHost("null") }
+                        cors.addRule { it.allowHost("null") }
                     }
                 }
             }
@@ -76,7 +76,7 @@ class TestCors {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
                     config.plugins.enableCors { cors ->
-                        cors.add { it.allowHost("example.com?query=true") }
+                        cors.addRule { it.allowHost("example.com?query=true") }
                     }
                 }
             }
@@ -88,7 +88,7 @@ class TestCors {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
                     config.plugins.enableCors { cors ->
-                        cors.add { it.allowHost("*.*.example.com") }
+                        cors.addRule { it.allowHost("*.*.example.com") }
                     }
                 }
             }
@@ -100,7 +100,7 @@ class TestCors {
             assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
                 Javalin.create { config ->
                     config.plugins.enableCors { cors ->
-                        cors.add { it.allowHost("subsub.*.example.com") }
+                        cors.addRule { it.allowHost("subsub.*.example.com") }
                     }
                 }
             }
@@ -113,7 +113,7 @@ class TestCors {
         @Test
         fun `can enable cors for specific origins`() = TestUtil.test(Javalin.create {
             it.plugins.enableCors { cors ->
-                cors.add { it.allowHost("https://origin-1", "https://referer-1") }
+                cors.addRule { it.allowHost("https://origin-1", "https://referer-1") }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -133,7 +133,7 @@ class TestCors {
         @Test
         fun `can enable cors for star origins`() = TestUtil.test(Javalin.create {
             it.plugins.enableCors { cors ->
-                cors.add { it.anyHost() }
+                cors.addRule { it.anyHost() }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -145,7 +145,7 @@ class TestCors {
         @Test
         fun `has allowsCredentials false by default`() = TestUtil.test(Javalin.create {
             it.plugins.enableCors { cors ->
-                cors.add { it.reflectClientOrigin = true }
+                cors.addRule { it.reflectClientOrigin = true }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -167,7 +167,7 @@ class TestCors {
         @Test
         fun `can have allowsCredentials set true`() = TestUtil.test(Javalin.create {
             it.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.reflectClientOrigin = true
                     it.allowCredentials = true
                 }
@@ -193,7 +193,7 @@ class TestCors {
         fun `works for 404s`() =
             TestUtil.test(Javalin.create {
                 it.plugins.enableCors { cors ->
-                    cors.add { it.reflectClientOrigin = true }
+                    cors.addRule { it.reflectClientOrigin = true }
                 }
             }) { _, http ->
                 val optionsResponse = Unirest.options(http.origin + "/not-found")
@@ -212,7 +212,7 @@ class TestCors {
         @Test
         fun `works with AccessManager`() = TestUtil.test(Javalin.create {
             it.plugins.enableCors { cors ->
-                cors.add { it.reflectClientOrigin = true }
+                cors.addRule { it.reflectClientOrigin = true }
             }
             it.accessManager { _, ctx, _ -> ctx.status(UNAUTHORIZED).result(UNAUTHORIZED.message) }
         }) { app, http ->
@@ -232,7 +232,7 @@ class TestCors {
         @Test
         fun `works with options endpoint mapping`() = TestUtil.test(Javalin.create {
             it.plugins.enableCors { cors ->
-                cors.add { it.reflectClientOrigin = true }
+                cors.addRule { it.reflectClientOrigin = true }
             }
         }) { app, http ->
             app.options("/") { it.result("Hello") }
@@ -252,7 +252,7 @@ class TestCors {
         @Test
         fun `headers are not set when origin doesn't match`() = TestUtil.test(Javalin.create {
             it.plugins.enableCors { cors ->
-                cors.add { it.allowHost("https://origin-1.com") }
+                cors.addRule { it.allowHost("https://origin-1.com") }
             }
         }) { app, http ->
             app.get("/") { it.result("Hello") }
@@ -268,7 +268,7 @@ class TestCors {
         fun `same hostname with different ports is detected as different origins`() =
             TestUtil.test(Javalin.create { cfg ->
                 cfg.plugins.enableCors { cors ->
-                    cors.add {
+                    cors.addRule {
                         it.allowHost("https://example.com:8443")
                     }
                 }
@@ -286,7 +286,7 @@ class TestCors {
         @Test
         fun `allows exposing a single header`() = TestUtil.test(Javalin.create { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.reflectClientOrigin = true
                     it.exposeHeader("x-test")
                 }
@@ -303,7 +303,7 @@ class TestCors {
         @Test
         fun `allows exposing multiple headers`() = TestUtil.test(Javalin.create { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.reflectClientOrigin = true
                     it.exposeHeader("x-test")
                     it.exposeHeader("x-world")
@@ -324,7 +324,7 @@ class TestCors {
         @Test
         fun `default scheme can be overridden`() = TestUtil.test(Javalin.create { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.defaultScheme = "http"
                     it.allowHost("example.com")
                 }
@@ -341,7 +341,7 @@ class TestCors {
         @Test
         fun `wildcard subdomain work`() = TestUtil.test(Javalin.create { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.allowHost("*.example.com")
                 }
             }
@@ -357,7 +357,7 @@ class TestCors {
         @Test
         fun `default port detection works`() = TestUtil.test(Javalin.create { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.allowHost("https://example.com:443")
                 }
             }
@@ -373,7 +373,7 @@ class TestCors {
         @Test
         fun `capitalization does not matter`() = TestUtil.test(Javalin.create { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.allowHost("HTTPS://EXAMPLE.COM")
                 }
             }
@@ -389,7 +389,7 @@ class TestCors {
         @Test
         fun `maxAge is present in preflight`() = TestUtil.test(Javalin.create() { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.anyHost()
                     it.maxAge = 100
                 }
@@ -405,7 +405,7 @@ class TestCors {
         @Test
         fun `maxAge is absent outside of preflight`() = TestUtil.test(Javalin.create() { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.anyHost()
                     it.maxAge = 100
                 }
@@ -427,7 +427,7 @@ class TestCors {
         fun `cors plugin works with prefer405over404`() = TestUtil.test(Javalin.create { cfg ->
             cfg.http.prefer405over404 = true
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.allowHost("example.com")
                 }
             }
@@ -454,15 +454,15 @@ class TestCors {
         @Test
         fun works() = TestUtil.test(Javalin.create { cfg ->
             cfg.plugins.enableCors { cors ->
-                cors.add {
+                cors.addRule {
                     it.path = "images*"
                     it.allowHost("https://images.local")
                 }
-                cors.add {
+                cors.addRule {
                     it.path = "videos*"
                     it.allowHost("https://videos.local")
                 }
-                cors.add {
+                cors.addRule {
                     it.path = "music*"
                     it.allowHost("https://music.local")
                 }

@@ -5,19 +5,35 @@ import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginFactory
 import org.eclipse.jetty.server.ServerConnector
+import java.util.function.Consumer
+
+object SslRedirectPluginFactory : PluginFactory<SslRedirectPlugin, SslRedirectPluginConfig> {
+    override fun create(config: Consumer<SslRedirectPluginConfig>): SslRedirectPlugin {
+        return SslRedirectPlugin(config)
+    }
+}
+
+class SslRedirectPluginConfig {
+    @JvmField var redirectOnLocalhost = false
+    @JvmField var sslPort: Int? = null
+}
 
 /**
  * [SslRedirectPlugin] has to be the first registered plugin to properly handle all requests in 'before' handler.
  */
-class SslRedirectPlugin @JvmOverloads constructor(
-    private val redirectOnLocalhost: Boolean = false,
-    private val sslPort: Int? = null
-) : JavalinPlugin {
+class SslRedirectPlugin(config: Consumer<SslRedirectPluginConfig> = Consumer {}) : JavalinPlugin {
+
+    companion object {
+        @JvmStatic val FACTORY = SslRedirectPluginFactory
+    }
+
+    private val config = SslRedirectPluginConfig().apply { config.accept(this) }
 
     override fun onStart(app: Javalin) {
         app.before { ctx ->
-            if (!redirectOnLocalhost && ctx.isLocalhost()) {
+            if (!config.redirectOnLocalhost && ctx.isLocalhost()) {
                 return@before
             }
 
@@ -27,12 +43,12 @@ class SslRedirectPlugin @JvmOverloads constructor(
                 val urlWithHttps = ctx.fullUrl().replace("http", "https")
 
                 val urlWithHttpsAndPort = app.jettyServer()
-                    ?.takeIf { sslPort != null }
+                    ?.takeIf { config.sslPort != null }
                     ?.server()
                     ?.connectors
                     ?.filterIsInstance<ServerConnector>()
                     ?.firstOrNull { urlWithHttps.contains(":${it.usedPort()}/") }
-                    ?.let { urlWithHttps.replaceFirst(":${it.usedPort()}/", ":${sslPort}/") }
+                    ?.let { urlWithHttps.replaceFirst(":${it.usedPort()}/", ":${config.sslPort}/") }
                     ?: urlWithHttps
 
                 ctx.redirect(

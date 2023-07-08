@@ -2,6 +2,7 @@ package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
+import java.util.function.Consumer
 
 enum class PluginPriority {
     /**
@@ -47,5 +48,11 @@ fun interface JavalinPlugin {
      * The name of this plugin.
      */
     fun name(): String = this.javaClass.simpleName
+
+}
+
+fun interface PluginFactory<PLUGIN : JavalinPlugin, CFG : Any> {
+
+    fun create(config: Consumer<CFG>): PLUGIN
 
 }

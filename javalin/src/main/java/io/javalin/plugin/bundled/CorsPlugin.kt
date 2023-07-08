@@ -13,6 +13,7 @@ import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.VARY
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.bundled.CorsUtils.isValidOrigin
 import io.javalin.plugin.bundled.CorsUtils.normalizeOrigin
 import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
@@ -21,17 +22,34 @@ import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
 import java.util.*
 import java.util.function.Consumer
 
-data class CorsPluginConfig(
-    @JvmField var allowCredentials: Boolean = false,
-    @JvmField var reflectClientOrigin: Boolean = false,
-    @JvmField var defaultScheme: String = "https",
-    @JvmField var path: String = "*",
-    @JvmField var maxAge: Int = -1,
-    private val allowedOrigins: MutableList<String> = mutableListOf(),
-    private val headersToExpose: MutableList<String> = mutableListOf()
-) {
-    fun allowedOrigins(): List<String> = Collections.unmodifiableList(allowedOrigins)
-    fun headersToExpose(): List<String> = Collections.unmodifiableList(headersToExpose)
+object CorsPluginFactory : PluginFactory<CorsPlugin, CorsPluginConfig> {
+    override fun create(config: Consumer<CorsPluginConfig>): CorsPlugin {
+        return CorsPlugin(config)
+    }
+}
+
+class CorsPluginConfig {
+    internal val rules = mutableListOf<CorsRule>()
+
+    fun addRule(rule: Consumer<CorsRule>) {
+        rules.add(CorsRule().also { rule.accept(it) })
+    }
+}
+
+class CorsRule {
+    @JvmField var allowCredentials = false
+    @JvmField var reflectClientOrigin = false
+    @JvmField var defaultScheme = "https"
+    @JvmField var path = "*"
+    @JvmField var maxAge = -1
+    private val allowedOrigins = mutableListOf<String>()
+    private val headersToExpose = mutableListOf<String>()
+
+    fun allowedOrigins(): List<String> =
+        Collections.unmodifiableList(allowedOrigins)
+
+    fun headersToExpose(): List<String> =
+        Collections.unmodifiableList(headersToExpose)
 
     fun anyHost() {
         allowedOrigins.add("*")
@@ -61,23 +79,30 @@ data class CorsPluginConfig(
     fun exposeHeader(header: String) {
         headersToExpose.add(header)
     }
+
 }
 
-class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : JavalinPlugin {
+class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin {
+
+    companion object {
+        @JvmField val FACTORY = CorsPluginFactory
+    }
+
+    private val corsConfig = CorsPluginConfig().also { config.accept(it) }
 
     init {
-        require(userConfigs.isNotEmpty()) {
+        require(corsConfig.rules.isNotEmpty()) {
             "At least one cors config has to be provided. Use CorsContainer.add() to add one."
         }
     }
 
-    val configs = userConfigs.map { userConfig -> CorsPluginConfig().also { userConfig.accept(it) } }
-
     override fun onStart(app: Javalin) {
-        configs.forEach { applySingleConfig(app, it) }
+        corsConfig.rules.forEach {
+            applySingleConfig(app, it)
+        }
     }
 
-    private fun applySingleConfig(app: Javalin, cfg: CorsPluginConfig) {
+    private fun applySingleConfig(app: Javalin, cfg: CorsRule) {
         val origins = cfg.allowedOrigins()
         require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
         require(origins.isEmpty() || !cfg.reflectClientOrigin) { "Cannot set `allowedOrigins` if `reflectClientOrigin` is true" }
@@ -92,7 +117,7 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : JavalinPlugin 
         }
     }
 
-    private fun handleCors(ctx: Context, cfg: CorsPluginConfig) {
+    private fun handleCors(ctx: Context, cfg: CorsRule) {
         val clientOrigin = ctx.header(ORIGIN) ?: return
 
         if (!isValidOrigin(clientOrigin)) {
@@ -146,16 +171,5 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : JavalinPlugin 
 
         return serverOriginParts.any { originsMatch(clientOriginPart, it) }
     }
+
 }
-
-class CorsContainer {
-
-    private val corsConfigs = mutableListOf<Consumer<CorsPluginConfig>>()
-
-    fun corsConfigs(): List<Consumer<CorsPluginConfig>> = Collections.unmodifiableList(corsConfigs)
-
-    fun add(consumer: Consumer<CorsPluginConfig>) {
-        corsConfigs.add(consumer)
-    }
-}
-
