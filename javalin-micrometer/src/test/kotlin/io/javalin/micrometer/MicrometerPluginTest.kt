@@ -23,7 +23,7 @@ class MicrometerPluginTest {
     @Test
     fun `test that JettyConnectionMetrics is registered`() {
         val registry = SimpleMeterRegistry()
-        val micrometerApp = Javalin.create { it.plugins.register(MicrometerPlugin.create { it.registry = registry }) }
+        val micrometerApp = Javalin.create { cfg -> cfg.plugins.register(MicrometerPlugin { it.registry = registry }) }
 
         JavalinTest.test(micrometerApp) { app, http ->
             app.get("/test") { it.json("Hello world") }
@@ -235,7 +235,7 @@ class MicrometerPluginTest {
     ) = Javalin.create { config ->
         config.routing.contextPath = contextPath
         config.plugins.register(
-            MicrometerPlugin.create {
+            MicrometerPlugin {
                 it.registry = meterRegistry
                 it.tags = Tags.empty()
                 it.tagExceptionName = true

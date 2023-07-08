@@ -65,7 +65,7 @@ fun interface PluginFactory<PLUGIN : JavalinPlugin, CFG : PluginConfiguration> {
  */
 interface PluginConfiguration
 
-internal fun <CFG : PluginConfiguration> Consumer<CFG>.createUserConfig(cfg: CFG): CFG =
+fun <CFG : PluginConfiguration> Consumer<CFG>.createUserConfig(cfg: CFG): CFG =
     cfg.also { accept(it) }
 
 
