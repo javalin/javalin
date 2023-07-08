@@ -9,6 +9,7 @@ package io.javalin.plugin.bundled
 import io.javalin.Javalin
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import java.time.Duration
 import java.util.Locale
@@ -42,7 +43,7 @@ class GlobalHeadersPlugin(config: Consumer<GlobalHeaderConfig> = Consumer {}) : 
  * A plugin to configure arbitrary headers, with a focus on the OWASP secure headers project
  * https://owasp.org/www-project-secure-headers/
  */
-class GlobalHeaderConfig {
+class GlobalHeaderConfig : PluginConfiguration {
 
     val headers = mutableMapOf<String, String>()
 

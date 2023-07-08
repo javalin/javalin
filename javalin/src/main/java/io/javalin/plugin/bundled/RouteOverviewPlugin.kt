@@ -8,20 +8,11 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.PluginPriority
+import io.javalin.plugin.createUserConfig
 import io.javalin.security.RouteRole
-import io.javalin.util.implementingClassName
-import io.javalin.util.isClass
-import io.javalin.util.isJavaAnonymousLambda
-import io.javalin.util.isJavaField
-import io.javalin.util.isKotlinAnonymousLambda
-import io.javalin.util.isKotlinField
-import io.javalin.util.isKotlinMethodReference
-import io.javalin.util.javaFieldName
-import io.javalin.util.kotlinFieldName
-import io.javalin.util.parentClass
-import io.javalin.util.runMethod
 import java.util.*
 import java.util.function.Consumer
 
@@ -29,7 +20,7 @@ object RouteOverviewPluginFactory : PluginFactory<RouteOverviewPlugin, RouteOver
     override fun create(config: Consumer<RouteOverviewPluginConfig>): RouteOverviewPlugin = RouteOverviewPlugin(config)
 }
 
-class RouteOverviewPluginConfig {
+class RouteOverviewPluginConfig : PluginConfiguration {
     @JvmField var path: String = "/routes"
     @JvmField var roles: Array<out RouteRole> = emptyArray()
 }
@@ -40,7 +31,7 @@ class RouteOverviewPlugin(config: Consumer<RouteOverviewPluginConfig> = Consumer
         @JvmStatic val FACTORY = RouteOverviewPluginFactory
     }
 
-    private val config = RouteOverviewPluginConfig().also { config.accept(it) }
+    private val config = config.createUserConfig(RouteOverviewPluginConfig())
     private val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
     private val wsHandlerMetaInfoList = mutableListOf<WsHandlerMetaInfo>()
 

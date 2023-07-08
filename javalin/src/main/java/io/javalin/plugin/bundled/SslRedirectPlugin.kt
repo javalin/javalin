@@ -5,7 +5,9 @@ import io.javalin.http.Header.X_FORWARDED_PROTO
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.http.servlet.isLocalhost
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
+import io.javalin.plugin.createUserConfig
 import org.eclipse.jetty.server.ServerConnector
 import java.util.function.Consumer
 
@@ -15,7 +17,7 @@ object SslRedirectPluginFactory : PluginFactory<SslRedirectPlugin, SslRedirectPl
     }
 }
 
-class SslRedirectPluginConfig {
+class SslRedirectPluginConfig : PluginConfiguration {
     @JvmField var redirectOnLocalhost = false
     @JvmField var sslPort: Int? = null
 }
@@ -29,7 +31,7 @@ class SslRedirectPlugin(config: Consumer<SslRedirectPluginConfig> = Consumer {})
         @JvmStatic val FACTORY = SslRedirectPluginFactory
     }
 
-    private val config = SslRedirectPluginConfig().apply { config.accept(this) }
+    private val config = config.createUserConfig(SslRedirectPluginConfig())
 
     override fun onStart(app: Javalin) {
         app.before { ctx ->

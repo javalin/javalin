@@ -51,8 +51,21 @@ fun interface JavalinPlugin {
 
 }
 
-fun interface PluginFactory<PLUGIN : JavalinPlugin, CFG : Any> {
+fun interface PluginFactory<PLUGIN : JavalinPlugin, CFG : PluginConfiguration> {
 
+    /**
+     * Create a new instance of the plugin with the given configuration.
+     */
     fun create(config: Consumer<CFG>): PLUGIN
 
 }
+
+/**
+ * A marker interface for plugin configurations.
+ */
+interface PluginConfiguration
+
+internal fun <CFG : PluginConfiguration> Consumer<CFG>.createUserConfig(cfg: CFG): CFG =
+    cfg.also { accept(it) }
+
+

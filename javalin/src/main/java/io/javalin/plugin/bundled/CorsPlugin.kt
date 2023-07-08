@@ -13,12 +13,14 @@ import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.VARY
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.bundled.CorsUtils.isValidOrigin
 import io.javalin.plugin.bundled.CorsUtils.normalizeOrigin
 import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
 import io.javalin.plugin.bundled.CorsUtils.originsMatch
 import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
+import io.javalin.plugin.createUserConfig
 import java.util.*
 import java.util.function.Consumer
 
@@ -28,7 +30,7 @@ object CorsPluginFactory : PluginFactory<CorsPlugin, CorsPluginConfig> {
     }
 }
 
-class CorsPluginConfig {
+class CorsPluginConfig : PluginConfiguration {
     internal val rules = mutableListOf<CorsRule>()
 
     fun addRule(rule: Consumer<CorsRule>) {
@@ -42,6 +44,7 @@ class CorsRule {
     @JvmField var defaultScheme = "https"
     @JvmField var path = "*"
     @JvmField var maxAge = -1
+
     private val allowedOrigins = mutableListOf<String>()
     private val headersToExpose = mutableListOf<String>()
 
@@ -88,7 +91,7 @@ class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin {
         @JvmField val FACTORY = CorsPluginFactory
     }
 
-    private val corsConfig = CorsPluginConfig().also { config.accept(it) }
+    private val corsConfig = config.createUserConfig(CorsPluginConfig())
 
     init {
         require(corsConfig.rules.isNotEmpty()) {
