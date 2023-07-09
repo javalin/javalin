@@ -7,13 +7,12 @@
 package io.javalin.examples;
 
 import io.javalin.Javalin;
-import io.javalin.config.JavalinConfig;
 
 // WebSockets also work with ssl,
 // see HelloWorldSecure for how to set that up
 public class HelloWorldWebSockets {
     public static void main(String[] args) {
-        Javalin app = Javalin.create(JavalinConfig::enableDevLogging);
+        Javalin app = Javalin.create(cfg -> cfg.bundledPlugins.enableDevLogging());
         app.ws("/websocket", ws -> {
             ws.onConnect(ctx -> {
                 System.out.println("Connected");

@@ -8,12 +8,13 @@ package io.javalin.examples
 
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
+import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 fun main() {
-    val app = Javalin.create { it.enableDevLogging() }.start(7070)
+    val app = Javalin.create { it.registerPlugin(DevLogging) }.start(7070)
     val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 
     app.routes {

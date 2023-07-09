@@ -16,7 +16,7 @@ public class HelloWorldCors {
     public static void main(String[] args) {
 
         Javalin corsApp = Javalin.create(config -> {
-            config.enableCors(cors -> {
+            config.bundledPlugins.enableCors(cors -> {
                 cors.addRule(corsConfig -> {
                     corsConfig.allowHost("http://localhost:7001/", "http://localhost:7002");
                 });

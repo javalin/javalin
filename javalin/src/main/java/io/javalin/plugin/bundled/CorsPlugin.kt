@@ -28,7 +28,7 @@ import java.util.function.Consumer
 class CorsPluginConfig : PluginConfiguration {
     internal val rules = mutableListOf<CorsRule>()
 
-    fun addRule(rule: Consumer<CorsRule>) {
+    fun addRule(rule: Consumer<CorsRule>): CorsPluginConfig = also {
         rules.add(CorsRule().also { rule.accept(it) })
     }
 

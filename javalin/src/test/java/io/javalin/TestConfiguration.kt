@@ -38,10 +38,10 @@ class TestConfiguration {
             it.http.asyncTimeout = 10_000L
             it.http.generateEtags = true
             it.http.defaultContentType = ContentType.PLAIN
-            it.enableCors { cors -> cors.addRule { it.reflectClientOrigin = true } }
-            it.enableDevLogging()
-            it.enableRouteOverview("/test")
-            it.enableSslRedirects()
+            it.bundledPlugins.enableCors { cors -> cors.addRule { it.reflectClientOrigin = true } }
+            it.bundledPlugins.enableDevLogging()
+            it.bundledPlugins.enableRouteOverview("/test")
+            it.bundledPlugins.enableSslRedirects()
             it.http.prefer405over404 = false
             it.requestLogger.http { ctx, timeInMs -> }
             it.requestLogger.ws { ws -> }
