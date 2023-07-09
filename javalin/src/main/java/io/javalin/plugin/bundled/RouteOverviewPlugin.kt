@@ -16,10 +16,6 @@ import io.javalin.security.RouteRole
 import java.util.*
 import java.util.function.Consumer
 
-object RouteOverviewPluginFactory : PluginFactory<RouteOverviewPlugin, RouteOverviewPluginConfig> {
-    override fun create(config: Consumer<RouteOverviewPluginConfig>): RouteOverviewPlugin = RouteOverviewPlugin(config)
-}
-
 class RouteOverviewPluginConfig : PluginConfiguration {
     @JvmField var path: String = "/routes"
     @JvmField var roles: Array<out RouteRole> = emptyArray()
@@ -27,8 +23,12 @@ class RouteOverviewPluginConfig : PluginConfiguration {
 
 class RouteOverviewPlugin(config: Consumer<RouteOverviewPluginConfig> = Consumer {}) : JavalinPlugin {
 
+    open class RouteOverview : PluginFactory<RouteOverviewPlugin, RouteOverviewPluginConfig> {
+        override fun create(config: Consumer<RouteOverviewPluginConfig>): RouteOverviewPlugin = RouteOverviewPlugin(config)
+    }
+
     companion object {
-        @JvmStatic val FACTORY = RouteOverviewPluginFactory
+        object RouteOverview : RouteOverviewPlugin.RouteOverview()
     }
 
     private val config = config.createUserConfig(RouteOverviewPluginConfig())

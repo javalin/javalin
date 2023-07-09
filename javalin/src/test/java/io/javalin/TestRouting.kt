@@ -333,7 +333,7 @@ class TestRouting {
         assertThrows<java.lang.IllegalStateException> {
             Javalin.create {
                 it.routing.caseInsensitiveRoutes = true
-                it.plugins.enableRedirectToLowercasePaths()
+                it.enableRedirectToLowercasePaths()
             }.start()
         }
     }

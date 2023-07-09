@@ -12,7 +12,11 @@ import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import java.util.*
 
-internal class DevLoggingPlugin : JavalinPlugin {
+internal open class DevLoggingPlugin : JavalinPlugin {
+
+    companion object {
+        object DevLogging : DevLoggingPlugin()
+    }
 
     lateinit var matcher: PathMatcher
 

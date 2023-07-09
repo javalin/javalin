@@ -32,7 +32,6 @@ class BasicAuthPlugin(config: Consumer<BasicAuthPluginConfig>) : JavalinPlugin {
 
     companion object {
         object BasicAuth : BasicAuthPlugin.BasicAuth()
-        @JvmField val FACTORY = BasicAuth
     }
 
     private val config = config.createUserConfig(BasicAuthPluginConfig())

@@ -13,7 +13,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 fun main() {
-    val app = Javalin.create { it.plugins.enableDevLogging() }.start(7070)
+    val app = Javalin.create { it.enableDevLogging() }.start(7070)
     val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
 
     app.routes {

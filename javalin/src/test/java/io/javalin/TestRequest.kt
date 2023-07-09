@@ -270,7 +270,7 @@ class TestRequest {
     @Test
     fun `basic auth filter plugin works`() {
         val basicAuthApp = Javalin.create { cfg ->
-            cfg.plugins.register(BasicAuth) {
+            cfg.registerPlugin(BasicAuth) {
                 it.username = "u"
                 it.password = "p"
             }

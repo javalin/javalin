@@ -15,16 +15,14 @@ import java.time.Duration
 import java.util.Locale
 import java.util.function.Consumer
 
-object GlobalHeadersPluginFactory : PluginFactory<GlobalHeadersPlugin, GlobalHeaderConfig> {
-    override fun create(config: Consumer<GlobalHeaderConfig>): GlobalHeadersPlugin {
-        return GlobalHeadersPlugin(config)
-    }
-}
-
 class GlobalHeadersPlugin(config: Consumer<GlobalHeaderConfig> = Consumer {}) : JavalinPlugin {
 
+    open class GlobalHeaders : PluginFactory<GlobalHeadersPlugin, GlobalHeaderConfig> {
+        override fun create(config: Consumer<GlobalHeaderConfig>): GlobalHeadersPlugin = GlobalHeadersPlugin(config)
+    }
+
     companion object {
-        @JvmStatic val FACTORY = GlobalHeadersPluginFactory
+        object GlobalHeaders : GlobalHeadersPlugin.GlobalHeaders()
     }
 
     private val globalHeaderConfig = GlobalHeaderConfig().apply { config.accept(this) }

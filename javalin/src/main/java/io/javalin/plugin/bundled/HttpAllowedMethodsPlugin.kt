@@ -12,7 +12,11 @@ import io.javalin.event.HandlerMetaInfo
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
 
-class HttpAllowedMethodsPlugin : JavalinPlugin {
+open class HttpAllowedMethodsPlugin : JavalinPlugin {
+
+    companion object {
+        object HttpAllowedMethods : HttpAllowedMethodsPlugin()
+    }
 
     private val endpoints = mutableMapOf<String, MutableSet<HandlerMetaInfo>>()
 

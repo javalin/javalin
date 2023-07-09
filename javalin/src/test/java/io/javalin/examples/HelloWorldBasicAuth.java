@@ -16,15 +16,11 @@ public class HelloWorldBasicAuth {
     public static void main(String[] args) {
         Javalin
             .create(config -> {
-                config.plugins.register(new BasicAuth(), basicAuthCfg -> {
+                config.registerPlugin(new BasicAuth(), basicAuthCfg -> {
                     basicAuthCfg.username = "panda";
                     basicAuthCfg.password = "bamboo";
                 });
-                config.plugins.register(BasicAuthPlugin.FACTORY, basicAuthCfg -> {
-                    basicAuthCfg.username = "panda";
-                    basicAuthCfg.password = "bamboo";
-                });
-                config.plugins.register(
+                config.registerPlugin(
                     new BasicAuthPlugin(basicAuthCfg -> {
                         basicAuthCfg.username = "panda";
                         basicAuthCfg.password = "bamboo";

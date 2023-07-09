@@ -27,10 +27,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
 
-object MicrometerPluginFactory : PluginFactory<MicrometerPlugin, MicrometerConfig> {
-    override fun create(config: Consumer<MicrometerConfig>) = MicrometerPlugin(config)
-}
-
 class MicrometerConfig : PluginConfiguration {
     @JvmField var registry: MeterRegistry = Metrics.globalRegistry
     @JvmField var tags: Iterable<Tag> = Tags.empty()
@@ -45,9 +41,13 @@ class MicrometerConfig : PluginConfiguration {
  */
 class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
 
+    open class Micrometer : PluginFactory<MicrometerPlugin, MicrometerConfig> {
+        override fun create(config: Consumer<MicrometerConfig>) = MicrometerPlugin(config)
+    }
+
     companion object {
         private const val EXCEPTION_HEADER = "__micrometer_exception_name"
-        @JvmField val FACTORY = MicrometerPluginFactory
+        object Micrometer : MicrometerPlugin.Micrometer()
         @JvmField var exceptionHandler = ExceptionHandler { e: Exception, ctx: Context ->
             val simpleName = e.javaClass.simpleName
             ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })

@@ -124,7 +124,7 @@ class TestGlobalGlobalHeaderConfigPlugin {
     @Test
     fun `test headers are set on app`() {
         val testApp = Javalin.create { cfg ->
-            cfg.plugins.enableGlobalHeaders {
+            cfg.enableGlobalHeaders {
                 it.xContentTypeOptionsNoSniff()
                 it.clearSiteData(ClearSiteData.ANY)
             }

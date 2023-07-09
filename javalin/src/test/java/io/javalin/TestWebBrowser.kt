@@ -48,7 +48,7 @@ class TestWebBrowser {
             val payload = "Hello, Selenium!".repeat(150)
             val app = Javalin.create {
                 it.compression.brotliOnly()
-                it.plugins.enableDevLogging()
+                it.enableDevLogging()
             }.start(0)
             app.get("/hello") { it.result(payload) }
             val logResult = captureStdOut {

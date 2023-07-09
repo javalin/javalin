@@ -11,12 +11,6 @@ import io.javalin.plugin.createUserConfig
 import org.eclipse.jetty.server.ServerConnector
 import java.util.function.Consumer
 
-object SslRedirectPluginFactory : PluginFactory<SslRedirectPlugin, SslRedirectPluginConfig> {
-    override fun create(config: Consumer<SslRedirectPluginConfig>): SslRedirectPlugin {
-        return SslRedirectPlugin(config)
-    }
-}
-
 class SslRedirectPluginConfig : PluginConfiguration {
     @JvmField var redirectOnLocalhost = false
     @JvmField var sslPort: Int? = null
@@ -27,8 +21,12 @@ class SslRedirectPluginConfig : PluginConfiguration {
  */
 class SslRedirectPlugin(config: Consumer<SslRedirectPluginConfig> = Consumer {}) : JavalinPlugin {
 
+    open class SslRedirect : PluginFactory<SslRedirectPlugin, SslRedirectPluginConfig> {
+        override fun create(config: Consumer<SslRedirectPluginConfig>): SslRedirectPlugin = SslRedirectPlugin(config)
+    }
+
     companion object {
-        @JvmStatic val FACTORY = SslRedirectPluginFactory
+        object SslRedirect : SslRedirectPlugin.SslRedirect()
     }
 
     private val config = config.createUserConfig(SslRedirectPluginConfig())

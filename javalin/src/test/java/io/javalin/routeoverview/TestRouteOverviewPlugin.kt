@@ -11,7 +11,7 @@ class TestRouteOverviewPlugin {
     @Test
     fun `should properly register and expose route overview`() = TestUtil.test(
         Javalin.create { config ->
-            config.plugins.enableRouteOverview(("/overview"))
+            config.enableRouteOverview(("/overview"))
         }
     ) { app, http ->
         VisualTest.setupJavalinRoutes(app)
