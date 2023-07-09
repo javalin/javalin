@@ -15,12 +15,6 @@ import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.createUserConfig
 import java.util.function.Consumer
 
-object BasicAuthPluginFactory : PluginFactory<BasicAuthPlugin, BasicAuthPluginConfig> {
-    override fun create(config: Consumer<BasicAuthPluginConfig>): BasicAuthPlugin {
-        return BasicAuthPlugin(config)
-    }
-}
-
 class BasicAuthPluginConfig : PluginConfiguration {
     @JvmField var username: String? = null
     @JvmField var password: String? = null
@@ -32,8 +26,13 @@ class BasicAuthPluginConfig : PluginConfiguration {
  */
 class BasicAuthPlugin(config: Consumer<BasicAuthPluginConfig>) : JavalinPlugin {
 
+    open class BasicAuth : PluginFactory<BasicAuthPlugin, BasicAuthPluginConfig> {
+        override fun create(config: Consumer<BasicAuthPluginConfig>): BasicAuthPlugin = BasicAuthPlugin(config)
+    }
+
     companion object {
-        @JvmStatic val FACTORY = BasicAuthPluginFactory
+        object BasicAuth : BasicAuthPlugin.BasicAuth()
+        @JvmField val FACTORY = BasicAuth
     }
 
     private val config = config.createUserConfig(BasicAuthPluginConfig())

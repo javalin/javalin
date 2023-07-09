@@ -4,7 +4,7 @@ import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.PluginManager
-import io.javalin.plugin.bundled.BasicAuthPluginFactory
+import io.javalin.plugin.bundled.BasicAuthPlugin.Companion.BasicAuth
 import io.javalin.plugin.bundled.CorsPluginConfig
 import io.javalin.plugin.bundled.CorsPluginFactory
 import io.javalin.plugin.bundled.DevLoggingPlugin
@@ -35,7 +35,7 @@ class PluginConfig {
         }
 
     fun enableBasicAuth(username: String, password: String) =
-        register(BasicAuthPluginFactory) {
+        register(BasicAuth) {
             it.username = username
             it.password = password
         }
