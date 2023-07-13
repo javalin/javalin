@@ -23,7 +23,6 @@ module io.javalin {
     exports io.javalin.vue;
     exports io.javalin.websocket;
 
-    requires transitive org.jetbrains.annotations;
     requires transitive kotlin.stdlib;
     requires transitive org.slf4j;
     requires transitive org.eclipse.jetty.server;
@@ -34,6 +33,7 @@ module io.javalin {
     requires transitive org.eclipse.jetty.websocket.jetty.server;
 
     //optional dependencies
+    requires static org.jetbrains.annotations;
     requires static com.aayushatharva.brotli4j;
     requires static com.aayushatharva.brotli4j.service;
     requires static com.fasterxml.jackson.databind;
