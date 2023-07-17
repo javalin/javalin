@@ -308,7 +308,7 @@ class TestStaticFiles {
 
     @Test
     fun `static files can be added after app creation`() = TestUtil.test(
-        Javalin.create().updateConfig { it.staticFiles.add("/public", Location.CLASSPATH) }
+        Javalin.create().also { it.cfg.staticFiles.add("/public", Location.CLASSPATH) }
     ) { _, http ->
         assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
@@ -317,15 +317,14 @@ class TestStaticFiles {
 
     @Test
     fun `static files can be added after app start with previous static files`() = TestUtil.test(
-        Javalin.create().updateConfig { it.staticFiles.add("/public", Location.CLASSPATH) }
+        Javalin.create().also { it.cfg.staticFiles.add("/public", Location.CLASSPATH) }
     ) { app, http ->
-        app.updateConfig {
-            it.staticFiles.add { staticFiles ->
-                staticFiles.hostedPath = "/url-prefix"
-                staticFiles.directory = "/public"
-                staticFiles.location = Location.CLASSPATH
-            }
+        app.cfg.staticFiles.add { staticFiles ->
+            staticFiles.hostedPath = "/url-prefix"
+            staticFiles.directory = "/public"
+            staticFiles.location = Location.CLASSPATH
         }
+
         assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
         assertThat(http.getBody("/html.html")).contains("HTML works")
@@ -339,10 +338,7 @@ class TestStaticFiles {
     fun `static files can be added after app start without previous static files`() = TestUtil.test(
         Javalin.create()
     ) { app, http ->
-        app.updateConfig {
-            it.staticFiles.add("/public", Location.CLASSPATH)
-        }
-
+        app.cfg.staticFiles.add("/public", Location.CLASSPATH)
         assertThat(http.get("/html.html").httpCode()).isEqualTo(OK)
         assertThat(http.get("/html.html").headers.getFirst(Header.CONTENT_TYPE)).contains(ContentType.HTML)
         assertThat(http.getBody("/html.html")).contains("HTML works")

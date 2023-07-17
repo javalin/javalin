@@ -96,23 +96,6 @@ class TestPlugins {
     }
 
     @Test
-    fun `uninitialized plugins should be picked up in update config`() {
-        var pluginAInitCount = 0
-        var pluginBInitCount = 0
-
-        TestUtil.test(Javalin.create { config ->
-            config.registerPlugin { pluginAInitCount++ }
-        }) { app, _ ->
-            app.updateConfig { config ->
-                config.registerPlugin { pluginBInitCount++ }
-            }
-        }
-
-        assertThat(pluginAInitCount).isEqualTo(1) // make sure that plugin A was not initialized 2 times
-        assertThat(pluginBInitCount).isEqualTo(1) // make sure that plugin B has been initialized
-    }
-
-    @Test
     fun `plugins are initialized in the proper order`() {
         val calls = mutableListOf<String>()
 
