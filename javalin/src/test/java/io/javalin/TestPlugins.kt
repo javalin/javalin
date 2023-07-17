@@ -44,8 +44,8 @@ class TestPlugins {
         val plugin2 = TestPlugin2()
 
         Javalin.create {
-            it.plugins.register(plugin1)
-            it.plugins.register(plugin2)
+            it.registerPlugin(plugin1)
+            it.registerPlugin(plugin2)
         }
 
         assertThat(calls).containsExactly(
@@ -61,7 +61,7 @@ class TestPlugins {
         var called = false
 
         Javalin.create {
-            it.plugins.register {
+            it.registerPlugin {
                 called = true
             }
         }
@@ -72,9 +72,9 @@ class TestPlugins {
     @Test
     fun `registerPlugin should throw error if plugin is already registered`() {
         Javalin.create {
-            it.plugins.register(TestPlugin())
+            it.registerPlugin(TestPlugin())
 
-            assertThatThrownBy { it.plugins.register(TestPlugin()) }
+            assertThatThrownBy { it.registerPlugin(TestPlugin()) }
                 .isInstanceOf(PluginAlreadyRegisteredException::class.java)
                 .hasMessage("TestPlugin is already registered")
         }
@@ -89,8 +89,8 @@ class TestPlugins {
     fun `registerPlugin should not throw error for repeatable plugins`() {
         Javalin.create {
             assertDoesNotThrow {
-                it.plugins.register(MultiInstanceTestPlugin())
-                it.plugins.register(MultiInstanceTestPlugin())
+                it.registerPlugin(MultiInstanceTestPlugin())
+                it.registerPlugin(MultiInstanceTestPlugin())
             }
         }
     }
@@ -101,10 +101,10 @@ class TestPlugins {
         var pluginBInitCount = 0
 
         TestUtil.test(Javalin.create { config ->
-            config.plugins.register { pluginAInitCount++ }
+            config.registerPlugin { pluginAInitCount++ }
         }) { app, _ ->
             app.updateConfig { config ->
-                config.plugins.register { pluginBInitCount++ }
+                config.registerPlugin { pluginBInitCount++ }
             }
         }
 
@@ -134,9 +134,9 @@ class TestPlugins {
         }
 
         Javalin.create { config ->
-            config.plugins.register(NormalPlugin())
-            config.plugins.register(LatePlugin())
-            config.plugins.register(EarlyPlugin())
+            config.registerPlugin(NormalPlugin())
+            config.registerPlugin(LatePlugin())
+            config.registerPlugin(EarlyPlugin())
         }
 
         assertThat(calls).containsExactly(

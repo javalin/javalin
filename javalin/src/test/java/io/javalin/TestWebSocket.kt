@@ -10,6 +10,7 @@ import io.javalin.apibuilder.ApiBuilder.ws
 import io.javalin.http.Header
 import io.javalin.http.UnauthorizedResponse
 import io.javalin.json.toJsonString
+import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
 import io.javalin.testing.SerializableObject
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TypedException
@@ -301,7 +302,7 @@ class TestWebSocket {
     }
 
     @Test
-    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.plugins.enableDevLogging() }) { app, _ ->
+    fun `dev logging works for web sockets`() = TestUtil.test(Javalin.create { it.registerPlugin(DevLogging) }) { app, _ ->
         app.ws("/path/{param}") {}
         TestClient(app, "/path/0").connectAndDisconnect()
         TestClient(app, "/path/1?test=banana&hi=1&hi=2").connectAndDisconnect()

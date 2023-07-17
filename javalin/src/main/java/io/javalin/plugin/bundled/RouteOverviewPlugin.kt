@@ -8,15 +8,30 @@ import io.javalin.http.ContentType
 import io.javalin.http.Context
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
+import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.PluginPriority
+import io.javalin.plugin.createUserConfig
 import io.javalin.security.RouteRole
 import java.util.*
+import java.util.function.Consumer
 
-class RouteOverviewPlugin(
-    val path: String,
-    vararg val roles: RouteRole = arrayOf()
-) : JavalinPlugin {
+class RouteOverviewPluginConfig : PluginConfiguration {
+    @JvmField var path: String = "/routes"
+    @JvmField var roles: Array<out RouteRole> = emptyArray()
+}
 
+class RouteOverviewPlugin(config: Consumer<RouteOverviewPluginConfig> = Consumer {}) : JavalinPlugin {
+
+    open class RouteOverview : PluginFactory<RouteOverviewPlugin, RouteOverviewPluginConfig> {
+        override fun create(config: Consumer<RouteOverviewPluginConfig>): RouteOverviewPlugin = RouteOverviewPlugin(config)
+    }
+
+    companion object {
+        object RouteOverview : RouteOverviewPlugin.RouteOverview()
+    }
+
+    private val config = config.createUserConfig(RouteOverviewPluginConfig())
     private val handlerMetaInfoList = mutableListOf<HandlerMetaInfo>()
     private val wsHandlerMetaInfoList = mutableListOf<WsHandlerMetaInfo>()
 
@@ -26,7 +41,7 @@ class RouteOverviewPlugin(
     }
 
     override fun onStart(app: Javalin) {
-        app.get(path, this::handle, *roles)
+        app.get(config.path, this::handle, *config.roles)
     }
 
     private fun handle(ctx: Context) {

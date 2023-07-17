@@ -2,6 +2,7 @@ package io.javalin.plugin
 
 import io.javalin.Javalin
 import io.javalin.config.JavalinConfig
+import java.util.function.Consumer
 
 enum class PluginPriority {
     /**
@@ -49,3 +50,22 @@ fun interface JavalinPlugin {
     fun name(): String = this.javaClass.simpleName
 
 }
+
+fun interface PluginFactory<PLUGIN : JavalinPlugin, CFG : PluginConfiguration> {
+
+    /**
+     * Create a new instance of the plugin with the given configuration.
+     */
+    fun create(config: Consumer<CFG>): PLUGIN
+
+}
+
+/**
+ * A marker interface for plugin configurations.
+ */
+interface PluginConfiguration
+
+fun <CFG : PluginConfiguration> Consumer<CFG>.createUserConfig(cfg: CFG): CFG =
+    cfg.also { accept(it) }
+
+

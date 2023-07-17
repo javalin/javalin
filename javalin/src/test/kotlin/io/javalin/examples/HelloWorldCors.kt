@@ -10,12 +10,12 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.patch
 import io.javalin.apibuilder.ApiBuilder.post
+import io.javalin.plugin.bundled.CorsPlugin.Companion.Cors
 
 fun main() {
-
-    val corsApp = Javalin.create {
-        it.plugins.enableCors { cors ->
-            cors.add {
+    val corsApp = Javalin.create { cfg ->
+        cfg.registerPlugin(Cors) { cors ->
+            cors.addRule {
                 it.allowHost("http://localhost:7001/", "http://localhost:7002")
             }
         }

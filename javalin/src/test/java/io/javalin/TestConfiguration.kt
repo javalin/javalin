@@ -15,7 +15,6 @@ import io.javalin.compression.impl.GzipCompressor
 import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
-import io.javalin.plugin.bundled.RouteOverviewPlugin
 import io.javalin.testing.TestUtil
 import jakarta.servlet.http.HttpSessionEvent
 import jakarta.servlet.http.HttpSessionListener
@@ -35,14 +34,14 @@ class TestConfiguration {
             it.staticFiles.add("/public", Location.CLASSPATH)
             it.staticFiles.add("src/test/resources/public", Location.EXTERNAL)
             it.staticFiles.enableWebjars()
-            it.plugins.register { }
+            it.registerPlugin { }
             it.http.asyncTimeout = 10_000L
             it.http.generateEtags = true
             it.http.defaultContentType = ContentType.PLAIN
-            it.plugins.enableCors { cors -> cors.add { it.reflectClientOrigin = true } }
-            it.plugins.enableDevLogging()
-            it.plugins.register(RouteOverviewPlugin("/test"))
-            it.plugins.enableSslRedirects()
+            it.bundledPlugins.enableCors { cors -> cors.addRule { it.reflectClientOrigin = true } }
+            it.bundledPlugins.enableDevLogging()
+            it.bundledPlugins.enableRouteOverview("/test")
+            it.bundledPlugins.enableSslRedirects()
             it.http.prefer405over404 = false
             it.requestLogger.http { ctx, timeInMs -> }
             it.requestLogger.ws { ws -> }

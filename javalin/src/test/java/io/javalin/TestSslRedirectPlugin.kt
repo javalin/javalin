@@ -1,7 +1,7 @@
 package io.javalin
 
 import io.javalin.http.Header
-import io.javalin.plugin.bundled.SslRedirectPlugin
+import io.javalin.plugin.bundled.SslRedirectPlugin.Companion.SslRedirect
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions.assertThat
@@ -17,8 +17,10 @@ class TestSslRedirectPlugin {
 
     @Test
     fun `ssl redirect plugin should redirect all http requests`() = TestUtil.test(
-        Javalin.create {
-            it.plugins.register(SslRedirectPlugin(redirectOnLocalhost = true))
+        Javalin.create { cfg ->
+            cfg.registerPlugin(SslRedirect) {
+                it.redirectOnLocalhost = true
+            }
         }
     ) { app, http ->
         app.get("/") { ctx -> ctx.result("Hello") }
@@ -30,8 +32,11 @@ class TestSslRedirectPlugin {
 
     @Test
     fun `ssl redirect plugin should support custom ssl port`() = TestUtil.test(
-        Javalin.create {
-            it.plugins.register(SslRedirectPlugin(redirectOnLocalhost = true, sslPort = 8443))
+        Javalin.create { cfg ->
+            cfg.registerPlugin(SslRedirect) {
+                it.redirectOnLocalhost = true
+                it.sslPort = 8443
+            }
         }
     ) { app, http ->
         app.get("/") { ctx -> ctx.result("Hello") }

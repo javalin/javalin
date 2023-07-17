@@ -10,6 +10,9 @@ import io.javalin.http.servlet.MAX_REQUEST_SIZE_KEY
 import io.javalin.json.JSON_MAPPER_KEY
 import io.javalin.json.JavalinJackson
 import io.javalin.json.JsonMapper
+import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
+import io.javalin.plugin.PluginFactory
 import io.javalin.rendering.FILE_RENDERER_KEY
 import io.javalin.rendering.FileRenderer
 import io.javalin.rendering.NotImplementedRenderer
@@ -31,7 +34,7 @@ class JavalinConfig {
     @JvmField val spaRoot = SpaRootConfig(pvt)
     @JvmField val compression = CompressionConfig(pvt)
     @JvmField val requestLogger = RequestLoggerConfig(pvt)
-    @JvmField val plugins = PluginConfig()
+    @JvmField val bundledPlugins = BundledPluginsConfig(this)
     @JvmField val events = EventConfig()
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
@@ -40,12 +43,13 @@ class JavalinConfig {
     fun jsonMapper(jsonMapper: JsonMapper) { pvt.appAttributes[JSON_MAPPER_KEY] = jsonMapper }
     fun fileRenderer(fileRenderer: FileRenderer) { pvt.appAttributes[FILE_RENDERER_KEY] = fileRenderer }
     //@formatter:on
+
     companion object {
         @JvmStatic
         fun applyUserConfig(app: Javalin, cfg: JavalinConfig, userConfig: Consumer<JavalinConfig>) {
             addValidationExceptionMapper(app) // add default mapper for validation
             userConfig.accept(cfg) // apply user config to the default config
-            cfg.plugins.pluginManager.initializePlugins(app)
+            cfg.pvt.pluginManager.initializePlugins(app)
             cfg.pvt.appAttributes.computeIfAbsent(JSON_MAPPER_KEY) { JavalinJackson() }
             cfg.pvt.appAttributes.computeIfAbsent(FILE_RENDERER_KEY) { NotImplementedRenderer() }
             cfg.pvt.appAttributes.computeIfAbsent(CONTEXT_RESOLVER_KEY) { cfg.contextResolver }
@@ -53,4 +57,13 @@ class JavalinConfig {
             cfg.pvt.appAttributes.computeIfAbsent(JAVALINVUE_CONFIG_KEY) { cfg.vue }
         }
     }
+
+    fun registerPlugin(plugin: JavalinPlugin): JavalinConfig = also {
+        pvt.pluginManager.register(plugin)
+    }
+
+    @JvmOverloads
+    fun <PLUGIN : JavalinPlugin, CFG : PluginConfiguration> registerPlugin(factory: PluginFactory<PLUGIN, CFG>, cfg: Consumer<CFG> = Consumer {}) =
+        registerPlugin(factory.create(cfg))
+
 }

@@ -12,6 +12,9 @@ import io.javalin.http.ExceptionHandler
 import io.javalin.http.HandlerType
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
+import io.javalin.plugin.PluginFactory
+import io.javalin.plugin.createUserConfig
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag
@@ -24,36 +27,46 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import java.util.function.Consumer
 
-data class MicrometerConfig(
-    @JvmField var registry: MeterRegistry = Metrics.globalRegistry,
-    @JvmField var tags: Iterable<Tag> = Tags.empty(),
-    @JvmField var tagExceptionName: Boolean = false,
-    @JvmField var tagRedirectPaths: Boolean = false,
-    @JvmField var tagNotFoundMappedPaths: Boolean = false,
-)
+class MicrometerConfig : PluginConfiguration {
+    @JvmField var registry: MeterRegistry = Metrics.globalRegistry
+    @JvmField var tags: Iterable<Tag> = Tags.empty()
+    @JvmField var tagExceptionName: Boolean = false
+    @JvmField var tagRedirectPaths: Boolean = false
+    @JvmField var tagNotFoundMappedPaths: Boolean = false
+}
 
 /**
  * [MicrometerPlugin] has a private constructor, use
  * [MicrometerPlugin.create] to create a new instance.
  */
-class MicrometerPlugin private constructor(
-    private val registry: MeterRegistry,
-    private val tags: Iterable<Tag>,
-    private val tagExceptionName: Boolean,
-    private val tagRedirectPaths: Boolean,
-    private val tagNotFoundMappedPaths: Boolean,
-) : JavalinPlugin {
+class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
+
+    open class Micrometer : PluginFactory<MicrometerPlugin, MicrometerConfig> {
+        override fun create(config: Consumer<MicrometerConfig>) = MicrometerPlugin(config)
+    }
+
+    companion object {
+        private const val EXCEPTION_HEADER = "__micrometer_exception_name"
+        object Micrometer : MicrometerPlugin.Micrometer()
+        @JvmField var exceptionHandler = ExceptionHandler { e: Exception, ctx: Context ->
+            val simpleName = e.javaClass.simpleName
+            ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    private val config = config.createUserConfig(MicrometerConfig())
 
     override fun onStart(app: Javalin) {
-        if (tagExceptionName) {
+        if (config.tagExceptionName) {
             app.exception(Exception::class.java, exceptionHandler)
         }
 
         app.cfg.jetty.modifyServer { server ->
 
-            server.insertHandler(TimedHandler(registry, tags, object : DefaultHttpJakartaServletRequestTagsProvider() {
+            server.insertHandler(TimedHandler(config.registry, config.tags, object : DefaultHttpJakartaServletRequestTagsProvider() {
                 override fun getTags(request: HttpServletRequest, response: HttpServletResponse): Iterable<Tag> {
-                    val exceptionName = if (tagExceptionName) {
+                    val exceptionName = if (config.tagExceptionName) {
                         response.getHeader(EXCEPTION_HEADER)
                     } else {
                         "Unknown"
@@ -64,8 +77,8 @@ class MicrometerPlugin private constructor(
                     val uri = app.javalinServlet().matcher.findEntries(handlerType, pathInfo).asSequence()
                         .map { it.path }
                         .map { if (it == "/" || it.isBlank()) "root" else it }
-                        .map { if (!tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }
-                        .map { if (!tagNotFoundMappedPaths && response.status == 404) "NOT_FOUND" else it }
+                        .map { if (!config.tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }
+                        .map { if (!config.tagNotFoundMappedPaths && response.status == 404) "NOT_FOUND" else it }
                         .firstOrNull() ?: "NOT_FOUND"
                     return Tags.concat(
                         super.getTags(request, response),
@@ -76,36 +89,12 @@ class MicrometerPlugin private constructor(
             }))
 
 
-            JettyServerThreadPoolMetrics(server.threadPool, tags).bindTo(registry)
+            JettyServerThreadPoolMetrics(server.threadPool, config.tags).bindTo(config.registry)
             app.events {
                 it.serverStarted {
-                    JettyConnectionMetrics.addToAllConnectors(server, registry, tags)
+                    JettyConnectionMetrics.addToAllConnectors(server, config.registry, config.tags)
                 }
             }
-        }
-    }
-
-    companion object {
-        private const val EXCEPTION_HEADER = "__micrometer_exception_name"
-
-        @JvmField
-        var exceptionHandler = ExceptionHandler { e: Exception, ctx: Context ->
-            val simpleName = e.javaClass.simpleName
-            ctx.header(EXCEPTION_HEADER, simpleName.ifBlank { e.javaClass.name })
-            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        }
-
-        @JvmStatic
-        fun create(userConfig: Consumer<MicrometerConfig>): MicrometerPlugin {
-            val finalConfig = MicrometerConfig()
-            userConfig.accept(finalConfig)
-            return MicrometerPlugin(
-                registry = finalConfig.registry,
-                tags = finalConfig.tags,
-                tagExceptionName = finalConfig.tagExceptionName,
-                tagRedirectPaths = finalConfig.tagRedirectPaths,
-                tagNotFoundMappedPaths = finalConfig.tagNotFoundMappedPaths,
-            )
         }
     }
 

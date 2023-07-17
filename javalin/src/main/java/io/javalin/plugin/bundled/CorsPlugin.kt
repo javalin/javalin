@@ -13,71 +13,97 @@ import io.javalin.http.Header.ORIGIN
 import io.javalin.http.Header.VARY
 import io.javalin.http.HttpStatus
 import io.javalin.plugin.JavalinPlugin
+import io.javalin.plugin.PluginConfiguration
+import io.javalin.plugin.PluginFactory
+import io.javalin.plugin.bundled.CorsPluginConfig.CorsRule
 import io.javalin.plugin.bundled.CorsUtils.isValidOrigin
 import io.javalin.plugin.bundled.CorsUtils.normalizeOrigin
 import io.javalin.plugin.bundled.CorsUtils.originFulfillsWildcardRequirements
 import io.javalin.plugin.bundled.CorsUtils.originsMatch
 import io.javalin.plugin.bundled.CorsUtils.parseAsOriginParts
+import io.javalin.plugin.createUserConfig
 import java.util.*
 import java.util.function.Consumer
 
-data class CorsPluginConfig(
-    @JvmField var allowCredentials: Boolean = false,
-    @JvmField var reflectClientOrigin: Boolean = false,
-    @JvmField var defaultScheme: String = "https",
-    @JvmField var path: String = "*",
-    @JvmField var maxAge: Int = -1,
-    private val allowedOrigins: MutableList<String> = mutableListOf(),
-    private val headersToExpose: MutableList<String> = mutableListOf()
-) {
-    fun allowedOrigins(): List<String> = Collections.unmodifiableList(allowedOrigins)
-    fun headersToExpose(): List<String> = Collections.unmodifiableList(headersToExpose)
+class CorsPluginConfig : PluginConfiguration {
+    internal val rules = mutableListOf<CorsRule>()
 
-    fun anyHost() {
-        allowedOrigins.add("*")
+    fun addRule(rule: Consumer<CorsRule>): CorsPluginConfig = also {
+        rules.add(CorsRule().also { rule.accept(it) })
     }
 
-    fun allowHost(host: String, vararg others: String) {
-        val origins = listOf(host) + others.toList()
-        origins.map { CorsUtils.addSchemeIfMissing(it, defaultScheme) }.forEachIndexed { idx, it ->
-            require(it != "null") { "Adding the string null as an allowed host is forbidden. Consider calling anyHost() instead" }
-            require(isValidOrigin(it)) { "The given value '${origins[idx]}' could not be transformed into a valid origin" }
-            val wildcardResult = originFulfillsWildcardRequirements(it)
-            require(wildcardResult !is WildcardResult.ErrorState) {
-                when (wildcardResult) {
-                    WildcardResult.ErrorState.TooManyWildcards -> "Too many wildcards detected inside '${origins[idx]}'. Only one at the start of the host is allowed!"
-                    WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost -> "The wildcard must be at the start of the passed in host. The value '${origins[idx]}' violates this requirement!"
-                    else -> throw IllegalStateException(
-                        """This code path should never be hit.
+    class CorsRule {
+        @JvmField var allowCredentials = false
+        @JvmField var reflectClientOrigin = false
+        @JvmField var defaultScheme = "https"
+        @JvmField var path = "*"
+        @JvmField var maxAge = -1
+
+        private val allowedOrigins = mutableListOf<String>()
+        private val headersToExpose = mutableListOf<String>()
+
+        fun allowedOrigins(): List<String> =
+            Collections.unmodifiableList(allowedOrigins)
+
+        fun headersToExpose(): List<String> =
+            Collections.unmodifiableList(headersToExpose)
+
+        fun anyHost() {
+            allowedOrigins.add("*")
+        }
+
+        fun allowHost(host: String, vararg others: String) {
+            val origins = listOf(host) + others.toList()
+            origins.map { CorsUtils.addSchemeIfMissing(it, defaultScheme) }.forEachIndexed { idx, it ->
+                require(it != "null") { "Adding the string null as an allowed host is forbidden. Consider calling anyHost() instead" }
+                require(isValidOrigin(it)) { "The given value '${origins[idx]}' could not be transformed into a valid origin" }
+                val wildcardResult = originFulfillsWildcardRequirements(it)
+                require(wildcardResult !is WildcardResult.ErrorState) {
+                    when (wildcardResult) {
+                        WildcardResult.ErrorState.TooManyWildcards -> "Too many wildcards detected inside '${origins[idx]}'. Only one at the start of the host is allowed!"
+                        WildcardResult.ErrorState.WildcardNotAtTheStartOfTheHost -> "The wildcard must be at the start of the passed in host. The value '${origins[idx]}' violates this requirement!"
+                        else -> throw IllegalStateException(
+                            """This code path should never be hit.
                         |
                         |Please report it to the maintainers of Javalin as a GitHub issue at https://github.com/javalin/javalin/issues/new/choose""".trimMargin()
-                    )
+                        )
+                    }
                 }
+                allowedOrigins.add(it)
             }
-            allowedOrigins.add(it)
         }
-    }
 
-    fun exposeHeader(header: String) {
-        headersToExpose.add(header)
+        fun exposeHeader(header: String) {
+            headersToExpose.add(header)
+        }
     }
 }
 
-class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : JavalinPlugin {
+class CorsPlugin(config: Consumer<CorsPluginConfig>) : JavalinPlugin {
+
+    open class Cors : PluginFactory<CorsPlugin, CorsPluginConfig> {
+        override fun create(config: Consumer<CorsPluginConfig>): CorsPlugin = CorsPlugin(config)
+    }
+
+    companion object {
+        object Cors : CorsPlugin.Cors()
+    }
+
+    private val corsConfig = config.createUserConfig(CorsPluginConfig())
 
     init {
-        require(userConfigs.isNotEmpty()) {
+        require(corsConfig.rules.isNotEmpty()) {
             "At least one cors config has to be provided. Use CorsContainer.add() to add one."
         }
     }
 
-    val configs = userConfigs.map { userConfig -> CorsPluginConfig().also { userConfig.accept(it) } }
-
     override fun onStart(app: Javalin) {
-        configs.forEach { applySingleConfig(app, it) }
+        corsConfig.rules.forEach {
+            applySingleConfig(app, it)
+        }
     }
 
-    private fun applySingleConfig(app: Javalin, cfg: CorsPluginConfig) {
+    private fun applySingleConfig(app: Javalin, cfg: CorsRule) {
         val origins = cfg.allowedOrigins()
         require(origins.isNotEmpty() || cfg.reflectClientOrigin) { "Origins cannot be empty if `reflectClientOrigin` is false." }
         require(origins.isEmpty() || !cfg.reflectClientOrigin) { "Cannot set `allowedOrigins` if `reflectClientOrigin` is true" }
@@ -92,7 +118,7 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : JavalinPlugin 
         }
     }
 
-    private fun handleCors(ctx: Context, cfg: CorsPluginConfig) {
+    private fun handleCors(ctx: Context, cfg: CorsRule) {
         val clientOrigin = ctx.header(ORIGIN) ?: return
 
         if (!isValidOrigin(clientOrigin)) {
@@ -146,16 +172,5 @@ class CorsPlugin(userConfigs: List<Consumer<CorsPluginConfig>>) : JavalinPlugin 
 
         return serverOriginParts.any { originsMatch(clientOriginPart, it) }
     }
+
 }
-
-class CorsContainer {
-
-    private val corsConfigs = mutableListOf<Consumer<CorsPluginConfig>>()
-
-    fun corsConfigs(): List<Consumer<CorsPluginConfig>> = Collections.unmodifiableList(corsConfigs)
-
-    fun add(consumer: Consumer<CorsPluginConfig>) {
-        corsConfigs.add(consumer)
-    }
-}
-

@@ -13,6 +13,7 @@ import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType.TRACE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
+import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin.Companion.RedirectToLowercasePath
 import io.javalin.routing.MissingBracketsException
 import io.javalin.routing.ParameterNamesNotUniqueException
 import io.javalin.routing.WildcardBracketAdjacentException
@@ -333,7 +334,7 @@ class TestRouting {
         assertThrows<java.lang.IllegalStateException> {
             Javalin.create {
                 it.routing.caseInsensitiveRoutes = true
-                it.plugins.enableRedirectToLowercasePaths()
+                it.registerPlugin(RedirectToLowercasePath)
             }.start()
         }
     }

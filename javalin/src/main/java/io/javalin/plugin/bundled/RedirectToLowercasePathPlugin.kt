@@ -22,7 +22,11 @@ import java.util.*
  * URL fragments ('Users' becomes 'users' above, but 'John' remains 'John').
  * When using this plugin, you can only add paths with lowercase URL fragments.
  */
-class RedirectToLowercasePathPlugin : JavalinPlugin {
+open class RedirectToLowercasePathPlugin : JavalinPlugin {
+
+    companion object {
+        object RedirectToLowercasePath : RedirectToLowercasePathPlugin()
+    }
 
     override fun onInitialize(config: JavalinConfig) {
         if (config.routing.caseInsensitiveRoutes) {

@@ -7,6 +7,7 @@ import io.javalin.http.SinglePageHandler
 import io.javalin.http.servlet.DefaultTasks
 import io.javalin.http.servlet.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
+import io.javalin.plugin.PluginManager
 import io.javalin.security.AccessManager
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
@@ -15,6 +16,7 @@ import org.eclipse.jetty.server.Server
 
 // @formatter:off
 class PrivateConfig {
+    @JvmField var pluginManager = PluginManager()
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
     @JvmField var resourceHandler: ResourceHandler? = null
@@ -25,7 +27,6 @@ class PrivateConfig {
     @JvmField var servletRequestLifecycle = listOf(DefaultTasks.BEFORE, DefaultTasks.HTTP, DefaultTasks.ERROR, DefaultTasks.AFTER)
     // Jetty
     @JvmField var server: Server? = null
-
 
     fun javaLangErrorHandler(handler: JavaLangErrorHandler) = apply { this.javaLangErrorHandler = handler }
     internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->

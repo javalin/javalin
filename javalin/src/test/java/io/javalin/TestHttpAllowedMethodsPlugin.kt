@@ -10,6 +10,7 @@ import io.javalin.http.Header
 import io.javalin.http.HttpStatus.CREATED
 import io.javalin.http.HttpStatus.NOT_MODIFIED
 import io.javalin.http.HttpStatus.OK
+import io.javalin.plugin.bundled.HttpAllowedMethodsPlugin.Companion.HttpAllowedMethods
 import io.javalin.testing.TestUtil
 import kong.unirest.Unirest
 import org.assertj.core.api.Assertions
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Test
 class TestHttpAllowedMethodsPlugin {
     @Test
     fun `enableHttpOptionsForRoutes allows possible methods on routes`() {
-        val javalin = Javalin.create { it.plugins.enableHttpAllowedMethodsOnRoutes() }
+        val javalin = Javalin.create { it.registerPlugin(HttpAllowedMethods) }
         javalin.get("/") { it.result("Hello") }
         javalin.delete("/") { it.status(OK) }
 
