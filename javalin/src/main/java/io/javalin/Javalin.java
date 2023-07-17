@@ -42,7 +42,6 @@ public class Javalin implements AutoCloseable {
     /**
      * Do not use this field unless you know what you're doing.
      * Application config should be declared in {@link Javalin#create(Consumer)}.
-     * Alternatively use {@link Javalin#updateConfig(Consumer)} to update the config at a later date.
      */
     public JavalinConfig cfg = new JavalinConfig();
     protected JavalinServlet javalinServlet = new JavalinServlet(cfg);
@@ -200,28 +199,6 @@ public class Javalin implements AutoCloseable {
      */
     public <T> T attribute(String key) {
         return (T) cfg.pvt.appAttributes.get(key);
-    }
-
-    /**
-     * Updates the instance's configuration with new user configuration.
-     * It fulfills a similar role to the existing {@link Javalin#create(Consumer)} call and can be called on an existing
-     * instance.
-     * <p>
-     * Do note that this method is not a replacement to {@link Javalin#create(Consumer)},
-     * this method may or may not take effect on some parts of your application.
-     * You have to be conscious how your application works and if it can be reconfigured after startup.
-     * </p>
-     * The recommended way is to always use {@link Javalin#create(Consumer)} for configuring Javalin and only using
-     * this method if there is no other way.
-     *
-     * @param userConfig new user configuration
-     * @return application instance.
-     * @see Javalin#create(Consumer)
-     */
-    public Javalin updateConfig(Consumer<JavalinConfig> userConfig) {
-        userConfig.accept(cfg);
-        cfg.pvt.pluginManager.initializePlugins(this);
-        return this;
     }
 
     /**
