@@ -10,6 +10,7 @@ package io.javalin
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Gzip
+import io.javalin.http.ContentType
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
@@ -19,10 +20,12 @@ import kong.unirest.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
 import java.util.zip.GZIPInputStream
+import kotlin.streams.asStream
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
 
 class TestCompression {
@@ -288,6 +291,42 @@ class TestCompression {
         TestUtil.test(gzipWebjars) { _, http ->
             assertValidGzipResponse(http.origin, path)
         }
+    }
+
+    @Test
+    fun `compresses a large string of JSON`() {
+        val obj = """{"value":123456789}""" // 19 chars, will be 20 with comma
+        val largeJson = List(500) { obj }.joinToString(",", "[", "]") // size is > 10,000 chars
+        val largeJsonStringTestApp = Javalin.create {
+            it.compression.gzipOnly()
+        }.apply {
+            get("/large-json") { it.contentType(ContentType.APPLICATION_JSON).result(largeJson) }
+        }
+        TestUtil.test(largeJsonStringTestApp) { _, http ->
+            assertCompressedResponse(http.origin, "/large-json", largeJson.length)
+        }
+    }
+
+    @Test
+    fun `compresses a large Stream of JSON`() {
+        data class Foo(val value: Long) // will become 19 chars in JSON, 20 with comma separator
+        val largeJsonStream = generateSequence { Foo(123456789) }.take(500).asStream() // size is > 10,000 chars
+        val largeJsonStringTestApp = Javalin.create {
+            it.compression.gzipOnly()
+        }.apply {
+            get("/large-json") { it.writeJsonStream(largeJsonStream) }
+        }
+        TestUtil.test(largeJsonStringTestApp) { _, http ->
+            assertCompressedResponse(http.origin, "/large-json", 10_000) // lazy hardcoded
+        }
+    }
+
+    private fun assertCompressedResponse(origin: String, url: String, uncompressedSize: Int) {
+        val response = getResponse(origin, url, "br, gzip")
+        assertThat(response.code).isLessThan(400)
+        assertThat(response.header(Header.CONTENT_ENCODING)).isEqualTo("gzip")
+        val compressedSize = response.body!!.contentLength()
+        assertThat(compressedSize).isLessThan(uncompressedSize.toLong())
     }
 
     private fun assertUncompressedResponse(origin: String, url: String) {
