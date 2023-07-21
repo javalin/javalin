@@ -20,7 +20,6 @@ import kong.unirest.Unirest
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
