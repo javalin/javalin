@@ -6,6 +6,7 @@
 
 package io.javalin.http
 
+import io.javalin.compression.CompressedOutputStream.Companion.ALWAYS_COMPRESS
 import io.javalin.config.contextResolver
 import io.javalin.http.servlet.attributeOrCompute
 import io.javalin.http.servlet.cacheAndSetSessionAttribute
@@ -435,9 +436,10 @@ interface Context {
      * content to JSON, writing the results directly to the response's `outputStream` as the stream
      * is consumed. This function call is synchronous, and may be wrapped in `ctx.async { }` if needed.
      */
-    fun writeJsonStream(stream: Stream<*>) = jsonMapper().writeToOutputStream(
-        stream, this.contentType(ContentType.APPLICATION_JSON).outputStream()
-    )
+    fun writeJsonStream(stream: Stream<*>) {
+        attribute(ALWAYS_COMPRESS, true)
+        jsonMapper().writeToOutputStream(stream, this.contentType(ContentType.APPLICATION_JSON).outputStream())
+    }
 
     /** Sets context result to specified html string and sets content-type to text/html. */
     fun html(html: String): Context = contentType(ContentType.TEXT_HTML).result(html)

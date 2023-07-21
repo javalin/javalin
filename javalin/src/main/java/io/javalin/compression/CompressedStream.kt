@@ -8,20 +8,40 @@ import java.io.OutputStream
 
 internal class CompressedOutputStream(val compression: CompressionStrategy, val ctx: Context) : ServletOutputStream() {
 
-    private val originStream = ctx.res().outputStream
-    private var compressedStream: OutputStream? = null
-
-    override fun write(bytes: ByteArray, offset: Int, length: Int) {
-        if (compressedStream == null && length >= compression.minSizeForCompression && compression.allowsForCompression(ctx.res().contentType) && !ctx.res().containsHeader(Header.CONTENT_ENCODING)) {
-            tryMatchCompression(compression, ctx)?.also {
-                this.compressedStream = it.compress(originStream)
-                ctx.header(Header.CONTENT_ENCODING, it.encoding())
-            }
-        }
-        (compressedStream ?: originStream).write(bytes, offset, length) // fall back to default stream if no compression
+    companion object {
+        const val ALWAYS_COMPRESS = "ALWAYS_COMPRESS"
     }
 
-    override fun write(byte: Int) = originStream.write(byte)
+    private val originStream = ctx.res().outputStream
+    private var compressedStream: OutputStream? = null
+    private var isCompressionDecisionMade = false
+
+    private fun maybeCreateCompressionStreamOnFirstWrite(length: Int) {
+        if (!isCompressionDecisionMade) {
+            val isCompressionAllowed = !ctx.res().containsHeader(Header.CONTENT_ENCODING) &&
+                compression.allowsForCompression(ctx.res().contentType)
+            val isCompressionDesired = length >= compression.minSizeForCompression ||
+                ctx.attribute<Boolean>(ALWAYS_COMPRESS) == true
+            if (isCompressionAllowed && isCompressionDesired) {
+                findMatchingCompressor(compression, ctx)?.also {
+                    this.compressedStream = it.compress(originStream)
+                    ctx.header(Header.CONTENT_ENCODING, it.encoding())
+                }
+            }
+            isCompressionDecisionMade = true
+        }
+    }
+
+    override fun write(bytes: ByteArray, offset: Int, length: Int) {
+        maybeCreateCompressionStreamOnFirstWrite(length)
+        (compressedStream ?: originStream).write(bytes, offset, length)
+    }
+
+    override fun write(byte: Int) {
+        maybeCreateCompressionStreamOnFirstWrite(1)
+        (compressedStream ?: originStream).write(byte)
+    }
+
     override fun setWriteListener(writeListener: WriteListener?) = originStream.setWriteListener(writeListener)
     override fun isReady(): Boolean = originStream.isReady
     override fun close() {
@@ -30,7 +50,7 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
 
 }
 
-private fun tryMatchCompression(
+private fun findMatchingCompressor(
     compression: CompressionStrategy,
     ctx: Context,
 ): Compressor? =
@@ -40,5 +60,6 @@ private fun tryMatchCompression(
 
 
 private fun CompressionStrategy.allowsForCompression(contentType: String?): Boolean =
-    contentType == null || excludedMimeTypesFromCompression.none { excluded -> contentType.contains(excluded, ignoreCase = true) }
-
+    contentType == null || excludedMimeTypesFromCompression.none { excluded ->
+        contentType.contains(excluded, ignoreCase = true)
+    }
