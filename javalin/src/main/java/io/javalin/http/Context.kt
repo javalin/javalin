@@ -443,6 +443,8 @@ interface Context {
      * Consumes the specified stream with the configured JsonMapper, which transforms the stream's
      * content to JSON, writing the results directly to the response's `outputStream` as the stream
      * is consumed. This function call is synchronous, and may be wrapped in `ctx.async { }` if needed.
+     * The response will always be compressed regardless of size, given that compression is enabled in
+     * the Javalin configuration.
      */
     fun writeJsonStream(stream: Stream<*>)
 

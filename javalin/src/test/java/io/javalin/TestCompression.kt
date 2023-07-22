@@ -299,7 +299,7 @@ class TestCompression {
     }
     private val sampleJson100 = buildSampleJson(5)
     private val sampleJson10k = buildSampleJson(500)
-    private fun testValidGzipHandler(handler: Handler) {
+    private fun testValidCompressionHandler(handler: Handler) {
         val gzipTestApp = Javalin.create {
             it.compression.gzipOnly()
         }.apply {
@@ -308,29 +308,62 @@ class TestCompression {
         TestUtil.test(gzipTestApp) { _, http ->
             assertValidGzipResponse(http.origin, "/gzip-test")
         }
+        val brotliTestApp = Javalin.create {
+            it.compression.brotliOnly()
+        }.apply {
+            get("/brotli-test", handler)
+        }
+        TestUtil.test(brotliTestApp) { _, http ->
+            assertValidBrotliResponse(http.origin, "/brotli-test")
+        }
+    }
+    private fun testValidUncompressedHandler(handler: Handler) {
+        val uncompressedTestApp = Javalin.create {
+            it.compression.gzipOnly() // compression is enabled so that we can test minSizeForCompression thresholds
+        }.apply {
+            get("/uncompressed-test", handler)
+        }
+        TestUtil.test(uncompressedTestApp) { _, http ->
+            assertUncompressedResponse(http.origin, "/uncompressed-test")
+        }
     }
 
     @Test
     fun `compresses a large string of JSON`() {
-        testValidGzipHandler { ctx ->
+        testValidCompressionHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON).result(sampleJson10k)
+        }
+        testValidUncompressedHandler { ctx ->
+            ctx.minSizeForCompression = sampleJson10k.length + 1
             ctx.contentType(ContentType.APPLICATION_JSON).result(sampleJson10k)
         }
     }
 
     @Test
     fun `compresses a large string of JSON with direct single byte writes to outputStream`() {
-        testValidGzipHandler { ctx ->
+        testValidCompressionHandler { ctx ->
             ctx.contentType(ContentType.APPLICATION_JSON)
-            ctx.minSizeForCompression = 0
+            ctx.minSizeForCompression = 0 // must force compression to use single byte writes
             val out = ctx.outputStream()
             sampleJson10k.forEach { out.write(it.code) }
+        }
+        testValidUncompressedHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
+            val out = ctx.outputStream()
+            sampleJson10k.forEach { out.write(it.code) } // first write is one byte, so no compression
         }
     }
 
     @Test
     fun `compresses a large string of JSON with direct byte array writes to outputStream`() {
-        testValidGzipHandler { ctx ->
+        testValidCompressionHandler { ctx ->
             ctx.contentType(ContentType.APPLICATION_JSON)
+            val out = ctx.outputStream()
+            sampleJson10k.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
+        }
+        testValidUncompressedHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
+            ctx.minSizeForCompression = sampleJson10k.length + 1
             val out = ctx.outputStream()
             sampleJson10k.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
         }
@@ -338,9 +371,14 @@ class TestCompression {
 
     @Test
     fun `compresses a small string of JSON with direct byte array writes to outputStream`() {
-        testValidGzipHandler { ctx ->
+        testValidCompressionHandler { ctx ->
             ctx.contentType(ContentType.APPLICATION_JSON)
-            ctx.minSizeForCompression = 0
+            ctx.minSizeForCompression = 0 // must force compression since small string is below default threshold
+            val out = ctx.outputStream()
+            sampleJson100.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
+        }
+        testValidUncompressedHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
             val out = ctx.outputStream()
             sampleJson100.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
         }
@@ -350,9 +388,10 @@ class TestCompression {
     fun `compresses a large Stream of JSON`() {
         data class Foo(val value: Long) // will become 19 chars in JSON, 20 with comma separator
         fun createLargeJsonStream() = generateSequence { Foo(123456789) }.take(500).asStream() // > 10,000 chars
-        testValidGzipHandler { ctx ->
+        testValidCompressionHandler { ctx ->
             ctx.writeJsonStream(createLargeJsonStream())
         }
+        // no test for uncompressed since writing a Stream<T> forces compression
     }
 
     private fun assertUncompressedResponse(origin: String, url: String) {
