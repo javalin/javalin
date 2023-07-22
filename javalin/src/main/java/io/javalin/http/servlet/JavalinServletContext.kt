@@ -15,6 +15,7 @@ import io.javalin.http.HandlerType.AFTER
 import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
+import io.javalin.json.jsonMapper
 import io.javalin.routing.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
@@ -29,6 +30,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
+import java.util.stream.Stream
 
 data class JavalinServletContextConfig(
     val appAttributes: Map<String, Any>,
@@ -51,6 +53,7 @@ class JavalinServletContext(
     internal var endpointHandlerPath: String = "",
     internal var userFutureSupplier: Supplier<out CompletableFuture<*>>? = null,
     private var resultStream: InputStream? = null,
+    override var minSizeForCompression: Int = cfg.compressionStrategy.defaultMinSizeForCompression,
 ) : Context {
 
     init {
@@ -112,7 +115,9 @@ class JavalinServletContext(
     private val queryParams by lazy { super.queryParamMap() }
     override fun queryParamMap(): Map<String, List<String>> = queryParams
 
-    internal val outputStreamWrapper = lazy { CompressedOutputStream(cfg.compressionStrategy, this) }
+    internal val outputStreamWrapper = lazy {
+        CompressedOutputStream(minSizeForCompression, cfg.compressionStrategy, this)
+    }
     override fun outputStream(): ServletOutputStream = outputStreamWrapper.value
 
     override fun redirect(location: String, status: HttpStatus) {
@@ -136,6 +141,10 @@ class JavalinServletContext(
 
     override fun skipRemainingHandlers(): Context = also { tasks.clear() }
 
+    override fun writeJsonStream(stream: Stream<*>) {
+        minSizeForCompression = 0
+        jsonMapper().writeToOutputStream(stream, this.contentType(ContentType.APPLICATION_JSON).outputStream())
+    }
 }
 
 // this header is semicolon separated, like: "text/html; charset=UTF-8"

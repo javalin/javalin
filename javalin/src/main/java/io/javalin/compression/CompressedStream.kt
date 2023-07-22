@@ -6,11 +6,11 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener
 import java.io.OutputStream
 
-internal class CompressedOutputStream(val compression: CompressionStrategy, val ctx: Context) : ServletOutputStream() {
-
-    companion object {
-        const val ALWAYS_COMPRESS = "ALWAYS_COMPRESS"
-    }
+internal class CompressedOutputStream(
+    val minSizeForCompression: Int,
+    val compression: CompressionStrategy,
+    val ctx: Context,
+) : ServletOutputStream() {
 
     private val originStream = ctx.res().outputStream
     private var compressedStream: OutputStream? = null
@@ -20,8 +20,7 @@ internal class CompressedOutputStream(val compression: CompressionStrategy, val 
         if (!isCompressionDecisionMade) {
             val isCompressionAllowed = !ctx.res().containsHeader(Header.CONTENT_ENCODING) &&
                 compression.allowsForCompression(ctx.res().contentType)
-            val isCompressionDesired = length >= compression.minSizeForCompression ||
-                ctx.attribute<Boolean>(ALWAYS_COMPRESS) == true
+            val isCompressionDesired = length >= minSizeForCompression
             if (isCompressionAllowed && isCompressionDesired) {
                 findMatchingCompressor(compression, ctx)?.also {
                     this.compressedStream = it.compress(originStream)
