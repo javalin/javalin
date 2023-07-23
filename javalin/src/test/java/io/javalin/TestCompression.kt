@@ -10,6 +10,8 @@ package io.javalin
 import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Gzip
+import io.javalin.http.ContentType
+import io.javalin.http.Handler
 import io.javalin.http.Header
 import io.javalin.http.staticfiles.Location
 import io.javalin.testing.TestDependency
@@ -23,6 +25,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
 import java.util.zip.GZIPInputStream
+import kotlin.streams.asStream
 import com.aayushatharva.brotli4j.decoder.BrotliInputStream as Brotli4jInputStream
 
 class TestCompression {
@@ -36,22 +39,22 @@ class TestCompression {
     private val testDocument = FileUtil.readResource("/public/html.html")
 
     private fun customCompressionApp(limit: Int): Javalin = Javalin.create {
-        it.pvt.compressionStrategy.minSizeForCompression = limit
+        it.pvt.compressionStrategy.defaultMinSizeForCompression = limit
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
     private fun superCompressingApp() = Javalin.create {
-        it.compression.custom(CompressionStrategy(Brotli(), Gzip()).apply { minSizeForCompression = 1 })
+        it.compression.custom(CompressionStrategy(Brotli(), Gzip()).apply { defaultMinSizeForCompression = 1 })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
     private fun brotliDisabledApp() = Javalin.create {
-        it.compression.custom(CompressionStrategy(null, Gzip()).apply { minSizeForCompression = testDocument.length })
+        it.compression.custom(CompressionStrategy(null, Gzip()).apply { defaultMinSizeForCompression = testDocument.length })
         it.staticFiles.add("/public", Location.CLASSPATH)
     }.addTestEndpoints()
 
     private fun etagApp() = Javalin.create {
-        it.pvt.compressionStrategy.minSizeForCompression = testDocument.length
+        it.pvt.compressionStrategy.defaultMinSizeForCompression = testDocument.length
         it.staticFiles.add("/public", Location.CLASSPATH)
         it.http.generateEtags = true
     }.addTestEndpoints()
@@ -283,11 +286,112 @@ class TestCompression {
                 staticFiles.directory = "/public"
                 staticFiles.location = Location.CLASSPATH
             }
-            it.pvt.compressionStrategy.minSizeForCompression = 0 // minSize to enable automatic compress
+            it.pvt.compressionStrategy.defaultMinSizeForCompression = 0 // minSize to enable automatic compress
         }
         TestUtil.test(gzipWebjars) { _, http ->
             assertValidGzipResponse(http.origin, path)
         }
+    }
+
+    private fun buildSampleJson(chunksOf20Chars: Int): String {
+        val obj = """{"value":123456789}""" // 19 chars, will be 20 with comma
+        return List(chunksOf20Chars) { obj }.joinToString(",", "[", "]")
+    }
+    private val sampleJson100 = buildSampleJson(5)
+    private val sampleJson10k = buildSampleJson(500)
+    private fun testValidCompressionHandler(handler: Handler) {
+        val gzipTestApp = Javalin.create {
+            it.compression.gzipOnly()
+        }.apply {
+            get("/gzip-test", handler)
+        }
+        TestUtil.test(gzipTestApp) { _, http ->
+            assertValidGzipResponse(http.origin, "/gzip-test")
+        }
+        val brotliTestApp = Javalin.create {
+            it.compression.brotliOnly()
+        }.apply {
+            get("/brotli-test", handler)
+        }
+        TestUtil.test(brotliTestApp) { _, http ->
+            assertValidBrotliResponse(http.origin, "/brotli-test")
+        }
+    }
+    private fun testValidUncompressedHandler(handler: Handler) {
+        val uncompressedTestApp = Javalin.create {
+            it.compression.gzipOnly() // compression is enabled so that we can test minSizeForCompression thresholds
+        }.apply {
+            get("/uncompressed-test", handler)
+        }
+        TestUtil.test(uncompressedTestApp) { _, http ->
+            assertUncompressedResponse(http.origin, "/uncompressed-test")
+        }
+    }
+
+    @Test
+    fun `compresses a large string of JSON`() {
+        testValidCompressionHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON).result(sampleJson10k)
+        }
+        testValidUncompressedHandler { ctx ->
+            ctx.minSizeForCompression = sampleJson10k.length + 1
+            ctx.contentType(ContentType.APPLICATION_JSON).result(sampleJson10k)
+        }
+    }
+
+    @Test
+    fun `compresses a large string of JSON with direct single byte writes to outputStream`() {
+        testValidCompressionHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
+            ctx.minSizeForCompression = 0 // must force compression to use single byte writes
+            val out = ctx.outputStream()
+            sampleJson10k.forEach { out.write(it.code) }
+        }
+        testValidUncompressedHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
+            val out = ctx.outputStream()
+            sampleJson10k.forEach { out.write(it.code) } // first write is one byte, so no compression
+        }
+    }
+
+    @Test
+    fun `compresses a large string of JSON with direct byte array writes to outputStream`() {
+        testValidCompressionHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
+            val out = ctx.outputStream()
+            sampleJson10k.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
+        }
+        testValidUncompressedHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
+            ctx.minSizeForCompression = sampleJson10k.length + 1
+            val out = ctx.outputStream()
+            sampleJson10k.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
+        }
+    }
+
+    @Test
+    fun `compresses a small string of JSON with direct byte array writes to outputStream`() {
+        testValidCompressionHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
+            ctx.minSizeForCompression = 0 // must force compression since small string is below default threshold
+            val out = ctx.outputStream()
+            sampleJson100.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
+        }
+        testValidUncompressedHandler { ctx ->
+            ctx.contentType(ContentType.APPLICATION_JSON)
+            val out = ctx.outputStream()
+            sampleJson100.map { it.code.toByte() }.toByteArray().let { bytes -> out.write(bytes) }
+        }
+    }
+
+    @Test
+    fun `compresses a large Stream of JSON`() {
+        data class Foo(val value: Long) // will become 19 chars in JSON, 20 with comma separator
+        fun createLargeJsonStream() = generateSequence { Foo(123456789) }.take(500).asStream() // > 10,000 chars
+        testValidCompressionHandler { ctx ->
+            ctx.writeJsonStream(createLargeJsonStream())
+        }
+        // no test for uncompressed since writing a Stream<T> forces compression
     }
 
     private fun assertUncompressedResponse(origin: String, url: String) {

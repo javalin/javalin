@@ -293,12 +293,21 @@ interface Context {
     fun responseCharset(): Charset = runCatching { Charset.forName(res().characterEncoding) }.getOrElse { Charset.defaultCharset() }
 
     /**
-     * Gets output-stream you can write to.
-     * This stream by default uses compression specified in Javalin configuration,
-     * if you're looking for raw, uncompressed servlet's output-stream, use `ctx.res().outputStream`.
+     * Gets the output stream you can write to.
+     * This stream by default uses compression specified in the Javalin configuration.
+     * If you're looking for the servlet's raw, uncompressed output stream, use `ctx.res().outputStream`.
      * @see [HttpServletResponse.getOutputStream]
      */
     fun outputStream(): ServletOutputStream
+
+    /**
+     * The output stream returned by outputStream() will use compression (as specified in Javalin configuration), but
+     * compression will happen only if the first write to the output stream is larger than `minSizeForCompression`.
+     * Setting this value to zero will cause compression to always be used. This value must be assigned before calling
+     * outputStream() for the first time. The default value is set to the value of
+     * [io.javalin.config.CompressionStrategy.defaultMinSizeForCompression].
+     */
+    var minSizeForCompression: Int
 
     /**
      * Writes the specified inputStream as a seekable stream.
@@ -434,10 +443,10 @@ interface Context {
      * Consumes the specified stream with the configured JsonMapper, which transforms the stream's
      * content to JSON, writing the results directly to the response's `outputStream` as the stream
      * is consumed. This function call is synchronous, and may be wrapped in `ctx.async { }` if needed.
+     * The response will always be compressed regardless of size, given that compression is enabled in
+     * the Javalin configuration.
      */
-    fun writeJsonStream(stream: Stream<*>) = jsonMapper().writeToOutputStream(
-        stream, this.contentType(ContentType.APPLICATION_JSON).outputStream()
-    )
+    fun writeJsonStream(stream: Stream<*>)
 
     /** Sets context result to specified html string and sets content-type to text/html. */
     fun html(html: String): Context = contentType(ContentType.TEXT_HTML).result(html)
