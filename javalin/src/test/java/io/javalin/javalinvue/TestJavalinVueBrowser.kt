@@ -60,11 +60,21 @@ class TestJavalinVueBrowser {
     }
 
     @Test
-    fun `path params are not html-encoded on the Vue prototype`() = VueTestUtil.test { app, http ->
+    fun `path params are not html-encoded on JavalinVue`() = VueTestUtil.test { app, http ->
         app.get("/vue/{my-param}", VueComponent("test-component"))
         driver.get(http.origin + "/vue/odd&co")
         val pathParam = driver.executeScript("""return JavalinVue.pathParams["my-param"]""") as String
         assertThat(pathParam).isEqualTo("odd&co")
+    }
+
+    @Test
+    fun `the Vue prototype has the same values as JavalinVue`() = VueTestUtil.test { app, http ->
+        app.get("/vue/{my-param}", VueComponent("test-component"))
+        driver.get(http.origin + "/vue/odd&co")
+        val p1 = driver.executeScript("""return JavalinVue.pathParams["my-param"]""") as String
+        val p2 = driver.executeScript("""return Vue.prototype.${"$"}javalin.pathParams["my-param"]""") as String
+        assertThat(p1).isEqualTo("odd&co")
+        assertThat(p1).isEqualTo(p2)
     }
 
     @Test
