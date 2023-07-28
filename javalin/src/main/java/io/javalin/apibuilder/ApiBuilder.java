@@ -8,6 +8,7 @@ package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
 import io.javalin.http.Handler;
+import io.javalin.http.ExceptionHandler;
 import io.javalin.http.sse.SseClient;
 import io.javalin.security.AccessManager;
 import io.javalin.security.RouteRole;
@@ -362,6 +363,16 @@ public class ApiBuilder {
      */
     public static void after(@NotNull Handler handler) {
         staticInstance().after(prefixPath("*"), handler);
+    }
+
+    /**
+     * Adds an exception mapper to the instance.
+     * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
+     *
+     * @see <a href="https://javalin.io/documentation#handlers">Handlers in docs</a>
+     */
+    public static <T extends Exception> void exception(@NotNull Class<T> exceptionClass, @NotNull ExceptionHandler<? super T> exceptionHandler) {
+        staticInstance().exception(exceptionClass, exceptionHandler);
     }
 
     // ********************************************************************************************
