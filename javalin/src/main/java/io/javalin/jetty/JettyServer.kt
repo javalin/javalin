@@ -89,7 +89,6 @@ class JettyServer(
         try {
             JavalinLogger.startup("Starting Javalin ...")
             server().start() // this will log a lot of stuff
-            JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
             eventManager.fireEvent(JavalinLifecycleEvent.SERVER_STARTED)
         } catch (e: Exception) {
             JavalinLogger.error("Failed to start Javalin")
@@ -115,6 +114,7 @@ class JettyServer(
                |       https://javalin.io/documentation
                |""".trimMargin()
         )
+        JavalinLogger.startup("Javalin started in " + (System.currentTimeMillis() - startupTimer) + "ms \\o/")
         (cfg.pvt.resourceHandler as? JettyResourceHandler)?.init() // log resource handler info
         server().connectors.filterIsInstance<ServerConnector>().forEach {
             JavalinLogger.startup("Listening on ${it.baseUrl}")
