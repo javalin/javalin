@@ -70,6 +70,21 @@ class TestStaticFilesPrecompressor {
         assertThat(JettyPrecompressingResourceHandler.compressedFiles.size <= oldSize + 1)
     }
 
+    @Test
+    fun `first available encoding is used`() = TestUtil.test(Javalin.create { config ->
+        config.staticFiles.add { staticFiles ->
+            staticFiles.hostedPath = "/"
+            staticFiles.directory = "/public"
+            staticFiles.precompress = true
+        }
+    }) { _, http ->
+        assertThat(http.getFile("/html.html", "br").contentEncoding()).isEqualTo("br")
+        assertThat(http.getFile("/html.html", "gzip").contentEncoding()).isEqualTo("gzip")
+        assertThat(http.getFile("/html.html", "gzip, br").contentEncoding()).isEqualTo("gzip")
+        assertThat(http.getFile("/html.html", "br, gzip").contentEncoding()).isEqualTo("br")
+        assertThat(http.getFile("/html.html", "deflate, gzip, br").contentEncoding()).isEqualTo("gzip")
+    }
+
     private fun Response.contentLength() = this.headers.get(Header.CONTENT_LENGTH)
     private fun Response.contentEncoding() = this.headers.get(Header.CONTENT_ENCODING)
 
