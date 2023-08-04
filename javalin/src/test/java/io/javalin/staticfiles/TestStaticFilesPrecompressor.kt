@@ -6,6 +6,8 @@
  */
 package io.javalin.staticfiles
 
+import com.aayushatharva.brotli4j.Brotli4jLoader
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream
 import io.javalin.Javalin
 import io.javalin.http.Header
 import io.javalin.jetty.JettyPrecompressingResourceHandler
@@ -17,9 +19,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.assertj.core.api.Assertions.assertThat
+import org.eclipse.jetty.http.MimeTypes
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.openqa.selenium.By
 import org.openqa.selenium.chrome.ChromeDriver
+import java.util.zip.GZIPInputStream
 
 class TestStaticFilesPrecompressor {
 
@@ -99,19 +104,56 @@ class TestStaticFilesPrecompressor {
     }
 
     @Test
-    fun `first available encoding is used`() = TestUtil.test(Javalin.create { config ->
+    fun `first available encoding is used`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
+        assertThat(http.getFile("/secret.html", "br").contentEncoding()).isEqualTo("br")
+        assertThat(http.getFile("/secret.html", "gzip").contentEncoding()).isEqualTo("gzip")
+        assertThat(http.getFile("/secret.html", "gzip, br").contentEncoding()).isEqualTo("gzip")
+        assertThat(http.getFile("/secret.html", "br, gzip").contentEncoding()).isEqualTo("br")
+        assertThat(http.getFile("/secret.html", "deflate, gzip, br").contentEncoding()).isEqualTo("gzip")
+    }
+
+    @Test
+    fun `precompressed files are served with correct content-type`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
+        assertThat(http.getFile("/secret.html", "br").header("Content-Type")).isEqualTo("text/html")
+        assertThat(http.getFile("/library-1.0.0.min.js", "br").header("Content-Type")).isEqualTo("text/javascript")
+        assertThat(http.getFile("/library-1.0.0.min.js", "gzip, br").header("Content-Type")).isEqualTo("text/javascript")
+        assertThat(http.getFile("/library-1.0.0.min.js", "deflate").header("Content-Type")).isEqualTo("text/javascript")
+    }
+
+    @Test
+    fun `response encoding matches header`() = TestUtil.test(configPrecompressionStaticResourceApp) { _, http ->
+        // Gzip
+        val gzipResponse = http.getFile("/secret.html", "gzip")
+        assertThat(gzipResponse.header("Content-Encoding")).isEqualTo("gzip")
+        val gzipInputStream = GZIPInputStream(gzipResponse.body?.byteStream())
+        assertThat(gzipInputStream.readBytes().toString(Charsets.UTF_8)).contains("<h1>Secret file</h1>")
+        gzipInputStream.close()
+
+        // Brotli
+        assumeTrue(Brotli4jLoader.isAvailable())
+        val brotliResponse = http.getFile("/secret.html", "br")
+        assertThat(brotliResponse.header("Content-Encoding")).isEqualTo("br")
+        val brotliInputStream = BrotliInputStream(brotliResponse.body?.byteStream())
+        assertThat(brotliInputStream.readBytes().toString(Charsets.UTF_8)).contains("<h1>Secret file</h1>")
+        brotliInputStream.close()
+    }
+
+    @Test
+    fun `compression strategy is used`() = TestUtil.test(Javalin.create { config ->
+        config.compression.brotliOnly()
         config.staticFiles.add { staticFiles ->
             staticFiles.hostedPath = "/"
             staticFiles.directory = "/public"
             staticFiles.precompress = true
         }
     }) { _, http ->
-        assertThat(http.getFile("/html.html", "br").contentEncoding()).isEqualTo("br")
-        assertThat(http.getFile("/html.html", "gzip").contentEncoding()).isEqualTo("gzip")
-        assertThat(http.getFile("/html.html", "gzip, br").contentEncoding()).isEqualTo("gzip")
+        assumeTrue(Brotli4jLoader.isAvailable())
+        assertThat(http.getFile("/html.html", "gzip").contentEncoding()).isNull()
+        assertThat(http.getFile("/html.html", "gzip, br").contentEncoding()).isEqualTo("br")
         assertThat(http.getFile("/html.html", "br, gzip").contentEncoding()).isEqualTo("br")
-        assertThat(http.getFile("/html.html", "deflate, gzip, br").contentEncoding()).isEqualTo("gzip")
+        assertThat(http.getFile("/html.html", "deflate, gzip, br").contentEncoding()).isEqualTo("br")
     }
+
 
     private fun Response.contentLength() = this.headers.get(Header.CONTENT_LENGTH)
     private fun Response.contentEncoding() = this.headers.get(Header.CONTENT_ENCODING)

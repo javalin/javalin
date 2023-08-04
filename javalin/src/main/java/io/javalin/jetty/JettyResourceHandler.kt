@@ -48,9 +48,9 @@ class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
                     handler.config.headers.forEach { httpResponse.setHeader(it.key, it.value) }
                     if (handler.config.precompress) {
                         return if (resource.isDirectoryWithWelcomeFile(handler, target))  // if it's a directory, we need to serve the welcome file
-                            JettyPrecompressingResourceHandler.handle(target, getWelcomeFile(handler, target), httpRequest, httpResponse)
+                            JettyPrecompressingResourceHandler.handle(target, getWelcomeFile(handler, target), httpRequest, httpResponse, pvt.compressionStrategy)
                         else
-                            JettyPrecompressingResourceHandler.handle(target, resource, httpRequest, httpResponse)
+                            JettyPrecompressingResourceHandler.handle(target, resource, httpRequest, httpResponse, pvt.compressionStrategy)
                     }
                     httpResponse.contentType = null // Jetty will only set the content-type if it's null
                     return runCatching { handler.handle(target, jettyRequest, httpRequest, httpResponse) }.isSuccess

@@ -1,10 +1,7 @@
 package io.javalin.jetty
 
-import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
-import io.javalin.compression.CompressionStrategy.Companion.brotliImplAvailable
 import io.javalin.compression.Compressor
-import io.javalin.compression.Gzip
 import io.javalin.compression.forType
 import io.javalin.http.Header
 import io.javalin.util.JavalinLogger
@@ -23,27 +20,14 @@ object JettyPrecompressingResourceHandler {
     @JvmStatic
     fun clearCache() = compressedFiles.clear()
 
-    val compressionStrategy: CompressionStrategy
-
-    init {
-        compressionStrategy = if (brotliImplAvailable()) {
-            CompressionStrategy(Brotli(11), Gzip(9))
-        } else {
-            CompressionStrategy(null, Gzip(9))
-        }
-
-    }
-
     @JvmField
     var resourceMaxSize: Int = 2 * 1024 * 1024 // the unit of resourceMaxSize is byte
 
-    val excludedMimeTypes = CompressionStrategy().excludedMimeTypesFromCompression
-
-    fun handle(target: String, resource: Resource, req: HttpServletRequest, res: HttpServletResponse): Boolean {
+    fun handle(target: String, resource: Resource, req: HttpServletRequest, res: HttpServletResponse, compStrat: CompressionStrategy): Boolean {
         if (resource.exists() && !resource.isDirectory) {
-            var compressor = findMatchingCompressor(req.getHeader(Header.ACCEPT_ENCODING) ?: "")
+            var compressor = findMatchingCompressor(req.getHeader(Header.ACCEPT_ENCODING) ?: "", compStrat)
             val contentType = MimeTypes.getDefaultMimeByExtension(target) // get content type by file extension
-            if (contentType == null || excludedMimeType(contentType)) {
+            if (contentType == null || excludedMimeType(contentType, compStrat)) {
                 compressor = null
             }
             val resultByteArray = getStaticResourceByteArray(resource, target, compressor) ?: return false
@@ -94,11 +78,13 @@ object JettyPrecompressingResourceHandler {
         return byteArrayOutputStream.toByteArray()
     }
 
-    private fun excludedMimeType(mimeType: String) =
-        if (mimeType == "") false else excludedMimeTypes.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
+    private fun excludedMimeType(mimeType: String, compressionStrategy: CompressionStrategy) =
+        if (mimeType == "") false
+        else compressionStrategy.excludedMimeTypesFromCompression.any { excluded -> mimeType.contains(excluded, ignoreCase = true) }
 
     private fun findMatchingCompressor(
-        contentTypeHeader: String
+        contentTypeHeader: String,
+        compressionStrategy: CompressionStrategy
     ): Compressor? =
         contentTypeHeader
             .split(",")
