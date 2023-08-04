@@ -14,16 +14,12 @@ import io.javalin.jetty.JettyPrecompressingResourceHandler
 import io.javalin.testing.HttpUtil
 import io.javalin.testing.TestDependency
 import io.javalin.testing.TestUtil
-import io.javalin.testing.WebDriverUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.assertj.core.api.Assertions.assertThat
-import org.eclipse.jetty.http.MimeTypes
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
-import org.openqa.selenium.By
-import org.openqa.selenium.chrome.ChromeDriver
 import java.util.zip.GZIPInputStream
 
 class TestStaticFilesPrecompressor {
@@ -76,31 +72,6 @@ class TestStaticFilesPrecompressor {
         assertThat(http.getFile("/secret.html?qp=1", "gzip").contentEncoding()).isEqualTo("gzip")
         assertThat(http.getFile("/secret.html?qp=2", "gzip").contentEncoding()).isEqualTo("gzip")
         assertThat(JettyPrecompressingResourceHandler.compressedFiles.size <= oldSize + 1)
-    }
-
-
-    private val gh1958App: Javalin by lazy {
-        Javalin.create { config ->
-            config.staticFiles.add { staticFiles ->
-                staticFiles.hostedPath = "/"
-                staticFiles.directory = "/public"
-                staticFiles.precompress = true
-            }
-        }
-    }
-
-    private lateinit var driver: ChromeDriver
-
-    @Test
-    fun `chrome can handle precompressed files GH-1958`() = TestUtil.test(gh1958App) { _, http ->
-        driver = WebDriverUtil.getDriver()
-        driver.get(http.origin + "/html.html")
-        val html = driver.findElement(By.tagName("html")).getAttribute("innerHTML")
-        assertThat(html).contains("HTML works")
-        assertThat(html).contains("JavaScript works")
-        if (::driver.isInitialized) {
-            driver.quit()
-        }
     }
 
     @Test

@@ -12,10 +12,12 @@ import io.javalin.plugin.bundled.DevLoggingPlugin.Companion.DevLogging
 import io.javalin.testing.TestUtil
 import io.javalin.testing.TestUtil.captureStdOut
 import io.javalin.testing.WebDriverUtil
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openqa.selenium.By
 import org.openqa.selenium.chrome.ChromeDriver
 import java.io.File
 import kotlin.math.ceil
@@ -84,6 +86,21 @@ class TestWebBrowser {
             assertThat(chunkCount).isEqualTo(expectedChunkCount)
             chunkSize = 128000
         }
+    }
+
+    @Test
+    fun `chrome can handle precompressed files GH-1958`() = TestUtil.test(Javalin.create { config ->
+        config.compression.brotliAndGzip() // this is the default
+        config.staticFiles.add { staticFiles ->
+            staticFiles.hostedPath = "/"
+            staticFiles.directory = "/public"
+            staticFiles.precompress = true
+        }
+    }) { _, http ->
+        driver.get(http.origin + "/html.html")
+        val html = driver.findElement(By.tagName("html")).getAttribute("innerHTML")
+        Assertions.assertThat(html).contains("HTML works")
+        Assertions.assertThat(html).contains("JavaScript works")
     }
 
 }
