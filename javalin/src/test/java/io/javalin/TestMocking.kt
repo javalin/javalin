@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Nested
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import io.mockk.mockk
+import java.lang.reflect.Type
 
 internal class TestMocking {
 
@@ -63,9 +64,9 @@ internal class TestMocking {
 
             val context = mockk<Context>()
             every { context.body() } returns """{"message":"Hello"}"""
-            every { context.bodyAsClass(Test::class.java) } answers { JavalinJackson.defaultMapper().readValue(context.body(), Test::class.java) }
+            every { context.bodyAsClass<Test>(Test::class.java as Type) } answers { JavalinJackson.defaultMapper().readValue(context.body(), Test::class.java) }
 
-            val body = context.bodyAsClass(Test::class.java) // note: reified type is not supported by mockk
+            val body = context.bodyAsClass<Test>()
             assertThat(body.message).isEqualTo("Hello")
         }
 
