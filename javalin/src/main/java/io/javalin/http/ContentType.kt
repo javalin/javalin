@@ -64,6 +64,8 @@ enum class ContentType(
 
     FONT_OTF("font/otf", false, "otf"),
     FONT_TTF("font/ttf", false, "ttf"),
+    FONT_WOFF("font/woff", false, "woff"),
+    FONT_WOFF2("font/woff2", false, "woff2"),
 
     /* Application */
 
