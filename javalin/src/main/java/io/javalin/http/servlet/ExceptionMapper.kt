@@ -23,7 +23,7 @@ fun interface JavaLangErrorHandler {
     fun handle(res: HttpServletResponse, err: Error)
 }
 
-class ExceptionMapper(private val privateConfig: PrivateConfig) {
+class ExceptionMapper(private val pvt: PrivateConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
@@ -47,7 +47,7 @@ class ExceptionMapper(private val privateConfig: PrivateConfig) {
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         when {
-            throwable is Error -> privateConfig.javaLangErrorHandler.handle(res, throwable)
+            throwable is Error -> pvt.javaLangErrorHandler.handle(res, throwable)
             isSomewhatExpectedException(throwable) -> logDebugAndSetError(throwable, res)
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
