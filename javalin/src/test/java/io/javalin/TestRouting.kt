@@ -41,6 +41,13 @@ class TestRouting {
     }
 
     @Test
+    fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
+        cfg.routing.get("/hello") { it.result("Hello World") }
+    }) { _, http ->
+        assertThat(http.getBody("/hello")).isEqualTo("Hello World")
+    }
+
+    @Test
     fun `all mapped verbs return 200`() = TestUtil.test { app, http ->
         app.get("/mapped", TestUtil.okHandler)
         app.post("/mapped", TestUtil.okHandler)

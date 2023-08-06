@@ -6,7 +6,7 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.config.JavalinConfig
+import io.javalin.config.PrivateConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HttpResponseException
@@ -23,7 +23,7 @@ fun interface JavaLangErrorHandler {
     fun handle(res: HttpServletResponse, err: Error)
 }
 
-class ExceptionMapper(val cfg: JavalinConfig) {
+class ExceptionMapper(private val privateConfig: PrivateConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
@@ -47,11 +47,10 @@ class ExceptionMapper(val cfg: JavalinConfig) {
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
         res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
         when {
-            throwable is Error -> cfg.pvt.javaLangErrorHandler.handle(res, throwable)
+            throwable is Error -> privateConfig.javaLangErrorHandler.handle(res, throwable)
             isSomewhatExpectedException(throwable) -> logDebugAndSetError(throwable, res)
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
-
         return null
     }
 

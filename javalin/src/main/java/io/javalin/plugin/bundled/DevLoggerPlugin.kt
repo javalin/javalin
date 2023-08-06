@@ -18,16 +18,15 @@ internal open class DevLoggingPlugin : JavalinPlugin {
         object DevLogging : DevLoggingPlugin()
     }
 
-    lateinit var matcher: PathMatcher
+    private lateinit var matcher: PathMatcher
 
     override fun onInitialize(config: JavalinConfig) {
+        this.matcher = config.pvt.pathMatcher
         config.requestLogger.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
         config.requestLogger.ws { wsDevLogger(it) }
     }
 
     override fun onStart(app: Javalin) {
-        this.matcher = app.javalinServlet().matcher
-
         app.events { on ->
             on.handlerAdded { handlerMetaInfo ->
                 JavalinLogger.info("JAVALIN HANDLER REGISTRATION DEBUG LOG: ${handlerMetaInfo.httpMethod}[${handlerMetaInfo.path}]")

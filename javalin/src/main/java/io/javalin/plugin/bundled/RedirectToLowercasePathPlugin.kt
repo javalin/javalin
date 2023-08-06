@@ -55,7 +55,7 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
     override fun onStart(app: Javalin) {
         app.before { ctx ->
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
-            val matcher = app.javalinServlet().matcher
+            val matcher = app.cfg.pvt.pathMatcher
 
             if (matcher.findEntries(ctx.method(), requestUri).firstOrNull() != null) {
                 return@before // we found a route for this case, no need to redirect

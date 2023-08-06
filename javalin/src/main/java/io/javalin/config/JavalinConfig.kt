@@ -26,16 +26,16 @@ import java.util.function.Consumer
 // `cfg.pvt` should be accessible, but usage should be discouraged (hence the naming)
 class JavalinConfig {
     //@formatter:off
-    @JvmField val pvt = PrivateConfig() // this is "private", only use it if you know what you're doing
+    @JvmField val pvt = PrivateConfig(this) // this is "private", only use it if you know what you're doing
     @JvmField val http = HttpConfig()
-    @JvmField val routing = RoutingConfig()
-    @JvmField val jetty = JettyConfig()
+    @JvmField val routing = RoutingConfig(pvt)
+    @JvmField val jetty = JettyConfig(this)
     @JvmField val staticFiles = StaticFilesConfig(pvt)
     @JvmField val spaRoot = SpaRootConfig(pvt)
     @JvmField val compression = CompressionConfig(pvt)
     @JvmField val requestLogger = RequestLoggerConfig(pvt)
     @JvmField val bundledPlugins = BundledPluginsConfig(this)
-    @JvmField val events = EventConfig()
+    @JvmField val events = EventConfig(pvt)
     @JvmField val vue = JavalinVueConfig()
     @JvmField val contextResolver = ContextResolverConfig()
     @JvmField var showJavalinBanner = true

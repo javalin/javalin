@@ -1,6 +1,10 @@
 package io.javalin.config
 
 import io.javalin.jetty.JettyServer
+import io.javalin.security.RouteRole
+import io.javalin.websocket.WsConfig
+import io.javalin.websocket.WsEntry
+import io.javalin.websocket.WsHandlerType
 import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.Server
@@ -12,7 +16,7 @@ import java.util.function.BiFunction
 import java.util.function.Consumer
 
 /**  Configures the embedded Jetty webserver. */
-class JettyConfig() {
+class JettyConfig(private val cfg: JavalinConfig) {
     //@formatter:off
     @JvmField val multipartConfig = MultipartConfig()
     @JvmField var threadPool: ThreadPool = JettyServer.defaultThreadPool()
@@ -55,4 +59,10 @@ class JettyConfig() {
     fun addConnector(connector : BiFunction<Server, HttpConfiguration, Connector>){
         connectors.add(connector)
     }
+
+    /** Add a WebSocket handler. */
+    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<RouteRole>) {
+        cfg.pvt.wsPathMatcher.add(WsEntry(handlerType, path, cfg.routing, WsConfig().apply { ws.accept(this) }, roles))
+    }
+
 }

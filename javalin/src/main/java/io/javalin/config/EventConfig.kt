@@ -7,9 +7,7 @@
 package io.javalin.config;
 
 import io.javalin.event.LifecycleEventListener
-import io.javalin.event.EventManager;
 import io.javalin.event.HandlerMetaInfo
-import io.javalin.event.JavalinLifecycleEvent;
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STARTED
 import io.javalin.event.JavalinLifecycleEvent.SERVER_STARTING
 import io.javalin.event.JavalinLifecycleEvent.SERVER_START_FAILED
@@ -19,23 +17,21 @@ import io.javalin.event.JavalinLifecycleEvent.SERVER_STOP_FAILED
 import io.javalin.event.WsHandlerMetaInfo
 import java.util.function.Consumer
 
-class EventConfig {
+class EventConfig(private val pvt: PrivateConfig) {
 
-    @JvmField val eventManager = EventManager()
-
-    fun serverStarting(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STARTING, lifecycleEventListener)
-    fun serverStarted(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STARTED, lifecycleEventListener)
-    fun serverStartFailed(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_START_FAILED, lifecycleEventListener)
-    fun serverStopFailed(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STOP_FAILED, lifecycleEventListener)
-    fun serverStopping(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STOPPING, lifecycleEventListener)
-    fun serverStopped(lifecycleEventListener: LifecycleEventListener) = eventManager.addLifecycleEvent(SERVER_STOPPED, lifecycleEventListener)
+    fun serverStarting(lifecycleEventListener: LifecycleEventListener) = pvt.eventManager.addLifecycleEvent(SERVER_STARTING, lifecycleEventListener)
+    fun serverStarted(lifecycleEventListener: LifecycleEventListener) = pvt.eventManager.addLifecycleEvent(SERVER_STARTED, lifecycleEventListener)
+    fun serverStartFailed(lifecycleEventListener: LifecycleEventListener) = pvt.eventManager.addLifecycleEvent(SERVER_START_FAILED, lifecycleEventListener)
+    fun serverStopFailed(lifecycleEventListener: LifecycleEventListener) = pvt.eventManager.addLifecycleEvent(SERVER_STOP_FAILED, lifecycleEventListener)
+    fun serverStopping(lifecycleEventListener: LifecycleEventListener) = pvt.eventManager.addLifecycleEvent(SERVER_STOPPING, lifecycleEventListener)
+    fun serverStopped(lifecycleEventListener: LifecycleEventListener) = pvt.eventManager.addLifecycleEvent(SERVER_STOPPED, lifecycleEventListener)
 
     fun handlerAdded(callback: Consumer<HandlerMetaInfo>) {
-        this.eventManager.handlerAddedHandlers.add(callback);
+        pvt.eventManager.handlerAddedHandlers.add(callback);
     }
 
     fun wsHandlerAdded(callback: Consumer<WsHandlerMetaInfo>) {
-        eventManager.wsHandlerAddedHandlers.add(callback);
+        pvt.eventManager.wsHandlerAddedHandlers.add(callback);
     }
 
 }

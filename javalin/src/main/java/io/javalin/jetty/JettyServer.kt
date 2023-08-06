@@ -57,7 +57,7 @@ class JettyServer(
     private var started = false
     fun started() = started
 
-    private val eventManager by lazy { cfg.events.eventManager }
+    private val eventManager by lazy { cfg.pvt.eventManager }
 
     @Throws(JavalinException::class)
     fun start(host: String?, port: Int?) {

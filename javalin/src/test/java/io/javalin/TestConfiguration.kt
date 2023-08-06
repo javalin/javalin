@@ -58,7 +58,7 @@ class TestConfiguration {
             it.jetty.modifyHttpConfiguration() { httpConfig -> }
             it.jetty.addConnector { server, _ -> ServerConnector(server) }
         }.start(0)
-        assertThat(app.jettyServer.started()).isTrue()
+        assertThat(app.jettyServer().started()).isTrue()
         app.stop()
     }
 

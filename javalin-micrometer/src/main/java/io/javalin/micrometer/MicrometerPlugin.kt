@@ -74,7 +74,7 @@ class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
                     val pathInfo = request.pathInfo.removePrefix(app.cfg.routing.contextPath).prefixIfNot("/")
                     response.setHeader(EXCEPTION_HEADER, null)
                     val handlerType = HandlerType.valueOf(request.method)
-                    val uri = app.javalinServlet().matcher.findEntries(handlerType, pathInfo).asSequence()
+                    val uri = app.cfg.pvt.pathMatcher.findEntries(handlerType, pathInfo).asSequence()
                         .map { it.path }
                         .map { if (it == "/" || it.isBlank()) "root" else it }
                         .map { if (!config.tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }

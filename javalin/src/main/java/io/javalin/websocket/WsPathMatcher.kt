@@ -14,7 +14,7 @@ import java.util.*
 data class WsEntry(
     val type: WsHandlerType,
     val path: String,
-    val routingConfig: RoutingConfig,
+    val routingConfig: RoutingConfig, // TODO: Remove dependency on routingConfig
     val wsConfig: WsConfig,
     val roles: Set<RouteRole>
 ) {

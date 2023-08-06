@@ -7,6 +7,7 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
+import io.javalin.config.DefaultRouting;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
 import io.javalin.security.AccessManager;
@@ -25,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    private static final ThreadLocal<Javalin> staticJavalin = new ThreadLocal<>();
+    private static final ThreadLocal<DefaultRouting<?>> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
-    public static void setStaticJavalin(@NotNull Javalin javalin) {
+    public static void setStaticJavalin(@NotNull DefaultRouting<?> javalin) {
         staticJavalin.set(javalin);
     }
 
@@ -56,8 +57,8 @@ public class ApiBuilder {
         return String.join("", pathDeque.get()) + path;
     }
 
-    public static Javalin staticInstance() {
-        Javalin javalin = staticJavalin.get();
+    public static DefaultRouting<?> staticInstance() {
+        DefaultRouting<?> javalin = staticJavalin.get();
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
@@ -412,7 +413,7 @@ public class ApiBuilder {
      * Adds a WebSocket before handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+    public DefaultRouting<?> wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         return staticInstance().wsBefore(prefixPath(path), wsConfig);
     }
 
@@ -420,7 +421,7 @@ public class ApiBuilder {
      * Adds a WebSocket before handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
+    public DefaultRouting<?> wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
         return staticInstance().wsBefore(prefixPath("*"), wsConfig);
     }
 
@@ -428,7 +429,7 @@ public class ApiBuilder {
      * Adds a WebSocket after handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+    public DefaultRouting<?> wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         return staticInstance().wsAfter(prefixPath(path), wsConfig);
     }
 
@@ -436,7 +437,7 @@ public class ApiBuilder {
      * Adds a WebSocket after handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public Javalin wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
+    public DefaultRouting<?> wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
         return staticInstance().wsAfter(prefixPath("*"), wsConfig);
     }
 

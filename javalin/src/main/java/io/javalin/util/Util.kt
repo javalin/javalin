@@ -14,10 +14,14 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
+import java.util.function.Supplier
 import java.util.zip.Adler32
 import java.util.zip.CheckedInputStream
 
 object Util {
+
+    @JvmStatic
+    fun <T> createLazy(init: Supplier<T>): Lazy<T> = lazy { init.get() }
 
     @JvmStatic
     fun normalizeContextPath(contextPath: String) = when {
