@@ -57,7 +57,7 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
 
     /** Enables automatic pings at a 1-minute interval, preventing the connection from timing out */
     fun enableAutomaticPings() {
-        enableAutomaticPings(1, TimeUnit.MINUTES, null)
+        enableAutomaticPings(15, TimeUnit.SECONDS, null)
     }
 
     /** Enables automatic pings at the specified interval, preventing the connection from timing out */
