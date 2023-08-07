@@ -1,7 +1,5 @@
 package io.javalin.config
 
-import io.javalin.apibuilder.ApiBuilder
-import io.javalin.apibuilder.EndpointGroup
 import io.javalin.event.HandlerMetaInfo
 import io.javalin.event.WsHandlerMetaInfo
 import io.javalin.http.ExceptionHandler
@@ -30,40 +28,38 @@ import io.javalin.websocket.WsHandlerType.WS_AFTER
 import io.javalin.websocket.WsHandlerType.WS_BEFORE
 import java.util.function.Consumer
 
-class RoutingConfig(internal val pvt: PrivateConfig) : DefaultRouting<RoutingConfig>() {
+class RoutingConfig(internal val pvt: PrivateConfig) {
 
     @JvmField var contextPath = "/"
     @JvmField var ignoreTrailingSlashes = true
     @JvmField var treatMultipleSlashesAsSingleSlash = false
     @JvmField var caseInsensitiveRoutes = false
 
-    override fun routingConfig(): RoutingConfig = this
+    class JavalinRouter(private val routingConfig: RoutingConfig) : DefaultJavalinRouter<JavalinRouter>() {
+        override fun routingConfig(): RoutingConfig = routingConfig
+    }
+    @JvmField var defaultRouter = JavalinRouter(this)
+
+    fun <R> router(router: Router<R>, routingScope: R.() -> Unit): RoutingConfig =
+        router(router, Consumer { routingScope(it) })
+
+    fun <R> router(router: Router<R>, routingScope: Consumer<R>): RoutingConfig = also {
+        router.handle(it, routingScope)
+    }
 
 }
 
-abstract class DefaultRouting<T : DefaultRouting<T>> {
+fun interface Router<R> {
+    fun handle(cfg: RoutingConfig, routingScope: Consumer<R>)
+}
+
+abstract class DefaultJavalinRouter<T : DefaultJavalinRouter<T>> {
 
     protected abstract fun routingConfig(): RoutingConfig
 
     private fun getThis(): T {
         @Suppress("UNCHECKED_CAST")
         return this as T
-    }
-
-    /**
-     * Creates a temporary static instance in the scope of the endpointGroup.
-     * Allows you to call get(handler), post(handler), etc. without using the instance prefix.
-     * See [Handler groups in documentation](https://javalin.io/documentation.handler-groups)
-     * @see ApiBuilder
-     */
-    fun routes(endpointGroup: EndpointGroup): T {
-        ApiBuilder.setStaticJavalin(this)
-        try {
-            endpointGroup.addEndpoints()
-        } finally {
-            ApiBuilder.clearStaticJavalin()
-        }
-        return getThis()
     }
 
     // ********************************************************************************************

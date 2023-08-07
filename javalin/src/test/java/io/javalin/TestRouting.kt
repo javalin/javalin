@@ -7,6 +7,7 @@
 
 package io.javalin
 
+import io.javalin.apibuilder.ApiBuilder.ApiBuilder
 import io.javalin.apibuilder.ApiBuilder.after
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
@@ -42,7 +43,16 @@ class TestRouting {
 
     @Test
     fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.routing.get("/hello") { it.result("Hello World") }
+        cfg.routing.defaultRouter.get("/hello") { it.result("Hello World") }
+    }) { _, http ->
+        assertThat(http.getBody("/hello")).isEqualTo("Hello World")
+    }
+
+    @Test
+    fun `api builder can be used as custom router`() = TestUtil.test(Javalin.create { cfg ->
+        cfg.routing.router(ApiBuilder) {
+            get("/hello") { it.result("Hello World") }
+        }
     }) { _, http ->
         assertThat(http.getBody("/hello")).isEqualTo("Hello World")
     }

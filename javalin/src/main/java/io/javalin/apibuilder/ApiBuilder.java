@@ -7,7 +7,9 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
-import io.javalin.config.DefaultRouting;
+import io.javalin.config.DefaultJavalinRouter;
+import io.javalin.config.Router;
+import io.javalin.config.RoutingConfig;
 import io.javalin.http.Handler;
 import io.javalin.http.sse.SseClient;
 import io.javalin.security.AccessManager;
@@ -26,10 +28,34 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    private static final ThreadLocal<DefaultRouting<?>> staticJavalin = new ThreadLocal<>();
+    private static class ApiBuilderRouting extends DefaultJavalinRouter<ApiBuilderRouting> {
+        private final RoutingConfig routingConfig;
+
+        public ApiBuilderRouting(RoutingConfig routingConfig) {
+            this.routingConfig = routingConfig;
+        }
+
+        @NotNull
+        @Override
+        protected RoutingConfig routingConfig() {
+            return routingConfig;
+        }
+    }
+
+    public static final Router<ApiBuilder> ApiBuilder = (routingConfig, init) -> {
+        try {
+            ApiBuilderRouting apiBuilderRouting = new ApiBuilderRouting(routingConfig);
+            setStaticJavalin(apiBuilderRouting);
+            init.accept(new ApiBuilder());
+        } finally {
+            clearStaticJavalin();
+        }
+    };
+
+    private static final ThreadLocal<DefaultJavalinRouter<?>> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
-    public static void setStaticJavalin(@NotNull DefaultRouting<?> javalin) {
+    public static void setStaticJavalin(@NotNull DefaultJavalinRouter<?> javalin) {
         staticJavalin.set(javalin);
     }
 
@@ -57,8 +83,8 @@ public class ApiBuilder {
         return String.join("", pathDeque.get()) + path;
     }
 
-    public static DefaultRouting<?> staticInstance() {
-        DefaultRouting<?> javalin = staticJavalin.get();
+    public static DefaultJavalinRouter<?> staticInstance() {
+        DefaultJavalinRouter<?> javalin = staticJavalin.get();
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }
@@ -413,7 +439,7 @@ public class ApiBuilder {
      * Adds a WebSocket before handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public DefaultRouting<?> wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+    public DefaultJavalinRouter<?> wsBefore(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         return staticInstance().wsBefore(prefixPath(path), wsConfig);
     }
 
@@ -421,7 +447,7 @@ public class ApiBuilder {
      * Adds a WebSocket before handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public DefaultRouting<?> wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
+    public DefaultJavalinRouter<?> wsBefore(@NotNull Consumer<WsConfig> wsConfig) {
         return staticInstance().wsBefore(prefixPath("*"), wsConfig);
     }
 
@@ -429,7 +455,7 @@ public class ApiBuilder {
      * Adds a WebSocket after handler for the specified path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public DefaultRouting<?> wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
+    public DefaultJavalinRouter<?> wsAfter(@NotNull String path, @NotNull Consumer<WsConfig> wsConfig) {
         return staticInstance().wsAfter(prefixPath(path), wsConfig);
     }
 
@@ -437,7 +463,7 @@ public class ApiBuilder {
      * Adds a WebSocket after handler for the current path to the {@link Javalin} instance.
      * The method can only be called inside a {@link Javalin#routes(EndpointGroup)}.
      */
-    public DefaultRouting<?> wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
+    public DefaultJavalinRouter<?> wsAfter(@NotNull Consumer<WsConfig> wsConfig) {
         return staticInstance().wsAfter(prefixPath("*"), wsConfig);
     }
 
