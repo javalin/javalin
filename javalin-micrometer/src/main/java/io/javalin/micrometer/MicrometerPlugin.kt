@@ -15,6 +15,7 @@ import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginConfiguration
 import io.javalin.plugin.PluginFactory
 import io.javalin.plugin.createUserConfig
+import io.javalin.util.Util.firstOrNull
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag
@@ -74,7 +75,7 @@ class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
                     val pathInfo = request.pathInfo.removePrefix(app.cfg.routing.contextPath).prefixIfNot("/")
                     response.setHeader(EXCEPTION_HEADER, null)
                     val handlerType = HandlerType.valueOf(request.method)
-                    val uri = app.javalinServlet().matcher.findEntries(handlerType, pathInfo).asSequence()
+                    val uri = app.javalinServlet().matcher.findEntries(handlerType, pathInfo)
                         .map { it.path }
                         .map { if (it == "/" || it.isBlank()) "root" else it }
                         .map { if (!config.tagRedirectPaths && response.status in 300..399) "REDIRECTION" else it }
@@ -87,7 +88,6 @@ class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
                     )
                 }
             }))
-
 
             JettyServerThreadPoolMetrics(server.threadPool, config.tags).bindTo(config.registry)
             app.events {

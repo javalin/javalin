@@ -10,6 +10,7 @@ import io.javalin.http.servlet.SubmitOrder.FIRST
 import io.javalin.http.servlet.SubmitOrder.LAST
 import io.javalin.http.util.MethodNotAllowedUtil
 import io.javalin.security.accessManagerNotConfiguredException
+import io.javalin.util.Util.firstOrNull
 import jakarta.servlet.http.HttpServletResponseWrapper
 
 object DefaultTasks {

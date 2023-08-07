@@ -14,7 +14,7 @@ import io.javalin.routing.PathMatcher
 object MethodNotAllowedUtil {
 
     fun findAvailableHttpHandlerTypes(matcher: PathMatcher, requestUri: String) =
-        enumValues<HandlerType>().filter { it.isHttpMethod() && matcher.findEntries(it, requestUri).isNotEmpty() }
+        enumValues<HandlerType>().filter { it.isHttpMethod && matcher.findEntries(it, requestUri).findFirst().isPresent }
 
     fun getAvailableHandlerTypes(ctx: Context, availableHandlerTypes: List<HandlerType>): Map<String, String> = mapOf(
         (if (acceptsHtml(ctx)) "Available methods" else "availableMethods") to availableHandlerTypes.joinToString(", ")
