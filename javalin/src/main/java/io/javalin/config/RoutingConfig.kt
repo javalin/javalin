@@ -38,7 +38,7 @@ class RoutingConfig(internal val pvt: PrivateConfig) {
     class JavalinRouter(private val routingConfig: RoutingConfig) : DefaultJavalinRouter<JavalinRouter>() {
         override fun routingConfig(): RoutingConfig = routingConfig
     }
-    @JvmField var defaultRouter = JavalinRouter(this)
+    @JvmField var router = JavalinRouter(this)
 
     fun <R> router(router: Router<R>, routingScope: R.() -> Unit): RoutingConfig =
         router(router, Consumer { routingScope(it) })
