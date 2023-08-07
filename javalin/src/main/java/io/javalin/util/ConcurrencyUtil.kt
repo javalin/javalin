@@ -10,6 +10,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.LazyThreadSafetyMode.SYNCHRONIZED
+import kotlin.concurrent.withLock
 
 object ConcurrencyUtil {
 
@@ -69,6 +72,39 @@ internal object LoomUtil {
     fun isLoomThreadPool(threadPool: ThreadPool): Boolean =
         threadPool is LoomThreadPool
 
+}
+
+internal class ReentrantLazy<T : Any>(initializer: () -> T) : Lazy<T> {
+    private companion object {
+        private object UNINITIALIZED_VALUE
+    }
+
+    private var initializer: (() -> T)? = initializer
+    @Volatile private var lock: ReentrantLock? = ReentrantLock()
+    @Volatile private var _value: Any? = UNINITIALIZED_VALUE
+
+    override val value: T
+        get() {
+            lock?.withLock {
+                if (_value !== UNINITIALIZED_VALUE) {
+                    this._value = initializer!!.invoke()
+                    this.lock = null
+                    this.initializer = null
+                }
+            }
+            @Suppress("UNCHECKED_CAST")
+            return _value as T
+        }
+
+    override fun isInitialized(): Boolean = _value !== UNINITIALIZED_VALUE
+}
+
+/* Use ReentrantLock instead of synchronized block when Loom is enabled */
+object SynchronizedLazyFactory {
+    fun <T : Any> synchronizedLazy(initializer: () -> T): Lazy<T> = when (ConcurrencyUtil.useLoom && ConcurrencyUtil.isLoomAvailable()) {
+        true -> ReentrantLazy(initializer)
+        false -> lazy(SYNCHRONIZED, initializer)
+    }
 }
 
 open class NamedThreadFactory(protected val prefix: String) : ThreadFactory {
