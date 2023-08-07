@@ -55,9 +55,14 @@ abstract class WsContext(private val sessionId: String, @JvmField val session: S
     @JvmOverloads
     fun sendPing(applicationData: ByteBuffer? = null) = session.remote.sendPing(applicationData ?: ByteBuffer.allocate(0))
 
+    /** Enables automatic pings at a 1-minute interval, preventing the connection from timing out */
+    fun enableAutomaticPings() {
+        enableAutomaticPings(15, TimeUnit.SECONDS, null)
+    }
+
     /** Enables automatic pings at the specified interval, preventing the connection from timing out */
     @JvmOverloads
-    fun enableAutomaticPings(interval: Long = 1, unit: TimeUnit = TimeUnit.MINUTES, applicationData: ByteBuffer? = null) {
+    fun enableAutomaticPings(interval: Long, unit: TimeUnit, applicationData: ByteBuffer? = null) {
         enableAutomaticPings(this, interval, unit, applicationData)
     }
 
