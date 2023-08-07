@@ -13,6 +13,7 @@ import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginPriority
 import io.javalin.routing.PathParser
 import io.javalin.routing.PathSegment
+import io.javalin.util.Util.firstOrNull
 import java.util.*
 
 /**
@@ -57,7 +58,7 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
             val matcher = app.javalinServlet().matcher
 
-            if (matcher.findEntries(ctx.method(), requestUri).firstOrNull() != null) {
+            if (matcher.findEntries(ctx.method(), requestUri).findFirst().isPresent) {
                 return@before // we found a route for this case, no need to redirect
             }
 

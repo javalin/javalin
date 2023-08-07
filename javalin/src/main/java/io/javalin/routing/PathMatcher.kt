@@ -8,6 +8,7 @@ package io.javalin.routing
 
 import io.javalin.http.HandlerType
 import java.util.*
+import java.util.stream.Stream
 
 class PathMatcher {
 
@@ -15,19 +16,19 @@ class PathMatcher {
         HandlerType.values().associateWithTo(EnumMap(HandlerType::class.java)) { arrayListOf() }
 
     fun add(entry: HandlerEntry) {
-        if (entry.type.isHttpMethod() && handlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
+        if (entry.type.isHttpMethod && handlerEntries[entry.type]!!.find { it.type == entry.type && it.path == entry.path } != null) {
             throw IllegalArgumentException("Handler with type='${entry.type}' and path='${entry.path}' already exists.")
         }
         handlerEntries[entry.type]!!.add(entry)
     }
 
-    fun findEntries(handlerType: HandlerType, requestUri: String) =
-        handlerEntries[handlerType]!!.filter { he -> match(he, requestUri) }
+    fun findEntries(handlerType: HandlerType, requestUri: String): Stream<HandlerEntry> =
+        handlerEntries[handlerType]!!.stream().filter { he -> match(he, requestUri) }
 
     internal fun hasEntries(handlerType: HandlerType, requestUri: String): Boolean =
         handlerEntries[handlerType]!!.any { entry -> match(entry, requestUri) }
 
-    internal fun getAllEntriesOfType(handlerType: HandlerType) =
+    internal fun getAllEntriesOfType(handlerType: HandlerType): List<HandlerEntry> =
         handlerEntries[handlerType]!!
 
     private fun match(entry: HandlerEntry, requestPath: String): Boolean = when (entry.path) {

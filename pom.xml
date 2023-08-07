@@ -98,6 +98,7 @@
         <moshi.version>1.13.0</moshi.version>
         <java.websocket.version>1.5.2</java.websocket.version>
         <junit.version>5.9.3</junit.version>
+        <jmh.version>1.37</jmh.version>
         <mockito.version>5.4.0</mockito.version>
         <mockk.version>1.13.5</mockk.version>
         <unirest.version>3.13.10</unirest.version>
