@@ -92,7 +92,7 @@ internal class ReentrantLazy<T : Any>(initializer: () -> T) : Lazy<T> {
     override val value: T
         get() {
             lock?.withLock {
-                if (_value !== UNINITIALIZED_VALUE) {
+                if (_value === UNINITIALIZED_VALUE) {
                     this._value = initializer!!.invoke()
                     this.lock = null
                     this.initializer = null
