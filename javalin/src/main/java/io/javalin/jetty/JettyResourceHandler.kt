@@ -22,6 +22,7 @@ import org.eclipse.jetty.util.resource.EmptyResource
 import org.eclipse.jetty.util.resource.Resource
 import java.io.File
 import java.nio.file.AccessDeniedException
+import kotlin.LazyThreadSafetyMode.NONE
 import io.javalin.http.staticfiles.ResourceHandler as JavalinResourceHandler
 
 class JettyResourceHandler(val pvt: PrivateConfig) : JavalinResourceHandler {
@@ -86,7 +87,7 @@ open class ConfigurableHandler(val config: StaticFileConfig, jettyServer: Server
     }
 
     override fun getResource(path: String): Resource {
-        val aliasResource by lazy { baseResource!!.addPath(URIUtil.canonicalPath(path)) }
+        val aliasResource by lazy(NONE) { baseResource!!.addPath(URIUtil.canonicalPath(path)) }
         return when {
             config.directory == "META-INF/resources/webjars" ->
                 Resource.newClassPathResource("META-INF/resources$path") ?: EmptyResource.INSTANCE

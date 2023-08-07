@@ -8,6 +8,7 @@ package io.javalin.validation
 
 import io.javalin.json.JsonMapper
 import io.javalin.util.JavalinLogger
+import kotlin.LazyThreadSafetyMode.NONE
 
 typealias Check<T> = (T) -> Boolean
 
@@ -27,7 +28,7 @@ open class BaseValidator<T>(val fieldName: String, protected var typedValue: T?,
     constructor(stringValue: String?, clazz: Class<T>, fieldName: String, jsonMapper: JsonMapper? = null) :
         this(fieldName, null, StringSource<T>(stringValue, clazz, jsonMapper))
 
-    private val errors by lazy {
+    private val errors by lazy(NONE) {
         if (stringSource != null) {
             if (this is BodyValidator) {
                 try {

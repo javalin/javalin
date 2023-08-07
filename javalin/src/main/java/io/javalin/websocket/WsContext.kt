@@ -16,6 +16,7 @@ import org.eclipse.jetty.websocket.api.Session
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
+import kotlin.LazyThreadSafetyMode.NONE
 import kotlin.reflect.javaType
 import kotlin.reflect.typeOf
 
@@ -26,11 +27,9 @@ import kotlin.reflect.typeOf
  */
 abstract class WsContext(val sessionId: String, @JvmField val session: Session) {
 
-    internal val upgradeReq by lazy { session.jettyUpgradeRequest() }
-    internal val upgradeCtx by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeContextKey) as Context }
-
+    internal val upgradeCtx by lazy(NONE) { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeContextKey) as Context }
     @Suppress("UNCHECKED_CAST")
-    internal val sessionAttributes by lazy { upgradeReq.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
+    private val sessionAttributes by lazy(NONE) { session.jettyUpgradeRequest.httpServletRequest.getAttribute(upgradeSessionAttrsKey) as Map<String, Any>? }
 
     /** Returns the path that was used to match this request */
     fun matchedPath() = upgradeCtx.matchedPath()
@@ -100,7 +99,7 @@ abstract class WsContext(val sessionId: String, @JvmField val session: Session) 
     inline fun <reified T : Any> pathParamAsClass(key: String) = pathParamAsClass(key, T::class.java)
 
     /** Returns the host as a [String] */
-    fun host(): String = upgradeReq.host // why can't we get this from upgradeCtx?
+    fun host(): String = session.jettyUpgradeRequest.host // why can't we get this from upgradeCtx?
 
     /** Gets a request header by name, or null. */
     fun header(header: String): String? = upgradeCtx.header(header)
