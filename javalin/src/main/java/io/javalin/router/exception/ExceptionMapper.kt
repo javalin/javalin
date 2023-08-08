@@ -6,7 +6,7 @@
 
 package io.javalin.router.exception
 
-import io.javalin.config.RoutingConfig
+import io.javalin.config.RouterConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HttpResponseException
@@ -19,7 +19,7 @@ import java.io.IOException
 import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeoutException
 
-class ExceptionMapper(private val routingConfig: RoutingConfig) {
+class ExceptionMapper(private val routerConfig: RouterConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
 
@@ -46,7 +46,7 @@ class ExceptionMapper(private val routingConfig: RoutingConfig) {
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
         res.status = INTERNAL_SERVER_ERROR.code
         when {
-            throwable is Error -> routingConfig.javaLangErrorHandler.handle(res, throwable)
+            throwable is Error -> routerConfig.javaLangErrorHandler.handle(res, throwable)
             isSomewhatExpectedException(throwable) -> logDebugAndSetError(throwable, res)
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }

@@ -1,6 +1,6 @@
 package io.javalin.router
 
-import io.javalin.config.RoutingConfig
+import io.javalin.config.RouterConfig
 import io.javalin.event.EventManager
 import io.javalin.event.HandlerMetaInfo
 import io.javalin.event.WsHandlerMetaInfo
@@ -24,12 +24,12 @@ import java.util.stream.Stream
 open class InternalRouter<IR : InternalRouter<IR>>(
     private val wsRouter: WsRouter,
     private val eventManager: EventManager,
-    internal val routingConfig: RoutingConfig
+    internal val routerConfig: RouterConfig
 ) {
 
     protected open val pathMatcher = PathMatcher()
     protected open val errorMapper = ErrorMapper()
-    protected open val exceptionMapper = ExceptionMapper(routingConfig)
+    protected open val exceptionMapper = ExceptionMapper(routerConfig)
 
     /**
      * Adds a request handler for the specified handlerType and path to the instance.
@@ -40,11 +40,11 @@ open class InternalRouter<IR : InternalRouter<IR>>(
      */
     open fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): IR {
         val roleSet = HashSet(roles.asList())
-        pathMatcher.add(HandlerEntry(handlerType, path, routingConfig, roleSet, handler))
+        pathMatcher.add(HandlerEntry(handlerType, path, routerConfig, roleSet, handler))
         eventManager.fireHandlerAddedEvent(
             HandlerMetaInfo(
                 httpMethod = handlerType,
-                path = Util.prefixContextPath(routingConfig.contextPath, path),
+                path = Util.prefixContextPath(routerConfig.contextPath, path),
                 handler = handler,
                 roles = roleSet
             )
@@ -123,7 +123,7 @@ open class InternalRouter<IR : InternalRouter<IR>>(
         eventManager.fireWsHandlerAddedEvent(
             WsHandlerMetaInfo(
                 handlerType = handlerType,
-                path = Util.prefixContextPath(routingConfig.contextPath, path),
+                path = Util.prefixContextPath(routerConfig.contextPath, path),
                 wsConfig = wsConfig,
                 roles = roleSet
             )

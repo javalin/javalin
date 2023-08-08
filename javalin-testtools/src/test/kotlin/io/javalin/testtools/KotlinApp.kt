@@ -8,7 +8,7 @@ import io.javalin.http.Context
 // make it classes and do dependency injection or whatever
 object KotlinApp {
     var app = Javalin.create { javalin ->
-        javalin.routing.ignoreTrailingSlashes = false
+        javalin.router.ignoreTrailingSlashes = false
     }.routes {
         ApiBuilder.get("/hello", HelloController::hello)
     }

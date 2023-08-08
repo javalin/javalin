@@ -17,7 +17,7 @@ public class HelloWorldServlet {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> {
-            config.routing.contextPath = "/api";
+            config.router.contextPath = "/api";
 
             Server server = new Server();
             ServletContextHandler context = new ServletContextHandler();

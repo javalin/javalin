@@ -1,10 +1,10 @@
 package io.javalin.websocket
 
-import io.javalin.config.RoutingConfig
+import io.javalin.config.RouterConfig
 import io.javalin.security.RouteRole
 import java.util.function.Consumer
 
-class WsRouter(private val routingConfig: RoutingConfig) {
+class WsRouter(private val routerConfig: RouterConfig) {
 
     val wsExceptionMapper = WsExceptionMapper()
     val wsPathMatcher = WsPathMatcher()
@@ -15,7 +15,7 @@ class WsRouter(private val routingConfig: RoutingConfig) {
             WsEntry(
                 type = handlerType,
                 path = path,
-                routingConfig = routingConfig,
+                routerConfig = routerConfig,
                 wsConfig = WsConfig().apply { ws.accept(this) },
                 roles = roles
             )

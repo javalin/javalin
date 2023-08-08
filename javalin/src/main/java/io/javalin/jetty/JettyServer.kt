@@ -70,7 +70,7 @@ class JettyServer(
             cfg.jetty.serverConsumers.forEach{ it.accept(this) } // apply user config
             handler = handler.attachHandler(ServletContextHandler(SESSIONS).apply {
                 JettyWebSocketServletContainerInitializer.configure(this, null)
-                contextPath = Util.normalizeContextPath(cfg.routing.contextPath)
+                contextPath = Util.normalizeContextPath(cfg.router.contextPath)
                 sessionHandler = defaultSessionHandler()
                 addServlet(ServletHolder(wsAndHttpServlet), "/*")
                 cfg.jetty.servletContextHandlerConsumers.forEach{ it.accept(this) } // apply user config
@@ -179,6 +179,6 @@ class JettyServer(
     }
 
     private val ServerConnector.protocol get() = if (protocols.contains("ssl")) "https" else "http"
-    private val ServerConnector.baseUrl get() = "${this.protocol}://${this.host ?: "localhost"}:${this.localPort}${cfg.routing.contextPath}"
+    private val ServerConnector.baseUrl get() = "${this.protocol}://${this.host ?: "localhost"}:${this.localPort}${cfg.router.contextPath}"
 
 }

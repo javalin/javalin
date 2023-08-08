@@ -27,7 +27,7 @@ import java.util.function.Consumer
 class JavalinConfig {
     //@formatter:off
     @JvmField val http = HttpConfig()
-    @JvmField val routing = RoutingConfig(this)
+    @JvmField val router = RouterConfig(this)
     @JvmField val jetty = JettyConfig(this)
     @JvmField val staticFiles = StaticFilesConfig(this)
     @JvmField val spaRoot = SpaRootConfig(this)

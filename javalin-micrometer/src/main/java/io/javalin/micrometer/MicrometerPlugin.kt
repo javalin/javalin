@@ -71,7 +71,7 @@ class MicrometerPlugin(config: Consumer<MicrometerConfig>) : JavalinPlugin {
                     } else {
                         "Unknown"
                     }
-                    val pathInfo = request.pathInfo.removePrefix(app.cfg.routing.contextPath).prefixIfNot("/")
+                    val pathInfo = request.pathInfo.removePrefix(app.cfg.router.contextPath).prefixIfNot("/")
                     response.setHeader(EXCEPTION_HEADER, null)
                     val handlerType = HandlerType.valueOf(request.method)
                     val uri = app.cfg.pvt.internalRouter.findHandlerEntries(handlerType, pathInfo)

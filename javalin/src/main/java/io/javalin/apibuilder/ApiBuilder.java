@@ -7,7 +7,7 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
-import io.javalin.router.AbstractJavalinRouter;
+import io.javalin.router.StandardJavalinRoutingApi;
 import io.javalin.router.InternalRouter;
 import io.javalin.http.Handler;
 import io.javalin.router.RouterFactory;
@@ -28,12 +28,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ApiBuilder {
 
-    public static class ApiBuilderRouter extends AbstractJavalinRouter<ApiBuilderRouter, ApiBuilderSetup> {
-        ApiBuilderRouter(InternalRouter router) {
-            super(router);
+    public static class ApiBuilderRouter extends StandardJavalinRoutingApi<ApiBuilderRouter, ApiBuilderSetup> {
+        public ApiBuilderRouter(@NotNull InternalRouter<?> internalRouter) {
+            super(internalRouter);
         }
     }
-
     public static class ApiBuilderSetup { }
 
     public static final RouterFactory<ApiBuilderRouter, ApiBuilderSetup> ApiBuilder = (internalRouter, setup) -> {
@@ -46,10 +45,10 @@ public class ApiBuilder {
         }
         return apiBuilder;
     };
-    private static final ThreadLocal<AbstractJavalinRouter<?, ?>> staticJavalin = new ThreadLocal<>();
+    private static final ThreadLocal<StandardJavalinRoutingApi<?, ?>> staticJavalin = new ThreadLocal<>();
     private static final ThreadLocal<Deque<String>> pathDeque = ThreadLocal.withInitial(ArrayDeque::new);
 
-    public static void setStaticJavalin(@NotNull AbstractJavalinRouter<?, ?> javalin) {
+    public static void setStaticJavalin(@NotNull StandardJavalinRoutingApi<?, ?> javalin) {
         staticJavalin.set(javalin);
     }
 
@@ -77,8 +76,8 @@ public class ApiBuilder {
         return String.join("", pathDeque.get()) + path;
     }
 
-    public static AbstractJavalinRouter<?, ?> staticInstance() {
-        AbstractJavalinRouter<?, ?> javalin = staticJavalin.get();
+    public static StandardJavalinRoutingApi<?, ?> staticInstance() {
+        StandardJavalinRoutingApi<?, ?> javalin = staticJavalin.get();
         if (javalin == null) {
             throw new IllegalStateException("The static API can only be used within a routes() call.");
         }

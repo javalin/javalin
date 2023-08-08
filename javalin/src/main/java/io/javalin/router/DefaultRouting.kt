@@ -1,6 +1,6 @@
 package io.javalin.router
 
-import io.javalin.config.RoutingConfig
+import io.javalin.config.RouterConfig
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
@@ -24,33 +24,33 @@ import io.javalin.websocket.WsHandlerType.WS_AFTER
 import io.javalin.websocket.WsHandlerType.WS_BEFORE
 import java.util.function.Consumer
 
-class JavalinRouter(internalRouter: InternalRouter<*>) : AbstractJavalinRouter<JavalinRouter, JavalinRouter>(internalRouter) {
-
+class DefaultRouting(internalRouter: InternalRouter<*>) : StandardJavalinRoutingApi<DefaultRouting, DefaultRouting>(internalRouter) {
     companion object {
         @JvmStatic
-        val JavalinRouter: RouterFactory<JavalinRouter, JavalinRouter> = object : RouterFactory<JavalinRouter, JavalinRouter> {
-            override fun create(internalRouter: InternalRouter<*>, setup: Consumer<JavalinRouter>): JavalinRouter {
-                val javalinRouter = JavalinRouter(internalRouter)
+        val Default: RouterFactory<DefaultRouting, DefaultRouting> = object : RouterFactory<DefaultRouting, DefaultRouting> {
+            override fun create(internalRouter: InternalRouter<*>, setup: Consumer<DefaultRouting>): DefaultRouting {
+                val javalinRouter = DefaultRouting(internalRouter)
                 setup.accept(javalinRouter)
                 return javalinRouter
             }
         }
     }
-
 }
 
-abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(private val internalRouter: InternalRouter<*>) : Router<ROUTER, SETUP> {
+abstract class StandardJavalinRoutingApi<API : RoutingApi<API, SETUP>, SETUP>(
+    private val internalRouter: InternalRouter<*>
+) : RoutingApi<API, SETUP> {
 
-    protected open fun routingConfig(): RoutingConfig = internalRouter.routingConfig
+    protected open fun routingConfig(): RouterConfig = internalRouter.routerConfig
 
     @Suppress("UNCHECKED_CAST")
-    private fun getThis(): ROUTER = this as ROUTER
+    private fun getThis(): API = this as API
 
     /**
      * Adds an exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    override fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): ROUTER {
+    fun <E : Exception> exception(exceptionClass: Class<E>, exceptionHandler: ExceptionHandler<in E>): API {
         internalRouter.exception(exceptionClass, exceptionHandler)
         return getThis()
     }
@@ -60,28 +60,28 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
-    fun error(status: HttpStatus, handler: Handler): ROUTER = error(status.code, "*", handler)
+    fun error(status: HttpStatus, handler: Handler): API = error(status.code, "*", handler)
 
     /**
      * Adds an error mapper to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
-    fun error(status: Int, handler: Handler): ROUTER = error(status, "*", handler)
+    fun error(status: Int, handler: Handler): API = error(status, "*", handler)
 
     /**
      * Adds an error mapper for the specified content-type to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
-    fun error(status: HttpStatus, contentType: String, handler: Handler): ROUTER = error(status.code, contentType, handler)
+    fun error(status: HttpStatus, contentType: String, handler: Handler): API = error(status.code, contentType, handler)
 
     /**
      * Adds an error mapper for the specified content-type to the instance.
      * Useful for turning error-codes (404, 500) into standardized messages/pages
      * See: [Error mapping in docs](https://javalin.io/documentation.error-mapping)
      */
-    override fun error(status: Int, contentType: String, handler: Handler): ROUTER {
+    fun error(status: Int, contentType: String, handler: Handler): API {
         internalRouter.error(status, contentType, handler)
         return getThis()
     }
@@ -93,7 +93,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    override fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): ROUTER {
+    fun addHandler(handlerType: HandlerType, path: String, handler: Handler, vararg roles: RouteRole): API {
         internalRouter.addHandler(handlerType, path, handler, *roles)
         return getThis()
     }
@@ -103,49 +103,49 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * This is the method that all the verb-methods (get/post/put/etc) call.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun addHandler(httpMethod: HandlerType, path: String, handler: Handler): ROUTER = addHandler(httpMethod, path, handler, *emptyArray())
+    fun addHandler(httpMethod: HandlerType, path: String, handler: Handler): API = addHandler(httpMethod, path, handler, *emptyArray())
 
     /**
      * Adds a GET request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    operator fun get(path: String, handler: Handler): ROUTER = addHandler(GET, path, handler)
+    operator fun get(path: String, handler: Handler): API = addHandler(GET, path, handler)
 
     /**
      * Adds a POST request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun post(path: String, handler: Handler): ROUTER = addHandler(POST, path, handler)
+    fun post(path: String, handler: Handler): API = addHandler(POST, path, handler)
 
     /**
      * Adds a PUT request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun put(path: String, handler: Handler): ROUTER = addHandler(PUT, path, handler)
+    fun put(path: String, handler: Handler): API = addHandler(PUT, path, handler)
 
     /**
      * Adds a PATCH request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun patch(path: String, handler: Handler): ROUTER = addHandler(PATCH, path, handler)
+    fun patch(path: String, handler: Handler): API = addHandler(PATCH, path, handler)
 
     /**
      * Adds a DELETE request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun delete(path: String, handler: Handler): ROUTER = addHandler(DELETE, path, handler)
+    fun delete(path: String, handler: Handler): API = addHandler(DELETE, path, handler)
 
     /**
      * Adds a HEAD request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun head(path: String, handler: Handler): ROUTER = addHandler(HEAD, path, handler)
+    fun head(path: String, handler: Handler): API = addHandler(HEAD, path, handler)
 
     /**
      * Adds a OPTIONS request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      */
-    fun options(path: String, handler: Handler): ROUTER = addHandler(OPTIONS, path, handler)
+    fun options(path: String, handler: Handler): API = addHandler(OPTIONS, path, handler)
 
     /**
      * Adds a GET request handler with the given roles for the specified path to the instance.
@@ -153,7 +153,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    operator fun get(path: String, handler: Handler, vararg roles: RouteRole): ROUTER = addHandler(GET, path, handler, *roles)
+    operator fun get(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(GET, path, handler, *roles)
 
     /**
      * Adds a POST request handler with the given roles for the specified path to the instance.
@@ -161,7 +161,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun post(path: String, handler: Handler, vararg roles: RouteRole): ROUTER = addHandler(POST, path, handler, *roles)
+    fun post(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(POST, path, handler, *roles)
 
     /**
      * Adds a PUT request handler with the given roles for the specified path to the instance.
@@ -169,7 +169,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun put(path: String, handler: Handler, vararg roles: RouteRole): ROUTER = addHandler(PUT, path, handler, *roles)
+    fun put(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(PUT, path, handler, *roles)
 
     /**
      * Adds a PATCH request handler with the given roles for the specified path to the instance.
@@ -177,7 +177,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun patch(path: String, handler: Handler, vararg roles: RouteRole): ROUTER = addHandler(PATCH, path, handler, *roles)
+    fun patch(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(PATCH, path, handler, *roles)
 
     /**
      * Adds a DELETE request handler with the given roles for the specified path to the instance.
@@ -185,7 +185,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun delete(path: String, handler: Handler, vararg roles: RouteRole): ROUTER = addHandler(DELETE, path, handler, *roles)
+    fun delete(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(DELETE, path, handler, *roles)
 
     /**
      * Adds a HEAD request handler with the given roles for the specified path to the instance.
@@ -193,7 +193,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun head(path: String, handler: Handler, vararg roles: RouteRole): ROUTER = addHandler(HEAD, path, handler, *roles)
+    fun head(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(HEAD, path, handler, *roles)
 
     /**
      * Adds a OPTIONS request handler with the given roles for the specified path to the instance.
@@ -201,53 +201,53 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [Handlers in docs](https://javalin.io/documentation.handlers)
      * @see io.javalin.security.AccessManager
      */
-    fun options(path: String, handler: Handler, vararg roles: RouteRole): ROUTER = addHandler(OPTIONS, path, handler, *roles)
+    fun options(path: String, handler: Handler, vararg roles: RouteRole): API = addHandler(OPTIONS, path, handler, *roles)
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      */
-    fun sse(path: String, client: Consumer<SseClient>): ROUTER = sse(path, client, *emptyArray())
+    fun sse(path: String, client: Consumer<SseClient>): API = sse(path, client, *emptyArray())
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      */
-    fun sse(path: String, handler: SseHandler): ROUTER = get(path, handler)
+    fun sse(path: String, handler: SseHandler): API = get(path, handler)
 
     /**
      * Adds a lambda handler for a Server Sent Event connection on the specified path.
      * Requires an access manager to be set on the instance.
      */
-    fun sse(path: String, client: Consumer<SseClient>, vararg roles: RouteRole): ROUTER = get(path, SseHandler(clientConsumer = client), *roles)
+    fun sse(path: String, client: Consumer<SseClient>, vararg roles: RouteRole): API = get(path, SseHandler(clientConsumer = client), *roles)
 
     /**
      * Adds a BEFORE request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
-    fun before(path: String, handler: Handler): ROUTER = addHandler(BEFORE, path, handler)
+    fun before(path: String, handler: Handler): API = addHandler(BEFORE, path, handler)
 
     /**
      * Adds a BEFORE request handler for all routes in the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
-    fun before(handler: Handler): ROUTER = before("*", handler)
+    fun before(handler: Handler): API = before("*", handler)
 
     /**
      * Adds an AFTER request handler for the specified path to the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
-    fun after(path: String, handler: Handler): ROUTER = addHandler(AFTER, path, handler)
+    fun after(path: String, handler: Handler): API = addHandler(AFTER, path, handler)
 
     /**
      * Adds an AFTER request handler for all routes in the instance.
      * See: [Handlers in docs](https://javalin.io/documentation.before-handlers)
      */
-    fun after(handler: Handler): ROUTER = after("*", handler)
+    fun after(handler: Handler): API = after("*", handler)
 
     /**
      * Adds a WebSocket exception mapper to the instance.
      * See: [Exception mapping in docs](https://javalin.io/documentation.exception-mapping)
      */
-    override fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): ROUTER {
+    fun <E : Exception> wsException(exceptionClass: Class<E>, exceptionHandler: WsExceptionHandler<in E>): API {
         internalRouter.wsException(exceptionClass, exceptionHandler)
         return getThis()
     }
@@ -256,7 +256,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * Adds a WebSocket handler on the specified path.
      * See: [WebSockets in docs](https://javalin.io/documentation.websockets)
      */
-    fun ws(path: String, ws: Consumer<WsConfig>): ROUTER = ws(path, ws, *emptyArray())
+    fun ws(path: String, ws: Consumer<WsConfig>): API = ws(path, ws, *emptyArray())
 
     /**
      * Adds a WebSocket handler on the specified path with the specified roles.
@@ -264,7 +264,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
      * See: [WebSockets in docs](https://javalin.io/documentation.websockets)
      * @see io.javalin.security.AccessManager
      */
-    override fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): ROUTER {
+    fun ws(path: String, ws: Consumer<WsConfig>, vararg roles: RouteRole): API {
         internalRouter.addWsHandler(WEBSOCKET, path, ws, *roles)
         return getThis()
     }
@@ -272,7 +272,7 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
     /**
      * Adds a WebSocket before handler for the specified path to the instance.
      */
-    fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): ROUTER {
+    fun wsBefore(path: String, wsConfig: Consumer<WsConfig>): API {
         internalRouter.addWsHandler(WS_BEFORE, path, wsConfig)
         return getThis()
     }
@@ -280,12 +280,12 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
     /**
      * Adds a WebSocket before handler for all routes in the instance.
      */
-    fun wsBefore(wsConfig: Consumer<WsConfig>): ROUTER = wsBefore("*", wsConfig)
+    fun wsBefore(wsConfig: Consumer<WsConfig>): API = wsBefore("*", wsConfig)
 
     /**
      * Adds a WebSocket after handler for the specified path to the instance.
      */
-    override fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): ROUTER {
+    fun wsAfter(path: String, wsConfig: Consumer<WsConfig>): API {
         internalRouter.addWsHandler(WS_AFTER, path, wsConfig)
         return getThis()
     }
@@ -293,6 +293,6 @@ abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(priv
     /**
      * Adds a WebSocket after handler for all routes in the instance.
      */
-    fun wsAfter(wsConfig: Consumer<WsConfig>): ROUTER = wsAfter("*", wsConfig)
+    fun wsAfter(wsConfig: Consumer<WsConfig>): API = wsAfter("*", wsConfig)
 
 }

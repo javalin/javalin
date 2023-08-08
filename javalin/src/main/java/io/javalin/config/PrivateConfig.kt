@@ -18,8 +18,8 @@ import org.eclipse.jetty.server.Server
 class PrivateConfig(val cfg: JavalinConfig) {
 
     @JvmField val eventManager = EventManager()
-    @JvmField val wsRouter = WsRouter(cfg.routing)
-    @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, cfg.routing)
+    @JvmField val wsRouter = WsRouter(cfg.router)
+    @JvmField var internalRouter = InternalRouter(wsRouter, eventManager, cfg.router)
     @JvmField var pluginManager = PluginManager()
     @JvmField var appAttributes: MutableMap<String, Any> = HashMap()
     @JvmField var requestLogger: RequestLogger? = null
@@ -33,7 +33,7 @@ class PrivateConfig(val cfg: JavalinConfig) {
     @JvmField var server: Server? = null
 
     fun javaLangErrorHandler(handler: JavaLangErrorHandler): PrivateConfig = also {
-        this.cfg.routing.javaLangErrorHandler = handler
+        this.cfg.router.javaLangErrorHandler = handler
     }
 
 }

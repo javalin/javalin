@@ -46,7 +46,7 @@ class TestConfiguration {
             it.requestLogger.http { ctx, timeInMs -> }
             it.requestLogger.ws { ws -> }
             it.showJavalinBanner = false
-            it.routing.contextPath = "/"
+            it.router.contextPath = "/"
             it.jetty.modifyJettyWebSocketServletFactory() { factory -> }
             it.jetty.modifyServer { server -> }
             it.jetty.modifyServletContextHandler { handler ->

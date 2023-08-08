@@ -43,7 +43,7 @@ class TestContextPath {
 
     @Test
     fun `router works with context-path`() {
-        val javalin = Javalin.create { it.routing.contextPath = "/context-path" }
+        val javalin = Javalin.create { it.router.contextPath = "/context-path" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { it.result("Hello World") }
             assertThat(http.get("/hello").httpCode()).isEqualTo(NOT_FOUND)
@@ -53,7 +53,7 @@ class TestContextPath {
 
     @Test
     fun `router works with multi-level context-path`() {
-        val javalin = Javalin.create { it.routing.contextPath = "/context-path/path-context" }
+        val javalin = Javalin.create { it.router.contextPath = "/context-path/path-context" }
         TestUtil.test(javalin) { app, http ->
             app.get("/hello") { it.result("Hello World") }
             assertThat(http.get("/context-path/").httpCode()).isEqualTo(NOT_FOUND)
@@ -65,7 +65,7 @@ class TestContextPath {
     fun `static-files work with context-path`() {
         val javalin = Javalin.create { servlet ->
             servlet.staticFiles.add("/public", Location.CLASSPATH)
-            servlet.routing.contextPath = "/context-path"
+            servlet.router.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->
             assertThat(http.get("/script.js").httpCode()).isEqualTo(NOT_FOUND)
@@ -77,7 +77,7 @@ class TestContextPath {
     fun `welcome-files work with context-path`() {
         val javalin = Javalin.create { servlet ->
             servlet.staticFiles.add("/public", Location.CLASSPATH)
-            servlet.routing.contextPath = "/context-path"
+            servlet.router.contextPath = "/context-path"
         }
         TestUtil.test(javalin) { _, http ->
             assertThat(http.getBody("/context-path/subdir/")).isEqualTo("<h1>Welcome file</h1>")

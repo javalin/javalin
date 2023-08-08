@@ -53,7 +53,7 @@ class TestWebSocket {
         return this.attribute(TestLogger::class.java.name)
     }
 
-    fun contextPathJavalin(): Javalin = Javalin.create { it.routing.contextPath = "/websocket" }
+    fun contextPathJavalin(): Javalin = Javalin.create { it.router.contextPath = "/websocket" }
 
     fun accessManagedJavalin(): Javalin = Javalin.create().apply {
         this.cfg.accessManager { handler, ctx, roles ->

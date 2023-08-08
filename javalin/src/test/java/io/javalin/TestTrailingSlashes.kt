@@ -21,7 +21,7 @@ import java.net.URLEncoder
 class TestTrailingSlashes {
     private val okHttp = OkHttpClient().newBuilder().build()
     fun OkHttpClient.getBody(path: String) = this.newCall(Request.Builder().url(path).get().build()).execute().body!!.string()
-    val javalin = Javalin.create { it.routing.ignoreTrailingSlashes = false; }
+    val javalin = Javalin.create { it.router.ignoreTrailingSlashes = false; }
 
     @Test
     fun `trailing slashes are ignored by default`() = TestUtil.test { app, http ->

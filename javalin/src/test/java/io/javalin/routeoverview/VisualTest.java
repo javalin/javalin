@@ -12,7 +12,6 @@ import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HandlerType;
 import io.javalin.plugin.bundled.CorsPlugin;
-import io.javalin.plugin.bundled.CorsPlugin.Companion.Cors;
 import io.javalin.plugin.bundled.RouteOverviewPlugin;
 import io.javalin.websocket.WsConfig;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +32,7 @@ public class VisualTest {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create((config) -> {
-            config.routing.contextPath = "/context-path";
+            config.router.contextPath = "/context-path";
             config.registerPlugin(new CorsPlugin(cors -> cors.addRule(corsConfig -> corsConfig.reflectClientOrigin = true)));
             config.registerPlugin(new RouteOverviewPlugin(cfg -> cfg.path = "/route-overview"));
         }).start();

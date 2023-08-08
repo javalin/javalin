@@ -14,7 +14,7 @@ import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType.TRACE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
-import io.javalin.router.JavalinRouter.Companion.JavalinRouter
+import io.javalin.router.DefaultRouting.Companion.Default
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin.Companion.RedirectToLowercasePath
 import io.javalin.router.matcher.MissingBracketsException
 import io.javalin.router.matcher.ParameterNamesNotUniqueException
@@ -44,7 +44,7 @@ class TestRouting {
 
     @Test
     fun `routing is available in config`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.routing.router(JavalinRouter) {
+        cfg.router.routing(Default) {
             it.get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
@@ -53,7 +53,7 @@ class TestRouting {
 
     @Test
     fun `api builder can be used as custom router`() = TestUtil.test(Javalin.create { cfg ->
-        cfg.routing.router(ApiBuilder) {
+        cfg.router.routing(ApiBuilder) {
             get("/hello") { it.result("Hello World") }
         }
     }) { _, http ->
@@ -307,7 +307,7 @@ class TestRouting {
 
     @Test
     fun `root path works with ignoreTrailingSlashes set to false`() = TestUtil.test(Javalin.create {
-        it.routing.ignoreTrailingSlashes = false
+        it.router.ignoreTrailingSlashes = false
     }) { app, http ->
         app.get("/") { it.result("root") }
         app.get("/home") { it.result("home") }
@@ -317,7 +317,7 @@ class TestRouting {
 
     @Test
     fun `root path works with ApiBuilder and ignoreTrailingSlashes set to false`() = TestUtil.test(Javalin.create {
-        it.routing.ignoreTrailingSlashes = false
+        it.router.ignoreTrailingSlashes = false
     }) { app, http ->
         app.routes {
             get("/") { it.result("root") }
@@ -329,7 +329,7 @@ class TestRouting {
 
     @Test
     fun `case insensitive routes work with caseInsensitiveRoutes`() = TestUtil.test(Javalin.create {
-        it.routing.caseInsensitiveRoutes = true
+        it.router.caseInsensitiveRoutes = true
     }) { app, http ->
         app.get("/paTh") { it.result("ok") }
         assertThat(http.getBody("/path")).isEqualTo("ok")
@@ -340,7 +340,7 @@ class TestRouting {
 
     @Test
     fun `case insensitive path params work with caseInsensitiveRoutes`() = TestUtil.test(Javalin.create {
-        it.routing.caseInsensitiveRoutes = true
+        it.router.caseInsensitiveRoutes = true
     }) { app, http ->
         app.get("/patH/<param>") { it.result(it.pathParam("param")) }
         assertThat(http.getBody("/path/value")).isEqualTo("value")
@@ -353,7 +353,7 @@ class TestRouting {
     fun `enableRedirectToLowercasePaths with caseInsensitiveRoutes throws exception`() {
         assertThrows<java.lang.IllegalStateException> {
             Javalin.create {
-                it.routing.caseInsensitiveRoutes = true
+                it.router.caseInsensitiveRoutes = true
                 it.registerPlugin(RedirectToLowercasePath)
             }.start()
         }

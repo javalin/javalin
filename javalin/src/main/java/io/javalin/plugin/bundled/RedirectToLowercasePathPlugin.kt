@@ -30,12 +30,12 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
     }
 
     override fun onInitialize(config: JavalinConfig) {
-        if (config.routing.caseInsensitiveRoutes) {
+        if (config.router.caseInsensitiveRoutes) {
             throw IllegalStateException("RedirectToLowercasePathPlugin is not compatible with caseInsensitiveRoutes")
         }
 
         config.events.handlerAdded { handlerMetaInfo ->
-            val parser = PathParser(handlerMetaInfo.path, config.routing)
+            val parser = PathParser(handlerMetaInfo.path, config.router)
 
             parser.segments.asSequence()
                 .filterIsInstance<PathSegment.Normal>()
@@ -70,7 +70,7 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
                 .filter { it.isNotEmpty() }
                 .toTypedArray()
 
-            val serverSegments = PathParser(lowercaseRoute.path, app.cfg.routing)
+            val serverSegments = PathParser(lowercaseRoute.path, app.cfg.router)
                 .segments
 
             serverSegments.forEachIndexed { index, serverSegment ->

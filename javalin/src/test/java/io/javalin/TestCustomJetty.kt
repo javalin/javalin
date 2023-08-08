@@ -174,7 +174,7 @@ class TestCustomJetty {
         }
         val javalin = Javalin.create {
             it.pvt.server = newServer
-            it.routing.contextPath = "/api"
+            it.router.contextPath = "/api"
         }
         TestUtil.test(javalin) { app, http ->
             app.get("/") { it.result("Hello Javalin World!") }

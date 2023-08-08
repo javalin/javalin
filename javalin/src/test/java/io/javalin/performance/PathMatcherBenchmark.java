@@ -1,8 +1,7 @@
 package io.javalin.performance;
 
 import io.javalin.config.JavalinConfig;
-import io.javalin.config.PrivateConfig;
-import io.javalin.config.RoutingConfig;
+import io.javalin.config.RouterConfig;
 import static io.javalin.http.HandlerType.GET;
 
 import io.javalin.http.HandlerType;
@@ -46,7 +45,7 @@ public class PathMatcherBenchmark {
     public void setup() {
         this.oldPathMatcher = new OldPathMatcher();
         this.pathMatcher = new PathMatcher();
-        var routingConfig = new RoutingConfig(new JavalinConfig());
+        var routingConfig = new RouterConfig(new JavalinConfig());
         for (int i = 0; i < 50; i++) {
             this.pathMatcher.add(new HandlerEntry(GET, "/hello" + i, routingConfig, Collections.emptySet(), (ctx) -> {}));
             this.oldPathMatcher.add(new HandlerEntry(GET, "/hello" + i, routingConfig, Collections.emptySet(), (ctx) -> {}));

@@ -234,7 +234,7 @@ class MicrometerPluginTest {
         autoGenerateEtags: Boolean? = null,
         contextPath: String = "/"
     ) = Javalin.create { config ->
-        config.routing.contextPath = contextPath
+        config.router.contextPath = contextPath
         config.registerPlugin(Micrometer) {
             it.registry = meterRegistry
             it.tags = Tags.empty()
