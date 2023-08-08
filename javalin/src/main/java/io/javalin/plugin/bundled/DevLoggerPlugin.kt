@@ -6,7 +6,7 @@ import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
-import io.javalin.router.matcher.PathMatcher
+import io.javalin.router.InternalRouter
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
@@ -19,11 +19,8 @@ internal open class DevLoggingPlugin : JavalinPlugin {
         object DevLogging : DevLoggingPlugin()
     }
 
-    private lateinit var matcher: PathMatcher
-
     override fun onInitialize(config: JavalinConfig) {
-        this.matcher = config.pvt.internalRouter.pathMatcher
-        config.requestLogger.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
+        config.requestLogger.http { ctx, ms -> requestDevLogger(config.pvt.internalRouter, ctx, ms) }
         config.requestLogger.ws { wsDevLogger(it) }
     }
 
@@ -36,13 +33,13 @@ internal open class DevLoggingPlugin : JavalinPlugin {
     }
 }
 
-fun requestDevLogger(matcher: PathMatcher, ctx: Context, time: Float) = try {
+fun requestDevLogger(router: InternalRouter, ctx: Context, time: Float) = try {
     val requestUri = ctx.path()
     with(ctx) {
         val allMatching = Stream.of(
-                matcher.findEntries(HandlerType.BEFORE, requestUri),
-                matcher.findEntries(ctx.method(), requestUri),
-                matcher.findEntries(HandlerType.AFTER, requestUri)
+                router.findHandlerEntries(HandlerType.BEFORE, requestUri),
+                router.findHandlerEntries(ctx.method(), requestUri),
+                router.findHandlerEntries(HandlerType.AFTER, requestUri)
             )
             .flatMap { it }
             .map { it.type.name + "=" + it.path }

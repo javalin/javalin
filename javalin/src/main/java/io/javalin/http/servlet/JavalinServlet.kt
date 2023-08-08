@@ -29,7 +29,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         )
     }
 
-    val internalRouter = cfg.pvt.internalRouter
+    val router = cfg.pvt.internalRouter
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         try {
@@ -50,7 +50,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
 
             ctx.handleSync()
         } catch (throwable: Throwable) {
-            internalRouter.exceptionMapper.handleUnexpectedThrowable(response, throwable)
+            router.handleUnexpectedThrowable(response, throwable)
         }
     }
 
@@ -78,7 +78,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         userFuture
             .thenApply { handleSync() }
             .exceptionally {
-                internalRouter.exceptionMapper.handle(this, it)
+                router.handleException(this, it)
                 writeResponseAndLog()
             }
     }
@@ -87,7 +87,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         it.timeout = cfg.http.asyncTimeout
         it.addListener(onTimeout = { // a timeout avoids the pipeline - we need to handle it manually + it's not thread-safe
             status(INTERNAL_SERVER_ERROR) // default error handling
-            internalRouter.errorMapper.handle(statusCode(), this) // user defined error handling
+            router.handleError(statusCode(), this) // user defined error handling
             if (resultInputStream() == null) result(REQUEST_TIMEOUT.message) // write default response only if handler didn't do anything
             writeResponseAndLog()
         })
@@ -99,7 +99,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
         } catch (throwable: Throwable) {
             exceptionOccurred = true
             userFutureSupplier = null
-            tasks.offerFirst(Task(skipIfExceptionOccurred = false) { internalRouter.exceptionMapper.handle(this, throwable) })
+            tasks.offerFirst(Task(skipIfExceptionOccurred = false) { router.handleException(this, throwable) })
             null
         }
 
@@ -112,7 +112,7 @@ class JavalinServlet(val cfg: JavalinConfig) : HttpServlet() {
             }
             cfg.pvt.requestLogger?.handle(this, executionTimeMs())
         } catch (throwable: Throwable) {
-            internalRouter.exceptionMapper.handleUnexpectedThrowable(res(), throwable) // handle any unexpected error, e.g. write failure
+            router.handleUnexpectedThrowable(res(), throwable) // handle any unexpected error, e.g. write failure
         } finally {
             if (outputStreamWrapper.isInitialized()) outputStream().close() // close initialized output wrappers
             if (isAsync()) req().asyncContext.complete() // guarantee completion of async context to eliminate the possibility of hanging connections

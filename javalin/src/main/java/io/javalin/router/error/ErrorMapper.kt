@@ -4,7 +4,7 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http.servlet
+package io.javalin.router.error
 
 import io.javalin.http.Context
 import io.javalin.http.Handler

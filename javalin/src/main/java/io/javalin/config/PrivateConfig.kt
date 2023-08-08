@@ -6,7 +6,7 @@ import io.javalin.http.RequestLogger
 import io.javalin.http.SinglePageHandler
 import io.javalin.router.InternalRouter
 import io.javalin.http.servlet.DefaultTasks
-import io.javalin.http.servlet.JavaLangErrorHandler
+import io.javalin.router.exception.JavaLangErrorHandler
 import io.javalin.http.staticfiles.ResourceHandler
 import io.javalin.plugin.PluginManager
 import io.javalin.security.AccessManager
@@ -32,9 +32,8 @@ class PrivateConfig(val cfg: JavalinConfig) {
     // Jetty
     @JvmField var server: Server? = null
 
-
     fun javaLangErrorHandler(handler: JavaLangErrorHandler): PrivateConfig = also {
-        this.internalRouter.exceptionMapper.javaLangErrorHandler = handler
+        this.cfg.routing.javaLangErrorHandler = handler
     }
 
 }

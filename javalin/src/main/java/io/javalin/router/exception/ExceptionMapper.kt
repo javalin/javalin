@@ -4,8 +4,9 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.http.servlet
+package io.javalin.router.exception
 
+import io.javalin.config.RoutingConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HttpResponseException
@@ -18,18 +19,9 @@ import java.io.IOException
 import java.util.concurrent.CompletionException
 import java.util.concurrent.TimeoutException
 
-fun interface JavaLangErrorHandler {
-    fun handle(res: HttpServletResponse, err: Error)
-}
-
-class ExceptionMapper {
+class ExceptionMapper(private val routingConfig: RoutingConfig) {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
-
-    internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->
-        res.status = INTERNAL_SERVER_ERROR.code
-        JavalinLogger.error("Fatal error occurred while servicing http-request", error)
-    }
 
     internal fun handle(ctx: Context, t: Throwable) {
         if (t is CompletionException && t.cause is Exception) {
@@ -37,7 +29,10 @@ class ExceptionMapper {
         }
         when {
             isSomewhatExpectedException(t) -> logDebugAndSetError(t, ctx.res())
-            t is Exception && HttpResponseExceptionMapper.canHandle(t) && noUserHandler(t) -> HttpResponseExceptionMapper.handle(t as HttpResponseException, ctx)
+            t is Exception && HttpResponseExceptionMapper.canHandle(t) && noUserHandler(t) -> HttpResponseExceptionMapper.handle(
+                t as HttpResponseException,
+                ctx
+            )
             t is Exception -> Util.findByClass(handlers, t.javaClass)?.handle(t, ctx) ?: uncaughtException(ctx, t)
             else -> handleUnexpectedThrowable(ctx.res(), t)
         }
@@ -51,7 +46,7 @@ class ExceptionMapper {
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
         res.status = INTERNAL_SERVER_ERROR.code
         when {
-            throwable is Error -> javaLangErrorHandler.handle(res, throwable)
+            throwable is Error -> routingConfig.javaLangErrorHandler.handle(res, throwable)
             isSomewhatExpectedException(throwable) -> logDebugAndSetError(throwable, res)
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
