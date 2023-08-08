@@ -17,8 +17,9 @@ class TestRouteOverviewPlugin {
     ) { app, http ->
         VisualTest.setupJavalinRoutes(app)
 
-        val allPaths = HandlerType.values()
-            .flatMap { app.cfg.pvt.pathMatcher.getAllEntriesOfType(it).map { entry -> entry.path } }
+        val allPaths = HandlerType.values().flatMap { handler ->
+            app.cfg.pvt.internalRouter.pathMatcher.getAllEntriesOfType(handler).map { it.path }
+        }
 
         assertThat(allPaths).isNotEmpty
         assertThat(http.getBody("/overview")).contains(allPaths)

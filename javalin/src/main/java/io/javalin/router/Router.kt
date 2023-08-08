@@ -1,4 +1,4 @@
-package io.javalin.http.router
+package io.javalin.router
 
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler

@@ -14,11 +14,11 @@ import io.javalin.apibuilder.ApiBuilder.path
 import io.javalin.http.HandlerType.TRACE
 import io.javalin.http.HttpStatus.NOT_FOUND
 import io.javalin.http.HttpStatus.OK
-import io.javalin.http.router.JavalinRouter.Companion.JavalinRouter
+import io.javalin.router.JavalinRouter.Companion.JavalinRouter
 import io.javalin.plugin.bundled.RedirectToLowercasePathPlugin.Companion.RedirectToLowercasePath
-import io.javalin.routing.MissingBracketsException
-import io.javalin.routing.ParameterNamesNotUniqueException
-import io.javalin.routing.WildcardBracketAdjacentException
+import io.javalin.router.matcher.MissingBracketsException
+import io.javalin.router.matcher.ParameterNamesNotUniqueException
+import io.javalin.router.matcher.WildcardBracketAdjacentException
 import io.javalin.testing.TestUtil
 import io.javalin.testing.httpCode
 import kong.unirest.HttpMethod

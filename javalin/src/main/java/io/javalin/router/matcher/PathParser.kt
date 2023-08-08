@@ -1,4 +1,4 @@
-package io.javalin.routing
+package io.javalin.router.matcher
 
 import io.javalin.config.RoutingConfig
 import io.javalin.http.servlet.urlDecode

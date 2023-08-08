@@ -6,7 +6,7 @@ import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.Header
 import io.javalin.plugin.JavalinPlugin
-import io.javalin.routing.PathMatcher
+import io.javalin.router.matcher.PathMatcher
 import io.javalin.util.JavalinLogger
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
@@ -22,7 +22,7 @@ internal open class DevLoggingPlugin : JavalinPlugin {
     private lateinit var matcher: PathMatcher
 
     override fun onInitialize(config: JavalinConfig) {
-        this.matcher = config.pvt.pathMatcher
+        this.matcher = config.pvt.internalRouter.pathMatcher
         config.requestLogger.http { ctx, ms -> requestDevLogger(matcher, ctx, ms) }
         config.requestLogger.ws { wsDevLogger(it) }
     }

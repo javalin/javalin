@@ -1,9 +1,10 @@
-package io.javalin.routing
+package io.javalin.router
 
 import io.javalin.config.RoutingConfig
 import io.javalin.http.Handler
 import io.javalin.http.HandlerType
 import io.javalin.http.servlet.JavalinServletContext
+import io.javalin.router.matcher.PathParser
 import io.javalin.security.RouteRole
 
 data class HandlerEntry(

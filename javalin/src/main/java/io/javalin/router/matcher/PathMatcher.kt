@@ -4,9 +4,10 @@
  * Licensed under Apache 2.0: https://github.com/tipsy/javalin/blob/master/LICENSE
  */
 
-package io.javalin.routing
+package io.javalin.router.matcher
 
 import io.javalin.http.HandlerType
+import io.javalin.router.HandlerEntry
 import java.util.*
 import java.util.stream.Stream
 

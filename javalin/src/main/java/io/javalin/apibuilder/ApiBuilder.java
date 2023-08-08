@@ -7,10 +7,10 @@
 package io.javalin.apibuilder;
 
 import io.javalin.Javalin;
-import io.javalin.http.router.AbstractJavalinRouter;
-import io.javalin.http.router.InternalRouter;
+import io.javalin.router.AbstractJavalinRouter;
+import io.javalin.router.InternalRouter;
 import io.javalin.http.Handler;
-import io.javalin.http.router.RouterFactory;
+import io.javalin.router.RouterFactory;
 import io.javalin.http.sse.SseClient;
 import io.javalin.security.AccessManager;
 import io.javalin.security.RouteRole;

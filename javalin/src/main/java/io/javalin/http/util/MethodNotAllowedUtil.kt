@@ -9,7 +9,7 @@ package io.javalin.http.util
 import io.javalin.http.Context
 import io.javalin.http.HandlerType
 import io.javalin.http.servlet.acceptsHtml
-import io.javalin.routing.PathMatcher
+import io.javalin.router.matcher.PathMatcher
 
 object MethodNotAllowedUtil {
 

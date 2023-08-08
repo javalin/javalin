@@ -50,7 +50,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             req.httpServletRequest.setAttribute(upgradeContextKey, preUpgradeContext.changeBaseRequest(req.httpServletRequest))
             val session = req.session as? Session?
             req.httpServletRequest.setAttribute(upgradeSessionAttrsKey, session?.attributeNames?.asSequence()?.associateWith { session.getAttribute(it) })
-            return@JettyWebSocketCreator WsConnection(cfg.pvt.wsPathMatcher, cfg.pvt.wsExceptionMapper, cfg.pvt.wsLogger)
+            return@JettyWebSocketCreator WsConnection(cfg.pvt.wsRouter.wsPathMatcher, cfg.pvt.wsRouter.wsExceptionMapper, cfg.pvt.wsLogger)
         })
     }
 
@@ -59,7 +59,7 @@ class JavalinJettyServlet(val cfg: JavalinConfig, private val httpServlet: Javal
             return httpServlet.service(req, res) // treat as normal HTTP request
         }
         val requestUri = req.requestURI.removePrefix(req.contextPath)
-        val entry = cfg.pvt.wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
+        val entry = cfg.pvt.wsRouter.wsPathMatcher.findEndpointHandlerEntry(requestUri) ?: return res.sendError(404, "WebSocket handler not found")
         val upgradeContext = JavalinServletContext(
             cfg = servletContextConfig,
             req = req,

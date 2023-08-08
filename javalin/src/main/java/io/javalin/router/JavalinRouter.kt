@@ -1,4 +1,4 @@
-package io.javalin.http.router
+package io.javalin.router
 
 import io.javalin.config.RoutingConfig
 import io.javalin.http.ExceptionHandler
@@ -41,7 +41,7 @@ class JavalinRouter(internalRouter: InternalRouter) : AbstractJavalinRouter<Java
 
 abstract class AbstractJavalinRouter<ROUTER : Router<ROUTER, SETUP>, SETUP>(private val internalRouter: InternalRouter) : Router<ROUTER, SETUP> {
 
-    protected open fun routingConfig(): RoutingConfig = internalRouter.cfg.routing
+    protected open fun routingConfig(): RoutingConfig = internalRouter.routingConfig
 
     @Suppress("UNCHECKED_CAST")
     private fun getThis(): ROUTER = this as ROUTER

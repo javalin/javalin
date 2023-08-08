@@ -60,9 +60,4 @@ class JettyConfig(private val cfg: JavalinConfig) {
         connectors.add(connector)
     }
 
-    /** Add a WebSocket handler. */
-    fun addHandler(handlerType: WsHandlerType, path: String, ws: Consumer<WsConfig>, roles: Set<RouteRole>) {
-        cfg.pvt.wsPathMatcher.add(WsEntry(handlerType, path, cfg.routing, WsConfig().apply { ws.accept(this) }, roles))
-    }
-
 }

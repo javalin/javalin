@@ -7,14 +7,14 @@
 package io.javalin.websocket
 
 import io.javalin.config.RoutingConfig
-import io.javalin.routing.PathParser
+import io.javalin.router.matcher.PathParser
 import io.javalin.security.RouteRole
 import java.util.*
 
 data class WsEntry(
     val type: WsHandlerType,
     val path: String,
-    val routingConfig: RoutingConfig, // TODO: Remove dependency on routingConfig
+    val routingConfig: RoutingConfig,
     val wsConfig: WsConfig,
     val roles: Set<RouteRole>
 ) {

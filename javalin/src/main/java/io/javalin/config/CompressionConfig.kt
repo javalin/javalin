@@ -4,28 +4,29 @@ import io.javalin.compression.Brotli
 import io.javalin.compression.CompressionStrategy
 import io.javalin.compression.Gzip
 
-class CompressionConfig(private val pvt: PrivateConfig) {
+class CompressionConfig(private val cfg: JavalinConfig) {
 
     fun custom(compressionStrategy: CompressionStrategy) {
-        pvt.compressionStrategy = compressionStrategy
+        cfg.pvt.compressionStrategy = compressionStrategy
     }
 
     @JvmOverloads
     fun brotliAndGzip(gzipLevel: Int = 6, brotliLevel: Int = 4) {
-        pvt.compressionStrategy = CompressionStrategy(Brotli(brotliLevel), Gzip(gzipLevel))
+        cfg.pvt.compressionStrategy = CompressionStrategy(Brotli(brotliLevel), Gzip(gzipLevel))
     }
 
     @JvmOverloads
     fun gzipOnly(level: Int = 6) {
-        pvt.compressionStrategy = CompressionStrategy(null, Gzip(level))
+        cfg.pvt.compressionStrategy = CompressionStrategy(null, Gzip(level))
     }
 
     @JvmOverloads
     fun brotliOnly(level: Int = 4) {
-        pvt.compressionStrategy = CompressionStrategy(Brotli(level), null)
+        cfg.pvt.compressionStrategy = CompressionStrategy(Brotli(level), null)
     }
 
     fun none() {
-        pvt.compressionStrategy = CompressionStrategy(null, null)
+        cfg.pvt.compressionStrategy = CompressionStrategy(null, null)
     }
+
 }

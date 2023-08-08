@@ -16,7 +16,7 @@ import io.javalin.http.Header
 import io.javalin.http.HttpResponseException
 import io.javalin.http.HttpStatus
 import io.javalin.json.jsonMapper
-import io.javalin.routing.HandlerEntry
+import io.javalin.router.HandlerEntry
 import io.javalin.security.BasicAuthCredentials
 import io.javalin.util.JavalinLogger
 import jakarta.servlet.ServletOutputStream

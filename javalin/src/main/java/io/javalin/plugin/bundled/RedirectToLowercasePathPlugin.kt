@@ -11,8 +11,8 @@ import io.javalin.config.JavalinConfig
 import io.javalin.http.HttpStatus.MOVED_PERMANENTLY
 import io.javalin.plugin.JavalinPlugin
 import io.javalin.plugin.PluginPriority
-import io.javalin.routing.PathParser
-import io.javalin.routing.PathSegment
+import io.javalin.router.matcher.PathParser
+import io.javalin.router.matcher.PathSegment
 import io.javalin.util.Util.firstOrNull
 import java.util.*
 
@@ -56,7 +56,7 @@ open class RedirectToLowercasePathPlugin : JavalinPlugin {
     override fun onStart(app: Javalin) {
         app.before { ctx ->
             val requestUri = ctx.path().removePrefix(ctx.contextPath())
-            val matcher = app.cfg.pvt.pathMatcher
+            val matcher = app.cfg.pvt.internalRouter.pathMatcher
 
             if (matcher.findEntries(ctx.method(), requestUri).findFirst().isPresent) {
                 return@before // we found a route for this case, no need to redirect

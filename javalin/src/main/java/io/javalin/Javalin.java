@@ -9,7 +9,7 @@ package io.javalin;
 
 import io.javalin.apibuilder.ApiBuilder;
 import io.javalin.apibuilder.EndpointGroup;
-import io.javalin.http.router.AbstractJavalinRouter;
+import io.javalin.router.AbstractJavalinRouter;
 import io.javalin.config.JavalinConfig;
 import io.javalin.config.EventConfig;
 import io.javalin.config.RoutingConfig;

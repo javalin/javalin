@@ -6,11 +6,10 @@
 
 package io.javalin.http.servlet
 
-import io.javalin.config.PrivateConfig
 import io.javalin.http.Context
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.HttpResponseException
-import io.javalin.http.HttpStatus
+import io.javalin.http.HttpStatus.INTERNAL_SERVER_ERROR
 import io.javalin.http.InternalServerErrorResponse
 import io.javalin.util.JavalinLogger
 import io.javalin.util.Util
@@ -23,9 +22,14 @@ fun interface JavaLangErrorHandler {
     fun handle(res: HttpServletResponse, err: Error)
 }
 
-class ExceptionMapper(private val pvt: PrivateConfig) {
+class ExceptionMapper {
 
     val handlers = mutableMapOf<Class<out Exception>, ExceptionHandler<Exception>?>()
+
+    internal var javaLangErrorHandler: JavaLangErrorHandler = JavaLangErrorHandler { res, error ->
+        res.status = INTERNAL_SERVER_ERROR.code
+        JavalinLogger.error("Fatal error occurred while servicing http-request", error)
+    }
 
     internal fun handle(ctx: Context, t: Throwable) {
         if (t is CompletionException && t.cause is Exception) {
@@ -45,9 +49,9 @@ class ExceptionMapper(private val pvt: PrivateConfig) {
     }
 
     internal fun handleUnexpectedThrowable(res: HttpServletResponse, throwable: Throwable): Nothing? {
-        res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+        res.status = INTERNAL_SERVER_ERROR.code
         when {
-            throwable is Error -> pvt.javaLangErrorHandler.handle(res, throwable)
+            throwable is Error -> javaLangErrorHandler.handle(res, throwable)
             isSomewhatExpectedException(throwable) -> logDebugAndSetError(throwable, res)
             else -> JavalinLogger.error("Exception occurred while servicing http-request", throwable)
         }
@@ -73,5 +77,5 @@ private fun isSomewhatExpectedException(t: Throwable): Boolean {
 
 private fun logDebugAndSetError(t: Throwable, res: HttpServletResponse) {
     JavalinLogger.debug("Client aborted or timed out", t)
-    res.status = HttpStatus.INTERNAL_SERVER_ERROR.code
+    res.status = INTERNAL_SERVER_ERROR.code
 }
