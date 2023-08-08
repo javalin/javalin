@@ -1,5 +1,6 @@
 package io.javalin.router
 
+import io.javalin.config.ConfigurableInstance
 import io.javalin.config.JavalinConfig
 import io.javalin.http.ExceptionHandler
 import io.javalin.http.Handler
@@ -39,10 +40,6 @@ class JavalinDefaultRouting(private val cfg: JavalinConfig) : JavalinDefaultRout
 
     override fun cfg(): JavalinConfig = cfg
 
-}
-
-interface ConfigurableInstance {
-    fun cfg(): JavalinConfig
 }
 
 interface JavalinDefaultRoutingApi<API : RoutingApi<API, SETUP>, SETUP> : RoutingApi<API, SETUP>, ConfigurableInstance {
